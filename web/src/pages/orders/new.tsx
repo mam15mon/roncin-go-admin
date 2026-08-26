@@ -74,6 +74,8 @@ type CreateOrderFormValues = {
   vgmCutoff?: string | dayjs.Dayjs;
   goodsDescription?: string;
   totalPackages?: number;
+  totalGrossWeightKg?: number;
+  totalVolumeCbm?: number;
   totalPackageUnit?: string;
   specialRequirements?: string;
   orderDate?: string | dayjs.Dayjs;
@@ -417,6 +419,15 @@ export default function NewOrderPage() {
         totalPackages:
           values.totalPackages !== undefined && values.totalPackages !== null
             ? Number(values.totalPackages)
+            : undefined,
+        totalGrossWeightKg:
+          values.totalGrossWeightKg !== undefined &&
+          values.totalGrossWeightKg !== null
+            ? Number(values.totalGrossWeightKg)
+            : undefined,
+        totalVolumeCbm:
+          values.totalVolumeCbm !== undefined && values.totalVolumeCbm !== null
+            ? Number(values.totalVolumeCbm)
             : undefined,
         totalPackageUnit: values.totalPackageUnit?.trim() || undefined,
         specialRequirements: values.specialRequirements?.trim() || undefined,

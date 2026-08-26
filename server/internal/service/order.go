@@ -147,6 +147,40 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, _ *v1.ListPerso
 	return &v1.ListPersonnelOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.ListOrderConsolidationsRequest) (*v1.ListOrderConsolidationsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	orderID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderInvalidArgument
+	}
+	items, err := s.usecase.ListConsolidationSummaries(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.OrderConsolidationSummary, 0, len(items))
+	for _, item := range items {
+		members := make([]*v1.OrderConsolidationMember, 0, len(item.Members))
+		for _, member := range item.Members {
+			members = append(members, &v1.OrderConsolidationMember{
+				OrderId: member.OrderID.String(), OrderNo: member.OrderNo, CustomerReferenceNo: stringPtrIfNotEmpty(member.CustomerReferenceNo), HouseNos: member.HouseNos,
+				Entrusted: cargoMeasurementToAPI(member.Entrusted), Actual: cargoMeasurementToAPI(member.Actual),
+			})
+		}
+		data = append(data, &v1.OrderConsolidationSummary{
+			ConsolidationId: item.ConsolidationID.String(), MasterNo: item.MasterNo, MemberCount: int32(len(item.Members)),
+			Entrusted: cargoMeasurementToAPI(item.Entrusted), Actual: cargoMeasurementToAPI(item.Actual), Members: members,
+		})
+	}
+	return &v1.ListOrderConsolidationsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func cargoMeasurementToAPI(value biz.OrderCargoMeasurement) *v1.OrderCargoMeasurement {
+	return &v1.OrderCargoMeasurement{Packages: int32(value.Packages), GrossWeightKg: value.GrossWeightKg, VolumeCbm: value.VolumeCbm}
+}
+
 func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.CreateOrderResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -279,7 +313,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		DischargeLocationID: dischargeLocationID, TransitLocationID: transitLocationID,
 		VesselVoyage: request.GetVesselVoyage(), ETD: request.GetEtd(), ETA: request.GetEta(), SICutoff: request.GetSiCutoff(), DocCutoff: request.GetDocCutoff(),
 		CustomsCutoff: request.GetCustomsCutoff(), VGMCutoff: request.GetVgmCutoff(), GoodsDescription: request.GetGoodsDescription(),
-		TotalPackages: optionalInt32ToInt(request.TotalPackages), TotalPackageUnit: request.GetTotalPackageUnit(), SpecialRequirements: request.GetSpecialRequirements(),
+		TotalPackages: optionalInt32ToInt(request.TotalPackages), TotalGrossWeightKg: request.TotalGrossWeightKg, TotalVolumeCbm: request.TotalVolumeCbm, TotalPackageUnit: request.GetTotalPackageUnit(), SpecialRequirements: request.GetSpecialRequirements(),
 		OrderDate: request.GetOrderDate(), Notes: request.GetNotes(),
 		BookingNotes: request.GetBookingNotes(), AllocationNotes: request.GetAllocationNotes(), OperationNotes: request.GetOperationNotes(),
 		PersonnelAssignments: personnelAssignments, ShippingDocuments: shippingDocuments, ContainerRequests: containerRequests,
@@ -441,6 +475,12 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.TotalPackages != nil {
 		output.TotalPackages = optionalInt32ToInt(request.TotalPackages)
 	}
+	if request.TotalGrossWeightKg != nil {
+		output.TotalGrossWeightKg = request.TotalGrossWeightKg
+	}
+	if request.TotalVolumeCbm != nil {
+		output.TotalVolumeCbm = request.TotalVolumeCbm
+	}
 	if request.TotalPackageUnit != nil {
 		output.TotalPackageUnit = request.GetTotalPackageUnit()
 	}
@@ -484,7 +524,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		DeclarationCutoffAt: stringPtrIfNotEmpty(item.DeclarationCutoffAt), ReceivedAt: stringPtrIfNotEmpty(item.ReceivedAt),
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
-		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
+		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
 		BookingNotes: stringPtrIfNotEmpty(item.BookingNotes), AllocationNotes: stringPtrIfNotEmpty(item.AllocationNotes), OperationNotes: stringPtrIfNotEmpty(item.OperationNotes),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}

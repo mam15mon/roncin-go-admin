@@ -550,6 +550,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
     declarationCutoffAt?: string;
+    totalGrossWeightKg?: number;
+    totalVolumeCbm?: number;
   };
 
   type CreateOrderResponse = {
@@ -1150,6 +1152,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListOrderConsolidationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderConsolidationSummary[];
+    traceId?: string;
+  };
+
   type ListOrdersResponse = {
     success?: boolean;
     code?: number;
@@ -1624,6 +1634,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocument[];
     containerRequests?: OrderContainerRequest[];
     declarationCutoffAt?: string;
+    totalGrossWeightKg?: number;
+    totalVolumeCbm?: number;
   };
 
   type OrderAbnormalCase = {
@@ -1709,6 +1721,30 @@ declare namespace API {
   type OrderCargoItemServiceUpdateCargoItemParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderCargoMeasurement = {
+    packages?: number;
+    grossWeightKg?: number;
+    volumeCbm?: number;
+  };
+
+  type OrderConsolidationMember = {
+    orderId?: string;
+    orderNo?: string;
+    customerReferenceNo?: string;
+    houseNos?: string[];
+    entrusted?: OrderCargoMeasurement;
+    actual?: OrderCargoMeasurement;
+  };
+
+  type OrderConsolidationSummary = {
+    consolidationId?: string;
+    masterNo?: string;
+    memberCount?: number;
+    entrusted?: OrderCargoMeasurement;
+    actual?: OrderCargoMeasurement;
+    members?: OrderConsolidationMember[];
   };
 
   type OrderContainer = {
@@ -1961,6 +1997,10 @@ declare namespace API {
   };
 
   type OrderServiceGetOrderParams = {
+    id: string;
+  };
+
+  type OrderServiceListOrderConsolidationsParams = {
     id: string;
   };
 
@@ -3031,6 +3071,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
     declarationCutoffAt?: string;
+    totalGrossWeightKg?: number;
+    totalVolumeCbm?: number;
   };
 
   type UpdateOrderResponse = {

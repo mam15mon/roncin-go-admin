@@ -32,6 +32,11 @@ service OrderService {
     option (google.api.http) = {get: "/api/v1/order-personnel-options"};
   }
 
+  rpc ListOrderConsolidations(ListOrderConsolidationsRequest) returns (ListOrderConsolidationsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{id}/consolidations"};
+  }
+
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -189,6 +194,32 @@ message Order {
   repeated OrderShippingDocument shipping_documents = 57;
   repeated OrderContainerRequest container_requests = 58;
   optional string declaration_cutoff_at = 59;
+  optional double total_gross_weight_kg = 60;
+  optional double total_volume_cbm = 61;
+}
+
+message OrderCargoMeasurement {
+  int32 packages = 1;
+  double gross_weight_kg = 2;
+  double volume_cbm = 3;
+}
+
+message OrderConsolidationMember {
+  string order_id = 1;
+  string order_no = 2;
+  optional string customer_reference_no = 3;
+  repeated string house_nos = 4;
+  OrderCargoMeasurement entrusted = 5;
+  OrderCargoMeasurement actual = 6;
+}
+
+message OrderConsolidationSummary {
+  string consolidation_id = 1;
+  string master_no = 2;
+  int32 member_count = 3;
+  OrderCargoMeasurement entrusted = 4;
+  OrderCargoMeasurement actual = 5;
+  repeated OrderConsolidationMember members = 6;
 }
 
 // OrderShippingDocumentInput 订单表单中的主分单输入。
@@ -291,6 +322,10 @@ message ListPersonnelOptionsRequest {
   BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+message ListOrderConsolidationsRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
 // OrderReferenceCheck 订单业务编号查重结果。
 message OrderReferenceCheck {
   bool duplicate = 1;
@@ -352,6 +387,8 @@ message CreateOrderRequest {
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
   optional string declaration_cutoff_at = 52;
+  optional double total_gross_weight_kg = 53;
+  optional double total_volume_cbm = 54;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -408,6 +445,8 @@ message UpdateOrderRequest {
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
   optional string declaration_cutoff_at = 52;
+  optional double total_gross_weight_kg = 53;
+  optional double total_volume_cbm = 54;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。
@@ -461,6 +500,14 @@ message ListOrdersResponse {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+message ListOrderConsolidationsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated OrderConsolidationSummary data = 4;
+  string trace_id = 5;
 }
 
 // CheckOrderReferenceResponse 订单业务编号查重响应。

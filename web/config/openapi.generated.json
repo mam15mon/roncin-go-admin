@@ -2651,6 +2651,36 @@
         }
       }
     },
+    "/api/v1/orders/{id}/consolidations": {
+      "get": {
+        "tags": [
+          "OrderService"
+        ],
+        "operationId": "OrderService_ListOrderConsolidations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListOrderConsolidationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{id}/status": {
       "post": {
         "tags": [
@@ -9523,6 +9553,14 @@
           },
           "declarationCutoffAt": {
             "type": "string"
+          },
+          "totalGrossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalVolumeCbm": {
+            "type": "number",
+            "format": "double"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -9763,6 +9801,30 @@
           }
         },
         "description": "ListMilestonesResponse 订单里程碑列表响应。"
+      },
+      "order.v1.ListOrderConsolidationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderConsolidationSummary"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListOrdersResponse": {
         "type": "object",
@@ -10137,6 +10199,14 @@
           },
           "declarationCutoffAt": {
             "type": "string"
+          },
+          "totalGrossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalVolumeCbm": {
+            "type": "number",
+            "format": "double"
           }
         },
         "description": "Order 订单核心信息。"
@@ -10259,6 +10329,76 @@
           }
         },
         "description": "OrderCargoItem 订单货物明细信息。"
+      },
+      "order.v1.OrderCargoMeasurement": {
+        "type": "object",
+        "properties": {
+          "packages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "volumeCbm": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "order.v1.OrderConsolidationMember": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "customerReferenceNo": {
+            "type": "string"
+          },
+          "houseNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entrusted": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoMeasurement"
+          },
+          "actual": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoMeasurement"
+          }
+        }
+      },
+      "order.v1.OrderConsolidationSummary": {
+        "type": "object",
+        "properties": {
+          "consolidationId": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "entrusted": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoMeasurement"
+          },
+          "actual": {
+            "$ref": "#/components/schemas/order.v1.OrderCargoMeasurement"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderConsolidationMember"
+            }
+          }
+        }
       },
       "order.v1.OrderContainer": {
         "type": "object",
@@ -11576,6 +11716,14 @@
           },
           "declarationCutoffAt": {
             "type": "string"
+          },
+          "totalGrossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalVolumeCbm": {
+            "type": "number",
+            "format": "double"
           }
         },
         "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。"

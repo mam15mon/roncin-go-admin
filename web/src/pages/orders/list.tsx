@@ -1,4 +1,5 @@
 import {
+  ApartmentOutlined,
   ContainerOutlined,
   DollarOutlined,
   DownOutlined,
@@ -79,6 +80,7 @@ import {
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
 import {
+  orderServiceListOrderConsolidations,
   orderServiceListOrders,
   orderServiceTransitionOrderStatus,
   orderServiceUpdateOrder,
@@ -124,6 +126,10 @@ import { SeaContainerPlanFields } from './templates/sea-template';
 
 const { Text } = Typography;
 
+function formatCargoMeasurement(value?: API.OrderCargoMeasurement) {
+  return `${value?.packages ?? 0} 件 / ${(value?.grossWeightKg ?? 0).toFixed(3)} KGS / ${(value?.volumeCbm ?? 0).toFixed(3)} CBM`;
+}
+
 type EditOrderFormValues = {
   customerId: string;
   tradeDirection: number;
@@ -139,6 +145,8 @@ type EditOrderFormValues = {
   eta?: string | dayjs.Dayjs;
   goodsDescription?: string;
   totalPackages?: number;
+  totalGrossWeightKg?: number;
+  totalVolumeCbm?: number;
   totalPackageUnit?: string;
   notes?: string;
   shippingDocuments?: API.OrderShippingDocumentInput[];
@@ -244,6 +252,7 @@ export default function OrderListPage() {
     useState(false);
   const [shippingDocumentModalOpen, setShippingDocumentModalOpen] =
     useState(false);
+  const [consolidationDrawerOpen, setConsolidationDrawerOpen] = useState(false);
 
   const [editingRecord, setEditingRecord] = useState<API.Order>();
   const [transitionRecord, setTransitionRecord] = useState<API.Order>();
@@ -257,6 +266,7 @@ export default function OrderListPage() {
   const [cargoOrder, setCargoOrder] = useState<API.Order>();
   const [shippingDocumentOrder, setShippingDocumentOrder] =
     useState<API.Order>();
+  const [consolidationOrder, setConsolidationOrder] = useState<API.Order>();
   const [editingMilestone, setEditingMilestone] =
     useState<API.OrderMilestone>();
   const [editingContainer, setEditingContainer] =
@@ -404,6 +414,8 @@ export default function OrderListPage() {
       eta: record.eta ? dayjs(record.eta) : undefined,
       goodsDescription: record.goodsDescription,
       totalPackages: record.totalPackages,
+      totalGrossWeightKg: record.totalGrossWeightKg,
+      totalVolumeCbm: record.totalVolumeCbm,
       totalPackageUnit: record.totalPackageUnit,
       notes: record.notes,
       shippingDocuments: record.shippingDocuments,
@@ -540,6 +552,11 @@ export default function OrderListPage() {
   const openCargoItems = (record: API.Order) => {
     setCargoOrder(record);
     setCargoDrawerOpen(true);
+  };
+
+  const openConsolidations = (record: API.Order) => {
+    setConsolidationOrder(record);
+    setConsolidationDrawerOpen(true);
   };
 
   const openCreateCargoItem = () => {
@@ -1311,6 +1328,16 @@ export default function OrderListPage() {
                   },
                 ]
               : []),
+            ...(record.shipmentType === 2
+              ? [
+                  {
+                    key: 'consolidations',
+                    label: '自拼汇总',
+                    icon: <ApartmentOutlined />,
+                    onClick: () => openConsolidations(record),
+                  },
+                ]
+              : []),
             {
               key: 'cargo',
               label: '货物明细',
@@ -1458,6 +1485,8 @@ export default function OrderListPage() {
                 eta: editingRecord.eta ? dayjs(editingRecord.eta) : undefined,
                 goodsDescription: editingRecord.goodsDescription,
                 totalPackages: editingRecord.totalPackages,
+                totalGrossWeightKg: editingRecord.totalGrossWeightKg,
+                totalVolumeCbm: editingRecord.totalVolumeCbm,
                 totalPackageUnit: editingRecord.totalPackageUnit,
                 notes: editingRecord.notes,
                 shippingDocuments: editingRecord.shippingDocuments,
@@ -1492,6 +1521,8 @@ export default function OrderListPage() {
               eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
               goodsDescription: values.goodsDescription,
               totalPackages: values.totalPackages,
+              totalGrossWeightKg: values.totalGrossWeightKg,
+              totalVolumeCbm: values.totalVolumeCbm,
               totalPackageUnit: values.totalPackageUnit,
               notes: values.notes,
               shippingDocuments: values.shippingDocuments,
@@ -1608,6 +1639,22 @@ export default function OrderListPage() {
           label="总件数"
           min={0}
           placeholder="请输入件数"
+        />
+        <ProFormDigit
+          colProps={{ span: 12 }}
+          name="totalGrossWeightKg"
+          label="委托总毛重 (KGS)"
+          min={0}
+          fieldProps={{ precision: 3 }}
+          placeholder="请输入毛重"
+        />
+        <ProFormDigit
+          colProps={{ span: 12 }}
+          name="totalVolumeCbm"
+          label="委托总体积 (CBM)"
+          min={0}
+          fieldProps={{ precision: 3 }}
+          placeholder="请输入体积"
         />
         <ProFormText
           colProps={{ span: 12 }}
@@ -2180,6 +2227,90 @@ export default function OrderListPage() {
           fieldProps={{ maxLength: 500, showCount: true }}
         />
       </ModalForm>
+
+      <Drawer
+        title={
+          consolidationOrder
+            ? `自拼订单汇总 - ${consolidationOrder.orderNo || consolidationOrder.id}`
+            : '自拼订单汇总'
+        }
+        open={consolidationDrawerOpen}
+        onClose={() => {
+          setConsolidationDrawerOpen(false);
+          setConsolidationOrder(undefined);
+        }}
+        width={1080}
+        destroyOnHidden
+      >
+        {consolidationOrder?.id && (
+          <ProTable<API.OrderConsolidationSummary>
+            rowKey="consolidationId"
+            bordered
+            search={false}
+            pagination={false}
+            request={async () => {
+              const response = await orderServiceListOrderConsolidations({
+                id: consolidationOrder.id as string,
+              });
+              return {
+                data: response.data ?? [],
+                success: response.success ?? true,
+              };
+            }}
+            columns={[
+              { title: '主单号', dataIndex: 'masterNo', copyable: true },
+              { title: '成员票数', dataIndex: 'memberCount', width: 100 },
+              {
+                title: '委托合计',
+                dataIndex: 'entrusted',
+                render: (_, record) => formatCargoMeasurement(record.entrusted),
+              },
+              {
+                title: '实际合计',
+                dataIndex: 'actual',
+                render: (_, record) => formatCargoMeasurement(record.actual),
+              },
+            ]}
+            expandable={{
+              expandedRowRender: (summary) => (
+                <ProTable<API.OrderConsolidationMember>
+                  rowKey="orderId"
+                  bordered
+                  search={false}
+                  pagination={false}
+                  options={false}
+                  dataSource={summary.members ?? []}
+                  columns={[
+                    { title: '订单编号', dataIndex: 'orderNo', copyable: true },
+                    {
+                      title: '客户业务编号',
+                      dataIndex: 'customerReferenceNo',
+                      renderText: (value) => value || '-',
+                    },
+                    {
+                      title: '分单号',
+                      dataIndex: 'houseNos',
+                      renderText: (value: string[]) => value?.join('、') || '-',
+                    },
+                    {
+                      title: '委托件重尺',
+                      dataIndex: 'entrusted',
+                      render: (_, record) =>
+                        formatCargoMeasurement(record.entrusted),
+                    },
+                    {
+                      title: '实际件重尺',
+                      dataIndex: 'actual',
+                      render: (_, record) =>
+                        formatCargoMeasurement(record.actual),
+                    },
+                  ]}
+                />
+              ),
+            }}
+          />
+        )}
+      </Drawer>
 
       <Drawer
         title={

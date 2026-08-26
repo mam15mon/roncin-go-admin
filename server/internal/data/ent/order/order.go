@@ -106,6 +106,10 @@ const (
 	FieldGoodsDescription = "goods_description"
 	// FieldTotalPackages holds the string denoting the total_packages field in the database.
 	FieldTotalPackages = "total_packages"
+	// FieldTotalGrossWeightKg holds the string denoting the total_gross_weight_kg field in the database.
+	FieldTotalGrossWeightKg = "total_gross_weight_kg"
+	// FieldTotalVolumeCbm holds the string denoting the total_volume_cbm field in the database.
+	FieldTotalVolumeCbm = "total_volume_cbm"
 	// FieldTotalPackageUnit holds the string denoting the total_package_unit field in the database.
 	FieldTotalPackageUnit = "total_package_unit"
 	// FieldSpecialRequirements holds the string denoting the special_requirements field in the database.
@@ -316,6 +320,8 @@ var Columns = []string{
 	FieldVgmCutoff,
 	FieldGoodsDescription,
 	FieldTotalPackages,
+	FieldTotalGrossWeightKg,
+	FieldTotalVolumeCbm,
 	FieldTotalPackageUnit,
 	FieldSpecialRequirements,
 	FieldOrderDate,
@@ -392,6 +398,10 @@ var (
 	VgmCutoffValidator func(string) error
 	// GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
 	GoodsDescriptionValidator func(string) error
+	// TotalGrossWeightKgValidator is a validator for the "total_gross_weight_kg" field. It is called by the builders before save.
+	TotalGrossWeightKgValidator func(float64) error
+	// TotalVolumeCbmValidator is a validator for the "total_volume_cbm" field. It is called by the builders before save.
+	TotalVolumeCbmValidator func(float64) error
 	// TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
 	TotalPackageUnitValidator func(string) error
 	// SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
@@ -817,6 +827,16 @@ func ByGoodsDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByTotalPackages orders the results by the total_packages field.
 func ByTotalPackages(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotalPackages, opts...).ToFunc()
+}
+
+// ByTotalGrossWeightKg orders the results by the total_gross_weight_kg field.
+func ByTotalGrossWeightKg(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalGrossWeightKg, opts...).ToFunc()
+}
+
+// ByTotalVolumeCbm orders the results by the total_volume_cbm field.
+func ByTotalVolumeCbm(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotalVolumeCbm, opts...).ToFunc()
 }
 
 // ByTotalPackageUnit orders the results by the total_package_unit field.

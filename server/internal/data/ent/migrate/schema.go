@@ -857,6 +857,8 @@ var (
 		{Name: "vgm_cutoff", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "goods_description", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "total_packages", Type: field.TypeInt, Nullable: true},
+		{Name: "total_gross_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "total_volume_cbm", Type: field.TypeFloat64, Nullable: true},
 		{Name: "total_package_unit", Type: field.TypeString, Nullable: true, Size: 32},
 		{Name: "special_requirements", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "order_date", Type: field.TypeString, Nullable: true, Size: 32},
@@ -876,19 +878,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[50]},
+				Columns:    []*schema.Column{OrdersColumns[52]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[51]},
+				Columns:    []*schema.Column{OrdersColumns[53]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_status_templates_orders",
-				Columns:    []*schema.Column{OrdersColumns[52]},
+				Columns:    []*schema.Column{OrdersColumns[54]},
 				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -902,22 +904,22 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[29]},
+				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[29]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[22]},
+				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[22]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[51]},
+				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[53]},
 			},
 		},
 	}

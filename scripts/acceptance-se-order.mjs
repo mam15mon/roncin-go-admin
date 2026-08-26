@@ -152,6 +152,8 @@ const createdResponse = await request('/api/v1/orders', {
     declarationCutoffAt,
     goodsDescription: '海运出口闭环验收货物',
     totalPackages: 10,
+    totalGrossWeightKg: 1500,
+    totalVolumeCbm: 12,
     totalPackageUnit: 'CTNS',
     customerReferenceNo,
     orderDate: new Date().toISOString(),
@@ -256,6 +258,79 @@ assert(
   '货物明细列表未返回新增记录',
 );
 
+const siblingReferenceNo = `${customerReferenceNo}-02`;
+const siblingHouseNo = `${houseNo}-02`;
+const siblingResponse = await request('/api/v1/orders', {
+  method: 'POST',
+  body: JSON.stringify({
+    customerId: customer.id,
+    businessType: 1,
+    tradeDirection: 1,
+    tradeTerm: 3,
+    paymentTerm: 1,
+    statusTemplateId: statusTemplate.id,
+    shipmentType: 2,
+    shipmentMode: 1,
+    goodsDescription: '海运出口自拼汇总验收货物',
+    totalPackages: 5,
+    totalGrossWeightKg: 800,
+    totalVolumeCbm: 6.2,
+    customerReferenceNo: siblingReferenceNo,
+    orderDate: new Date().toISOString(),
+    shippingDocuments: [
+      {
+        masterNo,
+        houseNo: siblingHouseNo,
+        releaseType: 'ORIGINAL',
+        masterDocumentType: 'ORIGINAL_BL',
+        masterReleaseMethod: 'ORIGINAL',
+      },
+    ],
+  }),
+});
+const sibling = siblingResponse.data;
+assert(sibling?.id, '创建自拼成员订单响应缺少 ID');
+
+await request(`/api/v1/orders/${sibling.id}/cargo-items`, {
+  method: 'POST',
+  body: JSON.stringify({
+    orderId: sibling.id,
+    cargoName: '自拼成员验收货物',
+    packageCount: 5,
+    grossWeightKg: 760,
+    volumeCbm: 6,
+  }),
+});
+
+const consolidationResponse = await request(
+  `/api/v1/orders/${created.id}/consolidations`,
+);
+const consolidation = consolidationResponse.data?.find(
+  (item) => item.masterNo === masterNo,
+);
+assert(consolidation, '自拼汇总未返回当前主单批次');
+assert(consolidation.memberCount === 2, '自拼汇总成员票数应为 2');
+assert(
+  consolidation.entrusted?.packages === 15 &&
+    consolidation.entrusted?.grossWeightKg === 2300 &&
+    consolidation.entrusted?.volumeCbm === 18.2,
+  '自拼汇总委托件重尺不正确',
+);
+assert(
+  consolidation.actual?.packages === 15 &&
+    consolidation.actual?.grossWeightKg === 2010.5 &&
+    consolidation.actual?.volumeCbm === 18.6,
+  '自拼汇总实际件重尺不正确',
+);
+assert(
+  consolidation.members?.some(
+    (member) =>
+      member.orderId === sibling.id &&
+      member.houseNos?.includes(siblingHouseNo),
+  ),
+  '自拼汇总未返回成员订单及分单号',
+);
+
 const transitionedResponse = await request(
   `/api/v1/orders/${created.id}/status`,
   {
@@ -308,6 +383,7 @@ console.log(
         customerReferenceNo: finalDetail.data.customerReferenceNo,
         shippingDocumentCount: finalDetail.data.shippingDocuments?.length || 0,
         cargoItemCount: cargoList.data?.length || 0,
+        consolidationMemberCount: consolidation.memberCount,
       },
     },
     null,

@@ -603,6 +603,34 @@ func (_c *OrderCreate) SetNillableTotalPackages(v *int) *OrderCreate {
 	return _c
 }
 
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (_c *OrderCreate) SetTotalGrossWeightKg(v float64) *OrderCreate {
+	_c.mutation.SetTotalGrossWeightKg(v)
+	return _c
+}
+
+// SetNillableTotalGrossWeightKg sets the "total_gross_weight_kg" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableTotalGrossWeightKg(v *float64) *OrderCreate {
+	if v != nil {
+		_c.SetTotalGrossWeightKg(*v)
+	}
+	return _c
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (_c *OrderCreate) SetTotalVolumeCbm(v float64) *OrderCreate {
+	_c.mutation.SetTotalVolumeCbm(v)
+	return _c
+}
+
+// SetNillableTotalVolumeCbm sets the "total_volume_cbm" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableTotalVolumeCbm(v *float64) *OrderCreate {
+	if v != nil {
+		_c.SetTotalVolumeCbm(*v)
+	}
+	return _c
+}
+
 // SetTotalPackageUnit sets the "total_package_unit" field.
 func (_c *OrderCreate) SetTotalPackageUnit(v string) *OrderCreate {
 	_c.mutation.SetTotalPackageUnit(v)
@@ -1168,6 +1196,16 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "goods_description", err: fmt.Errorf(`ent: validator failed for field "Order.goods_description": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.TotalGrossWeightKg(); ok {
+		if err := order.TotalGrossWeightKgValidator(v); err != nil {
+			return &ValidationError{Name: "total_gross_weight_kg", err: fmt.Errorf(`ent: validator failed for field "Order.total_gross_weight_kg": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.TotalVolumeCbm(); ok {
+		if err := order.TotalVolumeCbmValidator(v); err != nil {
+			return &ValidationError{Name: "total_volume_cbm", err: fmt.Errorf(`ent: validator failed for field "Order.total_volume_cbm": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.TotalPackageUnit(); ok {
 		if err := order.TotalPackageUnitValidator(v); err != nil {
 			return &ValidationError{Name: "total_package_unit", err: fmt.Errorf(`ent: validator failed for field "Order.total_package_unit": %w`, err)}
@@ -1414,6 +1452,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TotalPackages(); ok {
 		_spec.SetField(order.FieldTotalPackages, field.TypeInt, value)
 		_node.TotalPackages = &value
+	}
+	if value, ok := _c.mutation.TotalGrossWeightKg(); ok {
+		_spec.SetField(order.FieldTotalGrossWeightKg, field.TypeFloat64, value)
+		_node.TotalGrossWeightKg = &value
+	}
+	if value, ok := _c.mutation.TotalVolumeCbm(); ok {
+		_spec.SetField(order.FieldTotalVolumeCbm, field.TypeFloat64, value)
+		_node.TotalVolumeCbm = &value
 	}
 	if value, ok := _c.mutation.TotalPackageUnit(); ok {
 		_spec.SetField(order.FieldTotalPackageUnit, field.TypeString, value)

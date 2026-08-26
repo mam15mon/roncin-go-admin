@@ -111,6 +111,10 @@ type Order struct {
 	GoodsDescription string `json:"goods_description,omitempty"`
 	// TotalPackages holds the value of the "total_packages" field.
 	TotalPackages *int `json:"total_packages,omitempty"`
+	// TotalGrossWeightKg holds the value of the "total_gross_weight_kg" field.
+	TotalGrossWeightKg *float64 `json:"total_gross_weight_kg,omitempty"`
+	// TotalVolumeCbm holds the value of the "total_volume_cbm" field.
+	TotalVolumeCbm *float64 `json:"total_volume_cbm,omitempty"`
 	// TotalPackageUnit holds the value of the "total_package_unit" field.
 	TotalPackageUnit string `json:"total_package_unit,omitempty"`
 	// SpecialRequirements holds the value of the "special_requirements" field.
@@ -327,6 +331,8 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case order.FieldTotalGrossWeightKg, order.FieldTotalVolumeCbm:
+			values[i] = new(sql.NullFloat64)
 		case order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
 		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
@@ -637,6 +643,20 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TotalPackages = new(int)
 				*_m.TotalPackages = int(value.Int64)
+			}
+		case order.FieldTotalGrossWeightKg:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field total_gross_weight_kg", values[i])
+			} else if value.Valid {
+				_m.TotalGrossWeightKg = new(float64)
+				*_m.TotalGrossWeightKg = value.Float64
+			}
+		case order.FieldTotalVolumeCbm:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field total_volume_cbm", values[i])
+			} else if value.Valid {
+				_m.TotalVolumeCbm = new(float64)
+				*_m.TotalVolumeCbm = value.Float64
 			}
 		case order.FieldTotalPackageUnit:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -952,6 +972,16 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	if v := _m.TotalPackages; v != nil {
 		builder.WriteString("total_packages=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TotalGrossWeightKg; v != nil {
+		builder.WriteString("total_gross_weight_kg=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TotalVolumeCbm; v != nil {
+		builder.WriteString("total_volume_cbm=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

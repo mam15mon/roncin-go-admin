@@ -246,6 +246,16 @@ func TotalPackages(v int) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldTotalPackages, v))
 }
 
+// TotalGrossWeightKg applies equality check predicate on the "total_gross_weight_kg" field. It's identical to TotalGrossWeightKgEQ.
+func TotalGrossWeightKg(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTotalGrossWeightKg, v))
+}
+
+// TotalVolumeCbm applies equality check predicate on the "total_volume_cbm" field. It's identical to TotalVolumeCbmEQ.
+func TotalVolumeCbm(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTotalVolumeCbm, v))
+}
+
 // TotalPackageUnit applies equality check predicate on the "total_package_unit" field. It's identical to TotalPackageUnitEQ.
 func TotalPackageUnit(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldTotalPackageUnit, v))
@@ -2819,6 +2829,106 @@ func TotalPackagesIsNil() predicate.Order {
 // TotalPackagesNotNil applies the NotNil predicate on the "total_packages" field.
 func TotalPackagesNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldTotalPackages))
+}
+
+// TotalGrossWeightKgEQ applies the EQ predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgNEQ applies the NEQ predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgNEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgIn applies the In predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTotalGrossWeightKg, vs...))
+}
+
+// TotalGrossWeightKgNotIn applies the NotIn predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgNotIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTotalGrossWeightKg, vs...))
+}
+
+// TotalGrossWeightKgGT applies the GT predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgGT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgGTE applies the GTE predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgGTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgLT applies the LT predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgLT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgLTE applies the LTE predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgLTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldTotalGrossWeightKg, v))
+}
+
+// TotalGrossWeightKgIsNil applies the IsNil predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTotalGrossWeightKg))
+}
+
+// TotalGrossWeightKgNotNil applies the NotNil predicate on the "total_gross_weight_kg" field.
+func TotalGrossWeightKgNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTotalGrossWeightKg))
+}
+
+// TotalVolumeCbmEQ applies the EQ predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmNEQ applies the NEQ predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmNEQ(v float64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmIn applies the In predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTotalVolumeCbm, vs...))
+}
+
+// TotalVolumeCbmNotIn applies the NotIn predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmNotIn(vs ...float64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTotalVolumeCbm, vs...))
+}
+
+// TotalVolumeCbmGT applies the GT predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmGT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmGTE applies the GTE predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmGTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmLT applies the LT predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmLT(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmLTE applies the LTE predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmLTE(v float64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldTotalVolumeCbm, v))
+}
+
+// TotalVolumeCbmIsNil applies the IsNil predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTotalVolumeCbm))
+}
+
+// TotalVolumeCbmNotNil applies the NotNil predicate on the "total_volume_cbm" field.
+func TotalVolumeCbmNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTotalVolumeCbm))
 }
 
 // TotalPackageUnitEQ applies the EQ predicate on the "total_package_unit" field.

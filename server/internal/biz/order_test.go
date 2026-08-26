@@ -45,6 +45,10 @@ func (s *orderRepoStub) HasContainers(context.Context, uuid.UUID, uuid.UUID) (bo
 	return s.hasContainers, nil
 }
 
+func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error) {
+	return nil, nil
+}
+
 func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order) (*Order, error) {
 	s.created = input
 	s.createdNumber = number
@@ -115,6 +119,23 @@ func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 	_, err = usecase.TransitionStatus(context.Background(), organizationID, actorID, uuid.New(), "BOOKED", "DRAFT", "rollback")
 	if err != ErrOrderStatusInvalid {
 		t.Fatalf("draft rollback error = %v, want ErrOrderStatusInvalid", err)
+	}
+}
+
+func TestOrderRejectsNegativeEntrustedCargoMeasurement(t *testing.T) {
+	negative := -0.001
+	input := &Order{
+		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
+		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		TotalGrossWeightKg: &negative,
+	}
+	if _, err := normalizeOrder(input, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("负数委托毛重 error = %v, want ErrOrderInvalidArgument", err)
+	}
+	input.TotalGrossWeightKg = nil
+	input.TotalVolumeCbm = &negative
+	if _, err := normalizeOrder(input, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("负数委托体积 error = %v, want ErrOrderInvalidArgument", err)
 	}
 }
 

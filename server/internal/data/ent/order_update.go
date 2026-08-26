@@ -850,6 +850,60 @@ func (_u *OrderUpdate) ClearTotalPackages() *OrderUpdate {
 	return _u
 }
 
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (_u *OrderUpdate) SetTotalGrossWeightKg(v float64) *OrderUpdate {
+	_u.mutation.ResetTotalGrossWeightKg()
+	_u.mutation.SetTotalGrossWeightKg(v)
+	return _u
+}
+
+// SetNillableTotalGrossWeightKg sets the "total_gross_weight_kg" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTotalGrossWeightKg(v *float64) *OrderUpdate {
+	if v != nil {
+		_u.SetTotalGrossWeightKg(*v)
+	}
+	return _u
+}
+
+// AddTotalGrossWeightKg adds value to the "total_gross_weight_kg" field.
+func (_u *OrderUpdate) AddTotalGrossWeightKg(v float64) *OrderUpdate {
+	_u.mutation.AddTotalGrossWeightKg(v)
+	return _u
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (_u *OrderUpdate) ClearTotalGrossWeightKg() *OrderUpdate {
+	_u.mutation.ClearTotalGrossWeightKg()
+	return _u
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (_u *OrderUpdate) SetTotalVolumeCbm(v float64) *OrderUpdate {
+	_u.mutation.ResetTotalVolumeCbm()
+	_u.mutation.SetTotalVolumeCbm(v)
+	return _u
+}
+
+// SetNillableTotalVolumeCbm sets the "total_volume_cbm" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTotalVolumeCbm(v *float64) *OrderUpdate {
+	if v != nil {
+		_u.SetTotalVolumeCbm(*v)
+	}
+	return _u
+}
+
+// AddTotalVolumeCbm adds value to the "total_volume_cbm" field.
+func (_u *OrderUpdate) AddTotalVolumeCbm(v float64) *OrderUpdate {
+	_u.mutation.AddTotalVolumeCbm(v)
+	return _u
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (_u *OrderUpdate) ClearTotalVolumeCbm() *OrderUpdate {
+	_u.mutation.ClearTotalVolumeCbm()
+	return _u
+}
+
 // SetTotalPackageUnit sets the "total_package_unit" field.
 func (_u *OrderUpdate) SetTotalPackageUnit(v string) *OrderUpdate {
 	_u.mutation.SetTotalPackageUnit(v)
@@ -1684,6 +1738,16 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "goods_description", err: fmt.Errorf(`ent: validator failed for field "Order.goods_description": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TotalGrossWeightKg(); ok {
+		if err := order.TotalGrossWeightKgValidator(v); err != nil {
+			return &ValidationError{Name: "total_gross_weight_kg", err: fmt.Errorf(`ent: validator failed for field "Order.total_gross_weight_kg": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TotalVolumeCbm(); ok {
+		if err := order.TotalVolumeCbmValidator(v); err != nil {
+			return &ValidationError{Name: "total_volume_cbm", err: fmt.Errorf(`ent: validator failed for field "Order.total_volume_cbm": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.TotalPackageUnit(); ok {
 		if err := order.TotalPackageUnitValidator(v); err != nil {
 			return &ValidationError{Name: "total_package_unit", err: fmt.Errorf(`ent: validator failed for field "Order.total_package_unit": %w`, err)}
@@ -1967,6 +2031,24 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.TotalPackagesCleared() {
 		_spec.ClearField(order.FieldTotalPackages, field.TypeInt)
+	}
+	if value, ok := _u.mutation.TotalGrossWeightKg(); ok {
+		_spec.SetField(order.FieldTotalGrossWeightKg, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalGrossWeightKg(); ok {
+		_spec.AddField(order.FieldTotalGrossWeightKg, field.TypeFloat64, value)
+	}
+	if _u.mutation.TotalGrossWeightKgCleared() {
+		_spec.ClearField(order.FieldTotalGrossWeightKg, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.TotalVolumeCbm(); ok {
+		_spec.SetField(order.FieldTotalVolumeCbm, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalVolumeCbm(); ok {
+		_spec.AddField(order.FieldTotalVolumeCbm, field.TypeFloat64, value)
+	}
+	if _u.mutation.TotalVolumeCbmCleared() {
+		_spec.ClearField(order.FieldTotalVolumeCbm, field.TypeFloat64)
 	}
 	if value, ok := _u.mutation.TotalPackageUnit(); ok {
 		_spec.SetField(order.FieldTotalPackageUnit, field.TypeString, value)
@@ -3507,6 +3589,60 @@ func (_u *OrderUpdateOne) ClearTotalPackages() *OrderUpdateOne {
 	return _u
 }
 
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (_u *OrderUpdateOne) SetTotalGrossWeightKg(v float64) *OrderUpdateOne {
+	_u.mutation.ResetTotalGrossWeightKg()
+	_u.mutation.SetTotalGrossWeightKg(v)
+	return _u
+}
+
+// SetNillableTotalGrossWeightKg sets the "total_gross_weight_kg" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTotalGrossWeightKg(v *float64) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTotalGrossWeightKg(*v)
+	}
+	return _u
+}
+
+// AddTotalGrossWeightKg adds value to the "total_gross_weight_kg" field.
+func (_u *OrderUpdateOne) AddTotalGrossWeightKg(v float64) *OrderUpdateOne {
+	_u.mutation.AddTotalGrossWeightKg(v)
+	return _u
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (_u *OrderUpdateOne) ClearTotalGrossWeightKg() *OrderUpdateOne {
+	_u.mutation.ClearTotalGrossWeightKg()
+	return _u
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (_u *OrderUpdateOne) SetTotalVolumeCbm(v float64) *OrderUpdateOne {
+	_u.mutation.ResetTotalVolumeCbm()
+	_u.mutation.SetTotalVolumeCbm(v)
+	return _u
+}
+
+// SetNillableTotalVolumeCbm sets the "total_volume_cbm" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTotalVolumeCbm(v *float64) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTotalVolumeCbm(*v)
+	}
+	return _u
+}
+
+// AddTotalVolumeCbm adds value to the "total_volume_cbm" field.
+func (_u *OrderUpdateOne) AddTotalVolumeCbm(v float64) *OrderUpdateOne {
+	_u.mutation.AddTotalVolumeCbm(v)
+	return _u
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (_u *OrderUpdateOne) ClearTotalVolumeCbm() *OrderUpdateOne {
+	_u.mutation.ClearTotalVolumeCbm()
+	return _u
+}
+
 // SetTotalPackageUnit sets the "total_package_unit" field.
 func (_u *OrderUpdateOne) SetTotalPackageUnit(v string) *OrderUpdateOne {
 	_u.mutation.SetTotalPackageUnit(v)
@@ -4354,6 +4490,16 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "goods_description", err: fmt.Errorf(`ent: validator failed for field "Order.goods_description": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TotalGrossWeightKg(); ok {
+		if err := order.TotalGrossWeightKgValidator(v); err != nil {
+			return &ValidationError{Name: "total_gross_weight_kg", err: fmt.Errorf(`ent: validator failed for field "Order.total_gross_weight_kg": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TotalVolumeCbm(); ok {
+		if err := order.TotalVolumeCbmValidator(v); err != nil {
+			return &ValidationError{Name: "total_volume_cbm", err: fmt.Errorf(`ent: validator failed for field "Order.total_volume_cbm": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.TotalPackageUnit(); ok {
 		if err := order.TotalPackageUnitValidator(v); err != nil {
 			return &ValidationError{Name: "total_package_unit", err: fmt.Errorf(`ent: validator failed for field "Order.total_package_unit": %w`, err)}
@@ -4654,6 +4800,24 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.TotalPackagesCleared() {
 		_spec.ClearField(order.FieldTotalPackages, field.TypeInt)
+	}
+	if value, ok := _u.mutation.TotalGrossWeightKg(); ok {
+		_spec.SetField(order.FieldTotalGrossWeightKg, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalGrossWeightKg(); ok {
+		_spec.AddField(order.FieldTotalGrossWeightKg, field.TypeFloat64, value)
+	}
+	if _u.mutation.TotalGrossWeightKgCleared() {
+		_spec.ClearField(order.FieldTotalGrossWeightKg, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.TotalVolumeCbm(); ok {
+		_spec.SetField(order.FieldTotalVolumeCbm, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedTotalVolumeCbm(); ok {
+		_spec.AddField(order.FieldTotalVolumeCbm, field.TypeFloat64, value)
+	}
+	if _u.mutation.TotalVolumeCbmCleared() {
+		_spec.ClearField(order.FieldTotalVolumeCbm, field.TypeFloat64)
 	}
 	if value, ok := _u.mutation.TotalPackageUnit(); ok {
 		_spec.SetField(order.FieldTotalPackageUnit, field.TypeString, value)

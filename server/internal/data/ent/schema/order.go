@@ -58,6 +58,8 @@ func (Order) Fields() []ent.Field {
 		field.String("vgm_cutoff").Optional().MaxLen(64),
 		field.String("goods_description").Optional().MaxLen(1000),
 		field.Int("total_packages").Optional().Nillable(),
+		field.Float("total_gross_weight_kg").Optional().Nillable().Min(0),
+		field.Float("total_volume_cbm").Optional().Nillable().Min(0),
 		field.String("total_package_unit").Optional().MaxLen(32),
 		field.String("special_requirements").Optional().MaxLen(1000),
 		field.String("order_date").Optional().MaxLen(32),

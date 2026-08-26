@@ -13,13 +13,14 @@ import (
 )
 
 var (
-	ErrOrderNotFound        = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")
-	ErrOrderInvalidArgument = errors.BadRequest("ORDER_INVALID_ARGUMENT", "订单字段不合法")
-	ErrOrderNumberExists    = errors.Conflict("ORDER_NUMBER_EXISTS", "订单编号已存在")
-	ErrOrderCustomerInvalid = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
-	ErrOrderStatusInvalid   = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
-	ErrOrderStatusConflict  = errors.Conflict("ORDER_STATUS_CONFLICT", "订单状态已被其他操作修改")
-	ErrOrderStatusTemplate  = errors.BadRequest("ORDER_STATUS_TEMPLATE_REQUIRED", "订单必须使用已发布状态模板")
+	ErrOrderNotFound                  = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")
+	ErrOrderInvalidArgument           = errors.BadRequest("ORDER_INVALID_ARGUMENT", "订单字段不合法")
+	ErrOrderNumberExists              = errors.Conflict("ORDER_NUMBER_EXISTS", "订单编号已存在")
+	ErrOrderCustomerInvalid           = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
+	ErrOrderStatusInvalid             = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
+	ErrOrderStatusConflict            = errors.Conflict("ORDER_STATUS_CONFLICT", "订单状态已被其他操作修改")
+	ErrOrderStatusTemplate            = errors.BadRequest("ORDER_STATUS_TEMPLATE_REQUIRED", "订单必须使用已发布状态模板")
+	ErrOrderConsolidationShipmentType = errors.BadRequest("ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID", "仅拼箱订单可查看自拼汇总")
 )
 
 type OrderBusinessType string
@@ -174,6 +175,8 @@ type Order struct {
 	VGMCutoff             string
 	GoodsDescription      string
 	TotalPackages         *int
+	TotalGrossWeightKg    *float64
+	TotalVolumeCbm        *float64
 	TotalPackageUnit      string
 	SpecialRequirements   string
 	OrderDate             string
@@ -215,6 +218,29 @@ type OrderList struct {
 	PageSize int
 }
 
+type OrderCargoMeasurement struct {
+	Packages      int
+	GrossWeightKg float64
+	VolumeCbm     float64
+}
+
+type OrderConsolidationMember struct {
+	OrderID             uuid.UUID
+	OrderNo             string
+	CustomerReferenceNo string
+	HouseNos            []string
+	Entrusted           OrderCargoMeasurement
+	Actual              OrderCargoMeasurement
+}
+
+type OrderConsolidationSummary struct {
+	ConsolidationID uuid.UUID
+	MasterNo        string
+	Entrusted       OrderCargoMeasurement
+	Actual          OrderCargoMeasurement
+	Members         []*OrderConsolidationMember
+}
+
 type OrderReferenceCheck struct {
 	ReferenceType  OrderReferenceType
 	ReferenceNo    string
@@ -241,6 +267,7 @@ type OrderRepo interface {
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	ListPersonnelOptions(context.Context, uuid.UUID) ([]*OrderPersonnelOption, error)
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
+	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
@@ -308,6 +335,13 @@ func (uc *OrderUsecase) ListPersonnelOptions(ctx context.Context, organizationID
 		return nil, ErrOrderInvalidArgument
 	}
 	return uc.repo.ListPersonnelOptions(ctx, organizationID)
+}
+
+func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderConsolidationSummary, error) {
+	if organizationID == uuid.Nil || orderID == uuid.Nil {
+		return nil, ErrOrderInvalidArgument
+	}
+	return uc.repo.ListConsolidationSummaries(ctx, organizationID, orderID)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
@@ -393,7 +427,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))

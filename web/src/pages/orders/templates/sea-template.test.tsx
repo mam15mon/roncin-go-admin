@@ -129,6 +129,8 @@ describe('海运订单新增模板', () => {
         submitter={false}
         initialValues={{
           shipmentType: 3,
+          totalGrossWeightKg: 2500,
+          totalVolumeCbm: 1.8,
           containerRequests: [{ containerSpecId: 'spec-40hq', quantity: 1 }],
         }}
       >
@@ -143,6 +145,7 @@ describe('海运订单新增模板', () => {
       screen.getByText('散杂货不使用箱型箱量、箱号或封号配置'),
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: '清空箱量计划' })).toBeTruthy();
+    expect(screen.getByText('散杂计费吨 (RT)：2.500')).toBeTruthy();
   });
 
   it('渲染货值与保费的金额及币种选择框', () => {

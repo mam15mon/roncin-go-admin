@@ -16737,6 +16737,10 @@ type OrderMutation struct {
 	goods_description         *string
 	total_packages            *int
 	addtotal_packages         *int
+	total_gross_weight_kg     *float64
+	addtotal_gross_weight_kg  *float64
+	total_volume_cbm          *float64
+	addtotal_volume_cbm       *float64
 	total_package_unit        *string
 	special_requirements      *string
 	order_date                *string
@@ -18982,6 +18986,146 @@ func (m *OrderMutation) ResetTotalPackages() {
 	delete(m.clearedFields, order.FieldTotalPackages)
 }
 
+// SetTotalGrossWeightKg sets the "total_gross_weight_kg" field.
+func (m *OrderMutation) SetTotalGrossWeightKg(f float64) {
+	m.total_gross_weight_kg = &f
+	m.addtotal_gross_weight_kg = nil
+}
+
+// TotalGrossWeightKg returns the value of the "total_gross_weight_kg" field in the mutation.
+func (m *OrderMutation) TotalGrossWeightKg() (r float64, exists bool) {
+	v := m.total_gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalGrossWeightKg returns the old "total_gross_weight_kg" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTotalGrossWeightKg(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalGrossWeightKg: %w", err)
+	}
+	return oldValue.TotalGrossWeightKg, nil
+}
+
+// AddTotalGrossWeightKg adds f to the "total_gross_weight_kg" field.
+func (m *OrderMutation) AddTotalGrossWeightKg(f float64) {
+	if m.addtotal_gross_weight_kg != nil {
+		*m.addtotal_gross_weight_kg += f
+	} else {
+		m.addtotal_gross_weight_kg = &f
+	}
+}
+
+// AddedTotalGrossWeightKg returns the value that was added to the "total_gross_weight_kg" field in this mutation.
+func (m *OrderMutation) AddedTotalGrossWeightKg() (r float64, exists bool) {
+	v := m.addtotal_gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearTotalGrossWeightKg clears the value of the "total_gross_weight_kg" field.
+func (m *OrderMutation) ClearTotalGrossWeightKg() {
+	m.total_gross_weight_kg = nil
+	m.addtotal_gross_weight_kg = nil
+	m.clearedFields[order.FieldTotalGrossWeightKg] = struct{}{}
+}
+
+// TotalGrossWeightKgCleared returns if the "total_gross_weight_kg" field was cleared in this mutation.
+func (m *OrderMutation) TotalGrossWeightKgCleared() bool {
+	_, ok := m.clearedFields[order.FieldTotalGrossWeightKg]
+	return ok
+}
+
+// ResetTotalGrossWeightKg resets all changes to the "total_gross_weight_kg" field.
+func (m *OrderMutation) ResetTotalGrossWeightKg() {
+	m.total_gross_weight_kg = nil
+	m.addtotal_gross_weight_kg = nil
+	delete(m.clearedFields, order.FieldTotalGrossWeightKg)
+}
+
+// SetTotalVolumeCbm sets the "total_volume_cbm" field.
+func (m *OrderMutation) SetTotalVolumeCbm(f float64) {
+	m.total_volume_cbm = &f
+	m.addtotal_volume_cbm = nil
+}
+
+// TotalVolumeCbm returns the value of the "total_volume_cbm" field in the mutation.
+func (m *OrderMutation) TotalVolumeCbm() (r float64, exists bool) {
+	v := m.total_volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalVolumeCbm returns the old "total_volume_cbm" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTotalVolumeCbm(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalVolumeCbm: %w", err)
+	}
+	return oldValue.TotalVolumeCbm, nil
+}
+
+// AddTotalVolumeCbm adds f to the "total_volume_cbm" field.
+func (m *OrderMutation) AddTotalVolumeCbm(f float64) {
+	if m.addtotal_volume_cbm != nil {
+		*m.addtotal_volume_cbm += f
+	} else {
+		m.addtotal_volume_cbm = &f
+	}
+}
+
+// AddedTotalVolumeCbm returns the value that was added to the "total_volume_cbm" field in this mutation.
+func (m *OrderMutation) AddedTotalVolumeCbm() (r float64, exists bool) {
+	v := m.addtotal_volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearTotalVolumeCbm clears the value of the "total_volume_cbm" field.
+func (m *OrderMutation) ClearTotalVolumeCbm() {
+	m.total_volume_cbm = nil
+	m.addtotal_volume_cbm = nil
+	m.clearedFields[order.FieldTotalVolumeCbm] = struct{}{}
+}
+
+// TotalVolumeCbmCleared returns if the "total_volume_cbm" field was cleared in this mutation.
+func (m *OrderMutation) TotalVolumeCbmCleared() bool {
+	_, ok := m.clearedFields[order.FieldTotalVolumeCbm]
+	return ok
+}
+
+// ResetTotalVolumeCbm resets all changes to the "total_volume_cbm" field.
+func (m *OrderMutation) ResetTotalVolumeCbm() {
+	m.total_volume_cbm = nil
+	m.addtotal_volume_cbm = nil
+	delete(m.clearedFields, order.FieldTotalVolumeCbm)
+}
+
 // SetTotalPackageUnit sets the "total_package_unit" field.
 func (m *OrderMutation) SetTotalPackageUnit(s string) {
 	m.total_package_unit = &s
@@ -20142,7 +20286,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 52)
+	fields := make([]string, 0, 54)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -20278,6 +20422,12 @@ func (m *OrderMutation) Fields() []string {
 	if m.total_packages != nil {
 		fields = append(fields, order.FieldTotalPackages)
 	}
+	if m.total_gross_weight_kg != nil {
+		fields = append(fields, order.FieldTotalGrossWeightKg)
+	}
+	if m.total_volume_cbm != nil {
+		fields = append(fields, order.FieldTotalVolumeCbm)
+	}
 	if m.total_package_unit != nil {
 		fields = append(fields, order.FieldTotalPackageUnit)
 	}
@@ -20397,6 +20547,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.GoodsDescription()
 	case order.FieldTotalPackages:
 		return m.TotalPackages()
+	case order.FieldTotalGrossWeightKg:
+		return m.TotalGrossWeightKg()
+	case order.FieldTotalVolumeCbm:
+		return m.TotalVolumeCbm()
 	case order.FieldTotalPackageUnit:
 		return m.TotalPackageUnit()
 	case order.FieldSpecialRequirements:
@@ -20510,6 +20664,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldGoodsDescription(ctx)
 	case order.FieldTotalPackages:
 		return m.OldTotalPackages(ctx)
+	case order.FieldTotalGrossWeightKg:
+		return m.OldTotalGrossWeightKg(ctx)
+	case order.FieldTotalVolumeCbm:
+		return m.OldTotalVolumeCbm(ctx)
 	case order.FieldTotalPackageUnit:
 		return m.OldTotalPackageUnit(ctx)
 	case order.FieldSpecialRequirements:
@@ -20848,6 +21006,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTotalPackages(v)
 		return nil
+	case order.FieldTotalGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalGrossWeightKg(v)
+		return nil
+	case order.FieldTotalVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalVolumeCbm(v)
+		return nil
 	case order.FieldTotalPackageUnit:
 		v, ok := value.(string)
 		if !ok {
@@ -20908,6 +21080,12 @@ func (m *OrderMutation) AddedFields() []string {
 	if m.addtotal_packages != nil {
 		fields = append(fields, order.FieldTotalPackages)
 	}
+	if m.addtotal_gross_weight_kg != nil {
+		fields = append(fields, order.FieldTotalGrossWeightKg)
+	}
+	if m.addtotal_volume_cbm != nil {
+		fields = append(fields, order.FieldTotalVolumeCbm)
+	}
 	return fields
 }
 
@@ -20918,6 +21096,10 @@ func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case order.FieldTotalPackages:
 		return m.AddedTotalPackages()
+	case order.FieldTotalGrossWeightKg:
+		return m.AddedTotalGrossWeightKg()
+	case order.FieldTotalVolumeCbm:
+		return m.AddedTotalVolumeCbm()
 	}
 	return nil, false
 }
@@ -20933,6 +21115,20 @@ func (m *OrderMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddTotalPackages(v)
+		return nil
+	case order.FieldTotalGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalGrossWeightKg(v)
+		return nil
+	case order.FieldTotalVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalVolumeCbm(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Order numeric field %s", name)
@@ -21043,6 +21239,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(order.FieldTotalPackages) {
 		fields = append(fields, order.FieldTotalPackages)
+	}
+	if m.FieldCleared(order.FieldTotalGrossWeightKg) {
+		fields = append(fields, order.FieldTotalGrossWeightKg)
+	}
+	if m.FieldCleared(order.FieldTotalVolumeCbm) {
+		fields = append(fields, order.FieldTotalVolumeCbm)
 	}
 	if m.FieldCleared(order.FieldTotalPackageUnit) {
 		fields = append(fields, order.FieldTotalPackageUnit)
@@ -21180,6 +21382,12 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldTotalPackages:
 		m.ClearTotalPackages()
+		return nil
+	case order.FieldTotalGrossWeightKg:
+		m.ClearTotalGrossWeightKg()
+		return nil
+	case order.FieldTotalVolumeCbm:
+		m.ClearTotalVolumeCbm()
 		return nil
 	case order.FieldTotalPackageUnit:
 		m.ClearTotalPackageUnit()
@@ -21344,6 +21552,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldTotalPackages:
 		m.ResetTotalPackages()
+		return nil
+	case order.FieldTotalGrossWeightKg:
+		m.ResetTotalGrossWeightKg()
+		return nil
+	case order.FieldTotalVolumeCbm:
+		m.ResetTotalVolumeCbm()
 		return nil
 	case order.FieldTotalPackageUnit:
 		m.ResetTotalPackageUnit()

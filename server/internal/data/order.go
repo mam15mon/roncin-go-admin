@@ -125,6 +125,84 @@ func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID u
 	).Exist(ctx)
 }
 
+func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderConsolidationSummary, error) {
+	current, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderNotFound
+		}
+		return nil, err
+	}
+	if current.ShipmentType == nil || *current.ShipmentType != orderent.ShipmentTypeLCL {
+		return nil, biz.ErrOrderConsolidationShipmentType
+	}
+	documents, err := r.data.db.OrderShippingDocument.Query().Where(ordershippingdocumentent.OrderIDEQ(orderID)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	consolidationIDs := make([]uuid.UUID, 0, len(documents))
+	seen := make(map[uuid.UUID]struct{}, len(documents))
+	for _, document := range documents {
+		if _, exists := seen[document.ConsolidationID]; !exists {
+			seen[document.ConsolidationID] = struct{}{}
+			consolidationIDs = append(consolidationIDs, document.ConsolidationID)
+		}
+	}
+	if len(consolidationIDs) == 0 {
+		return []*biz.OrderConsolidationSummary{}, nil
+	}
+	items, err := r.data.db.OrderConsolidation.Query().Where(
+		orderconsolidationent.IDIn(consolidationIDs...),
+		orderconsolidationent.OrganizationIDEQ(organizationID),
+	).WithShippingDocuments(func(query *ent.OrderShippingDocumentQuery) {
+		query.Where(ordershippingdocumentent.HasOrderWith(orderent.ShipmentTypeEQ(orderent.ShipmentTypeLCL))).
+			WithOrder(func(orderQuery *ent.OrderQuery) { orderQuery.WithCargoItems() }).
+			Order(ordershippingdocumentent.ByCreatedAt())
+	}).Order(orderconsolidationent.ByMasterNo()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.OrderConsolidationSummary, 0, len(items))
+	for _, item := range items {
+		summary := &biz.OrderConsolidationSummary{ConsolidationID: item.ID, MasterNo: item.MasterNo}
+		members := make(map[uuid.UUID]*biz.OrderConsolidationMember)
+		for _, document := range item.Edges.ShippingDocuments {
+			orderItem := document.Edges.Order
+			member := members[orderItem.ID]
+			if member == nil {
+				member = &biz.OrderConsolidationMember{OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, CustomerReferenceNo: orderItem.CustomerReferenceNo}
+				if orderItem.TotalPackages != nil {
+					member.Entrusted.Packages = *orderItem.TotalPackages
+				}
+				if orderItem.TotalGrossWeightKg != nil {
+					member.Entrusted.GrossWeightKg = *orderItem.TotalGrossWeightKg
+				}
+				if orderItem.TotalVolumeCbm != nil {
+					member.Entrusted.VolumeCbm = *orderItem.TotalVolumeCbm
+				}
+				for _, cargo := range orderItem.Edges.CargoItems {
+					member.Actual.Packages += cargo.PackageCount
+					member.Actual.GrossWeightKg += cargo.GrossWeightKg
+					member.Actual.VolumeCbm += cargo.VolumeCbm
+				}
+				members[orderItem.ID] = member
+				summary.Members = append(summary.Members, member)
+			}
+			member.HouseNos = append(member.HouseNos, document.HouseNo)
+		}
+		for _, member := range summary.Members {
+			summary.Entrusted.Packages += member.Entrusted.Packages
+			summary.Entrusted.GrossWeightKg += member.Entrusted.GrossWeightKg
+			summary.Entrusted.VolumeCbm += member.Entrusted.VolumeCbm
+			summary.Actual.Packages += member.Actual.Packages
+			summary.Actual.GrossWeightKg += member.Actual.GrossWeightKg
+			summary.Actual.VolumeCbm += member.Actual.VolumeCbm
+		}
+		result = append(result, summary)
+	}
+	return result, nil
+}
+
 func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.OrderPersonnelOption, error) {
 	organizations, err := r.data.db.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
@@ -218,6 +296,8 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetVgmCutoff(input.VGMCutoff).
 		SetGoodsDescription(input.GoodsDescription).
 		SetNillableTotalPackages(input.TotalPackages).
+		SetNillableTotalGrossWeightKg(input.TotalGrossWeightKg).
+		SetNillableTotalVolumeCbm(input.TotalVolumeCbm).
 		SetTotalPackageUnit(input.TotalPackageUnit).
 		SetSpecialRequirements(input.SpecialRequirements).
 		SetOrderDate(input.OrderDate).
@@ -327,6 +407,16 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		update.ClearTotalPackages()
 	} else {
 		update.SetTotalPackages(*input.TotalPackages)
+	}
+	if input.TotalGrossWeightKg == nil {
+		update.ClearTotalGrossWeightKg()
+	} else {
+		update.SetTotalGrossWeightKg(*input.TotalGrossWeightKg)
+	}
+	if input.TotalVolumeCbm == nil {
+		update.ClearTotalVolumeCbm()
+	} else {
+		update.SetTotalVolumeCbm(*input.TotalVolumeCbm)
 	}
 	if _, err := update.Save(ctx); err != nil {
 		_ = tx.Rollback()
@@ -773,7 +863,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,
 		SICutoff: item.SiCutoff, DocCutoff: item.DocCutoff, CustomsCutoff: item.CustomsCutoff, VGMCutoff: item.VgmCutoff,
-		GoodsDescription: item.GoodsDescription, TotalPackages: item.TotalPackages, TotalPackageUnit: item.TotalPackageUnit,
+		GoodsDescription: item.GoodsDescription, TotalPackages: item.TotalPackages, TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: item.TotalPackageUnit,
 		SpecialRequirements: item.SpecialRequirements, OrderDate: item.OrderDate, Notes: item.Notes,
 		BookingNotes: item.BookingNotes, AllocationNotes: item.AllocationNotes, OperationNotes: item.OperationNotes,
 		CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
