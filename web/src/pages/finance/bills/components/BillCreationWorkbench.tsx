@@ -41,6 +41,7 @@ import {
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
+import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 
 const { Text, Title } = Typography;
 
@@ -100,6 +101,9 @@ export default function BillCreationWorkbench({
   const [splitByOrder, setSplitByOrder] = useState(false);
   const [splitByTaxRate, setSplitByTaxRate] = useState(false);
   const [preview, setPreview] = useState<API.PreviewBillBatchResponse>();
+  const [invoiceProfilesMap, setInvoiceProfilesMap] = useState<
+    Record<string, API.PartnerInvoiceProfile[]>
+  >({});
   const [result, setResult] = useState<API.FinanceBillBatch>();
   const [loading, setLoading] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
@@ -137,13 +141,45 @@ export default function BillCreationWorkbench({
           throw new Error('服务端未返回有效的拆单预览');
         }
         setPreview(response);
+
+        // 异步批量查询各结算单位维护的全部开票抬头资料
+        const uniquePartyIds = Array.from(
+          new Set(
+            groups
+              .map((g) => g.settlementPartyId)
+              .filter((id): id is string => Boolean(id)),
+          ),
+        );
+        const profilesMap: Record<string, API.PartnerInvoiceProfile[]> = {};
+        await Promise.all(
+          uniquePartyIds.map(async (partyId) => {
+            try {
+              const res = await partnerServiceListPartnerInvoiceProfiles(
+                { partnerId: partyId },
+                { skipErrorHandler: true },
+              );
+              profilesMap[partyId] = res.data || [];
+            } catch {
+              profilesMap[partyId] = [];
+            }
+          }),
+        );
+        setInvoiceProfilesMap(profilesMap);
+
         form.setFieldsValue({
-          groups: groups.map((group) => ({
-            statementTitle: group.settlementPartyName || '',
-            billDate: dayjs(),
-            paymentTermsDays: undefined,
-            note: undefined,
-          })),
+          groups: groups.map((group) => {
+            const profiles = profilesMap[group.settlementPartyId || ''] || [];
+            const defaultProfile =
+              profiles.find((p) => p.isDefault && p.enabled !== false) ||
+              profiles.find((p) => p.enabled !== false);
+            return {
+              statementTitle:
+                defaultProfile?.invoiceTitle || group.settlementPartyName || '',
+              billDate: dayjs(),
+              paymentTermsDays: undefined,
+              note: undefined,
+            };
+          }),
         });
         return true;
       } catch (rawError: unknown) {
@@ -656,10 +692,61 @@ export default function BillCreationWorkbench({
                     ]}
                   >
                     <AutoComplete
-                      options={[
-                        { value: group.settlementPartyName || '' },
-                      ]}
-                      placeholder="输入或选择对账抬头"
+                      options={(() => {
+                        const profiles = (
+                          invoiceProfilesMap[group.settlementPartyId || ''] || []
+                        ).filter((p) => p.enabled !== false);
+                        const list = profiles.map((p) => ({
+                          value: p.invoiceTitle || '',
+                          label: (
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <span style={{ fontWeight: 500 }}>
+                                {p.invoiceTitle}
+                              </span>
+                              <Space size="small">
+                                {p.isDefault && (
+                                  <Tag
+                                    color="blue"
+                                    style={{ margin: 0, fontSize: 11 }}
+                                  >
+                                    默认
+                                  </Tag>
+                                )}
+                                {p.taxpayerIdentificationNo && (
+                                  <Text
+                                    type="secondary"
+                                    style={{ fontSize: 11 }}
+                                  >
+                                    税号: {p.taxpayerIdentificationNo}
+                                  </Text>
+                                )}
+                              </Space>
+                            </div>
+                          ),
+                        }));
+                        if (
+                          !list.some(
+                            (opt) => opt.value === group.settlementPartyName,
+                          )
+                        ) {
+                          list.unshift({
+                            value: group.settlementPartyName || '',
+                            label: (
+                              <span>
+                                {group.settlementPartyName}（结算单位全称）
+                              </span>
+                            ),
+                          });
+                        }
+                        return list;
+                      })()}
+                      placeholder="输入或下拉选择对账抬头"
                     />
                   </Form.Item>
                 </Col>
