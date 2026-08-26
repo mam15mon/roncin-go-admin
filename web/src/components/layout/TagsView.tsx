@@ -140,6 +140,26 @@ export const TagsView: React.FC = () => {
     });
   }, [currentPath]);
 
+  // 监听动态更新页签标题事件（如详情页加载完真实单号后更新 Tab 标题）
+  useEffect(() => {
+    const handleUpdateTabTitle = (
+      e: Event & { detail?: { path: string; title: string } },
+    ) => {
+      if (!e.detail?.path || !e.detail?.title) return;
+      const { path, title } = e.detail;
+      setTags((prev) =>
+        prev.map((t) =>
+          t.key === path || t.path === path ? { ...t, title } : t,
+        ),
+      );
+    };
+
+    window.addEventListener('roncin:update-tab-title', handleUpdateTabTitle as EventListener);
+    return () => {
+      window.removeEventListener('roncin:update-tab-title', handleUpdateTabTitle as EventListener);
+    };
+  }, []);
+
   const handleTabClick = (tag: TagItem) => {
     if (currentPath === tag.path) return;
     history.push(tag.path);

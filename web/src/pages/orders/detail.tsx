@@ -180,6 +180,19 @@ export default function OrderDetailPage() {
     void loadData();
   }, [orderId]);
 
+  useEffect(() => {
+    if (order?.orderNo && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: window.location.pathname,
+            title: `${order.orderNo} 详情`,
+          },
+        }),
+      );
+    }
+  }, [order?.orderNo]);
+
   // 2. 构造表单初始值
   const initialValues = useMemo(() => {
     if (!order) return {};

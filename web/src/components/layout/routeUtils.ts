@@ -25,15 +25,33 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/admin': '系统管理',
 };
 
-const DYNAMIC_ROUTE_PATTERNS: Array<{
+const KIND_NAMES: Record<string, string> = {
+  'sea-export': '海运出口',
+  'sea-import': '海运进口',
+  'air-export': '空运出口',
+  'air-import': '空运进口',
+  rail: '铁路运输',
+  truck: '内陆拖车',
+  customs: '报关业务',
+};
+
+export const DYNAMIC_ROUTE_PATTERNS: Array<{
   pattern: RegExp;
-  title: string;
+  title: string | ((matches: RegExpMatchArray) => string);
 }> = [
   { pattern: /^\/partners\/customers\/(?!create)[^/]+$/, title: '客户详情' },
   { pattern: /^\/partners\/suppliers\/(?!create)[^/]+$/, title: '供应商详情' },
   {
     pattern: /^\/partners\/foreign-agents\/(?!create)[^/]+$/,
     title: '国外代理详情',
+  },
+  {
+    pattern: /^\/orders\/([^/]+)\/([^/]+)\/fees$/,
+    title: (m) => `${KIND_NAMES[m[1]] || '订单'}费用录入`,
+  },
+  {
+    pattern: /^\/orders\/([^/]+)\/(?!new)[^/]+$/,
+    title: (m) => `${KIND_NAMES[m[1]] || '订单'}详情`,
   },
 ];
 
@@ -45,8 +63,9 @@ export function resolveRouteTitle(pathname: string): string {
   if (ROUTE_TITLE_MAP[pathname]) return ROUTE_TITLE_MAP[pathname];
 
   for (const { pattern, title } of DYNAMIC_ROUTE_PATTERNS) {
-    if (pattern.test(pathname)) {
-      return title;
+    const match = pathname.match(pattern);
+    if (match) {
+      return typeof title === 'function' ? title(match) : title;
     }
   }
 

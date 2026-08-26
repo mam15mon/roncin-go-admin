@@ -157,6 +157,19 @@ export default function OrderFeesPage() {
     void loadData();
   }, [orderId]);
 
+  useEffect(() => {
+    if (order?.orderNo && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: window.location.pathname,
+            title: `${order.orderNo} 费用`,
+          },
+        }),
+      );
+    }
+  }, [order?.orderNo]);
+
   const resolveExchangeRate = (
     currentOrderId: string,
     direction: number,

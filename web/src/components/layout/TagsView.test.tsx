@@ -31,10 +31,14 @@ describe('routeUtils', () => {
     expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
     expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口');
     expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新建海运出口订单');
+    expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe('海运出口详情');
+    expect(resolveRouteTitle('/orders/sea-export/SE2026082600004/fees')).toBe('海运出口费用录入');
     expect(resolveRouteTitle('/orders/sea-import')).toBe('海运进口');
     expect(resolveRouteTitle('/orders/sea-import/new')).toBe('新建海运进口订单');
     expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口');
     expect(resolveRouteTitle('/orders/air-export/new')).toBe('新建空运出口订单');
+    expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe('空运出口详情');
+    expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe('空运出口费用录入');
     expect(resolveRouteTitle('/orders/air-import')).toBe('空运进口');
     expect(resolveRouteTitle('/orders/air-import/new')).toBe('新建空运进口订单');
     expect(resolveRouteTitle('/partners/customers')).toBe('客户');
