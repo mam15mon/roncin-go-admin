@@ -63,8 +63,13 @@ export function OrderFormTemplate<T>({
   return (
     <PageContainer
       title={false}
+      breadcrumbRender={false}
+      header={{
+        title: false,
+        breadcrumb: undefined,
+        style: header ? { padding: 0 } : undefined,
+      }}
       style={{ marginTop: header ? 0 : -6 }}
-      header={header ? { style: { padding: 0 } } : undefined}
     >
       {header}
 
