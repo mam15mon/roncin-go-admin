@@ -1,12 +1,17 @@
 import {
+  FileDoneOutlined,
+} from '@ant-design/icons';
+import {
   ProTable,
   type ActionType,
   type ProColumns,
 } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import { Card, Col, Row, Statistic, Tag } from 'antd';
+import { Button, Card, Col, Row, Statistic, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { settlementServiceListFeeLedger } from '@/services/roncin/settlementService';
+import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
+import FeeSummaryBoard from './components/FeeSummaryBoard';
 
 const businessLabels: Record<string, string> = {
   SE: '海运出口',
@@ -36,6 +41,12 @@ function amount(value?: string) {
 export default function FinanceFeeLedgerPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
+  const [currentData, setCurrentData] = useState<API.FeeLedgerItem[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<API.FeeLedgerItem[]>([]);
+  const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
+
   const columns: ProColumns<API.FeeLedgerItem>[] = [
     {
       title: '关键词',
@@ -205,6 +216,7 @@ export default function FinanceFeeLedgerPage() {
           </Card>
         </Col>
       </Row>
+
       <ProTable<API.FeeLedgerItem>
         headerTitle="集运费用明细"
         actionRef={actionRef}
@@ -214,6 +226,24 @@ export default function FinanceFeeLedgerPage() {
         size="small"
         scroll={{ x: 1650 }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+        toolBarRender={() => [
+          <Button
+            key="create-bill"
+            type="primary"
+            icon={<FileDoneOutlined />}
+            disabled={selectedRowKeys.length === 0}
+            onClick={() => setBillWorkbenchOpen(true)}
+          >
+            批量生成账单 {selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : ''}
+          </Button>,
+        ]}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys, rows) => {
+            setSelectedRowKeys(keys);
+            setSelectedRows(rows);
+          },
+        }}
         request={async (params) => {
           const response = await settlementServiceListFeeLedger({
             page: params.current,
@@ -225,12 +255,37 @@ export default function FinanceFeeLedgerPage() {
             expenseDateFrom: params.expenseDateFrom,
             expenseDateTo: params.expenseDateTo,
           });
+          const list = response.data || [];
+          setCurrentData(list);
+          setTotalCount(Number(response.total || 0));
           setSummary(response.summary);
           return {
-            data: response.data || [],
+            data: list,
             total: Number(response.total || 0),
             success: response.success ?? true,
           };
+        }}
+      />
+
+      {/* 底部双层动态汇总看板 */}
+      <FeeSummaryBoard
+        selectedRows={selectedRows}
+        allRows={currentData}
+        totalCount={totalCount}
+        globalSummary={summary}
+      />
+
+      {/* 批量转账单工作台 */}
+      <BillCreationWorkbench
+        open={billWorkbenchOpen}
+        initialFeeIds={selectedRowKeys.map(String)}
+        sourceLabel={`从费用明细勾选的 ${selectedRowKeys.length} 笔费用`}
+        onClose={() => setBillWorkbenchOpen(false)}
+        onCreated={() => {
+          setBillWorkbenchOpen(false);
+          setSelectedRowKeys([]);
+          setSelectedRows([]);
+          actionRef.current?.reload();
         }}
       />
     </div>

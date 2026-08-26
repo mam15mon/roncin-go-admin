@@ -44,6 +44,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
+import FeeSummaryBoard from '@/pages/finance/fees/components/FeeSummaryBoard';
 import {
   feeCatalogServiceCreateFeeSetting,
   feeCatalogServiceListTaxableServices,
@@ -163,6 +164,10 @@ export default function OrderFeesPage() {
   const [selectedPayableFeeIds, setSelectedPayableFeeIds] = useState<
     React.Key[]
   >([]);
+  const [allReceivableItems, setAllReceivableItems] = useState<API.OrderFee[]>(
+    [],
+  );
+  const [allPayableItems, setAllPayableItems] = useState<API.OrderFee[]>([]);
 
   const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
     [],
@@ -1045,6 +1050,7 @@ export default function OrderFeesPage() {
                     const rItems = (res.data ?? []).filter(
                       (f) => feeDirectionCode(f.direction) === RECEIVABLE,
                     );
+                    setAllReceivableItems(rItems);
                     const activeItems = rItems.filter(
                       (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
                     );
@@ -1068,18 +1074,14 @@ export default function OrderFeesPage() {
             },
             {
               key: 'payable',
-              label: (
-                <Space>
-                  <span>应付费用</span>
-                  <Tag color="orange">{payableSummary.count}</Tag>
-                </Space>
-              ),
+              label: `应付费用 (${payableSummary.count})`,
               children: (
                 <ProTable<API.OrderFee>
                   actionRef={payableActionRef}
                   rowKey="id"
                   search={false}
                   bordered
+                  size="small"
                   pagination={false}
                   rowSelection={{
                     selectedRowKeys: selectedPayableFeeIds,
@@ -1128,6 +1130,7 @@ export default function OrderFeesPage() {
                     const pItems = (res.data ?? []).filter(
                       (f) => feeDirectionCode(f.direction) === PAYABLE,
                     );
+                    setAllPayableItems(pItems);
                     const activeItems = pItems.filter(
                       (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
                     );
@@ -1150,6 +1153,17 @@ export default function OrderFeesPage() {
               ),
             },
           ]}
+        />
+
+        {/* 底部双层多币种动态汇总看板 */}
+        <FeeSummaryBoard
+          selectedRows={[...allReceivableItems, ...allPayableItems].filter(
+            (f) =>
+              Boolean(f.id) &&
+              (selectedReceivableFeeIds.includes(f.id || '') ||
+                selectedPayableFeeIds.includes(f.id || '')),
+          )}
+          allRows={[...allReceivableItems, ...allPayableItems]}
         />
       </div>
 
