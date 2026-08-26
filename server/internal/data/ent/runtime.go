@@ -4286,8 +4286,16 @@ func init() {
 	partnerinvoiceprofileDescBankAccount := partnerinvoiceprofileFields[7].Descriptor()
 	// partnerinvoiceprofile.BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
 	partnerinvoiceprofile.BankAccountValidator = partnerinvoiceprofileDescBankAccount.Validators[0].(func(string) error)
+	// partnerinvoiceprofileDescIsDefault is the schema descriptor for is_default field.
+	partnerinvoiceprofileDescIsDefault := partnerinvoiceprofileFields[9].Descriptor()
+	// partnerinvoiceprofile.DefaultIsDefault holds the default value on creation for the is_default field.
+	partnerinvoiceprofile.DefaultIsDefault = partnerinvoiceprofileDescIsDefault.Default.(bool)
+	// partnerinvoiceprofileDescEnabled is the schema descriptor for enabled field.
+	partnerinvoiceprofileDescEnabled := partnerinvoiceprofileFields[10].Descriptor()
+	// partnerinvoiceprofile.DefaultEnabled holds the default value on creation for the enabled field.
+	partnerinvoiceprofile.DefaultEnabled = partnerinvoiceprofileDescEnabled.Default.(bool)
 	// partnerinvoiceprofileDescVersion is the schema descriptor for version field.
-	partnerinvoiceprofileDescVersion := partnerinvoiceprofileFields[9].Descriptor()
+	partnerinvoiceprofileDescVersion := partnerinvoiceprofileFields[11].Descriptor()
 	// partnerinvoiceprofile.DefaultVersion holds the default value on creation for the version field.
 	partnerinvoiceprofile.DefaultVersion = partnerinvoiceprofileDescVersion.Default.(uint64)
 	// partnerinvoiceprofileDescID is the schema descriptor for id field.

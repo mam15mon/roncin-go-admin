@@ -43,8 +43,8 @@ const (
 	EdgeAliases = "aliases"
 	// EdgeProfile holds the string denoting the profile edge name in mutations.
 	EdgeProfile = "profile"
-	// EdgeInvoiceProfile holds the string denoting the invoice_profile edge name in mutations.
-	EdgeInvoiceProfile = "invoice_profile"
+	// EdgeInvoiceProfiles holds the string denoting the invoice_profiles edge name in mutations.
+	EdgeInvoiceProfiles = "invoice_profiles"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
 	// EdgeShippingPresets holds the string denoting the shipping_presets edge name in mutations.
@@ -102,13 +102,13 @@ const (
 	ProfileInverseTable = "partner_profiles"
 	// ProfileColumn is the table column denoting the profile relation/edge.
 	ProfileColumn = "partner_id"
-	// InvoiceProfileTable is the table that holds the invoice_profile relation/edge.
-	InvoiceProfileTable = "partner_invoice_profiles"
-	// InvoiceProfileInverseTable is the table name for the PartnerInvoiceProfile entity.
+	// InvoiceProfilesTable is the table that holds the invoice_profiles relation/edge.
+	InvoiceProfilesTable = "partner_invoice_profiles"
+	// InvoiceProfilesInverseTable is the table name for the PartnerInvoiceProfile entity.
 	// It exists in this package in order to avoid circular dependency with the "partnerinvoiceprofile" package.
-	InvoiceProfileInverseTable = "partner_invoice_profiles"
-	// InvoiceProfileColumn is the table column denoting the invoice_profile relation/edge.
-	InvoiceProfileColumn = "partner_id"
+	InvoiceProfilesInverseTable = "partner_invoice_profiles"
+	// InvoiceProfilesColumn is the table column denoting the invoice_profiles relation/edge.
+	InvoiceProfilesColumn = "partner_id"
 	// AssignmentsTable is the table that holds the assignments relation/edge.
 	AssignmentsTable = "partner_assignments"
 	// AssignmentsInverseTable is the table name for the PartnerAssignment entity.
@@ -337,10 +337,17 @@ func ByProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByInvoiceProfileField orders the results by invoice_profile field.
-func ByInvoiceProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByInvoiceProfilesCount orders the results by invoice_profiles count.
+func ByInvoiceProfilesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newInvoiceProfileStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newInvoiceProfilesStep(), opts...)
+	}
+}
+
+// ByInvoiceProfiles orders the results by invoice_profiles terms.
+func ByInvoiceProfiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceProfilesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -518,11 +525,11 @@ func newProfileStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2O, false, ProfileTable, ProfileColumn),
 	)
 }
-func newInvoiceProfileStep() *sqlgraph.Step {
+func newInvoiceProfilesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(InvoiceProfileInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, InvoiceProfileTable, InvoiceProfileColumn),
+		sqlgraph.To(InvoiceProfilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InvoiceProfilesTable, InvoiceProfilesColumn),
 	)
 }
 func newAssignmentsStep() *sqlgraph.Step {

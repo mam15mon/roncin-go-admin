@@ -388,7 +388,7 @@ message CancelBillResponse {
 
 message ListInvoicesRequest { int32 page = 1; int32 page_size = 2; optional string keyword = 3; optional string direction = 4; optional string status = 5; }
 message GetInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
-message CreateInvoiceRequest { repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; optional string note = 3; string idempotency_key = 4 [(google.api.field_behavior) = REQUIRED]; }
+message CreateInvoiceRequest { repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; optional string note = 3; string idempotency_key = 4 [(google.api.field_behavior) = REQUIRED]; string invoice_profile_id = 5 [(google.api.field_behavior) = REQUIRED]; }
 message IssueInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; }
 message CancelInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string reason = 3 [(google.api.field_behavior) = REQUIRED]; }
 message RedFlushInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string red_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string red_invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; string reason = 5 [(google.api.field_behavior) = REQUIRED]; }

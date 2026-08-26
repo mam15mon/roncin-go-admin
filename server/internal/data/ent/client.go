@@ -9152,15 +9152,15 @@ func (c *PartnerClient) QueryProfile(_m *Partner) *PartnerProfileQuery {
 	return query
 }
 
-// QueryInvoiceProfile queries the invoice_profile edge of a Partner.
-func (c *PartnerClient) QueryInvoiceProfile(_m *Partner) *PartnerInvoiceProfileQuery {
+// QueryInvoiceProfiles queries the invoice_profiles edge of a Partner.
+func (c *PartnerClient) QueryInvoiceProfiles(_m *Partner) *PartnerInvoiceProfileQuery {
 	query := (&PartnerInvoiceProfileClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, partner.InvoiceProfileTable, partner.InvoiceProfileColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.InvoiceProfilesTable, partner.InvoiceProfilesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -10411,7 +10411,7 @@ func (c *PartnerInvoiceProfileClient) QueryPartner(_m *PartnerInvoiceProfile) *P
 		step := sqlgraph.NewStep(
 			sqlgraph.From(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID, id),
 			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, partnerinvoiceprofile.PartnerTable, partnerinvoiceprofile.PartnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerinvoiceprofile.PartnerTable, partnerinvoiceprofile.PartnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

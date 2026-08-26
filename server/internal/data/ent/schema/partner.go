@@ -32,7 +32,7 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("contacts", PartnerContact.Type),
 		edge.To("aliases", PartnerAlias.Type),
 		edge.To("profile", PartnerProfile.Type).Unique(),
-		edge.To("invoice_profile", PartnerInvoiceProfile.Type).Unique(),
+		edge.To("invoice_profiles", PartnerInvoiceProfile.Type),
 		edge.To("assignments", PartnerAssignment.Type),
 		edge.To("shipping_presets", PartnerShippingPreset.Type),
 		edge.To("contracts", PartnerContract.Type),

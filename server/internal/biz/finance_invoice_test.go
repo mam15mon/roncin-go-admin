@@ -15,8 +15,8 @@ func TestBuildFinanceInvoiceAggregatesConfirmedBills(t *testing.T) {
 		{ID: uuid.Must(uuid.NewV7()), BillNo: "BI001", Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: partyID, SettlementPartyName: "客户", Currency: "CNY", TotalAmount: decimal.RequireFromString("100"), NetAmount: decimal.RequireFromString("94"), TaxAmount: decimal.RequireFromString("6"), Lines: []*FinanceBillLine{{FeeCode: "OCEAN", FeeName: "海运费", Currency: "CNY", TotalAmount: decimal.RequireFromString("100"), NetAmount: decimal.RequireFromString("94"), TaxAmount: decimal.RequireFromString("6"), TaxRate: &taxRate, Active: true}}},
 		{ID: uuid.Must(uuid.NewV7()), BillNo: "BI002", Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: partyID, SettlementPartyName: "客户", Currency: "CNY", TotalAmount: decimal.RequireFromString("0.02"), NetAmount: decimal.RequireFromString("0.0188"), TaxAmount: decimal.RequireFromString("0.0012"), Lines: []*FinanceBillLine{{FeeCode: "OCEAN", FeeName: "海运费", Currency: "CNY", TotalAmount: decimal.RequireFromString("0.02"), NetAmount: decimal.RequireFromString("0.0188"), TaxAmount: decimal.RequireFromString("0.0012"), TaxRate: &taxRate, Active: true}}},
 	}
-	input := CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceType: FinanceInvoiceSpecial, IdempotencyKey: "invoice-test"}
-	profile := &PartnerInvoiceProfile{ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, PartnerID: partyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", RegisteredAddress: "上海市", RegisteredPhone: "021-12345678", BankName: "测试银行", BankAccount: "62220000"}
+	input := CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceProfileID: uuid.Must(uuid.NewV7()), InvoiceType: FinanceInvoiceSpecial, IdempotencyKey: "invoice-test"}
+	profile := &PartnerInvoiceProfile{ID: input.InvoiceProfileID, OrganizationID: organizationID, PartnerID: partyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", RegisteredAddress: "上海市", RegisteredPhone: "021-12345678", BankName: "测试银行", BankAccount: "62220000", Enabled: true}
 	invoice, err := buildFinanceInvoice(organizationID, bills, profile, input)
 	if err != nil {
 		t.Fatalf("构建开票记录失败: %v", err)
@@ -32,8 +32,8 @@ func TestBuildFinanceInvoiceRejectsMixedParties(t *testing.T) {
 		{ID: uuid.Must(uuid.NewV7()), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY"},
 	}
 	organizationID := uuid.Must(uuid.NewV7())
-	profile := &PartnerInvoiceProfile{ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, PartnerID: bills[0].SettlementPartyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST"}
-	_, err := buildFinanceInvoice(organizationID, bills, profile, CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceType: FinanceInvoiceNormal})
+	profile := &PartnerInvoiceProfile{ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, PartnerID: bills[0].SettlementPartyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", Enabled: true}
+	_, err := buildFinanceInvoice(organizationID, bills, profile, CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceProfileID: profile.ID, InvoiceType: FinanceInvoiceNormal})
 	if err != ErrFinanceInvoiceBillMismatch {
 		t.Fatalf("混合结算单位应被拒绝，实际 %v", err)
 	}

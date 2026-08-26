@@ -6,7 +6,9 @@ function requiredEnvironment(name: string) {
   return value;
 }
 
-test('批量转账单、订单费用入口与发票快照页面可完整访问', async ({ page }) => {
+test('批量转账单、多开票抬头、订单费用入口与发票快照页面可完整访问', async ({
+  page,
+}) => {
   await page.goto('/user/login');
   await page
     .getByPlaceholder('用户名 / 邮箱')
@@ -36,10 +38,11 @@ test('批量转账单、订单费用入口与发票快照页面可完整访问',
     return response.json();
   });
   const acceptanceOrder = orders.data?.find(
-    (item: { customerReferenceNo?: string }) =>
+    (item: { customerReferenceNo?: string; customerId?: string }) =>
       item.customerReferenceNo?.startsWith('ACC-FIN-'),
   );
   expect(acceptanceOrder?.id).toBeTruthy();
+  expect(acceptanceOrder?.customerId).toBeTruthy();
   await page.goto(`/orders/sea-export/${acceptanceOrder.id}/fees`);
   await expect(
     page.getByText('费用录入', { exact: true }).first(),
@@ -48,6 +51,30 @@ test('批量转账单、订单费用入口与发票快照页面可完整访问',
   await expect(
     page.getByRole('button', { name: /生成账单（0）/ }).first(),
   ).toBeDisabled();
+
+  const customer = await page.evaluate(async (customerId) => {
+    const response = await fetch(`/api/v1/partners/${customerId}`);
+    return response.json();
+  }, acceptanceOrder.customerId);
+  await page.goto('/partners/customers');
+  const customerRow = page
+    .locator('.ant-table-tbody > tr.ant-table-row')
+    .filter({ hasText: customer.data.legalName })
+    .first();
+  await expect(customerRow).toBeVisible();
+  await customerRow.getByRole('button', { name: '账户/合同' }).click();
+  const partnerDrawer = page.getByRole('dialog', {
+    name: `往来商务档案：${customer.data.legalName}`,
+  });
+  await expect(
+    partnerDrawer.getByText('开票抬头', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    partnerDrawer.locator('.ant-table-tbody > tr.ant-table-row').nth(1),
+  ).toBeVisible();
+  await expect(
+    partnerDrawer.locator('.ant-tag').filter({ hasText: /^默认$/ }).first(),
+  ).toBeVisible();
 
   await page.goto('/finance/invoices');
   await expect(

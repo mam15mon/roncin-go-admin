@@ -24,7 +24,7 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import { partnerServiceGetPartnerInvoiceProfile } from '@/services/roncin/partnerService';
+import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
@@ -43,7 +43,11 @@ const states: Record<string, { text: string; color: string }> = {
   CANCELLED: { text: '已取消/作废', color: 'default' },
   RED_FLUSHED: { text: '已红冲', color: 'red' },
 };
-type CreateValues = { invoiceType: string; note?: string };
+type CreateValues = {
+  invoiceProfileId: string;
+  invoiceType: string;
+  note?: string;
+};
 type IssueValues = { taxInvoiceNo: string; invoiceDate: Dayjs };
 type RedFlushValues = {
   redInvoiceNo: string;
@@ -63,39 +67,45 @@ export default function FinanceInvoicesPage() {
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
+  const [availableProfiles, setAvailableProfiles] = useState<
+    API.PartnerInvoiceProfile[]
+  >([]);
   const [selectedProfile, setSelectedProfile] =
     useState<API.PartnerInvoiceProfile>();
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
   const reload = () => actionRef.current?.reload();
 
-  const loadSelectedProfile = async (partnerId?: string) => {
+  const loadSelectedProfiles = async (partnerId?: string) => {
     if (!partnerId) {
+      setAvailableProfiles([]);
       setSelectedProfile(undefined);
+      createForm.setFieldValue('invoiceProfileId', undefined);
       return;
     }
     try {
-      const response = await partnerServiceGetPartnerInvoiceProfile(
+      const response = await partnerServiceListPartnerInvoiceProfiles(
         { partnerId },
         { skipErrorHandler: true },
       );
-      setSelectedProfile(response.data);
-      if (response.data?.defaultInvoiceType) {
-        createForm.setFieldValue(
-          'invoiceType',
-          response.data.defaultInvoiceType,
+      const profiles = (response.data || []).filter((item) => item.enabled);
+      setAvailableProfiles(profiles);
+      const selected = profiles.find((item) => item.isDefault) || profiles[0];
+      setSelectedProfile(selected);
+      createForm.setFieldValue('invoiceProfileId', selected?.id);
+      if (selected?.defaultInvoiceType) {
+        createForm.setFieldValue('invoiceType', selected.defaultInvoiceType);
+      }
+      if (!selected) {
+        message.warning(
+          '该结算单位尚未配置可用开票抬头，请先到往来单位档案维护',
         );
       }
     } catch (rawError: any) {
+      setAvailableProfiles([]);
       setSelectedProfile(undefined);
-      const reason = rawError.data?.reason || rawError.response?.data?.reason;
-      if (reason === 'PARTNER_INVOICE_PROFILE_NOT_FOUND') {
-        message.warning(
-          '该结算单位尚未配置独立开票资料，请先到往来单位档案维护',
-        );
-      } else {
-        message.error(rawError.message || '加载开票资料失败');
-      }
+      createForm.setFieldValue('invoiceProfileId', undefined);
+      message.error(rawError.message || '加载开票抬头失败');
     }
   };
 
@@ -117,6 +127,7 @@ export default function FinanceInvoicesPage() {
     try {
       await settlementServiceCreateInvoice({
         billIds: selectedIDs.map(String),
+        invoiceProfileId: values.invoiceProfileId,
         invoiceType: values.invoiceType,
         note: values.note,
         idempotencyKey: globalThis.crypto.randomUUID(),
@@ -127,7 +138,7 @@ export default function FinanceInvoicesPage() {
     } catch (error: any) {
       const reason = error.data?.reason || error.response?.data?.reason;
       if (reason === 'FINANCE_INVOICE_PROFILE_REQUIRED') {
-        message.error('结算单位缺少完整开票资料，请先到往来单位档案维护');
+        message.error('请选择该结算单位下启用且完整的开票抬头');
       } else {
         message.error(error.message || '创建开票记录失败');
       }
@@ -365,7 +376,9 @@ export default function FinanceInvoicesPage() {
                   onClick={() => {
                     setSelectedIDs([]);
                     setSelectedBills([]);
+                    setAvailableProfiles([]);
                     setSelectedProfile(undefined);
+                    createForm.resetFields();
                     createForm.setFieldsValue({ invoiceType: 'NORMAL' });
                     setCreateOpen(true);
                   }}
@@ -400,6 +413,35 @@ export default function FinanceInvoicesPage() {
       >
         <Form form={createForm} layout="inline" style={{ marginBottom: 12 }}>
           <Form.Item
+            name="invoiceProfileId"
+            label="开票抬头"
+            rules={[{ required: true, message: '请选择开票抬头' }]}
+          >
+            <Select
+              style={{ width: 300 }}
+              placeholder={
+                selectedBills[0] ? '请选择该客户的开票抬头' : '请先选择账单'
+              }
+              disabled={!selectedBills[0]}
+              options={availableProfiles.map((item) => ({
+                value: item.id,
+                label: `${item.invoiceTitle}${item.isDefault ? '（默认）' : ''}`,
+              }))}
+              onChange={(id) => {
+                const profile = availableProfiles.find(
+                  (item) => item.id === id,
+                );
+                setSelectedProfile(profile);
+                if (profile?.defaultInvoiceType) {
+                  createForm.setFieldValue(
+                    'invoiceType',
+                    profile.defaultInvoiceType,
+                  );
+                }
+              }}
+            />
+          </Form.Item>
+          <Form.Item
             name="invoiceType"
             label="发票类型"
             rules={[{ required: true }]}
@@ -423,7 +465,7 @@ export default function FinanceInvoicesPage() {
             column={3}
             style={{ marginBottom: 12 }}
           >
-            <Descriptions.Item label="开票抬头" span={2}>
+            <Descriptions.Item label="已选开票抬头" span={2}>
               {selectedProfile?.invoiceTitle || (
                 <Text type="danger">未配置</Text>
               )}
@@ -477,7 +519,9 @@ export default function FinanceInvoicesPage() {
               if (
                 first?.settlementPartyId !== selectedBills[0]?.settlementPartyId
               ) {
-                void loadSelectedProfile(first?.settlementPartyId);
+                void loadSelectedProfiles(first?.settlementPartyId);
+              } else if (!first) {
+                void loadSelectedProfiles(undefined);
               }
             },
             getCheckboxProps: (r) => {

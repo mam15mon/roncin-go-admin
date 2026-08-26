@@ -426,7 +426,11 @@ func (s *SettlementService) CreateInvoice(ctx context.Context, request *v1.Creat
 		}
 		ids = append(ids, id)
 	}
-	item, err := s.invoiceUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateFinanceInvoiceInput{BillIDs: ids, InvoiceType: biz.FinanceInvoiceType(strings.ToUpper(request.GetInvoiceType())), Note: request.Note, IdempotencyKey: request.GetIdempotencyKey()})
+	profileID, err := uuid.Parse(strings.TrimSpace(request.GetInvoiceProfileId()))
+	if err != nil {
+		return nil, biz.ErrFinanceInvoiceInvalidArgument
+	}
+	item, err := s.invoiceUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateFinanceInvoiceInput{BillIDs: ids, InvoiceProfileID: profileID, InvoiceType: biz.FinanceInvoiceType(strings.ToUpper(request.GetInvoiceType())), Note: request.Note, IdempotencyKey: request.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}

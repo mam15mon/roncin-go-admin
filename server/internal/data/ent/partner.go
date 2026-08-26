@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 )
 
@@ -57,8 +56,8 @@ type PartnerEdges struct {
 	Aliases []*PartnerAlias `json:"aliases,omitempty"`
 	// Profile holds the value of the profile edge.
 	Profile *PartnerProfile `json:"profile,omitempty"`
-	// InvoiceProfile holds the value of the invoice_profile edge.
-	InvoiceProfile *PartnerInvoiceProfile `json:"invoice_profile,omitempty"`
+	// InvoiceProfiles holds the value of the invoice_profiles edge.
+	InvoiceProfiles []*PartnerInvoiceProfile `json:"invoice_profiles,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*PartnerAssignment `json:"assignments,omitempty"`
 	// ShippingPresets holds the value of the shipping_presets edge.
@@ -133,15 +132,13 @@ func (e PartnerEdges) ProfileOrErr() (*PartnerProfile, error) {
 	return nil, &NotLoadedError{edge: "profile"}
 }
 
-// InvoiceProfileOrErr returns the InvoiceProfile value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PartnerEdges) InvoiceProfileOrErr() (*PartnerInvoiceProfile, error) {
-	if e.InvoiceProfile != nil {
-		return e.InvoiceProfile, nil
-	} else if e.loadedTypes[5] {
-		return nil, &NotFoundError{label: partnerinvoiceprofile.Label}
+// InvoiceProfilesOrErr returns the InvoiceProfiles value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) InvoiceProfilesOrErr() ([]*PartnerInvoiceProfile, error) {
+	if e.loadedTypes[5] {
+		return e.InvoiceProfiles, nil
 	}
-	return nil, &NotLoadedError{edge: "invoice_profile"}
+	return nil, &NotLoadedError{edge: "invoice_profiles"}
 }
 
 // AssignmentsOrErr returns the Assignments value or an error if the edge
@@ -361,9 +358,9 @@ func (_m *Partner) QueryProfile() *PartnerProfileQuery {
 	return NewPartnerClient(_m.config).QueryProfile(_m)
 }
 
-// QueryInvoiceProfile queries the "invoice_profile" edge of the Partner entity.
-func (_m *Partner) QueryInvoiceProfile() *PartnerInvoiceProfileQuery {
-	return NewPartnerClient(_m.config).QueryInvoiceProfile(_m)
+// QueryInvoiceProfiles queries the "invoice_profiles" edge of the Partner entity.
+func (_m *Partner) QueryInvoiceProfiles() *PartnerInvoiceProfileQuery {
+	return NewPartnerClient(_m.config).QueryInvoiceProfiles(_m)
 }
 
 // QueryAssignments queries the "assignments" edge of the Partner entity.

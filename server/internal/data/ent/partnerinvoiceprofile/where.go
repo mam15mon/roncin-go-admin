@@ -106,6 +106,16 @@ func BankAccount(v string) predicate.PartnerInvoiceProfile {
 	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldBankAccount, v))
 }
 
+// IsDefault applies equality check predicate on the "is_default" field. It's identical to IsDefaultEQ.
+func IsDefault(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldIsDefault, v))
+}
+
+// Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
+func Enabled(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldEnabled, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.PartnerInvoiceProfile {
 	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldVersion, v))
@@ -681,6 +691,26 @@ func DefaultInvoiceTypeNotIn(vs ...DefaultInvoiceType) predicate.PartnerInvoiceP
 	return predicate.PartnerInvoiceProfile(sql.FieldNotIn(FieldDefaultInvoiceType, vs...))
 }
 
+// IsDefaultEQ applies the EQ predicate on the "is_default" field.
+func IsDefaultEQ(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldIsDefault, v))
+}
+
+// IsDefaultNEQ applies the NEQ predicate on the "is_default" field.
+func IsDefaultNEQ(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldNEQ(FieldIsDefault, v))
+}
+
+// EnabledEQ applies the EQ predicate on the "enabled" field.
+func EnabledEQ(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldEnabled, v))
+}
+
+// EnabledNEQ applies the NEQ predicate on the "enabled" field.
+func EnabledNEQ(v bool) predicate.PartnerInvoiceProfile {
+	return predicate.PartnerInvoiceProfile(sql.FieldNEQ(FieldEnabled, v))
+}
+
 // VersionEQ applies the EQ predicate on the "version" field.
 func VersionEQ(v uint64) predicate.PartnerInvoiceProfile {
 	return predicate.PartnerInvoiceProfile(sql.FieldEQ(FieldVersion, v))
@@ -749,7 +779,7 @@ func HasPartner() predicate.PartnerInvoiceProfile {
 	return predicate.PartnerInvoiceProfile(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, PartnerTable, PartnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PartnerTable, PartnerColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

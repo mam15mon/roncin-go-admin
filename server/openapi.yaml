@@ -3763,11 +3763,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.UpdatePartnerContractResponse'
-    /api/v1/partners/{partnerId}/invoice-profile:
+    /api/v1/partners/{partnerId}/invoice-profiles:
         get:
             tags:
                 - PartnerService
-            operationId: PartnerService_GetPartnerInvoiceProfile
+            operationId: PartnerService_ListPartnerInvoiceProfiles
             parameters:
                 - name: partnerId
                   in: path
@@ -3780,11 +3780,11 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/partner.v1.GetPartnerInvoiceProfileResponse'
-        put:
+                                $ref: '#/components/schemas/partner.v1.ListPartnerInvoiceProfilesResponse'
+        post:
             tags:
                 - PartnerService
-            operationId: PartnerService_SavePartnerInvoiceProfile
+            operationId: PartnerService_CreatePartnerInvoiceProfile
             parameters:
                 - name: partnerId
                   in: path
@@ -3795,7 +3795,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/partner.v1.SavePartnerInvoiceProfileRequest'
+                            $ref: '#/components/schemas/partner.v1.CreatePartnerInvoiceProfileRequest'
                 required: true
             responses:
                 "200":
@@ -3803,7 +3803,36 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/partner.v1.SavePartnerInvoiceProfileResponse'
+                                $ref: '#/components/schemas/partner.v1.CreatePartnerInvoiceProfileResponse'
+    /api/v1/partners/{partnerId}/invoice-profiles/{id}:
+        put:
+            tags:
+                - PartnerService
+            operationId: PartnerService_UpdatePartnerInvoiceProfile
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.UpdatePartnerInvoiceProfileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.UpdatePartnerInvoiceProfileResponse'
     /api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules:
         get:
             tags:
@@ -5382,6 +5411,7 @@ components:
                 - billIds
                 - invoiceType
                 - idempotencyKey
+                - invoiceProfileId
             type: object
             properties:
                 billIds:
@@ -5393,6 +5423,8 @@ components:
                 note:
                     type: string
                 idempotencyKey:
+                    type: string
+                invoiceProfileId:
                     type: string
         finance.v1.CreateInvoiceResponse:
             type: object
@@ -10165,6 +10197,46 @@ components:
                     $ref: '#/components/schemas/partner.v1.PartnerContract'
                 traceId:
                     type: string
+        partner.v1.CreatePartnerInvoiceProfileRequest:
+            required:
+                - partnerId
+                - invoiceTitle
+                - taxpayerIdentificationNo
+                - defaultInvoiceType
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                invoiceTitle:
+                    type: string
+                taxpayerIdentificationNo:
+                    type: string
+                registeredAddress:
+                    type: string
+                registeredPhone:
+                    type: string
+                bankName:
+                    type: string
+                bankAccount:
+                    type: string
+                defaultInvoiceType:
+                    type: string
+                isDefault:
+                    type: boolean
+        partner.v1.CreatePartnerInvoiceProfileResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.PartnerInvoiceProfile'
+                traceId:
+                    type: string
         partner.v1.CreatePartnerRequest:
             required:
                 - code
@@ -10277,20 +10349,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerExportItem'
-                traceId:
-                    type: string
-        partner.v1.GetPartnerInvoiceProfileResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/partner.v1.PartnerInvoiceProfile'
                 traceId:
                     type: string
         partner.v1.GetPartnerResponse:
@@ -10428,6 +10486,22 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/partner.v1.PartnerContract'
+                traceId:
+                    type: string
+        partner.v1.ListPartnerInvoiceProfilesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerInvoiceProfile'
                 traceId:
                     type: string
         partner.v1.ListPartnerSettlementRulesResponse:
@@ -10822,6 +10896,14 @@ components:
                     type: string
                 version:
                     type: string
+                isDefault:
+                    type: boolean
+                enabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
         partner.v1.PartnerProfile:
             type: object
             properties:
@@ -11062,46 +11144,6 @@ components:
                     $ref: '#/components/schemas/partner.v1.PartnerAttachment'
                 traceId:
                     type: string
-        partner.v1.SavePartnerInvoiceProfileRequest:
-            required:
-                - partnerId
-                - invoiceTitle
-                - taxpayerIdentificationNo
-                - defaultInvoiceType
-            type: object
-            properties:
-                partnerId:
-                    type: string
-                invoiceTitle:
-                    type: string
-                taxpayerIdentificationNo:
-                    type: string
-                registeredAddress:
-                    type: string
-                registeredPhone:
-                    type: string
-                bankName:
-                    type: string
-                bankAccount:
-                    type: string
-                defaultInvoiceType:
-                    type: string
-                expectedVersion:
-                    type: string
-        partner.v1.SavePartnerInvoiceProfileResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/partner.v1.PartnerInvoiceProfile'
-                traceId:
-                    type: string
         partner.v1.SetSupplierBlacklistRequest:
             required:
                 - id
@@ -11203,6 +11245,56 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/partner.v1.PartnerContract'
+                traceId:
+                    type: string
+        partner.v1.UpdatePartnerInvoiceProfileRequest:
+            required:
+                - partnerId
+                - id
+                - invoiceTitle
+                - taxpayerIdentificationNo
+                - defaultInvoiceType
+                - isDefault
+                - enabled
+                - expectedVersion
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                id:
+                    type: string
+                invoiceTitle:
+                    type: string
+                taxpayerIdentificationNo:
+                    type: string
+                registeredAddress:
+                    type: string
+                registeredPhone:
+                    type: string
+                bankName:
+                    type: string
+                bankAccount:
+                    type: string
+                defaultInvoiceType:
+                    type: string
+                isDefault:
+                    type: boolean
+                enabled:
+                    type: boolean
+                expectedVersion:
+                    type: string
+        partner.v1.UpdatePartnerInvoiceProfileResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.PartnerInvoiceProfile'
                 traceId:
                     type: string
         partner.v1.UpdatePartnerRequest:

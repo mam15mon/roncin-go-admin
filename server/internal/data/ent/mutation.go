@@ -57848,8 +57848,9 @@ type PartnerMutation struct {
 	clearedaliases               bool
 	profile                      *uuid.UUID
 	clearedprofile               bool
-	invoice_profile              *uuid.UUID
-	clearedinvoice_profile       bool
+	invoice_profiles             map[uuid.UUID]struct{}
+	removedinvoice_profiles      map[uuid.UUID]struct{}
+	clearedinvoice_profiles      bool
 	assignments                  map[uuid.UUID]struct{}
 	removedassignments           map[uuid.UUID]struct{}
 	clearedassignments           bool
@@ -58567,43 +58568,58 @@ func (m *PartnerMutation) ResetProfile() {
 	m.clearedprofile = false
 }
 
-// SetInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by id.
-func (m *PartnerMutation) SetInvoiceProfileID(id uuid.UUID) {
-	m.invoice_profile = &id
+// AddInvoiceProfileIDs adds the "invoice_profiles" edge to the PartnerInvoiceProfile entity by ids.
+func (m *PartnerMutation) AddInvoiceProfileIDs(ids ...uuid.UUID) {
+	if m.invoice_profiles == nil {
+		m.invoice_profiles = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.invoice_profiles[ids[i]] = struct{}{}
+	}
 }
 
-// ClearInvoiceProfile clears the "invoice_profile" edge to the PartnerInvoiceProfile entity.
-func (m *PartnerMutation) ClearInvoiceProfile() {
-	m.clearedinvoice_profile = true
+// ClearInvoiceProfiles clears the "invoice_profiles" edge to the PartnerInvoiceProfile entity.
+func (m *PartnerMutation) ClearInvoiceProfiles() {
+	m.clearedinvoice_profiles = true
 }
 
-// InvoiceProfileCleared reports if the "invoice_profile" edge to the PartnerInvoiceProfile entity was cleared.
-func (m *PartnerMutation) InvoiceProfileCleared() bool {
-	return m.clearedinvoice_profile
+// InvoiceProfilesCleared reports if the "invoice_profiles" edge to the PartnerInvoiceProfile entity was cleared.
+func (m *PartnerMutation) InvoiceProfilesCleared() bool {
+	return m.clearedinvoice_profiles
 }
 
-// InvoiceProfileID returns the "invoice_profile" edge ID in the mutation.
-func (m *PartnerMutation) InvoiceProfileID() (id uuid.UUID, exists bool) {
-	if m.invoice_profile != nil {
-		return *m.invoice_profile, true
+// RemoveInvoiceProfileIDs removes the "invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (m *PartnerMutation) RemoveInvoiceProfileIDs(ids ...uuid.UUID) {
+	if m.removedinvoice_profiles == nil {
+		m.removedinvoice_profiles = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.invoice_profiles, ids[i])
+		m.removedinvoice_profiles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInvoiceProfiles returns the removed IDs of the "invoice_profiles" edge to the PartnerInvoiceProfile entity.
+func (m *PartnerMutation) RemovedInvoiceProfilesIDs() (ids []uuid.UUID) {
+	for id := range m.removedinvoice_profiles {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// InvoiceProfileIDs returns the "invoice_profile" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// InvoiceProfileID instead. It exists only for internal usage by the builders.
-func (m *PartnerMutation) InvoiceProfileIDs() (ids []uuid.UUID) {
-	if id := m.invoice_profile; id != nil {
-		ids = append(ids, *id)
+// InvoiceProfilesIDs returns the "invoice_profiles" edge IDs in the mutation.
+func (m *PartnerMutation) InvoiceProfilesIDs() (ids []uuid.UUID) {
+	for id := range m.invoice_profiles {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetInvoiceProfile resets all changes to the "invoice_profile" edge.
-func (m *PartnerMutation) ResetInvoiceProfile() {
-	m.invoice_profile = nil
-	m.clearedinvoice_profile = false
+// ResetInvoiceProfiles resets all changes to the "invoice_profiles" edge.
+func (m *PartnerMutation) ResetInvoiceProfiles() {
+	m.invoice_profiles = nil
+	m.clearedinvoice_profiles = false
+	m.removedinvoice_profiles = nil
 }
 
 // AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by ids.
@@ -59446,8 +59462,8 @@ func (m *PartnerMutation) AddedEdges() []string {
 	if m.profile != nil {
 		edges = append(edges, partner.EdgeProfile)
 	}
-	if m.invoice_profile != nil {
-		edges = append(edges, partner.EdgeInvoiceProfile)
+	if m.invoice_profiles != nil {
+		edges = append(edges, partner.EdgeInvoiceProfiles)
 	}
 	if m.assignments != nil {
 		edges = append(edges, partner.EdgeAssignments)
@@ -59512,10 +59528,12 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile; id != nil {
 			return []ent.Value{*id}
 		}
-	case partner.EdgeInvoiceProfile:
-		if id := m.invoice_profile; id != nil {
-			return []ent.Value{*id}
+	case partner.EdgeInvoiceProfiles:
+		ids := make([]ent.Value, 0, len(m.invoice_profiles))
+		for id := range m.invoice_profiles {
+			ids = append(ids, id)
 		}
+		return ids
 	case partner.EdgeAssignments:
 		ids := make([]ent.Value, 0, len(m.assignments))
 		for id := range m.assignments {
@@ -59592,6 +59610,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	if m.removedaliases != nil {
 		edges = append(edges, partner.EdgeAliases)
 	}
+	if m.removedinvoice_profiles != nil {
+		edges = append(edges, partner.EdgeInvoiceProfiles)
+	}
 	if m.removedassignments != nil {
 		edges = append(edges, partner.EdgeAssignments)
 	}
@@ -59644,6 +59665,12 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 	case partner.EdgeAliases:
 		ids := make([]ent.Value, 0, len(m.removedaliases))
 		for id := range m.removedaliases {
+			ids = append(ids, id)
+		}
+		return ids
+	case partner.EdgeInvoiceProfiles:
+		ids := make([]ent.Value, 0, len(m.removedinvoice_profiles))
+		for id := range m.removedinvoice_profiles {
 			ids = append(ids, id)
 		}
 		return ids
@@ -59729,8 +59756,8 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedprofile {
 		edges = append(edges, partner.EdgeProfile)
 	}
-	if m.clearedinvoice_profile {
-		edges = append(edges, partner.EdgeInvoiceProfile)
+	if m.clearedinvoice_profiles {
+		edges = append(edges, partner.EdgeInvoiceProfiles)
 	}
 	if m.clearedassignments {
 		edges = append(edges, partner.EdgeAssignments)
@@ -59779,8 +59806,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedaliases
 	case partner.EdgeProfile:
 		return m.clearedprofile
-	case partner.EdgeInvoiceProfile:
-		return m.clearedinvoice_profile
+	case partner.EdgeInvoiceProfiles:
+		return m.clearedinvoice_profiles
 	case partner.EdgeAssignments:
 		return m.clearedassignments
 	case partner.EdgeShippingPresets:
@@ -59815,9 +59842,6 @@ func (m *PartnerMutation) ClearEdge(name string) error {
 	case partner.EdgeProfile:
 		m.ClearProfile()
 		return nil
-	case partner.EdgeInvoiceProfile:
-		m.ClearInvoiceProfile()
-		return nil
 	}
 	return fmt.Errorf("unknown Partner unique edge %s", name)
 }
@@ -59841,8 +59865,8 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 	case partner.EdgeProfile:
 		m.ResetProfile()
 		return nil
-	case partner.EdgeInvoiceProfile:
-		m.ResetInvoiceProfile()
+	case partner.EdgeInvoiceProfiles:
+		m.ResetInvoiceProfiles()
 		return nil
 	case partner.EdgeAssignments:
 		m.ResetAssignments()
@@ -65187,6 +65211,8 @@ type PartnerInvoiceProfileMutation struct {
 	bank_name                  *string
 	bank_account               *string
 	default_invoice_type       *partnerinvoiceprofile.DefaultInvoiceType
+	is_default                 *bool
+	enabled                    *bool
 	version                    *uint64
 	addversion                 *int64
 	clearedFields              map[string]struct{}
@@ -65754,6 +65780,78 @@ func (m *PartnerInvoiceProfileMutation) ResetDefaultInvoiceType() {
 	m.default_invoice_type = nil
 }
 
+// SetIsDefault sets the "is_default" field.
+func (m *PartnerInvoiceProfileMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *PartnerInvoiceProfileMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the PartnerInvoiceProfile entity.
+// If the PartnerInvoiceProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerInvoiceProfileMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *PartnerInvoiceProfileMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *PartnerInvoiceProfileMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *PartnerInvoiceProfileMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the PartnerInvoiceProfile entity.
+// If the PartnerInvoiceProfile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerInvoiceProfileMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *PartnerInvoiceProfileMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
 // SetVersion sets the "version" field.
 func (m *PartnerInvoiceProfileMutation) SetVersion(u uint64) {
 	m.version = &u
@@ -65952,7 +66050,7 @@ func (m *PartnerInvoiceProfileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerInvoiceProfileMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, partnerinvoiceprofile.FieldCreatedAt)
 	}
@@ -65985,6 +66083,12 @@ func (m *PartnerInvoiceProfileMutation) Fields() []string {
 	}
 	if m.default_invoice_type != nil {
 		fields = append(fields, partnerinvoiceprofile.FieldDefaultInvoiceType)
+	}
+	if m.is_default != nil {
+		fields = append(fields, partnerinvoiceprofile.FieldIsDefault)
+	}
+	if m.enabled != nil {
+		fields = append(fields, partnerinvoiceprofile.FieldEnabled)
 	}
 	if m.version != nil {
 		fields = append(fields, partnerinvoiceprofile.FieldVersion)
@@ -66019,6 +66123,10 @@ func (m *PartnerInvoiceProfileMutation) Field(name string) (ent.Value, bool) {
 		return m.BankAccount()
 	case partnerinvoiceprofile.FieldDefaultInvoiceType:
 		return m.DefaultInvoiceType()
+	case partnerinvoiceprofile.FieldIsDefault:
+		return m.IsDefault()
+	case partnerinvoiceprofile.FieldEnabled:
+		return m.Enabled()
 	case partnerinvoiceprofile.FieldVersion:
 		return m.Version()
 	}
@@ -66052,6 +66160,10 @@ func (m *PartnerInvoiceProfileMutation) OldField(ctx context.Context, name strin
 		return m.OldBankAccount(ctx)
 	case partnerinvoiceprofile.FieldDefaultInvoiceType:
 		return m.OldDefaultInvoiceType(ctx)
+	case partnerinvoiceprofile.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case partnerinvoiceprofile.FieldEnabled:
+		return m.OldEnabled(ctx)
 	case partnerinvoiceprofile.FieldVersion:
 		return m.OldVersion(ctx)
 	}
@@ -66139,6 +66251,20 @@ func (m *PartnerInvoiceProfileMutation) SetField(name string, value ent.Value) e
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDefaultInvoiceType(v)
+		return nil
+	case partnerinvoiceprofile.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case partnerinvoiceprofile.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
 		return nil
 	case partnerinvoiceprofile.FieldVersion:
 		v, ok := value.(uint64)
@@ -66270,6 +66396,12 @@ func (m *PartnerInvoiceProfileMutation) ResetField(name string) error {
 		return nil
 	case partnerinvoiceprofile.FieldDefaultInvoiceType:
 		m.ResetDefaultInvoiceType()
+		return nil
+	case partnerinvoiceprofile.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case partnerinvoiceprofile.FieldEnabled:
+		m.ResetEnabled()
 		return nil
 	case partnerinvoiceprofile.FieldVersion:
 		m.ResetVersion()

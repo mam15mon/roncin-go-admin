@@ -703,6 +703,7 @@ declare namespace API {
     invoiceType: string;
     note?: string;
     idempotencyKey: string;
+    invoiceProfileId: string;
   };
 
   type CreateInvoiceResponse = {
@@ -881,6 +882,26 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: PartnerContract;
+    traceId?: string;
+  };
+
+  type CreatePartnerInvoiceProfileRequest = {
+    partnerId: string;
+    invoiceTitle: string;
+    taxpayerIdentificationNo: string;
+    registeredAddress?: string;
+    registeredPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    defaultInvoiceType: string;
+    isDefault?: boolean;
+  };
+
+  type CreatePartnerInvoiceProfileResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerInvoiceProfile;
     traceId?: string;
   };
 
@@ -1477,14 +1498,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type GetPartnerInvoiceProfileResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerInvoiceProfile;
-    traceId?: string;
-  };
-
   type GetPartnerResponse = {
     success?: boolean;
     code?: number;
@@ -1874,6 +1887,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: PartnerContract[];
+    traceId?: string;
+  };
+
+  type ListPartnerInvoiceProfilesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerInvoiceProfile[];
     traceId?: string;
   };
 
@@ -2930,6 +2951,10 @@ declare namespace API {
     bankAccount?: string;
     defaultInvoiceType?: string;
     version?: string;
+    isDefault?: boolean;
+    enabled?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
   };
 
   type PartnerProfile = {
@@ -2971,6 +2996,10 @@ declare namespace API {
     partnerId: string;
   };
 
+  type PartnerServiceCreatePartnerInvoiceProfileParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceCreatePartnerSettlementRuleParams = {
     partnerId: string;
     roleType: number;
@@ -2984,10 +3013,6 @@ declare namespace API {
     keyword?: string;
     role?: number;
     enabled?: boolean;
-  };
-
-  type PartnerServiceGetPartnerInvoiceProfileParams = {
-    partnerId: string;
   };
 
   type PartnerServiceGetPartnerParams = {
@@ -3014,6 +3039,10 @@ declare namespace API {
     status?: number;
   };
 
+  type PartnerServiceListPartnerInvoiceProfilesParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceListPartnerSettlementRulesParams = {
     partnerId: string;
     roleType: number;
@@ -3037,10 +3066,6 @@ declare namespace API {
     partnerId: string;
   };
 
-  type PartnerServiceSavePartnerInvoiceProfileParams = {
-    partnerId: string;
-  };
-
   type PartnerServiceSetSupplierBlacklistParams = {
     id: string;
   };
@@ -3051,6 +3076,11 @@ declare namespace API {
   };
 
   type PartnerServiceUpdatePartnerContractParams = {
+    partnerId: string;
+    id: string;
+  };
+
+  type PartnerServiceUpdatePartnerInvoiceProfileParams = {
     partnerId: string;
     id: string;
   };
@@ -3378,26 +3408,6 @@ declare namespace API {
   type RoleScope = {
     roleCode?: string;
     dataScope?: string;
-  };
-
-  type SavePartnerInvoiceProfileRequest = {
-    partnerId: string;
-    invoiceTitle: string;
-    taxpayerIdentificationNo: string;
-    registeredAddress?: string;
-    registeredPhone?: string;
-    bankName?: string;
-    bankAccount?: string;
-    defaultInvoiceType: string;
-    expectedVersion?: string;
-  };
-
-  type SavePartnerInvoiceProfileResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: PartnerInvoiceProfile;
-    traceId?: string;
   };
 
   type SetDefaultMilestoneTemplateRequest = {
@@ -4061,6 +4071,29 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: PartnerContract;
+    traceId?: string;
+  };
+
+  type UpdatePartnerInvoiceProfileRequest = {
+    partnerId: string;
+    id: string;
+    invoiceTitle: string;
+    taxpayerIdentificationNo: string;
+    registeredAddress?: string;
+    registeredPhone?: string;
+    bankName?: string;
+    bankAccount?: string;
+    defaultInvoiceType: string;
+    isDefault: boolean;
+    enabled: boolean;
+    expectedVersion: string;
+  };
+
+  type UpdatePartnerInvoiceProfileResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerInvoiceProfile;
     traceId?: string;
   };
 

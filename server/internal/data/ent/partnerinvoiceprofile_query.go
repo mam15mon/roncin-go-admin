@@ -104,7 +104,7 @@ func (_q *PartnerInvoiceProfileQuery) QueryPartner() *PartnerQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(partnerinvoiceprofile.Table, partnerinvoiceprofile.FieldID, selector),
 			sqlgraph.To(partner.Table, partner.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, partnerinvoiceprofile.PartnerTable, partnerinvoiceprofile.PartnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, partnerinvoiceprofile.PartnerTable, partnerinvoiceprofile.PartnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil

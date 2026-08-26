@@ -6228,12 +6228,12 @@
         }
       }
     },
-    "/api/v1/partners/{partnerId}/invoice-profile": {
+    "/api/v1/partners/{partnerId}/invoice-profiles": {
       "get": {
         "tags": [
           "PartnerService"
         ],
-        "operationId": "PartnerService_GetPartnerInvoiceProfile",
+        "operationId": "PartnerService_ListPartnerInvoiceProfiles",
         "parameters": [
           {
             "name": "partnerId",
@@ -6250,18 +6250,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.GetPartnerInvoiceProfileResponse"
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerInvoiceProfilesResponse"
                 }
               }
             }
           }
         }
       },
-      "put": {
+      "post": {
         "tags": [
           "PartnerService"
         ],
-        "operationId": "PartnerService_SavePartnerInvoiceProfile",
+        "operationId": "PartnerService_CreatePartnerInvoiceProfile",
         "parameters": [
           {
             "name": "partnerId",
@@ -6276,7 +6276,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/partner.v1.SavePartnerInvoiceProfileRequest"
+                "$ref": "#/components/schemas/partner.v1.CreatePartnerInvoiceProfileRequest"
               }
             }
           },
@@ -6288,7 +6288,55 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.SavePartnerInvoiceProfileResponse"
+                  "$ref": "#/components/schemas/partner.v1.CreatePartnerInvoiceProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partners/{partnerId}/invoice-profiles/{id}": {
+      "put": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_UpdatePartnerInvoiceProfile",
+        "parameters": [
+          {
+            "name": "partnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/partner.v1.UpdatePartnerInvoiceProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.UpdatePartnerInvoiceProfileResponse"
                 }
               }
             }
@@ -8671,7 +8719,8 @@
         "required": [
           "billIds",
           "invoiceType",
-          "idempotencyKey"
+          "idempotencyKey",
+          "invoiceProfileId"
         ],
         "type": "object",
         "properties": {
@@ -8688,6 +8737,9 @@
             "type": "string"
           },
           "idempotencyKey": {
+            "type": "string"
+          },
+          "invoiceProfileId": {
             "type": "string"
           }
         }
@@ -15712,6 +15764,65 @@
           }
         }
       },
+      "partner.v1.CreatePartnerInvoiceProfileRequest": {
+        "required": [
+          "partnerId",
+          "invoiceTitle",
+          "taxpayerIdentificationNo",
+          "defaultInvoiceType"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "invoiceTitle": {
+            "type": "string"
+          },
+          "taxpayerIdentificationNo": {
+            "type": "string"
+          },
+          "registeredAddress": {
+            "type": "string"
+          },
+          "registeredPhone": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAccount": {
+            "type": "string"
+          },
+          "defaultInvoiceType": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "partner.v1.CreatePartnerInvoiceProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerInvoiceProfile"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "partner.v1.CreatePartnerRequest": {
         "required": [
           "code",
@@ -15876,27 +15987,6 @@
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerExportItem"
             }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.GetPartnerInvoiceProfileResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerInvoiceProfile"
           },
           "traceId": {
             "type": "string"
@@ -16098,6 +16188,30 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/partner.v1.PartnerContract"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.ListPartnerInvoiceProfilesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerInvoiceProfile"
             }
           },
           "traceId": {
@@ -16690,6 +16804,18 @@
           },
           "version": {
             "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
           }
         }
       },
@@ -17045,65 +17171,6 @@
           }
         }
       },
-      "partner.v1.SavePartnerInvoiceProfileRequest": {
-        "required": [
-          "partnerId",
-          "invoiceTitle",
-          "taxpayerIdentificationNo",
-          "defaultInvoiceType"
-        ],
-        "type": "object",
-        "properties": {
-          "partnerId": {
-            "type": "string"
-          },
-          "invoiceTitle": {
-            "type": "string"
-          },
-          "taxpayerIdentificationNo": {
-            "type": "string"
-          },
-          "registeredAddress": {
-            "type": "string"
-          },
-          "registeredPhone": {
-            "type": "string"
-          },
-          "bankName": {
-            "type": "string"
-          },
-          "bankAccount": {
-            "type": "string"
-          },
-          "defaultInvoiceType": {
-            "type": "string"
-          },
-          "expectedVersion": {
-            "type": "string"
-          }
-        }
-      },
-      "partner.v1.SavePartnerInvoiceProfileResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/partner.v1.PartnerInvoiceProfile"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "partner.v1.SetSupplierBlacklistRequest": {
         "required": [
           "id",
@@ -17250,6 +17317,78 @@
           },
           "data": {
             "$ref": "#/components/schemas/partner.v1.PartnerContract"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerInvoiceProfileRequest": {
+        "required": [
+          "partnerId",
+          "id",
+          "invoiceTitle",
+          "taxpayerIdentificationNo",
+          "defaultInvoiceType",
+          "isDefault",
+          "enabled",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "partnerId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "invoiceTitle": {
+            "type": "string"
+          },
+          "taxpayerIdentificationNo": {
+            "type": "string"
+          },
+          "registeredAddress": {
+            "type": "string"
+          },
+          "registeredPhone": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAccount": {
+            "type": "string"
+          },
+          "defaultInvoiceType": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "partner.v1.UpdatePartnerInvoiceProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/partner.v1.PartnerInvoiceProfile"
           },
           "traceId": {
             "type": "string"

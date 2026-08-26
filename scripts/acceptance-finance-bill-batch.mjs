@@ -260,20 +260,15 @@ assert(
 );
 
 let profile;
-const profileResponse = await raw(
-  `/api/v1/partners/${customer.id}/invoice-profile`,
+const profileResponse = await request(
+  `/api/v1/partners/${customer.id}/invoice-profiles`,
 );
-if (profileResponse.response.ok) {
-  profile = profileResponse.body.data;
-} else {
-  assert(
-    profileResponse.response.status === 404,
-    '读取开票资料返回了非预期错误',
-  );
+profile = (profileResponse.data || []).find((item) => item.enabled);
+if (!profile) {
   const saved = await request(
-    `/api/v1/partners/${customer.id}/invoice-profile`,
+    `/api/v1/partners/${customer.id}/invoice-profiles`,
     {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({
         partnerId: customer.id,
         invoiceTitle: customer.legalName,
@@ -284,7 +279,7 @@ if (profileResponse.response.ok) {
         bankName: '',
         bankAccount: '',
         defaultInvoiceType: 'NORMAL',
-        expectedVersion: '0',
+        isDefault: true,
       }),
     },
   );
@@ -294,11 +289,68 @@ assert(
   profile?.invoiceTitle && profile?.taxpayerIdentificationNo,
   '开票资料不完整',
 );
+const primaryProfile = profile;
+
+const secondaryProfileResponse = await request(
+  `/api/v1/partners/${customer.id}/invoice-profiles`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      partnerId: customer.id,
+      invoiceTitle: `${customer.legalName} 验收抬头 ${stamp}`,
+      taxpayerIdentificationNo: profile.taxpayerIdentificationNo,
+      registeredAddress: customer.registeredAddress || '',
+      registeredPhone: '',
+      bankName: '',
+      bankAccount: '',
+      defaultInvoiceType: 'NORMAL',
+      isDefault: false,
+    }),
+  },
+);
+const createdSecondaryProfile = secondaryProfileResponse.data;
+const updatedSecondaryProfileResponse = await request(
+  `/api/v1/partners/${customer.id}/invoice-profiles/${createdSecondaryProfile.id}`,
+  {
+    method: 'PUT',
+    body: JSON.stringify({
+      partnerId: customer.id,
+      id: createdSecondaryProfile.id,
+      invoiceTitle: createdSecondaryProfile.invoiceTitle,
+      taxpayerIdentificationNo:
+        createdSecondaryProfile.taxpayerIdentificationNo,
+      registeredAddress: createdSecondaryProfile.registeredAddress || '',
+      registeredPhone: createdSecondaryProfile.registeredPhone || '',
+      bankName: createdSecondaryProfile.bankName || '',
+      bankAccount: createdSecondaryProfile.bankAccount || '',
+      defaultInvoiceType: createdSecondaryProfile.defaultInvoiceType,
+      isDefault: true,
+      enabled: true,
+      expectedVersion: createdSecondaryProfile.version,
+    }),
+  },
+);
+const secondaryProfile = updatedSecondaryProfileResponse.data;
+const profilesAfterCreate = await request(
+  `/api/v1/partners/${customer.id}/invoice-profiles`,
+);
+const enabledProfiles = (profilesAfterCreate.data || []).filter(
+  (item) => item.enabled,
+);
+assert(enabledProfiles.length >= 2, '同一客户未能保存多套开票抬头');
+assert(
+  enabledProfiles.filter((item) => item.isDefault).length === 1,
+  '同一客户的默认开票抬头不是唯一项',
+);
+assert(secondaryProfile.isDefault, '新指定的默认开票抬头未生效');
+profile = enabledProfiles.find((item) => item.id === primaryProfile.id);
+assert(profile && !profile.isDefault, '原默认抬头未正确切换为非默认抬头');
 
 const invoiceResponse = await request('/api/v1/finance/invoices', {
   method: 'POST',
   body: JSON.stringify({
     billIds: confirmedBatch.data.bills.map((bill) => bill.id),
+    invoiceProfileId: profile.id,
     invoiceType: 'NORMAL',
     note: '财务批量转账单自动验收',
     idempotencyKey: `acc-fin-invoice-${stamp}`,
@@ -336,6 +388,8 @@ console.log(
       billNos: confirmedBatch.data.bills.map((bill) => bill.billNo),
       invoiceRecordNo: invoice.recordNo,
       invoiceLineCount: invoice.lines.length,
+      invoiceProfileCount: enabledProfiles.length,
+      selectedNonDefaultProfile: !profile.isDefault,
       concurrentConflictVerified: true,
       idempotentRetryVerified: true,
     },

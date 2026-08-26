@@ -216,23 +216,19 @@ func (_u *PartnerUpdate) SetProfile(v *PartnerProfile) *PartnerUpdate {
 	return _u.SetProfileID(v.ID)
 }
 
-// SetInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID.
-func (_u *PartnerUpdate) SetInvoiceProfileID(id uuid.UUID) *PartnerUpdate {
-	_u.mutation.SetInvoiceProfileID(id)
+// AddInvoiceProfileIDs adds the "invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (_u *PartnerUpdate) AddInvoiceProfileIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddInvoiceProfileIDs(ids...)
 	return _u
 }
 
-// SetNillableInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID if the given value is not nil.
-func (_u *PartnerUpdate) SetNillableInvoiceProfileID(id *uuid.UUID) *PartnerUpdate {
-	if id != nil {
-		_u = _u.SetInvoiceProfileID(*id)
+// AddInvoiceProfiles adds the "invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdate) AddInvoiceProfiles(v ...*PartnerInvoiceProfile) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetInvoiceProfile sets the "invoice_profile" edge to the PartnerInvoiceProfile entity.
-func (_u *PartnerUpdate) SetInvoiceProfile(v *PartnerInvoiceProfile) *PartnerUpdate {
-	return _u.SetInvoiceProfileID(v.ID)
+	return _u.AddInvoiceProfileIDs(ids...)
 }
 
 // AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
@@ -465,10 +461,25 @@ func (_u *PartnerUpdate) ClearProfile() *PartnerUpdate {
 	return _u
 }
 
-// ClearInvoiceProfile clears the "invoice_profile" edge to the PartnerInvoiceProfile entity.
-func (_u *PartnerUpdate) ClearInvoiceProfile() *PartnerUpdate {
-	_u.mutation.ClearInvoiceProfile()
+// ClearInvoiceProfiles clears all "invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdate) ClearInvoiceProfiles() *PartnerUpdate {
+	_u.mutation.ClearInvoiceProfiles()
 	return _u
+}
+
+// RemoveInvoiceProfileIDs removes the "invoice_profiles" edge to PartnerInvoiceProfile entities by IDs.
+func (_u *PartnerUpdate) RemoveInvoiceProfileIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// RemoveInvoiceProfiles removes "invoice_profiles" edges to PartnerInvoiceProfile entities.
+func (_u *PartnerUpdate) RemoveInvoiceProfiles(v ...*PartnerInvoiceProfile) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceProfileIDs(ids...)
 }
 
 // ClearAssignments clears all "assignments" edges to the PartnerAssignment entity.
@@ -974,12 +985,12 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.InvoiceProfileCleared() {
+	if _u.mutation.InvoiceProfilesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   partner.InvoiceProfileTable,
-			Columns: []string{partner.InvoiceProfileColumn},
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
@@ -987,12 +998,28 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.InvoiceProfileIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedInvoiceProfilesIDs(); len(nodes) > 0 && !_u.mutation.InvoiceProfilesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   partner.InvoiceProfileTable,
-			Columns: []string{partner.InvoiceProfileColumn},
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceProfilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
@@ -1644,23 +1671,19 @@ func (_u *PartnerUpdateOne) SetProfile(v *PartnerProfile) *PartnerUpdateOne {
 	return _u.SetProfileID(v.ID)
 }
 
-// SetInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID.
-func (_u *PartnerUpdateOne) SetInvoiceProfileID(id uuid.UUID) *PartnerUpdateOne {
-	_u.mutation.SetInvoiceProfileID(id)
+// AddInvoiceProfileIDs adds the "invoice_profiles" edge to the PartnerInvoiceProfile entity by IDs.
+func (_u *PartnerUpdateOne) AddInvoiceProfileIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddInvoiceProfileIDs(ids...)
 	return _u
 }
 
-// SetNillableInvoiceProfileID sets the "invoice_profile" edge to the PartnerInvoiceProfile entity by ID if the given value is not nil.
-func (_u *PartnerUpdateOne) SetNillableInvoiceProfileID(id *uuid.UUID) *PartnerUpdateOne {
-	if id != nil {
-		_u = _u.SetInvoiceProfileID(*id)
+// AddInvoiceProfiles adds the "invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdateOne) AddInvoiceProfiles(v ...*PartnerInvoiceProfile) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetInvoiceProfile sets the "invoice_profile" edge to the PartnerInvoiceProfile entity.
-func (_u *PartnerUpdateOne) SetInvoiceProfile(v *PartnerInvoiceProfile) *PartnerUpdateOne {
-	return _u.SetInvoiceProfileID(v.ID)
+	return _u.AddInvoiceProfileIDs(ids...)
 }
 
 // AddAssignmentIDs adds the "assignments" edge to the PartnerAssignment entity by IDs.
@@ -1893,10 +1916,25 @@ func (_u *PartnerUpdateOne) ClearProfile() *PartnerUpdateOne {
 	return _u
 }
 
-// ClearInvoiceProfile clears the "invoice_profile" edge to the PartnerInvoiceProfile entity.
-func (_u *PartnerUpdateOne) ClearInvoiceProfile() *PartnerUpdateOne {
-	_u.mutation.ClearInvoiceProfile()
+// ClearInvoiceProfiles clears all "invoice_profiles" edges to the PartnerInvoiceProfile entity.
+func (_u *PartnerUpdateOne) ClearInvoiceProfiles() *PartnerUpdateOne {
+	_u.mutation.ClearInvoiceProfiles()
 	return _u
+}
+
+// RemoveInvoiceProfileIDs removes the "invoice_profiles" edge to PartnerInvoiceProfile entities by IDs.
+func (_u *PartnerUpdateOne) RemoveInvoiceProfileIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveInvoiceProfileIDs(ids...)
+	return _u
+}
+
+// RemoveInvoiceProfiles removes "invoice_profiles" edges to PartnerInvoiceProfile entities.
+func (_u *PartnerUpdateOne) RemoveInvoiceProfiles(v ...*PartnerInvoiceProfile) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveInvoiceProfileIDs(ids...)
 }
 
 // ClearAssignments clears all "assignments" edges to the PartnerAssignment entity.
@@ -2432,12 +2470,12 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.InvoiceProfileCleared() {
+	if _u.mutation.InvoiceProfilesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   partner.InvoiceProfileTable,
-			Columns: []string{partner.InvoiceProfileColumn},
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
@@ -2445,12 +2483,28 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.InvoiceProfileIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedInvoiceProfilesIDs(); len(nodes) > 0 && !_u.mutation.InvoiceProfilesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   partner.InvoiceProfileTable,
-			Columns: []string{partner.InvoiceProfileColumn},
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.InvoiceProfilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.InvoiceProfilesTable,
+			Columns: []string{partner.InvoiceProfilesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerinvoiceprofile.FieldID, field.TypeUUID),

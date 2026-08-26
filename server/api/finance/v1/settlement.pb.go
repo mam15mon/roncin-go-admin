@@ -2900,13 +2900,14 @@ func (x *GetInvoiceRequest) GetId() string {
 }
 
 type CreateInvoiceRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	BillIds        []string               `protobuf:"bytes,1,rep,name=bill_ids,json=billIds,proto3" json:"bill_ids,omitempty"`
-	InvoiceType    string                 `protobuf:"bytes,2,opt,name=invoice_type,json=invoiceType,proto3" json:"invoice_type,omitempty"`
-	Note           *string                `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	IdempotencyKey string                 `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	BillIds          []string               `protobuf:"bytes,1,rep,name=bill_ids,json=billIds,proto3" json:"bill_ids,omitempty"`
+	InvoiceType      string                 `protobuf:"bytes,2,opt,name=invoice_type,json=invoiceType,proto3" json:"invoice_type,omitempty"`
+	Note             *string                `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	IdempotencyKey   string                 `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	InvoiceProfileId string                 `protobuf:"bytes,5,opt,name=invoice_profile_id,json=invoiceProfileId,proto3" json:"invoice_profile_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *CreateInvoiceRequest) Reset() {
@@ -2963,6 +2964,13 @@ func (x *CreateInvoiceRequest) GetNote() string {
 func (x *CreateInvoiceRequest) GetIdempotencyKey() string {
 	if x != nil {
 		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *CreateInvoiceRequest) GetInvoiceProfileId() string {
+	if x != nil {
+		return x.InvoiceProfileId
 	}
 	return ""
 }
@@ -7608,12 +7616,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"_directionB\t\n" +
 	"\a_status\"(\n" +
 	"\x11GetInvoiceRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xae\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xe1\x01\n" +
 	"\x14CreateInvoiceRequest\x12\x1e\n" +
 	"\bbill_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\abillIds\x12&\n" +
 	"\finvoice_type\x18\x02 \x01(\tB\x03\xe0A\x02R\vinvoiceType\x12\x17\n" +
 	"\x04note\x18\x03 \x01(\tH\x00R\x04note\x88\x01\x01\x12,\n" +
-	"\x0fidempotency_key\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKeyB\a\n" +
+	"\x0fidempotency_key\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x121\n" +
+	"\x12invoice_profile_id\x18\x05 \x01(\tB\x03\xe0A\x02R\x10invoiceProfileIdB\a\n" +
 	"\x05_note\"\xad\x01\n" +
 	"\x13IssueInvoiceRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +

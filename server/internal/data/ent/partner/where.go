@@ -671,21 +671,21 @@ func HasProfileWith(preds ...predicate.PartnerProfile) predicate.Partner {
 	})
 }
 
-// HasInvoiceProfile applies the HasEdge predicate on the "invoice_profile" edge.
-func HasInvoiceProfile() predicate.Partner {
+// HasInvoiceProfiles applies the HasEdge predicate on the "invoice_profiles" edge.
+func HasInvoiceProfiles() predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, InvoiceProfileTable, InvoiceProfileColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, InvoiceProfilesTable, InvoiceProfilesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasInvoiceProfileWith applies the HasEdge predicate on the "invoice_profile" edge with a given conditions (other predicates).
-func HasInvoiceProfileWith(preds ...predicate.PartnerInvoiceProfile) predicate.Partner {
+// HasInvoiceProfilesWith applies the HasEdge predicate on the "invoice_profiles" edge with a given conditions (other predicates).
+func HasInvoiceProfilesWith(preds ...predicate.PartnerInvoiceProfile) predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {
-		step := newInvoiceProfileStep()
+		step := newInvoiceProfilesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

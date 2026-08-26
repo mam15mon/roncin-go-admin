@@ -158,6 +158,34 @@ func (_u *PartnerInvoiceProfileUpdate) SetNillableDefaultInvoiceType(v *partneri
 	return _u
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_u *PartnerInvoiceProfileUpdate) SetIsDefault(v bool) *PartnerInvoiceProfileUpdate {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *PartnerInvoiceProfileUpdate) SetNillableIsDefault(v *bool) *PartnerInvoiceProfileUpdate {
+	if v != nil {
+		_u.SetIsDefault(*v)
+	}
+	return _u
+}
+
+// SetEnabled sets the "enabled" field.
+func (_u *PartnerInvoiceProfileUpdate) SetEnabled(v bool) *PartnerInvoiceProfileUpdate {
+	_u.mutation.SetEnabled(v)
+	return _u
+}
+
+// SetNillableEnabled sets the "enabled" field if the given value is not nil.
+func (_u *PartnerInvoiceProfileUpdate) SetNillableEnabled(v *bool) *PartnerInvoiceProfileUpdate {
+	if v != nil {
+		_u.SetEnabled(*v)
+	}
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *PartnerInvoiceProfileUpdate) SetVersion(v uint64) *PartnerInvoiceProfileUpdate {
 	_u.mutation.ResetVersion()
@@ -349,6 +377,12 @@ func (_u *PartnerInvoiceProfileUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if value, ok := _u.mutation.DefaultInvoiceType(); ok {
 		_spec.SetField(partnerinvoiceprofile.FieldDefaultInvoiceType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldIsDefault, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Enabled(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(partnerinvoiceprofile.FieldVersion, field.TypeUint64, value)
@@ -545,6 +579,34 @@ func (_u *PartnerInvoiceProfileUpdateOne) SetDefaultInvoiceType(v partnerinvoice
 func (_u *PartnerInvoiceProfileUpdateOne) SetNillableDefaultInvoiceType(v *partnerinvoiceprofile.DefaultInvoiceType) *PartnerInvoiceProfileUpdateOne {
 	if v != nil {
 		_u.SetDefaultInvoiceType(*v)
+	}
+	return _u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (_u *PartnerInvoiceProfileUpdateOne) SetIsDefault(v bool) *PartnerInvoiceProfileUpdateOne {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *PartnerInvoiceProfileUpdateOne) SetNillableIsDefault(v *bool) *PartnerInvoiceProfileUpdateOne {
+	if v != nil {
+		_u.SetIsDefault(*v)
+	}
+	return _u
+}
+
+// SetEnabled sets the "enabled" field.
+func (_u *PartnerInvoiceProfileUpdateOne) SetEnabled(v bool) *PartnerInvoiceProfileUpdateOne {
+	_u.mutation.SetEnabled(v)
+	return _u
+}
+
+// SetNillableEnabled sets the "enabled" field if the given value is not nil.
+func (_u *PartnerInvoiceProfileUpdateOne) SetNillableEnabled(v *bool) *PartnerInvoiceProfileUpdateOne {
+	if v != nil {
+		_u.SetEnabled(*v)
 	}
 	return _u
 }
@@ -770,6 +832,12 @@ func (_u *PartnerInvoiceProfileUpdateOne) sqlSave(ctx context.Context) (_node *P
 	}
 	if value, ok := _u.mutation.DefaultInvoiceType(); ok {
 		_spec.SetField(partnerinvoiceprofile.FieldDefaultInvoiceType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldIsDefault, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Enabled(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(partnerinvoiceprofile.FieldVersion, field.TypeUint64, value)

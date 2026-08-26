@@ -146,6 +146,34 @@ func (_c *PartnerInvoiceProfileCreate) SetNillableDefaultInvoiceType(v *partneri
 	return _c
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_c *PartnerInvoiceProfileCreate) SetIsDefault(v bool) *PartnerInvoiceProfileCreate {
+	_c.mutation.SetIsDefault(v)
+	return _c
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_c *PartnerInvoiceProfileCreate) SetNillableIsDefault(v *bool) *PartnerInvoiceProfileCreate {
+	if v != nil {
+		_c.SetIsDefault(*v)
+	}
+	return _c
+}
+
+// SetEnabled sets the "enabled" field.
+func (_c *PartnerInvoiceProfileCreate) SetEnabled(v bool) *PartnerInvoiceProfileCreate {
+	_c.mutation.SetEnabled(v)
+	return _c
+}
+
+// SetNillableEnabled sets the "enabled" field if the given value is not nil.
+func (_c *PartnerInvoiceProfileCreate) SetNillableEnabled(v *bool) *PartnerInvoiceProfileCreate {
+	if v != nil {
+		_c.SetEnabled(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *PartnerInvoiceProfileCreate) SetVersion(v uint64) *PartnerInvoiceProfileCreate {
 	_c.mutation.SetVersion(v)
@@ -246,6 +274,14 @@ func (_c *PartnerInvoiceProfileCreate) defaults() {
 		v := partnerinvoiceprofile.DefaultDefaultInvoiceType
 		_c.mutation.SetDefaultInvoiceType(v)
 	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		v := partnerinvoiceprofile.DefaultIsDefault
+		_c.mutation.SetIsDefault(v)
+	}
+	if _, ok := _c.mutation.Enabled(); !ok {
+		v := partnerinvoiceprofile.DefaultEnabled
+		_c.mutation.SetEnabled(v)
+	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := partnerinvoiceprofile.DefaultVersion
 		_c.mutation.SetVersion(v)
@@ -313,6 +349,12 @@ func (_c *PartnerInvoiceProfileCreate) check() error {
 		if err := partnerinvoiceprofile.DefaultInvoiceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "default_invoice_type", err: fmt.Errorf(`ent: validator failed for field "PartnerInvoiceProfile.default_invoice_type": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		return &ValidationError{Name: "is_default", err: errors.New(`ent: missing required field "PartnerInvoiceProfile.is_default"`)}
+	}
+	if _, ok := _c.mutation.Enabled(); !ok {
+		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "PartnerInvoiceProfile.enabled"`)}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "PartnerInvoiceProfile.version"`)}
@@ -394,6 +436,14 @@ func (_c *PartnerInvoiceProfileCreate) createSpec() (*PartnerInvoiceProfile, *sq
 		_spec.SetField(partnerinvoiceprofile.FieldDefaultInvoiceType, field.TypeEnum, value)
 		_node.DefaultInvoiceType = value
 	}
+	if value, ok := _c.mutation.IsDefault(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldIsDefault, field.TypeBool, value)
+		_node.IsDefault = value
+	}
+	if value, ok := _c.mutation.Enabled(); ok {
+		_spec.SetField(partnerinvoiceprofile.FieldEnabled, field.TypeBool, value)
+		_node.Enabled = value
+	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(partnerinvoiceprofile.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
@@ -417,7 +467,7 @@ func (_c *PartnerInvoiceProfileCreate) createSpec() (*PartnerInvoiceProfile, *sq
 	}
 	if nodes := _c.mutation.PartnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   partnerinvoiceprofile.PartnerTable,
 			Columns: []string{partnerinvoiceprofile.PartnerColumn},

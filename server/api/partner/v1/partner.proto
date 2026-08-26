@@ -40,14 +40,19 @@ service PartnerService {
     };
   }
 
-  rpc GetPartnerInvoiceProfile(GetPartnerInvoiceProfileRequest) returns (GetPartnerInvoiceProfileResponse) {
+  rpc ListPartnerInvoiceProfiles(ListPartnerInvoiceProfilesRequest) returns (ListPartnerInvoiceProfilesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/invoice-profile"};
+    option (google.api.http) = {get: "/api/v1/partners/{partner_id}/invoice-profiles"};
   }
 
-  rpc SavePartnerInvoiceProfile(SavePartnerInvoiceProfileRequest) returns (SavePartnerInvoiceProfileResponse) {
+  rpc CreatePartnerInvoiceProfile(CreatePartnerInvoiceProfileRequest) returns (CreatePartnerInvoiceProfileResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {put: "/api/v1/partners/{partner_id}/invoice-profile" body: "*"};
+    option (google.api.http) = {post: "/api/v1/partners/{partner_id}/invoice-profiles" body: "*"};
+  }
+
+  rpc UpdatePartnerInvoiceProfile(UpdatePartnerInvoiceProfileRequest) returns (UpdatePartnerInvoiceProfileResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/partners/{partner_id}/invoice-profiles/{id}" body: "*"};
   }
 
   rpc SetSupplierBlacklist(SetSupplierBlacklistRequest) returns (SetSupplierBlacklistResponse) {
@@ -898,13 +903,17 @@ message PartnerInvoiceProfile {
   string bank_account = 8;
   string default_invoice_type = 9;
   uint64 version = 10;
+  bool is_default = 11;
+  bool enabled = 12;
+  string created_at = 13;
+  string updated_at = 14;
 }
 
-message GetPartnerInvoiceProfileRequest {
+message ListPartnerInvoiceProfilesRequest {
   string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message SavePartnerInvoiceProfileRequest {
+message CreatePartnerInvoiceProfileRequest {
   string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
   string invoice_title = 2 [(google.api.field_behavior) = REQUIRED];
   string taxpayer_identification_no = 3 [(google.api.field_behavior) = REQUIRED];
@@ -913,10 +922,33 @@ message SavePartnerInvoiceProfileRequest {
   string bank_name = 6;
   string bank_account = 7;
   string default_invoice_type = 8 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_version = 9;
+  bool is_default = 9;
 }
 
-message GetPartnerInvoiceProfileResponse {
+message UpdatePartnerInvoiceProfileRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  string invoice_title = 3 [(google.api.field_behavior) = REQUIRED];
+  string taxpayer_identification_no = 4 [(google.api.field_behavior) = REQUIRED];
+  string registered_address = 5;
+  string registered_phone = 6;
+  string bank_name = 7;
+  string bank_account = 8;
+  string default_invoice_type = 9 [(google.api.field_behavior) = REQUIRED];
+  bool is_default = 10 [(google.api.field_behavior) = REQUIRED];
+  bool enabled = 11 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 12 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListPartnerInvoiceProfilesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerInvoiceProfile data = 4;
+  string trace_id = 5;
+}
+
+message CreatePartnerInvoiceProfileResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
@@ -924,7 +956,7 @@ message GetPartnerInvoiceProfileResponse {
   string trace_id = 5;
 }
 
-message SavePartnerInvoiceProfileResponse {
+message UpdatePartnerInvoiceProfileResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

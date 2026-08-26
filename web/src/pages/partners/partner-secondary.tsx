@@ -22,33 +22,23 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Descriptions,
-  Drawer,
-  Space,
-  Spin,
-  Tabs,
-  Tag,
-  Typography,
-} from 'antd';
+import { Alert, App, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceCreatePartnerContract,
+  partnerServiceCreatePartnerInvoiceProfile,
   partnerServiceCreatePartnerSettlementRule,
-  partnerServiceGetPartnerInvoiceProfile,
   partnerServiceListPartnerAccounts,
   partnerServiceListPartnerAttachments,
   partnerServiceListPartnerContracts,
+  partnerServiceListPartnerInvoiceProfiles,
   partnerServiceListPartnerSettlementRules,
   partnerServiceRegisterPartnerAttachment,
-  partnerServiceSavePartnerInvoiceProfile,
   partnerServiceUpdatePartnerAccount,
   partnerServiceUpdatePartnerContract,
+  partnerServiceUpdatePartnerInvoiceProfile,
   partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
 
@@ -168,6 +158,8 @@ type InvoiceProfileFormValues = {
   bankName?: string;
   bankAccount?: string;
   defaultInvoiceType?: string;
+  isDefault?: boolean;
+  enabled?: boolean;
 };
 
 type PartnerSecondaryProps = {
@@ -205,6 +197,7 @@ export default function PartnerSecondary({
   const contractActionRef = useRef<ActionType | undefined>(undefined);
   const settlementRuleActionRef = useRef<ActionType | undefined>(undefined);
   const attachmentActionRef = useRef<ActionType | undefined>(undefined);
+  const invoiceProfileActionRef = useRef<ActionType | undefined>(undefined);
   const accountFormRef = useRef<ProFormInstance | undefined>(undefined);
   const contractFormRef = useRef<ProFormInstance | undefined>(undefined);
   const settlementRuleFormRef = useRef<ProFormInstance | undefined>(undefined);
@@ -217,8 +210,7 @@ export default function PartnerSecondary({
   const [settlementRuleModalOpen, setSettlementRuleModalOpen] = useState(false);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [invoiceProfileModalOpen, setInvoiceProfileModalOpen] = useState(false);
-  const [invoiceProfileLoading, setInvoiceProfileLoading] = useState(false);
-  const [invoiceProfile, setInvoiceProfile] =
+  const [editingInvoiceProfile, setEditingInvoiceProfile] =
     useState<API.PartnerInvoiceProfile>();
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
   const [editingContract, setEditingContract] = useState<API.PartnerContract>();
@@ -227,37 +219,8 @@ export default function PartnerSecondary({
   const hasCustomerRole =
     partner?.roles?.some((role) => role.type === 1) ?? false;
 
-  const loadInvoiceProfile = async () => {
-    if (!partner?.id) return;
-    setInvoiceProfileLoading(true);
-    try {
-      const response = await partnerServiceGetPartnerInvoiceProfile(
-        { partnerId: partner.id },
-        { skipErrorHandler: true },
-      );
-      setInvoiceProfile(response.data);
-    } catch (rawError: any) {
-      const reason = rawError.data?.reason || rawError.response?.data?.reason;
-      if (reason === 'PARTNER_INVOICE_PROFILE_NOT_FOUND') {
-        setInvoiceProfile(undefined);
-      } else {
-        message.error(
-          rawError.data?.message ||
-            rawError.response?.data?.message ||
-            rawError.message ||
-            '加载开票资料失败',
-        );
-      }
-    } finally {
-      setInvoiceProfileLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open && partner?.id) void loadInvoiceProfile();
-  }, [open, partner?.id]);
-
-  const openInvoiceProfileForm = () => {
+  const openInvoiceProfileForm = (profile?: API.PartnerInvoiceProfile) => {
+    setEditingInvoiceProfile(profile);
     invoiceProfileFormRef.current?.resetFields();
     setInvoiceProfileModalOpen(true);
   };
@@ -723,64 +686,100 @@ export default function PartnerSecondary({
   );
 
   const invoiceProfilePanel = (
-    <Spin spinning={invoiceProfileLoading}>
-      {invoiceProfile ? (
-        <>
-          <Descriptions bordered size="small" column={2}>
-            <Descriptions.Item label="发票抬头" span={2}>
-              {invoiceProfile.invoiceTitle}
-            </Descriptions.Item>
-            <Descriptions.Item label="纳税人识别号" span={2}>
-              <Text copyable>{invoiceProfile.taxpayerIdentificationNo}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="默认发票类型">
-              {invoiceProfile.defaultInvoiceType === 'SPECIAL'
-                ? '增值税专用发票'
-                : '增值税普通发票'}
-            </Descriptions.Item>
-            <Descriptions.Item label="资料版本">
-              v{invoiceProfile.version}
-            </Descriptions.Item>
-            <Descriptions.Item label="注册地址">
-              {invoiceProfile.registeredAddress || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="注册电话">
-              {invoiceProfile.registeredPhone || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="开户银行">
-              {invoiceProfile.bankName || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="银行账号">
-              {invoiceProfile.bankAccount || '-'}
-            </Descriptions.Item>
-          </Descriptions>
-          {canManage && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              style={{ marginTop: 16 }}
-              onClick={openInvoiceProfileForm}
-            >
-              编辑开票资料
-            </Button>
-          )}
-        </>
-      ) : (
-        <Alert
-          type="warning"
-          showIcon
-          message="尚未配置独立开票资料"
-          description="创建销项或进项开票记录前必须配置。发票创建后会固化资料快照，后续修改往来单位资料不会改写历史发票。"
-          action={
-            canManage ? (
-              <Button type="primary" onClick={openInvoiceProfileForm}>
-                配置开票资料
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
-    </Spin>
+    <>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 12 }}
+        message="同一往来单位可以维护多套开票抬头；默认抬头仅用于预选，创建发票时仍会明确选择并固化资料快照。"
+      />
+      <ProTable<API.PartnerInvoiceProfile>
+        headerTitle="开票抬头"
+        rowKey="id"
+        actionRef={invoiceProfileActionRef}
+        search={false}
+        pagination={false}
+        bordered
+        size="small"
+        columns={[
+          {
+            title: '发票抬头',
+            dataIndex: 'invoiceTitle',
+            width: 220,
+            ellipsis: true,
+          },
+          {
+            title: '纳税人识别号',
+            dataIndex: 'taxpayerIdentificationNo',
+            width: 190,
+            render: (_, row) => (
+              <Text copyable>{row.taxpayerIdentificationNo}</Text>
+            ),
+          },
+          {
+            title: '默认票种',
+            dataIndex: 'defaultInvoiceType',
+            width: 100,
+            renderText: (value) =>
+              value === 'SPECIAL' ? '专用发票' : '普通发票',
+          },
+          {
+            title: '默认',
+            dataIndex: 'isDefault',
+            width: 70,
+            render: (_, row) =>
+              row.isDefault ? <Tag color="blue">默认</Tag> : '-',
+          },
+          {
+            title: '状态',
+            dataIndex: 'enabled',
+            width: 70,
+            render: (_, row) => (
+              <Tag color={row.enabled ? 'success' : 'default'}>
+                {row.enabled ? '启用' : '停用'}
+              </Tag>
+            ),
+          },
+          {
+            title: '操作',
+            valueType: 'option',
+            width: 80,
+            render: (_, row) =>
+              canManage
+                ? [
+                    <a key="edit" onClick={() => openInvoiceProfileForm(row)}>
+                      <EditOutlined /> 编辑
+                    </a>,
+                  ]
+                : [],
+          },
+        ]}
+        request={async () => {
+          if (!partner?.id) return { data: [], success: true };
+          const response = await partnerServiceListPartnerInvoiceProfiles({
+            partnerId: partner.id,
+          });
+          return {
+            data: response.data ?? [],
+            success: response.success ?? true,
+          };
+        }}
+        toolBarRender={() =>
+          canManage
+            ? [
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => openInvoiceProfileForm()}
+                >
+                  新增开票抬头
+                </Button>,
+              ]
+            : []
+        }
+      />
+    </>
   );
 
   return (
@@ -859,15 +858,17 @@ export default function PartnerSecondary({
       </Drawer>
 
       <ModalForm<InvoiceProfileFormValues>
-        title={invoiceProfile ? '编辑独立开票资料' : '配置独立开票资料'}
+        title={editingInvoiceProfile ? '编辑开票抬头' : '新增开票抬头'}
         open={invoiceProfileModalOpen}
         formRef={invoiceProfileFormRef}
         initialValues={
-          invoiceProfile ?? {
+          editingInvoiceProfile ?? {
             invoiceTitle: partner?.legalName,
             taxpayerIdentificationNo: partner?.unifiedSocialCreditCode,
             registeredAddress: partner?.registeredAddress,
             defaultInvoiceType: 'NORMAL',
+            isDefault: false,
+            enabled: true,
           }
         }
         modalProps={{
@@ -878,24 +879,38 @@ export default function PartnerSecondary({
         onOpenChange={setInvoiceProfileModalOpen}
         onFinish={async (values) => {
           if (!partner?.id) return false;
-          await partnerServiceSavePartnerInvoiceProfile(
-            { partnerId: partner.id },
-            {
-              partnerId: partner.id,
-              invoiceTitle: values.invoiceTitle?.trim() || '',
-              taxpayerIdentificationNo:
-                values.taxpayerIdentificationNo?.trim() || '',
-              registeredAddress: values.registeredAddress?.trim() || '',
-              registeredPhone: values.registeredPhone?.trim() || '',
-              bankName: values.bankName?.trim() || '',
-              bankAccount: values.bankAccount?.trim() || '',
-              defaultInvoiceType: values.defaultInvoiceType || 'NORMAL',
-              expectedVersion: invoiceProfile?.version || '0',
-            },
-          );
-          message.success('独立开票资料已保存，后续发票将使用最新资料生成快照');
+          const common = {
+            partnerId: partner.id,
+            invoiceTitle: values.invoiceTitle?.trim() || '',
+            taxpayerIdentificationNo:
+              values.taxpayerIdentificationNo?.trim() || '',
+            registeredAddress: values.registeredAddress?.trim() || '',
+            registeredPhone: values.registeredPhone?.trim() || '',
+            bankName: values.bankName?.trim() || '',
+            bankAccount: values.bankAccount?.trim() || '',
+            defaultInvoiceType: values.defaultInvoiceType || 'NORMAL',
+            isDefault: Boolean(values.isDefault),
+          };
+          if (editingInvoiceProfile?.id) {
+            await partnerServiceUpdatePartnerInvoiceProfile(
+              { partnerId: partner.id, id: editingInvoiceProfile.id },
+              {
+                ...common,
+                id: editingInvoiceProfile.id,
+                enabled: Boolean(values.enabled),
+                expectedVersion: editingInvoiceProfile.version || '0',
+              },
+            );
+            message.success('开票抬头已更新，历史发票快照不受影响');
+          } else {
+            await partnerServiceCreatePartnerInvoiceProfile(
+              { partnerId: partner.id },
+              common,
+            );
+            message.success('开票抬头已新增');
+          }
           setInvoiceProfileModalOpen(false);
-          await loadInvoiceProfile();
+          invoiceProfileActionRef.current?.reload();
           return true;
         }}
       >
@@ -905,6 +920,12 @@ export default function PartnerSecondary({
           style={{ marginBottom: 16 }}
           message="这里维护的是税务开票主体资料，不是按币种维护的收付款结算账户"
         />
+        <Space size={24} style={{ marginBottom: 8 }}>
+          <ProFormSwitch name="isDefault" label="设为默认抬头" />
+          {editingInvoiceProfile && (
+            <ProFormSwitch name="enabled" label="启用该抬头" />
+          )}
+        </Space>
         <ProFormText
           name="invoiceTitle"
           label="发票抬头"

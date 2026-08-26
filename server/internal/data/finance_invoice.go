@@ -93,8 +93,8 @@ func (r *financeInvoiceRepo) LoadBills(ctx context.Context, org uuid.UUID, ids [
 	return out, nil
 }
 
-func (r *financeInvoiceRepo) LoadInvoiceProfile(ctx context.Context, org, partnerID uuid.UUID) (*biz.PartnerInvoiceProfile, error) {
-	item, err := r.data.db.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(org), profileent.PartnerIDEQ(partnerID)).Only(ctx)
+func (r *financeInvoiceRepo) LoadInvoiceProfile(ctx context.Context, org, partnerID, profileID uuid.UUID) (*biz.PartnerInvoiceProfile, error) {
+	item, err := r.data.db.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profileID), profileent.OrganizationIDEQ(org), profileent.PartnerIDEQ(partnerID), profileent.EnabledEQ(true)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, biz.ErrPartnerInvoiceProfileNotFound
 	}
@@ -113,7 +113,7 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 	if invoice.InvoiceProfileID == nil {
 		return rollback(biz.ErrFinanceInvoiceProfileRequired)
 	}
-	profile, err := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID)).ForUpdate().Only(ctx)
+	profile, err := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID), profileent.EnabledEQ(true)).ForUpdate().Only(ctx)
 	if ent.IsNotFound(err) {
 		return rollback(biz.ErrFinanceInvoiceProfileRequired)
 	}

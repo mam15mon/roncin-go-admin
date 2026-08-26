@@ -2855,9 +2855,11 @@ var (
 		{Name: "bank_name", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "bank_account", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "default_invoice_type", Type: field.TypeEnum, Enums: []string{"NORMAL", "SPECIAL"}, Default: "NORMAL"},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "partner_id", Type: field.TypeUUID, Unique: true},
+		{Name: "partner_id", Type: field.TypeUUID},
 	}
 	// PartnerInvoiceProfilesTable holds the schema information for the "partner_invoice_profiles" table.
 	PartnerInvoiceProfilesTable = &schema.Table{
@@ -2867,13 +2869,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_invoice_profiles_organizations_partner_invoice_profiles",
-				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[11]},
+				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "partner_invoice_profiles_partners_invoice_profile",
-				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[12]},
+				Symbol:     "partner_invoice_profiles_partners_invoice_profiles",
+				Columns:    []*schema.Column{PartnerInvoiceProfilesColumns[14]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2886,13 +2888,26 @@ var (
 			},
 			{
 				Name:    "partnerinvoiceprofile_organization_id_partner_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[13], PartnerInvoiceProfilesColumns[14]},
+			},
+			{
+				Name:    "partner_invoice_profile_title_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[11], PartnerInvoiceProfilesColumns[12]},
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[13], PartnerInvoiceProfilesColumns[14], PartnerInvoiceProfilesColumns[3]},
+			},
+			{
+				Name:    "partner_invoice_profile_default_key",
+				Unique:  true,
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[13], PartnerInvoiceProfilesColumns[14]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_default",
+				},
 			},
 			{
 				Name:    "partnerinvoiceprofile_organization_id_taxpayer_identification_no",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[11], PartnerInvoiceProfilesColumns[4]},
+				Columns: []*schema.Column{PartnerInvoiceProfilesColumns[13], PartnerInvoiceProfilesColumns[4]},
 			},
 		},
 	}

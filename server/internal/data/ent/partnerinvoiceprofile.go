@@ -42,6 +42,10 @@ type PartnerInvoiceProfile struct {
 	BankAccount string `json:"bank_account,omitempty"`
 	// DefaultInvoiceType holds the value of the "default_invoice_type" field.
 	DefaultInvoiceType partnerinvoiceprofile.DefaultInvoiceType `json:"default_invoice_type,omitempty"`
+	// IsDefault holds the value of the "is_default" field.
+	IsDefault bool `json:"is_default,omitempty"`
+	// Enabled holds the value of the "enabled" field.
+	Enabled bool `json:"enabled,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -99,6 +103,8 @@ func (*PartnerInvoiceProfile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case partnerinvoiceprofile.FieldIsDefault, partnerinvoiceprofile.FieldEnabled:
+			values[i] = new(sql.NullBool)
 		case partnerinvoiceprofile.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case partnerinvoiceprofile.FieldInvoiceTitle, partnerinvoiceprofile.FieldTaxpayerIdentificationNo, partnerinvoiceprofile.FieldRegisteredAddress, partnerinvoiceprofile.FieldRegisteredPhone, partnerinvoiceprofile.FieldBankName, partnerinvoiceprofile.FieldBankAccount, partnerinvoiceprofile.FieldDefaultInvoiceType:
@@ -194,6 +200,18 @@ func (_m *PartnerInvoiceProfile) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.DefaultInvoiceType = partnerinvoiceprofile.DefaultInvoiceType(value.String)
 			}
+		case partnerinvoiceprofile.FieldIsDefault:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_default", values[i])
+			} else if value.Valid {
+				_m.IsDefault = value.Bool
+			}
+		case partnerinvoiceprofile.FieldEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field enabled", values[i])
+			} else if value.Valid {
+				_m.Enabled = value.Bool
+			}
 		case partnerinvoiceprofile.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -283,6 +301,12 @@ func (_m *PartnerInvoiceProfile) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("default_invoice_type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DefaultInvoiceType))
+	builder.WriteString(", ")
+	builder.WriteString("is_default=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDefault))
+	builder.WriteString(", ")
+	builder.WriteString("enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

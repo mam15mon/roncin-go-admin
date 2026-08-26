@@ -249,15 +249,15 @@ export async function partnerServiceUpdatePartnerContract(
   );
 }
 
-/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/invoice-profile */
-export async function partnerServiceGetPartnerInvoiceProfile(
+/** 此处后端没有提供注释 GET /api/v1/partners/${param0}/invoice-profiles */
+export async function partnerServiceListPartnerInvoiceProfiles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.PartnerServiceGetPartnerInvoiceProfileParams,
+  params: API.PartnerServiceListPartnerInvoiceProfilesParams,
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.GetPartnerInvoiceProfileResponse>(
-    `/api/v1/partners/${param0}/invoice-profile`,
+  return request<API.ListPartnerInvoiceProfilesResponse>(
+    `/api/v1/partners/${param0}/invoice-profiles`,
     {
       method: "GET",
       params: { ...queryParams },
@@ -266,16 +266,38 @@ export async function partnerServiceGetPartnerInvoiceProfile(
   );
 }
 
-/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/invoice-profile */
-export async function partnerServiceSavePartnerInvoiceProfile(
+/** 此处后端没有提供注释 POST /api/v1/partners/${param0}/invoice-profiles */
+export async function partnerServiceCreatePartnerInvoiceProfile(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.PartnerServiceSavePartnerInvoiceProfileParams,
-  body: API.SavePartnerInvoiceProfileRequest,
+  params: API.PartnerServiceCreatePartnerInvoiceProfileParams,
+  body: API.CreatePartnerInvoiceProfileRequest,
   options?: { [key: string]: any }
 ) {
   const { partnerId: param0, ...queryParams } = params;
-  return request<API.SavePartnerInvoiceProfileResponse>(
-    `/api/v1/partners/${param0}/invoice-profile`,
+  return request<API.CreatePartnerInvoiceProfileResponse>(
+    `/api/v1/partners/${param0}/invoice-profiles`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/invoice-profiles/${param1} */
+export async function partnerServiceUpdatePartnerInvoiceProfile(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceUpdatePartnerInvoiceProfileParams,
+  body: API.UpdatePartnerInvoiceProfileRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, id: param1, ...queryParams } = params;
+  return request<API.UpdatePartnerInvoiceProfileResponse>(
+    `/api/v1/partners/${param0}/invoice-profiles/${param1}`,
     {
       method: "PUT",
       headers: {

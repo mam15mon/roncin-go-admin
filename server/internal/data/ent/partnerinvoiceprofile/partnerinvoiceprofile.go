@@ -38,6 +38,10 @@ const (
 	FieldBankAccount = "bank_account"
 	// FieldDefaultInvoiceType holds the string denoting the default_invoice_type field in the database.
 	FieldDefaultInvoiceType = "default_invoice_type"
+	// FieldIsDefault holds the string denoting the is_default field in the database.
+	FieldIsDefault = "is_default"
+	// FieldEnabled holds the string denoting the enabled field in the database.
+	FieldEnabled = "enabled"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
@@ -85,6 +89,8 @@ var Columns = []string{
 	FieldBankName,
 	FieldBankAccount,
 	FieldDefaultInvoiceType,
+	FieldIsDefault,
+	FieldEnabled,
 	FieldVersion,
 }
 
@@ -117,6 +123,10 @@ var (
 	BankNameValidator func(string) error
 	// BankAccountValidator is a validator for the "bank_account" field. It is called by the builders before save.
 	BankAccountValidator func(string) error
+	// DefaultIsDefault holds the default value on creation for the "is_default" field.
+	DefaultIsDefault bool
+	// DefaultEnabled holds the default value on creation for the "enabled" field.
+	DefaultEnabled bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
@@ -212,6 +222,16 @@ func ByDefaultInvoiceType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultInvoiceType, opts...).ToFunc()
 }
 
+// ByIsDefault orders the results by the is_default field.
+func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefault, opts...).ToFunc()
+}
+
+// ByEnabled orders the results by the enabled field.
+func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
@@ -255,7 +275,7 @@ func newPartnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartnerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, PartnerTable, PartnerColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, PartnerTable, PartnerColumn),
 	)
 }
 func newFinanceInvoicesStep() *sqlgraph.Step {

@@ -20,7 +20,7 @@ var (
 	ErrFinanceInvoiceVersionConflict     = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
 	ErrFinanceInvoiceInvalidTransition   = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
 	ErrFinanceInvoiceIdempotencyConflict = errors.Conflict("FINANCE_INVOICE_IDEMPOTENCY_CONFLICT", "开票请求幂等键已被其他请求使用")
-	ErrFinanceInvoiceProfileRequired     = errors.Conflict("FINANCE_INVOICE_PROFILE_REQUIRED", "结算单位必须先配置完整开票资料")
+	ErrFinanceInvoiceProfileRequired     = errors.Conflict("FINANCE_INVOICE_PROFILE_REQUIRED", "请选择该结算单位下启用且完整的开票抬头")
 )
 
 type FinanceInvoiceStatus string
@@ -90,10 +90,11 @@ type FinanceInvoiceListResult struct {
 }
 
 type CreateFinanceInvoiceInput struct {
-	BillIDs        []uuid.UUID
-	InvoiceType    FinanceInvoiceType
-	Note           *string
-	IdempotencyKey string
+	BillIDs          []uuid.UUID
+	InvoiceProfileID uuid.UUID
+	InvoiceType      FinanceInvoiceType
+	Note             *string
+	IdempotencyKey   string
 }
 
 type FinanceInvoiceRepo interface {
@@ -101,7 +102,7 @@ type FinanceInvoiceRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceInvoice, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceInvoice, error)
 	LoadBills(context.Context, uuid.UUID, []uuid.UUID) ([]*FinanceBill, error)
-	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
+	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
 	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
 	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, *AuditEvent) (*FinanceInvoice, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceInvoice, error)
@@ -143,7 +144,7 @@ func (uc *FinanceInvoiceUsecase) Get(ctx context.Context, organizationID, id uui
 func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
 	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
 	input.Note = normalizedOptionalFinanceString(input.Note)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || len(input.BillIDs) == 0 || len(input.BillIDs) > 500 || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || (input.InvoiceType != FinanceInvoiceNormal && input.InvoiceType != FinanceInvoiceSpecial) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || input.InvoiceProfileID == uuid.Nil || len(input.BillIDs) == 0 || len(input.BillIDs) > 500 || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || (input.InvoiceType != FinanceInvoiceNormal && input.InvoiceType != FinanceInvoiceSpecial) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	seen := map[uuid.UUID]struct{}{}
@@ -160,7 +161,7 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 	if existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); err != nil {
 		return nil, err
 	} else if existing != nil {
-		if existing.InvoiceType == input.InvoiceType && stringPointersEqual(existing.Note, input.Note) && len(existing.Links) == len(input.BillIDs) {
+		if existing.InvoiceProfileID != nil && *existing.InvoiceProfileID == input.InvoiceProfileID && existing.InvoiceType == input.InvoiceType && stringPointersEqual(existing.Note, input.Note) && len(existing.Links) == len(input.BillIDs) {
 			ids := make([]string, 0, len(existing.Links))
 			for _, l := range existing.Links {
 				ids = append(ids, l.BillID.String())
@@ -186,7 +187,7 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 	if len(bills) == 0 {
 		return nil, ErrFinanceInvoiceBillInvalid
 	}
-	profile, err := uc.repo.LoadInvoiceProfile(ctx, organizationID, bills[0].SettlementPartyID)
+	profile, err := uc.repo.LoadInvoiceProfile(ctx, organizationID, bills[0].SettlementPartyID, input.InvoiceProfileID)
 	if err != nil {
 		if err == ErrPartnerInvoiceProfileNotFound {
 			return nil, ErrFinanceInvoiceProfileRequired
@@ -225,7 +226,7 @@ func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, profile
 		return nil, ErrFinanceInvoiceBillInvalid
 	}
 	first := bills[0]
-	if profile == nil || profile.OrganizationID != organizationID || profile.PartnerID != first.SettlementPartyID || profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" {
+	if profile == nil || !profile.Enabled || profile.OrganizationID != organizationID || profile.PartnerID != first.SettlementPartyID || profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" {
 		return nil, ErrFinanceInvoiceProfileRequired
 	}
 	if input.InvoiceType == FinanceInvoiceSpecial && (profile.RegisteredAddress == "" || profile.RegisteredPhone == "" || profile.BankName == "" || profile.BankAccount == "") {
