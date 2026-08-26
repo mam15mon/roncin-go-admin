@@ -1,21 +1,4 @@
-import {
-  ApartmentOutlined,
-  ContainerOutlined,
-  DollarOutlined,
-  DownOutlined,
-  EditOutlined,
-  FileDoneOutlined,
-  FileTextOutlined,
-  FlagOutlined,
-  InboxOutlined,
-  OrderedListOutlined,
-  PaperClipOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  SwapOutlined,
-  TeamOutlined,
-  WarningOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -34,12 +17,12 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
+import { OrderListTemplate, type OrderListItem } from '@/components/ui';
 import {
   Alert,
   App,
   Button,
   Drawer,
-  Dropdown,
   Popconfirm,
   Result,
   Space,
@@ -98,8 +81,6 @@ import AbnormalCasePanel, {
 } from './abnormal-case-panel';
 import {
   MASTER_DATA_KINDS,
-  businessTypeMap,
-  businessTypeValueEnum,
   isMasterDataKind,
   orderPersonnelRoleOptions,
   orderPersonnelRoleValueEnum,
@@ -108,7 +89,6 @@ import {
   shipmentTypeOptions,
   shippingDocumentStatusValueEnum,
   tradeDirectionOptions,
-  tradeDirectionValueEnum,
   tradeTermOptions,
 } from './common';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
@@ -282,6 +262,7 @@ export default function OrderListPage() {
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
   const [ports, setPorts] = useState<API.Port[]>([]);
   const [airports, setAirports] = useState<API.Airport[]>([]);
+  const [partners, setPartners] = useState<API.Partner[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -289,11 +270,25 @@ export default function OrderListPage() {
       masterDataServiceListOptions(),
       masterDataServiceListPorts({ page: 1, pageSize: 100 }),
       masterDataServiceListAirports({ page: 1, pageSize: 100 }),
+      partnerServiceListPartners({ role: 1, page: 1, pageSize: 100 }),
     ])
-      .then(([optionsResponse, portsResponse, airportsResponse]) => {
+      .then(([optionsResponse, portsResponse, airportsResponse, partnersResponse]) => {
         setMasterOptions(optionsResponse.data ?? []);
         setPorts(portsResponse.data ?? []);
         setAirports(airportsResponse.data ?? []);
+        const partnerList = partnersResponse.data ?? [];
+        setPartners(partnerList);
+        setCustomerMap((prev) => {
+          const next = { ...prev };
+          for (const p of partnerList) {
+            if (p.id) {
+              next[p.id] = p.legalName
+                ? `${p.legalName} (${p.code})`
+                : p.code || p.id;
+            }
+          }
+          return next;
+        });
       })
       .catch((error: Error) =>
         message.error(error.message || '订单主数据加载失败'),
@@ -1151,316 +1146,102 @@ export default function OrderListPage() {
     },
   ];
 
-  const columns: ProColumns<API.Order>[] = [
-    {
-      title: '关键词',
-      dataIndex: 'keyword',
-      hideInTable: true,
-      valueType: 'text',
-      fieldProps: {
-        placeholder: '搜索订单号/备注/描述',
-      },
-    },
-    {
-      title: '订单编号',
-      dataIndex: 'orderNo',
-      copyable: true,
-      search: false,
-      width: 170,
-      render: (_, record) => (
-        <Text
-          style={{
-            fontFamily: 'monospace',
-            fontWeight: 600,
-            color: '#0f172a',
-          }}
-        >
-          {record.orderNo || record.id}
-        </Text>
-      ),
-    },
-    {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 160,
-      search: false,
-      render: (_, record) => (
-        <Text>{record.organizationName || record.organizationId || '-'}</Text>
-      ),
-    },
-    {
-      title: '业务类型',
-      dataIndex: 'businessType',
-      width: 130,
-      search: false,
-      valueType: 'select',
-      valueEnum: businessTypeValueEnum,
-      render: (_, record) => {
-        const item = businessTypeMap.get(record.businessType ?? 0);
-        return item ? (
-          <Tag color={item.color} bordered={false}>
-            {item.label}
-          </Tag>
-        ) : (
-          '-'
-        );
-      },
-    },
-    {
-      title: '客户单位',
-      dataIndex: 'customerId',
-      width: 200,
-      ellipsis: true,
-      valueType: 'select',
-      fieldProps: {
-        showSearch: true,
-        placeholder: '搜索客户',
-      },
-      request: async ({ keyWords }) => searchCustomers(keyWords),
-      render: (_, record) => (
-        <Text strong>
-          {customerMap[record.customerId ?? ''] || record.customerId || '-'}
-        </Text>
-      ),
-    },
-    {
-      title: '当前状态',
-      dataIndex: 'status',
-      width: 120,
-      valueType: 'text',
-      render: (_, record) => {
-        const isDraft = record.status === 'DRAFT';
-        return (
-          <Tag
-            color={isDraft ? 'default' : 'processing'}
-            bordered={false}
-            style={{ fontWeight: 500 }}
-          >
-            {record.status || '-'}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: '贸易方向',
-      dataIndex: 'tradeDirection',
-      width: 100,
-      search: false,
-      valueType: 'select',
-      valueEnum: tradeDirectionValueEnum,
-      render: (_, record) => (
-        <Tag bordered={false}>
-          {tradeDirectionValueEnum[record.tradeDirection ?? 0]?.text || '-'}
-        </Tag>
-      ),
-    },
-    {
-      title: '预计离港 (ETD)',
-      dataIndex: 'etd',
-      width: 130,
-      search: false,
-      render: (_, record) =>
-        record.etd ? (
-          dayjs(record.etd).format('YYYY-MM-DD')
-        ) : (
-          <Text type="secondary">-</Text>
-        ),
-    },
-    {
-      title: '预计到港 (ETA)',
-      dataIndex: 'eta',
-      width: 130,
-      search: false,
-      render: (_, record) =>
-        record.eta ? (
-          dayjs(record.eta).format('YYYY-MM-DD')
-        ) : (
-          <Text type="secondary">-</Text>
-        ),
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      key: 'option',
-      width: 390,
-      fixed: 'right',
-      render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'read')) return null;
-
-        const fulfillmentMenu = {
-          items: [
-            {
-              key: 'milestone',
-              label: '履约里程碑',
-              icon: <FlagOutlined />,
-              onClick: () => openMilestones(record),
-            },
-            {
-              key: 'pod',
-              label: '放货凭证 (POD)',
-              icon: <FileDoneOutlined />,
-              onClick: () => releasePodPanelRef.current?.open(record),
-            },
-            {
-              key: 'abnormal',
-              label: '异常标记与协同',
-              icon: <WarningOutlined />,
-              onClick: () => abnormalCasePanelRef.current?.open(record),
-            },
-          ],
-        };
-
-        const documentCargoMenu = {
-          items: [
-            {
-              key: 'shippingDoc',
-              label: '提单管理',
-              icon: <FileTextOutlined />,
-              onClick: () => openShippingDocuments(record),
-            },
-            ...(record.shipmentType === 1
-              ? [
-                  {
-                    key: 'containers',
-                    label: '集装箱管理',
-                    icon: <ContainerOutlined />,
-                    onClick: () => openContainers(record),
-                  },
-                ]
-              : []),
-            ...(record.shipmentType === 2
-              ? [
-                  {
-                    key: 'consolidations',
-                    label: '自拼汇总',
-                    icon: <ApartmentOutlined />,
-                    onClick: () => openConsolidations(record),
-                  },
-                ]
-              : []),
-            {
-              key: 'cargo',
-              label: '货物明细',
-              icon: <InboxOutlined />,
-              onClick: () => openCargoItems(record),
-            },
-            {
-              key: 'attachments',
-              label: '附件档案',
-              icon: <PaperClipOutlined />,
-              onClick: () => openAttachments(record),
-            },
-            {
-              key: 'personnel',
-              label: '协作人员',
-              icon: <TeamOutlined />,
-              onClick: () => openPersonnel(record),
-            },
-          ],
-        };
-
-        return (
-          <Space size={8}>
-            {access.canOrder(config.businessType, 'update') &&
-              record.canModify &&
-              record.status === 'DRAFT' && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<EditOutlined />}
-                  style={{ padding: 0 }}
-                  onClick={() => openEdit(record)}
-                >
-                  编辑
-                </Button>
-              )}
-            {access.canOrder(config.businessType, 'transition') &&
-              record.canModify && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<SwapOutlined />}
-                  style={{ padding: 0 }}
-                  onClick={() => openTransition(record)}
-                >
-                  流转
-                </Button>
-              )}
-            {access.canOrder(config.businessType, 'fee.read') && (
-              <Button
-                type="link"
-                size="small"
-                icon={<DollarOutlined />}
-                style={{ padding: 0 }}
-                onClick={() => orderFeePanelRef.current?.open(record)}
-              >
-                费用录入
-              </Button>
-            )}
-            <Dropdown menu={fulfillmentMenu}>
-              <Button type="link" size="small" style={{ padding: 0 }}>
-                履约协同 <DownOutlined style={{ fontSize: 10 }} />
-              </Button>
-            </Dropdown>
-            <Dropdown menu={documentCargoMenu}>
-              <Button type="link" size="small" style={{ padding: 0 }}>
-                单证箱货 <DownOutlined style={{ fontSize: 10 }} />
-              </Button>
-            </Dropdown>
-          </Space>
-        );
-      },
-    },
-  ];
-
   return (
-    <PageContainer title={config.title}>
-      <ProTable<API.Order>
-        headerTitle={
-          <Space size={8}>
-            <OrderedListOutlined style={{ color: '#1677ff' }} />
-            <span>{config.title}列表</span>
-          </Space>
-        }
-        actionRef={actionRef}
-        rowKey="id"
-        columns={columns}
-        bordered
-        scroll={{ x: 1300 }}
-        request={async (params) => {
+    <>
+      <OrderListTemplate
+        orderKind={config.kind as any}
+        title={config.title}
+        subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
+        options={{
+          ports: ports.map((p) => ({
+            label: `${p.nameZh ? `${p.nameZh} / ` : ''}${p.nameEn} (${p.unLocode})`,
+            value: p.id ?? '',
+          })),
+          airports: airports.map((a) => ({
+            label: `${a.nameZh ? `${a.nameZh} / ` : ''}${a.nameEn} (${a.iataCode})`,
+            value: a.id ?? '',
+          })),
+          partners: partners.map((p) => ({
+            label: p.legalName ? `${p.legalName} (${p.code})` : p.code || (p.id ?? ''),
+            value: p.id ?? '',
+          })),
+        }}
+        queryOrders={async (params) => {
           const response = await orderServiceListOrders({
-            page: params.current,
+            page: params.page,
             pageSize: params.pageSize,
             keyword: params.keyword,
-            status: params.status,
+            status: params.stage && params.stage !== 'all' ? params.stage : undefined,
             businessType: config.businessType,
             customerId: params.customerId,
           });
+
+          const items: OrderListItem[] = (response.data ?? []).map((order) => {
+            const originPort = ports.find((p) => p.id === order.originLocationId);
+            const destPort = ports.find((p) => p.id === order.destinationLocationId);
+            const originAirport = airports.find((a) => a.id === order.originLocationId);
+            const destAirport = airports.find((a) => a.id === order.destinationLocationId);
+
+            const originName = originPort?.nameZh || originAirport?.nameZh || order.originLocationId;
+            const originCode = originPort?.unLocode || originAirport?.iataCode;
+            const destName = destPort?.nameZh || destAirport?.nameZh || order.destinationLocationId;
+            const destCode = destPort?.unLocode || destAirport?.iataCode;
+
+            const containerSummary = (order.containerRequests ?? [])
+              .map(
+                (req) =>
+                  `${req.quantity}×${containerSpecMap[req.containerSpecId ?? ''] || req.containerSpecId}`,
+              )
+              .join(', ');
+
+            return {
+              id: order.id || '',
+              orderNo: order.orderNo || '',
+              orderKind: config.kind as any,
+              businessType: config.title,
+              stage: order.status === 'COMPLETED' ? '已完结' : '正常运作',
+              customerName: customerMap[order.customerId ?? ''] || order.customerId,
+              customerReferenceNo: order.customerReferenceNo,
+              createdAt: order.createdAt,
+              vesselVoyage: order.vesselVoyage,
+              originPortName: originName,
+              originPortCode: originCode,
+              destinationPortName: destName,
+              destinationPortCode: destCode,
+              containerSummary: containerSummary || undefined,
+              totalPackages: order.totalPackages,
+              packageUnit: order.totalPackageUnit,
+              grossWeightKg: order.totalGrossWeightKg,
+              volumeCbm: order.totalVolumeCbm,
+              paymentTerm: paymentTermOptions.find((o) => o.value === order.paymentTerm)?.label,
+              tradeTerm: tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label,
+              contractNo: order.contractNo,
+              notes: order.notes,
+              statusName: order.status,
+              abnormalLevel: 'normal',
+              rawRecord: order,
+            };
+          });
+
           return {
-            data: response.data ?? [],
-            success: response.success ?? false,
+            data: items,
             total: response.total ?? 0,
+            success: response.success ?? true,
           };
         }}
-        toolBarRender={() => [
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>,
-          access.canOrder(config.businessType, 'create') && (
-            <Button
-              key="create"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => history.push(`/orders/${config.kind}/new`)}
-            >
-              新增订单
-            </Button>
-          ),
-        ]}
+        onCreateOrder={() => history.push(`/orders/${config.kind}/new`)}
+        onViewDetail={(item) => item.rawRecord && openShippingDocuments(item.rawRecord)}
+        onEditOrder={(item) => item.rawRecord && openEdit(item.rawRecord)}
+        onOpenFees={(item) => item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)}
+        onOpenMilestones={(item) => item.rawRecord && openMilestones(item.rawRecord)}
+        onOpenDocuments={(item) => item.rawRecord && openShippingDocuments(item.rawRecord)}
+        onOpenContainers={(item) => item.rawRecord && openContainers(item.rawRecord)}
+        onOpenCargo={(item) => item.rawRecord && openCargoItems(item.rawRecord)}
+        onOpenAttachments={(item) => item.rawRecord && openAttachments(item.rawRecord)}
+        onOpenPersonnel={(item) => item.rawRecord && openPersonnel(item.rawRecord)}
+        onOpenConsolidations={(item) => item.rawRecord && openConsolidations(item.rawRecord)}
+        onOpenAbnormal={(item) => item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)}
+        onTransitionStatus={(item) => item.rawRecord && openTransition(item.rawRecord)}
       />
 
       <ModalForm<EditOrderFormValues>
@@ -2657,6 +2438,6 @@ export default function OrderListPage() {
         canManage={access.canOrder(config.businessType, 'abnormal_case.create')}
         masterOptions={masterOptions}
       />
-    </PageContainer>
+    </>
   );
 }

@@ -180,6 +180,14 @@ export interface OrderListTemplateProps {
   onOpenDocuments?: (record: OrderListItem) => void;
   /** 打开集装箱管理面板 */
   onOpenContainers?: (record: OrderListItem) => void;
+  /** 打开货物明细面板 */
+  onOpenCargo?: (record: OrderListItem) => void;
+  /** 打开附件档案面板 */
+  onOpenAttachments?: (record: OrderListItem) => void;
+  /** 打开协作人员面板 */
+  onOpenPersonnel?: (record: OrderListItem) => void;
+  /** 打开自拼汇总面板 */
+  onOpenConsolidations?: (record: OrderListItem) => void;
   /** 打开异常情况处理面板 */
   onOpenAbnormal?: (record: OrderListItem) => void;
   /** 状态流转操作 */

@@ -65,6 +65,10 @@ export function OrderListTemplate({
   onOpenMilestones,
   onOpenDocuments,
   onOpenContainers,
+  onOpenCargo,
+  onOpenAttachments,
+  onOpenPersonnel,
+  onOpenConsolidations,
   onOpenAbnormal,
   onTransitionStatus,
   options,
@@ -450,6 +454,46 @@ export function OrderListTemplate({
                     label: '集装箱管理',
                     onClick: () => onOpenContainers?.(record),
                   },
+                  ...(onOpenCargo
+                    ? [
+                        {
+                          key: 'cargo',
+                          icon: <InboxOutlined />,
+                          label: '货物明细',
+                          onClick: () => onOpenCargo(record),
+                        },
+                      ]
+                    : []),
+                  ...(onOpenAttachments
+                    ? [
+                        {
+                          key: 'attachments',
+                          icon: <PaperClipOutlined />,
+                          label: '附件档案',
+                          onClick: () => onOpenAttachments(record),
+                        },
+                      ]
+                    : []),
+                  ...(onOpenPersonnel
+                    ? [
+                        {
+                          key: 'personnel',
+                          icon: <NodeIndexOutlined />,
+                          label: '协作人员',
+                          onClick: () => onOpenPersonnel(record),
+                        },
+                      ]
+                    : []),
+                  ...(onOpenConsolidations
+                    ? [
+                        {
+                          key: 'consolidations',
+                          icon: <NodeIndexOutlined />,
+                          label: '自拼汇总',
+                          onClick: () => onOpenConsolidations(record),
+                        },
+                      ]
+                    : []),
                   {
                     key: 'abnormal',
                     icon: <WarningOutlined />,
@@ -485,6 +529,10 @@ export function OrderListTemplate({
       onOpenMilestones,
       onOpenDocuments,
       onOpenContainers,
+      onOpenCargo,
+      onOpenAttachments,
+      onOpenPersonnel,
+      onOpenConsolidations,
       onOpenAbnormal,
       onTransitionStatus,
       readonly,
