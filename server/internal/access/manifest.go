@@ -34,6 +34,22 @@ const (
 	FinanceFeeSettingRead       = "system.finance.fee_setting.read"
 	FinanceFeeSettingCreate     = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate     = "system.finance.fee_setting.update"
+	FinanceFeeRead              = "system.finance.fee.read"
+	FinanceBillRead             = "system.finance.bill.read"
+	FinanceBillCreate           = "system.finance.bill.create"
+	FinanceBillUpdate           = "system.finance.bill.update"
+	FinanceBillConfirm          = "system.finance.bill.confirm"
+	FinanceInvoiceRead          = "system.finance.invoice.read"
+	FinanceInvoiceCreate        = "system.finance.invoice.create"
+	FinanceInvoiceUpdate        = "system.finance.invoice.update"
+	FinanceCashflowRead         = "system.finance.cashflow.read"
+	FinanceCashflowCreate       = "system.finance.cashflow.create"
+	FinanceCashflowUpdate       = "system.finance.cashflow.update"
+	FinanceVerificationRead     = "system.finance.verification.read"
+	FinanceVerificationCreate   = "system.finance.verification.create"
+	FinanceVerificationReverse  = "system.finance.verification.reverse"
+	FinanceCommissionRead       = "system.finance.commission.read"
+	FinanceCommissionManage     = "system.finance.commission.manage"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -171,6 +187,22 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "财务管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "财务管理 · 费用设置", Description: "新建费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "财务管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料"},
+	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 集运费用明细", Description: "查看当前组织全部业务线的应收应付费用"},
+	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
+	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单"},
+	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单"},
+	{Key: FinanceBillConfirm, Name: "确认账单", Group: "费用管理 · 账单", Description: "确认账单并锁定账单费用"},
+	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},
+	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额"},
+	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票"},
+	{Key: FinanceCashflowRead, Name: "查看收付", Group: "费用管理 · 收付", Description: "查看银行流水和收付款单"},
+	{Key: FinanceCashflowCreate, Name: "登记收付", Group: "费用管理 · 收付", Description: "登记银行流水和收付款单"},
+	{Key: FinanceCashflowUpdate, Name: "处理收付", Group: "费用管理 · 收付", Description: "认领、确认或冲销收付款单"},
+	{Key: FinanceVerificationRead, Name: "查看核销", Group: "费用管理 · 核销", Description: "查看账单与收付款核销记录"},
+	{Key: FinanceVerificationCreate, Name: "执行核销", Group: "费用管理 · 核销", Description: "将收付款金额分配到应收应付账单"},
+	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配"},
+	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
+	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成"},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案"},
 	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案"},

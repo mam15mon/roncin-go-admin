@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderFeeCreate is the builder for creating a OrderFee entity.
@@ -59,9 +60,29 @@ func (_c *OrderFeeCreate) SetOrderID(v uuid.UUID) *OrderFeeCreate {
 	return _c
 }
 
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (_c *OrderFeeCreate) SetIdempotencyKey(v string) *OrderFeeCreate {
+	_c.mutation.SetIdempotencyKey(v)
+	return _c
+}
+
 // SetDirection sets the "direction" field.
 func (_c *OrderFeeCreate) SetDirection(v orderfee.Direction) *OrderFeeCreate {
 	_c.mutation.SetDirection(v)
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *OrderFeeCreate) SetStatus(v orderfee.Status) *OrderFeeCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableStatus(v *orderfee.Status) *OrderFeeCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
 	return _c
 }
 
@@ -177,6 +198,32 @@ func (_c *OrderFeeCreate) SetTotalAmount(v string) *OrderFeeCreate {
 	return _c
 }
 
+// SetTaxInclusive sets the "tax_inclusive" field.
+func (_c *OrderFeeCreate) SetTaxInclusive(v bool) *OrderFeeCreate {
+	_c.mutation.SetTaxInclusive(v)
+	return _c
+}
+
+// SetNillableTaxInclusive sets the "tax_inclusive" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableTaxInclusive(v *bool) *OrderFeeCreate {
+	if v != nil {
+		_c.SetTaxInclusive(*v)
+	}
+	return _c
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_c *OrderFeeCreate) SetNetAmount(v string) *OrderFeeCreate {
+	_c.mutation.SetNetAmount(v)
+	return _c
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (_c *OrderFeeCreate) SetTaxAmount(v string) *OrderFeeCreate {
+	_c.mutation.SetTaxAmount(v)
+	return _c
+}
+
 // SetCurrency sets the "currency" field.
 func (_c *OrderFeeCreate) SetCurrency(v string) *OrderFeeCreate {
 	_c.mutation.SetCurrency(v)
@@ -215,6 +262,18 @@ func (_c *OrderFeeCreate) SetNillableExchangeRateSettingID(v *uuid.UUID) *OrderF
 	return _c
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_c *OrderFeeCreate) SetBaseCurrency(v string) *OrderFeeCreate {
+	_c.mutation.SetBaseCurrency(v)
+	return _c
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_c *OrderFeeCreate) SetBaseCurrencyAmount(v string) *OrderFeeCreate {
+	_c.mutation.SetBaseCurrencyAmount(v)
+	return _c
+}
+
 // SetExpenseDate sets the "expense_date" field.
 func (_c *OrderFeeCreate) SetExpenseDate(v string) *OrderFeeCreate {
 	_c.mutation.SetExpenseDate(v)
@@ -231,6 +290,62 @@ func (_c *OrderFeeCreate) SetNote(v string) *OrderFeeCreate {
 func (_c *OrderFeeCreate) SetNillableNote(v *string) *OrderFeeCreate {
 	if v != nil {
 		_c.SetNote(*v)
+	}
+	return _c
+}
+
+// SetVersion sets the "version" field.
+func (_c *OrderFeeCreate) SetVersion(v uint64) *OrderFeeCreate {
+	_c.mutation.SetVersion(v)
+	return _c
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableVersion(v *uint64) *OrderFeeCreate {
+	if v != nil {
+		_c.SetVersion(*v)
+	}
+	return _c
+}
+
+// SetCancelledAt sets the "cancelled_at" field.
+func (_c *OrderFeeCreate) SetCancelledAt(v time.Time) *OrderFeeCreate {
+	_c.mutation.SetCancelledAt(v)
+	return _c
+}
+
+// SetNillableCancelledAt sets the "cancelled_at" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableCancelledAt(v *time.Time) *OrderFeeCreate {
+	if v != nil {
+		_c.SetCancelledAt(*v)
+	}
+	return _c
+}
+
+// SetCancelledBy sets the "cancelled_by" field.
+func (_c *OrderFeeCreate) SetCancelledBy(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetCancelledBy(v)
+	return _c
+}
+
+// SetNillableCancelledBy sets the "cancelled_by" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableCancelledBy(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetCancelledBy(*v)
+	}
+	return _c
+}
+
+// SetCancellationReason sets the "cancellation_reason" field.
+func (_c *OrderFeeCreate) SetCancellationReason(v string) *OrderFeeCreate {
+	_c.mutation.SetCancellationReason(v)
+	return _c
+}
+
+// SetNillableCancellationReason sets the "cancellation_reason" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableCancellationReason(v *string) *OrderFeeCreate {
+	if v != nil {
+		_c.SetCancellationReason(*v)
 	}
 	return _c
 }
@@ -283,6 +398,25 @@ func (_c *OrderFeeCreate) SetBillingUnitRef(v *BillingUnit) *OrderFeeCreate {
 	return _c.SetBillingUnitRefID(v.ID)
 }
 
+// SetCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID.
+func (_c *OrderFeeCreate) SetCancelledByUserID(id uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetCancelledByUserID(id)
+	return _c
+}
+
+// SetNillableCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeCreate {
+	if id != nil {
+		_c = _c.SetCancelledByUserID(*id)
+	}
+	return _c
+}
+
+// SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
+func (_c *OrderFeeCreate) SetCancelledByUser(v *User) *OrderFeeCreate {
+	return _c.SetCancelledByUserID(v.ID)
+}
+
 // Mutation returns the OrderFeeMutation object of the builder.
 func (_c *OrderFeeCreate) Mutation() *OrderFeeMutation {
 	return _c.mutation
@@ -326,6 +460,18 @@ func (_c *OrderFeeCreate) defaults() {
 		v := orderfee.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := orderfee.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
+	if _, ok := _c.mutation.TaxInclusive(); !ok {
+		v := orderfee.DefaultTaxInclusive
+		_c.mutation.SetTaxInclusive(v)
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		v := orderfee.DefaultVersion
+		_c.mutation.SetVersion(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := orderfee.DefaultID()
 		_c.mutation.SetID(v)
@@ -343,12 +489,28 @@ func (_c *OrderFeeCreate) check() error {
 	if _, ok := _c.mutation.OrderID(); !ok {
 		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "OrderFee.order_id"`)}
 	}
+	if _, ok := _c.mutation.IdempotencyKey(); !ok {
+		return &ValidationError{Name: "idempotency_key", err: errors.New(`ent: missing required field "OrderFee.idempotency_key"`)}
+	}
+	if v, ok := _c.mutation.IdempotencyKey(); ok {
+		if err := orderfee.IdempotencyKeyValidator(v); err != nil {
+			return &ValidationError{Name: "idempotency_key", err: fmt.Errorf(`ent: validator failed for field "OrderFee.idempotency_key": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Direction(); !ok {
 		return &ValidationError{Name: "direction", err: errors.New(`ent: missing required field "OrderFee.direction"`)}
 	}
 	if v, ok := _c.mutation.Direction(); ok {
 		if err := orderfee.DirectionValidator(v); err != nil {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "OrderFee.direction": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "OrderFee.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := orderfee.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OrderFee.status": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.FeeCode(); !ok {
@@ -397,6 +559,15 @@ func (_c *OrderFeeCreate) check() error {
 	if _, ok := _c.mutation.TotalAmount(); !ok {
 		return &ValidationError{Name: "total_amount", err: errors.New(`ent: missing required field "OrderFee.total_amount"`)}
 	}
+	if _, ok := _c.mutation.TaxInclusive(); !ok {
+		return &ValidationError{Name: "tax_inclusive", err: errors.New(`ent: missing required field "OrderFee.tax_inclusive"`)}
+	}
+	if _, ok := _c.mutation.NetAmount(); !ok {
+		return &ValidationError{Name: "net_amount", err: errors.New(`ent: missing required field "OrderFee.net_amount"`)}
+	}
+	if _, ok := _c.mutation.TaxAmount(); !ok {
+		return &ValidationError{Name: "tax_amount", err: errors.New(`ent: missing required field "OrderFee.tax_amount"`)}
+	}
 	if _, ok := _c.mutation.Currency(); !ok {
 		return &ValidationError{Name: "currency", err: errors.New(`ent: missing required field "OrderFee.currency"`)}
 	}
@@ -424,6 +595,17 @@ func (_c *OrderFeeCreate) check() error {
 			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.exchange_rate_date": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.BaseCurrency(); !ok {
+		return &ValidationError{Name: "base_currency", err: errors.New(`ent: missing required field "OrderFee.base_currency"`)}
+	}
+	if v, ok := _c.mutation.BaseCurrency(); ok {
+		if err := orderfee.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "OrderFee.base_currency": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.BaseCurrencyAmount(); !ok {
+		return &ValidationError{Name: "base_currency_amount", err: errors.New(`ent: missing required field "OrderFee.base_currency_amount"`)}
+	}
 	if _, ok := _c.mutation.ExpenseDate(); !ok {
 		return &ValidationError{Name: "expense_date", err: errors.New(`ent: missing required field "OrderFee.expense_date"`)}
 	}
@@ -435,6 +617,14 @@ func (_c *OrderFeeCreate) check() error {
 	if v, ok := _c.mutation.Note(); ok {
 		if err := orderfee.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "OrderFee.version"`)}
+	}
+	if v, ok := _c.mutation.CancellationReason(); ok {
+		if err := orderfee.CancellationReasonValidator(v); err != nil {
+			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "OrderFee.cancellation_reason": %w`, err)}
 		}
 	}
 	if len(_c.mutation.OrderIDs()) == 0 {
@@ -486,9 +676,17 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.IdempotencyKey(); ok {
+		_spec.SetField(orderfee.FieldIdempotencyKey, field.TypeString, value)
+		_node.IdempotencyKey = value
+	}
 	if value, ok := _c.mutation.Direction(); ok {
 		_spec.SetField(orderfee.FieldDirection, field.TypeEnum, value)
 		_node.Direction = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(orderfee.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if value, ok := _c.mutation.FeeCode(); ok {
 		_spec.SetField(orderfee.FieldFeeCode, field.TypeString, value)
@@ -526,6 +724,18 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldTotalAmount, field.TypeString, value)
 		_node.TotalAmount = value
 	}
+	if value, ok := _c.mutation.TaxInclusive(); ok {
+		_spec.SetField(orderfee.FieldTaxInclusive, field.TypeBool, value)
+		_node.TaxInclusive = value
+	}
+	if value, ok := _c.mutation.NetAmount(); ok {
+		_spec.SetField(orderfee.FieldNetAmount, field.TypeString, value)
+		_node.NetAmount = value
+	}
+	if value, ok := _c.mutation.TaxAmount(); ok {
+		_spec.SetField(orderfee.FieldTaxAmount, field.TypeString, value)
+		_node.TaxAmount = value
+	}
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(orderfee.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
@@ -546,6 +756,14 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldExchangeRateSettingID, field.TypeUUID, value)
 		_node.ExchangeRateSettingID = &value
 	}
+	if value, ok := _c.mutation.BaseCurrency(); ok {
+		_spec.SetField(orderfee.FieldBaseCurrency, field.TypeString, value)
+		_node.BaseCurrency = value
+	}
+	if value, ok := _c.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(orderfee.FieldBaseCurrencyAmount, field.TypeString, value)
+		_node.BaseCurrencyAmount = value
+	}
 	if value, ok := _c.mutation.ExpenseDate(); ok {
 		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)
 		_node.ExpenseDate = value
@@ -553,6 +771,18 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(orderfee.FieldNote, field.TypeString, value)
 		_node.Note = value
+	}
+	if value, ok := _c.mutation.Version(); ok {
+		_spec.SetField(orderfee.FieldVersion, field.TypeUint64, value)
+		_node.Version = value
+	}
+	if value, ok := _c.mutation.CancelledAt(); ok {
+		_spec.SetField(orderfee.FieldCancelledAt, field.TypeTime, value)
+		_node.CancelledAt = &value
+	}
+	if value, ok := _c.mutation.CancellationReason(); ok {
+		_spec.SetField(orderfee.FieldCancellationReason, field.TypeString, value)
+		_node.CancellationReason = &value
 	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -620,6 +850,23 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.BillingUnitID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.CancelledByUserTable,
+			Columns: []string{orderfee.CancelledByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CancelledBy = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

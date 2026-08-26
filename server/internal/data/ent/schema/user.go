@@ -33,6 +33,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("sessions", Session.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("partner_assignments", PartnerAssignment.Type),
+		edge.To("cancelled_order_fees", OrderFee.Type),
 	}
 }
 

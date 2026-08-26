@@ -58,9 +58,11 @@ type UserEdges struct {
 	OrderPersonnel []*OrderPersonnel `json:"order_personnel,omitempty"`
 	// PartnerAssignments holds the value of the partner_assignments edge.
 	PartnerAssignments []*PartnerAssignment `json:"partner_assignments,omitempty"`
+	// CancelledOrderFees holds the value of the cancelled_order_fees edge.
+	CancelledOrderFees []*OrderFee `json:"cancelled_order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -97,6 +99,15 @@ func (e UserEdges) PartnerAssignmentsOrErr() ([]*PartnerAssignment, error) {
 		return e.PartnerAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "partner_assignments"}
+}
+
+// CancelledOrderFeesOrErr returns the CancelledOrderFees value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CancelledOrderFeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[4] {
+		return e.CancelledOrderFees, nil
+	}
+	return nil, &NotLoadedError{edge: "cancelled_order_fees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -243,6 +254,11 @@ func (_m *User) QueryOrderPersonnel() *OrderPersonnelQuery {
 // QueryPartnerAssignments queries the "partner_assignments" edge of the User entity.
 func (_m *User) QueryPartnerAssignments() *PartnerAssignmentQuery {
 	return NewUserClient(_m.config).QueryPartnerAssignments(_m)
+}
+
+// QueryCancelledOrderFees queries the "cancelled_order_fees" edge of the User entity.
+func (_m *User) QueryCancelledOrderFees() *OrderFeeQuery {
+	return NewUserClient(_m.config).QueryCancelledOrderFees(_m)
 }
 
 // Update returns a builder for updating this User.

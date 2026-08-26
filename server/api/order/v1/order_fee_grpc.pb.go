@@ -24,6 +24,8 @@ const (
 	OrderFeeService_ResolveFeeExchangeRate_FullMethodName = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 	OrderFeeService_AddFee_FullMethodName                 = "/order.v1.OrderFeeService/AddFee"
 	OrderFeeService_UpdateFee_FullMethodName              = "/order.v1.OrderFeeService/UpdateFee"
+	OrderFeeService_ConfirmFee_FullMethodName             = "/order.v1.OrderFeeService/ConfirmFee"
+	OrderFeeService_ReopenFee_FullMethodName              = "/order.v1.OrderFeeService/ReopenFee"
 	OrderFeeService_RemoveFee_FullMethodName              = "/order.v1.OrderFeeService/RemoveFee"
 )
 
@@ -44,7 +46,11 @@ type OrderFeeServiceClient interface {
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
 	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...grpc.CallOption) (*UpdateFeeResponse, error)
-	// RemoveFee 删除尚未进入后续财务流程的订单费用。
+	// ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...grpc.CallOption) (*ConfirmFeeResponse, error)
+	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+	ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error)
+	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error)
 }
 
@@ -106,6 +112,26 @@ func (c *orderFeeServiceClient) UpdateFee(ctx context.Context, in *UpdateFeeRequ
 	return out, nil
 }
 
+func (c *orderFeeServiceClient) ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...grpc.CallOption) (*ConfirmFeeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmFeeResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ConfirmFee_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReopenFeeResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ReopenFee_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderFeeServiceClient) RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveFeeResponse)
@@ -133,7 +159,11 @@ type OrderFeeServiceServer interface {
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
 	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
-	// RemoveFee 删除尚未进入后续财务流程的订单费用。
+	// ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
+	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
+	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
 	mustEmbedUnimplementedOrderFeeServiceServer()
 }
@@ -159,6 +189,12 @@ func (UnimplementedOrderFeeServiceServer) AddFee(context.Context, *AddFeeRequest
 }
 func (UnimplementedOrderFeeServiceServer) UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateFee not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmFee not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReopenFee not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveFee not implemented")
@@ -274,6 +310,42 @@ func _OrderFeeService_UpdateFee_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderFeeService_ConfirmFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmFeeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ConfirmFee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ConfirmFee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ConfirmFee(ctx, req.(*ConfirmFeeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_ReopenFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReopenFeeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ReopenFee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ReopenFee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ReopenFee(ctx, req.(*ReopenFeeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderFeeService_RemoveFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveFeeRequest)
 	if err := dec(in); err != nil {
@@ -318,6 +390,14 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateFee",
 			Handler:    _OrderFeeService_UpdateFee_Handler,
+		},
+		{
+			MethodName: "ConfirmFee",
+			Handler:    _OrderFeeService_ConfirmFee_Handler,
+		},
+		{
+			MethodName: "ReopenFee",
+			Handler:    _OrderFeeService_ReopenFee_Handler,
 		},
 		{
 			MethodName: "RemoveFee",

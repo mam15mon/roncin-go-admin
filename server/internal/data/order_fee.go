@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -84,6 +86,24 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 		result = append(result, converted)
 	}
 	return result, nil
+}
+
+func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*biz.OrderFee, error) {
+	item, err := r.data.db.OrderFee.Query().
+		Where(
+			orderfeeent.OrderIDEQ(orderID),
+			orderfeeent.IdempotencyKeyEQ(idempotencyKey),
+			orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)),
+		).
+		WithSettlementParty().
+		Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return orderFeeToBiz(item)
 }
 
 func (r *orderFeeRepo) ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeExchangeRateContext, error) {
@@ -274,7 +294,9 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	created, err := tx.OrderFee.Create().
 		SetID(input.ID).
 		SetOrderID(orderID).
+		SetIdempotencyKey(input.IdempotencyKey).
 		SetDirection(orderfeeent.Direction(input.Direction)).
+		SetStatus(orderfeeent.Status(input.Status)).
 		SetNillableFeeSettingID(input.FeeSettingID).
 		SetFeeCode(input.FeeCode).
 		SetFeeName(input.FeeName).
@@ -287,16 +309,25 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 		SetQuantity(input.Quantity.StringFixed(4)).
 		SetUnitPrice(input.UnitPrice.StringFixed(4)).
 		SetTotalAmount(input.TotalAmount.StringFixed(8)).
+		SetTaxInclusive(input.TaxInclusive).
+		SetNetAmount(input.NetAmount.StringFixed(8)).
+		SetTaxAmount(input.TaxAmount.StringFixed(8)).
 		SetCurrency(input.Currency).
 		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
 		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
 		SetExchangeRateDate(input.ExchangeRateDate).
 		SetNillableExchangeRateSettingID(input.ExchangeRateSettingID).
+		SetBaseCurrency(input.BaseCurrency).
+		SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
 		SetExpenseDate(input.ExpenseDate).
 		SetNillableNote(input.Note).
+		SetVersion(input.Version).
 		Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
+		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "orderfee_order_id_idempotency_key") {
+			return nil, biz.ErrOrderFeeIdempotencyConflict
+		}
 		return nil, err
 	}
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
@@ -336,6 +367,14 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		}
 		return nil, err
 	}
+	if item.Version != input.Version {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeeVersionConflict
+	}
+	if item.Status != orderfeeent.StatusDRAFT {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeeInvalidTransition
+	}
 	builder := tx.OrderFee.UpdateOne(item).
 		SetDirection(orderfeeent.Direction(input.Direction)).
 		SetNillableFeeSettingID(input.FeeSettingID).
@@ -347,10 +386,16 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		SetQuantity(input.Quantity.StringFixed(4)).
 		SetUnitPrice(input.UnitPrice.StringFixed(4)).
 		SetTotalAmount(input.TotalAmount.StringFixed(8)).
+		SetTaxInclusive(input.TaxInclusive).
+		SetNetAmount(input.NetAmount.StringFixed(8)).
+		SetTaxAmount(input.TaxAmount.StringFixed(8)).
 		SetCurrency(input.Currency).
 		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
 		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
 		SetExchangeRateDate(input.ExchangeRateDate).
+		SetBaseCurrency(input.BaseCurrency).
+		SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
+		SetVersion(item.Version + 1).
 		SetExpenseDate(input.ExpenseDate)
 	if input.FeeNameEN != nil {
 		builder.SetFeeNameEn(*input.FeeNameEN)
@@ -391,13 +436,69 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	}
 	input.ID = id
 	input.OrderID = orderID
+	input.IdempotencyKey = item.IdempotencyKey
+	input.Status = biz.OrderFeeDraft
+	input.Version = updated.Version
 	input.SettlementPartyName = party.LegalName
 	input.CreatedAt = updated.CreatedAt
 	input.UpdatedAt = updated.UpdatedAt
 	return input, nil
 }
 
-func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
+func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to biz.OrderFeeStatus, reason *string, audit *biz.AuditEvent) (*biz.OrderFee, error) {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return nil, err
+	}
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderFeeNotFound
+		}
+		return nil, err
+	}
+	if item.Version != expectedVersion {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeeVersionConflict
+	}
+	if item.Status != orderfeeent.Status(from) {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeeInvalidTransition
+	}
+	builder := tx.OrderFee.UpdateOne(item).SetStatus(orderfeeent.Status(to)).SetVersion(item.Version + 1)
+	if to != biz.OrderFeeCancelled {
+		builder.ClearCancelledAt().ClearCancelledBy().ClearCancellationReason()
+	}
+	updated, err := builder.Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["fee.from_status"] = string(from)
+	audit.Details["fee.to_status"] = string(to)
+	audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(expectedVersion)).String()
+	if reason != nil {
+		audit.Details["reason"] = *reason
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	loaded, err := r.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(updated.ID)).WithSettlementParty().Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return orderFeeToBiz(loaded)
+}
+
+func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) error {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
@@ -405,15 +506,39 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id u
 	if err != nil {
 		return err
 	}
-	count, err := tx.OrderFee.Delete().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).Exec(ctx)
+	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrOrderFeeNotFound
+		}
+		return err
+	}
+	if item.Version != expectedVersion {
+		_ = tx.Rollback()
+		return biz.ErrOrderFeeVersionConflict
+	}
+	if item.Status != orderfeeent.StatusDRAFT && item.Status != orderfeeent.StatusCONFIRMED {
+		_ = tx.Rollback()
+		return biz.ErrOrderFeeInvalidTransition
+	}
+	now := time.Now().UTC()
+	if _, err := tx.OrderFee.UpdateOne(item).
+		SetStatus(orderfeeent.StatusCANCELLED).
+		SetVersion(item.Version + 1).
+		SetCancelledAt(now).
+		SetCancelledBy(actorID).
+		SetCancellationReason(reason).
+		Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if count == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderFeeNotFound
-	}
+	audit.Details["fee.code"] = item.FeeCode
+	audit.Details["fee.direction"] = string(item.Direction)
+	audit.Details["fee.amount"] = item.TotalAmount
+	audit.Details["fee.currency"] = item.Currency
+	audit.Details["fee.previous_status"] = string(item.Status)
+	audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return err
@@ -438,6 +563,18 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	if err != nil {
 		return nil, err
 	}
+	netAmount, err := decimal.NewFromString(item.NetAmount)
+	if err != nil {
+		return nil, err
+	}
+	taxAmount, err := decimal.NewFromString(item.TaxAmount)
+	if err != nil {
+		return nil, err
+	}
+	baseCurrencyAmount, err := decimal.NewFromString(item.BaseCurrencyAmount)
+	if err != nil {
+		return nil, err
+	}
 	exchangeRate, err := decimal.NewFromString(item.ExchangeRate)
 	if err != nil {
 		return nil, err
@@ -445,7 +582,9 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	result := &biz.OrderFee{
 		ID:                    item.ID,
 		OrderID:               item.OrderID,
+		IdempotencyKey:        item.IdempotencyKey,
 		Direction:             biz.OrderFeeDirection(item.Direction),
+		Status:                biz.OrderFeeStatus(item.Status),
 		FeeSettingID:          item.FeeSettingID,
 		FeeCode:               item.FeeCode,
 		FeeName:               item.FeeName,
@@ -458,12 +597,21 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		Quantity:              quantity,
 		UnitPrice:             unitPrice,
 		TotalAmount:           totalAmount,
+		TaxInclusive:          item.TaxInclusive,
+		NetAmount:             netAmount,
+		TaxAmount:             taxAmount,
 		Currency:              item.Currency,
 		ExchangeRate:          exchangeRate,
 		ExchangeRateSource:    string(item.ExchangeRateSource),
 		ExchangeRateDate:      item.ExchangeRateDate,
 		ExchangeRateSettingID: item.ExchangeRateSettingID,
+		BaseCurrency:          item.BaseCurrency,
+		BaseCurrencyAmount:    baseCurrencyAmount,
 		ExpenseDate:           item.ExpenseDate,
+		Version:               item.Version,
+		CancelledAt:           item.CancelledAt,
+		CancelledBy:           item.CancelledBy,
+		CancellationReason:    item.CancellationReason,
 		CreatedAt:             item.CreatedAt,
 		UpdatedAt:             item.UpdatedAt,
 	}

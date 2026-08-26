@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -20,6 +21,9 @@ var (
 	ErrOrderFeeSettingInvalid                = errors.BadRequest("ORDER_FEE_SETTING_INVALID", "费用设置不存在、已停用或不适用于当前订单")
 	ErrOrderFeeBillingUnitInvalid            = errors.BadRequest("ORDER_FEE_BILLING_UNIT_INVALID", "计费单位不存在、已停用或不属于当前组织")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
+	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
+	ErrOrderFeeInvalidTransition             = errors.Conflict("ORDER_FEE_INVALID_TRANSITION", "当前费用状态不允许执行该操作")
+	ErrOrderFeeIdempotencyConflict           = errors.Conflict("ORDER_FEE_IDEMPOTENCY_CONFLICT", "费用请求幂等键已被使用")
 )
 
 var (
@@ -29,16 +33,23 @@ var (
 )
 
 type OrderFeeDirection string
+type OrderFeeStatus string
 
 const (
 	OrderFeeReceivable OrderFeeDirection = "RECEIVABLE"
 	OrderFeePayable    OrderFeeDirection = "PAYABLE"
+	OrderFeeDraft      OrderFeeStatus    = "DRAFT"
+	OrderFeeConfirmed  OrderFeeStatus    = "CONFIRMED"
+	OrderFeeBilled     OrderFeeStatus    = "BILLED"
+	OrderFeeCancelled  OrderFeeStatus    = "CANCELLED"
 )
 
 type OrderFee struct {
 	ID                    uuid.UUID
 	OrderID               uuid.UUID
+	IdempotencyKey        string
 	Direction             OrderFeeDirection
+	Status                OrderFeeStatus
 	FeeSettingID          *uuid.UUID
 	FeeCode               string
 	FeeName               string
@@ -52,14 +63,23 @@ type OrderFee struct {
 	Quantity              decimal.Decimal
 	UnitPrice             decimal.Decimal
 	TotalAmount           decimal.Decimal
+	TaxInclusive          bool
+	NetAmount             decimal.Decimal
+	TaxAmount             decimal.Decimal
 	Currency              string
 	ExchangeRate          decimal.Decimal
 	ExchangeRateSource    string
 	ExchangeRateDate      string
 	ExchangeRateSettingID *uuid.UUID
 	ExchangeRateOverride  *decimal.Decimal
+	BaseCurrency          string
+	BaseCurrencyAmount    decimal.Decimal
 	ExpenseDate           string
 	Note                  *string
+	Version               uint64
+	CancelledAt           *time.Time
+	CancelledBy           *uuid.UUID
+	CancellationReason    *string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }
@@ -125,9 +145,11 @@ type OrderFeeRepo interface {
 	ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeExchangeRateContext, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
+	GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
 	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
+	Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to OrderFeeStatus, reason *string, audit *AuditEvent) (*OrderFee, error)
+	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 }
 
 type OrderFeeUsecase struct {
@@ -170,19 +192,70 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
+	normalized.Status = OrderFeeDraft
+	normalized.Version = 1
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
 		return nil, err
 	}
 	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
-	return uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
+	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
+		return nil, err
+	}
+	existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, orderID, normalized.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		if sameOrderFeeCreateIntent(existing, normalized) {
+			return existing, nil
+		}
+		return nil, ErrOrderFeeIdempotencyConflict
+	}
+	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
+	if err == nil {
+		return created, nil
+	}
+	// 并发重试可能在预查后命中唯一索引；再次读取并仅在请求语义一致时复用结果。
+	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, orderID, normalized.IdempotencyKey)
+	if lookupErr == nil && existing != nil && sameOrderFeeCreateIntent(existing, normalized) {
+		return existing, nil
+	}
+	return nil, err
+}
+
+func sameOrderFeeCreateIntent(existing, requested *OrderFee) bool {
+	if existing == nil || requested == nil {
+		return false
+	}
+	return existing.Direction == requested.Direction &&
+		uuidPointersEqual(existing.FeeSettingID, requested.FeeSettingID) &&
+		existing.SettlementPartyID == requested.SettlementPartyID &&
+		uuidPointersEqual(existing.BillingUnitID, requested.BillingUnitID) &&
+		existing.Quantity.Equal(requested.Quantity) &&
+		existing.UnitPrice.Equal(requested.UnitPrice) &&
+		existing.Currency == requested.Currency &&
+		existing.ExpenseDate == requested.ExpenseDate &&
+		stringPointersEqual(existing.Note, requested.Note) &&
+		existing.TaxInclusive == requested.TaxInclusive &&
+		existing.TotalAmount.Equal(requested.TotalAmount) &&
+		existing.ExchangeRate.Equal(requested.ExchangeRate)
+}
+
+func uuidPointersEqual(left, right *uuid.UUID) bool {
+	return (left == nil && right == nil) || (left != nil && right != nil && *left == *right)
+}
+
+func stringPointersEqual(left, right *string) bool {
+	return (left == nil && right == nil) || (left != nil && right != nil && *left == *right)
 }
 
 func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderFee, canOverrideExchangeRate bool) (*OrderFee, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || input == nil || input.Version == 0 {
 		return nil, ErrOrderFeeInvalidArgument
 	}
+	input.ID = id
 	normalized, err := normalizeOrderFee(input)
 	if err != nil {
 		return nil, err
@@ -193,7 +266,37 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
 		return nil, err
 	}
+	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
+		return nil, err
+	}
+	normalized.Status = OrderFeeDraft
+	normalized.Version = input.Version + 1
 	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", normalized))
+}
+
+func (uc *OrderFeeUsecase) calculateAmounts(ctx context.Context, organizationID uuid.UUID, fee *OrderFee) error {
+	if fee.TaxRate == nil {
+		return ErrOrderFeeInvalidArgument
+	}
+	rateDivisor := decimal.NewFromInt(1).Add(fee.TaxRate.Div(decimal.NewFromInt(100)))
+	if fee.TaxInclusive {
+		fee.NetAmount = fee.TotalAmount.Div(rateDivisor).RoundBank(8)
+		fee.TaxAmount = fee.TotalAmount.Sub(fee.NetAmount)
+	} else {
+		fee.NetAmount = fee.TotalAmount
+		fee.TaxAmount = fee.NetAmount.Mul(*fee.TaxRate).Div(decimal.NewFromInt(100)).RoundBank(8)
+		fee.TotalAmount = fee.NetAmount.Add(fee.TaxAmount)
+	}
+	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	fee.BaseCurrency = baseCurrency
+	fee.BaseCurrencyAmount = fee.TotalAmount.Mul(fee.ExchangeRate).RoundBank(8)
+	if !totalAmountPattern.MatchString(fee.TotalAmount.String()) || !totalAmountPattern.MatchString(fee.NetAmount.String()) || !totalAmountPattern.MatchString(fee.TaxAmount.String()) || !totalAmountPattern.MatchString(fee.BaseCurrencyAmount.String()) {
+		return ErrOrderFeeInvalidArgument
+	}
+	return nil
 }
 
 func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee) error {
@@ -274,18 +377,39 @@ func (uc *OrderFeeUsecase) exchangeRateDateCandidates(ctx context.Context, organ
 	return candidates, nil
 }
 
-func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
+func (uc *OrderFeeUsecase) Confirm(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64) (*OrderFee, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeDraft, OrderFeeConfirmed, nil, &AuditEvent{
+		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.confirm", Result: "success",
+		Details: map[string]string{"fee.id": id.String(), "order.id": orderID.String()},
+	})
+}
+
+func (uc *OrderFeeUsecase) Reopen(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) (*OrderFee, error) {
+	reason = strings.TrimSpace(reason)
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeConfirmed, OrderFeeDraft, &reason, &AuditEvent{
+		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.reopen", Result: "success",
+		Details: map[string]string{"fee.id": id.String(), "order.id": orderID.String(), "reason": reason},
+	})
+}
+
+func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) error {
+	reason = strings.TrimSpace(reason)
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
 		return ErrOrderFeeInvalidArgument
 	}
-	return uc.repo.Remove(ctx, organizationID, orderID, id, &AuditEvent{
+	return uc.repo.Remove(ctx, organizationID, orderID, id, actorID, expectedVersion, reason, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.fee.remove",
 		Result:         "success",
 		Details: map[string]string{
-			"fee.id":   id.String(),
-			"order.id": orderID.String(),
+			"fee.id": id.String(), "order.id": orderID.String(), "reason": reason,
 		},
 	})
 }
@@ -304,12 +428,21 @@ func orderFeeAudit(organizationID, actorID, orderID, feeID uuid.UUID, action str
 			"fee.amount":               fee.TotalAmount.StringFixed(8),
 			"fee.currency":             fee.Currency,
 			"fee.exchange_rate_source": fee.ExchangeRateSource,
+			"fee.status":               string(fee.Status),
+			"fee.version":              fmt.Sprintf("%d", fee.Version),
+			"fee.net_amount":           fee.NetAmount.StringFixed(8),
+			"fee.tax_amount":           fee.TaxAmount.StringFixed(8),
+			"fee.base_currency_amount": fee.BaseCurrencyAmount.StringFixed(8),
 		},
 	}
 }
 
 func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 	if input == nil || input.SettlementPartyID == uuid.Nil || input.FeeSettingID == nil || *input.FeeSettingID == uuid.Nil || input.BillingUnitID == nil || *input.BillingUnitID == uuid.Nil {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	idempotencyKey := strings.TrimSpace(input.IdempotencyKey)
+	if input.ID == uuid.Nil && (idempotencyKey == "" || utf8.RuneCountInString(idempotencyKey) > 128) {
 		return nil, ErrOrderFeeInvalidArgument
 	}
 	if input.Direction != OrderFeeReceivable && input.Direction != OrderFeePayable {
@@ -348,6 +481,7 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 		}
 	}
 	output := *input
+	output.IdempotencyKey = idempotencyKey
 	output.TotalAmount = totalAmount
 	output.Currency = currency
 	output.ExpenseDate = expenseDate

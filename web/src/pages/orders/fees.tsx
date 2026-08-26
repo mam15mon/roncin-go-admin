@@ -1,6 +1,5 @@
 import {
   ArrowLeftOutlined,
-  DollarOutlined,
   EditOutlined,
   LockOutlined,
   PlusOutlined,
@@ -19,15 +18,15 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useAccess, useParams } from '@umijs/max';
+import { history, useParams } from '@umijs/max';
 import {
-  Alert,
   App,
   Button,
   Card,
   Col,
   Descriptions,
   Empty,
+  Input,
   Popconfirm,
   Row,
   Space,
@@ -38,14 +37,16 @@ import {
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
   orderFeeServiceAddFee,
+  orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
   orderFeeServiceListFees,
   orderFeeServiceRemoveFee,
+  orderFeeServiceReopenFee,
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
@@ -62,6 +63,22 @@ const { Text } = Typography;
 
 const RECEIVABLE = 1;
 const PAYABLE = 2;
+const FEE_DRAFT = 1;
+const FEE_CONFIRMED = 2;
+const FEE_BILLED = 3;
+const FEE_CANCELLED = 4;
+
+const FEE_STATUS_CODES: Record<string, number> = {
+  ORDER_FEE_STATUS_DRAFT: FEE_DRAFT,
+  ORDER_FEE_STATUS_CONFIRMED: FEE_CONFIRMED,
+  ORDER_FEE_STATUS_BILLED: FEE_BILLED,
+  ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
+};
+
+function feeStatusCode(status: unknown): number {
+  if (typeof status === 'number') return status;
+  return FEE_STATUS_CODES[String(status)] ?? 0;
+}
 
 type FeeFormValues = {
   direction: number;
@@ -95,8 +112,7 @@ function positiveDecimalRule(pattern: RegExp, precisionMessage: string) {
 
 export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
-  const access = useAccess();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
 
   const kind = params.kind || 'sea-export';
   const orderId = params.id;
@@ -111,6 +127,7 @@ export default function OrderFeesPage() {
   const payableActionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
   const exchangeRateRequestRef = useRef(0);
+  const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
 
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<API.Order>();
@@ -118,20 +135,36 @@ export default function OrderFeesPage() {
   const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
   const [editingFee, setEditingFee] = useState<API.OrderFee>();
 
-  const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>([]);
-  const [settlementParties, setSettlementParties] = useState<API.OrderFeeSettlementPartyOption[]>([]);
-  const [feeSettings, setFeeSettings] = useState<API.OrderFeeSettingOption[]>([]);
-  const [billingUnits, setBillingUnits] = useState<API.OrderFeeBillingUnitOption[]>([]);
-  const [_selectedFeeSetting, setSelectedFeeSetting] = useState<API.OrderFeeSettingOption>();
+  const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
+    [],
+  );
+  const [settlementParties, setSettlementParties] = useState<
+    API.OrderFeeSettlementPartyOption[]
+  >([]);
+  const [feeSettings, setFeeSettings] = useState<API.OrderFeeSettingOption[]>(
+    [],
+  );
+  const [billingUnits, setBillingUnits] = useState<
+    API.OrderFeeBillingUnitOption[]
+  >([]);
+  const [_selectedFeeSetting, setSelectedFeeSetting] =
+    useState<API.OrderFeeSettingOption>();
 
   const [totalPreview, setTotalPreview] = useState<string>();
   const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
-  const [exchangeRateStatus, setExchangeRateStatus] = useState<ExchangeRateStatus>('idle');
+  const [exchangeRateStatus, setExchangeRateStatus] =
+    useState<ExchangeRateStatus>('idle');
   const [manualExchangeRate, setManualExchangeRate] = useState(false);
 
   // 汇总统计数据
-  const [receivableSummary, setReceivableSummary] = useState<{ totalAmount: number; count: number }>({ totalAmount: 0, count: 0 });
-  const [payableSummary, setPayableSummary] = useState<{ totalAmount: number; count: number }>({ totalAmount: 0, count: 0 });
+  const [receivableSummary, setReceivableSummary] = useState<{
+    totalAmount: number;
+    count: number;
+  }>({ totalAmount: 0, count: 0 });
+  const [payableSummary, setPayableSummary] = useState<{
+    totalAmount: number;
+    count: number;
+  }>({ totalAmount: 0, count: 0 });
 
   const loadData = async () => {
     if (!orderId) return;
@@ -212,7 +245,12 @@ export default function OrderFeesPage() {
     const values = formRef.current?.getFieldsValue();
     if (!values) return;
     const { quantity, unitPrice, currency, expenseDate, direction } = values;
-    if (quantity && unitPrice && quantityOrPricePattern.test(quantity) && quantityOrPricePattern.test(unitPrice)) {
+    if (
+      quantity &&
+      unitPrice &&
+      quantityOrPricePattern.test(quantity) &&
+      quantityOrPricePattern.test(unitPrice)
+    ) {
       setTotalPreview(calculateExactFeeTotal(quantity, unitPrice));
     } else {
       setTotalPreview(undefined);
@@ -228,6 +266,7 @@ export default function OrderFeesPage() {
   };
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
+    if (!fee) createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
     setEditingFee(fee);
     setModalDirection(direction);
     setSelectedFeeSetting(undefined);
@@ -241,7 +280,9 @@ export default function OrderFeesPage() {
       const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
       setSelectedFeeSetting(setting);
       setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
-      setExchangeRatePreview(fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined);
+      setExchangeRatePreview(
+        fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
+      );
       setExchangeRateStatus('resolved');
       setTimeout(() => {
         formRef.current?.setFieldsValue({
@@ -258,7 +299,9 @@ export default function OrderFeesPage() {
       }, 0);
     } else {
       const defaultParty =
-        direction === RECEIVABLE ? order?.customerId : order?.bookingAgentId || order?.carrierId;
+        direction === RECEIVABLE
+          ? order?.customerId
+          : order?.bookingAgentId || order?.carrierId;
       setTimeout(() => {
         formRef.current?.setFieldsValue({
           direction,
@@ -284,18 +327,32 @@ export default function OrderFeesPage() {
       currency: values.currency,
       expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
       note: values.note,
-      exchangeRateOverride: manualExchangeRate ? values.exchangeRateOverride : undefined,
+      exchangeRateOverride: manualExchangeRate
+        ? values.exchangeRateOverride
+        : undefined,
+      taxInclusive: true,
     };
 
     try {
       if (editingFee?.id) {
+        if (!editingFee.version)
+          throw new Error('费用版本信息缺失，请刷新后重试');
         await orderFeeServiceUpdateFee(
           { orderId, id: editingFee.id },
-          { ...body, orderId, id: editingFee.id },
+          {
+            ...body,
+            orderId,
+            id: editingFee.id,
+            expectedVersion: editingFee.version,
+          },
         );
         message.success('费用更新成功');
       } else {
-        await orderFeeServiceAddFee({ orderId }, { ...body, orderId });
+        await orderFeeServiceAddFee(
+          { orderId },
+          { ...body, orderId, idempotencyKey: createIdempotencyKeyRef.current },
+        );
+        createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
         message.success('费用录入成功');
       }
       setModalOpen(false);
@@ -308,19 +365,100 @@ export default function OrderFeesPage() {
     }
   };
 
-  const handleDeleteFee = async (id?: string) => {
-    if (!orderId || !id) return;
+  const reloadFeeTables = () => {
+    receivableActionRef.current?.reload();
+    payableActionRef.current?.reload();
+  };
+
+  const requestReason = (
+    title: string,
+    onSubmit: (reason: string) => Promise<void>,
+  ) => {
+    let reason = '';
+    modal.confirm({
+      title,
+      content: (
+        <Input.TextArea
+          autoFocus
+          maxLength={500}
+          showCount
+          placeholder="请输入操作原因（必填）"
+          onChange={(event) => {
+            reason = event.target.value.trim();
+          }}
+        />
+      ),
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        if (!reason) {
+          message.warning('请输入操作原因');
+          throw new Error('操作原因不能为空');
+        }
+        await onSubmit(reason);
+      },
+    });
+  };
+
+  const handleCancelFee = (fee: API.OrderFee) => {
+    const feeId = fee.id;
+    const version = fee.version;
+    if (!orderId || !feeId || !version) return;
+    requestReason('确认作废该笔费用？', async (reason) => {
+      await orderFeeServiceRemoveFee({
+        orderId,
+        id: feeId,
+        expectedVersion: version,
+        reason,
+      });
+      message.success('费用已作废并保留历史记录');
+      reloadFeeTables();
+    });
+  };
+
+  const handleConfirmFee = async (fee: API.OrderFee) => {
+    if (!orderId || !fee.id || !fee.version) return;
     try {
-      await orderFeeServiceRemoveFee({ orderId, id });
-      message.success('删除成功');
-      receivableActionRef.current?.reload();
-      payableActionRef.current?.reload();
+      await orderFeeServiceConfirmFee(
+        { orderId, id: fee.id },
+        { orderId, id: fee.id, expectedVersion: fee.version },
+      );
+      message.success('费用已确认，可以进入账单');
+      reloadFeeTables();
     } catch (error: any) {
-      message.error(error.message || '删除失败');
+      message.error(error.message || '确认费用失败');
     }
   };
 
+  const handleReopenFee = (fee: API.OrderFee) => {
+    const feeId = fee.id;
+    const version = fee.version;
+    if (!orderId || !feeId || !version) return;
+    requestReason('撤回费用确认？', async (reason) => {
+      await orderFeeServiceReopenFee(
+        { orderId, id: feeId },
+        { orderId, id: feeId, expectedVersion: version, reason },
+      );
+      message.success('费用已撤回为草稿');
+      reloadFeeTables();
+    });
+  };
+
   const getTableColumns = (direction: number): ProColumns<API.OrderFee>[] => [
+    {
+      title: '状态',
+      dataIndex: 'status',
+      width: 90,
+      render: (_, record) => {
+        if (feeStatusCode(record.status) === FEE_CONFIRMED)
+          return <Tag color="green">已确认</Tag>;
+        if (feeStatusCode(record.status) === FEE_BILLED)
+          return <Tag color="blue">已进账单</Tag>;
+        if (feeStatusCode(record.status) === FEE_CANCELLED)
+          return <Tag>已作废</Tag>;
+        return <Tag color="gold">草稿</Tag>;
+      },
+    },
     {
       title: '费用代码',
       dataIndex: 'feeCode',
@@ -373,7 +511,12 @@ export default function OrderFeesPage() {
       width: 130,
       align: 'right',
       render: (_, record) => (
-        <span style={{ fontWeight: 600, color: direction === RECEIVABLE ? '#1677ff' : '#fa8c16' }}>
+        <span
+          style={{
+            fontWeight: 600,
+            color: direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
+          }}
+        >
           {trimExactDecimal(record.totalAmount)} {record.currency}
         </span>
       ),
@@ -386,15 +529,19 @@ export default function OrderFeesPage() {
       render: (_, record) => (
         <Space size={4}>
           <span>{trimExactDecimal(record.exchangeRate)}</span>
-          {record.exchangeRateSource === 'MANUAL' && <Tag color="gold">手工</Tag>}
-          {record.exchangeRateSource === 'SYSTEM' && <Tag color="blue">系统</Tag>}
+          {record.exchangeRateSource === 'MANUAL' && (
+            <Tag color="gold">手工</Tag>
+          )}
+          {record.exchangeRateSource === 'SYSTEM' && (
+            <Tag color="blue">系统</Tag>
+          )}
         </Space>
       ),
     },
     {
       title: '发生日期',
       dataIndex: 'expenseDate',
-      width: 110,
+      width: 220,
       render: (_, record) => record.expenseDate || '-',
     },
     {
@@ -409,31 +556,64 @@ export default function OrderFeesPage() {
       width: 110,
       fixed: 'right',
       render: (_, record) => [
-        <Button
-          key="edit"
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => openFeeModal(direction, record)}
-        >
-          编辑
-        </Button>,
-        <Popconfirm
-          key="delete"
-          title="确认删除该笔费用吗？"
-          onConfirm={() => handleDeleteFee(record.id)}
-        >
-          <Button type="link" size="small" danger>
-            删除
+        feeStatusCode(record.status) === FEE_DRAFT && (
+          <Button
+            key="edit"
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => openFeeModal(direction, record)}
+          >
+            编辑
           </Button>
-        </Popconfirm>,
+        ),
+        feeStatusCode(record.status) === FEE_DRAFT && (
+          <Popconfirm
+            key="confirm"
+            title="确认后该费用才能进入账单，确定继续？"
+            onConfirm={() => handleConfirmFee(record)}
+          >
+            <Button type="link" size="small">
+              确认
+            </Button>
+          </Popconfirm>
+        ),
+        feeStatusCode(record.status) === FEE_CONFIRMED && (
+          <Button
+            key="reopen"
+            type="link"
+            size="small"
+            onClick={() => handleReopenFee(record)}
+          >
+            撤回
+          </Button>
+        ),
+        (feeStatusCode(record.status) === FEE_DRAFT ||
+          feeStatusCode(record.status) === FEE_CONFIRMED) && (
+          <Button
+            key="cancel"
+            type="link"
+            size="small"
+            danger
+            onClick={() => handleCancelFee(record)}
+          >
+            作废
+          </Button>
+        ),
       ],
     },
   ];
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '120px 0', background: '#f5f7fa', minHeight: '100vh' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '120px 0',
+          background: '#f5f7fa',
+          minHeight: '100vh',
+        }}
+      >
         <Spin size="large" tip="正在加载费用工作台..." />
       </div>
     );
@@ -442,9 +622,16 @@ export default function OrderFeesPage() {
   if (!order) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
-        <Card bordered={false} style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}>
+        <Card
+          bordered={false}
+          style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
+        >
           <Empty description="未找到对应的订单档案" />
-          <Button type="primary" onClick={() => history.push(`/orders/${kind}`)} style={{ marginTop: 16 }}>
+          <Button
+            type="primary"
+            onClick={() => history.push(`/orders/${kind}`)}
+            style={{ marginTop: 16 }}
+          >
             返回订单列表
           </Button>
         </Card>
@@ -459,7 +646,9 @@ export default function OrderFeesPage() {
       : '0.0';
 
   return (
-    <div style={{ padding: '0 0 40px', background: '#f5f7fa', minHeight: '100vh' }}>
+    <div
+      style={{ padding: '0 0 40px', background: '#f5f7fa', minHeight: '100vh' }}
+    >
       {/* 顶部面包屑与快捷返回 */}
       <div
         style={{
@@ -484,7 +673,11 @@ export default function OrderFeesPage() {
           <span style={{ color: '#64748b' }}>{config.title}</span>
           <span>&gt;</span>
           <a
-            style={{ color: '#1677ff', fontWeight: 600, fontFamily: 'monospace' }}
+            style={{
+              color: '#1677ff',
+              fontWeight: 600,
+              fontFamily: 'monospace',
+            }}
             onClick={() => history.push(`/orders/${kind}/${orderId}`)}
           >
             {order.orderNo || order.id}
@@ -521,27 +714,56 @@ export default function OrderFeesPage() {
       <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
         {/* 1. 基础信息卡片 */}
         <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
-          <Descriptions size="small" column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}>
+          <Descriptions
+            size="small"
+            column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
+          >
             <Descriptions.Item label="订单编号">
               <a
-                style={{ fontWeight: 600, color: '#1677ff', fontFamily: 'monospace' }}
+                style={{
+                  fontWeight: 600,
+                  color: '#1677ff',
+                  fontFamily: 'monospace',
+                }}
                 onClick={() => history.push(`/orders/${kind}/${orderId}`)}
               >
                 {order.orderNo || order.id}
               </a>
             </Descriptions.Item>
-            <Descriptions.Item label="委托单位">{order.customerId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="业务类型">{config.title}</Descriptions.Item>
-            <Descriptions.Item label="贸易条款">{order.tradeTerm ? 'FOB / CIF' : '-'}</Descriptions.Item>
-            <Descriptions.Item label="主单号 (MBL)">{order.shippingDocuments?.[0]?.masterNo || '-'}</Descriptions.Item>
-            <Descriptions.Item label="船名航次">{order.vesselVoyage || '-'}</Descriptions.Item>
-            <Descriptions.Item label="起运港 (POL)">{order.originLocationId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="目的港 (POD)">{order.destinationLocationId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="承运人 (船司)">{order.carrierId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="订舱代理">{order.bookingAgentId || '-'}</Descriptions.Item>
-            <Descriptions.Item label="ETD">{order.etd ? dayjs(order.etd).format('YYYY-MM-DD') : '-'}</Descriptions.Item>
+            <Descriptions.Item label="委托单位">
+              {order.customerId || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="业务类型">
+              {config.title}
+            </Descriptions.Item>
+            <Descriptions.Item label="贸易条款">
+              {order.tradeTerm ? 'FOB / CIF' : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="主单号 (MBL)">
+              {order.shippingDocuments?.[0]?.masterNo || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="船名航次">
+              {order.vesselVoyage || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="起运港 (POL)">
+              {order.originLocationId || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="目的港 (POD)">
+              {order.destinationLocationId || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="承运人 (船司)">
+              {order.carrierId || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="订舱代理">
+              {order.bookingAgentId || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="ETD">
+              {order.etd ? dayjs(order.etd).format('YYYY-MM-DD') : '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="件重尺">
-              {order.totalPackages || '-'} 件 / {order.totalGrossWeightKg || '-'} kg / {order.totalVolumeCbm || '-'} m³
+              {order.totalPackages || '-'} 件 /{' '}
+              {order.totalGrossWeightKg || '-'} kg /{' '}
+              {order.totalVolumeCbm || '-'} m³
             </Descriptions.Item>
           </Descriptions>
         </SectionCard>
@@ -549,7 +771,10 @@ export default function OrderFeesPage() {
         {/* 2. 费用汇总统计指标卡 */}
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={8}>
-            <Card bordered={false} style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}>
+            <Card
+              bordered={false}
+              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
+            >
               <Statistic
                 title={<span style={{ color: '#64748b' }}>应收总计</span>}
                 value={receivableSummary.totalAmount}
@@ -560,7 +785,10 @@ export default function OrderFeesPage() {
             </Card>
           </Col>
           <Col xs={24} sm={8}>
-            <Card bordered={false} style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}>
+            <Card
+              bordered={false}
+              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
+            >
               <Statistic
                 title={<span style={{ color: '#64748b' }}>应付总计</span>}
                 value={payableSummary.totalAmount}
@@ -571,18 +799,26 @@ export default function OrderFeesPage() {
             </Card>
           </Col>
           <Col xs={24} sm={8}>
-            <Card bordered={false} style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}>
+            <Card
+              bordered={false}
+              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
+            >
               <Statistic
                 title={
                   <Space>
                     <span style={{ color: '#64748b' }}>预计毛利</span>
-                    <Tag color={profitCny >= 0 ? 'success' : 'error'}>{profitRate}%</Tag>
+                    <Tag color={profitCny >= 0 ? 'success' : 'error'}>
+                      {profitRate}%
+                    </Tag>
                   </Space>
                 }
                 value={profitCny}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: profitCny >= 0 ? '#52c41a' : '#ff4d4f', fontWeight: 700 }}
+                valueStyle={{
+                  color: profitCny >= 0 ? '#52c41a' : '#ff4d4f',
+                  fontWeight: 700,
+                }}
               />
             </Card>
           </Col>
@@ -621,9 +857,24 @@ export default function OrderFeesPage() {
                   request={async () => {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
-                    const rItems = (res.data ?? []).filter((f) => f.direction === RECEIVABLE);
-                    const total = rItems.reduce((acc, cur) => acc + (cur.totalAmount ? Number(cur.totalAmount) : 0), 0);
-                    setReceivableSummary({ totalAmount: total, count: rItems.length });
+                    const rItems = (res.data ?? []).filter(
+                      (f) => f.direction === RECEIVABLE,
+                    );
+                    const activeItems = rItems.filter(
+                      (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+                    );
+                    const total = activeItems.reduce(
+                      (acc, cur) =>
+                        acc +
+                        (cur.baseCurrencyAmount
+                          ? Number(cur.baseCurrencyAmount)
+                          : 0),
+                      0,
+                    );
+                    setReceivableSummary({
+                      totalAmount: total,
+                      count: rItems.length,
+                    });
                     return { data: rItems, success: true };
                   }}
                   columns={getTableColumns(RECEIVABLE)}
@@ -650,7 +901,10 @@ export default function OrderFeesPage() {
                       key="add"
                       type="primary"
                       icon={<PlusOutlined />}
-                      style={{ backgroundColor: '#fa8c16', borderColor: '#fa8c16' }}
+                      style={{
+                        backgroundColor: '#fa8c16',
+                        borderColor: '#fa8c16',
+                      }}
                       onClick={() => openFeeModal(PAYABLE)}
                     >
                       + 新增应付费用
@@ -659,9 +913,24 @@ export default function OrderFeesPage() {
                   request={async () => {
                     if (!orderId) return { data: [], success: true };
                     const res = await orderFeeServiceListFees({ orderId });
-                    const pItems = (res.data ?? []).filter((f) => f.direction === PAYABLE);
-                    const total = pItems.reduce((acc, cur) => acc + (cur.totalAmount ? Number(cur.totalAmount) : 0), 0);
-                    setPayableSummary({ totalAmount: total, count: pItems.length });
+                    const pItems = (res.data ?? []).filter(
+                      (f) => f.direction === PAYABLE,
+                    );
+                    const activeItems = pItems.filter(
+                      (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+                    );
+                    const total = activeItems.reduce(
+                      (acc, cur) =>
+                        acc +
+                        (cur.baseCurrencyAmount
+                          ? Number(cur.baseCurrencyAmount)
+                          : 0),
+                      0,
+                    );
+                    setPayableSummary({
+                      totalAmount: total,
+                      count: pItems.length,
+                    });
                     return { data: pItems, success: true };
                   }}
                   columns={getTableColumns(PAYABLE)}
@@ -674,7 +943,11 @@ export default function OrderFeesPage() {
 
       {/* 4. 费用录入/编辑 ModalForm */}
       <ModalForm<FeeFormValues>
-        title={editingFee ? `编辑${modalDirection === RECEIVABLE ? '应收' : '应付'}费用` : `新增${modalDirection === RECEIVABLE ? '应收' : '应付'}费用`}
+        title={
+          editingFee
+            ? `编辑${modalDirection === RECEIVABLE ? '应收' : '应付'}费用`
+            : `新增${modalDirection === RECEIVABLE ? '应收' : '应付'}费用`
+        }
         open={modalOpen}
         formRef={formRef}
         onOpenChange={setModalOpen}
@@ -699,10 +972,16 @@ export default function OrderFeesPage() {
                   const setting = feeSettings.find((item) => item.id === val);
                   setSelectedFeeSetting(setting);
                   if (setting?.defaultBillingUnitId) {
-                    formRef.current?.setFieldValue('billingUnitId', setting.defaultBillingUnitId);
+                    formRef.current?.setFieldValue(
+                      'billingUnitId',
+                      setting.defaultBillingUnitId,
+                    );
                   }
                   if (setting?.defaultCurrency) {
-                    formRef.current?.setFieldValue('currency', setting.defaultCurrency);
+                    formRef.current?.setFieldValue(
+                      'currency',
+                      setting.defaultCurrency,
+                    );
                   }
                   handleValuesChange();
                 },
@@ -714,7 +993,10 @@ export default function OrderFeesPage() {
               name="settlementPartyId"
               label="结算单位"
               rules={[{ required: true, message: '请选择结算单位' }]}
-              options={settlementParties.map((item) => ({ label: item.name ?? '', value: item.id ?? '' }))}
+              options={settlementParties.map((item) => ({
+                label: item.name ?? '',
+                value: item.id ?? '',
+              }))}
               fieldProps={{ showSearch: true }}
             />
           </Col>
@@ -723,14 +1005,25 @@ export default function OrderFeesPage() {
               name="currency"
               label="币种"
               rules={[{ required: true, message: '请选择币种' }]}
-              options={currencies.map((c) => ({ label: `${c.code} (${c.name})`, value: c.code ?? '' }))}
+              options={currencies.map((c) => ({
+                label: `${c.code} (${c.name})`,
+                value: c.code ?? '',
+              }))}
             />
           </Col>
           <Col span={8}>
             <ProFormText
               name="unitPrice"
               label="单价"
-              rules={[{ required: true, message: '请输入单价' }, { validator: positiveDecimalRule(quantityOrPricePattern, '单价格式不正确') }]}
+              rules={[
+                { required: true, message: '请输入单价' },
+                {
+                  validator: positiveDecimalRule(
+                    quantityOrPricePattern,
+                    '单价格式不正确',
+                  ),
+                },
+              ]}
               placeholder="0.00"
             />
           </Col>
@@ -738,7 +1031,15 @@ export default function OrderFeesPage() {
             <ProFormText
               name="quantity"
               label="数量"
-              rules={[{ required: true, message: '请输入数量' }, { validator: positiveDecimalRule(quantityOrPricePattern, '数量格式不正确') }]}
+              rules={[
+                { required: true, message: '请输入数量' },
+                {
+                  validator: positiveDecimalRule(
+                    quantityOrPricePattern,
+                    '数量格式不正确',
+                  ),
+                },
+              ]}
               placeholder="1"
             />
           </Col>
@@ -747,7 +1048,10 @@ export default function OrderFeesPage() {
               name="billingUnitId"
               label="计费单位"
               rules={[{ required: true, message: '请选择计费单位' }]}
-              options={billingUnits.map((u) => ({ label: `${u.name} (${u.code})`, value: u.id ?? '' }))}
+              options={billingUnits.map((u) => ({
+                label: `${u.name} (${u.code})`,
+                value: u.id ?? '',
+              }))}
             />
           </Col>
           <Col span={12}>
@@ -761,12 +1065,27 @@ export default function OrderFeesPage() {
 
           {/* 汇率与金额计算预览 */}
           <Col span={24}>
-            <Card size="small" style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}>
-              <Space split={<span style={{ color: '#cbd5e1' }}>|</span>} size={16}>
+            <Card
+              size="small"
+              style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}
+            >
+              <Space
+                split={<span style={{ color: '#cbd5e1' }}>|</span>}
+                size={16}
+              >
                 <div>
                   <Text type="secondary">费用金额：</Text>
-                  <Text strong style={{ fontSize: 16, color: modalDirection === RECEIVABLE ? '#1677ff' : '#fa8c16' }}>
-                    {totalPreview ? `${formRef.current?.getFieldValue('currency') || ''} ${totalPreview}` : '-'}
+                  <Text
+                    strong
+                    style={{
+                      fontSize: 16,
+                      color:
+                        modalDirection === RECEIVABLE ? '#1677ff' : '#fa8c16',
+                    }}
+                  >
+                    {totalPreview
+                      ? `${formRef.current?.getFieldValue('currency') || ''} ${totalPreview}`
+                      : '-'}
                   </Text>
                 </div>
                 <div>
@@ -799,7 +1118,15 @@ export default function OrderFeesPage() {
               <ProFormText
                 name="exchangeRateOverride"
                 label="手动指定汇率 (对 CNY)"
-                rules={[{ required: true, message: '请输入手动汇率' }, { validator: positiveDecimalRule(exchangeRatePattern, '汇率格式不正确') }]}
+                rules={[
+                  { required: true, message: '请输入手动汇率' },
+                  {
+                    validator: positiveDecimalRule(
+                      exchangeRatePattern,
+                      '汇率格式不正确',
+                    ),
+                  },
+                ]}
                 placeholder="例如 7.2345"
               />
             </Col>

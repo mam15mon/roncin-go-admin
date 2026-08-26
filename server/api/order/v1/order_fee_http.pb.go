@@ -18,21 +18,27 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationOrderFeeServiceAddFee = "/order.v1.OrderFeeService/AddFee"
+const OperationOrderFeeServiceConfirmFee = "/order.v1.OrderFeeService/ConfirmFee"
 const OperationOrderFeeServiceListFeeOptions = "/order.v1.OrderFeeService/ListFeeOptions"
 const OperationOrderFeeServiceListFees = "/order.v1.OrderFeeService/ListFees"
 const OperationOrderFeeServiceRemoveFee = "/order.v1.OrderFeeService/RemoveFee"
+const OperationOrderFeeServiceReopenFee = "/order.v1.OrderFeeService/ReopenFee"
 const OperationOrderFeeServiceResolveFeeExchangeRate = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 
 type OrderFeeServiceHTTPServer interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
+	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
 	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
-	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
+	// RemoveFee RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
+	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
@@ -46,6 +52,8 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-exchange-rate", _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees", _OrderFeeService_AddFee0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_UpdateFee0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/fees/{id}/confirm", _OrderFeeService_ConfirmFee0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/fees/{id}/reopen", _OrderFeeService_ReopenFee0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_RemoveFee0_HTTP_Handler(srv))
 }
 
@@ -159,6 +167,50 @@ func _OrderFeeService_UpdateFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 	}
 }
 
+func _OrderFeeService_ConfirmFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmFeeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFeeServiceConfirmFee)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmFee(ctx, req.(*ConfirmFeeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmFeeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderFeeService_ReopenFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ReopenFeeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFeeServiceReopenFee)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ReopenFee(ctx, req.(*ReopenFeeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ReopenFeeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _OrderFeeService_RemoveFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in RemoveFeeRequest
@@ -184,12 +236,16 @@ func _OrderFeeService_RemoveFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 type OrderFeeServiceHTTPClient interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, req *AddFeeRequest, opts ...http.CallOption) (rsp *AddFeeResponse, err error)
+	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	ConfirmFee(ctx context.Context, req *ConfirmFeeRequest, opts ...http.CallOption) (rsp *ConfirmFeeResponse, err error)
 	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, req *ListFeeOptionsRequest, opts ...http.CallOption) (rsp *ListFeeOptionsResponse, err error)
 	// ListFees ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, req *ListFeesRequest, opts ...http.CallOption) (rsp *ListFeesResponse, err error)
-	// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
+	// RemoveFee RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
+	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+	ReopenFee(ctx context.Context, req *ReopenFeeRequest, opts ...http.CallOption) (rsp *ReopenFeeResponse, err error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
@@ -213,6 +269,24 @@ func (c *OrderFeeServiceHTTPClientImpl) AddFee(ctx context.Context, in *AddFeeRe
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationOrderFeeServiceAddFee),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+func (c *OrderFeeServiceHTTPClientImpl) ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...http.CallOption) (*ConfirmFeeResponse, error) {
+	var out ConfirmFeeResponse
+	pattern := "/api/v1/orders/{order_id}/fees/{id}/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderFeeServiceConfirmFee),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -256,7 +330,7 @@ func (c *OrderFeeServiceHTTPClientImpl) ListFees(ctx context.Context, in *ListFe
 	return &out, nil
 }
 
-// RemoveFee RemoveFee 删除尚未进入后续财务流程的订单费用。
+// RemoveFee RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 func (c *OrderFeeServiceHTTPClientImpl) RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...http.CallOption) (*RemoveFeeResponse, error) {
 	var out RemoveFeeResponse
 	pattern := "/api/v1/orders/{order_id}/fees/{id}"
@@ -267,6 +341,24 @@ func (c *OrderFeeServiceHTTPClientImpl) RemoveFee(ctx context.Context, in *Remov
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+func (c *OrderFeeServiceHTTPClientImpl) ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...http.CallOption) (*ReopenFeeResponse, error) {
+	var out ReopenFeeResponse
+	pattern := "/api/v1/orders/{order_id}/fees/{id}/reopen"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderFeeServiceReopenFee),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

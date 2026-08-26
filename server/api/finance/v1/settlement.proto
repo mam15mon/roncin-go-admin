@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package finance.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
+
+// SettlementService 提供跨业务费用台账及后续账单、开票、收付和核销能力。
+service SettlementService {
+  // ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
+  rpc ListFeeLedger(ListFeeLedgerRequest) returns (ListFeeLedgerResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fees"};
+  }
+}
+
+message ListFeeLedgerRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  optional string keyword = 3;
+  optional string business_type = 4;
+  optional string direction = 5;
+  optional string status = 6;
+  optional string settlement_party_id = 7;
+  optional string currency = 8;
+  optional string expense_date_from = 9;
+  optional string expense_date_to = 10;
+}
+
+message FeeLedgerItem {
+  string id = 1;
+  string order_id = 2;
+  string order_no = 3;
+  string business_type = 4;
+  string direction = 5;
+  string status = 6;
+  string fee_code = 7;
+  string fee_name = 8;
+  string settlement_party_id = 9;
+  string settlement_party_name = 10;
+  string billing_unit = 11;
+  string quantity = 12;
+  string unit_price = 13;
+  string total_amount = 14;
+  string net_amount = 15;
+  string tax_amount = 16;
+  string currency = 17;
+  string exchange_rate = 18;
+  string base_currency = 19;
+  string base_currency_amount = 20;
+  string expense_date = 21;
+  optional string note = 22;
+  uint64 version = 23;
+  string created_at = 24;
+  string updated_at = 25;
+}
+
+message FeeLedgerSummary {
+  int64 active_count = 1;
+  string receivable_base_amount = 2;
+  string payable_base_amount = 3;
+  string profit_base_amount = 4;
+  string base_currency = 5;
+}
+
+message ListFeeLedgerResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated FeeLedgerItem data = 4;
+  int64 total = 5;
+  FeeLedgerSummary summary = 6;
+  string trace_id = 7;
+}

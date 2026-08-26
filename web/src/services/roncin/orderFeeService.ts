@@ -93,7 +93,7 @@ export async function orderFeeServiceUpdateFee(
   );
 }
 
-/** RemoveFee 删除尚未进入后续财务流程的订单费用。 DELETE /api/v1/orders/${param0}/fees/${param1} */
+/** RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。 DELETE /api/v1/orders/${param0}/fees/${param1} */
 export async function orderFeeServiceRemoveFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceRemoveFeeParams,
@@ -104,7 +104,53 @@ export async function orderFeeServiceRemoveFee(
     `/api/v1/orders/${param0}/fees/${param1}`,
     {
       method: "DELETE",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。 POST /api/v1/orders/${param0}/fees/${param1}/confirm */
+export async function orderFeeServiceConfirmFee(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceConfirmFeeParams,
+  body: API.ConfirmFeeRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.ConfirmFeeResponse>(
+    `/api/v1/orders/${param0}/fees/${param1}/confirm`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。 POST /api/v1/orders/${param0}/fees/${param1}/reopen */
+export async function orderFeeServiceReopenFee(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceReopenFeeParams,
+  body: API.ReopenFeeRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.ReopenFeeResponse>(
+    `/api/v1/orders/${param0}/fees/${param1}/reopen`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
       ...(options || {}),
     }
   );

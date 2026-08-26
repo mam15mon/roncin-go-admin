@@ -23,6 +23,22 @@ const permissions = {
   financeFeeSettingRead: 'system.finance.fee_setting.read',
   financeFeeSettingCreate: 'system.finance.fee_setting.create',
   financeFeeSettingUpdate: 'system.finance.fee_setting.update',
+  financeFeeRead: 'system.finance.fee.read',
+  financeBillRead: 'system.finance.bill.read',
+  financeBillCreate: 'system.finance.bill.create',
+  financeBillUpdate: 'system.finance.bill.update',
+  financeBillConfirm: 'system.finance.bill.confirm',
+  financeInvoiceRead: 'system.finance.invoice.read',
+  financeInvoiceCreate: 'system.finance.invoice.create',
+  financeInvoiceUpdate: 'system.finance.invoice.update',
+  financeCashflowRead: 'system.finance.cashflow.read',
+  financeCashflowCreate: 'system.finance.cashflow.create',
+  financeCashflowUpdate: 'system.finance.cashflow.update',
+  financeVerificationRead: 'system.finance.verification.read',
+  financeVerificationCreate: 'system.finance.verification.create',
+  financeVerificationReverse: 'system.finance.verification.reverse',
+  financeCommissionRead: 'system.finance.commission.read',
+  financeCommissionManage: 'system.finance.commission.manage',
   partnerRead: 'business.partner.read',
   partnerCreate: 'business.partner.create',
   partnerUpdate: 'business.partner.update',
@@ -159,6 +175,44 @@ export default function access(
       has(permissions.financeFeeSettingCreate) && inOrganization,
     canUpdateFeeSettings:
       has(permissions.financeFeeSettingUpdate) && inOrganization,
+    canAccessFinanceManagement:
+      inOrganization &&
+      [
+        permissions.financeFeeRead,
+        permissions.financeBillRead,
+        permissions.financeInvoiceRead,
+        permissions.financeCashflowRead,
+        permissions.financeVerificationRead,
+        permissions.financeCommissionRead,
+      ].some(has),
+    canReadFinanceFees: has(permissions.financeFeeRead) && inOrganization,
+    canReadFinanceBills: has(permissions.financeBillRead) && inOrganization,
+    canCreateFinanceBills: has(permissions.financeBillCreate) && inOrganization,
+    canUpdateFinanceBills: has(permissions.financeBillUpdate) && inOrganization,
+    canConfirmFinanceBills:
+      has(permissions.financeBillConfirm) && inOrganization,
+    canReadFinanceInvoices:
+      has(permissions.financeInvoiceRead) && inOrganization,
+    canCreateFinanceInvoices:
+      has(permissions.financeInvoiceCreate) && inOrganization,
+    canUpdateFinanceInvoices:
+      has(permissions.financeInvoiceUpdate) && inOrganization,
+    canReadFinanceCashflows:
+      has(permissions.financeCashflowRead) && inOrganization,
+    canCreateFinanceCashflows:
+      has(permissions.financeCashflowCreate) && inOrganization,
+    canUpdateFinanceCashflows:
+      has(permissions.financeCashflowUpdate) && inOrganization,
+    canReadFinanceVerifications:
+      has(permissions.financeVerificationRead) && inOrganization,
+    canCreateFinanceVerifications:
+      has(permissions.financeVerificationCreate) && inOrganization,
+    canReverseFinanceVerifications:
+      has(permissions.financeVerificationReverse) && inOrganization,
+    canReadFinanceCommissions:
+      has(permissions.financeCommissionRead) && inOrganization,
+    canManageFinanceCommissions:
+      has(permissions.financeCommissionManage) && inOrganization,
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canCreatePartners: has(permissions.partnerCreate) && inOrganization,
     canUpdatePartners: has(permissions.partnerUpdate) && inOrganization,

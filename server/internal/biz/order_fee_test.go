@@ -170,10 +170,74 @@ func TestNormalizeOrderFeeRejectsExchangeRateOverrideExcessPrecision(t *testing.
 	}
 }
 
+func TestSameOrderFeeCreateIntentAcceptsRetryAndRejectsKeyReuse(t *testing.T) {
+	original := validOrderFeeForTest()
+	original.TotalAmount = original.Quantity.Mul(original.UnitPrice)
+	original.ExchangeRate = decimal.NewFromInt(1)
+	retry := *original
+
+	if !sameOrderFeeCreateIntent(original, &retry) {
+		t.Fatal("相同费用创建请求应被识别为幂等重试")
+	}
+	retry.UnitPrice = decimal.RequireFromString("101")
+	retry.TotalAmount = retry.Quantity.Mul(retry.UnitPrice)
+	if sameOrderFeeCreateIntent(original, &retry) {
+		t.Fatal("复用幂等键但金额不同的请求不应返回原费用")
+	}
+}
+
+func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *testing.T) {
+	rateRepo := &orderFeeExchangeRateRepoStub{}
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	taxRate := decimal.RequireFromString("6")
+	fee := validOrderFeeForTest()
+	fee.TaxRate = &taxRate
+	fee.TotalAmount = decimal.RequireFromString("106")
+	fee.ExchangeRate = decimal.RequireFromString("7.1")
+	fee.TaxInclusive = true
+
+	if err := usecase.calculateAmounts(context.Background(), uuid.Must(uuid.NewV7()), fee); err != nil {
+		t.Fatalf("计算含税费用金额失败: %v", err)
+	}
+	if fee.NetAmount.StringFixed(8) != "100.00000000" || fee.TaxAmount.StringFixed(8) != "6.00000000" {
+		t.Fatalf("含税拆分结果不正确: net=%s tax=%s", fee.NetAmount, fee.TaxAmount)
+	}
+	if fee.BaseCurrency != "CNY" || fee.BaseCurrencyAmount.StringFixed(8) != "752.60000000" {
+		t.Fatalf("折本币快照不正确: currency=%s amount=%s", fee.BaseCurrency, fee.BaseCurrencyAmount)
+	}
+}
+
+func TestCalculateOrderFeeAmountsAddsTaxForExclusivePrice(t *testing.T) {
+	rateRepo := &orderFeeExchangeRateRepoStub{}
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	taxRate := decimal.RequireFromString("6")
+	fee := validOrderFeeForTest()
+	fee.TaxRate = &taxRate
+	fee.TotalAmount = decimal.RequireFromString("100")
+	fee.ExchangeRate = decimal.NewFromInt(1)
+	fee.TaxInclusive = false
+
+	if err := usecase.calculateAmounts(context.Background(), uuid.Must(uuid.NewV7()), fee); err != nil {
+		t.Fatalf("计算不含税费用金额失败: %v", err)
+	}
+	if fee.TotalAmount.StringFixed(8) != "106.00000000" || fee.NetAmount.StringFixed(8) != "100.00000000" || fee.TaxAmount.StringFixed(8) != "6.00000000" {
+		t.Fatalf("不含税加税结果不正确: total=%s net=%s tax=%s", fee.TotalAmount, fee.NetAmount, fee.TaxAmount)
+	}
+}
+
+func TestNormalizeOrderFeeRequiresIdempotencyKeyForCreation(t *testing.T) {
+	fee := validOrderFeeForTest()
+	fee.IdempotencyKey = ""
+	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
+		t.Fatalf("新建费用缺少幂等键应被拒绝，实际错误为 %v", err)
+	}
+}
+
 func validOrderFeeForTest() *OrderFee {
 	feeSettingID := uuid.Must(uuid.NewV7())
 	billingUnitID := uuid.Must(uuid.NewV7())
 	return &OrderFee{
+		IdempotencyKey:    uuid.Must(uuid.NewV7()).String(),
 		Direction:         OrderFeeReceivable,
 		FeeSettingID:      &feeSettingID,
 		SettlementPartyID: uuid.Must(uuid.NewV7()),
@@ -183,5 +247,6 @@ func validOrderFeeForTest() *OrderFee {
 		Currency:          "CNY",
 		ExchangeRate:      decimal.RequireFromString("1"),
 		ExpenseDate:       "2026-08-24",
+		TaxInclusive:      true,
 	}
 }

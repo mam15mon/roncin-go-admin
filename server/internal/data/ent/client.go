@@ -4955,6 +4955,22 @@ func (c *OrderFeeClient) QueryBillingUnitRef(_m *OrderFee) *BillingUnitQuery {
 	return query
 }
 
+// QueryCancelledByUser queries the cancelled_by_user edge of a OrderFee.
+func (c *OrderFeeClient) QueryCancelledByUser(_m *OrderFee) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.CancelledByUserTable, orderfee.CancelledByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderFeeClient) Hooks() []Hook {
 	return c.hooks.OrderFee
@@ -10298,6 +10314,22 @@ func (c *UserClient) QueryPartnerAssignments(_m *User) *PartnerAssignmentQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.PartnerAssignmentsTable, user.PartnerAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCancelledOrderFees queries the cancelled_order_fees edge of a User.
+func (c *UserClient) QueryCancelledOrderFees(_m *User) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledOrderFeesTable, user.CancelledOrderFeesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

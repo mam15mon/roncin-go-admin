@@ -13,7 +13,16 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Input,
+  Popconfirm,
+  Space,
+  Tag,
+} from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, {
   forwardRef,
@@ -23,9 +32,11 @@ import React, {
 } from 'react';
 import {
   orderFeeServiceAddFee,
+  orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
   orderFeeServiceListFees,
   orderFeeServiceRemoveFee,
+  orderFeeServiceReopenFee,
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
@@ -39,6 +50,22 @@ import {
 
 const RECEIVABLE = 1;
 const PAYABLE = 2;
+const FEE_DRAFT = 1;
+const FEE_CONFIRMED = 2;
+const FEE_BILLED = 3;
+const FEE_CANCELLED = 4;
+
+const FEE_STATUS_CODES: Record<string, number> = {
+  ORDER_FEE_STATUS_DRAFT: FEE_DRAFT,
+  ORDER_FEE_STATUS_CONFIRMED: FEE_CONFIRMED,
+  ORDER_FEE_STATUS_BILLED: FEE_BILLED,
+  ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
+};
+
+function feeStatusCode(status: unknown): number {
+  if (typeof status === 'number') return status;
+  return FEE_STATUS_CODES[String(status)] ?? 0;
+}
 
 type FeeFormValues = {
   direction: number;
@@ -77,9 +104,10 @@ function positiveDecimalRule(pattern: RegExp, precisionMessage: string) {
 const OrderFeePanel = forwardRef<OrderFeePanelRef>(
   function OrderFeePanel(_, ref) {
     const access = useAccess();
-    const { message } = App.useApp();
+    const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
     const exchangeRateRequestRef = useRef(0);
+    const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
     const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(
       undefined,
     );
@@ -164,6 +192,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     };
 
     const openCreate = () => {
+      createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
       setEditingFee(undefined);
       setSelectedFeeSetting(undefined);
       setTotalPreview(undefined);
@@ -202,7 +231,49 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const canDelete =
       businessType !== undefined && access.canOrder(businessType, 'fee.delete');
 
+    const requestReason = (
+      title: string,
+      onSubmit: (reason: string) => Promise<void>,
+    ) => {
+      let reason = '';
+      modal.confirm({
+        title,
+        content: (
+          <Input.TextArea
+            autoFocus
+            maxLength={500}
+            showCount
+            placeholder="请输入操作原因（必填）"
+            onChange={(event) => {
+              reason = event.target.value.trim();
+            }}
+          />
+        ),
+        onOk: async () => {
+          if (!reason) {
+            message.warning('请输入操作原因');
+            throw new Error('操作原因不能为空');
+          }
+          await onSubmit(reason);
+        },
+      });
+    };
+
     const columns: ProColumns<API.OrderFee>[] = [
+      {
+        title: '状态',
+        dataIndex: 'status',
+        width: 90,
+        render: (_, record) => {
+          if (feeStatusCode(record.status) === FEE_CONFIRMED)
+            return <Tag color="green">已确认</Tag>;
+          if (feeStatusCode(record.status) === FEE_BILLED)
+            return <Tag color="blue">已进账单</Tag>;
+          if (feeStatusCode(record.status) === FEE_CANCELLED)
+            return <Tag>已作废</Tag>;
+          return <Tag color="gold">草稿</Tag>;
+        },
+      },
       {
         title: '收付方向',
         dataIndex: 'direction',
@@ -299,7 +370,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         fixed: 'right',
         render: (_, record) => (
           <Space size="small">
-            {canUpdate && (
+            {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
               <Button
                 type="link"
                 size="small"
@@ -309,25 +380,76 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                 编辑
               </Button>
             )}
-            {canDelete && (
+            {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
               <Popconfirm
-                title="确定删除该费用？"
-                description="当前仅有费用录入，删除后不可恢复。"
+                title="确认后该费用才能进入账单，确定继续？"
                 onConfirm={async () => {
-                  if (!order?.id || !record.id) return;
-                  await orderFeeServiceRemoveFee({
-                    orderId: order.id,
-                    id: record.id,
-                  });
-                  message.success('删除费用成功');
+                  if (!order?.id || !record.id || !record.version) return;
+                  await orderFeeServiceConfirmFee(
+                    { orderId: order.id, id: record.id },
+                    {
+                      orderId: order.id,
+                      id: record.id,
+                      expectedVersion: record.version,
+                    },
+                  );
+                  message.success('费用已确认');
                   actionRef.current?.reload();
                 }}
               >
-                <Button type="link" danger size="small">
-                  删除
+                <Button type="link" size="small">
+                  确认
                 </Button>
               </Popconfirm>
             )}
+            {canUpdate && feeStatusCode(record.status) === FEE_CONFIRMED && (
+              <Button
+                type="link"
+                size="small"
+                onClick={() =>
+                  requestReason('撤回费用确认？', async (reason) => {
+                    if (!order?.id || !record.id || !record.version) return;
+                    await orderFeeServiceReopenFee(
+                      { orderId: order.id, id: record.id },
+                      {
+                        orderId: order.id,
+                        id: record.id,
+                        expectedVersion: record.version,
+                        reason,
+                      },
+                    );
+                    message.success('费用已撤回为草稿');
+                    actionRef.current?.reload();
+                  })
+                }
+              >
+                撤回
+              </Button>
+            )}
+            {canDelete &&
+              (feeStatusCode(record.status) === FEE_DRAFT ||
+                feeStatusCode(record.status) === FEE_CONFIRMED) && (
+                <Button
+                  type="link"
+                  danger
+                  size="small"
+                  onClick={() =>
+                    requestReason('确认作废该费用？', async (reason) => {
+                      if (!order?.id || !record.id || !record.version) return;
+                      await orderFeeServiceRemoveFee({
+                        orderId: order.id,
+                        id: record.id,
+                        expectedVersion: record.version,
+                        reason,
+                      });
+                      message.success('费用已作废并保留历史记录');
+                      actionRef.current?.reload();
+                    })
+                  }
+                >
+                  作废
+                </Button>
+              )}
           </Space>
         ),
       },
@@ -515,15 +637,25 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               exchangeRateOverride: manualExchangeRate
                 ? values.exchangeRateOverride
                 : undefined,
+              taxInclusive: true,
             };
             if (editingFee?.id) {
+              if (!editingFee.version)
+                throw new Error('费用版本信息缺失，请刷新后重试');
               await orderFeeServiceUpdateFee(
                 { orderId: order.id, id: editingFee.id },
-                { ...payload, id: editingFee.id },
+                {
+                  ...payload,
+                  id: editingFee.id,
+                  expectedVersion: editingFee.version,
+                },
               );
               message.success('更新费用成功');
             } else {
-              await orderFeeServiceAddFee({ orderId: order.id }, payload);
+              await orderFeeServiceAddFee(
+                { orderId: order.id },
+                { ...payload, idempotencyKey: createIdempotencyKeyRef.current },
+              );
               message.success('录入费用成功');
             }
             setModalOpen(false);

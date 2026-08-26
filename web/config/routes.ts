@@ -152,6 +152,50 @@ export default [
     ],
   },
   {
+    path: '/finance',
+    name: '费用管理',
+    icon: 'transaction',
+    access: 'canAccessFinanceManagement',
+    routes: [
+      {
+        path: '/finance/fees',
+        name: '集运费用明细',
+        access: 'canReadFinanceFees',
+        component: './finance/fees',
+      },
+      {
+        path: '/finance/bills',
+        name: '账单管理',
+        access: 'canReadFinanceBills',
+        component: './finance/bills',
+      },
+      {
+        path: '/finance/invoices',
+        name: '开票记录',
+        access: 'canReadFinanceInvoices',
+        component: './finance/invoices',
+      },
+      {
+        path: '/finance/cashflows',
+        name: '收付管理',
+        access: 'canReadFinanceCashflows',
+        component: './finance/cashflows',
+      },
+      {
+        path: '/finance/verifications',
+        name: '核销管理',
+        access: 'canReadFinanceVerifications',
+        component: './finance/verifications',
+      },
+      {
+        path: '/finance/commissions',
+        name: '提成管理',
+        access: 'canReadFinanceCommissions',
+        component: './finance/commissions',
+      },
+    ],
+  },
+  {
     path: '/settings',
     name: '参数设置',
     icon: 'setting',

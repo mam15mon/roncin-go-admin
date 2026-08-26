@@ -1240,7 +1240,9 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "BILLED", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "fee_code", Type: field.TypeString, Size: 30},
 		{Name: "fee_name", Type: field.TypeString, Size: 80},
 		{Name: "fee_name_en", Type: field.TypeString, Nullable: true, Size: 128},
@@ -1250,17 +1252,26 @@ var (
 		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_inclusive", Type: field.TypeBool, Default: true},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
 		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "expense_date", Type: field.TypeString, Size: 10},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "billing_unit_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "fee_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrderFeesTable holds the schema information for the "order_fees" table.
 	OrderFeesTable = &schema.Table{
@@ -1270,27 +1281,33 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fees_billing_units_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[20]},
+				Columns:    []*schema.Column{OrderFeesColumns[30]},
 				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_fee_settings_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[21]},
+				Columns:    []*schema.Column{OrderFeesColumns[31]},
 				RefColumns: []*schema.Column{FeeSettingsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[22]},
+				Columns:    []*schema.Column{OrderFeesColumns[32]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[23]},
+				Columns:    []*schema.Column{OrderFeesColumns[33]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_users_cancelled_order_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[34]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -1300,24 +1317,34 @@ var (
 				Columns: []*schema.Column{OrderFeesColumns[2]},
 			},
 			{
+				Name:    "orderfee_order_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[3]},
+			},
+			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[22], OrderFeesColumns[3], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[4], OrderFeesColumns[1]},
+			},
+			{
+				Name:    "orderfee_order_id_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[5], OrderFeesColumns[1]},
 			},
 			{
 				Name:    "orderfee_fee_setting_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[21]},
+				Columns: []*schema.Column{OrderFeesColumns[31]},
 			},
 			{
 				Name:    "orderfee_billing_unit_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[20]},
+				Columns: []*schema.Column{OrderFeesColumns[30]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[23], OrderFeesColumns[3], OrderFeesColumns[13]},
+				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[4], OrderFeesColumns[18]},
 			},
 		},
 	}
@@ -2851,6 +2878,7 @@ func init() {
 	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
 	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
+	OrderFeesTable.ForeignKeys[4].RefTable = UsersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable

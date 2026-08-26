@@ -771,6 +771,62 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.UpdateFeeSettingResponse'
+    /api/v1/finance/fees:
+        get:
+            tags:
+                - SettlementService
+            description: ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
+            operationId: SettlementService_ListFeeLedger
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: businessType
+                  in: query
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: settlementPartyId
+                  in: query
+                  schema:
+                    type: string
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+                - name: expenseDateFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: expenseDateTo
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFeeLedgerResponse'
     /api/v1/finance/taxable-services:
         get:
             tags:
@@ -2097,7 +2153,7 @@ paths:
         delete:
             tags:
                 - OrderFeeService
-            description: RemoveFee 删除尚未进入后续财务流程的订单费用。
+            description: RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
             operationId: OrderFeeService_RemoveFee
             parameters:
                 - name: orderId
@@ -2110,6 +2166,14 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: expectedVersion
+                  in: query
+                  schema:
+                    type: string
+                - name: reason
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2117,6 +2181,66 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.RemoveFeeResponse'
+    /api/v1/orders/{orderId}/fees/{id}/confirm:
+        post:
+            tags:
+                - OrderFeeService
+            description: ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+            operationId: OrderFeeService_ConfirmFee
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.ConfirmFeeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ConfirmFeeResponse'
+    /api/v1/orders/{orderId}/fees/{id}/reopen:
+        post:
+            tags:
+                - OrderFeeService
+            description: ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+            operationId: OrderFeeService_ReopenFee
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.ReopenFeeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ReopenFeeResponse'
     /api/v1/orders/{orderId}/milestones:
         get:
             tags:
@@ -4060,6 +4184,72 @@ components:
                     type: array
                     items:
                         type: string
+        finance.v1.FeeLedgerItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                businessType:
+                    type: string
+                direction:
+                    type: string
+                status:
+                    type: string
+                feeCode:
+                    type: string
+                feeName:
+                    type: string
+                settlementPartyId:
+                    type: string
+                settlementPartyName:
+                    type: string
+                billingUnit:
+                    type: string
+                quantity:
+                    type: string
+                unitPrice:
+                    type: string
+                totalAmount:
+                    type: string
+                netAmount:
+                    type: string
+                taxAmount:
+                    type: string
+                currency:
+                    type: string
+                exchangeRate:
+                    type: string
+                baseCurrency:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
+                expenseDate:
+                    type: string
+                note:
+                    type: string
+                version:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        finance.v1.FeeLedgerSummary:
+            type: object
+            properties:
+                activeCount:
+                    type: string
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                profitBaseAmount:
+                    type: string
+                baseCurrency:
+                    type: string
         finance.v1.FeeSetting:
             type: object
             properties:
@@ -4152,6 +4342,26 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.ExchangeRateTimeStandardSetting'
+                traceId:
+                    type: string
+        finance.v1.ListFeeLedgerResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerItem'
+                total:
+                    type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FeeLedgerSummary'
                 traceId:
                     type: string
         finance.v1.ListFeeSettingsResponse:
@@ -5827,6 +6037,7 @@ components:
                 - expenseDate
                 - feeSettingId
                 - billingUnitId
+                - idempotencyKey
             type: object
             properties:
                 orderId:
@@ -5852,6 +6063,10 @@ components:
                     type: string
                 billingUnitId:
                     type: string
+                idempotencyKey:
+                    type: string
+                taxInclusive:
+                    type: boolean
         order.v1.AddFeeResponse:
             type: object
             properties:
@@ -5982,6 +6197,33 @@ components:
                 traceId:
                     type: string
             description: CheckOrderReferenceResponse 订单业务编号查重响应。
+        order.v1.ConfirmFeeRequest:
+            required:
+                - orderId
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        order.v1.ConfirmFeeResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderFee'
+                traceId:
+                    type: string
         order.v1.CreateOrderRequest:
             required:
                 - customerId
@@ -6801,6 +7043,27 @@ components:
                     type: string
                 taxableServiceName:
                     type: string
+                status:
+                    type: integer
+                    format: enum
+                taxInclusive:
+                    type: boolean
+                netAmount:
+                    type: string
+                taxAmount:
+                    type: string
+                baseCurrency:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
+                version:
+                    type: string
+                cancelledAt:
+                    type: string
+                cancelledBy:
+                    type: string
+                cancellationReason:
+                    type: string
             description: |-
                 OrderFee 是一条订单应收或应付费用。
                  所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。
@@ -7149,6 +7412,36 @@ components:
                 traceId:
                     type: string
             description: RemoveShippingDocumentResponse 提单操作响应。
+        order.v1.ReopenFeeRequest:
+            required:
+                - orderId
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                orderId:
+                    type: string
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
+        order.v1.ReopenFeeResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderFee'
+                traceId:
+                    type: string
         order.v1.ResolveAbnormalCaseRequest:
             required:
                 - orderId
@@ -7427,6 +7720,7 @@ components:
                 - expenseDate
                 - feeSettingId
                 - billingUnitId
+                - expectedVersion
             type: object
             properties:
                 orderId:
@@ -7454,6 +7748,10 @@ components:
                     type: string
                 billingUnitId:
                     type: string
+                expectedVersion:
+                    type: string
+                taxInclusive:
+                    type: boolean
         order.v1.UpdateFeeResponse:
             type: object
             properties:
@@ -8986,3 +9284,5 @@ tags:
          新建提单固定为草稿态；字段编辑仅允许草稿/已确认；状态仅允许
          DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
     - name: PartnerService
+    - name: SettlementService
+      description: SettlementService 提供跨业务费用台账及后续账单、开票、收付和核销能力。

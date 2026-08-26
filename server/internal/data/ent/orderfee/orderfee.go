@@ -22,8 +22,12 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
+	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
+	FieldIdempotencyKey = "idempotency_key"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// FieldFeeSettingID holds the string denoting the fee_setting_id field in the database.
 	FieldFeeSettingID = "fee_setting_id"
 	// FieldFeeCode holds the string denoting the fee_code field in the database.
@@ -48,6 +52,12 @@ const (
 	FieldUnitPrice = "unit_price"
 	// FieldTotalAmount holds the string denoting the total_amount field in the database.
 	FieldTotalAmount = "total_amount"
+	// FieldTaxInclusive holds the string denoting the tax_inclusive field in the database.
+	FieldTaxInclusive = "tax_inclusive"
+	// FieldNetAmount holds the string denoting the net_amount field in the database.
+	FieldNetAmount = "net_amount"
+	// FieldTaxAmount holds the string denoting the tax_amount field in the database.
+	FieldTaxAmount = "tax_amount"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
 	// FieldExchangeRate holds the string denoting the exchange_rate field in the database.
@@ -58,10 +68,22 @@ const (
 	FieldExchangeRateDate = "exchange_rate_date"
 	// FieldExchangeRateSettingID holds the string denoting the exchange_rate_setting_id field in the database.
 	FieldExchangeRateSettingID = "exchange_rate_setting_id"
+	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
+	FieldBaseCurrency = "base_currency"
+	// FieldBaseCurrencyAmount holds the string denoting the base_currency_amount field in the database.
+	FieldBaseCurrencyAmount = "base_currency_amount"
 	// FieldExpenseDate holds the string denoting the expense_date field in the database.
 	FieldExpenseDate = "expense_date"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
+	// FieldCancelledAt holds the string denoting the cancelled_at field in the database.
+	FieldCancelledAt = "cancelled_at"
+	// FieldCancelledBy holds the string denoting the cancelled_by field in the database.
+	FieldCancelledBy = "cancelled_by"
+	// FieldCancellationReason holds the string denoting the cancellation_reason field in the database.
+	FieldCancellationReason = "cancellation_reason"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
 	// EdgeFeeSetting holds the string denoting the fee_setting edge name in mutations.
@@ -70,6 +92,8 @@ const (
 	EdgeSettlementParty = "settlement_party"
 	// EdgeBillingUnitRef holds the string denoting the billing_unit_ref edge name in mutations.
 	EdgeBillingUnitRef = "billing_unit_ref"
+	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
+	EdgeCancelledByUser = "cancelled_by_user"
 	// Table holds the table name of the orderfee in the database.
 	Table = "order_fees"
 	// OrderTable is the table that holds the order relation/edge.
@@ -100,6 +124,13 @@ const (
 	BillingUnitRefInverseTable = "billing_units"
 	// BillingUnitRefColumn is the table column denoting the billing_unit_ref relation/edge.
 	BillingUnitRefColumn = "billing_unit_id"
+	// CancelledByUserTable is the table that holds the cancelled_by_user relation/edge.
+	CancelledByUserTable = "order_fees"
+	// CancelledByUserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CancelledByUserInverseTable = "users"
+	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
+	CancelledByUserColumn = "cancelled_by"
 )
 
 // Columns holds all SQL columns for orderfee fields.
@@ -108,7 +139,9 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldOrderID,
+	FieldIdempotencyKey,
 	FieldDirection,
+	FieldStatus,
 	FieldFeeSettingID,
 	FieldFeeCode,
 	FieldFeeName,
@@ -121,13 +154,22 @@ var Columns = []string{
 	FieldQuantity,
 	FieldUnitPrice,
 	FieldTotalAmount,
+	FieldTaxInclusive,
+	FieldNetAmount,
+	FieldTaxAmount,
 	FieldCurrency,
 	FieldExchangeRate,
 	FieldExchangeRateSource,
 	FieldExchangeRateDate,
 	FieldExchangeRateSettingID,
+	FieldBaseCurrency,
+	FieldBaseCurrencyAmount,
 	FieldExpenseDate,
 	FieldNote,
+	FieldVersion,
+	FieldCancelledAt,
+	FieldCancelledBy,
+	FieldCancellationReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -147,6 +189,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	IdempotencyKeyValidator func(string) error
 	// FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
 	FeeCodeValidator func(string) error
 	// FeeNameValidator is a validator for the "fee_name" field. It is called by the builders before save.
@@ -157,14 +201,22 @@ var (
 	BillingUnitValidator func(string) error
 	// TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
 	TaxableServiceNameValidator func(string) error
+	// DefaultTaxInclusive holds the default value on creation for the "tax_inclusive" field.
+	DefaultTaxInclusive bool
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
 	// ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	ExchangeRateDateValidator func(string) error
+	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
+	BaseCurrencyValidator func(string) error
 	// ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
 	ExpenseDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
+	// DefaultVersion holds the default value on creation for the "version" field.
+	DefaultVersion uint64
+	// CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
+	CancellationReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -189,6 +241,34 @@ func DirectionValidator(d Direction) error {
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for direction field: %q", d)
+	}
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusDRAFT is the default value of the Status enum.
+const DefaultStatus = StatusDRAFT
+
+// Status values.
+const (
+	StatusDRAFT     Status = "DRAFT"
+	StatusCONFIRMED Status = "CONFIRMED"
+	StatusBILLED    Status = "BILLED"
+	StatusCANCELLED Status = "CANCELLED"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusDRAFT, StatusCONFIRMED, StatusBILLED, StatusCANCELLED:
+		return nil
+	default:
+		return fmt.Errorf("orderfee: invalid enum value for status field: %q", s)
 	}
 }
 
@@ -239,9 +319,19 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
 }
 
+// ByIdempotencyKey orders the results by the idempotency_key field.
+func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIdempotencyKey, opts...).ToFunc()
+}
+
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByFeeSettingID orders the results by the fee_setting_id field.
@@ -304,6 +394,21 @@ func ByTotalAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotalAmount, opts...).ToFunc()
 }
 
+// ByTaxInclusive orders the results by the tax_inclusive field.
+func ByTaxInclusive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxInclusive, opts...).ToFunc()
+}
+
+// ByNetAmount orders the results by the net_amount field.
+func ByNetAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNetAmount, opts...).ToFunc()
+}
+
+// ByTaxAmount orders the results by the tax_amount field.
+func ByTaxAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTaxAmount, opts...).ToFunc()
+}
+
 // ByCurrency orders the results by the currency field.
 func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
@@ -329,6 +434,16 @@ func ByExchangeRateSettingID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExchangeRateSettingID, opts...).ToFunc()
 }
 
+// ByBaseCurrency orders the results by the base_currency field.
+func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
+}
+
+// ByBaseCurrencyAmount orders the results by the base_currency_amount field.
+func ByBaseCurrencyAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseCurrencyAmount, opts...).ToFunc()
+}
+
 // ByExpenseDate orders the results by the expense_date field.
 func ByExpenseDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpenseDate, opts...).ToFunc()
@@ -337,6 +452,26 @@ func ByExpenseDate(opts ...sql.OrderTermOption) OrderOption {
 // ByNote orders the results by the note field.
 func ByNote(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNote, opts...).ToFunc()
+}
+
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByCancelledAt orders the results by the cancelled_at field.
+func ByCancelledAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCancelledAt, opts...).ToFunc()
+}
+
+// ByCancelledBy orders the results by the cancelled_by field.
+func ByCancelledBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCancelledBy, opts...).ToFunc()
+}
+
+// ByCancellationReason orders the results by the cancellation_reason field.
+func ByCancellationReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCancellationReason, opts...).ToFunc()
 }
 
 // ByOrderField orders the results by order field.
@@ -366,6 +501,13 @@ func ByBillingUnitRefField(field string, opts ...sql.OrderTermOption) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newBillingUnitRefStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCancelledByUserField orders the results by cancelled_by_user field.
+func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -392,5 +534,12 @@ func newBillingUnitRefStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillingUnitRefInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, BillingUnitRefTable, BillingUnitRefColumn),
+	)
+}
+func newCancelledByUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledByUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
 	)
 }

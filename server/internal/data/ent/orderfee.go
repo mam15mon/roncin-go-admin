@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderFee is the model entity for the OrderFee schema.
@@ -28,8 +29,12 @@ type OrderFee struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
+	// IdempotencyKey holds the value of the "idempotency_key" field.
+	IdempotencyKey string `json:"idempotency_key,omitempty"`
 	// Direction holds the value of the "direction" field.
 	Direction orderfee.Direction `json:"direction,omitempty"`
+	// Status holds the value of the "status" field.
+	Status orderfee.Status `json:"status,omitempty"`
 	// FeeSettingID holds the value of the "fee_setting_id" field.
 	FeeSettingID *uuid.UUID `json:"fee_setting_id,omitempty"`
 	// FeeCode holds the value of the "fee_code" field.
@@ -54,6 +59,12 @@ type OrderFee struct {
 	UnitPrice string `json:"unit_price,omitempty"`
 	// TotalAmount holds the value of the "total_amount" field.
 	TotalAmount string `json:"total_amount,omitempty"`
+	// TaxInclusive holds the value of the "tax_inclusive" field.
+	TaxInclusive bool `json:"tax_inclusive,omitempty"`
+	// NetAmount holds the value of the "net_amount" field.
+	NetAmount string `json:"net_amount,omitempty"`
+	// TaxAmount holds the value of the "tax_amount" field.
+	TaxAmount string `json:"tax_amount,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
 	// ExchangeRate holds the value of the "exchange_rate" field.
@@ -64,10 +75,22 @@ type OrderFee struct {
 	ExchangeRateDate string `json:"exchange_rate_date,omitempty"`
 	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
 	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
+	// BaseCurrency holds the value of the "base_currency" field.
+	BaseCurrency string `json:"base_currency,omitempty"`
+	// BaseCurrencyAmount holds the value of the "base_currency_amount" field.
+	BaseCurrencyAmount string `json:"base_currency_amount,omitempty"`
 	// ExpenseDate holds the value of the "expense_date" field.
 	ExpenseDate string `json:"expense_date,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// Version holds the value of the "version" field.
+	Version uint64 `json:"version,omitempty"`
+	// CancelledAt holds the value of the "cancelled_at" field.
+	CancelledAt *time.Time `json:"cancelled_at,omitempty"`
+	// CancelledBy holds the value of the "cancelled_by" field.
+	CancelledBy *uuid.UUID `json:"cancelled_by,omitempty"`
+	// CancellationReason holds the value of the "cancellation_reason" field.
+	CancellationReason *string `json:"cancellation_reason,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderFeeQuery when eager-loading is set.
 	Edges        OrderFeeEdges `json:"edges"`
@@ -84,9 +107,11 @@ type OrderFeeEdges struct {
 	SettlementParty *Partner `json:"settlement_party,omitempty"`
 	// BillingUnitRef holds the value of the billing_unit_ref edge.
 	BillingUnitRef *BillingUnit `json:"billing_unit_ref,omitempty"`
+	// CancelledByUser holds the value of the cancelled_by_user edge.
+	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -133,16 +158,31 @@ func (e OrderFeeEdges) BillingUnitRefOrErr() (*BillingUnit, error) {
 	return nil, &NotLoadedError{edge: "billing_unit_ref"}
 }
 
+// CancelledByUserOrErr returns the CancelledByUser value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) CancelledByUserOrErr() (*User, error) {
+	if e.CancelledByUser != nil {
+		return e.CancelledByUser, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "cancelled_by_user"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*OrderFee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID:
+		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldExpenseDate, orderfee.FieldNote:
+		case orderfee.FieldTaxInclusive:
+			values[i] = new(sql.NullBool)
+		case orderfee.FieldVersion:
+			values[i] = new(sql.NullInt64)
+		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldStatus, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldExpenseDate, orderfee.FieldNote, orderfee.FieldCancellationReason:
 			values[i] = new(sql.NullString)
-		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
+		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt, orderfee.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
 		case orderfee.FieldID, orderfee.FieldOrderID, orderfee.FieldSettlementPartyID:
 			values[i] = new(uuid.UUID)
@@ -185,11 +225,23 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.OrderID = *value
 			}
+		case orderfee.FieldIdempotencyKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
+			} else if value.Valid {
+				_m.IdempotencyKey = value.String
+			}
 		case orderfee.FieldDirection:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field direction", values[i])
 			} else if value.Valid {
 				_m.Direction = orderfee.Direction(value.String)
+			}
+		case orderfee.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = orderfee.Status(value.String)
 			}
 		case orderfee.FieldFeeSettingID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -268,6 +320,24 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TotalAmount = value.String
 			}
+		case orderfee.FieldTaxInclusive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field tax_inclusive", values[i])
+			} else if value.Valid {
+				_m.TaxInclusive = value.Bool
+			}
+		case orderfee.FieldNetAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field net_amount", values[i])
+			} else if value.Valid {
+				_m.NetAmount = value.String
+			}
+		case orderfee.FieldTaxAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tax_amount", values[i])
+			} else if value.Valid {
+				_m.TaxAmount = value.String
+			}
 		case orderfee.FieldCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
@@ -299,6 +369,18 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 				_m.ExchangeRateSettingID = new(uuid.UUID)
 				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
 			}
+		case orderfee.FieldBaseCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
+			} else if value.Valid {
+				_m.BaseCurrency = value.String
+			}
+		case orderfee.FieldBaseCurrencyAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency_amount", values[i])
+			} else if value.Valid {
+				_m.BaseCurrencyAmount = value.String
+			}
 		case orderfee.FieldExpenseDate:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field expense_date", values[i])
@@ -310,6 +392,33 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field note", values[i])
 			} else if value.Valid {
 				_m.Note = value.String
+			}
+		case orderfee.FieldVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				_m.Version = uint64(value.Int64)
+			}
+		case orderfee.FieldCancelledAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field cancelled_at", values[i])
+			} else if value.Valid {
+				_m.CancelledAt = new(time.Time)
+				*_m.CancelledAt = value.Time
+			}
+		case orderfee.FieldCancelledBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field cancelled_by", values[i])
+			} else if value.Valid {
+				_m.CancelledBy = new(uuid.UUID)
+				*_m.CancelledBy = *value.S.(*uuid.UUID)
+			}
+		case orderfee.FieldCancellationReason:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cancellation_reason", values[i])
+			} else if value.Valid {
+				_m.CancellationReason = new(string)
+				*_m.CancellationReason = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -344,6 +453,11 @@ func (_m *OrderFee) QueryBillingUnitRef() *BillingUnitQuery {
 	return NewOrderFeeClient(_m.config).QueryBillingUnitRef(_m)
 }
 
+// QueryCancelledByUser queries the "cancelled_by_user" edge of the OrderFee entity.
+func (_m *OrderFee) QueryCancelledByUser() *UserQuery {
+	return NewOrderFeeClient(_m.config).QueryCancelledByUser(_m)
+}
+
 // Update returns a builder for updating this OrderFee.
 // Note that you need to call OrderFee.Unwrap() before calling this method if this OrderFee
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -376,8 +490,14 @@ func (_m *OrderFee) String() string {
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteString(", ")
+	builder.WriteString("idempotency_key=")
+	builder.WriteString(_m.IdempotencyKey)
+	builder.WriteString(", ")
 	builder.WriteString("direction=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Direction))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
 	if v := _m.FeeSettingID; v != nil {
 		builder.WriteString("fee_setting_id=")
@@ -425,6 +545,15 @@ func (_m *OrderFee) String() string {
 	builder.WriteString("total_amount=")
 	builder.WriteString(_m.TotalAmount)
 	builder.WriteString(", ")
+	builder.WriteString("tax_inclusive=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TaxInclusive))
+	builder.WriteString(", ")
+	builder.WriteString("net_amount=")
+	builder.WriteString(_m.NetAmount)
+	builder.WriteString(", ")
+	builder.WriteString("tax_amount=")
+	builder.WriteString(_m.TaxAmount)
+	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
 	builder.WriteString(", ")
@@ -442,11 +571,35 @@ func (_m *OrderFee) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
+	builder.WriteString("base_currency=")
+	builder.WriteString(_m.BaseCurrency)
+	builder.WriteString(", ")
+	builder.WriteString("base_currency_amount=")
+	builder.WriteString(_m.BaseCurrencyAmount)
+	builder.WriteString(", ")
 	builder.WriteString("expense_date=")
 	builder.WriteString(_m.ExpenseDate)
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)
+	builder.WriteString(", ")
+	builder.WriteString("version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	if v := _m.CancelledAt; v != nil {
+		builder.WriteString("cancelled_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.CancelledBy; v != nil {
+		builder.WriteString("cancelled_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CancellationReason; v != nil {
+		builder.WriteString("cancellation_reason=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

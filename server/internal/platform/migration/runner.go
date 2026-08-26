@@ -23,6 +23,9 @@ var compatibleChecksums = map[string]map[string]struct{}{
 	"20260824043000_global_exchange_rates": {
 		"d50b2a09d9b4d640285f3abb43d2d9ed05e7c701a1296363b7ab3c333cc6617c": {},
 	},
+	"20260826150000_order_fee_finance_foundation": {
+		"eec00e191b2ff7429c7469316f2b2cbc3cd77f7c98ecb2fb6373b53c4c96989a": {},
+	},
 }
 
 type file struct {

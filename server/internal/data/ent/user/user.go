@@ -47,6 +47,8 @@ const (
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgePartnerAssignments holds the string denoting the partner_assignments edge name in mutations.
 	EdgePartnerAssignments = "partner_assignments"
+	// EdgeCancelledOrderFees holds the string denoting the cancelled_order_fees edge name in mutations.
+	EdgeCancelledOrderFees = "cancelled_order_fees"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -77,6 +79,13 @@ const (
 	PartnerAssignmentsInverseTable = "partner_assignments"
 	// PartnerAssignmentsColumn is the table column denoting the partner_assignments relation/edge.
 	PartnerAssignmentsColumn = "user_id"
+	// CancelledOrderFeesTable is the table that holds the cancelled_order_fees relation/edge.
+	CancelledOrderFeesTable = "order_fees"
+	// CancelledOrderFeesInverseTable is the table name for the OrderFee entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfee" package.
+	CancelledOrderFeesInverseTable = "order_fees"
+	// CancelledOrderFeesColumn is the table column denoting the cancelled_order_fees relation/edge.
+	CancelledOrderFeesColumn = "cancelled_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -258,6 +267,20 @@ func ByPartnerAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newPartnerAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCancelledOrderFeesCount orders the results by cancelled_order_fees count.
+func ByCancelledOrderFeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCancelledOrderFeesStep(), opts...)
+	}
+}
+
+// ByCancelledOrderFees orders the results by cancelled_order_fees terms.
+func ByCancelledOrderFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCancelledOrderFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -284,5 +307,12 @@ func newPartnerAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartnerAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartnerAssignmentsTable, PartnerAssignmentsColumn),
+	)
+}
+func newCancelledOrderFeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CancelledOrderFeesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CancelledOrderFeesTable, CancelledOrderFeesColumn),
 	)
 }

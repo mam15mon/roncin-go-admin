@@ -48,6 +48,8 @@ declare namespace API {
     exchangeRateOverride?: string;
     feeSettingId: string;
     billingUnitId: string;
+    idempotencyKey: string;
+    taxInclusive?: boolean;
   };
 
   type AddFeeResponse = {
@@ -347,6 +349,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderReferenceCheck;
+    traceId?: string;
+  };
+
+  type ConfirmFeeRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmFeeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFee;
     traceId?: string;
   };
 
@@ -869,6 +885,42 @@ declare namespace API {
     id: string;
   };
 
+  type FeeLedgerItem = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    direction?: string;
+    status?: string;
+    feeCode?: string;
+    feeName?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    billingUnit?: string;
+    quantity?: string;
+    unitPrice?: string;
+    totalAmount?: string;
+    netAmount?: string;
+    taxAmount?: string;
+    currency?: string;
+    exchangeRate?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    expenseDate?: string;
+    note?: string;
+    version?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type FeeLedgerSummary = {
+    activeCount?: string;
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    profitBaseAmount?: string;
+    baseCurrency?: string;
+  };
+
   type FeeSetting = {
     id?: string;
     organizationId?: string;
@@ -1078,6 +1130,16 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateTimeStandardSetting[];
+    traceId?: string;
+  };
+
+  type ListFeeLedgerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerItem[];
+    total?: string;
+    summary?: FeeLedgerSummary;
     traceId?: string;
   };
 
@@ -1820,6 +1882,16 @@ declare namespace API {
     feeNameEn?: string;
     taxRate?: string;
     taxableServiceName?: string;
+    status?: number;
+    taxInclusive?: boolean;
+    netAmount?: string;
+    taxAmount?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    version?: string;
+    cancelledAt?: string;
+    cancelledBy?: string;
+    cancellationReason?: string;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -1838,6 +1910,11 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderFeeServiceConfirmFeeParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderFeeServiceListFeeOptionsParams = {
     orderId: string;
   };
@@ -1847,6 +1924,13 @@ declare namespace API {
   };
 
   type OrderFeeServiceRemoveFeeParams = {
+    orderId: string;
+    id: string;
+    expectedVersion?: string;
+    reason?: string;
+  };
+
+  type OrderFeeServiceReopenFeeParams = {
     orderId: string;
     id: string;
   };
@@ -2577,6 +2661,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ReopenFeeRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type ReopenFeeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFee;
+    traceId?: string;
+  };
+
   type RequeueBackgroundTaskRequest = {
     id: string;
   };
@@ -2683,6 +2782,19 @@ declare namespace API {
     message?: string;
     data?: Partner;
     traceId?: string;
+  };
+
+  type SettlementServiceListFeeLedgerParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    businessType?: string;
+    direction?: string;
+    status?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    expenseDateFrom?: string;
+    expenseDateTo?: string;
   };
 
   type ShippingLine = {
@@ -2946,6 +3058,8 @@ declare namespace API {
     exchangeRateOverride?: string;
     feeSettingId: string;
     billingUnitId: string;
+    expectedVersion: string;
+    taxInclusive?: boolean;
   };
 
   type UpdateFeeResponse = {

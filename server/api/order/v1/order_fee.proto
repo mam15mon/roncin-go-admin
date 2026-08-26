@@ -47,7 +47,25 @@ service OrderFeeService {
     };
   }
 
-  // RemoveFee 删除尚未进入后续财务流程的订单费用。
+  // ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+  rpc ConfirmFee(ConfirmFeeRequest) returns (ConfirmFeeResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fees/{id}/confirm"
+      body: "*"
+    };
+  }
+
+  // ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
+  rpc ReopenFee(ReopenFeeRequest) returns (ReopenFeeResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fees/{id}/reopen"
+      body: "*"
+    };
+  }
+
+  // RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
   rpc RemoveFee(RemoveFeeRequest) returns (RemoveFeeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/fees/{id}"};
@@ -58,6 +76,14 @@ enum OrderFeeDirection {
   ORDER_FEE_DIRECTION_UNSPECIFIED = 0;
   ORDER_FEE_DIRECTION_RECEIVABLE = 1;
   ORDER_FEE_DIRECTION_PAYABLE = 2;
+}
+
+enum OrderFeeStatus {
+  ORDER_FEE_STATUS_UNSPECIFIED = 0;
+  ORDER_FEE_STATUS_DRAFT = 1;
+  ORDER_FEE_STATUS_CONFIRMED = 2;
+  ORDER_FEE_STATUS_BILLED = 3;
+  ORDER_FEE_STATUS_CANCELLED = 4;
 }
 
 // OrderFee 是一条订单应收或应付费用。
@@ -88,6 +114,16 @@ message OrderFee {
   optional string fee_name_en = 23;
   optional string tax_rate = 24;
   optional string taxable_service_name = 25;
+  OrderFeeStatus status = 26;
+  bool tax_inclusive = 27;
+  string net_amount = 28;
+  string tax_amount = 29;
+  string base_currency = 30;
+  string base_currency_amount = 31;
+  uint64 version = 32;
+  optional string cancelled_at = 33;
+  optional string cancelled_by = 34;
+  optional string cancellation_reason = 35;
 }
 
 message ListFeesRequest {
@@ -156,6 +192,8 @@ message AddFeeRequest {
   optional string exchange_rate_override = 13;
   string fee_setting_id = 14 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 15 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 16 [(google.api.field_behavior) = REQUIRED];
+  optional bool tax_inclusive = 17;
 }
 
 message UpdateFeeRequest {
@@ -174,11 +212,28 @@ message UpdateFeeRequest {
   optional string exchange_rate_override = 14;
   string fee_setting_id = 15 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 16 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 17 [(google.api.field_behavior) = REQUIRED];
+  optional bool tax_inclusive = 18;
 }
 
 message RemoveFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ConfirmFeeRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ReopenFeeRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ResolveFeeExchangeRateRequest {
@@ -228,4 +283,20 @@ message RemoveFeeResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
+}
+
+message ConfirmFeeResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFee data = 4;
+  string trace_id = 5;
+}
+
+message ReopenFeeResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderFee data = 4;
+  string trace_id = 5;
 }

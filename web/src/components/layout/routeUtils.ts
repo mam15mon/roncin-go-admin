@@ -22,6 +22,12 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/master-data': '主数据',
   '/finance/fee-settings': '费用设置',
   '/finance/exchange-rates': '汇率设置',
+  '/finance/fees': '集运费用明细',
+  '/finance/bills': '账单管理',
+  '/finance/invoices': '开票记录',
+  '/finance/cashflows': '收付管理',
+  '/finance/verifications': '核销管理',
+  '/finance/commissions': '提成管理',
   '/admin': '系统管理',
 };
 
