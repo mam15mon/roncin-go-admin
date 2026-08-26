@@ -41,6 +41,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("confirmed_finance_cashflows", FinanceCashflow.Type),
 		edge.To("cancelled_finance_cashflows", FinanceCashflow.Type),
 		edge.To("reversed_finance_verifications", FinanceVerification.Type),
+		edge.To("finance_commissions", FinanceCommission.Type),
+		edge.To("confirmed_finance_commissions", FinanceCommission.Type),
+		edge.To("paid_finance_commissions", FinanceCommission.Type),
+		edge.To("cancelled_finance_commissions", FinanceCommission.Type),
 	}
 }
 

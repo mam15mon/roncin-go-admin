@@ -58,6 +58,8 @@ const (
 	EdgeReversedByUser = "reversed_by_user"
 	// EdgeAllocations holds the string denoting the allocations edge name in mutations.
 	EdgeAllocations = "allocations"
+	// EdgeCommissions holds the string denoting the commissions edge name in mutations.
+	EdgeCommissions = "commissions"
 	// Table holds the table name of the financeverification in the database.
 	Table = "finance_verifications"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -88,6 +90,13 @@ const (
 	AllocationsInverseTable = "finance_verification_allocations"
 	// AllocationsColumn is the table column denoting the allocations relation/edge.
 	AllocationsColumn = "verification_id"
+	// CommissionsTable is the table that holds the commissions relation/edge.
+	CommissionsTable = "finance_commissions"
+	// CommissionsInverseTable is the table name for the FinanceCommission entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommission" package.
+	CommissionsInverseTable = "finance_commissions"
+	// CommissionsColumn is the table column denoting the commissions relation/edge.
+	CommissionsColumn = "verification_id"
 )
 
 // Columns holds all SQL columns for financeverification fields.
@@ -325,6 +334,20 @@ func ByAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCommissionsCount orders the results by commissions count.
+func ByCommissionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommissionsStep(), opts...)
+	}
+}
+
+// ByCommissions orders the results by commissions terms.
+func ByCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -351,5 +374,12 @@ func newAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AllocationsTable, AllocationsColumn),
+	)
+}
+func newCommissionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommissionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommissionsTable, CommissionsColumn),
 	)
 }

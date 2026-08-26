@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	ver "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	alloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -165,6 +166,13 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 	}
 	if x.Version != version || x.Status != ver.StatusACTIVE {
 		return rollback(biz.ErrVerificationTransition)
+	}
+	hasCommission, e := tx.FinanceCommission.Query().Where(commission.VerificationIDEQ(id), commission.StatusNEQ(commission.StatusCANCELLED)).Exist(ctx)
+	if e != nil {
+		return rollback(e)
+	}
+	if hasCommission {
+		return rollback(biz.ErrVerificationHasCommission)
 	}
 	if _, e = tx.FinanceVerificationAllocation.Update().Where(alloc.VerificationIDEQ(id), alloc.ActiveEQ(true)).SetActive(false).Save(ctx); e != nil {
 		return rollback(e)

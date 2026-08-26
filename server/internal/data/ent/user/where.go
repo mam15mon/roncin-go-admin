@@ -1137,6 +1137,98 @@ func HasReversedFinanceVerificationsWith(preds ...predicate.FinanceVerification)
 	})
 }
 
+// HasFinanceCommissions applies the HasEdge predicate on the "finance_commissions" edge.
+func HasFinanceCommissions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionsTable, FinanceCommissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceCommissionsWith applies the HasEdge predicate on the "finance_commissions" edge with a given conditions (other predicates).
+func HasFinanceCommissionsWith(preds ...predicate.FinanceCommission) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFinanceCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConfirmedFinanceCommissions applies the HasEdge predicate on the "confirmed_finance_commissions" edge.
+func HasConfirmedFinanceCommissions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfirmedFinanceCommissionsTable, ConfirmedFinanceCommissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfirmedFinanceCommissionsWith applies the HasEdge predicate on the "confirmed_finance_commissions" edge with a given conditions (other predicates).
+func HasConfirmedFinanceCommissionsWith(preds ...predicate.FinanceCommission) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConfirmedFinanceCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPaidFinanceCommissions applies the HasEdge predicate on the "paid_finance_commissions" edge.
+func HasPaidFinanceCommissions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PaidFinanceCommissionsTable, PaidFinanceCommissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPaidFinanceCommissionsWith applies the HasEdge predicate on the "paid_finance_commissions" edge with a given conditions (other predicates).
+func HasPaidFinanceCommissionsWith(preds ...predicate.FinanceCommission) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newPaidFinanceCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCancelledFinanceCommissions applies the HasEdge predicate on the "cancelled_finance_commissions" edge.
+func HasCancelledFinanceCommissions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionsTable, CancelledFinanceCommissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCancelledFinanceCommissionsWith applies the HasEdge predicate on the "cancelled_finance_commissions" edge with a given conditions (other predicates).
+func HasCancelledFinanceCommissionsWith(preds ...predicate.FinanceCommission) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCancelledFinanceCommissionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

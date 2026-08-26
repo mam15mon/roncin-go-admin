@@ -757,6 +757,106 @@ var (
 			},
 		},
 	}
+	// FinanceCommissionsColumns holds the columns for the "finance_commissions" table.
+	FinanceCommissionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "commission_no", Type: field.TypeString, Size: 64},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "verification_no", Type: field.TypeString, Size: 64},
+		{Name: "employee_name", Type: field.TypeString, Size: 100},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "realized_revenue", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "allocated_cost", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "realized_profit", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "rate_percent", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
+		{Name: "commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "paid_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "verification_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "paid_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceCommissionsTable holds the schema information for the "finance_commissions" table.
+	FinanceCommissionsTable = &schema.Table{
+		Name:       "finance_commissions",
+		Columns:    FinanceCommissionsColumns,
+		PrimaryKey: []*schema.Column{FinanceCommissionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_commissions_finance_verifications_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[20]},
+				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commissions_organizations_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[21]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commissions_users_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[22]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commissions_users_confirmed_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[23]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_commissions_users_paid_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[24]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_commissions_users_cancelled_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[25]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecommission_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionsColumns[2]},
+			},
+			{
+				Name:    "financecommission_organization_id_commission_no",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionsColumns[21], FinanceCommissionsColumns[3]},
+			},
+			{
+				Name:    "financecommission_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionsColumns[21], FinanceCommissionsColumns[4]},
+			},
+			{
+				Name:    "financecommission_verification_id_employee_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionsColumns[20], FinanceCommissionsColumns[22], FinanceCommissionsColumns[7]},
+			},
+			{
+				Name:    "financecommission_organization_id_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionsColumns[21], FinanceCommissionsColumns[7], FinanceCommissionsColumns[1]},
+			},
+		},
+	}
 	// FinanceInvoicesColumns holds the columns for the "finance_invoices" table.
 	FinanceInvoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -1258,7 +1358,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate"}},
+		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission"}},
 		{Name: "prefix", Type: field.TypeString, Size: 32},
 		{Name: "date_format", Type: field.TypeEnum, Enums: []string{"yyyyMMdd", "yyyyMM", "yyyy", "none"}, Default: "yyyyMMdd"},
 		{Name: "sequence_length", Type: field.TypeInt, Default: 4},
@@ -3319,6 +3419,7 @@ var (
 		FinanceBillsTable,
 		FinanceBillLinesTable,
 		FinanceCashflowsTable,
+		FinanceCommissionsTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
 		FinanceVerificationsTable,
@@ -3394,6 +3495,12 @@ func init() {
 	FinanceCashflowsTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceCashflowsTable.ForeignKeys[2].RefTable = UsersTable
 	FinanceCashflowsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[0].RefTable = FinanceVerificationsTable
+	FinanceCommissionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	FinanceCommissionsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[4].RefTable = UsersTable
+	FinanceCommissionsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoicesTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceInvoicesTable.ForeignKeys[2].RefTable = UsersTable

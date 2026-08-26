@@ -57,6 +57,12 @@ service SettlementService {
   rpc ListVerifications(ListVerificationsRequest) returns (ListVerificationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications"}; }
   rpc CreateVerification(CreateVerificationRequest) returns (CreateVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications" body: "*"}; }
   rpc ReverseVerification(ReverseVerificationRequest) returns (ReverseVerificationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.reverse" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/verifications/{id}/reverse" body: "*"}; }
+  rpc ListCommissions(ListCommissionsRequest) returns (ListCommissionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions"}; }
+  rpc ListCommissionEmployees(ListCommissionEmployeesRequest) returns (ListCommissionEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/employees"}; }
+  rpc CreateCommission(CreateCommissionRequest) returns (CreateCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions" body: "*"}; }
+  rpc ConfirmCommission(CommissionTransitionRequest) returns (CommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions/{id}/confirm" body: "*"}; }
+  rpc MarkCommissionPaid(CommissionTransitionRequest) returns (CommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions/{id}/paid" body: "*"}; }
+  rpc CancelCommission(CancelCommissionRequest) returns (CommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions/{id}/cancel" body: "*"}; }
 }
 
 message ListFeeLedgerRequest {
@@ -286,3 +292,14 @@ message FinanceVerification { string id=1; string verification_no=2; string stat
 message ListVerificationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; }
 message CreateVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
 message ReverseVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
+message ListCommissionsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string status=4; }
+message ListCommissionEmployeesRequest {}
+message CommissionEmployeeOption { string id=1; string display_name=2; }
+message ListCommissionEmployeesResponse { bool success=1; int32 code=2; string message=3; repeated CommissionEmployeeOption data=4; string trace_id=5; }
+message CreateCommissionRequest { string verification_id=1 [(google.api.field_behavior)=REQUIRED]; string employee_id=2 [(google.api.field_behavior)=REQUIRED]; string rate_percent=3 [(google.api.field_behavior)=REQUIRED]; optional string note=4; string idempotency_key=5 [(google.api.field_behavior)=REQUIRED]; }
+message CommissionTransitionRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
+message CancelCommissionRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message FinanceCommission { string id=1; string commission_no=2; string verification_id=3; string verification_no=4; string employee_id=5; string employee_name=6; string status=7; string base_currency=8; string realized_revenue=9; string allocated_cost=10; string realized_profit=11; string rate_percent=12; string commission_amount=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; }
+message ListCommissionsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommission data=4; int64 total=5; string trace_id=6; }
+message CreateCommissionResponse { bool success=1; int32 code=2; string message=3; FinanceCommission data=4; string trace_id=5; }
+message CommissionResponse { bool success=1; int32 code=2; string message=3; FinanceCommission data=4; string trace_id=5; }

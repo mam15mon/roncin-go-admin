@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -374,6 +375,66 @@ func (_c *UserCreate) AddReversedFinanceVerifications(v ...*FinanceVerification)
 		ids[i] = v[i].ID
 	}
 	return _c.AddReversedFinanceVerificationIDs(ids...)
+}
+
+// AddFinanceCommissionIDs adds the "finance_commissions" edge to the FinanceCommission entity by IDs.
+func (_c *UserCreate) AddFinanceCommissionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddFinanceCommissionIDs(ids...)
+	return _c
+}
+
+// AddFinanceCommissions adds the "finance_commissions" edges to the FinanceCommission entity.
+func (_c *UserCreate) AddFinanceCommissions(v ...*FinanceCommission) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCommissionIDs(ids...)
+}
+
+// AddConfirmedFinanceCommissionIDs adds the "confirmed_finance_commissions" edge to the FinanceCommission entity by IDs.
+func (_c *UserCreate) AddConfirmedFinanceCommissionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddConfirmedFinanceCommissionIDs(ids...)
+	return _c
+}
+
+// AddConfirmedFinanceCommissions adds the "confirmed_finance_commissions" edges to the FinanceCommission entity.
+func (_c *UserCreate) AddConfirmedFinanceCommissions(v ...*FinanceCommission) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConfirmedFinanceCommissionIDs(ids...)
+}
+
+// AddPaidFinanceCommissionIDs adds the "paid_finance_commissions" edge to the FinanceCommission entity by IDs.
+func (_c *UserCreate) AddPaidFinanceCommissionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddPaidFinanceCommissionIDs(ids...)
+	return _c
+}
+
+// AddPaidFinanceCommissions adds the "paid_finance_commissions" edges to the FinanceCommission entity.
+func (_c *UserCreate) AddPaidFinanceCommissions(v ...*FinanceCommission) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPaidFinanceCommissionIDs(ids...)
+}
+
+// AddCancelledFinanceCommissionIDs adds the "cancelled_finance_commissions" edge to the FinanceCommission entity by IDs.
+func (_c *UserCreate) AddCancelledFinanceCommissionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCancelledFinanceCommissionIDs(ids...)
+	return _c
+}
+
+// AddCancelledFinanceCommissions adds the "cancelled_finance_commissions" edges to the FinanceCommission entity.
+func (_c *UserCreate) AddCancelledFinanceCommissions(v ...*FinanceCommission) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCancelledFinanceCommissionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -754,6 +815,70 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionsTable,
+			Columns: []string{user.FinanceCommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConfirmedFinanceCommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConfirmedFinanceCommissionsTable,
+			Columns: []string{user.ConfirmedFinanceCommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PaidFinanceCommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PaidFinanceCommissionsTable,
+			Columns: []string{user.PaidFinanceCommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CancelledFinanceCommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CancelledFinanceCommissionsTable,
+			Columns: []string{user.CancelledFinanceCommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

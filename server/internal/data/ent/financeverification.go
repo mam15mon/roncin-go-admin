@@ -71,9 +71,11 @@ type FinanceVerificationEdges struct {
 	ReversedByUser *User `json:"reversed_by_user,omitempty"`
 	// Allocations holds the value of the allocations edge.
 	Allocations []*FinanceVerificationAllocation `json:"allocations,omitempty"`
+	// Commissions holds the value of the commissions edge.
+	Commissions []*FinanceCommission `json:"commissions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -116,6 +118,15 @@ func (e FinanceVerificationEdges) AllocationsOrErr() ([]*FinanceVerificationAllo
 		return e.Allocations, nil
 	}
 	return nil, &NotLoadedError{edge: "allocations"}
+}
+
+// CommissionsOrErr returns the Commissions value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceVerificationEdges) CommissionsOrErr() ([]*FinanceCommission, error) {
+	if e.loadedTypes[4] {
+		return e.Commissions, nil
+	}
+	return nil, &NotLoadedError{edge: "commissions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -291,6 +302,11 @@ func (_m *FinanceVerification) QueryReversedByUser() *UserQuery {
 // QueryAllocations queries the "allocations" edge of the FinanceVerification entity.
 func (_m *FinanceVerification) QueryAllocations() *FinanceVerificationAllocationQuery {
 	return NewFinanceVerificationClient(_m.config).QueryAllocations(_m)
+}
+
+// QueryCommissions queries the "commissions" edge of the FinanceVerification entity.
+func (_m *FinanceVerification) QueryCommissions() *FinanceCommissionQuery {
+	return NewFinanceVerificationClient(_m.config).QueryCommissions(_m)
 }
 
 // Update returns a builder for updating this FinanceVerification.

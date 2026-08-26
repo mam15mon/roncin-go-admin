@@ -869,6 +869,138 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ConfirmCashflowResponse'
+    /api/v1/finance/commissions:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListCommissions
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionsResponse'
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CreateCommission
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CreateCommissionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CreateCommissionResponse'
+    /api/v1/finance/commissions/employees:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListCommissionEmployees
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionEmployeesResponse'
+    /api/v1/finance/commissions/{id}/cancel:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_CancelCommission
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CancelCommissionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+    /api/v1/finance/commissions/{id}/confirm:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ConfirmCommission
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CommissionTransitionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+    /api/v1/finance/commissions/{id}/paid:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_MarkCommissionPaid
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.CommissionTransitionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
     /api/v1/finance/exchange-rate-time-standards:
         get:
             tags:
@@ -4488,6 +4620,19 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
                 traceId:
                     type: string
+        finance.v1.CancelCommissionRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
         finance.v1.CancelInvoiceRequest:
             required:
                 - id
@@ -4514,6 +4659,37 @@ components:
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
                 traceId:
+                    type: string
+        finance.v1.CommissionEmployeeOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                displayName:
+                    type: string
+        finance.v1.CommissionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
+                traceId:
+                    type: string
+        finance.v1.CommissionTransitionRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
                     type: string
         finance.v1.ConfirmBillRequest:
             required:
@@ -4677,6 +4853,38 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
+                traceId:
+                    type: string
+        finance.v1.CreateCommissionRequest:
+            required:
+                - verificationId
+                - employeeId
+                - ratePercent
+                - idempotencyKey
+            type: object
+            properties:
+                verificationId:
+                    type: string
+                employeeId:
+                    type: string
+                ratePercent:
+                    type: string
+                note:
+                    type: string
+                idempotencyKey:
+                    type: string
+        finance.v1.CreateCommissionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
                 traceId:
                     type: string
         finance.v1.CreateExchangeRateSettingRequest:
@@ -5157,6 +5365,51 @@ components:
                     type: string
                 updatedAt:
                     type: string
+        finance.v1.FinanceCommission:
+            type: object
+            properties:
+                id:
+                    type: string
+                commissionNo:
+                    type: string
+                verificationId:
+                    type: string
+                verificationNo:
+                    type: string
+                employeeId:
+                    type: string
+                employeeName:
+                    type: string
+                status:
+                    type: string
+                baseCurrency:
+                    type: string
+                realizedRevenue:
+                    type: string
+                allocatedCost:
+                    type: string
+                realizedProfit:
+                    type: string
+                ratePercent:
+                    type: string
+                commissionAmount:
+                    type: string
+                note:
+                    type: string
+                version:
+                    type: string
+                confirmedAt:
+                    type: string
+                paidAt:
+                    type: string
+                cancelledAt:
+                    type: string
+                cancellationReason:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
         finance.v1.FinanceInvoice:
             type: object
             properties:
@@ -5378,6 +5631,40 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceCashflow'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListCommissionEmployeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.CommissionEmployeeOption'
+                traceId:
+                    type: string
+        finance.v1.ListCommissionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCommission'
                 total:
                     type: string
                 traceId:

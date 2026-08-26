@@ -834,6 +834,8 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 		return biz.DocumentTypeInvoice
 	case v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE:
 		return biz.DocumentTypeFreightRate
+	case v1.DocumentType_DOCUMENT_TYPE_COMMISSION:
+		return biz.DocumentTypeCommission
 	default:
 		return ""
 	}
@@ -863,6 +865,8 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 		return v1.DocumentType_DOCUMENT_TYPE_INVOICE
 	case biz.DocumentTypeFreightRate:
 		return v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE
+	case biz.DocumentTypeCommission:
+		return v1.DocumentType_DOCUMENT_TYPE_COMMISSION
 	default:
 		return v1.DocumentType_DOCUMENT_TYPE_UNSPECIFIED
 	}

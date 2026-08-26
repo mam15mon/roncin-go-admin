@@ -19,10 +19,11 @@ type SettlementService struct {
 	invoiceUsecase      *biz.FinanceInvoiceUsecase
 	cashflowUsecase     *biz.FinanceCashflowUsecase
 	verificationUsecase *biz.VerificationUsecase
+	commissionUsecase   *biz.CommissionUsecase
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase}
 }
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
@@ -462,6 +463,106 @@ func verificationToAPI(x *biz.FinanceVerification) *v1.FinanceVerification {
 		as = append(as, &v1.FinanceVerificationAllocation{Id: a.ID.String(), CashflowId: a.CashflowID.String(), BillId: a.BillID.String(), CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: a.Amount.StringFixed(8), Active: a.Active})
 	}
 	return &v1.FinanceVerification{Id: x.ID.String(), VerificationNo: x.VerificationNo, Status: string(x.Status), Direction: string(x.Direction), SettlementPartyId: x.SettlementPartyID.String(), SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: x.Amount.StringFixed(8), VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: financeTime(x.ReversedAt), ReversalReason: x.ReversalReason, Allocations: as, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339)}
+}
+
+func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommissionsRequest) (*v1.ListCommissionsResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	f := biz.CommissionFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Status: biz.CommissionStatus(strings.ToUpper(financeOptionalString(r.Status)))}
+	if f.Page == 0 {
+		f.Page = 1
+	}
+	if f.PageSize == 0 {
+		f.PageSize = 20
+	}
+	result, err := s.commissionUsecase.List(ctx, p.Organization.ID, f)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FinanceCommission, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, commissionToAPI(item))
+	}
+	return &v1.ListCommissionsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) ListCommissionEmployees(ctx context.Context, _ *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	items, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.CommissionEmployeeOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.CommissionEmployeeOption{Id: item.ID.String(), DisplayName: item.DisplayName})
+	}
+	return &v1.ListCommissionEmployeesResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCommissionRequest) (*v1.CreateCommissionResponse, error) {
+	p, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	employeeID, err := uuid.Parse(strings.TrimSpace(r.GetEmployeeId()))
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	rate, err := decimal.NewFromString(r.GetRatePercent())
+	if err != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	item, err := s.commissionUsecase.Create(ctx, p.Organization.ID, p.UserID, biz.CreateCommissionInput{VerificationID: verificationID, EmployeeID: employeeID, RatePercent: rate, Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.CommissionTransitionRequest) (*v1.CommissionResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.Confirm(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.CommissionTransitionRequest) (*v1.CommissionResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.MarkPaid(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCommissionRequest) (*v1.CommissionResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.commissionUsecase.Cancel(ctx, p.Organization.ID, p.UserID, id, r.GetExpectedVersion(), r.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
+	if x == nil {
+		return nil
+	}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func financeOptionalString(value *string) string {

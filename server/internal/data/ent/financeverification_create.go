@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -247,6 +248,21 @@ func (_c *FinanceVerificationCreate) AddAllocations(v ...*FinanceVerificationAll
 		ids[i] = v[i].ID
 	}
 	return _c.AddAllocationIDs(ids...)
+}
+
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_c *FinanceVerificationCreate) AddCommissionIDs(ids ...uuid.UUID) *FinanceVerificationCreate {
+	_c.mutation.AddCommissionIDs(ids...)
+	return _c
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_c *FinanceVerificationCreate) AddCommissions(v ...*FinanceCommission) *FinanceVerificationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCommissionIDs(ids...)
 }
 
 // Mutation returns the FinanceVerificationMutation object of the builder.
@@ -549,6 +565,22 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -372,6 +372,12 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CancelCommissionRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
   type CancelInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -392,6 +398,24 @@ declare namespace API {
     message?: string;
     data?: OrderReferenceCheck;
     traceId?: string;
+  };
+
+  type CommissionEmployeeOption = {
+    id?: string;
+    displayName?: string;
+  };
+
+  type CommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
+    traceId?: string;
+  };
+
+  type CommissionTransitionRequest = {
+    id: string;
+    expectedVersion: string;
   };
 
   type ConfirmBillRequest = {
@@ -525,6 +549,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCashflow;
+    traceId?: string;
+  };
+
+  type CreateCommissionRequest = {
+    verificationId: string;
+    employeeId: string;
+    ratePercent: string;
+    note?: string;
+    idempotencyKey: string;
+  };
+
+  type CreateCommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
     traceId?: string;
   };
 
@@ -1154,6 +1194,30 @@ declare namespace API {
     updatedAt?: string;
   };
 
+  type FinanceCommission = {
+    id?: string;
+    commissionNo?: string;
+    verificationId?: string;
+    verificationNo?: string;
+    employeeId?: string;
+    employeeName?: string;
+    status?: string;
+    baseCurrency?: string;
+    realizedRevenue?: string;
+    allocatedCost?: string;
+    realizedProfit?: string;
+    ratePercent?: string;
+    commissionAmount?: string;
+    note?: string;
+    version?: string;
+    confirmedAt?: string;
+    paidAt?: string;
+    cancelledAt?: string;
+    cancellationReason?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
   type FinanceInvoice = {
     id?: string;
     recordNo?: string;
@@ -1416,6 +1480,23 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCashflow[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListCommissionEmployeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CommissionEmployeeOption[];
+    traceId?: string;
+  };
+
+  type ListCommissionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission[];
     total?: string;
     traceId?: string;
   };
@@ -3144,6 +3225,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceCancelCommissionParams = {
+    id: string;
+  };
+
   type SettlementServiceCancelInvoiceParams = {
     id: string;
   };
@@ -3153,6 +3238,10 @@ declare namespace API {
   };
 
   type SettlementServiceConfirmCashflowParams = {
+    id: string;
+  };
+
+  type SettlementServiceConfirmCommissionParams = {
     id: string;
   };
 
@@ -3188,6 +3277,13 @@ declare namespace API {
     status?: string;
   };
 
+  type SettlementServiceListCommissionsParams = {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    status?: string;
+  };
+
   type SettlementServiceListFeeLedgerParams = {
     page?: number;
     pageSize?: number;
@@ -3214,6 +3310,10 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     status?: string;
+  };
+
+  type SettlementServiceMarkCommissionPaidParams = {
+    id: string;
   };
 
   type SettlementServiceReverseVerificationParams = {

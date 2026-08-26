@@ -96,9 +96,11 @@ type OrganizationEdges struct {
 	FinanceCashflows []*FinanceCashflow `json:"finance_cashflows,omitempty"`
 	// FinanceVerifications holds the value of the finance_verifications edge.
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
+	// FinanceCommissions holds the value of the finance_commissions edge.
+	FinanceCommissions []*FinanceCommission `json:"finance_commissions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [27]bool
+	loadedTypes [28]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -346,6 +348,15 @@ func (e OrganizationEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, 
 	return nil, &NotLoadedError{edge: "finance_verifications"}
 }
 
+// FinanceCommissionsOrErr returns the FinanceCommissions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, error) {
+	if e.loadedTypes[27] {
+		return e.FinanceCommissions, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_commissions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -578,6 +589,11 @@ func (_m *Organization) QueryFinanceCashflows() *FinanceCashflowQuery {
 // QueryFinanceVerifications queries the "finance_verifications" edge of the Organization entity.
 func (_m *Organization) QueryFinanceVerifications() *FinanceVerificationQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceVerifications(_m)
+}
+
+// QueryFinanceCommissions queries the "finance_commissions" edge of the Organization entity.
+func (_m *Organization) QueryFinanceCommissions() *FinanceCommissionQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceCommissions(_m)
 }
 
 // Update returns a builder for updating this Organization.

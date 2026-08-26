@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -186,6 +187,21 @@ func (_u *FinanceVerificationUpdate) AddAllocations(v ...*FinanceVerificationAll
 	return _u.AddAllocationIDs(ids...)
 }
 
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_u *FinanceVerificationUpdate) AddCommissionIDs(ids ...uuid.UUID) *FinanceVerificationUpdate {
+	_u.mutation.AddCommissionIDs(ids...)
+	return _u
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceVerificationUpdate) AddCommissions(v ...*FinanceCommission) *FinanceVerificationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionIDs(ids...)
+}
+
 // Mutation returns the FinanceVerificationMutation object of the builder.
 func (_u *FinanceVerificationUpdate) Mutation() *FinanceVerificationMutation {
 	return _u.mutation
@@ -216,6 +232,27 @@ func (_u *FinanceVerificationUpdate) RemoveAllocations(v ...*FinanceVerification
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllocationIDs(ids...)
+}
+
+// ClearCommissions clears all "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceVerificationUpdate) ClearCommissions() *FinanceVerificationUpdate {
+	_u.mutation.ClearCommissions()
+	return _u
+}
+
+// RemoveCommissionIDs removes the "commissions" edge to FinanceCommission entities by IDs.
+func (_u *FinanceVerificationUpdate) RemoveCommissionIDs(ids ...uuid.UUID) *FinanceVerificationUpdate {
+	_u.mutation.RemoveCommissionIDs(ids...)
+	return _u
+}
+
+// RemoveCommissions removes "commissions" edges to FinanceCommission entities.
+func (_u *FinanceVerificationUpdate) RemoveCommissions(v ...*FinanceCommission) *FinanceVerificationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -389,6 +426,51 @@ func (_u *FinanceVerificationUpdate) sqlSave(ctx context.Context) (_node int, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionsIDs(); len(nodes) > 0 && !_u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -571,6 +653,21 @@ func (_u *FinanceVerificationUpdateOne) AddAllocations(v ...*FinanceVerification
 	return _u.AddAllocationIDs(ids...)
 }
 
+// AddCommissionIDs adds the "commissions" edge to the FinanceCommission entity by IDs.
+func (_u *FinanceVerificationUpdateOne) AddCommissionIDs(ids ...uuid.UUID) *FinanceVerificationUpdateOne {
+	_u.mutation.AddCommissionIDs(ids...)
+	return _u
+}
+
+// AddCommissions adds the "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceVerificationUpdateOne) AddCommissions(v ...*FinanceCommission) *FinanceVerificationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionIDs(ids...)
+}
+
 // Mutation returns the FinanceVerificationMutation object of the builder.
 func (_u *FinanceVerificationUpdateOne) Mutation() *FinanceVerificationMutation {
 	return _u.mutation
@@ -601,6 +698,27 @@ func (_u *FinanceVerificationUpdateOne) RemoveAllocations(v ...*FinanceVerificat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAllocationIDs(ids...)
+}
+
+// ClearCommissions clears all "commissions" edges to the FinanceCommission entity.
+func (_u *FinanceVerificationUpdateOne) ClearCommissions() *FinanceVerificationUpdateOne {
+	_u.mutation.ClearCommissions()
+	return _u
+}
+
+// RemoveCommissionIDs removes the "commissions" edge to FinanceCommission entities by IDs.
+func (_u *FinanceVerificationUpdateOne) RemoveCommissionIDs(ids ...uuid.UUID) *FinanceVerificationUpdateOne {
+	_u.mutation.RemoveCommissionIDs(ids...)
+	return _u
+}
+
+// RemoveCommissions removes "commissions" edges to FinanceCommission entities.
+func (_u *FinanceVerificationUpdateOne) RemoveCommissions(v ...*FinanceCommission) *FinanceVerificationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceVerificationUpdate builder.
@@ -804,6 +922,51 @@ func (_u *FinanceVerificationUpdateOne) sqlSave(ctx context.Context) (_node *Fin
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionsIDs(); len(nodes) > 0 && !_u.mutation.CommissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionsTable,
+			Columns: []string{financeverification.CommissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
