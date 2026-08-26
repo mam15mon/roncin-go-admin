@@ -161,6 +161,26 @@ export default function OrderDetailPage() {
     return map;
   }, [masterOptions]);
 
+  // 计算箱型箱量摘要
+  const containerSummary = useMemo(() => {
+    if (containers.length > 0) {
+      const countMap: Record<string, number> = {};
+      for (const c of containers) {
+        const spec = containerSpecMap[c.containerSpecId ?? ''] || '集装箱';
+        countMap[spec] = (countMap[spec] || 0) + 1;
+      }
+      return Object.entries(countMap)
+        .map(([spec, count]) => `${spec}*${count}`)
+        .join(', ');
+    }
+    if (order?.containerRequests && order.containerRequests.length > 0) {
+      return order.containerRequests
+        .map((r) => `${containerSpecMap[r.containerSpecId ?? ''] || '箱型'}*${r.quantity}`)
+        .join(', ');
+    }
+    return undefined;
+  }, [containers, order, containerSpecMap]);
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '120px 0', background: '#f5f7fa', minHeight: '100vh' }}>
@@ -192,19 +212,27 @@ export default function OrderDetailPage() {
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
 
+    // 模块 2：业务信息
     customerName: partnerMap[order.customerId ?? ''] || order.customerId,
     customerId: order.customerId,
     customerReferenceNo: order.customerReferenceNo,
     internalReferenceNo: order.internalReferenceNo,
+    shipmentTypeName: '整箱业务 (FCL)',
+    shipmentModeName: '跨境物流',
     tradeTermName: tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label || (order.tradeTerm ? String(order.tradeTerm) : undefined),
     paymentTermName: paymentTermOptions.find((o) => o.value === order.paymentTerm)?.label || (order.paymentTerm ? String(order.paymentTerm) : undefined),
     bookingAgentName: partnerMap[order.bookingAgentId ?? ''] || order.bookingAgentId,
     carrierName: partnerMap[order.carrierId ?? ''] || order.carrierId,
+    shippingAgentName: partnerMap[order.shippingAgentId ?? ''] || order.shippingAgentId,
     contractNo: order.contractNo,
     serviceTypeNames: (order.serviceTypeIds ?? []).map((id) => serviceTypeMap[id] || id),
     cargoValueWithCurrency: order.cargoValue ? `${order.cargoValue} ${order.cargoCurrency || 'USD'}` : undefined,
     insurancePremiumWithCurrency: order.insurancePremium ? `${order.insurancePremium} ${order.insuranceCurrency || 'CNY'}` : undefined,
 
+    // 模块 3：配舱信息
+    masterBlNo: shippingDocs[0]?.masterNo,
+    houseBlNo: shippingDocs[0]?.houseNo,
+    containerSummary,
     originName: locationMap[order.originLocationId ?? ''] || order.originLocationId,
     destinationName: locationMap[order.destinationLocationId ?? ''] || order.destinationLocationId,
     dischargeName: locationMap[order.dischargeLocationId ?? ''] || order.dischargeLocationId,
@@ -218,15 +246,29 @@ export default function OrderDetailPage() {
     customsCutoff: order.customsCutoff,
     vgmCutoff: order.vgmCutoff,
 
+    // 模块 4：提单信息
+    foreignAgentName: partnerMap[order.foreignAgentId ?? ''] || order.foreignAgentId,
+    goodsDescription: order.goodsDescription,
+    goodsEnglishDescription: order.goodsDescription,
     totalPackages: order.totalPackages,
     packageUnit: order.totalPackageUnit,
     grossWeightKg: order.totalGrossWeightKg,
     volumeCbm: order.totalVolumeCbm,
+    transportTerms: order.loadingTerms || 'CY-CY',
+    blTypeName: shippingDocs[0]?.masterDocumentType || '正本提单 (Original)',
 
+    // 模块 5：3 个备注
     bookingNotes: order.bookingNotes,
     allocationNotes: order.allocationNotes,
     operationNotes: order.operationNotes,
     notes: order.notes,
+
+    // 模块 6：内部信息与人员
+    operatorName: personnel.find((p) => p.role === 1)?.userId,
+    salesName: personnel.find((p) => p.role === 2)?.userId,
+    customerServiceName: personnel.find((p) => p.role === 3)?.userId,
+    documentOperatorName: personnel.find((p) => p.role === 4)?.userId,
+    commercialOperatorName: personnel.find((p) => p.role === 5)?.userId,
 
     shippingDocuments: shippingDocs.map((doc) => ({
       id: doc.id,

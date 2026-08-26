@@ -95,30 +95,41 @@ describe('OrderDetailTemplate 订单详情看板模板', () => {
   it('正常渲染订单编号、客户名称与核心指标卡', () => {
     render(<OrderDetailTemplate data={mockData} title="海运出口订单" />);
 
-    expect(screen.getByText('SE2026080001')).toBeInTheDocument();
-    expect(screen.getByText('上海测试进出口贸易有限公司')).toBeInTheDocument();
-    expect(screen.getByText(/500 CTNS/)).toBeInTheDocument();
-    expect(screen.getAllByText('12500.5').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('45.2').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('1 柜')).toBeInTheDocument();
+    expect(screen.getAllByText('SE2026080001').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('上海测试进出口贸易有限公司').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('CY-CY')).toBeInTheDocument();
   });
 
-  it('正常渲染各业务 SectionCard 区块与子表格数据', () => {
+  it('正常渲染 6 大业务模块区块与流程节点', () => {
     render(<OrderDetailTemplate data={mockData} title="海运出口订单" />);
 
-    expect(screen.getByText('基础委托与商务条款')).toBeInTheDocument();
-    expect(screen.getByText('航程路线与节点截关时间')).toBeInTheDocument();
-    expect(screen.getByText('提单与单证档案')).toBeInTheDocument();
-    expect(screen.getByText('集装箱装载与货物明细')).toBeInTheDocument();
-    expect(screen.getByText('业务履约里程碑轨迹')).toBeInTheDocument();
-    expect(screen.getByText('附件档案明细')).toBeInTheDocument();
-    expect(screen.getByText('干系人员与内部备注')).toBeInTheDocument();
+    // 模块 1：订单状态流程
+    expect(screen.getByText('订单状态流程')).toBeInTheDocument();
+    expect(screen.getByText('已订舱')).toBeInTheDocument();
+    expect(screen.getByText('已配舱')).toBeInTheDocument();
+    expect(screen.getByText('拖车已安排')).toBeInTheDocument();
 
-    // 子表格内容
+    // 模块 2：业务信息
+    expect(screen.getByText('业务信息')).toBeInTheDocument();
+    expect(screen.getByText('上海测试进出口贸易有限公司')).toBeInTheDocument();
+
+    // 模块 3：配舱信息
+    expect(screen.getByText('配舱信息')).toBeInTheDocument();
     expect(screen.getByText('COSU63001234')).toBeInTheDocument();
-    expect(screen.getByText('TGHU1234567')).toBeInTheDocument();
-    expect(screen.getByText('电子元器件与配件')).toBeInTheDocument();
-    expect(screen.getByText('booking_confirmation.pdf')).toBeInTheDocument();
+
+    // 模块 4：提单信息
+    expect(screen.getByText('提单信息')).toBeInTheDocument();
+
+    // 模块 5：3 个备注
+    expect(screen.getByText('业务与操作备注')).toBeInTheDocument();
+    expect(screen.getByText('订舱备注')).toBeInTheDocument();
+    expect(screen.getByText('配舱备注')).toBeInTheDocument();
+    expect(screen.getByText('操作备注')).toBeInTheDocument();
+
+    // 模块 6：内部信息与操作记录
+    expect(screen.getByText('内部信息与操作记录')).toBeInTheDocument();
+    expect(screen.getByText('内部人员分工配置')).toBeInTheDocument();
+    expect(screen.getByText('操作记录与流转日志')).toBeInTheDocument();
   });
 
   it('点击返回与业务操作按钮触发回调', () => {
