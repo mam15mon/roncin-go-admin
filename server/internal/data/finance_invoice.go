@@ -214,6 +214,55 @@ func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUI
 	return r.Get(ctx, org, id)
 }
 
+func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.UUID, version uint64, redInvoiceNo, redInvoiceDate, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rollback := func(err error) (*biz.FinanceInvoice, error) { _ = tx.Rollback(); return nil, err }
+	item, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+	if ent.IsNotFound(err) {
+		return rollback(biz.ErrFinanceInvoiceNotFound)
+	}
+	if err != nil {
+		return rollback(err)
+	}
+	if item.Version != version {
+		return rollback(biz.ErrFinanceInvoiceVersionConflict)
+	}
+	if item.Status != financeinvoiceent.StatusISSUED {
+		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
+	}
+	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.RedInvoiceNoEQ(redInvoiceNo)).Exist(ctx)
+	if err != nil {
+		return rollback(err)
+	}
+	if duplicate {
+		return rollback(biz.ErrFinanceInvoiceInvalidArgument)
+	}
+	links, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
+	if err != nil {
+		return rollback(err)
+	}
+	if len(links) == 0 {
+		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
+	}
+	if _, err = tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
+		return rollback(err)
+	}
+	now := time.Now()
+	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
+		return rollback(err)
+	}
+	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		return rollback(err)
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.Get(ctx, org, id)
+}
+
 func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 	total, e := decimal.NewFromString(x.TotalAmount)
 	if e != nil {
@@ -223,7 +272,7 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, TotalAmount: total, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks))}
+	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, TotalAmount: total, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks))}
 	for _, l := range x.Edges.BillLinks {
 		amount, e := decimal.NewFromString(l.Amount)
 		if e != nil {

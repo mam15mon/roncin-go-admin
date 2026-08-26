@@ -332,6 +332,21 @@ func (_c *UserCreate) AddCancelledFinanceInvoices(v ...*FinanceInvoice) *UserCre
 	return _c.AddCancelledFinanceInvoiceIDs(ids...)
 }
 
+// AddRedFlushedFinanceInvoiceIDs adds the "red_flushed_finance_invoices" edge to the FinanceInvoice entity by IDs.
+func (_c *UserCreate) AddRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddRedFlushedFinanceInvoiceIDs(ids...)
+	return _c
+}
+
+// AddRedFlushedFinanceInvoices adds the "red_flushed_finance_invoices" edges to the FinanceInvoice entity.
+func (_c *UserCreate) AddRedFlushedFinanceInvoices(v ...*FinanceInvoice) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRedFlushedFinanceInvoiceIDs(ids...)
+}
+
 // AddConfirmedFinanceCashflowIDs adds the "confirmed_finance_cashflows" edge to the FinanceCashflow entity by IDs.
 func (_c *UserCreate) AddConfirmedFinanceCashflowIDs(ids ...uuid.UUID) *UserCreate {
 	_c.mutation.AddConfirmedFinanceCashflowIDs(ids...)
@@ -764,6 +779,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Inverse: false,
 			Table:   user.CancelledFinanceInvoicesTable,
 			Columns: []string{user.CancelledFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RedFlushedFinanceInvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),

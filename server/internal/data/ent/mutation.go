@@ -18315,45 +18315,51 @@ func (m *FinanceCommissionMutation) ResetEdge(name string) error {
 // FinanceInvoiceMutation represents an operation that mutates the FinanceInvoice nodes in the graph.
 type FinanceInvoiceMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	record_no                *string
-	idempotency_key          *string
-	direction                *financeinvoice.Direction
-	status                   *financeinvoice.Status
-	invoice_type             *financeinvoice.InvoiceType
-	settlement_party_name    *string
-	currency                 *string
-	total_amount             *string
-	tax_amount               *string
-	bill_count               *int
-	addbill_count            *int
-	tax_invoice_no           *string
-	invoice_date             *string
-	note                     *string
-	version                  *uint64
-	addversion               *int64
-	issued_at                *time.Time
-	cancelled_at             *time.Time
-	cancellation_reason      *string
-	clearedFields            map[string]struct{}
-	organization             *uuid.UUID
-	clearedorganization      bool
-	settlement_party         *uuid.UUID
-	clearedsettlement_party  bool
-	issued_by_user           *uuid.UUID
-	clearedissued_by_user    bool
-	cancelled_by_user        *uuid.UUID
-	clearedcancelled_by_user bool
-	bill_links               map[uuid.UUID]struct{}
-	removedbill_links        map[uuid.UUID]struct{}
-	clearedbill_links        bool
-	done                     bool
-	oldValue                 func(context.Context) (*FinanceInvoice, error)
-	predicates               []predicate.FinanceInvoice
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	record_no                  *string
+	idempotency_key            *string
+	direction                  *financeinvoice.Direction
+	status                     *financeinvoice.Status
+	invoice_type               *financeinvoice.InvoiceType
+	settlement_party_name      *string
+	currency                   *string
+	total_amount               *string
+	tax_amount                 *string
+	bill_count                 *int
+	addbill_count              *int
+	tax_invoice_no             *string
+	invoice_date               *string
+	note                       *string
+	version                    *uint64
+	addversion                 *int64
+	issued_at                  *time.Time
+	cancelled_at               *time.Time
+	cancellation_reason        *string
+	red_invoice_no             *string
+	red_invoice_date           *string
+	red_flushed_at             *time.Time
+	red_flush_reason           *string
+	clearedFields              map[string]struct{}
+	organization               *uuid.UUID
+	clearedorganization        bool
+	settlement_party           *uuid.UUID
+	clearedsettlement_party    bool
+	issued_by_user             *uuid.UUID
+	clearedissued_by_user      bool
+	cancelled_by_user          *uuid.UUID
+	clearedcancelled_by_user   bool
+	red_flushed_by_user        *uuid.UUID
+	clearedred_flushed_by_user bool
+	bill_links                 map[uuid.UUID]struct{}
+	removedbill_links          map[uuid.UUID]struct{}
+	clearedbill_links          bool
+	done                       bool
+	oldValue                   func(context.Context) (*FinanceInvoice, error)
+	predicates                 []predicate.FinanceInvoice
 }
 
 var _ ent.Mutation = (*FinanceInvoiceMutation)(nil)
@@ -19432,6 +19438,251 @@ func (m *FinanceInvoiceMutation) ResetCancellationReason() {
 	delete(m.clearedFields, financeinvoice.FieldCancellationReason)
 }
 
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (m *FinanceInvoiceMutation) SetRedInvoiceNo(s string) {
+	m.red_invoice_no = &s
+}
+
+// RedInvoiceNo returns the value of the "red_invoice_no" field in the mutation.
+func (m *FinanceInvoiceMutation) RedInvoiceNo() (r string, exists bool) {
+	v := m.red_invoice_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedInvoiceNo returns the old "red_invoice_no" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldRedInvoiceNo(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedInvoiceNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedInvoiceNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedInvoiceNo: %w", err)
+	}
+	return oldValue.RedInvoiceNo, nil
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (m *FinanceInvoiceMutation) ClearRedInvoiceNo() {
+	m.red_invoice_no = nil
+	m.clearedFields[financeinvoice.FieldRedInvoiceNo] = struct{}{}
+}
+
+// RedInvoiceNoCleared returns if the "red_invoice_no" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) RedInvoiceNoCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldRedInvoiceNo]
+	return ok
+}
+
+// ResetRedInvoiceNo resets all changes to the "red_invoice_no" field.
+func (m *FinanceInvoiceMutation) ResetRedInvoiceNo() {
+	m.red_invoice_no = nil
+	delete(m.clearedFields, financeinvoice.FieldRedInvoiceNo)
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (m *FinanceInvoiceMutation) SetRedInvoiceDate(s string) {
+	m.red_invoice_date = &s
+}
+
+// RedInvoiceDate returns the value of the "red_invoice_date" field in the mutation.
+func (m *FinanceInvoiceMutation) RedInvoiceDate() (r string, exists bool) {
+	v := m.red_invoice_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedInvoiceDate returns the old "red_invoice_date" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldRedInvoiceDate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedInvoiceDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedInvoiceDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedInvoiceDate: %w", err)
+	}
+	return oldValue.RedInvoiceDate, nil
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (m *FinanceInvoiceMutation) ClearRedInvoiceDate() {
+	m.red_invoice_date = nil
+	m.clearedFields[financeinvoice.FieldRedInvoiceDate] = struct{}{}
+}
+
+// RedInvoiceDateCleared returns if the "red_invoice_date" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) RedInvoiceDateCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldRedInvoiceDate]
+	return ok
+}
+
+// ResetRedInvoiceDate resets all changes to the "red_invoice_date" field.
+func (m *FinanceInvoiceMutation) ResetRedInvoiceDate() {
+	m.red_invoice_date = nil
+	delete(m.clearedFields, financeinvoice.FieldRedInvoiceDate)
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (m *FinanceInvoiceMutation) SetRedFlushedAt(t time.Time) {
+	m.red_flushed_at = &t
+}
+
+// RedFlushedAt returns the value of the "red_flushed_at" field in the mutation.
+func (m *FinanceInvoiceMutation) RedFlushedAt() (r time.Time, exists bool) {
+	v := m.red_flushed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedFlushedAt returns the old "red_flushed_at" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldRedFlushedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedFlushedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedFlushedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedFlushedAt: %w", err)
+	}
+	return oldValue.RedFlushedAt, nil
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (m *FinanceInvoiceMutation) ClearRedFlushedAt() {
+	m.red_flushed_at = nil
+	m.clearedFields[financeinvoice.FieldRedFlushedAt] = struct{}{}
+}
+
+// RedFlushedAtCleared returns if the "red_flushed_at" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) RedFlushedAtCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldRedFlushedAt]
+	return ok
+}
+
+// ResetRedFlushedAt resets all changes to the "red_flushed_at" field.
+func (m *FinanceInvoiceMutation) ResetRedFlushedAt() {
+	m.red_flushed_at = nil
+	delete(m.clearedFields, financeinvoice.FieldRedFlushedAt)
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (m *FinanceInvoiceMutation) SetRedFlushedBy(u uuid.UUID) {
+	m.red_flushed_by_user = &u
+}
+
+// RedFlushedBy returns the value of the "red_flushed_by" field in the mutation.
+func (m *FinanceInvoiceMutation) RedFlushedBy() (r uuid.UUID, exists bool) {
+	v := m.red_flushed_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedFlushedBy returns the old "red_flushed_by" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldRedFlushedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedFlushedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedFlushedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedFlushedBy: %w", err)
+	}
+	return oldValue.RedFlushedBy, nil
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (m *FinanceInvoiceMutation) ClearRedFlushedBy() {
+	m.red_flushed_by_user = nil
+	m.clearedFields[financeinvoice.FieldRedFlushedBy] = struct{}{}
+}
+
+// RedFlushedByCleared returns if the "red_flushed_by" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) RedFlushedByCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldRedFlushedBy]
+	return ok
+}
+
+// ResetRedFlushedBy resets all changes to the "red_flushed_by" field.
+func (m *FinanceInvoiceMutation) ResetRedFlushedBy() {
+	m.red_flushed_by_user = nil
+	delete(m.clearedFields, financeinvoice.FieldRedFlushedBy)
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (m *FinanceInvoiceMutation) SetRedFlushReason(s string) {
+	m.red_flush_reason = &s
+}
+
+// RedFlushReason returns the value of the "red_flush_reason" field in the mutation.
+func (m *FinanceInvoiceMutation) RedFlushReason() (r string, exists bool) {
+	v := m.red_flush_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedFlushReason returns the old "red_flush_reason" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldRedFlushReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedFlushReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedFlushReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedFlushReason: %w", err)
+	}
+	return oldValue.RedFlushReason, nil
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (m *FinanceInvoiceMutation) ClearRedFlushReason() {
+	m.red_flush_reason = nil
+	m.clearedFields[financeinvoice.FieldRedFlushReason] = struct{}{}
+}
+
+// RedFlushReasonCleared returns if the "red_flush_reason" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) RedFlushReasonCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldRedFlushReason]
+	return ok
+}
+
+// ResetRedFlushReason resets all changes to the "red_flush_reason" field.
+func (m *FinanceInvoiceMutation) ResetRedFlushReason() {
+	m.red_flush_reason = nil
+	delete(m.clearedFields, financeinvoice.FieldRedFlushReason)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *FinanceInvoiceMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -19566,6 +19817,46 @@ func (m *FinanceInvoiceMutation) ResetCancelledByUser() {
 	m.clearedcancelled_by_user = false
 }
 
+// SetRedFlushedByUserID sets the "red_flushed_by_user" edge to the User entity by id.
+func (m *FinanceInvoiceMutation) SetRedFlushedByUserID(id uuid.UUID) {
+	m.red_flushed_by_user = &id
+}
+
+// ClearRedFlushedByUser clears the "red_flushed_by_user" edge to the User entity.
+func (m *FinanceInvoiceMutation) ClearRedFlushedByUser() {
+	m.clearedred_flushed_by_user = true
+	m.clearedFields[financeinvoice.FieldRedFlushedBy] = struct{}{}
+}
+
+// RedFlushedByUserCleared reports if the "red_flushed_by_user" edge to the User entity was cleared.
+func (m *FinanceInvoiceMutation) RedFlushedByUserCleared() bool {
+	return m.RedFlushedByCleared() || m.clearedred_flushed_by_user
+}
+
+// RedFlushedByUserID returns the "red_flushed_by_user" edge ID in the mutation.
+func (m *FinanceInvoiceMutation) RedFlushedByUserID() (id uuid.UUID, exists bool) {
+	if m.red_flushed_by_user != nil {
+		return *m.red_flushed_by_user, true
+	}
+	return
+}
+
+// RedFlushedByUserIDs returns the "red_flushed_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RedFlushedByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceInvoiceMutation) RedFlushedByUserIDs() (ids []uuid.UUID) {
+	if id := m.red_flushed_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRedFlushedByUser resets all changes to the "red_flushed_by_user" edge.
+func (m *FinanceInvoiceMutation) ResetRedFlushedByUser() {
+	m.red_flushed_by_user = nil
+	m.clearedred_flushed_by_user = false
+}
+
 // AddBillLinkIDs adds the "bill_links" edge to the FinanceInvoiceBill entity by ids.
 func (m *FinanceInvoiceMutation) AddBillLinkIDs(ids ...uuid.UUID) {
 	if m.bill_links == nil {
@@ -19654,7 +19945,7 @@ func (m *FinanceInvoiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceInvoiceMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 28)
 	if m.created_at != nil {
 		fields = append(fields, financeinvoice.FieldCreatedAt)
 	}
@@ -19724,6 +20015,21 @@ func (m *FinanceInvoiceMutation) Fields() []string {
 	if m.cancellation_reason != nil {
 		fields = append(fields, financeinvoice.FieldCancellationReason)
 	}
+	if m.red_invoice_no != nil {
+		fields = append(fields, financeinvoice.FieldRedInvoiceNo)
+	}
+	if m.red_invoice_date != nil {
+		fields = append(fields, financeinvoice.FieldRedInvoiceDate)
+	}
+	if m.red_flushed_at != nil {
+		fields = append(fields, financeinvoice.FieldRedFlushedAt)
+	}
+	if m.red_flushed_by_user != nil {
+		fields = append(fields, financeinvoice.FieldRedFlushedBy)
+	}
+	if m.red_flush_reason != nil {
+		fields = append(fields, financeinvoice.FieldRedFlushReason)
+	}
 	return fields
 }
 
@@ -19778,6 +20084,16 @@ func (m *FinanceInvoiceMutation) Field(name string) (ent.Value, bool) {
 		return m.CancelledBy()
 	case financeinvoice.FieldCancellationReason:
 		return m.CancellationReason()
+	case financeinvoice.FieldRedInvoiceNo:
+		return m.RedInvoiceNo()
+	case financeinvoice.FieldRedInvoiceDate:
+		return m.RedInvoiceDate()
+	case financeinvoice.FieldRedFlushedAt:
+		return m.RedFlushedAt()
+	case financeinvoice.FieldRedFlushedBy:
+		return m.RedFlushedBy()
+	case financeinvoice.FieldRedFlushReason:
+		return m.RedFlushReason()
 	}
 	return nil, false
 }
@@ -19833,6 +20149,16 @@ func (m *FinanceInvoiceMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCancelledBy(ctx)
 	case financeinvoice.FieldCancellationReason:
 		return m.OldCancellationReason(ctx)
+	case financeinvoice.FieldRedInvoiceNo:
+		return m.OldRedInvoiceNo(ctx)
+	case financeinvoice.FieldRedInvoiceDate:
+		return m.OldRedInvoiceDate(ctx)
+	case financeinvoice.FieldRedFlushedAt:
+		return m.OldRedFlushedAt(ctx)
+	case financeinvoice.FieldRedFlushedBy:
+		return m.OldRedFlushedBy(ctx)
+	case financeinvoice.FieldRedFlushReason:
+		return m.OldRedFlushReason(ctx)
 	}
 	return nil, fmt.Errorf("unknown FinanceInvoice field %s", name)
 }
@@ -20003,6 +20329,41 @@ func (m *FinanceInvoiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCancellationReason(v)
 		return nil
+	case financeinvoice.FieldRedInvoiceNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedInvoiceNo(v)
+		return nil
+	case financeinvoice.FieldRedInvoiceDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedInvoiceDate(v)
+		return nil
+	case financeinvoice.FieldRedFlushedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedFlushedAt(v)
+		return nil
+	case financeinvoice.FieldRedFlushedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedFlushedBy(v)
+		return nil
+	case financeinvoice.FieldRedFlushReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedFlushReason(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoice field %s", name)
 }
@@ -20084,6 +20445,21 @@ func (m *FinanceInvoiceMutation) ClearedFields() []string {
 	if m.FieldCleared(financeinvoice.FieldCancellationReason) {
 		fields = append(fields, financeinvoice.FieldCancellationReason)
 	}
+	if m.FieldCleared(financeinvoice.FieldRedInvoiceNo) {
+		fields = append(fields, financeinvoice.FieldRedInvoiceNo)
+	}
+	if m.FieldCleared(financeinvoice.FieldRedInvoiceDate) {
+		fields = append(fields, financeinvoice.FieldRedInvoiceDate)
+	}
+	if m.FieldCleared(financeinvoice.FieldRedFlushedAt) {
+		fields = append(fields, financeinvoice.FieldRedFlushedAt)
+	}
+	if m.FieldCleared(financeinvoice.FieldRedFlushedBy) {
+		fields = append(fields, financeinvoice.FieldRedFlushedBy)
+	}
+	if m.FieldCleared(financeinvoice.FieldRedFlushReason) {
+		fields = append(fields, financeinvoice.FieldRedFlushReason)
+	}
 	return fields
 }
 
@@ -20121,6 +20497,21 @@ func (m *FinanceInvoiceMutation) ClearField(name string) error {
 		return nil
 	case financeinvoice.FieldCancellationReason:
 		m.ClearCancellationReason()
+		return nil
+	case financeinvoice.FieldRedInvoiceNo:
+		m.ClearRedInvoiceNo()
+		return nil
+	case financeinvoice.FieldRedInvoiceDate:
+		m.ClearRedInvoiceDate()
+		return nil
+	case financeinvoice.FieldRedFlushedAt:
+		m.ClearRedFlushedAt()
+		return nil
+	case financeinvoice.FieldRedFlushedBy:
+		m.ClearRedFlushedBy()
+		return nil
+	case financeinvoice.FieldRedFlushReason:
+		m.ClearRedFlushReason()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoice nullable field %s", name)
@@ -20199,13 +20590,28 @@ func (m *FinanceInvoiceMutation) ResetField(name string) error {
 	case financeinvoice.FieldCancellationReason:
 		m.ResetCancellationReason()
 		return nil
+	case financeinvoice.FieldRedInvoiceNo:
+		m.ResetRedInvoiceNo()
+		return nil
+	case financeinvoice.FieldRedInvoiceDate:
+		m.ResetRedInvoiceDate()
+		return nil
+	case financeinvoice.FieldRedFlushedAt:
+		m.ResetRedFlushedAt()
+		return nil
+	case financeinvoice.FieldRedFlushedBy:
+		m.ResetRedFlushedBy()
+		return nil
+	case financeinvoice.FieldRedFlushReason:
+		m.ResetRedFlushReason()
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoice field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceInvoiceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.organization != nil {
 		edges = append(edges, financeinvoice.EdgeOrganization)
 	}
@@ -20217,6 +20623,9 @@ func (m *FinanceInvoiceMutation) AddedEdges() []string {
 	}
 	if m.cancelled_by_user != nil {
 		edges = append(edges, financeinvoice.EdgeCancelledByUser)
+	}
+	if m.red_flushed_by_user != nil {
+		edges = append(edges, financeinvoice.EdgeRedFlushedByUser)
 	}
 	if m.bill_links != nil {
 		edges = append(edges, financeinvoice.EdgeBillLinks)
@@ -20244,6 +20653,10 @@ func (m *FinanceInvoiceMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cancelled_by_user; id != nil {
 			return []ent.Value{*id}
 		}
+	case financeinvoice.EdgeRedFlushedByUser:
+		if id := m.red_flushed_by_user; id != nil {
+			return []ent.Value{*id}
+		}
 	case financeinvoice.EdgeBillLinks:
 		ids := make([]ent.Value, 0, len(m.bill_links))
 		for id := range m.bill_links {
@@ -20256,7 +20669,7 @@ func (m *FinanceInvoiceMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceInvoiceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedbill_links != nil {
 		edges = append(edges, financeinvoice.EdgeBillLinks)
 	}
@@ -20279,7 +20692,7 @@ func (m *FinanceInvoiceMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceInvoiceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedorganization {
 		edges = append(edges, financeinvoice.EdgeOrganization)
 	}
@@ -20291,6 +20704,9 @@ func (m *FinanceInvoiceMutation) ClearedEdges() []string {
 	}
 	if m.clearedcancelled_by_user {
 		edges = append(edges, financeinvoice.EdgeCancelledByUser)
+	}
+	if m.clearedred_flushed_by_user {
+		edges = append(edges, financeinvoice.EdgeRedFlushedByUser)
 	}
 	if m.clearedbill_links {
 		edges = append(edges, financeinvoice.EdgeBillLinks)
@@ -20310,6 +20726,8 @@ func (m *FinanceInvoiceMutation) EdgeCleared(name string) bool {
 		return m.clearedissued_by_user
 	case financeinvoice.EdgeCancelledByUser:
 		return m.clearedcancelled_by_user
+	case financeinvoice.EdgeRedFlushedByUser:
+		return m.clearedred_flushed_by_user
 	case financeinvoice.EdgeBillLinks:
 		return m.clearedbill_links
 	}
@@ -20332,6 +20750,9 @@ func (m *FinanceInvoiceMutation) ClearEdge(name string) error {
 	case financeinvoice.EdgeCancelledByUser:
 		m.ClearCancelledByUser()
 		return nil
+	case financeinvoice.EdgeRedFlushedByUser:
+		m.ClearRedFlushedByUser()
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoice unique edge %s", name)
 }
@@ -20351,6 +20772,9 @@ func (m *FinanceInvoiceMutation) ResetEdge(name string) error {
 		return nil
 	case financeinvoice.EdgeCancelledByUser:
 		m.ResetCancelledByUser()
+		return nil
+	case financeinvoice.EdgeRedFlushedByUser:
+		m.ResetRedFlushedByUser()
 		return nil
 	case financeinvoice.EdgeBillLinks:
 		m.ResetBillLinks()
@@ -74689,6 +75113,9 @@ type UserMutation struct {
 	cancelled_finance_invoices            map[uuid.UUID]struct{}
 	removedcancelled_finance_invoices     map[uuid.UUID]struct{}
 	clearedcancelled_finance_invoices     bool
+	red_flushed_finance_invoices          map[uuid.UUID]struct{}
+	removedred_flushed_finance_invoices   map[uuid.UUID]struct{}
+	clearedred_flushed_finance_invoices   bool
 	confirmed_finance_cashflows           map[uuid.UUID]struct{}
 	removedconfirmed_finance_cashflows    map[uuid.UUID]struct{}
 	clearedconfirmed_finance_cashflows    bool
@@ -75828,6 +76255,60 @@ func (m *UserMutation) ResetCancelledFinanceInvoices() {
 	m.removedcancelled_finance_invoices = nil
 }
 
+// AddRedFlushedFinanceInvoiceIDs adds the "red_flushed_finance_invoices" edge to the FinanceInvoice entity by ids.
+func (m *UserMutation) AddRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) {
+	if m.red_flushed_finance_invoices == nil {
+		m.red_flushed_finance_invoices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.red_flushed_finance_invoices[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRedFlushedFinanceInvoices clears the "red_flushed_finance_invoices" edge to the FinanceInvoice entity.
+func (m *UserMutation) ClearRedFlushedFinanceInvoices() {
+	m.clearedred_flushed_finance_invoices = true
+}
+
+// RedFlushedFinanceInvoicesCleared reports if the "red_flushed_finance_invoices" edge to the FinanceInvoice entity was cleared.
+func (m *UserMutation) RedFlushedFinanceInvoicesCleared() bool {
+	return m.clearedred_flushed_finance_invoices
+}
+
+// RemoveRedFlushedFinanceInvoiceIDs removes the "red_flushed_finance_invoices" edge to the FinanceInvoice entity by IDs.
+func (m *UserMutation) RemoveRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) {
+	if m.removedred_flushed_finance_invoices == nil {
+		m.removedred_flushed_finance_invoices = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.red_flushed_finance_invoices, ids[i])
+		m.removedred_flushed_finance_invoices[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRedFlushedFinanceInvoices returns the removed IDs of the "red_flushed_finance_invoices" edge to the FinanceInvoice entity.
+func (m *UserMutation) RemovedRedFlushedFinanceInvoicesIDs() (ids []uuid.UUID) {
+	for id := range m.removedred_flushed_finance_invoices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RedFlushedFinanceInvoicesIDs returns the "red_flushed_finance_invoices" edge IDs in the mutation.
+func (m *UserMutation) RedFlushedFinanceInvoicesIDs() (ids []uuid.UUID) {
+	for id := range m.red_flushed_finance_invoices {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRedFlushedFinanceInvoices resets all changes to the "red_flushed_finance_invoices" edge.
+func (m *UserMutation) ResetRedFlushedFinanceInvoices() {
+	m.red_flushed_finance_invoices = nil
+	m.clearedred_flushed_finance_invoices = false
+	m.removedred_flushed_finance_invoices = nil
+}
+
 // AddConfirmedFinanceCashflowIDs adds the "confirmed_finance_cashflows" edge to the FinanceCashflow entity by ids.
 func (m *UserMutation) AddConfirmedFinanceCashflowIDs(ids ...uuid.UUID) {
 	if m.confirmed_finance_cashflows == nil {
@@ -76571,7 +77052,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -76598,6 +77079,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.cancelled_finance_invoices != nil {
 		edges = append(edges, user.EdgeCancelledFinanceInvoices)
+	}
+	if m.red_flushed_finance_invoices != nil {
+		edges = append(edges, user.EdgeRedFlushedFinanceInvoices)
 	}
 	if m.confirmed_finance_cashflows != nil {
 		edges = append(edges, user.EdgeConfirmedFinanceCashflows)
@@ -76681,6 +77165,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRedFlushedFinanceInvoices:
+		ids := make([]ent.Value, 0, len(m.red_flushed_finance_invoices))
+		for id := range m.red_flushed_finance_invoices {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeConfirmedFinanceCashflows:
 		ids := make([]ent.Value, 0, len(m.confirmed_finance_cashflows))
 		for id := range m.confirmed_finance_cashflows {
@@ -76729,7 +77219,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -76756,6 +77246,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedcancelled_finance_invoices != nil {
 		edges = append(edges, user.EdgeCancelledFinanceInvoices)
+	}
+	if m.removedred_flushed_finance_invoices != nil {
+		edges = append(edges, user.EdgeRedFlushedFinanceInvoices)
 	}
 	if m.removedconfirmed_finance_cashflows != nil {
 		edges = append(edges, user.EdgeConfirmedFinanceCashflows)
@@ -76839,6 +77332,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeRedFlushedFinanceInvoices:
+		ids := make([]ent.Value, 0, len(m.removedred_flushed_finance_invoices))
+		for id := range m.removedred_flushed_finance_invoices {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeConfirmedFinanceCashflows:
 		ids := make([]ent.Value, 0, len(m.removedconfirmed_finance_cashflows))
 		for id := range m.removedconfirmed_finance_cashflows {
@@ -76887,7 +77386,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 16)
+	edges := make([]string, 0, 17)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -76914,6 +77413,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedcancelled_finance_invoices {
 		edges = append(edges, user.EdgeCancelledFinanceInvoices)
+	}
+	if m.clearedred_flushed_finance_invoices {
+		edges = append(edges, user.EdgeRedFlushedFinanceInvoices)
 	}
 	if m.clearedconfirmed_finance_cashflows {
 		edges = append(edges, user.EdgeConfirmedFinanceCashflows)
@@ -76961,6 +77463,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedissued_finance_invoices
 	case user.EdgeCancelledFinanceInvoices:
 		return m.clearedcancelled_finance_invoices
+	case user.EdgeRedFlushedFinanceInvoices:
+		return m.clearedred_flushed_finance_invoices
 	case user.EdgeConfirmedFinanceCashflows:
 		return m.clearedconfirmed_finance_cashflows
 	case user.EdgeCancelledFinanceCashflows:
@@ -77017,6 +77521,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeCancelledFinanceInvoices:
 		m.ResetCancelledFinanceInvoices()
+		return nil
+	case user.EdgeRedFlushedFinanceInvoices:
+		m.ResetRedFlushedFinanceInvoices()
 		return nil
 	case user.EdgeConfirmedFinanceCashflows:
 		m.ResetConfirmedFinanceCashflows()

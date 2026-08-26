@@ -1,0 +1,5 @@
+ALTER TABLE "finance_invoices" DROP CONSTRAINT "finance_invoices_status_check";
+ALTER TABLE "finance_invoices" ADD CONSTRAINT "finance_invoices_status_check" CHECK("status" IN('DRAFT','ISSUED','CANCELLED','RED_FLUSHED'));
+ALTER TABLE "finance_invoices" ADD COLUMN "red_invoice_no" varchar(100), ADD COLUMN "red_invoice_date" varchar(10), ADD COLUMN "red_flushed_at" timestamptz, ADD COLUMN "red_flushed_by" uuid REFERENCES "users"("id"), ADD COLUMN "red_flush_reason" varchar(500);
+ALTER TABLE "finance_invoices" ADD CONSTRAINT "finance_invoice_red_flush_consistency" CHECK(("status"='RED_FLUSHED' AND "red_invoice_no" IS NOT NULL AND "red_invoice_date" IS NOT NULL AND "red_flushed_at" IS NOT NULL AND "red_flushed_by" IS NOT NULL AND "red_flush_reason" IS NOT NULL) OR ("status"<>'RED_FLUSHED' AND "red_invoice_no" IS NULL AND "red_invoice_date" IS NULL AND "red_flushed_at" IS NULL AND "red_flushed_by" IS NULL AND "red_flush_reason" IS NULL));
+CREATE UNIQUE INDEX "financeinvoice_org_red_invoice_no" ON "finance_invoices"("organization_id","red_invoice_no") WHERE "red_invoice_no" IS NOT NULL;

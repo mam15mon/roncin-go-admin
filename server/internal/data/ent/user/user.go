@@ -57,6 +57,8 @@ const (
 	EdgeIssuedFinanceInvoices = "issued_finance_invoices"
 	// EdgeCancelledFinanceInvoices holds the string denoting the cancelled_finance_invoices edge name in mutations.
 	EdgeCancelledFinanceInvoices = "cancelled_finance_invoices"
+	// EdgeRedFlushedFinanceInvoices holds the string denoting the red_flushed_finance_invoices edge name in mutations.
+	EdgeRedFlushedFinanceInvoices = "red_flushed_finance_invoices"
 	// EdgeConfirmedFinanceCashflows holds the string denoting the confirmed_finance_cashflows edge name in mutations.
 	EdgeConfirmedFinanceCashflows = "confirmed_finance_cashflows"
 	// EdgeCancelledFinanceCashflows holds the string denoting the cancelled_finance_cashflows edge name in mutations.
@@ -136,6 +138,13 @@ const (
 	CancelledFinanceInvoicesInverseTable = "finance_invoices"
 	// CancelledFinanceInvoicesColumn is the table column denoting the cancelled_finance_invoices relation/edge.
 	CancelledFinanceInvoicesColumn = "cancelled_by"
+	// RedFlushedFinanceInvoicesTable is the table that holds the red_flushed_finance_invoices relation/edge.
+	RedFlushedFinanceInvoicesTable = "finance_invoices"
+	// RedFlushedFinanceInvoicesInverseTable is the table name for the FinanceInvoice entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoice" package.
+	RedFlushedFinanceInvoicesInverseTable = "finance_invoices"
+	// RedFlushedFinanceInvoicesColumn is the table column denoting the red_flushed_finance_invoices relation/edge.
+	RedFlushedFinanceInvoicesColumn = "red_flushed_by"
 	// ConfirmedFinanceCashflowsTable is the table that holds the confirmed_finance_cashflows relation/edge.
 	ConfirmedFinanceCashflowsTable = "finance_cashflows"
 	// ConfirmedFinanceCashflowsInverseTable is the table name for the FinanceCashflow entity.
@@ -437,6 +446,20 @@ func ByCancelledFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) Orde
 	}
 }
 
+// ByRedFlushedFinanceInvoicesCount orders the results by red_flushed_finance_invoices count.
+func ByRedFlushedFinanceInvoicesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRedFlushedFinanceInvoicesStep(), opts...)
+	}
+}
+
+// ByRedFlushedFinanceInvoices orders the results by red_flushed_finance_invoices terms.
+func ByRedFlushedFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRedFlushedFinanceInvoicesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByConfirmedFinanceCashflowsCount orders the results by confirmed_finance_cashflows count.
 func ByConfirmedFinanceCashflowsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -595,6 +618,13 @@ func newCancelledFinanceInvoicesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceInvoicesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceInvoicesTable, CancelledFinanceInvoicesColumn),
+	)
+}
+func newRedFlushedFinanceInvoicesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RedFlushedFinanceInvoicesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RedFlushedFinanceInvoicesTable, RedFlushedFinanceInvoicesColumn),
 	)
 }
 func newConfirmedFinanceCashflowsStep() *sqlgraph.Step {

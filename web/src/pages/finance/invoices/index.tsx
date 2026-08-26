@@ -3,6 +3,7 @@ import {
   CloseCircleOutlined,
   EyeOutlined,
   PlusOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -29,15 +30,22 @@ import {
   settlementServiceIssueInvoice,
   settlementServiceListBills,
   settlementServiceListInvoices,
+  settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
 
 const states: Record<string, { text: string; color: string }> = {
   DRAFT: { text: '待开具', color: 'gold' },
   ISSUED: { text: '已开具', color: 'green' },
-  CANCELLED: { text: '已取消', color: 'default' },
+  CANCELLED: { text: '已取消/作废', color: 'default' },
+  RED_FLUSHED: { text: '已红冲', color: 'red' },
 };
 type CreateValues = { invoiceType: string; note?: string };
 type IssueValues = { taxInvoiceNo: string; invoiceDate: Dayjs };
+type RedFlushValues = {
+  redInvoiceNo: string;
+  redInvoiceDate: Dayjs;
+  reason: string;
+};
 
 export default function FinanceInvoicesPage() {
   const access = useAccess();
@@ -45,8 +53,10 @@ export default function FinanceInvoicesPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [createForm] = Form.useForm<CreateValues>();
   const [issueForm] = Form.useForm<IssueValues>();
+  const [redFlushForm] = Form.useForm<RedFlushValues>();
   const [createOpen, setCreateOpen] = useState(false);
   const [issueTarget, setIssueTarget] = useState<API.FinanceInvoice>();
+  const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -137,6 +147,30 @@ export default function FinanceInvoicesPage() {
         reload();
       },
     });
+  };
+  const redFlushInvoice = async () => {
+    if (!redFlushTarget?.id || !redFlushTarget.version) return;
+    const values = await redFlushForm.validateFields();
+    setSubmitting(true);
+    try {
+      await settlementServiceRedFlushInvoice(
+        { id: redFlushTarget.id },
+        {
+          id: redFlushTarget.id,
+          expectedVersion: redFlushTarget.version,
+          redInvoiceNo: values.redInvoiceNo,
+          redInvoiceDate: values.redInvoiceDate.format('YYYY-MM-DD'),
+          reason: values.reason,
+        },
+      );
+      message.success('发票已红冲，原账单开票占用已释放');
+      setRedFlushTarget(undefined);
+      reload();
+    } catch (error: any) {
+      message.error(error.message || '发票红冲失败');
+    } finally {
+      setSubmitting(false);
+    }
   };
   const columns: ProColumns<API.FinanceInvoice>[] = [
     {
@@ -244,13 +278,27 @@ export default function FinanceInvoicesPage() {
             <CheckOutlined /> 确认开具
           </a>
         ) : null,
-        access.canUpdateFinanceInvoices && r.status !== 'CANCELLED' ? (
+        access.canUpdateFinanceInvoices &&
+        r.status !== 'CANCELLED' &&
+        r.status !== 'RED_FLUSHED' ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}
             onClick={() => cancelInvoice(r)}
           >
-            <CloseCircleOutlined /> 取消
+            <CloseCircleOutlined /> {r.status === 'ISSUED' ? '作废' : '取消'}
+          </a>
+        ) : null,
+        access.canUpdateFinanceInvoices && r.status === 'ISSUED' ? (
+          <a
+            key="red-flush"
+            style={{ color: '#cf1322' }}
+            onClick={() => {
+              setRedFlushTarget(r);
+              redFlushForm.setFieldsValue({ redInvoiceDate: dayjs() });
+            }}
+          >
+            <SwapOutlined /> 红冲
           </a>
         ) : null,
       ],
@@ -409,6 +457,39 @@ export default function FinanceInvoicesPage() {
           </Form.Item>
         </Form>
       </Modal>
+      <Modal
+        title={`红冲发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
+        open={Boolean(redFlushTarget)}
+        confirmLoading={submitting}
+        okButtonProps={{ danger: true }}
+        okText="确认红冲"
+        onCancel={() => setRedFlushTarget(undefined)}
+        onOk={() => void redFlushInvoice()}
+      >
+        <Form form={redFlushForm} layout="vertical">
+          <Form.Item
+            name="redInvoiceNo"
+            label="红字发票号码"
+            rules={[{ required: true, message: '请输入红字发票号码' }]}
+          >
+            <Input maxLength={100} />
+          </Form.Item>
+          <Form.Item
+            name="redInvoiceDate"
+            label="红冲日期"
+            rules={[{ required: true, message: '请选择红冲日期' }]}
+          >
+            <DatePicker />
+          </Form.Item>
+          <Form.Item
+            name="reason"
+            label="红冲原因"
+            rules={[{ required: true, message: '请输入红冲原因' }]}
+          >
+            <Input.TextArea maxLength={500} rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
       <Drawer
         title={`开票详情 ${detail?.recordNo || ''}`}
         open={Boolean(detail)}
@@ -445,6 +526,19 @@ export default function FinanceInvoicesPage() {
                 <Descriptions.Item label="取消原因" span={2}>
                   {detail.cancellationReason}
                 </Descriptions.Item>
+              )}
+              {detail.redInvoiceNo && (
+                <>
+                  <Descriptions.Item label="红字发票号">
+                    {detail.redInvoiceNo}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="红冲日期">
+                    {detail.redInvoiceDate}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="红冲原因" span={2}>
+                    {detail.redFlushReason}
+                  </Descriptions.Item>
+                </>
               )}
             </Descriptions>
             <Table

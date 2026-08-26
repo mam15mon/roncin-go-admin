@@ -232,6 +232,106 @@ func (_u *FinanceInvoiceUpdate) ClearCancellationReason() *FinanceInvoiceUpdate 
 	return _u
 }
 
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (_u *FinanceInvoiceUpdate) SetRedInvoiceNo(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedInvoiceNo(v)
+	return _u
+}
+
+// SetNillableRedInvoiceNo sets the "red_invoice_no" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedInvoiceNo(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRedInvoiceNo(*v)
+	}
+	return _u
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (_u *FinanceInvoiceUpdate) ClearRedInvoiceNo() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedInvoiceNo()
+	return _u
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (_u *FinanceInvoiceUpdate) SetRedInvoiceDate(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedInvoiceDate(v)
+	return _u
+}
+
+// SetNillableRedInvoiceDate sets the "red_invoice_date" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedInvoiceDate(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRedInvoiceDate(*v)
+	}
+	return _u
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (_u *FinanceInvoiceUpdate) ClearRedInvoiceDate() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedInvoiceDate()
+	return _u
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (_u *FinanceInvoiceUpdate) SetRedFlushedAt(v time.Time) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedFlushedAt(v)
+	return _u
+}
+
+// SetNillableRedFlushedAt sets the "red_flushed_at" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedFlushedAt(v *time.Time) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRedFlushedAt(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (_u *FinanceInvoiceUpdate) ClearRedFlushedAt() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedFlushedAt()
+	return _u
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (_u *FinanceInvoiceUpdate) SetRedFlushedBy(v uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedFlushedBy(v)
+	return _u
+}
+
+// SetNillableRedFlushedBy sets the "red_flushed_by" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedFlushedBy(v *uuid.UUID) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRedFlushedBy(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (_u *FinanceInvoiceUpdate) ClearRedFlushedBy() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedFlushedBy()
+	return _u
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (_u *FinanceInvoiceUpdate) SetRedFlushReason(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedFlushReason(v)
+	return _u
+}
+
+// SetNillableRedFlushReason sets the "red_flush_reason" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedFlushReason(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRedFlushReason(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (_u *FinanceInvoiceUpdate) ClearRedFlushReason() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedFlushReason()
+	return _u
+}
+
 // SetIssuedByUserID sets the "issued_by_user" edge to the User entity by ID.
 func (_u *FinanceInvoiceUpdate) SetIssuedByUserID(id uuid.UUID) *FinanceInvoiceUpdate {
 	_u.mutation.SetIssuedByUserID(id)
@@ -270,6 +370,25 @@ func (_u *FinanceInvoiceUpdate) SetCancelledByUser(v *User) *FinanceInvoiceUpdat
 	return _u.SetCancelledByUserID(v.ID)
 }
 
+// SetRedFlushedByUserID sets the "red_flushed_by_user" edge to the User entity by ID.
+func (_u *FinanceInvoiceUpdate) SetRedFlushedByUserID(id uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.SetRedFlushedByUserID(id)
+	return _u
+}
+
+// SetNillableRedFlushedByUserID sets the "red_flushed_by_user" edge to the User entity by ID if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRedFlushedByUserID(id *uuid.UUID) *FinanceInvoiceUpdate {
+	if id != nil {
+		_u = _u.SetRedFlushedByUserID(*id)
+	}
+	return _u
+}
+
+// SetRedFlushedByUser sets the "red_flushed_by_user" edge to the User entity.
+func (_u *FinanceInvoiceUpdate) SetRedFlushedByUser(v *User) *FinanceInvoiceUpdate {
+	return _u.SetRedFlushedByUserID(v.ID)
+}
+
 // AddBillLinkIDs adds the "bill_links" edge to the FinanceInvoiceBill entity by IDs.
 func (_u *FinanceInvoiceUpdate) AddBillLinkIDs(ids ...uuid.UUID) *FinanceInvoiceUpdate {
 	_u.mutation.AddBillLinkIDs(ids...)
@@ -299,6 +418,12 @@ func (_u *FinanceInvoiceUpdate) ClearIssuedByUser() *FinanceInvoiceUpdate {
 // ClearCancelledByUser clears the "cancelled_by_user" edge to the User entity.
 func (_u *FinanceInvoiceUpdate) ClearCancelledByUser() *FinanceInvoiceUpdate {
 	_u.mutation.ClearCancelledByUser()
+	return _u
+}
+
+// ClearRedFlushedByUser clears the "red_flushed_by_user" edge to the User entity.
+func (_u *FinanceInvoiceUpdate) ClearRedFlushedByUser() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRedFlushedByUser()
 	return _u
 }
 
@@ -386,6 +511,21 @@ func (_u *FinanceInvoiceUpdate) check() error {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.cancellation_reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RedInvoiceNo(); ok {
+		if err := financeinvoice.RedInvoiceNoValidator(v); err != nil {
+			return &ValidationError{Name: "red_invoice_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_invoice_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RedInvoiceDate(); ok {
+		if err := financeinvoice.RedInvoiceDateValidator(v); err != nil {
+			return &ValidationError{Name: "red_invoice_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_invoice_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RedFlushReason(); ok {
+		if err := financeinvoice.RedFlushReasonValidator(v); err != nil {
+			return &ValidationError{Name: "red_flush_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_flush_reason": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceInvoice.organization"`)
 	}
@@ -455,6 +595,30 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financeinvoice.FieldCancellationReason, field.TypeString)
 	}
+	if value, ok := _u.mutation.RedInvoiceNo(); ok {
+		_spec.SetField(financeinvoice.FieldRedInvoiceNo, field.TypeString, value)
+	}
+	if _u.mutation.RedInvoiceNoCleared() {
+		_spec.ClearField(financeinvoice.FieldRedInvoiceNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.RedInvoiceDate(); ok {
+		_spec.SetField(financeinvoice.FieldRedInvoiceDate, field.TypeString, value)
+	}
+	if _u.mutation.RedInvoiceDateCleared() {
+		_spec.ClearField(financeinvoice.FieldRedInvoiceDate, field.TypeString)
+	}
+	if value, ok := _u.mutation.RedFlushedAt(); ok {
+		_spec.SetField(financeinvoice.FieldRedFlushedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RedFlushedAtCleared() {
+		_spec.ClearField(financeinvoice.FieldRedFlushedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RedFlushReason(); ok {
+		_spec.SetField(financeinvoice.FieldRedFlushReason, field.TypeString, value)
+	}
+	if _u.mutation.RedFlushReasonCleared() {
+		_spec.ClearField(financeinvoice.FieldRedFlushReason, field.TypeString)
+	}
 	if _u.mutation.IssuedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -503,6 +667,35 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Inverse: true,
 			Table:   financeinvoice.CancelledByUserTable,
 			Columns: []string{financeinvoice.CancelledByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RedFlushedByUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financeinvoice.RedFlushedByUserTable,
+			Columns: []string{financeinvoice.RedFlushedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RedFlushedByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financeinvoice.RedFlushedByUserTable,
+			Columns: []string{financeinvoice.RedFlushedByUserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -779,6 +972,106 @@ func (_u *FinanceInvoiceUpdateOne) ClearCancellationReason() *FinanceInvoiceUpda
 	return _u
 }
 
+// SetRedInvoiceNo sets the "red_invoice_no" field.
+func (_u *FinanceInvoiceUpdateOne) SetRedInvoiceNo(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedInvoiceNo(v)
+	return _u
+}
+
+// SetNillableRedInvoiceNo sets the "red_invoice_no" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedInvoiceNo(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRedInvoiceNo(*v)
+	}
+	return _u
+}
+
+// ClearRedInvoiceNo clears the value of the "red_invoice_no" field.
+func (_u *FinanceInvoiceUpdateOne) ClearRedInvoiceNo() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedInvoiceNo()
+	return _u
+}
+
+// SetRedInvoiceDate sets the "red_invoice_date" field.
+func (_u *FinanceInvoiceUpdateOne) SetRedInvoiceDate(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedInvoiceDate(v)
+	return _u
+}
+
+// SetNillableRedInvoiceDate sets the "red_invoice_date" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedInvoiceDate(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRedInvoiceDate(*v)
+	}
+	return _u
+}
+
+// ClearRedInvoiceDate clears the value of the "red_invoice_date" field.
+func (_u *FinanceInvoiceUpdateOne) ClearRedInvoiceDate() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedInvoiceDate()
+	return _u
+}
+
+// SetRedFlushedAt sets the "red_flushed_at" field.
+func (_u *FinanceInvoiceUpdateOne) SetRedFlushedAt(v time.Time) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedFlushedAt(v)
+	return _u
+}
+
+// SetNillableRedFlushedAt sets the "red_flushed_at" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedFlushedAt(v *time.Time) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRedFlushedAt(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushedAt clears the value of the "red_flushed_at" field.
+func (_u *FinanceInvoiceUpdateOne) ClearRedFlushedAt() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedFlushedAt()
+	return _u
+}
+
+// SetRedFlushedBy sets the "red_flushed_by" field.
+func (_u *FinanceInvoiceUpdateOne) SetRedFlushedBy(v uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedFlushedBy(v)
+	return _u
+}
+
+// SetNillableRedFlushedBy sets the "red_flushed_by" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedFlushedBy(v *uuid.UUID) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRedFlushedBy(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushedBy clears the value of the "red_flushed_by" field.
+func (_u *FinanceInvoiceUpdateOne) ClearRedFlushedBy() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedFlushedBy()
+	return _u
+}
+
+// SetRedFlushReason sets the "red_flush_reason" field.
+func (_u *FinanceInvoiceUpdateOne) SetRedFlushReason(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedFlushReason(v)
+	return _u
+}
+
+// SetNillableRedFlushReason sets the "red_flush_reason" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedFlushReason(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRedFlushReason(*v)
+	}
+	return _u
+}
+
+// ClearRedFlushReason clears the value of the "red_flush_reason" field.
+func (_u *FinanceInvoiceUpdateOne) ClearRedFlushReason() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedFlushReason()
+	return _u
+}
+
 // SetIssuedByUserID sets the "issued_by_user" edge to the User entity by ID.
 func (_u *FinanceInvoiceUpdateOne) SetIssuedByUserID(id uuid.UUID) *FinanceInvoiceUpdateOne {
 	_u.mutation.SetIssuedByUserID(id)
@@ -817,6 +1110,25 @@ func (_u *FinanceInvoiceUpdateOne) SetCancelledByUser(v *User) *FinanceInvoiceUp
 	return _u.SetCancelledByUserID(v.ID)
 }
 
+// SetRedFlushedByUserID sets the "red_flushed_by_user" edge to the User entity by ID.
+func (_u *FinanceInvoiceUpdateOne) SetRedFlushedByUserID(id uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetRedFlushedByUserID(id)
+	return _u
+}
+
+// SetNillableRedFlushedByUserID sets the "red_flushed_by_user" edge to the User entity by ID if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRedFlushedByUserID(id *uuid.UUID) *FinanceInvoiceUpdateOne {
+	if id != nil {
+		_u = _u.SetRedFlushedByUserID(*id)
+	}
+	return _u
+}
+
+// SetRedFlushedByUser sets the "red_flushed_by_user" edge to the User entity.
+func (_u *FinanceInvoiceUpdateOne) SetRedFlushedByUser(v *User) *FinanceInvoiceUpdateOne {
+	return _u.SetRedFlushedByUserID(v.ID)
+}
+
 // AddBillLinkIDs adds the "bill_links" edge to the FinanceInvoiceBill entity by IDs.
 func (_u *FinanceInvoiceUpdateOne) AddBillLinkIDs(ids ...uuid.UUID) *FinanceInvoiceUpdateOne {
 	_u.mutation.AddBillLinkIDs(ids...)
@@ -846,6 +1158,12 @@ func (_u *FinanceInvoiceUpdateOne) ClearIssuedByUser() *FinanceInvoiceUpdateOne 
 // ClearCancelledByUser clears the "cancelled_by_user" edge to the User entity.
 func (_u *FinanceInvoiceUpdateOne) ClearCancelledByUser() *FinanceInvoiceUpdateOne {
 	_u.mutation.ClearCancelledByUser()
+	return _u
+}
+
+// ClearRedFlushedByUser clears the "red_flushed_by_user" edge to the User entity.
+func (_u *FinanceInvoiceUpdateOne) ClearRedFlushedByUser() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRedFlushedByUser()
 	return _u
 }
 
@@ -946,6 +1264,21 @@ func (_u *FinanceInvoiceUpdateOne) check() error {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.cancellation_reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RedInvoiceNo(); ok {
+		if err := financeinvoice.RedInvoiceNoValidator(v); err != nil {
+			return &ValidationError{Name: "red_invoice_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_invoice_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RedInvoiceDate(); ok {
+		if err := financeinvoice.RedInvoiceDateValidator(v); err != nil {
+			return &ValidationError{Name: "red_invoice_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_invoice_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RedFlushReason(); ok {
+		if err := financeinvoice.RedFlushReasonValidator(v); err != nil {
+			return &ValidationError{Name: "red_flush_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.red_flush_reason": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceInvoice.organization"`)
 	}
@@ -1032,6 +1365,30 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financeinvoice.FieldCancellationReason, field.TypeString)
 	}
+	if value, ok := _u.mutation.RedInvoiceNo(); ok {
+		_spec.SetField(financeinvoice.FieldRedInvoiceNo, field.TypeString, value)
+	}
+	if _u.mutation.RedInvoiceNoCleared() {
+		_spec.ClearField(financeinvoice.FieldRedInvoiceNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.RedInvoiceDate(); ok {
+		_spec.SetField(financeinvoice.FieldRedInvoiceDate, field.TypeString, value)
+	}
+	if _u.mutation.RedInvoiceDateCleared() {
+		_spec.ClearField(financeinvoice.FieldRedInvoiceDate, field.TypeString)
+	}
+	if value, ok := _u.mutation.RedFlushedAt(); ok {
+		_spec.SetField(financeinvoice.FieldRedFlushedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RedFlushedAtCleared() {
+		_spec.ClearField(financeinvoice.FieldRedFlushedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RedFlushReason(); ok {
+		_spec.SetField(financeinvoice.FieldRedFlushReason, field.TypeString, value)
+	}
+	if _u.mutation.RedFlushReasonCleared() {
+		_spec.ClearField(financeinvoice.FieldRedFlushReason, field.TypeString)
+	}
 	if _u.mutation.IssuedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1080,6 +1437,35 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 			Inverse: true,
 			Table:   financeinvoice.CancelledByUserTable,
 			Columns: []string{financeinvoice.CancelledByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RedFlushedByUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financeinvoice.RedFlushedByUserTable,
+			Columns: []string{financeinvoice.RedFlushedByUserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RedFlushedByUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financeinvoice.RedFlushedByUserTable,
+			Columns: []string{financeinvoice.RedFlushedByUserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),

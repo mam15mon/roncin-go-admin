@@ -1680,6 +1680,32 @@ func init() {
 	financeinvoiceDescCancellationReason := financeinvoiceFields[20].Descriptor()
 	// financeinvoice.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financeinvoice.CancellationReasonValidator = financeinvoiceDescCancellationReason.Validators[0].(func(string) error)
+	// financeinvoiceDescRedInvoiceNo is the schema descriptor for red_invoice_no field.
+	financeinvoiceDescRedInvoiceNo := financeinvoiceFields[21].Descriptor()
+	// financeinvoice.RedInvoiceNoValidator is a validator for the "red_invoice_no" field. It is called by the builders before save.
+	financeinvoice.RedInvoiceNoValidator = financeinvoiceDescRedInvoiceNo.Validators[0].(func(string) error)
+	// financeinvoiceDescRedInvoiceDate is the schema descriptor for red_invoice_date field.
+	financeinvoiceDescRedInvoiceDate := financeinvoiceFields[22].Descriptor()
+	// financeinvoice.RedInvoiceDateValidator is a validator for the "red_invoice_date" field. It is called by the builders before save.
+	financeinvoice.RedInvoiceDateValidator = func() func(string) error {
+		validators := financeinvoiceDescRedInvoiceDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(red_invoice_date string) error {
+			for _, fn := range fns {
+				if err := fn(red_invoice_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeinvoiceDescRedFlushReason is the schema descriptor for red_flush_reason field.
+	financeinvoiceDescRedFlushReason := financeinvoiceFields[25].Descriptor()
+	// financeinvoice.RedFlushReasonValidator is a validator for the "red_flush_reason" field. It is called by the builders before save.
+	financeinvoice.RedFlushReasonValidator = financeinvoiceDescRedFlushReason.Validators[0].(func(string) error)
 	// financeinvoiceDescID is the schema descriptor for id field.
 	financeinvoiceDescID := financeinvoiceMixinFields0[0].Descriptor()
 	// financeinvoice.DefaultID holds the default value on creation for the id field.

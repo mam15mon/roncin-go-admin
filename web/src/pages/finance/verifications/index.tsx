@@ -20,6 +20,7 @@ import {
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
+
 type Values = {
   verificationDate: Dayjs;
   note?: string;
@@ -237,10 +238,12 @@ export default function FinanceVerificationsPage() {
                 pageSize: 200,
                 status: 'CONFIRMED',
               });
-              return (r.data || []).map((x) => ({
-                value: x.id,
-                label: `${x.flowNo}｜${x.settlementPartyName}｜${x.amount} ${x.currency}`,
-              }));
+              return (r.data || [])
+                .filter((x) => Number(x.unverifiedAmount || 0) > 0)
+                .map((x) => ({
+                  value: x.id,
+                  label: `${x.flowNo}｜${x.settlementPartyName}｜未核销 ${x.unverifiedAmount} ${x.currency}`,
+                }));
             }}
           />
           <ProFormSelect
@@ -253,10 +256,12 @@ export default function FinanceVerificationsPage() {
                 pageSize: 200,
                 status: 'CONFIRMED',
               });
-              return (r.data || []).map((x) => ({
-                value: x.id,
-                label: `${x.billNo}｜${x.settlementPartyName}｜${x.totalAmount} ${x.currency}`,
-              }));
+              return (r.data || [])
+                .filter((x) => Number(x.unverifiedAmount || 0) > 0)
+                .map((x) => ({
+                  value: x.id,
+                  label: `${x.billNo}｜${x.settlementPartyName}｜未核销 ${x.unverifiedAmount} ${x.currency}`,
+                }));
             }}
           />
           <ProFormText

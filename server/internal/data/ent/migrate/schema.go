@@ -865,7 +865,7 @@ var (
 		{Name: "record_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "ISSUED", "CANCELLED"}, Default: "DRAFT"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "ISSUED", "CANCELLED", "RED_FLUSHED"}, Default: "DRAFT"},
 		{Name: "invoice_type", Type: field.TypeEnum, Enums: []string{"NORMAL", "SPECIAL"}},
 		{Name: "settlement_party_name", Type: field.TypeString, Size: 200},
 		{Name: "currency", Type: field.TypeString, Size: 3},
@@ -879,10 +879,15 @@ var (
 		{Name: "issued_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "red_invoice_no", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "red_invoice_date", Type: field.TypeString, Nullable: true, Size: 10},
+		{Name: "red_flushed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "red_flush_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 		{Name: "issued_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "cancelled_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "red_flushed_by", Type: field.TypeUUID, Nullable: true},
 	}
 	// FinanceInvoicesTable holds the schema information for the "finance_invoices" table.
 	FinanceInvoicesTable = &schema.Table{
@@ -892,25 +897,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoices_organizations_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[20]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[24]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partners_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[21]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[25]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_users_issued_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[22]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[23]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[27]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
+				Columns:    []*schema.Column{FinanceInvoicesColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -924,22 +935,22 @@ var (
 			{
 				Name:    "financeinvoice_organization_id_record_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[20], FinanceInvoicesColumns[3]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[3]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[20], FinanceInvoicesColumns[4]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[4]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[20], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[24], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
 			},
 			{
 				Name:    "financeinvoice_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[21], FinanceInvoicesColumns[5], FinanceInvoicesColumns[9]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[25], FinanceInvoicesColumns[5], FinanceInvoicesColumns[9]},
 			},
 			{
 				Name:    "financeinvoice_tax_invoice_no",
@@ -3505,6 +3516,7 @@ func init() {
 	FinanceInvoicesTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceInvoicesTable.ForeignKeys[2].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceInvoicesTable.ForeignKeys[4].RefTable = UsersTable
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
 	FinanceVerificationsTable.ForeignKeys[0].RefTable = OrganizationsTable

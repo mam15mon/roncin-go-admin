@@ -25,16 +25,17 @@ import (
 // FinanceInvoiceQuery is the builder for querying FinanceInvoice entities.
 type FinanceInvoiceQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []financeinvoice.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.FinanceInvoice
-	withOrganization    *OrganizationQuery
-	withSettlementParty *PartnerQuery
-	withIssuedByUser    *UserQuery
-	withCancelledByUser *UserQuery
-	withBillLinks       *FinanceInvoiceBillQuery
-	modifiers           []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []financeinvoice.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.FinanceInvoice
+	withOrganization     *OrganizationQuery
+	withSettlementParty  *PartnerQuery
+	withIssuedByUser     *UserQuery
+	withCancelledByUser  *UserQuery
+	withRedFlushedByUser *UserQuery
+	withBillLinks        *FinanceInvoiceBillQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -152,6 +153,28 @@ func (_q *FinanceInvoiceQuery) QueryCancelledByUser() *UserQuery {
 			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.CancelledByUserTable, financeinvoice.CancelledByUserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRedFlushedByUser chains the current query on the "red_flushed_by_user" edge.
+func (_q *FinanceInvoiceQuery) QueryRedFlushedByUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.RedFlushedByUserTable, financeinvoice.RedFlushedByUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -368,16 +391,17 @@ func (_q *FinanceInvoiceQuery) Clone() *FinanceInvoiceQuery {
 		return nil
 	}
 	return &FinanceInvoiceQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]financeinvoice.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.FinanceInvoice{}, _q.predicates...),
-		withOrganization:    _q.withOrganization.Clone(),
-		withSettlementParty: _q.withSettlementParty.Clone(),
-		withIssuedByUser:    _q.withIssuedByUser.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
-		withBillLinks:       _q.withBillLinks.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]financeinvoice.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.FinanceInvoice{}, _q.predicates...),
+		withOrganization:     _q.withOrganization.Clone(),
+		withSettlementParty:  _q.withSettlementParty.Clone(),
+		withIssuedByUser:     _q.withIssuedByUser.Clone(),
+		withCancelledByUser:  _q.withCancelledByUser.Clone(),
+		withRedFlushedByUser: _q.withRedFlushedByUser.Clone(),
+		withBillLinks:        _q.withBillLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -425,6 +449,17 @@ func (_q *FinanceInvoiceQuery) WithCancelledByUser(opts ...func(*UserQuery)) *Fi
 		opt(query)
 	}
 	_q.withCancelledByUser = query
+	return _q
+}
+
+// WithRedFlushedByUser tells the query-builder to eager-load the nodes that are connected to
+// the "red_flushed_by_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceInvoiceQuery) WithRedFlushedByUser(opts ...func(*UserQuery)) *FinanceInvoiceQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRedFlushedByUser = query
 	return _q
 }
 
@@ -517,11 +552,12 @@ func (_q *FinanceInvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*FinanceInvoice{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
 			_q.withIssuedByUser != nil,
 			_q.withCancelledByUser != nil,
+			_q.withRedFlushedByUser != nil,
 			_q.withBillLinks != nil,
 		}
 	)
@@ -567,6 +603,12 @@ func (_q *FinanceInvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := _q.withCancelledByUser; query != nil {
 		if err := _q.loadCancelledByUser(ctx, query, nodes, nil,
 			func(n *FinanceInvoice, e *User) { n.Edges.CancelledByUser = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRedFlushedByUser; query != nil {
+		if err := _q.loadRedFlushedByUser(ctx, query, nodes, nil,
+			func(n *FinanceInvoice, e *User) { n.Edges.RedFlushedByUser = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -702,6 +744,38 @@ func (_q *FinanceInvoiceQuery) loadCancelledByUser(ctx context.Context, query *U
 	}
 	return nil
 }
+func (_q *FinanceInvoiceQuery) loadRedFlushedByUser(ctx context.Context, query *UserQuery, nodes []*FinanceInvoice, init func(*FinanceInvoice), assign func(*FinanceInvoice, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceInvoice)
+	for i := range nodes {
+		if nodes[i].RedFlushedBy == nil {
+			continue
+		}
+		fk := *nodes[i].RedFlushedBy
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "red_flushed_by" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *FinanceInvoiceQuery) loadBillLinks(ctx context.Context, query *FinanceInvoiceBillQuery, nodes []*FinanceInvoice, init func(*FinanceInvoice), assign func(*FinanceInvoice, *FinanceInvoiceBill)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*FinanceInvoice)
@@ -772,6 +846,9 @@ func (_q *FinanceInvoiceQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCancelledByUser != nil {
 			_spec.Node.AddColumnOnce(financeinvoice.FieldCancelledBy)
+		}
+		if _q.withRedFlushedByUser != nil {
+			_spec.Node.AddColumnOnce(financeinvoice.FieldRedFlushedBy)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

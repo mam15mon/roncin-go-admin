@@ -20,7 +20,7 @@ func (FinanceInvoice) Fields() []ent.Field {
 		field.String("record_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE").Immutable(),
-		field.Enum("status").Values("DRAFT", "ISSUED", "CANCELLED").Default("DRAFT"),
+		field.Enum("status").Values("DRAFT", "ISSUED", "CANCELLED", "RED_FLUSHED").Default("DRAFT"),
 		field.Enum("invoice_type").Values("NORMAL", "SPECIAL").Immutable(),
 		field.UUID("settlement_party_id", uuid.Nil).Immutable(),
 		field.String("settlement_party_name").NotEmpty().MaxLen(200).Immutable(),
@@ -37,6 +37,11 @@ func (FinanceInvoice) Fields() []ent.Field {
 		field.Time("cancelled_at").Optional().Nillable(),
 		field.UUID("cancelled_by", uuid.Nil).Optional().Nillable(),
 		field.String("cancellation_reason").Optional().Nillable().MaxLen(500),
+		field.String("red_invoice_no").Optional().Nillable().MaxLen(100),
+		field.String("red_invoice_date").Optional().Nillable().MinLen(10).MaxLen(10),
+		field.Time("red_flushed_at").Optional().Nillable(),
+		field.UUID("red_flushed_by", uuid.Nil).Optional().Nillable(),
+		field.String("red_flush_reason").Optional().Nillable().MaxLen(500),
 	}
 }
 
@@ -46,6 +51,7 @@ func (FinanceInvoice) Edges() []ent.Edge {
 		edge.From("settlement_party", Partner.Type).Ref("finance_invoices").Field("settlement_party_id").Unique().Required().Immutable(),
 		edge.From("issued_by_user", User.Type).Ref("issued_finance_invoices").Field("issued_by").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_invoices").Field("cancelled_by").Unique(),
+		edge.From("red_flushed_by_user", User.Type).Ref("red_flushed_finance_invoices").Field("red_flushed_by").Unique(),
 		edge.To("bill_links", FinanceInvoiceBill.Type),
 	}
 }

@@ -1068,6 +1068,29 @@ func HasCancelledFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicat
 	})
 }
 
+// HasRedFlushedFinanceInvoices applies the HasEdge predicate on the "red_flushed_finance_invoices" edge.
+func HasRedFlushedFinanceInvoices() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RedFlushedFinanceInvoicesTable, RedFlushedFinanceInvoicesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRedFlushedFinanceInvoicesWith applies the HasEdge predicate on the "red_flushed_finance_invoices" edge with a given conditions (other predicates).
+func HasRedFlushedFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRedFlushedFinanceInvoicesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasConfirmedFinanceCashflows applies the HasEdge predicate on the "confirmed_finance_cashflows" edge.
 func HasConfirmedFinanceCashflows() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

@@ -156,6 +156,31 @@ func CancellationReason(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldCancellationReason, v))
 }
 
+// RedInvoiceNo applies equality check predicate on the "red_invoice_no" field. It's identical to RedInvoiceNoEQ.
+func RedInvoiceNo(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceDate applies equality check predicate on the "red_invoice_date" field. It's identical to RedInvoiceDateEQ.
+func RedInvoiceDate(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedInvoiceDate, v))
+}
+
+// RedFlushedAt applies equality check predicate on the "red_flushed_at" field. It's identical to RedFlushedAtEQ.
+func RedFlushedAt(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushedAt, v))
+}
+
+// RedFlushedBy applies equality check predicate on the "red_flushed_by" field. It's identical to RedFlushedByEQ.
+func RedFlushedBy(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushedBy, v))
+}
+
+// RedFlushReason applies equality check predicate on the "red_flush_reason" field. It's identical to RedFlushReasonEQ.
+func RedFlushReason(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushReason, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldCreatedAt, v))
@@ -1266,6 +1291,311 @@ func CancellationReasonContainsFold(v string) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldCancellationReason, v))
 }
 
+// RedInvoiceNoEQ applies the EQ predicate on the "red_invoice_no" field.
+func RedInvoiceNoEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoNEQ applies the NEQ predicate on the "red_invoice_no" field.
+func RedInvoiceNoNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoIn applies the In predicate on the "red_invoice_no" field.
+func RedInvoiceNoIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRedInvoiceNo, vs...))
+}
+
+// RedInvoiceNoNotIn applies the NotIn predicate on the "red_invoice_no" field.
+func RedInvoiceNoNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRedInvoiceNo, vs...))
+}
+
+// RedInvoiceNoGT applies the GT predicate on the "red_invoice_no" field.
+func RedInvoiceNoGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoGTE applies the GTE predicate on the "red_invoice_no" field.
+func RedInvoiceNoGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoLT applies the LT predicate on the "red_invoice_no" field.
+func RedInvoiceNoLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoLTE applies the LTE predicate on the "red_invoice_no" field.
+func RedInvoiceNoLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoContains applies the Contains predicate on the "red_invoice_no" field.
+func RedInvoiceNoContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoHasPrefix applies the HasPrefix predicate on the "red_invoice_no" field.
+func RedInvoiceNoHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoHasSuffix applies the HasSuffix predicate on the "red_invoice_no" field.
+func RedInvoiceNoHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoIsNil applies the IsNil predicate on the "red_invoice_no" field.
+func RedInvoiceNoIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRedInvoiceNo))
+}
+
+// RedInvoiceNoNotNil applies the NotNil predicate on the "red_invoice_no" field.
+func RedInvoiceNoNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRedInvoiceNo))
+}
+
+// RedInvoiceNoEqualFold applies the EqualFold predicate on the "red_invoice_no" field.
+func RedInvoiceNoEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceNoContainsFold applies the ContainsFold predicate on the "red_invoice_no" field.
+func RedInvoiceNoContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldRedInvoiceNo, v))
+}
+
+// RedInvoiceDateEQ applies the EQ predicate on the "red_invoice_date" field.
+func RedInvoiceDateEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateNEQ applies the NEQ predicate on the "red_invoice_date" field.
+func RedInvoiceDateNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateIn applies the In predicate on the "red_invoice_date" field.
+func RedInvoiceDateIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRedInvoiceDate, vs...))
+}
+
+// RedInvoiceDateNotIn applies the NotIn predicate on the "red_invoice_date" field.
+func RedInvoiceDateNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRedInvoiceDate, vs...))
+}
+
+// RedInvoiceDateGT applies the GT predicate on the "red_invoice_date" field.
+func RedInvoiceDateGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateGTE applies the GTE predicate on the "red_invoice_date" field.
+func RedInvoiceDateGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateLT applies the LT predicate on the "red_invoice_date" field.
+func RedInvoiceDateLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateLTE applies the LTE predicate on the "red_invoice_date" field.
+func RedInvoiceDateLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateContains applies the Contains predicate on the "red_invoice_date" field.
+func RedInvoiceDateContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateHasPrefix applies the HasPrefix predicate on the "red_invoice_date" field.
+func RedInvoiceDateHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateHasSuffix applies the HasSuffix predicate on the "red_invoice_date" field.
+func RedInvoiceDateHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateIsNil applies the IsNil predicate on the "red_invoice_date" field.
+func RedInvoiceDateIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRedInvoiceDate))
+}
+
+// RedInvoiceDateNotNil applies the NotNil predicate on the "red_invoice_date" field.
+func RedInvoiceDateNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRedInvoiceDate))
+}
+
+// RedInvoiceDateEqualFold applies the EqualFold predicate on the "red_invoice_date" field.
+func RedInvoiceDateEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldRedInvoiceDate, v))
+}
+
+// RedInvoiceDateContainsFold applies the ContainsFold predicate on the "red_invoice_date" field.
+func RedInvoiceDateContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldRedInvoiceDate, v))
+}
+
+// RedFlushedAtEQ applies the EQ predicate on the "red_flushed_at" field.
+func RedFlushedAtEQ(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtNEQ applies the NEQ predicate on the "red_flushed_at" field.
+func RedFlushedAtNEQ(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtIn applies the In predicate on the "red_flushed_at" field.
+func RedFlushedAtIn(vs ...time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRedFlushedAt, vs...))
+}
+
+// RedFlushedAtNotIn applies the NotIn predicate on the "red_flushed_at" field.
+func RedFlushedAtNotIn(vs ...time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRedFlushedAt, vs...))
+}
+
+// RedFlushedAtGT applies the GT predicate on the "red_flushed_at" field.
+func RedFlushedAtGT(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtGTE applies the GTE predicate on the "red_flushed_at" field.
+func RedFlushedAtGTE(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtLT applies the LT predicate on the "red_flushed_at" field.
+func RedFlushedAtLT(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtLTE applies the LTE predicate on the "red_flushed_at" field.
+func RedFlushedAtLTE(v time.Time) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRedFlushedAt, v))
+}
+
+// RedFlushedAtIsNil applies the IsNil predicate on the "red_flushed_at" field.
+func RedFlushedAtIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRedFlushedAt))
+}
+
+// RedFlushedAtNotNil applies the NotNil predicate on the "red_flushed_at" field.
+func RedFlushedAtNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRedFlushedAt))
+}
+
+// RedFlushedByEQ applies the EQ predicate on the "red_flushed_by" field.
+func RedFlushedByEQ(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushedBy, v))
+}
+
+// RedFlushedByNEQ applies the NEQ predicate on the "red_flushed_by" field.
+func RedFlushedByNEQ(v uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRedFlushedBy, v))
+}
+
+// RedFlushedByIn applies the In predicate on the "red_flushed_by" field.
+func RedFlushedByIn(vs ...uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRedFlushedBy, vs...))
+}
+
+// RedFlushedByNotIn applies the NotIn predicate on the "red_flushed_by" field.
+func RedFlushedByNotIn(vs ...uuid.UUID) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRedFlushedBy, vs...))
+}
+
+// RedFlushedByIsNil applies the IsNil predicate on the "red_flushed_by" field.
+func RedFlushedByIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRedFlushedBy))
+}
+
+// RedFlushedByNotNil applies the NotNil predicate on the "red_flushed_by" field.
+func RedFlushedByNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRedFlushedBy))
+}
+
+// RedFlushReasonEQ applies the EQ predicate on the "red_flush_reason" field.
+func RedFlushReasonEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonNEQ applies the NEQ predicate on the "red_flush_reason" field.
+func RedFlushReasonNEQ(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonIn applies the In predicate on the "red_flush_reason" field.
+func RedFlushReasonIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRedFlushReason, vs...))
+}
+
+// RedFlushReasonNotIn applies the NotIn predicate on the "red_flush_reason" field.
+func RedFlushReasonNotIn(vs ...string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRedFlushReason, vs...))
+}
+
+// RedFlushReasonGT applies the GT predicate on the "red_flush_reason" field.
+func RedFlushReasonGT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonGTE applies the GTE predicate on the "red_flush_reason" field.
+func RedFlushReasonGTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonLT applies the LT predicate on the "red_flush_reason" field.
+func RedFlushReasonLT(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonLTE applies the LTE predicate on the "red_flush_reason" field.
+func RedFlushReasonLTE(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonContains applies the Contains predicate on the "red_flush_reason" field.
+func RedFlushReasonContains(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContains(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonHasPrefix applies the HasPrefix predicate on the "red_flush_reason" field.
+func RedFlushReasonHasPrefix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasPrefix(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonHasSuffix applies the HasSuffix predicate on the "red_flush_reason" field.
+func RedFlushReasonHasSuffix(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldHasSuffix(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonIsNil applies the IsNil predicate on the "red_flush_reason" field.
+func RedFlushReasonIsNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIsNull(FieldRedFlushReason))
+}
+
+// RedFlushReasonNotNil applies the NotNil predicate on the "red_flush_reason" field.
+func RedFlushReasonNotNil() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotNull(FieldRedFlushReason))
+}
+
+// RedFlushReasonEqualFold applies the EqualFold predicate on the "red_flush_reason" field.
+func RedFlushReasonEqualFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEqualFold(FieldRedFlushReason, v))
+}
+
+// RedFlushReasonContainsFold applies the ContainsFold predicate on the "red_flush_reason" field.
+func RedFlushReasonContainsFold(v string) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldContainsFold(FieldRedFlushReason, v))
+}
+
 // HasOrganization applies the HasEdge predicate on the "organization" edge.
 func HasOrganization() predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(func(s *sql.Selector) {
@@ -1350,6 +1680,29 @@ func HasCancelledByUser() predicate.FinanceInvoice {
 func HasCancelledByUserWith(preds ...predicate.User) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(func(s *sql.Selector) {
 		step := newCancelledByUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRedFlushedByUser applies the HasEdge predicate on the "red_flushed_by_user" edge.
+func HasRedFlushedByUser() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RedFlushedByUserTable, RedFlushedByUserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRedFlushedByUserWith applies the HasEdge predicate on the "red_flushed_by_user" edge with a given conditions (other predicates).
+func HasRedFlushedByUserWith(preds ...predicate.User) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := newRedFlushedByUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

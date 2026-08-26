@@ -26,11 +26,12 @@ type FinanceInvoiceStatus string
 type FinanceInvoiceType string
 
 const (
-	FinanceInvoiceDraft     FinanceInvoiceStatus = "DRAFT"
-	FinanceInvoiceIssued    FinanceInvoiceStatus = "ISSUED"
-	FinanceInvoiceCancelled FinanceInvoiceStatus = "CANCELLED"
-	FinanceInvoiceNormal    FinanceInvoiceType   = "NORMAL"
-	FinanceInvoiceSpecial   FinanceInvoiceType   = "SPECIAL"
+	FinanceInvoiceDraft      FinanceInvoiceStatus = "DRAFT"
+	FinanceInvoiceIssued     FinanceInvoiceStatus = "ISSUED"
+	FinanceInvoiceCancelled  FinanceInvoiceStatus = "CANCELLED"
+	FinanceInvoiceRedFlushed FinanceInvoiceStatus = "RED_FLUSHED"
+	FinanceInvoiceNormal     FinanceInvoiceType   = "NORMAL"
+	FinanceInvoiceSpecial    FinanceInvoiceType   = "SPECIAL"
 )
 
 type FinanceInvoice struct {
@@ -47,6 +48,10 @@ type FinanceInvoice struct {
 	IssuedAt, CancelledAt                 *time.Time
 	IssuedBy, CancelledBy                 *uuid.UUID
 	CancellationReason                    *string
+	RedInvoiceNo, RedInvoiceDate          *string
+	RedFlushedAt                          *time.Time
+	RedFlushedBy                          *uuid.UUID
+	RedFlushReason                        *string
 	Links                                 []*FinanceInvoiceBill
 	CreatedAt, UpdatedAt                  time.Time
 }
@@ -85,6 +90,7 @@ type FinanceInvoiceRepo interface {
 	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
 	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, *AuditEvent) (*FinanceInvoice, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceInvoice, error)
+	RedFlush(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, string, *AuditEvent) (*FinanceInvoice, error)
 }
 
 type FinanceInvoiceUsecase struct {
@@ -98,10 +104,18 @@ func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecas
 
 func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
-	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled) {
+	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.List(ctx, organizationID, filter)
+}
+
+func (uc *FinanceInvoiceUsecase) RedFlush(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, redInvoiceNo, redInvoiceDate, reason string) (*FinanceInvoice, error) {
+	redInvoiceNo, redInvoiceDate, reason = strings.TrimSpace(redInvoiceNo), strings.TrimSpace(redInvoiceDate), strings.TrimSpace(reason)
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || redInvoiceNo == "" || utf8.RuneCountInString(redInvoiceNo) > 100 || !validFinanceDate(redInvoiceDate) || reason == "" || utf8.RuneCountInString(reason) > 500 {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	return uc.repo.RedFlush(ctx, organizationID, id, actorID, expectedVersion, redInvoiceNo, redInvoiceDate, reason, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.red_flush"))
 }
 
 func (uc *FinanceInvoiceUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*FinanceInvoice, error) {

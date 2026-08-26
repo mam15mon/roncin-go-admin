@@ -249,6 +249,32 @@ export default function FinanceBillsPage() {
       search: false,
       render: (_, row) => `${row.baseCurrencyAmount} ${row.baseCurrency}`,
     },
+    {
+      title: '已核销',
+      dataIndex: 'verifiedAmount',
+      width: 145,
+      align: 'right',
+      search: false,
+      render: (_, row) =>
+        `${row.verifiedAmount || '0.00000000'} ${row.currency}`,
+    },
+    {
+      title: '未核销',
+      dataIndex: 'unverifiedAmount',
+      width: 145,
+      align: 'right',
+      search: false,
+      render: (_, row) => (
+        <strong
+          style={{
+            color:
+              Number(row.unverifiedAmount || 0) > 0 ? '#cf1322' : '#389e0d',
+          }}
+        >
+          {row.unverifiedAmount || '0.00000000'} {row.currency}
+        </strong>
+      ),
+    },
     { title: '费用数', dataIndex: 'feeCount', width: 80, search: false },
     {
       title: '账单日期',

@@ -44,6 +44,7 @@ type UserQuery struct {
 	withCancelledFinanceBills        *FinanceBillQuery
 	withIssuedFinanceInvoices        *FinanceInvoiceQuery
 	withCancelledFinanceInvoices     *FinanceInvoiceQuery
+	withRedFlushedFinanceInvoices    *FinanceInvoiceQuery
 	withConfirmedFinanceCashflows    *FinanceCashflowQuery
 	withCancelledFinanceCashflows    *FinanceCashflowQuery
 	withReversedFinanceVerifications *FinanceVerificationQuery
@@ -279,6 +280,28 @@ func (_q *UserQuery) QueryCancelledFinanceInvoices() *FinanceInvoiceQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceInvoicesTable, user.CancelledFinanceInvoicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRedFlushedFinanceInvoices chains the current query on the "red_flushed_finance_invoices" edge.
+func (_q *UserQuery) QueryRedFlushedFinanceInvoices() *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RedFlushedFinanceInvoicesTable, user.RedFlushedFinanceInvoicesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -641,6 +664,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCancelledFinanceBills:        _q.withCancelledFinanceBills.Clone(),
 		withIssuedFinanceInvoices:        _q.withIssuedFinanceInvoices.Clone(),
 		withCancelledFinanceInvoices:     _q.withCancelledFinanceInvoices.Clone(),
+		withRedFlushedFinanceInvoices:    _q.withRedFlushedFinanceInvoices.Clone(),
 		withConfirmedFinanceCashflows:    _q.withConfirmedFinanceCashflows.Clone(),
 		withCancelledFinanceCashflows:    _q.withCancelledFinanceCashflows.Clone(),
 		withReversedFinanceVerifications: _q.withReversedFinanceVerifications.Clone(),
@@ -750,6 +774,17 @@ func (_q *UserQuery) WithCancelledFinanceInvoices(opts ...func(*FinanceInvoiceQu
 		opt(query)
 	}
 	_q.withCancelledFinanceInvoices = query
+	return _q
+}
+
+// WithRedFlushedFinanceInvoices tells the query-builder to eager-load the nodes that are connected to
+// the "red_flushed_finance_invoices" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRedFlushedFinanceInvoices(opts ...func(*FinanceInvoiceQuery)) *UserQuery {
+	query := (&FinanceInvoiceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRedFlushedFinanceInvoices = query
 	return _q
 }
 
@@ -908,7 +943,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [16]bool{
+		loadedTypes = [17]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -918,6 +953,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCancelledFinanceBills != nil,
 			_q.withIssuedFinanceInvoices != nil,
 			_q.withCancelledFinanceInvoices != nil,
+			_q.withRedFlushedFinanceInvoices != nil,
 			_q.withConfirmedFinanceCashflows != nil,
 			_q.withCancelledFinanceCashflows != nil,
 			_q.withReversedFinanceVerifications != nil,
@@ -1017,6 +1053,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceInvoices = []*FinanceInvoice{} },
 			func(n *User, e *FinanceInvoice) {
 				n.Edges.CancelledFinanceInvoices = append(n.Edges.CancelledFinanceInvoices, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRedFlushedFinanceInvoices; query != nil {
+		if err := _q.loadRedFlushedFinanceInvoices(ctx, query, nodes,
+			func(n *User) { n.Edges.RedFlushedFinanceInvoices = []*FinanceInvoice{} },
+			func(n *User, e *FinanceInvoice) {
+				n.Edges.RedFlushedFinanceInvoices = append(n.Edges.RedFlushedFinanceInvoices, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1367,6 +1412,39 @@ func (_q *UserQuery) loadCancelledFinanceInvoices(ctx context.Context, query *Fi
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRedFlushedFinanceInvoices(ctx context.Context, query *FinanceInvoiceQuery, nodes []*User, init func(*User), assign func(*User, *FinanceInvoice)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoice.FieldRedFlushedBy)
+	}
+	query.Where(predicate.FinanceInvoice(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RedFlushedFinanceInvoicesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RedFlushedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "red_flushed_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "red_flushed_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

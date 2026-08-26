@@ -3304,6 +3304,22 @@ func (c *FinanceInvoiceClient) QueryCancelledByUser(_m *FinanceInvoice) *UserQue
 	return query
 }
 
+// QueryRedFlushedByUser queries the red_flushed_by_user edge of a FinanceInvoice.
+func (c *FinanceInvoiceClient) QueryRedFlushedByUser(_m *FinanceInvoice) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoice.RedFlushedByUserTable, financeinvoice.RedFlushedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryBillLinks queries the bill_links edge of a FinanceInvoice.
 func (c *FinanceInvoiceClient) QueryBillLinks(_m *FinanceInvoice) *FinanceInvoiceBillQuery {
 	query := (&FinanceInvoiceBillClient{config: c.config}).Query()
@@ -12278,6 +12294,22 @@ func (c *UserClient) QueryCancelledFinanceInvoices(_m *User) *FinanceInvoiceQuer
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceInvoicesTable, user.CancelledFinanceInvoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRedFlushedFinanceInvoices queries the red_flushed_finance_invoices edge of a User.
+func (c *UserClient) QueryRedFlushedFinanceInvoices(_m *User) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RedFlushedFinanceInvoicesTable, user.RedFlushedFinanceInvoicesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

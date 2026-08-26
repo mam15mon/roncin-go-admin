@@ -62,6 +62,16 @@ const (
 	FieldCancelledBy = "cancelled_by"
 	// FieldCancellationReason holds the string denoting the cancellation_reason field in the database.
 	FieldCancellationReason = "cancellation_reason"
+	// FieldRedInvoiceNo holds the string denoting the red_invoice_no field in the database.
+	FieldRedInvoiceNo = "red_invoice_no"
+	// FieldRedInvoiceDate holds the string denoting the red_invoice_date field in the database.
+	FieldRedInvoiceDate = "red_invoice_date"
+	// FieldRedFlushedAt holds the string denoting the red_flushed_at field in the database.
+	FieldRedFlushedAt = "red_flushed_at"
+	// FieldRedFlushedBy holds the string denoting the red_flushed_by field in the database.
+	FieldRedFlushedBy = "red_flushed_by"
+	// FieldRedFlushReason holds the string denoting the red_flush_reason field in the database.
+	FieldRedFlushReason = "red_flush_reason"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeSettlementParty holds the string denoting the settlement_party edge name in mutations.
@@ -70,6 +80,8 @@ const (
 	EdgeIssuedByUser = "issued_by_user"
 	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
 	EdgeCancelledByUser = "cancelled_by_user"
+	// EdgeRedFlushedByUser holds the string denoting the red_flushed_by_user edge name in mutations.
+	EdgeRedFlushedByUser = "red_flushed_by_user"
 	// EdgeBillLinks holds the string denoting the bill_links edge name in mutations.
 	EdgeBillLinks = "bill_links"
 	// Table holds the table name of the financeinvoice in the database.
@@ -102,6 +114,13 @@ const (
 	CancelledByUserInverseTable = "users"
 	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
 	CancelledByUserColumn = "cancelled_by"
+	// RedFlushedByUserTable is the table that holds the red_flushed_by_user relation/edge.
+	RedFlushedByUserTable = "finance_invoices"
+	// RedFlushedByUserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	RedFlushedByUserInverseTable = "users"
+	// RedFlushedByUserColumn is the table column denoting the red_flushed_by_user relation/edge.
+	RedFlushedByUserColumn = "red_flushed_by"
 	// BillLinksTable is the table that holds the bill_links relation/edge.
 	BillLinksTable = "finance_invoice_bills"
 	// BillLinksInverseTable is the table name for the FinanceInvoiceBill entity.
@@ -137,6 +156,11 @@ var Columns = []string{
 	FieldCancelledAt,
 	FieldCancelledBy,
 	FieldCancellationReason,
+	FieldRedInvoiceNo,
+	FieldRedInvoiceDate,
+	FieldRedFlushedAt,
+	FieldRedFlushedBy,
+	FieldRedFlushReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -176,6 +200,12 @@ var (
 	DefaultVersion uint64
 	// CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	CancellationReasonValidator func(string) error
+	// RedInvoiceNoValidator is a validator for the "red_invoice_no" field. It is called by the builders before save.
+	RedInvoiceNoValidator func(string) error
+	// RedInvoiceDateValidator is a validator for the "red_invoice_date" field. It is called by the builders before save.
+	RedInvoiceDateValidator func(string) error
+	// RedFlushReasonValidator is a validator for the "red_flush_reason" field. It is called by the builders before save.
+	RedFlushReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -211,9 +241,10 @@ const DefaultStatus = StatusDRAFT
 
 // Status values.
 const (
-	StatusDRAFT     Status = "DRAFT"
-	StatusISSUED    Status = "ISSUED"
-	StatusCANCELLED Status = "CANCELLED"
+	StatusDRAFT       Status = "DRAFT"
+	StatusISSUED      Status = "ISSUED"
+	StatusCANCELLED   Status = "CANCELLED"
+	StatusRED_FLUSHED Status = "RED_FLUSHED"
 )
 
 func (s Status) String() string {
@@ -223,7 +254,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDRAFT, StatusISSUED, StatusCANCELLED:
+	case StatusDRAFT, StatusISSUED, StatusCANCELLED, StatusRED_FLUSHED:
 		return nil
 	default:
 		return fmt.Errorf("financeinvoice: invalid enum value for status field: %q", s)
@@ -376,6 +407,31 @@ func ByCancellationReason(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCancellationReason, opts...).ToFunc()
 }
 
+// ByRedInvoiceNo orders the results by the red_invoice_no field.
+func ByRedInvoiceNo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRedInvoiceNo, opts...).ToFunc()
+}
+
+// ByRedInvoiceDate orders the results by the red_invoice_date field.
+func ByRedInvoiceDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRedInvoiceDate, opts...).ToFunc()
+}
+
+// ByRedFlushedAt orders the results by the red_flushed_at field.
+func ByRedFlushedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRedFlushedAt, opts...).ToFunc()
+}
+
+// ByRedFlushedBy orders the results by the red_flushed_by field.
+func ByRedFlushedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRedFlushedBy, opts...).ToFunc()
+}
+
+// ByRedFlushReason orders the results by the red_flush_reason field.
+func ByRedFlushReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRedFlushReason, opts...).ToFunc()
+}
+
 // ByOrganizationField orders the results by organization field.
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -401,6 +457,13 @@ func ByIssuedByUserField(field string, opts ...sql.OrderTermOption) OrderOption 
 func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByRedFlushedByUserField orders the results by red_flushed_by_user field.
+func ByRedFlushedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRedFlushedByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -443,6 +506,13 @@ func newCancelledByUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledByUserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
+	)
+}
+func newRedFlushedByUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RedFlushedByUserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RedFlushedByUserTable, RedFlushedByUserColumn),
 	)
 }
 func newBillLinksStep() *sqlgraph.Step {

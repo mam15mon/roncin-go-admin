@@ -68,6 +68,8 @@ type UserEdges struct {
 	IssuedFinanceInvoices []*FinanceInvoice `json:"issued_finance_invoices,omitempty"`
 	// CancelledFinanceInvoices holds the value of the cancelled_finance_invoices edge.
 	CancelledFinanceInvoices []*FinanceInvoice `json:"cancelled_finance_invoices,omitempty"`
+	// RedFlushedFinanceInvoices holds the value of the red_flushed_finance_invoices edge.
+	RedFlushedFinanceInvoices []*FinanceInvoice `json:"red_flushed_finance_invoices,omitempty"`
 	// ConfirmedFinanceCashflows holds the value of the confirmed_finance_cashflows edge.
 	ConfirmedFinanceCashflows []*FinanceCashflow `json:"confirmed_finance_cashflows,omitempty"`
 	// CancelledFinanceCashflows holds the value of the cancelled_finance_cashflows edge.
@@ -84,7 +86,7 @@ type UserEdges struct {
 	CancelledFinanceCommissions []*FinanceCommission `json:"cancelled_finance_commissions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [16]bool
+	loadedTypes [17]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -168,10 +170,19 @@ func (e UserEdges) CancelledFinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
 	return nil, &NotLoadedError{edge: "cancelled_finance_invoices"}
 }
 
+// RedFlushedFinanceInvoicesOrErr returns the RedFlushedFinanceInvoices value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RedFlushedFinanceInvoicesOrErr() ([]*FinanceInvoice, error) {
+	if e.loadedTypes[9] {
+		return e.RedFlushedFinanceInvoices, nil
+	}
+	return nil, &NotLoadedError{edge: "red_flushed_finance_invoices"}
+}
+
 // ConfirmedFinanceCashflowsOrErr returns the ConfirmedFinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedFinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.ConfirmedFinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_finance_cashflows"}
@@ -180,7 +191,7 @@ func (e UserEdges) ConfirmedFinanceCashflowsOrErr() ([]*FinanceCashflow, error) 
 // CancelledFinanceCashflowsOrErr returns the CancelledFinanceCashflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CancelledFinanceCashflowsOrErr() ([]*FinanceCashflow, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.CancelledFinanceCashflows, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_cashflows"}
@@ -189,7 +200,7 @@ func (e UserEdges) CancelledFinanceCashflowsOrErr() ([]*FinanceCashflow, error) 
 // ReversedFinanceVerificationsOrErr returns the ReversedFinanceVerifications value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ReversedFinanceVerificationsOrErr() ([]*FinanceVerification, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.ReversedFinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "reversed_finance_verifications"}
@@ -198,7 +209,7 @@ func (e UserEdges) ReversedFinanceVerificationsOrErr() ([]*FinanceVerification, 
 // FinanceCommissionsOrErr returns the FinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[12] {
+	if e.loadedTypes[13] {
 		return e.FinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commissions"}
@@ -207,7 +218,7 @@ func (e UserEdges) FinanceCommissionsOrErr() ([]*FinanceCommission, error) {
 // ConfirmedFinanceCommissionsOrErr returns the ConfirmedFinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedFinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.ConfirmedFinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_finance_commissions"}
@@ -216,7 +227,7 @@ func (e UserEdges) ConfirmedFinanceCommissionsOrErr() ([]*FinanceCommission, err
 // PaidFinanceCommissionsOrErr returns the PaidFinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) PaidFinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.PaidFinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "paid_finance_commissions"}
@@ -225,7 +236,7 @@ func (e UserEdges) PaidFinanceCommissionsOrErr() ([]*FinanceCommission, error) {
 // CancelledFinanceCommissionsOrErr returns the CancelledFinanceCommissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CancelledFinanceCommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[16] {
 		return e.CancelledFinanceCommissions, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_commissions"}
@@ -400,6 +411,11 @@ func (_m *User) QueryIssuedFinanceInvoices() *FinanceInvoiceQuery {
 // QueryCancelledFinanceInvoices queries the "cancelled_finance_invoices" edge of the User entity.
 func (_m *User) QueryCancelledFinanceInvoices() *FinanceInvoiceQuery {
 	return NewUserClient(_m.config).QueryCancelledFinanceInvoices(_m)
+}
+
+// QueryRedFlushedFinanceInvoices queries the "red_flushed_finance_invoices" edge of the User entity.
+func (_m *User) QueryRedFlushedFinanceInvoices() *FinanceInvoiceQuery {
+	return NewUserClient(_m.config).QueryRedFlushedFinanceInvoices(_m)
 }
 
 // QueryConfirmedFinanceCashflows queries the "confirmed_finance_cashflows" edge of the User entity.

@@ -348,6 +348,21 @@ func (_u *UserUpdate) AddCancelledFinanceInvoices(v ...*FinanceInvoice) *UserUpd
 	return _u.AddCancelledFinanceInvoiceIDs(ids...)
 }
 
+// AddRedFlushedFinanceInvoiceIDs adds the "red_flushed_finance_invoices" edge to the FinanceInvoice entity by IDs.
+func (_u *UserUpdate) AddRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddRedFlushedFinanceInvoiceIDs(ids...)
+	return _u
+}
+
+// AddRedFlushedFinanceInvoices adds the "red_flushed_finance_invoices" edges to the FinanceInvoice entity.
+func (_u *UserUpdate) AddRedFlushedFinanceInvoices(v ...*FinanceInvoice) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRedFlushedFinanceInvoiceIDs(ids...)
+}
+
 // AddConfirmedFinanceCashflowIDs adds the "confirmed_finance_cashflows" edge to the FinanceCashflow entity by IDs.
 func (_u *UserUpdate) AddConfirmedFinanceCashflowIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddConfirmedFinanceCashflowIDs(ids...)
@@ -645,6 +660,27 @@ func (_u *UserUpdate) RemoveCancelledFinanceInvoices(v ...*FinanceInvoice) *User
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceInvoiceIDs(ids...)
+}
+
+// ClearRedFlushedFinanceInvoices clears all "red_flushed_finance_invoices" edges to the FinanceInvoice entity.
+func (_u *UserUpdate) ClearRedFlushedFinanceInvoices() *UserUpdate {
+	_u.mutation.ClearRedFlushedFinanceInvoices()
+	return _u
+}
+
+// RemoveRedFlushedFinanceInvoiceIDs removes the "red_flushed_finance_invoices" edge to FinanceInvoice entities by IDs.
+func (_u *UserUpdate) RemoveRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveRedFlushedFinanceInvoiceIDs(ids...)
+	return _u
+}
+
+// RemoveRedFlushedFinanceInvoices removes "red_flushed_finance_invoices" edges to FinanceInvoice entities.
+func (_u *UserUpdate) RemoveRedFlushedFinanceInvoices(v ...*FinanceInvoice) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRedFlushedFinanceInvoiceIDs(ids...)
 }
 
 // ClearConfirmedFinanceCashflows clears all "confirmed_finance_cashflows" edges to the FinanceCashflow entity.
@@ -1338,6 +1374,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.RedFlushedFinanceInvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRedFlushedFinanceInvoicesIDs(); len(nodes) > 0 && !_u.mutation.RedFlushedFinanceInvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RedFlushedFinanceInvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ConfirmedFinanceCashflowsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1982,6 +2063,21 @@ func (_u *UserUpdateOne) AddCancelledFinanceInvoices(v ...*FinanceInvoice) *User
 	return _u.AddCancelledFinanceInvoiceIDs(ids...)
 }
 
+// AddRedFlushedFinanceInvoiceIDs adds the "red_flushed_finance_invoices" edge to the FinanceInvoice entity by IDs.
+func (_u *UserUpdateOne) AddRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddRedFlushedFinanceInvoiceIDs(ids...)
+	return _u
+}
+
+// AddRedFlushedFinanceInvoices adds the "red_flushed_finance_invoices" edges to the FinanceInvoice entity.
+func (_u *UserUpdateOne) AddRedFlushedFinanceInvoices(v ...*FinanceInvoice) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRedFlushedFinanceInvoiceIDs(ids...)
+}
+
 // AddConfirmedFinanceCashflowIDs adds the "confirmed_finance_cashflows" edge to the FinanceCashflow entity by IDs.
 func (_u *UserUpdateOne) AddConfirmedFinanceCashflowIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddConfirmedFinanceCashflowIDs(ids...)
@@ -2279,6 +2375,27 @@ func (_u *UserUpdateOne) RemoveCancelledFinanceInvoices(v ...*FinanceInvoice) *U
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceInvoiceIDs(ids...)
+}
+
+// ClearRedFlushedFinanceInvoices clears all "red_flushed_finance_invoices" edges to the FinanceInvoice entity.
+func (_u *UserUpdateOne) ClearRedFlushedFinanceInvoices() *UserUpdateOne {
+	_u.mutation.ClearRedFlushedFinanceInvoices()
+	return _u
+}
+
+// RemoveRedFlushedFinanceInvoiceIDs removes the "red_flushed_finance_invoices" edge to FinanceInvoice entities by IDs.
+func (_u *UserUpdateOne) RemoveRedFlushedFinanceInvoiceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveRedFlushedFinanceInvoiceIDs(ids...)
+	return _u
+}
+
+// RemoveRedFlushedFinanceInvoices removes "red_flushed_finance_invoices" edges to FinanceInvoice entities.
+func (_u *UserUpdateOne) RemoveRedFlushedFinanceInvoices(v ...*FinanceInvoice) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRedFlushedFinanceInvoiceIDs(ids...)
 }
 
 // ClearConfirmedFinanceCashflows clears all "confirmed_finance_cashflows" edges to the FinanceCashflow entity.
@@ -2992,6 +3109,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Inverse: false,
 			Table:   user.CancelledFinanceInvoicesTable,
 			Columns: []string{user.CancelledFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RedFlushedFinanceInvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRedFlushedFinanceInvoicesIDs(); len(nodes) > 0 && !_u.mutation.RedFlushedFinanceInvoicesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RedFlushedFinanceInvoicesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedFlushedFinanceInvoicesTable,
+			Columns: []string{user.RedFlushedFinanceInvoicesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),

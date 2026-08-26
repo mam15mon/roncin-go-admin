@@ -2218,6 +2218,46 @@
         }
       }
     },
+    "/api/v1/finance/invoices/{id}/red-flush": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_RedFlushInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.RedFlushInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.RedFlushInvoiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/taxable-services": {
       "get": {
         "tags": [
@@ -8489,6 +8529,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "verifiedAmount": {
+            "type": "string"
+          },
+          "unverifiedAmount": {
+            "type": "string"
           }
         }
       },
@@ -8612,6 +8658,12 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "verifiedAmount": {
+            "type": "string"
+          },
+          "unverifiedAmount": {
             "type": "string"
           }
         }
@@ -8752,6 +8804,18 @@
             "type": "string"
           },
           "updatedAt": {
+            "type": "string"
+          },
+          "redInvoiceNo": {
+            "type": "string"
+          },
+          "redInvoiceDate": {
+            "type": "string"
+          },
+          "redFlushedAt": {
+            "type": "string"
+          },
+          "redFlushReason": {
             "type": "string"
           }
         }
@@ -9250,6 +9314,54 @@
           },
           "total": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.RedFlushInvoiceRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "redInvoiceNo",
+          "redInvoiceDate",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "redInvoiceNo": {
+            "type": "string"
+          },
+          "redInvoiceDate": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.RedFlushInvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
           },
           "traceId": {
             "type": "string"

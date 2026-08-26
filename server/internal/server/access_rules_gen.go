@@ -70,6 +70,7 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.SettlementService/ListInvoices":                              {mode: accessModePermission, permission: "system.finance.invoice.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ListVerifications":                         {mode: accessModePermission, permission: "system.finance.verification.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/MarkCommissionPaid":                        {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/RedFlushInvoice":                           {mode: accessModePermission, permission: "system.finance.invoice.update", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ReverseVerification":                       {mode: accessModePermission, permission: "system.finance.verification.reverse", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/UpdateBill":                                {mode: accessModePermission, permission: "system.finance.bill.update", scope: biz.DataScopeOrganization},
 	"/masterdata.v1.MasterDataService/CreateAirline":                          {mode: accessModePermission, permission: "system.master_data.airline.create", scope: biz.DataScopeOrganization},

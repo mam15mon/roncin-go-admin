@@ -48,6 +48,8 @@ type FinanceBill struct {
 	NetAmount           decimal.Decimal
 	TaxAmount           decimal.Decimal
 	BaseCurrencyAmount  decimal.Decimal
+	VerifiedAmount      decimal.Decimal
+	UnverifiedAmount    decimal.Decimal
 	FeeCount            int
 	BillDate            string
 	DueDate             *string

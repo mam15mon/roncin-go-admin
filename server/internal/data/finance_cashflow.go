@@ -45,6 +45,9 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 		}
 		out.Items = append(out.Items, v)
 	}
+	if e = r.enrichVerificationAmounts(ctx, out.Items); e != nil {
+		return nil, e
+	}
 	return out, nil
 }
 func (r *financeCashflowRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
@@ -55,7 +58,48 @@ func (r *financeCashflowRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.
 	if e != nil {
 		return nil, e
 	}
-	return cashflowToBiz(x)
+	v, e := cashflowToBiz(x)
+	if e != nil {
+		return nil, e
+	}
+	if e = r.enrichVerificationAmounts(ctx, []*biz.FinanceCashflow{v}); e != nil {
+		return nil, e
+	}
+	return v, nil
+}
+
+func (r *financeCashflowRepo) enrichVerificationAmounts(ctx context.Context, cashflows []*biz.FinanceCashflow) error {
+	if len(cashflows) == 0 {
+		return nil
+	}
+	ids := make([]uuid.UUID, 0, len(cashflows))
+	byID := make(map[uuid.UUID]*biz.FinanceCashflow, len(cashflows))
+	for _, cashflow := range cashflows {
+		ids = append(ids, cashflow.ID)
+		byID[cashflow.ID] = cashflow
+		cashflow.VerifiedAmount = decimal.Zero
+		cashflow.UnverifiedAmount = cashflow.Amount
+	}
+	allocations, err := r.data.db.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDIn(ids...), allocation.ActiveEQ(true)).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, item := range allocations {
+		amount, err := decimal.NewFromString(item.Amount)
+		if err != nil {
+			return err
+		}
+		cashflow := byID[item.CashflowID]
+		cashflow.VerifiedAmount = cashflow.VerifiedAmount.Add(amount)
+	}
+	for _, cashflow := range cashflows {
+		cashflow.VerifiedAmount = cashflow.VerifiedAmount.Round(8)
+		cashflow.UnverifiedAmount = cashflow.Amount.Sub(cashflow.VerifiedAmount).Round(8)
+		if cashflow.UnverifiedAmount.IsNegative() {
+			cashflow.UnverifiedAmount = decimal.Zero
+		}
+	}
+	return nil
 }
 func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCashflow, error) {
 	x, e := r.data.db.FinanceCashflow.Query().Where(cash.OrganizationIDEQ(org), cash.IdempotencyKeyEQ(key)).Only(ctx)
@@ -94,7 +138,7 @@ func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
-	return cashflowToBiz(x)
+	return r.Get(ctx, v.OrganizationID, x.ID)
 }
 func (r *financeCashflowRepo) Confirm(ctx context.Context, org, id, actor uuid.UUID, v uint64, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
 	return r.transition(ctx, org, id, actor, v, "", true, a)

@@ -163,6 +163,30 @@ export default function FinanceCashflowsPage() {
       render: (_, r) => `${r.baseAmount} ${r.baseCurrency}`,
     },
     {
+      title: '已核销',
+      dataIndex: 'verifiedAmount',
+      width: 145,
+      align: 'right',
+      search: false,
+      render: (_, r) => `${r.verifiedAmount || '0.00000000'} ${r.currency}`,
+    },
+    {
+      title: '未核销',
+      dataIndex: 'unverifiedAmount',
+      width: 145,
+      align: 'right',
+      search: false,
+      render: (_, r) => (
+        <strong
+          style={{
+            color: Number(r.unverifiedAmount || 0) > 0 ? '#cf1322' : '#389e0d',
+          }}
+        >
+          {r.unverifiedAmount || '0.00000000'} {r.currency}
+        </strong>
+      ),
+    },
+    {
       title: '交易日期',
       dataIndex: 'transactionDate',
       width: 110,

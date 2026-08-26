@@ -33,6 +33,7 @@ type FinanceCashflow struct {
 	Status                                                   FinanceCashflowStatus
 	SettlementPartyName, Currency                            string
 	Amount, ExchangeRate, BaseAmount                         decimal.Decimal
+	VerifiedAmount, UnverifiedAmount                         decimal.Decimal
 	BaseCurrency, TransactionDate, OurAccount, PaymentMethod string
 	CounterpartyAccount, BankReferenceNo, Note               *string
 	Version                                                  uint64

@@ -67,6 +67,16 @@ type FinanceInvoice struct {
 	CancelledBy *uuid.UUID `json:"cancelled_by,omitempty"`
 	// CancellationReason holds the value of the "cancellation_reason" field.
 	CancellationReason *string `json:"cancellation_reason,omitempty"`
+	// RedInvoiceNo holds the value of the "red_invoice_no" field.
+	RedInvoiceNo *string `json:"red_invoice_no,omitempty"`
+	// RedInvoiceDate holds the value of the "red_invoice_date" field.
+	RedInvoiceDate *string `json:"red_invoice_date,omitempty"`
+	// RedFlushedAt holds the value of the "red_flushed_at" field.
+	RedFlushedAt *time.Time `json:"red_flushed_at,omitempty"`
+	// RedFlushedBy holds the value of the "red_flushed_by" field.
+	RedFlushedBy *uuid.UUID `json:"red_flushed_by,omitempty"`
+	// RedFlushReason holds the value of the "red_flush_reason" field.
+	RedFlushReason *string `json:"red_flush_reason,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FinanceInvoiceQuery when eager-loading is set.
 	Edges        FinanceInvoiceEdges `json:"edges"`
@@ -83,11 +93,13 @@ type FinanceInvoiceEdges struct {
 	IssuedByUser *User `json:"issued_by_user,omitempty"`
 	// CancelledByUser holds the value of the cancelled_by_user edge.
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
+	// RedFlushedByUser holds the value of the red_flushed_by_user edge.
+	RedFlushedByUser *User `json:"red_flushed_by_user,omitempty"`
 	// BillLinks holds the value of the bill_links edge.
 	BillLinks []*FinanceInvoiceBill `json:"bill_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -134,10 +146,21 @@ func (e FinanceInvoiceEdges) CancelledByUserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
 }
 
+// RedFlushedByUserOrErr returns the RedFlushedByUser value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceInvoiceEdges) RedFlushedByUserOrErr() (*User, error) {
+	if e.RedFlushedByUser != nil {
+		return e.RedFlushedByUser, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "red_flushed_by_user"}
+}
+
 // BillLinksOrErr returns the BillLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceInvoiceEdges) BillLinksOrErr() ([]*FinanceInvoiceBill, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.BillLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "bill_links"}
@@ -148,13 +171,13 @@ func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy:
+		case financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldCurrency, financeinvoice.FieldTotalAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason:
+		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldCurrency, financeinvoice.FieldTotalAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
 			values[i] = new(sql.NullString)
-		case financeinvoice.FieldCreatedAt, financeinvoice.FieldUpdatedAt, financeinvoice.FieldIssuedAt, financeinvoice.FieldCancelledAt:
+		case financeinvoice.FieldCreatedAt, financeinvoice.FieldUpdatedAt, financeinvoice.FieldIssuedAt, financeinvoice.FieldCancelledAt, financeinvoice.FieldRedFlushedAt:
 			values[i] = new(sql.NullTime)
 		case financeinvoice.FieldID, financeinvoice.FieldOrganizationID, financeinvoice.FieldSettlementPartyID:
 			values[i] = new(uuid.UUID)
@@ -325,6 +348,41 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 				_m.CancellationReason = new(string)
 				*_m.CancellationReason = value.String
 			}
+		case financeinvoice.FieldRedInvoiceNo:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field red_invoice_no", values[i])
+			} else if value.Valid {
+				_m.RedInvoiceNo = new(string)
+				*_m.RedInvoiceNo = value.String
+			}
+		case financeinvoice.FieldRedInvoiceDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field red_invoice_date", values[i])
+			} else if value.Valid {
+				_m.RedInvoiceDate = new(string)
+				*_m.RedInvoiceDate = value.String
+			}
+		case financeinvoice.FieldRedFlushedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field red_flushed_at", values[i])
+			} else if value.Valid {
+				_m.RedFlushedAt = new(time.Time)
+				*_m.RedFlushedAt = value.Time
+			}
+		case financeinvoice.FieldRedFlushedBy:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field red_flushed_by", values[i])
+			} else if value.Valid {
+				_m.RedFlushedBy = new(uuid.UUID)
+				*_m.RedFlushedBy = *value.S.(*uuid.UUID)
+			}
+		case financeinvoice.FieldRedFlushReason:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field red_flush_reason", values[i])
+			} else if value.Valid {
+				_m.RedFlushReason = new(string)
+				*_m.RedFlushReason = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -356,6 +414,11 @@ func (_m *FinanceInvoice) QueryIssuedByUser() *UserQuery {
 // QueryCancelledByUser queries the "cancelled_by_user" edge of the FinanceInvoice entity.
 func (_m *FinanceInvoice) QueryCancelledByUser() *UserQuery {
 	return NewFinanceInvoiceClient(_m.config).QueryCancelledByUser(_m)
+}
+
+// QueryRedFlushedByUser queries the "red_flushed_by_user" edge of the FinanceInvoice entity.
+func (_m *FinanceInvoice) QueryRedFlushedByUser() *UserQuery {
+	return NewFinanceInvoiceClient(_m.config).QueryRedFlushedByUser(_m)
 }
 
 // QueryBillLinks queries the "bill_links" edge of the FinanceInvoice entity.
@@ -468,6 +531,31 @@ func (_m *FinanceInvoice) String() string {
 	builder.WriteString(", ")
 	if v := _m.CancellationReason; v != nil {
 		builder.WriteString("cancellation_reason=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RedInvoiceNo; v != nil {
+		builder.WriteString("red_invoice_no=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RedInvoiceDate; v != nil {
+		builder.WriteString("red_invoice_date=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.RedFlushedAt; v != nil {
+		builder.WriteString("red_flushed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.RedFlushedBy; v != nil {
+		builder.WriteString("red_flushed_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.RedFlushReason; v != nil {
+		builder.WriteString("red_flush_reason=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

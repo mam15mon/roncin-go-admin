@@ -1148,6 +1148,8 @@ declare namespace API {
     lines?: FinanceBillLine[];
     createdAt?: string;
     updatedAt?: string;
+    verifiedAmount?: string;
+    unverifiedAmount?: string;
   };
 
   type FinanceBillLine = {
@@ -1192,6 +1194,8 @@ declare namespace API {
     cancellationReason?: string;
     createdAt?: string;
     updatedAt?: string;
+    verifiedAmount?: string;
+    unverifiedAmount?: string;
   };
 
   type FinanceCommission = {
@@ -1240,6 +1244,10 @@ declare namespace API {
     billLinks?: FinanceInvoiceBill[];
     createdAt?: string;
     updatedAt?: string;
+    redInvoiceNo?: string;
+    redInvoiceDate?: string;
+    redFlushedAt?: string;
+    redFlushReason?: string;
   };
 
   type FinanceInvoiceBill = {
@@ -2994,6 +3002,22 @@ declare namespace API {
     traceId?: string;
   };
 
+  type RedFlushInvoiceRequest = {
+    id: string;
+    expectedVersion: string;
+    redInvoiceNo: string;
+    redInvoiceDate: string;
+    reason: string;
+  };
+
+  type RedFlushInvoiceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice;
+    traceId?: string;
+  };
+
   type RegisterAttachmentRequest = {
     orderId: string;
     docType: string;
@@ -3313,6 +3337,10 @@ declare namespace API {
   };
 
   type SettlementServiceMarkCommissionPaidParams = {
+    id: string;
+  };
+
+  type SettlementServiceRedFlushInvoiceParams = {
     id: string;
   };
 

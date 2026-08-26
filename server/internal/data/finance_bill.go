@@ -68,6 +68,9 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 		}
 		result.Items = append(result.Items, converted)
 	}
+	if err := r.enrichVerificationAmounts(ctx, result.Items); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -80,7 +83,48 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID)
 	if err != nil {
 		return nil, err
 	}
-	return financeBillToBiz(item)
+	converted, err := financeBillToBiz(item)
+	if err != nil {
+		return nil, err
+	}
+	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}); err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills []*biz.FinanceBill) error {
+	if len(bills) == 0 {
+		return nil
+	}
+	ids := make([]uuid.UUID, 0, len(bills))
+	byID := make(map[uuid.UUID]*biz.FinanceBill, len(bills))
+	for _, bill := range bills {
+		ids = append(ids, bill.ID)
+		byID[bill.ID] = bill
+		bill.VerifiedAmount = decimal.Zero
+		bill.UnverifiedAmount = bill.TotalAmount
+	}
+	allocations, err := r.data.db.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDIn(ids...), verificationallocationent.ActiveEQ(true)).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, allocation := range allocations {
+		amount, err := decimal.NewFromString(allocation.Amount)
+		if err != nil {
+			return err
+		}
+		bill := byID[allocation.BillID]
+		bill.VerifiedAmount = bill.VerifiedAmount.Add(amount)
+	}
+	for _, bill := range bills {
+		bill.VerifiedAmount = bill.VerifiedAmount.Round(8)
+		bill.UnverifiedAmount = bill.TotalAmount.Sub(bill.VerifiedAmount).Round(8)
+		if bill.UnverifiedAmount.IsNegative() {
+			bill.UnverifiedAmount = decimal.Zero
+		}
+	}
+	return nil
 }
 
 func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*biz.FinanceBill, error) {
