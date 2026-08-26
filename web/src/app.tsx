@@ -20,6 +20,8 @@ const publicAuthPaths = new Set([
 ]);
 const layoutSettings = defaultSettings as Partial<LayoutSettings>;
 
+import { DEV_MOCK_USER, isDevMockEnabled } from '@/utils/devMockUser';
+
 export interface InitialState {
   settings?: Partial<LayoutSettings>;
   currentUser?: API.CurrentUser;
@@ -28,21 +30,39 @@ export interface InitialState {
 
 export async function getInitialState(): Promise<InitialState> {
   const fetchUserInfo = async () => {
-    const response = await authServiceMe({ skipErrorHandler: true });
-    return response.data;
+    try {
+      const response = await authServiceMe({ skipErrorHandler: true });
+      return response.data;
+    } catch (error) {
+      if (isDevMockEnabled()) {
+        return DEV_MOCK_USER;
+      }
+      throw error;
+    }
   };
 
   if (publicAuthPaths.has(history.location.pathname)) {
+    if (isDevMockEnabled()) {
+      return { fetchUserInfo, currentUser: DEV_MOCK_USER, settings: layoutSettings };
+    }
     return { fetchUserInfo, settings: layoutSettings };
   }
 
   try {
+    const user = await fetchUserInfo();
     return {
       fetchUserInfo,
-      currentUser: await fetchUserInfo(),
+      currentUser: user,
       settings: layoutSettings,
     };
   } catch {
+    if (isDevMockEnabled()) {
+      return {
+        fetchUserInfo,
+        currentUser: DEV_MOCK_USER,
+        settings: layoutSettings,
+      };
+    }
     const { pathname, search, hash } = history.location;
     history.replace(
       `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,

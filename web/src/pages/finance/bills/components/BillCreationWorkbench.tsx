@@ -1,8 +1,10 @@
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
+  DeleteOutlined,
   FileDoneOutlined,
   ReloadOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -10,6 +12,7 @@ import { history, useAccess } from '@umijs/max';
 import {
   Alert,
   App,
+  AutoComplete,
   Button,
   Card,
   Col,
@@ -20,6 +23,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Popconfirm,
   Result,
   Row,
   Space,
@@ -30,10 +34,10 @@ import {
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  settlementServiceCreateBillBatch,
   settlementServiceConfirmBillBatch,
+  settlementServiceCreateBillBatch,
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
@@ -63,80 +67,6 @@ export type BillCreationWorkbenchProps = {
   onClose: () => void;
   onCreated?: (batch: API.FinanceBillBatch) => void;
 };
-
-const feeColumns: ProColumns<API.FeeLedgerItem>[] = [
-  {
-    title: '订单编号',
-    dataIndex: 'orderNo',
-    width: 150,
-    copyable: true,
-    search: false,
-  },
-  {
-    title: '方向',
-    dataIndex: 'direction',
-    width: 75,
-    valueType: 'select',
-    search: false,
-    valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
-    render: (_, row) => (
-      <Tag color={row.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
-        {row.direction === 'RECEIVABLE' ? '应收' : '应付'}
-      </Tag>
-    ),
-  },
-  {
-    title: '结算单位',
-    dataIndex: 'settlementPartyName',
-    width: 210,
-    ellipsis: true,
-    search: false,
-  },
-  { title: '费用名称', dataIndex: 'feeName', width: 140, search: false },
-  {
-    title: '税率',
-    dataIndex: 'taxRate',
-    width: 85,
-    align: 'right',
-    search: false,
-    renderText: (value) => (value == null ? '-' : `${Number(value)}%`),
-  },
-  {
-    title: '金额',
-    dataIndex: 'totalAmount',
-    width: 150,
-    align: 'right',
-    search: false,
-    render: (_, row) => (
-      <Text strong>
-        {row.totalAmount} {row.currency}
-      </Text>
-    ),
-  },
-  {
-    title: '费用日期',
-    dataIndex: 'expenseDate',
-    width: 115,
-    search: false,
-  },
-];
-
-const selectionFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
-  {
-    title: '关键词',
-    dataIndex: 'keyword',
-    hideInTable: true,
-    fieldProps: { placeholder: '订单号、费用或结算单位' },
-  },
-  {
-    title: '方向',
-    dataIndex: 'direction',
-    hideInTable: true,
-    valueType: 'select',
-    valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
-  },
-  ...feeColumns,
-];
 
 function directionText(value?: string) {
   return value === 'RECEIVABLE' ? '应收' : '应付';
@@ -177,10 +107,61 @@ export default function BillCreationWorkbench({
   const initialFeeKey = initialFeeIds.join('|');
   const fixedSelection = initialFeeIds.length > 0;
 
+  const selectedIds = useMemo(
+    () => selectedFeeIds.map(String),
+    [selectedFeeIds],
+  );
+
+  const loadPreview = useCallback(
+    async (
+      overrideIds?: string[],
+      policyOverride?: { splitByOrder: boolean; splitByTaxRate: boolean },
+    ) => {
+      const ids = overrideIds ?? selectedIds;
+      if (ids.length === 0) {
+        message.warning('请至少选择一笔已确认费用');
+        return false;
+      }
+      setLoading(true);
+      try {
+        const policy = policyOverride ?? { splitByOrder, splitByTaxRate };
+        const response = await settlementServicePreviewBillBatch(
+          {
+            feeIds: ids,
+            groupingPolicy: policy,
+          },
+          { skipErrorHandler: true },
+        );
+        const groups = response.data || [];
+        if (!response.previewToken || groups.length === 0) {
+          throw new Error('服务端未返回有效的拆单预览');
+        }
+        setPreview(response);
+        form.setFieldsValue({
+          groups: groups.map((group) => ({
+            statementTitle: group.settlementPartyName || '',
+            billDate: dayjs(),
+            paymentTermsDays: undefined,
+            note: undefined,
+          })),
+        });
+        return true;
+      } catch (rawError: unknown) {
+        const error = rawError as RequestError;
+        message.error(requestMessage(error, '拆单预览失败'));
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [form, message, selectedIds, splitByOrder, splitByTaxRate],
+  );
+
+  // 初始化或当从业务页面进入时，自动快速预览并直达账单资料页
   useEffect(() => {
     if (!open) return;
-    setCurrent(0);
-    setSelectedFeeIds(initialFeeKey ? initialFeeKey.split('|') : []);
+    const initialIds = initialFeeKey ? initialFeeKey.split('|') : [];
+    setSelectedFeeIds(initialIds);
     setSplitByOrder(false);
     setSplitByTaxRate(false);
     setPreview(undefined);
@@ -189,49 +170,143 @@ export default function BillCreationWorkbench({
     setConfirming(false);
     setIdempotencyKey(globalThis.crypto.randomUUID());
     form.resetFields();
-  }, [form, open, initialFeeKey]);
 
-  const selectedIds = useMemo(
-    () => selectedFeeIds.map(String),
-    [selectedFeeIds],
-  );
-
-  const loadPreview = async () => {
-    if (selectedIds.length === 0) {
-      message.warning('请至少选择一笔已确认费用');
-      return false;
-    }
-    setLoading(true);
-    try {
-      const response = await settlementServicePreviewBillBatch(
-        {
-          feeIds: selectedIds,
-          groupingPolicy: { splitByOrder, splitByTaxRate },
-        },
-        { skipErrorHandler: true },
-      );
-      const groups = response.data || [];
-      if (!response.previewToken || groups.length === 0) {
-        throw new Error('服务端未返回有效的拆单预览');
-      }
-      setPreview(response);
-      form.setFieldsValue({
-        groups: groups.map((group) => ({
-          statementTitle: group.settlementPartyName || '',
-          billDate: dayjs(),
-          paymentTermsDays: undefined,
-          note: undefined,
-        })),
+    if (initialIds.length > 0) {
+      // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
+      void loadPreview(initialIds, {
+        splitByOrder: false,
+        splitByTaxRate: false,
+      }).then((ok) => {
+        if (ok) setCurrent(2);
       });
-      return true;
-    } catch (rawError: unknown) {
-      const error = rawError as RequestError;
-      message.error(requestMessage(error, '拆单预览失败'));
-      return false;
-    } finally {
-      setLoading(false);
+    } else {
+      setCurrent(0);
     }
+  }, [open, initialFeeKey, form, loadPreview]);
+
+  // 从预览明细中即时剔除误选行
+  const handleRemoveFee = async (feeId?: string) => {
+    if (!feeId) return;
+    const nextIds = selectedIds.filter((id) => id !== feeId);
+    if (nextIds.length === 0) {
+      message.info('已移除所有费用，请重新选择');
+      setSelectedFeeIds([]);
+      setPreview(undefined);
+      setCurrent(0);
+      return;
+    }
+    setSelectedFeeIds(nextIds);
+    message.success('已从本次建单中移除该费用');
+    await loadPreview(nextIds);
   };
+
+  const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
+    {
+      title: '订单编号',
+      dataIndex: 'orderNo',
+      width: 140,
+      copyable: true,
+      search: false,
+    },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      width: 70,
+      valueType: 'select',
+      search: false,
+      valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
+      render: (_, row) => (
+        <Tag color={row.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
+          {row.direction === 'RECEIVABLE' ? '应收' : '应付'}
+        </Tag>
+      ),
+    },
+    {
+      title: '结算单位',
+      dataIndex: 'settlementPartyName',
+      width: 180,
+      ellipsis: true,
+      search: false,
+    },
+    { title: '费用名称', dataIndex: 'feeName', width: 130, search: false },
+    {
+      title: '税率',
+      dataIndex: 'taxRate',
+      width: 75,
+      align: 'right',
+      search: false,
+      renderText: (value) => (value == null ? '-' : `${Number(value)}%`),
+    },
+    {
+      title: '金额',
+      dataIndex: 'totalAmount',
+      width: 140,
+      align: 'right',
+      search: false,
+      render: (_, row) => (
+        <Text strong>
+          {row.totalAmount} {row.currency}
+        </Text>
+      ),
+    },
+    {
+      title: '费用日期',
+      dataIndex: 'expenseDate',
+      width: 110,
+      search: false,
+    },
+  ];
+
+  const selectionFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
+    {
+      title: '关键词',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      fieldProps: { placeholder: '订单号、费用或结算单位' },
+    },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      hideInTable: true,
+      valueType: 'select',
+      valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
+    },
+    ...baseFeeColumns,
+  ];
+
+  const getPreviewFeeColumns = (
+    canRemove = true,
+  ): ProColumns<API.FeeLedgerItem>[] => [
+    ...baseFeeColumns.filter((col) => col.dataIndex !== 'direction'),
+    ...(canRemove
+      ? [
+          {
+            title: '操作',
+            width: 75,
+            align: 'center' as const,
+            search: false,
+            render: (_: unknown, row: API.FeeLedgerItem) => (
+              <Popconfirm
+                title="确认将该笔费用移出本次建单？"
+                onConfirm={() => void handleRemoveFee(row.id)}
+                okText="移出"
+                cancelText="取消"
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  style={{ padding: 0 }}
+                >
+                  移出
+                </Button>
+              </Popconfirm>
+            ),
+          },
+        ]
+      : []),
+  ];
 
   const next = async () => {
     if (current === 0) {
@@ -473,28 +548,74 @@ export default function BillCreationWorkbench({
 
       {current === 2 && preview?.data && (
         <Form form={form} layout="vertical">
-          <Alert
-            type="success"
-            showIcon
-            style={{ marginBottom: 16 }}
-            message={`服务端已拆分为 ${preview.data.length} 张账单`}
-            description="提交时将再次锁定费用并校验快照；任何一笔费用变化，整个批次都不会部分落库。"
-            action={
-              <Button
-                size="small"
-                icon={<ReloadOutlined />}
-                loading={loading}
-                onClick={() => void loadPreview()}
-              >
-                重新预览
-              </Button>
-            }
-          />
+          <Card
+            size="small"
+            style={{ marginBottom: 16, background: '#fafafa', border: '1px solid #f0f0f0' }}
+          >
+            <Row justify="space-between" align="middle" gutter={[16, 8]}>
+              <Col xs={24} md={16}>
+                <Space size="large" wrap>
+                  <Space>
+                    <SettingOutlined style={{ color: '#1677ff' }} />
+                    <Text strong>拆单策略微调：</Text>
+                  </Space>
+                  <Space>
+                    <Text type="secondary">按订单拆分：</Text>
+                    <Switch
+                      size="small"
+                      checked={splitByOrder}
+                      onChange={async (checked) => {
+                        setSplitByOrder(checked);
+                        await loadPreview(undefined, {
+                          splitByOrder: checked,
+                          splitByTaxRate,
+                        });
+                      }}
+                    />
+                  </Space>
+                  <Space>
+                    <Text type="secondary">按税率拆分：</Text>
+                    <Switch
+                      size="small"
+                      checked={splitByTaxRate}
+                      onChange={async (checked) => {
+                        setSplitByTaxRate(checked);
+                        await loadPreview(undefined, {
+                          splitByOrder,
+                          splitByTaxRate: checked,
+                        });
+                      }}
+                    />
+                  </Space>
+                </Space>
+              </Col>
+              <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                <Space>
+                  <Tag color="blue">
+                    共 {preview.data.length} 张拟生成账单
+                  </Tag>
+                  <Button
+                    size="small"
+                    icon={<ReloadOutlined />}
+                    loading={loading}
+                    onClick={() => void loadPreview()}
+                  >
+                    刷新快照
+                  </Button>
+                </Space>
+              </Col>
+            </Row>
+          </Card>
+
           {preview.data.map((group, index) => (
             <Card
               key={group.groupKey}
               size="small"
-              style={{ marginBottom: 16 }}
+              style={{
+                marginBottom: 16,
+                border: '1px solid #e8e8e8',
+                borderRadius: 6,
+              }}
               title={
                 <Space wrap>
                   <Tag
@@ -504,22 +625,23 @@ export default function BillCreationWorkbench({
                   >
                     {directionText(group.direction)}
                   </Tag>
-                  <span>{group.settlementPartyName}</span>
+                  <span style={{ fontWeight: 600 }}>{group.settlementPartyName}</span>
                   <Text type="secondary">
                     {group.orderNo ? `订单 ${group.orderNo}` : '多订单汇总'}
                   </Text>
                   {group.taxRate != null && (
                     <Tag>{Number(group.taxRate)}% 税率</Tag>
                   )}
+                  <Tag color="geekblue">{group.fees?.length || 0} 笔费用</Tag>
                 </Space>
               }
               extra={
-                <Text strong>
+                <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
                   {group.totalAmount} {group.currency}
                 </Text>
               }
             >
-              <Row gutter={16}>
+              <Row gutter={16} style={{ marginBottom: 8 }}>
                 <Col xs={24} md={8}>
                   <Form.Item
                     name={['groups', index, 'statementTitle']}
@@ -533,7 +655,12 @@ export default function BillCreationWorkbench({
                       { max: 200, message: '对账抬头不能超过 200 字' },
                     ]}
                   >
-                    <Input maxLength={200} />
+                    <AutoComplete
+                      options={[
+                        { value: group.settlementPartyName || '' },
+                      ]}
+                      placeholder="输入或选择对账抬头"
+                    />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={5}>
@@ -548,12 +675,13 @@ export default function BillCreationWorkbench({
                 <Col xs={24} md={4}>
                   <Form.Item
                     name={['groups', index, 'paymentTermsDays']}
-                    label="账期（天，可选）"
+                    label="账期（天）"
                   >
                     <InputNumber
                       min={0}
                       max={3650}
                       precision={0}
+                      placeholder="天数"
                       style={{ width: '100%' }}
                     />
                   </Form.Item>
@@ -564,7 +692,7 @@ export default function BillCreationWorkbench({
                     label="备注"
                     rules={[{ max: 500, message: '备注不能超过 500 字' }]}
                   >
-                    <Input maxLength={500} />
+                    <Input maxLength={500} placeholder="选填，账单备注" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -576,11 +704,9 @@ export default function BillCreationWorkbench({
                 options={false}
                 toolBarRender={false}
                 pagination={false}
-                columns={feeColumns.filter(
-                  (column) => column.dataIndex !== 'direction',
-                )}
+                columns={getPreviewFeeColumns(true)}
                 dataSource={group.fees || []}
-                scroll={{ x: 850 }}
+                scroll={{ x: 880 }}
               />
             </Card>
           ))}

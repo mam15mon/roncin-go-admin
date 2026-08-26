@@ -5,7 +5,6 @@ import {
   DollarOutlined,
   DownOutlined,
   FileDoneOutlined,
-  LockOutlined,
   ReloadOutlined,
   SaveOutlined,
   UndoOutlined,
