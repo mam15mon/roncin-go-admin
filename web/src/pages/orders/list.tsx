@@ -115,12 +115,12 @@ import {
   formatMasterDocumentType,
   formatMasterReleaseMethod,
   formatHouseReleaseType,
-  OrderContainerRequestFields,
   OrderShippingDocumentFields,
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
   SEA_MASTER_RELEASE_METHOD_OPTIONS,
 } from './order-plan-fields';
+import { SeaContainerPlanFields } from './templates/sea-template';
 
 const { Text } = Typography;
 
@@ -625,14 +625,16 @@ export default function OrderListPage() {
       dataIndex: 'masterDocumentType',
       width: 170,
       hideInTable: config.category !== 'sea',
-      render: (_, record) => formatMasterDocumentType(record.masterDocumentType),
+      render: (_, record) =>
+        formatMasterDocumentType(record.masterDocumentType),
     },
     {
       title: '主单签放方式',
       dataIndex: 'masterReleaseMethod',
       width: 170,
       hideInTable: config.category !== 'sea',
-      render: (_, record) => formatMasterReleaseMethod(record.masterReleaseMethod),
+      render: (_, record) =>
+        formatMasterReleaseMethod(record.masterReleaseMethod),
     },
     {
       title: '分单签放方式',
@@ -693,7 +695,8 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 160,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'shipping_document.update')) return null;
+        if (!access.canOrder(config.businessType, 'shipping_document.update'))
+          return null;
         return (
           <Space size="small">
             <Button
@@ -778,10 +781,12 @@ export default function OrderListPage() {
       width: 180,
       ellipsis: true,
       render: (_, record) =>
-        record.shippingDocumentId
-          ? containerDocumentMap[record.shippingDocumentId] ||
-            record.shippingDocumentId
-          : <Text type="secondary">未关联</Text>,
+        record.shippingDocumentId ? (
+          containerDocumentMap[record.shippingDocumentId] ||
+          record.shippingDocumentId
+        ) : (
+          <Text type="secondary">未关联</Text>
+        ),
     },
     {
       title: '铅封号',
@@ -823,7 +828,8 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 120,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'container.update')) return null;
+        if (!access.canOrder(config.businessType, 'container.update'))
+          return null;
         return (
           <Space size="small">
             <Button
@@ -910,7 +916,8 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 120,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'cargo_item.update')) return null;
+        if (!access.canOrder(config.businessType, 'cargo_item.update'))
+          return null;
         return (
           <Space size="small">
             <Button
@@ -960,7 +967,8 @@ export default function OrderListPage() {
       valueType: 'select',
       valueEnum: orderPersonnelRoleValueEnum,
       render: (_, record) =>
-        record.role !== undefined && orderPersonnelRoleValueEnum[record.role] ? (
+        record.role !== undefined &&
+        orderPersonnelRoleValueEnum[record.role] ? (
           <Tag color="blue" bordered={false}>
             {orderPersonnelRoleValueEnum[record.role]?.text}
           </Tag>
@@ -983,7 +991,8 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 80,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'personnel.remove')) return null;
+        if (!access.canOrder(config.businessType, 'personnel.remove'))
+          return null;
         return (
           <Popconfirm
             title="确定移除该协作人员？"
@@ -1041,9 +1050,7 @@ export default function OrderListPage() {
       copyable: true,
       ellipsis: true,
       render: (key) => (
-        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
-          {key}
-        </Text>
+        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{key}</Text>
       ),
     },
     {
@@ -1294,12 +1301,16 @@ export default function OrderListPage() {
               icon: <FileTextOutlined />,
               onClick: () => openShippingDocuments(record),
             },
-            {
-              key: 'containers',
-              label: '集装箱管理',
-              icon: <ContainerOutlined />,
-              onClick: () => openContainers(record),
-            },
+            ...(record.shipmentType === 1
+              ? [
+                  {
+                    key: 'containers',
+                    label: '集装箱管理',
+                    icon: <ContainerOutlined />,
+                    onClick: () => openContainers(record),
+                  },
+                ]
+              : []),
             {
               key: 'cargo',
               label: '货物明细',
@@ -1323,28 +1334,31 @@ export default function OrderListPage() {
 
         return (
           <Space size={8}>
-            {access.canOrder(config.businessType, 'update') && record.canModify && record.status === 'DRAFT' && (
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                style={{ padding: 0 }}
-                onClick={() => openEdit(record)}
-              >
-                编辑
-              </Button>
-            )}
-            {access.canOrder(config.businessType, 'transition') && record.canModify && (
-              <Button
-                type="link"
-                size="small"
-                icon={<SwapOutlined />}
-                style={{ padding: 0 }}
-                onClick={() => openTransition(record)}
-              >
-                流转
-              </Button>
-            )}
+            {access.canOrder(config.businessType, 'update') &&
+              record.canModify &&
+              record.status === 'DRAFT' && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  style={{ padding: 0 }}
+                  onClick={() => openEdit(record)}
+                >
+                  编辑
+                </Button>
+              )}
+            {access.canOrder(config.businessType, 'transition') &&
+              record.canModify && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<SwapOutlined />}
+                  style={{ padding: 0 }}
+                  onClick={() => openTransition(record)}
+                >
+                  流转
+                </Button>
+              )}
             {access.canOrder(config.businessType, 'fee.read') && (
               <Button
                 type="link"
@@ -1536,7 +1550,7 @@ export default function OrderListPage() {
           transportMode={config.category === 'air' ? 'air' : 'sea'}
         />
         {config.category === 'sea' && (
-          <OrderContainerRequestFields options={containerSpecOptions} />
+          <SeaContainerPlanFields options={containerSpecOptions} />
         )}
         <ProFormSelect
           colProps={{ span: 12 }}
@@ -2361,7 +2375,10 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canOrder(config.businessType, 'shipping_document.create') && (
+              access.canOrder(
+                config.businessType,
+                'shipping_document.create',
+              ) && (
                 <Button
                   key="create"
                   type="primary"
@@ -2384,8 +2401,7 @@ export default function OrderListPage() {
           editingShippingDocument
             ? {
                 masterNo: editingShippingDocument.masterNo,
-                masterDocumentType:
-                  editingShippingDocument.masterDocumentType,
+                masterDocumentType: editingShippingDocument.masterDocumentType,
                 masterReleaseMethod:
                   editingShippingDocument.masterReleaseMethod,
                 houseNo: editingShippingDocument.houseNo,

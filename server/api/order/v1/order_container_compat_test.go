@@ -13,6 +13,27 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 		expected map[protoreflect.Name]protoreflect.FieldNumber
 	}{
 		{
+			name:    "Order",
+			message: (&Order{}).ProtoReflect().Descriptor(),
+			expected: map[protoreflect.Name]protoreflect.FieldNumber{
+				"loading_terms": 50, "container_requests": 58, "declaration_cutoff_at": 59,
+			},
+		},
+		{
+			name:    "CreateOrderRequest",
+			message: (&CreateOrderRequest{}).ProtoReflect().Descriptor(),
+			expected: map[protoreflect.Name]protoreflect.FieldNumber{
+				"loading_terms": 44, "container_requests": 51, "declaration_cutoff_at": 52,
+			},
+		},
+		{
+			name:    "UpdateOrderRequest",
+			message: (&UpdateOrderRequest{}).ProtoReflect().Descriptor(),
+			expected: map[protoreflect.Name]protoreflect.FieldNumber{
+				"loading_terms": 45, "container_requests": 51, "declaration_cutoff_at": 52,
+			},
+		},
+		{
 			name:    "OrderContainer",
 			message: (&OrderContainer{}).ProtoReflect().Descriptor(),
 			expected: map[protoreflect.Name]protoreflect.FieldNumber{
@@ -51,5 +72,14 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestShipmentModeNumbersRemainCompatible(t *testing.T) {
+	if ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING != 1 {
+		t.Fatalf("传统货代模式枚举值应为 1，实际为 %d", ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING)
+	}
+	if ShipmentMode_SHIPMENT_MODE_CROSS_BORDER != 2 {
+		t.Fatalf("跨境模式枚举值应为 2，实际为 %d", ShipmentMode_SHIPMENT_MODE_CROSS_BORDER)
 	}
 }

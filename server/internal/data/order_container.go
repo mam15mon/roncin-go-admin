@@ -21,12 +21,20 @@ func NewOrderContainerRepo(data *Data) biz.OrderContainerRepo {
 	return &orderContainerRepo{data: data}
 }
 
-func (r *orderContainerRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
-	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+func (r *orderContainerRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) (*ent.Order, error) {
+	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
 		if ent.IsNotFound(err) {
-			return biz.ErrOrderContainerNotFound
+			return nil, biz.ErrOrderContainerNotFound
 		}
-		return err
+		return nil, err
+	}
+	return item, nil
+}
+
+func validateOrderSupportsContainers(item *ent.Order) error {
+	if item.ShipmentType == nil || *item.ShipmentType != orderent.ShipmentTypeFCL {
+		return biz.ErrOrderContainerShipmentType
 	}
 	return nil
 }
@@ -50,7 +58,7 @@ func (r *orderContainerRepo) validateContainerSpec(ctx context.Context, organiza
 }
 
 func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderContainer, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
 	items, err := r.data.db.OrderContainer.Query().
@@ -68,7 +76,11 @@ func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID u
 }
 
 func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+	item, err := r.order(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOrderSupportsContainers(item); err != nil {
 		return nil, err
 	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
@@ -136,7 +148,11 @@ func (r *orderContainerRepo) validateShippingDocument(ctx context.Context, order
 }
 
 func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+	order, err := r.order(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateOrderSupportsContainers(order); err != nil {
 		return nil, err
 	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
@@ -202,7 +218,7 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 }
 
 func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
 	tx, err := r.data.db.Tx(ctx)

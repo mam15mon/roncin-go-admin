@@ -372,22 +372,22 @@ func (ContainerOwnership) EnumDescriptor() ([]byte, []int) {
 type ShipmentMode int32
 
 const (
-	ShipmentMode_SHIPMENT_MODE_UNSPECIFIED   ShipmentMode = 0
-	ShipmentMode_SHIPMENT_MODE_CONSOLIDATION ShipmentMode = 1
-	ShipmentMode_SHIPMENT_MODE_CROSS_BORDER  ShipmentMode = 2
+	ShipmentMode_SHIPMENT_MODE_UNSPECIFIED            ShipmentMode = 0
+	ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING ShipmentMode = 1
+	ShipmentMode_SHIPMENT_MODE_CROSS_BORDER           ShipmentMode = 2
 )
 
 // Enum value maps for ShipmentMode.
 var (
 	ShipmentMode_name = map[int32]string{
 		0: "SHIPMENT_MODE_UNSPECIFIED",
-		1: "SHIPMENT_MODE_CONSOLIDATION",
+		1: "SHIPMENT_MODE_TRADITIONAL_FORWARDING",
 		2: "SHIPMENT_MODE_CROSS_BORDER",
 	}
 	ShipmentMode_value = map[string]int32{
-		"SHIPMENT_MODE_UNSPECIFIED":   0,
-		"SHIPMENT_MODE_CONSOLIDATION": 1,
-		"SHIPMENT_MODE_CROSS_BORDER":  2,
+		"SHIPMENT_MODE_UNSPECIFIED":            0,
+		"SHIPMENT_MODE_TRADITIONAL_FORWARDING": 1,
+		"SHIPMENT_MODE_CROSS_BORDER":           2,
 	}
 )
 
@@ -529,6 +529,7 @@ type Order struct {
 	OperationNotes        *string                  `protobuf:"bytes,56,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
 	ShippingDocuments     []*OrderShippingDocument `protobuf:"bytes,57,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
 	ContainerRequests     []*OrderContainerRequest `protobuf:"bytes,58,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
+	DeclarationCutoffAt   *string                  `protobuf:"bytes,59,opt,name=declaration_cutoff_at,json=declarationCutoffAt,proto3,oneof" json:"declaration_cutoff_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -967,6 +968,13 @@ func (x *Order) GetContainerRequests() []*OrderContainerRequest {
 		return x.ContainerRequests
 	}
 	return nil
+}
+
+func (x *Order) GetDeclarationCutoffAt() string {
+	if x != nil && x.DeclarationCutoffAt != nil {
+		return *x.DeclarationCutoffAt
+	}
+	return ""
 }
 
 // OrderShippingDocumentInput 订单表单中的主分单输入。
@@ -1937,6 +1945,7 @@ type CreateOrderRequest struct {
 	PersonnelAssignments  []*OrderPersonnelAssignmentInput `protobuf:"bytes,49,rep,name=personnel_assignments,json=personnelAssignments,proto3" json:"personnel_assignments,omitempty"`
 	ShippingDocuments     []*OrderShippingDocumentInput    `protobuf:"bytes,50,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
 	ContainerRequests     []*OrderContainerRequestInput    `protobuf:"bytes,51,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
+	DeclarationCutoffAt   *string                          `protobuf:"bytes,52,opt,name=declaration_cutoff_at,json=declarationCutoffAt,proto3,oneof" json:"declaration_cutoff_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -2328,6 +2337,13 @@ func (x *CreateOrderRequest) GetContainerRequests() []*OrderContainerRequestInpu
 	return nil
 }
 
+func (x *CreateOrderRequest) GetDeclarationCutoffAt() string {
+	if x != nil && x.DeclarationCutoffAt != nil {
+		return *x.DeclarationCutoffAt
+	}
+	return ""
+}
+
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState        `protogen:"open.v1"`
@@ -2382,6 +2398,7 @@ type UpdateOrderRequest struct {
 	OperationNotes        *string                       `protobuf:"bytes,49,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
 	ShippingDocuments     []*OrderShippingDocumentInput `protobuf:"bytes,50,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
 	ContainerRequests     []*OrderContainerRequestInput `protobuf:"bytes,51,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
+	DeclarationCutoffAt   *string                       `protobuf:"bytes,52,opt,name=declaration_cutoff_at,json=declarationCutoffAt,proto3,oneof" json:"declaration_cutoff_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -2771,6 +2788,13 @@ func (x *UpdateOrderRequest) GetContainerRequests() []*OrderContainerRequestInpu
 		return x.ContainerRequests
 	}
 	return nil
+}
+
+func (x *UpdateOrderRequest) GetDeclarationCutoffAt() string {
+	if x != nil && x.DeclarationCutoffAt != nil {
+		return *x.DeclarationCutoffAt
+	}
+	return ""
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。
@@ -3405,7 +3429,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\x1a&order/v1/order_shipping_document.proto\"\xcd\x1a\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\x1a&order/v1/order_shipping_document.proto\"\xa0\x1b\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -3478,7 +3502,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x10allocation_notes\x187 \x01(\tH&R\x0fallocationNotes\x88\x01\x01\x12,\n" +
 	"\x0foperation_notes\x188 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12N\n" +
 	"\x12shipping_documents\x189 \x03(\v2\x1f.order.v1.OrderShippingDocumentR\x11shippingDocuments\x12N\n" +
-	"\x12container_requests\x18: \x03(\v2\x1f.order.v1.OrderContainerRequestR\x11containerRequestsB\r\n" +
+	"\x12container_requests\x18: \x03(\v2\x1f.order.v1.OrderContainerRequestR\x11containerRequests\x127\n" +
+	"\x15declaration_cutoff_at\x18; \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -3520,7 +3545,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xf8\x02\n" +
+	"\x10_operation_notesB\x18\n" +
+	"\x16_declaration_cutoff_at\"\xf8\x02\n" +
 	"\x1aOrderShippingDocumentInput\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12 \n" +
 	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x12\x1e\n" +
@@ -3610,7 +3636,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xea\x19\n" +
+	"\t_order_no\"\xbd\x1a\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -3673,7 +3699,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0foperation_notes\x180 \x01(\tH'R\x0eoperationNotes\x88\x01\x01\x12\\\n" +
 	"\x15personnel_assignments\x181 \x03(\v2'.order.v1.OrderPersonnelAssignmentInputR\x14personnelAssignments\x12S\n" +
 	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
-	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequestsB\r\n" +
+	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequests\x127\n" +
+	"\x15declaration_cutoff_at\x184 \x01(\tH(R\x13declarationCutoffAt\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -3715,7 +3742,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xf2\x19\n" +
+	"\x10_operation_notesB\x18\n" +
+	"\x16_declaration_cutoff_at\"\xc5\x1a\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12$\n" +
@@ -3778,7 +3806,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x10allocation_notes\x180 \x01(\tH+R\x0fallocationNotes\x88\x01\x01\x12,\n" +
 	"\x0foperation_notes\x181 \x01(\tH,R\x0eoperationNotes\x88\x01\x01\x12S\n" +
 	"\x12shipping_documents\x182 \x03(\v2$.order.v1.OrderShippingDocumentInputR\x11shippingDocuments\x12S\n" +
-	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequestsB\x0e\n" +
+	"\x12container_requests\x183 \x03(\v2$.order.v1.OrderContainerRequestInputR\x11containerRequests\x127\n" +
+	"\x15declaration_cutoff_at\x184 \x01(\tH-R\x13declarationCutoffAt\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -3825,7 +3854,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\f_received_atB\x10\n" +
 	"\x0e_booking_notesB\x13\n" +
 	"\x11_allocation_notesB\x12\n" +
-	"\x10_operation_notes\"\xb3\x01\n" +
+	"\x10_operation_notesB\x18\n" +
+	"\x16_declaration_cutoff_at\"\xb3\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0fexpected_status\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eexpectedStatus\x12(\n" +
@@ -3916,10 +3946,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12ContainerOwnership\x12#\n" +
 	"\x1fCONTAINER_OWNERSHIP_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17CONTAINER_OWNERSHIP_COC\x10\x01\x12\x1b\n" +
-	"\x17CONTAINER_OWNERSHIP_SOC\x10\x02*n\n" +
+	"\x17CONTAINER_OWNERSHIP_SOC\x10\x02*w\n" +
 	"\fShipmentMode\x12\x1d\n" +
-	"\x19SHIPMENT_MODE_UNSPECIFIED\x10\x00\x12\x1f\n" +
-	"\x1bSHIPMENT_MODE_CONSOLIDATION\x10\x01\x12\x1e\n" +
+	"\x19SHIPMENT_MODE_UNSPECIFIED\x10\x00\x12(\n" +
+	"$SHIPMENT_MODE_TRADITIONAL_FORWARDING\x10\x01\x12\x1e\n" +
 	"\x1aSHIPMENT_MODE_CROSS_BORDER\x10\x02*\x80\x01\n" +
 	"\x12OrderReferenceType\x12$\n" +
 	" ORDER_REFERENCE_TYPE_UNSPECIFIED\x10\x00\x12!\n" +

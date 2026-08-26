@@ -117,7 +117,7 @@ enum ContainerOwnership {
 // ShipmentMode 运输模式。
 enum ShipmentMode {
   SHIPMENT_MODE_UNSPECIFIED = 0;
-  SHIPMENT_MODE_CONSOLIDATION = 1;
+  SHIPMENT_MODE_TRADITIONAL_FORWARDING = 1;
   SHIPMENT_MODE_CROSS_BORDER = 2;
 }
 
@@ -188,6 +188,7 @@ message Order {
   optional string operation_notes = 56;
   repeated OrderShippingDocument shipping_documents = 57;
   repeated OrderContainerRequest container_requests = 58;
+  optional string declaration_cutoff_at = 59;
 }
 
 // OrderShippingDocumentInput 订单表单中的主分单输入。
@@ -350,6 +351,7 @@ message CreateOrderRequest {
   repeated OrderPersonnelAssignmentInput personnel_assignments = 49;
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
+  optional string declaration_cutoff_at = 52;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
@@ -405,6 +407,7 @@ message UpdateOrderRequest {
   optional string operation_notes = 49;
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
+  optional string declaration_cutoff_at = 52;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

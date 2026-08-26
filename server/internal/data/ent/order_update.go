@@ -399,6 +399,26 @@ func (_u *OrderUpdate) ClearLoadingTerms() *OrderUpdate {
 	return _u
 }
 
+// SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
+func (_u *OrderUpdate) SetDeclarationCutoffAt(v string) *OrderUpdate {
+	_u.mutation.SetDeclarationCutoffAt(v)
+	return _u
+}
+
+// SetNillableDeclarationCutoffAt sets the "declaration_cutoff_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableDeclarationCutoffAt(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetDeclarationCutoffAt(*v)
+	}
+	return _u
+}
+
+// ClearDeclarationCutoffAt clears the value of the "declaration_cutoff_at" field.
+func (_u *OrderUpdate) ClearDeclarationCutoffAt() *OrderUpdate {
+	_u.mutation.ClearDeclarationCutoffAt()
+	return _u
+}
+
 // SetReceivedAt sets the "received_at" field.
 func (_u *OrderUpdate) SetReceivedAt(v string) *OrderUpdate {
 	_u.mutation.SetReceivedAt(v)
@@ -1574,6 +1594,11 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DeclarationCutoffAt(); ok {
+		if err := order.DeclarationCutoffAtValidator(v); err != nil {
+			return &ValidationError{Name: "declaration_cutoff_at", err: fmt.Errorf(`ent: validator failed for field "Order.declaration_cutoff_at": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ReceivedAt(); ok {
 		if err := order.ReceivedAtValidator(v); err != nil {
 			return &ValidationError{Name: "received_at", err: fmt.Errorf(`ent: validator failed for field "Order.received_at": %w`, err)}
@@ -1816,6 +1841,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LoadingTermsCleared() {
 		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.DeclarationCutoffAt(); ok {
+		_spec.SetField(order.FieldDeclarationCutoffAt, field.TypeString, value)
+	}
+	if _u.mutation.DeclarationCutoffAtCleared() {
+		_spec.ClearField(order.FieldDeclarationCutoffAt, field.TypeString)
 	}
 	if value, ok := _u.mutation.ReceivedAt(); ok {
 		_spec.SetField(order.FieldReceivedAt, field.TypeString, value)
@@ -3025,6 +3056,26 @@ func (_u *OrderUpdateOne) ClearLoadingTerms() *OrderUpdateOne {
 	return _u
 }
 
+// SetDeclarationCutoffAt sets the "declaration_cutoff_at" field.
+func (_u *OrderUpdateOne) SetDeclarationCutoffAt(v string) *OrderUpdateOne {
+	_u.mutation.SetDeclarationCutoffAt(v)
+	return _u
+}
+
+// SetNillableDeclarationCutoffAt sets the "declaration_cutoff_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableDeclarationCutoffAt(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetDeclarationCutoffAt(*v)
+	}
+	return _u
+}
+
+// ClearDeclarationCutoffAt clears the value of the "declaration_cutoff_at" field.
+func (_u *OrderUpdateOne) ClearDeclarationCutoffAt() *OrderUpdateOne {
+	_u.mutation.ClearDeclarationCutoffAt()
+	return _u
+}
+
 // SetReceivedAt sets the "received_at" field.
 func (_u *OrderUpdateOne) SetReceivedAt(v string) *OrderUpdateOne {
 	_u.mutation.SetReceivedAt(v)
@@ -4213,6 +4264,11 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "loading_terms", err: fmt.Errorf(`ent: validator failed for field "Order.loading_terms": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DeclarationCutoffAt(); ok {
+		if err := order.DeclarationCutoffAtValidator(v); err != nil {
+			return &ValidationError{Name: "declaration_cutoff_at", err: fmt.Errorf(`ent: validator failed for field "Order.declaration_cutoff_at": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ReceivedAt(); ok {
 		if err := order.ReceivedAtValidator(v); err != nil {
 			return &ValidationError{Name: "received_at", err: fmt.Errorf(`ent: validator failed for field "Order.received_at": %w`, err)}
@@ -4472,6 +4528,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.LoadingTermsCleared() {
 		_spec.ClearField(order.FieldLoadingTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.DeclarationCutoffAt(); ok {
+		_spec.SetField(order.FieldDeclarationCutoffAt, field.TypeString, value)
+	}
+	if _u.mutation.DeclarationCutoffAtCleared() {
+		_spec.ClearField(order.FieldDeclarationCutoffAt, field.TypeString)
 	}
 	if value, ok := _u.mutation.ReceivedAt(); ok {
 		_spec.SetField(order.FieldReceivedAt, field.TypeString, value)

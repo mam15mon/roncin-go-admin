@@ -106,6 +106,45 @@ describe('海运订单新增模板', () => {
     ).toHaveLength(1);
   });
 
+  it('散杂托运隐藏箱型箱量并要求显式清理已有计划', () => {
+    const sections = getSeaTemplateSections({
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      currencyOptions: [],
+      containerSpecOptions: [{ label: '40HQ', value: 'spec-40hq' }],
+      searchCustomers: vi.fn().mockResolvedValue([]),
+      searchCarriers: vi.fn().mockResolvedValue([]),
+      searchBookingAgents: vi.fn().mockResolvedValue([]),
+      searchForeignAgents: vi.fn().mockResolvedValue([]),
+      searchShippingAgents: vi.fn().mockResolvedValue([]),
+      setCustomerCode: vi.fn(),
+      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+      personnelOptions: [],
+    });
+
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          shipmentType: 3,
+          containerRequests: [{ containerSpecId: 'spec-40hq', quantity: 1 }],
+        }}
+      >
+        {sections.map((section) => (
+          <div key={section.key}>{section.content}</div>
+        ))}
+      </ProForm>,
+    );
+
+    expect(screen.queryByText('计划箱型箱量')).toBeNull();
+    expect(
+      screen.getByText('散杂货不使用箱型箱量、箱号或封号配置'),
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: '清空箱量计划' })).toBeTruthy();
+  });
+
   it('渲染货值与保费的金额及币种选择框', () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],

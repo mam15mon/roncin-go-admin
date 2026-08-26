@@ -270,7 +270,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
-		ReceivedAt:   request.GetReceivedAt(),
+		DeclarationCutoffAt: request.GetDeclarationCutoffAt(), ReceivedAt: request.GetReceivedAt(),
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
@@ -366,6 +366,9 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.LoadingTerms != nil {
 		output.LoadingTerms = request.GetLoadingTerms()
+	}
+	if request.DeclarationCutoffAt != nil {
+		output.DeclarationCutoffAt = request.GetDeclarationCutoffAt()
 	}
 	if request.ReceivedAt != nil {
 		output.ReceivedAt = request.GetReceivedAt()
@@ -478,7 +481,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
 		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
 		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt), LoadingTerms: stringPtrIfNotEmpty(item.LoadingTerms),
-		ReceivedAt:       stringPtrIfNotEmpty(item.ReceivedAt),
+		DeclarationCutoffAt: stringPtrIfNotEmpty(item.DeclarationCutoffAt), ReceivedAt: stringPtrIfNotEmpty(item.ReceivedAt),
 		OriginLocationId: uuidStringPtr(item.OriginLocationID), DestinationLocationId: uuidStringPtr(item.DestinationLocationID), DischargeLocationId: uuidStringPtr(item.DischargeLocationID), TransitLocationId: uuidStringPtr(item.TransitLocationID),
 		VesselVoyage: stringPtrIfNotEmpty(item.VesselVoyage), Etd: stringPtrIfNotEmpty(item.ETD), Eta: stringPtrIfNotEmpty(item.ETA), SiCutoff: stringPtrIfNotEmpty(item.SICutoff), DocCutoff: stringPtrIfNotEmpty(item.DocCutoff), CustomsCutoff: stringPtrIfNotEmpty(item.CustomsCutoff), VgmCutoff: stringPtrIfNotEmpty(item.VGMCutoff),
 		GoodsDescription: stringPtrIfNotEmpty(item.GoodsDescription), TotalPackages: intToInt32Ptr(item.TotalPackages), TotalPackageUnit: stringPtrIfNotEmpty(item.TotalPackageUnit), SpecialRequirements: stringPtrIfNotEmpty(item.SpecialRequirements), OrderDate: stringPtrIfNotEmpty(item.OrderDate), Notes: stringPtrIfNotEmpty(item.Notes),
@@ -841,8 +844,8 @@ func orderShipmentModeFromAPI(value *v1.ShipmentMode) *biz.OrderShipmentMode {
 	}
 	var result biz.OrderShipmentMode
 	switch *value {
-	case v1.ShipmentMode_SHIPMENT_MODE_CONSOLIDATION:
-		result = biz.OrderShipmentConsolidation
+	case v1.ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING:
+		result = biz.OrderShipmentTraditionalForwarding
 	case v1.ShipmentMode_SHIPMENT_MODE_CROSS_BORDER:
 		result = biz.OrderShipmentCrossBorder
 	default:
@@ -856,8 +859,8 @@ func orderShipmentModeToAPI(value *biz.OrderShipmentMode) *v1.ShipmentMode {
 	}
 	var result v1.ShipmentMode
 	switch *value {
-	case biz.OrderShipmentConsolidation:
-		result = v1.ShipmentMode_SHIPMENT_MODE_CONSOLIDATION
+	case biz.OrderShipmentTraditionalForwarding:
+		result = v1.ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING
 	case biz.OrderShipmentCrossBorder:
 		result = v1.ShipmentMode_SHIPMENT_MODE_CROSS_BORDER
 	default:

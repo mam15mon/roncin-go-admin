@@ -8,22 +8,133 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Col, Form, Row, Select, Space } from 'antd';
+import { Alert, Button, Col, Form, Row, Select, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { TooltipInput } from '@/components/ui/tooltip-input';
 import {
-  OrderContainerRequestFields,
-  OrderShippingDocumentFields,
-} from '../order-plan-fields';
-import {
   containerOwnershipOptions,
+  loadingTermsOptions,
   paymentTermOptions,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../common';
+import {
+  OrderContainerRequestFields,
+  OrderShippingDocumentFields,
+} from '../order-plan-fields';
+import {
+  recommendedServiceIDs,
+  resolveSeaOrderFormPolicy,
+  SEA_SHIPMENT_MODE,
+} from '../sea-order-policy';
 import type { SelectOption, TemplateProps, TemplateSection } from './types';
+
+function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
+  const form = Form.useFormInstance();
+  const shipmentMode = Form.useWatch('shipmentMode');
+  const selectedIDs = (Form.useWatch('serviceTypeIds') ?? []) as string[];
+  const selectedCodes = options
+    .filter((option) => selectedIDs.includes(String(option.value)))
+    .map((option) => option.code)
+    .filter((code): code is string => Boolean(code));
+  const policy = resolveSeaOrderFormPolicy({
+    shipmentMode,
+    serviceTypeCodes: selectedCodes,
+  });
+  const recommendedCodes = new Set(policy.recommendedServiceCodes);
+  const recommendationIDs = recommendedServiceIDs(options, shipmentMode);
+
+  return (
+    <Col span={24}>
+      <ProFormCheckbox.Group
+        name="serviceTypeIds"
+        label="服务类型"
+        options={options.map((option) => ({
+          value: option.value,
+          label: (
+            <Space size={4}>
+              <span>{option.label}</span>
+              {option.code && recommendedCodes.has(option.code) && (
+                <Tag
+                  bordered={false}
+                  color="blue"
+                  style={{ marginInlineEnd: 0 }}
+                >
+                  推荐
+                </Tag>
+              )}
+            </Space>
+          ),
+        }))}
+      />
+      <Alert
+        type={
+          shipmentMode === SEA_SHIPMENT_MODE.CROSS_BORDER ? 'info' : 'success'
+        }
+        showIcon
+        title={`${policy.modeLabel}模式推荐服务已标记，用户手工选择不会被模式切换覆盖。`}
+        action={
+          <Button
+            type="link"
+            size="small"
+            htmlType="button"
+            onClick={() =>
+              form.setFieldValue('serviceTypeIds', recommendationIDs)
+            }
+          >
+            应用推荐组合
+          </Button>
+        }
+        style={{ marginBottom: 16 }}
+      />
+    </Col>
+  );
+}
+
+export function SeaContainerPlanFields({
+  options,
+}: {
+  options: SelectOption[];
+}) {
+  const form = Form.useFormInstance();
+  const shipmentType = Form.useWatch('shipmentType');
+  const containerRequests = (Form.useWatch('containerRequests') ??
+    []) as API.OrderContainerRequestInput[];
+  const policy = resolveSeaOrderFormPolicy({ shipmentType });
+
+  if (!policy.showContainerPlan) {
+    return (
+      <Col span={24}>
+        <Alert
+          type={containerRequests.length > 0 ? 'warning' : 'info'}
+          showIcon
+          title="散杂货不使用箱型箱量、箱号或封号配置"
+          description={
+            containerRequests.length > 0
+              ? '切换托运类型前已经录入箱型箱量，请确认后清空，系统不会静默删除已有数据。'
+              : '页面已隐藏集装箱专属配置，货物将按件数、毛重、体积和计费吨管理。'
+          }
+          action={
+            containerRequests.length > 0 ? (
+              <Button
+                danger
+                size="small"
+                htmlType="button"
+                onClick={() => form.setFieldValue('containerRequests', [])}
+              >
+                清空箱量计划
+              </Button>
+            ) : undefined
+          }
+          style={{ marginBottom: 16 }}
+        />
+      </Col>
+    );
+  }
+  return <OrderContainerRequestFields options={options} />;
+}
 
 type PersonnelAssignmentFieldsProps = {
   label: string;
@@ -183,7 +294,11 @@ function SeaScheduleDateFields() {
         label="ETA"
         dependencies={['etd']}
         rules={[
-          ({ getFieldValue }: { getFieldValue: (name: string) => unknown }) => ({
+          ({
+            getFieldValue,
+          }: {
+            getFieldValue: (name: string) => unknown;
+          }) => ({
             validator: async (_: unknown, value: unknown) => {
               const currentEtd = getFieldValue('etd');
               if (
@@ -306,13 +421,7 @@ export function getSeaTemplateSections(
           </Col>
 
           {/* 第 3 行：服务类型（整行复选框） */}
-          <Col span={24}>
-            <ProFormCheckbox.Group
-              name="serviceTypeIds"
-              label="服务类型"
-              options={serviceTypeOptions}
-            />
-          </Col>
+          <SeaServiceTypeFields options={serviceTypeOptions} />
 
           {/* 第 4 行：货物品类（整行复选框） */}
           <Col span={24}>
@@ -402,10 +511,7 @@ export function getSeaTemplateSections(
           <Col className="col-5">
             <Form.Item label="合约号" style={{ marginInline: 8 }}>
               <Form.Item noStyle name="contractNo">
-                <TooltipInput
-                  placeholder="请输入"
-                  maxLength={100}
-                />
+                <TooltipInput placeholder="请输入" maxLength={100} />
               </Form.Item>
             </Form.Item>
           </Col>
@@ -539,7 +645,7 @@ export function getSeaTemplateSections(
             </Form.Item>
           </Col>
 
-          {/* 第 7 行：一行 5 列（UN NO.、CLASS NO.、截申报时间、接单时间、工厂） */}
+          {/* 第 7 行：危险品、运输条款与合规时间 */}
           <Col className="col-5">
             <Form.Item
               label="UN NO."
@@ -556,14 +662,27 @@ export function getSeaTemplateSections(
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <Form.Item label="CLASS NO." name="hazardClass" style={{ marginInline: 8 }}>
+            <Form.Item
+              label="CLASS NO."
+              name="hazardClass"
+              style={{ marginInline: 8 }}
+            >
               <TooltipInput placeholder="类别" maxLength={16} />
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <ProFormDateTimePicker
+            <ProFormSelect
               name="loadingTerms"
+              label="运输条款"
+              options={loadingTermsOptions}
+              placeholder="请选择 CY / CFS / DOOR 条款"
+            />
+          </Col>
+          <Col className="col-5">
+            <ProFormDateTimePicker
+              name="declarationCutoffAt"
               label="截申报时间"
+              tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
               fieldProps={{ style: { width: '100%' } }}
             />
           </Col>
@@ -575,14 +694,22 @@ export function getSeaTemplateSections(
             />
           </Col>
           <Col className="col-5">
-            <Form.Item label="工厂" name="factoryName" style={{ marginInline: 8 }}>
+            <Form.Item
+              label="工厂"
+              name="factoryName"
+              style={{ marginInline: 8 }}
+            >
               <TooltipInput placeholder="请输入工厂" maxLength={200} />
             </Form.Item>
           </Col>
 
           {/* 第 8 行：一行 5 列（委托单位代码、货好时间、后 3 列留白） */}
           <Col className="col-5">
-            <Form.Item label="委托单位代码" name="customerCode" style={{ marginInline: 8 }}>
+            <Form.Item
+              label="委托单位代码"
+              name="customerCode"
+              style={{ marginInline: 8 }}
+            >
               <TooltipInput disabled placeholder="选择委托单位后自动带出" />
             </Form.Item>
           </Col>
@@ -653,7 +780,7 @@ export function getSeaTemplateSections(
           />
           <SeaScheduleDateFields />
 
-          <OrderContainerRequestFields options={containerSpecOptions} />
+          <SeaContainerPlanFields options={containerSpecOptions} />
 
           {/* 第 3 行：4 大截关时间（一行 4 个，各占 6 栅格） */}
           <ProFormDateTimePicker
@@ -781,13 +908,48 @@ export function getSeaTemplateSections(
             }
             disabled
           />
-          <PersonnelAssignmentFields label="操作人员" userField="operatorUserId" organizationField="operatorOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="业务人员" userField="salesUserId" organizationField="salesOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="客服人员" userField="customerServiceUserId" organizationField="customerServiceOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="关联人员" userField="associateUserId" organizationField="associateOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="单证人员" userField="documentUserId" organizationField="documentOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="商务人员" userField="commercialUserId" organizationField="commercialOrganizationId" options={personnelOptions} />
-          <PersonnelAssignmentFields label="关联人员 2" userField="associate2UserId" organizationField="associate2OrganizationId" options={personnelOptions} />
+          <PersonnelAssignmentFields
+            label="操作人员"
+            userField="operatorUserId"
+            organizationField="operatorOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="业务人员"
+            userField="salesUserId"
+            organizationField="salesOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="客服人员"
+            userField="customerServiceUserId"
+            organizationField="customerServiceOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="关联人员"
+            userField="associateUserId"
+            organizationField="associateOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="单证人员"
+            userField="documentUserId"
+            organizationField="documentOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="商务人员"
+            userField="commercialUserId"
+            organizationField="commercialOrganizationId"
+            options={personnelOptions}
+          />
+          <PersonnelAssignmentFields
+            label="关联人员 2"
+            userField="associate2UserId"
+            organizationField="associate2OrganizationId"
+            options={personnelOptions}
+          />
         </>
       ),
     },

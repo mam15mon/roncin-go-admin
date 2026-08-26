@@ -161,6 +161,11 @@ func LoadingTerms(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldLoadingTerms, v))
 }
 
+// DeclarationCutoffAt applies equality check predicate on the "declaration_cutoff_at" field. It's identical to DeclarationCutoffAtEQ.
+func DeclarationCutoffAt(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldDeclarationCutoffAt, v))
+}
+
 // ReceivedAt applies equality check predicate on the "received_at" field. It's identical to ReceivedAtEQ.
 func ReceivedAt(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldReceivedAt, v))
@@ -1559,6 +1564,81 @@ func LoadingTermsEqualFold(v string) predicate.Order {
 // LoadingTermsContainsFold applies the ContainsFold predicate on the "loading_terms" field.
 func LoadingTermsContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldLoadingTerms, v))
+}
+
+// DeclarationCutoffAtEQ applies the EQ predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtNEQ applies the NEQ predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtIn applies the In predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldDeclarationCutoffAt, vs...))
+}
+
+// DeclarationCutoffAtNotIn applies the NotIn predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldDeclarationCutoffAt, vs...))
+}
+
+// DeclarationCutoffAtGT applies the GT predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtGTE applies the GTE predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtLT applies the LT predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtLTE applies the LTE predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtContains applies the Contains predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtHasPrefix applies the HasPrefix predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtHasSuffix applies the HasSuffix predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtIsNil applies the IsNil predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldDeclarationCutoffAt))
+}
+
+// DeclarationCutoffAtNotNil applies the NotNil predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldDeclarationCutoffAt))
+}
+
+// DeclarationCutoffAtEqualFold applies the EqualFold predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldDeclarationCutoffAt, v))
+}
+
+// DeclarationCutoffAtContainsFold applies the ContainsFold predicate on the "declaration_cutoff_at" field.
+func DeclarationCutoffAtContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldDeclarationCutoffAt, v))
 }
 
 // ReceivedAtEQ applies the EQ predicate on the "received_at" field.

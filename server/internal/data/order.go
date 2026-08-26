@@ -117,6 +117,14 @@ func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID u
 	return &biz.OrderReferenceMatch{OrderID: item.ID, OrderNo: item.OrderNo}, nil
 }
 
+func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID uuid.UUID) (bool, error) {
+	return r.data.db.Order.Query().Where(
+		orderent.IDEQ(orderID),
+		orderent.OrganizationIDEQ(organizationID),
+		orderent.HasContainers(),
+	).Exist(ctx)
+}
+
 func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.OrderPersonnelOption, error) {
 	organizations, err := r.data.db.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
@@ -186,6 +194,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetFactoryName(input.FactoryName).
 		SetCargoReadyAt(input.CargoReadyAt).
 		SetLoadingTerms(input.LoadingTerms).
+		SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 		SetReceivedAt(input.ReceivedAt).
 		SetBusinessType(orderent.BusinessType(input.BusinessType)).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
@@ -292,6 +301,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetFactoryName(input.FactoryName).
 		SetCargoReadyAt(input.CargoReadyAt).
 		SetLoadingTerms(input.LoadingTerms).
+		SetDeclarationCutoffAt(input.DeclarationCutoffAt).
 		SetReceivedAt(input.ReceivedAt).
 		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
 		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
@@ -758,7 +768,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
-		ReceivedAt:     item.ReceivedAt,
+		DeclarationCutoffAt: item.DeclarationCutoffAt, ReceivedAt: item.ReceivedAt,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
 		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,

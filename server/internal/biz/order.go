@@ -107,12 +107,12 @@ func (v OrderContainerOwnership) Valid() bool {
 type OrderShipmentMode string
 
 const (
-	OrderShipmentConsolidation OrderShipmentMode = "CONSOLIDATION"
-	OrderShipmentCrossBorder   OrderShipmentMode = "CROSS_BORDER"
+	OrderShipmentTraditionalForwarding OrderShipmentMode = "TRADITIONAL_FORWARDING"
+	OrderShipmentCrossBorder           OrderShipmentMode = "CROSS_BORDER"
 )
 
 func (v OrderShipmentMode) Valid() bool {
-	return v == OrderShipmentConsolidation || v == OrderShipmentCrossBorder
+	return v == OrderShipmentTraditionalForwarding || v == OrderShipmentCrossBorder
 }
 
 type OrderReferenceType string
@@ -148,6 +148,7 @@ type Order struct {
 	FactoryName           string
 	CargoReadyAt          string
 	LoadingTerms          string
+	DeclarationCutoffAt   string
 	ReceivedAt            string
 	BusinessType          OrderBusinessType
 	TradeDirection        OrderTradeDirection
@@ -239,6 +240,7 @@ type OrderRepo interface {
 	List(context.Context, []uuid.UUID, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	ListPersonnelOptions(context.Context, uuid.UUID) ([]*OrderPersonnelOption, error)
+	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
@@ -335,6 +337,15 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 	if err != nil {
 		return nil, err
 	}
+	if normalized.ShipmentType == nil || *normalized.ShipmentType != OrderShipmentFCL {
+		hasContainers, err := uc.repo.HasContainers(ctx, organizationID, id)
+		if err != nil {
+			return nil, err
+		}
+		if hasContainers {
+			return nil, ErrOrderContainerShipmentType
+		}
+	}
 	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, strings.ToUpper(strings.TrimSpace(expectedStatus)), normalized)
 	if err != nil {
 		return nil, err
@@ -362,6 +373,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output.FactoryName = strings.TrimSpace(output.FactoryName)
 	output.CargoReadyAt = strings.TrimSpace(output.CargoReadyAt)
 	output.LoadingTerms = strings.TrimSpace(output.LoadingTerms)
+	output.DeclarationCutoffAt = strings.TrimSpace(output.DeclarationCutoffAt)
 	output.ReceivedAt = strings.TrimSpace(output.ReceivedAt)
 	output.VesselVoyage = strings.TrimSpace(output.VesselVoyage)
 	output.ETD = strings.TrimSpace(output.ETD)
@@ -429,7 +441,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if (output.InsurancePremium == "") != (output.InsuranceCurrency == "") || output.InsurancePremium != "" && (!cargoValuePattern.MatchString(output.InsurancePremium) || len(output.InsuranceCurrency) != 3) || output.UNNumber != "" && !unNumberPattern.MatchString(output.UNNumber) {
 		return nil, ErrOrderInvalidArgument
 	}
-	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.ReceivedAt, output.OrderDate} {
+	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.DeclarationCutoffAt, output.ReceivedAt, output.OrderDate} {
 		if value != "" {
 			if _, err := time.Parse(time.RFC3339, value); err != nil {
 				return nil, ErrOrderInvalidArgument
@@ -437,6 +449,9 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		}
 	}
 	if output.ShipmentType != nil && !output.ShipmentType.Valid() || output.ContainerOwnership != nil && !output.ContainerOwnership.Valid() || output.ShipmentMode != nil && !output.ShipmentMode.Valid() {
+		return nil, ErrOrderInvalidArgument
+	}
+	if output.ShipmentType != nil && *output.ShipmentType == OrderShipmentBreakBulk && (len(output.ContainerRequests) > 0 || output.VGMCutoff != "") {
 		return nil, ErrOrderInvalidArgument
 	}
 	if err := validateUUIDSet(output.ServiceTypeIDs); err != nil {

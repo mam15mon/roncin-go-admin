@@ -133,6 +133,9 @@ const stamp = new Date()
 const customerReferenceNo = `ACC-SE-${stamp}`;
 const masterNo = `ACC-MBL-${stamp}`;
 const houseNo = `ACC-HBL-${stamp}`;
+const declarationCutoffAt = new Date(
+  Date.now() + 24 * 60 * 60 * 1000,
+).toISOString();
 
 const createdResponse = await request('/api/v1/orders', {
   method: 'POST',
@@ -145,6 +148,8 @@ const createdResponse = await request('/api/v1/orders', {
     statusTemplateId: statusTemplate.id,
     shipmentType: 2,
     shipmentMode: 1,
+    loadingTerms: 'CFS-CFS',
+    declarationCutoffAt,
     goodsDescription: '海运出口闭环验收货物',
     totalPackages: 10,
     totalPackageUnit: 'CTNS',
@@ -181,6 +186,11 @@ const detail = detailResponse.data;
 assert(
   detail?.customerReferenceNo === customerReferenceNo,
   '订单详情未正确回显客户业务编号',
+);
+assert(detail?.loadingTerms === 'CFS-CFS', '订单详情未正确回显运输条款');
+assert(
+  detail?.declarationCutoffAt === declarationCutoffAt,
+  '订单详情未正确回显独立截申报时间',
 );
 assert(detail?.shippingDocuments?.length === 1, '订单详情未正确回显一条提单');
 assert(
@@ -271,6 +281,11 @@ assert(
 assert(
   finalDetail.data?.shippingDocuments?.length === 1,
   '状态流转后提单数据不完整',
+);
+assert(
+  finalDetail.data?.loadingTerms === 'CFS-CFS' &&
+    finalDetail.data?.declarationCutoffAt === declarationCutoffAt,
+  '状态流转后运输条款或截申报时间被意外清空',
 );
 
 const orderList = await request(

@@ -15,6 +15,7 @@ var (
 	ErrOrderContainerExists          = errors.Conflict("ORDER_CONTAINER_EXISTS", "订单集装箱已存在")
 	ErrOrderContainerInvalidArgument = errors.BadRequest("ORDER_CONTAINER_INVALID_ARGUMENT", "订单集装箱字段不合法")
 	ErrOrderContainerSpecInvalid     = errors.BadRequest("ORDER_CONTAINER_SPEC_INVALID", "箱型必须是当前组织启用的箱型主数据")
+	ErrOrderContainerShipmentType    = errors.BadRequest("ORDER_CONTAINER_SHIPMENT_TYPE_INVALID", "仅整箱订单可维护订单级集装箱，拼箱集装箱应由自拼批次维护")
 )
 
 type OrderContainer struct {

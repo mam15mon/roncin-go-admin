@@ -63,6 +63,8 @@ type Order struct {
 	CargoReadyAt string `json:"cargo_ready_at,omitempty"`
 	// LoadingTerms holds the value of the "loading_terms" field.
 	LoadingTerms string `json:"loading_terms,omitempty"`
+	// DeclarationCutoffAt holds the value of the "declaration_cutoff_at" field.
+	DeclarationCutoffAt string `json:"declaration_cutoff_at,omitempty"`
 	// ReceivedAt holds the value of the "received_at" field.
 	ReceivedAt string `json:"received_at,omitempty"`
 	// BusinessType holds the value of the "business_type" field.
@@ -327,7 +329,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -483,6 +485,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field loading_terms", values[i])
 			} else if value.Valid {
 				_m.LoadingTerms = value.String
+			}
+		case order.FieldDeclarationCutoffAt:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field declaration_cutoff_at", values[i])
+			} else if value.Valid {
+				_m.DeclarationCutoffAt = value.String
 			}
 		case order.FieldReceivedAt:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -858,6 +866,9 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("loading_terms=")
 	builder.WriteString(_m.LoadingTerms)
+	builder.WriteString(", ")
+	builder.WriteString("declaration_cutoff_at=")
+	builder.WriteString(_m.DeclarationCutoffAt)
 	builder.WriteString(", ")
 	builder.WriteString("received_at=")
 	builder.WriteString(_m.ReceivedAt)

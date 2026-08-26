@@ -17,6 +17,7 @@ type orderRepoStub struct {
 	expectedStatus string
 	targetStatus   string
 	statusEvent    *OrderStatusChangedEvent
+	hasContainers  bool
 }
 
 func (s *orderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error) {
@@ -38,6 +39,10 @@ func (s *orderRepoStub) FindReferenceDuplicate(_ context.Context, _ uuid.UUID, c
 
 func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID) ([]*OrderPersonnelOption, error) {
 	return nil, nil
+}
+
+func (s *orderRepoStub) HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error) {
+	return s.hasContainers, nil
 }
 
 func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order) (*Order, error) {
@@ -215,6 +220,47 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 	}
 	if _, err := normalizeOrder(&duplicateContainer, false); err != ErrOrderInvalidArgument {
 		t.Fatalf("duplicate container request error = %v, want ErrOrderInvalidArgument", err)
+	}
+}
+
+func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
+	breakBulk := OrderShipmentBreakBulk
+	base := Order{
+		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
+		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ShipmentType: &breakBulk,
+	}
+
+	withContainerPlan := base
+	withContainerPlan.ContainerRequests = []*OrderContainerRequest{{ContainerSpecID: uuid.New(), Quantity: 1}}
+	if _, err := normalizeOrder(&withContainerPlan, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("散杂订单携带箱量计划 error = %v, want ErrOrderInvalidArgument", err)
+	}
+
+	withVGM := base
+	withVGM.VGMCutoff = "2026-08-26T12:00:00+08:00"
+	if _, err := normalizeOrder(&withVGM, false); err != ErrOrderInvalidArgument {
+		t.Fatalf("散杂订单携带 VGM 截止时间 error = %v, want ErrOrderInvalidArgument", err)
+	}
+
+	if _, err := normalizeOrder(&base, false); err != nil {
+		t.Fatalf("不含集装箱数据的散杂订单 error = %v", err)
+	}
+}
+
+func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
+	repo := &orderRepoStub{hasContainers: true}
+	usecase := NewOrderUsecase(repo, nil, nil)
+	breakBulk := OrderShipmentBreakBulk
+	input := &Order{
+		CustomerID: uuid.New(), StatusTemplateID: uuid.New(), BusinessType: OrderBusinessSE,
+		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ShipmentType: &breakBulk,
+	}
+
+	_, err := usecase.UpdateDraft(context.Background(), uuid.New(), uuid.New(), uuid.New(), "DRAFT", input)
+	if err != ErrOrderContainerShipmentType {
+		t.Fatalf("已有实际箱时切换到散杂 error = %v, want ErrOrderContainerShipmentType", err)
 	}
 }
 

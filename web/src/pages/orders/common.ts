@@ -20,12 +20,10 @@ export const businessTypeMap = new Map(
   businessTypeOptions.map((opt) => [opt.value, opt]),
 );
 
-export const businessTypeValueEnum: Record<
-  number | string,
-  { text: string }
-> = Object.fromEntries(
-  businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
-);
+export const businessTypeValueEnum: Record<number | string, { text: string }> =
+  Object.fromEntries(
+    businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
+  );
 
 export const tradeDirectionOptions = [
   { label: '出口', value: 1 },
@@ -73,6 +71,16 @@ export const containerOwnershipOptions = [
 export const shipmentModeOptions = [
   { label: '集运', value: 1 },
   { label: '跨境', value: 2 },
+];
+
+export const loadingTermsOptions = [
+  { label: 'CY-CY', value: 'CY-CY' },
+  { label: 'CY-CFS', value: 'CY-CFS' },
+  { label: 'CFS-CY', value: 'CFS-CY' },
+  { label: 'CFS-CFS', value: 'CFS-CFS' },
+  { label: 'DOOR-CY', value: 'DOOR-CY' },
+  { label: 'CY-DOOR', value: 'CY-DOOR' },
+  { label: 'DOOR-DOOR', value: 'DOOR-DOOR' },
 ];
 
 export const seaServiceTypeNames = [
@@ -143,7 +151,11 @@ export const PARTNER_ROLES = {
   CARRIER: 4,
 } as const;
 
-export type OrderKind = 'sea-export' | 'sea-import' | 'air-export' | 'air-import';
+export type OrderKind =
+  | 'sea-export'
+  | 'sea-import'
+  | 'air-export'
+  | 'air-import';
 
 export interface OrderKindConfig {
   kind: OrderKind;
@@ -184,7 +196,9 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
   },
 };
 
-export function parseOrderKind(pathnameOrKind?: string): OrderKindConfig | undefined {
+export function parseOrderKind(
+  pathnameOrKind?: string,
+): OrderKindConfig | undefined {
   if (!pathnameOrKind) return undefined;
   if (ORDER_KIND_CONFIGS[pathnameOrKind]) {
     return ORDER_KIND_CONFIGS[pathnameOrKind];
@@ -266,6 +280,7 @@ export async function fetchOrderMasterData() {
     .map((item) => ({
       label: item.name ?? '',
       value: item.id ?? '',
+      code: item.code,
     }));
 
   const cargoCategoryOptions = masterOptions
@@ -277,6 +292,7 @@ export async function fetchOrderMasterData() {
     .map((item) => ({
       label: item.name ?? '',
       value: item.id ?? '',
+      code: item.code,
     }));
 
   const regionOptions = masterOptions

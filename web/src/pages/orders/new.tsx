@@ -26,6 +26,7 @@ import {
   searchPartnersByRole,
   seaServiceTypeNames,
 } from './common';
+import { recommendedServiceIDs, SEA_SHIPMENT_MODE } from './sea-order-policy';
 import {
   getAirTemplateSections,
   getSeaTemplateSections,
@@ -53,6 +54,7 @@ type CreateOrderFormValues = {
   factoryName?: string;
   cargoReadyAt?: string | dayjs.Dayjs;
   loadingTerms?: string;
+  declarationCutoffAt?: string | dayjs.Dayjs;
   receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
   containerOwnership?: number;
@@ -169,10 +171,8 @@ export default function NewOrderPage() {
           masterData.masterOptions
             .filter(
               (item) =>
-                isMasterDataKind(
-                  item.kind,
-                  MASTER_DATA_KINDS.CONTAINER_SPEC,
-                ) && item.enabled !== false,
+                isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
+                item.enabled !== false,
             )
             .map((item) => ({
               label: item.code
@@ -268,8 +268,7 @@ export default function NewOrderPage() {
                 initialState.currentUser.displayName ||
                 initialState.currentUser.username ||
                 initialState.currentUser.id,
-              organizationId:
-                initialState.currentUser.currentOrganization.id,
+              organizationId: initialState.currentUser.currentOrganization.id,
               organizationName:
                 initialState.currentUser.currentOrganization.name ||
                 initialState.currentUser.currentOrganization.id,
@@ -374,6 +373,9 @@ export default function NewOrderPage() {
           ? dayjs(values.cargoReadyAt).toISOString()
           : undefined,
         loadingTerms: values.loadingTerms?.trim() || undefined,
+        declarationCutoffAt: values.declarationCutoffAt
+          ? dayjs(values.declarationCutoffAt).toISOString()
+          : undefined,
         receivedAt: values.receivedAt
           ? dayjs(values.receivedAt).toISOString()
           : undefined,
@@ -419,7 +421,7 @@ export default function NewOrderPage() {
         totalPackageUnit: values.totalPackageUnit?.trim() || undefined,
         specialRequirements: values.specialRequirements?.trim() || undefined,
         orderDate: values.orderDate
-          ? dayjs(values.orderDate).format('YYYY-MM-DD')
+          ? dayjs(values.orderDate).toISOString()
           : undefined,
         notes: values.notes?.trim() || undefined,
         bookingNotes: values.bookingNotes?.trim() || undefined,
@@ -463,10 +465,10 @@ export default function NewOrderPage() {
           ? {
               shipmentMode: 1,
               shipmentType: 1,
-              serviceTypeIds:
-                typeof serviceTypeOptions[0]?.value === 'string'
-                  ? [serviceTypeOptions[0].value]
-                  : undefined,
+              serviceTypeIds: recommendedServiceIDs(
+                serviceTypeOptions,
+                SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
+              ),
               cargoCategoryIds:
                 typeof defaultCargoCategoryId === 'string'
                   ? [defaultCargoCategoryId]

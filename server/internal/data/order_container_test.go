@@ -70,6 +70,33 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 	}
 }
 
+func TestOrderContainerRepo_Add_RejectsNonFCLOrder(t *testing.T) {
+	for _, shipmentType := range []string{"LCL", "BREAK_BULK"} {
+		t.Run(shipmentType, func(t *testing.T) {
+			repo, mock, cleanup := setupTestOrderContainerRepo(t)
+			defer cleanup()
+
+			orgID := uuid.New()
+			orderID := uuid.New()
+			input := &biz.OrderContainer{
+				ID: uuid.New(), ContainerNo: "MSCU1234567", ContainerSpecID: uuid.New(),
+				GrossWeightKg: 1000, VolumeCbm: 20,
+			}
+			mock.ExpectQuery(`SELECT "orders"\."id"`).
+				WithArgs(orderID, orgID).
+				WillReturnRows(orderRowsWithShipmentType(orderID, orgID, shipmentType))
+
+			_, err := repo.Add(context.Background(), orgID, orderID, input, nil)
+			if !errors.Is(err, biz.ErrOrderContainerShipmentType) {
+				t.Fatalf("shipmentType=%s error = %v, want ErrOrderContainerShipmentType", shipmentType, err)
+			}
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Fatalf("未满足 sqlmock 期望: %v", err)
+			}
+		})
+	}
+}
+
 func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 	repo, mock, cleanup := setupTestOrderContainerRepo(t)
 	defer cleanup()

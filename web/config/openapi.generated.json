@@ -9520,6 +9520,9 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderContainerRequestInput"
             }
+          },
+          "declarationCutoffAt": {
+            "type": "string"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -10131,6 +10134,9 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderContainerRequest"
             }
+          },
+          "declarationCutoffAt": {
+            "type": "string"
           }
         },
         "description": "Order 订单核心信息。"
@@ -11567,6 +11573,9 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderContainerRequestInput"
             }
+          },
+          "declarationCutoffAt": {
+            "type": "string"
           }
         },
         "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。"

@@ -58,6 +58,8 @@ const (
 	FieldCargoReadyAt = "cargo_ready_at"
 	// FieldLoadingTerms holds the string denoting the loading_terms field in the database.
 	FieldLoadingTerms = "loading_terms"
+	// FieldDeclarationCutoffAt holds the string denoting the declaration_cutoff_at field in the database.
+	FieldDeclarationCutoffAt = "declaration_cutoff_at"
 	// FieldReceivedAt holds the string denoting the received_at field in the database.
 	FieldReceivedAt = "received_at"
 	// FieldBusinessType holds the string denoting the business_type field in the database.
@@ -290,6 +292,7 @@ var Columns = []string{
 	FieldFactoryName,
 	FieldCargoReadyAt,
 	FieldLoadingTerms,
+	FieldDeclarationCutoffAt,
 	FieldReceivedAt,
 	FieldBusinessType,
 	FieldTradeDirection,
@@ -365,6 +368,8 @@ var (
 	CargoReadyAtValidator func(string) error
 	// LoadingTermsValidator is a validator for the "loading_terms" field. It is called by the builders before save.
 	LoadingTermsValidator func(string) error
+	// DeclarationCutoffAtValidator is a validator for the "declaration_cutoff_at" field. It is called by the builders before save.
+	DeclarationCutoffAtValidator func(string) error
 	// ReceivedAtValidator is a validator for the "received_at" field. It is called by the builders before save.
 	ReceivedAtValidator func(string) error
 	// DefaultStatus holds the default value on creation for the "status" field.
@@ -563,8 +568,8 @@ type ShipmentMode string
 
 // ShipmentMode values.
 const (
-	ShipmentModeCONSOLIDATION ShipmentMode = "CONSOLIDATION"
-	ShipmentModeCROSS_BORDER  ShipmentMode = "CROSS_BORDER"
+	ShipmentModeTRADITIONAL_FORWARDING ShipmentMode = "TRADITIONAL_FORWARDING"
+	ShipmentModeCROSS_BORDER           ShipmentMode = "CROSS_BORDER"
 )
 
 func (sm ShipmentMode) String() string {
@@ -574,7 +579,7 @@ func (sm ShipmentMode) String() string {
 // ShipmentModeValidator is a validator for the "shipment_mode" field enum values. It is called by the builders before save.
 func ShipmentModeValidator(sm ShipmentMode) error {
 	switch sm {
-	case ShipmentModeCONSOLIDATION, ShipmentModeCROSS_BORDER:
+	case ShipmentModeTRADITIONAL_FORWARDING, ShipmentModeCROSS_BORDER:
 		return nil
 	default:
 		return fmt.Errorf("order: invalid enum value for shipment_mode field: %q", sm)
@@ -692,6 +697,11 @@ func ByCargoReadyAt(opts ...sql.OrderTermOption) OrderOption {
 // ByLoadingTerms orders the results by the loading_terms field.
 func ByLoadingTerms(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLoadingTerms, opts...).ToFunc()
+}
+
+// ByDeclarationCutoffAt orders the results by the declaration_cutoff_at field.
+func ByDeclarationCutoffAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeclarationCutoffAt, opts...).ToFunc()
 }
 
 // ByReceivedAt orders the results by the received_at field.

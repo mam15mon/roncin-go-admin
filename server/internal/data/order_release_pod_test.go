@@ -37,6 +37,10 @@ func setupTestOrderReleasePodRepo(t *testing.T) (biz.OrderReleasePodRepo, sqlmoc
 }
 
 func orderRows(id, orgID uuid.UUID) *sqlmock.Rows {
+	return orderRowsWithShipmentType(id, orgID, "FCL")
+}
+
+func orderRowsWithShipmentType(id, orgID uuid.UUID, shipmentType string) *sqlmock.Rows {
 	now := time.Now()
 	rows := sqlmock.NewRows(orderent.Columns)
 	values := make([]driver.Value, len(orderent.Columns))
@@ -57,11 +61,11 @@ func orderRows(id, orgID uuid.UUID) *sqlmock.Rows {
 		case orderent.FieldPaymentTerm:
 			values[i] = "PREPAID"
 		case orderent.FieldShipmentType:
-			values[i] = "FCL"
+			values[i] = shipmentType
 		case orderent.FieldContainerOwnership:
 			values[i] = "COC"
 		case orderent.FieldShipmentMode:
-			values[i] = "CONSOLIDATION"
+			values[i] = "TRADITIONAL_FORWARDING"
 		case orderent.FieldStatus:
 			values[i] = "CONFIRMED"
 		case orderent.FieldCreatedAt, orderent.FieldUpdatedAt:

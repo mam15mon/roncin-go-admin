@@ -549,6 +549,7 @@ declare namespace API {
     personnelAssignments?: OrderPersonnelAssignmentInput[];
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
+    declarationCutoffAt?: string;
   };
 
   type CreateOrderResponse = {
@@ -1622,6 +1623,7 @@ declare namespace API {
     operationNotes?: string;
     shippingDocuments?: OrderShippingDocument[];
     containerRequests?: OrderContainerRequest[];
+    declarationCutoffAt?: string;
   };
 
   type OrderAbnormalCase = {
@@ -3028,6 +3030,7 @@ declare namespace API {
     operationNotes?: string;
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
+    declarationCutoffAt?: string;
   };
 
   type UpdateOrderResponse = {

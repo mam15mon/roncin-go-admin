@@ -834,6 +834,7 @@ var (
 		{Name: "factory_name", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "cargo_ready_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "loading_terms", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "declaration_cutoff_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "received_at", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
 		{Name: "trade_direction", Type: field.TypeEnum, Enums: []string{"export", "import"}},
@@ -841,7 +842,7 @@ var (
 		{Name: "payment_term", Type: field.TypeEnum, Enums: []string{"PREPAID", "COLLECT"}},
 		{Name: "shipment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"FCL", "LCL", "BREAK_BULK"}},
 		{Name: "container_ownership", Type: field.TypeEnum, Nullable: true, Enums: []string{"COC", "SOC"}},
-		{Name: "shipment_mode", Type: field.TypeEnum, Nullable: true, Enums: []string{"CONSOLIDATION", "CROSS_BORDER"}},
+		{Name: "shipment_mode", Type: field.TypeEnum, Nullable: true, Enums: []string{"TRADITIONAL_FORWARDING", "CROSS_BORDER"}},
 		{Name: "status", Type: field.TypeString, Size: 64, Default: "DRAFT"},
 		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
@@ -875,19 +876,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[49]},
+				Columns:    []*schema.Column{OrdersColumns[50]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[50]},
+				Columns:    []*schema.Column{OrdersColumns[51]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_status_templates_orders",
-				Columns:    []*schema.Column{OrdersColumns[51]},
+				Columns:    []*schema.Column{OrdersColumns[52]},
 				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -901,22 +902,22 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[28]},
+				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[29]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[21]},
+				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[22]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[49], OrdersColumns[50]},
+				Columns: []*schema.Column{OrdersColumns[50], OrdersColumns[51]},
 			},
 		},
 	}
