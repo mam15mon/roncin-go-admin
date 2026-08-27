@@ -617,6 +617,9 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           width: 520,
         }}
         layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '96px' }}
+        wrapperCol={{ flex: 'auto' }}
         grid
       >
         {formFields.map((field) => {

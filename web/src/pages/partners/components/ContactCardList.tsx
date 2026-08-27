@@ -259,6 +259,9 @@ export default function ContactCardList({
           width: 480,
         }}
         layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '110px' }}
+        wrapperCol={{ flex: 'auto' }}
         grid
       >
         <Col span={24}>

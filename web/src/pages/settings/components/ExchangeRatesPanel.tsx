@@ -484,6 +484,8 @@ export function ExchangeRatesPanel() {
         initialValues={initialValues}
         layout="horizontal"
         labelAlign="right"
+        labelCol={{ flex: '110px' }}
+        wrapperCol={{ flex: 'auto' }}
         form={form}
         modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 580 }}
         onOpenChange={(visible) => {

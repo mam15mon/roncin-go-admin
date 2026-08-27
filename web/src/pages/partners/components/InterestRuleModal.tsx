@@ -67,6 +67,9 @@ export default function InterestRuleModal({
         width: 500,
       }}
       layout="horizontal"
+      labelAlign="right"
+      labelCol={{ flex: '120px' }}
+      wrapperCol={{ flex: 'auto' }}
       grid
     >
       <Col span={24}>

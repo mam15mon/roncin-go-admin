@@ -344,6 +344,9 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
           width: 560,
         }}
         layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '84px' }}
+        wrapperCol={{ flex: 'auto' }}
         grid
       >
         <Col span={12}>
