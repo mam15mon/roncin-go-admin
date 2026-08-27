@@ -8,6 +8,7 @@ import {
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
 import { settlementServiceListFeeLedger } from '@/services/roncin/settlementService';
+import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 
 const businessLabels: Record<string, string> = {
@@ -153,13 +154,35 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'feeName',
       width: 130,
       search: false,
+      render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
+    },
+    {
+      title: '费用代码',
+      dataIndex: 'feeCode',
+      width: 90,
+      search: false,
+    },
+    {
+      title: '委托单位',
+      dataIndex: 'customerId',
+      width: 190,
+      valueType: 'select',
+      request: async () => {
+        const response = await partnerServiceListPartners({
+          role: 1,
+          page: 1,
+          pageSize: 200,
+        });
+        return (response.data || []).map((item) => ({
+          label: item.legalName || item.code || item.id,
+          value: item.id,
+        }));
+      },
+      fieldProps: { showSearch: true, optionFilterProp: 'label' },
       render: (_, row) => (
-        <span>
-          <span style={{ fontWeight: 500 }}>{row.feeName}</span>
-          <span style={{ color: '#8c8c8c', fontSize: 11, marginLeft: 4 }}>
-            ({row.feeCode})
-          </span>
-        </span>
+        <Tooltip title={row.customerName}>
+          <span>{row.customerName || '-'}</span>
+        </Tooltip>
       ),
     },
     {
@@ -324,7 +347,7 @@ export default function FinanceFeeLedgerPage() {
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={2100}
+        scrollX={2300}
         primaryActionText="创建账单"
         primaryActionRequiresSelection
         onPrimaryAction={(keys) => {
@@ -351,6 +374,7 @@ export default function FinanceFeeLedgerPage() {
             businessType: params.businessType,
             direction: params.direction,
             status: params.status,
+            customerId: params.customerId,
             expenseDateFrom: params.expenseDateFrom,
             expenseDateTo: params.expenseDateTo,
           });
