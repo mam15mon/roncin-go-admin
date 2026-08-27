@@ -20,11 +20,13 @@ type feeLedgerColumnPreferencePO struct {
 }
 
 type feeLedgerRowColorsPO struct {
-	Unbilled             string `json:"unbilled"`
-	UnverifiedUninvoiced string `json:"unverifiedUninvoiced"`
-	InvoicedUnverified   string `json:"invoicedUnverified"`
-	VerifiedUninvoiced   string `json:"verifiedUninvoiced"`
-	Completed            string `json:"completed"`
+	Unbilled                    string `json:"unbilled"`
+	UnverifiedUninvoiced        string `json:"unverifiedUninvoiced"`
+	InvoicedUnverified          string `json:"invoicedUnverified"`
+	VerifiedUninvoiced          string `json:"verifiedUninvoiced"`
+	InvoicedPartiallyVerified   string `json:"invoicedPartiallyVerified"`
+	PartiallyVerifiedUninvoiced string `json:"partiallyVerifiedUninvoiced"`
+	Completed                   string `json:"completed"`
 }
 
 func NewFeeLedgerPreferenceRepo(data *Data) biz.FeeLedgerPreferenceRepo {
@@ -145,11 +147,13 @@ func encodeFeeLedgerPreference(value *biz.FeeLedgerPreference) (json.RawMessage,
 		return nil, nil, err
 	}
 	colorsJSON, err := json.Marshal(feeLedgerRowColorsPO{
-		Unbilled:             value.RowColors.Unbilled,
-		UnverifiedUninvoiced: value.RowColors.UnverifiedUninvoiced,
-		InvoicedUnverified:   value.RowColors.InvoicedUnverified,
-		VerifiedUninvoiced:   value.RowColors.VerifiedUninvoiced,
-		Completed:            value.RowColors.Completed,
+		Unbilled:                    value.RowColors.Unbilled,
+		UnverifiedUninvoiced:        value.RowColors.UnverifiedUninvoiced,
+		InvoicedUnverified:          value.RowColors.InvoicedUnverified,
+		VerifiedUninvoiced:          value.RowColors.VerifiedUninvoiced,
+		InvoicedPartiallyVerified:   value.RowColors.InvoicedPartiallyVerified,
+		PartiallyVerifiedUninvoiced: value.RowColors.PartiallyVerifiedUninvoiced,
+		Completed:                   value.RowColors.Completed,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -172,11 +176,13 @@ func feeLedgerPreferenceToBiz(entity *ent.FinanceFeeLedgerPreference) (*biz.FeeL
 		Columns:        make([]biz.FeeLedgerColumnPreference, 0, len(columns)),
 		PageSize:       entity.PageSize,
 		RowColors: biz.FeeLedgerRowColors{
-			Unbilled:             colors.Unbilled,
-			UnverifiedUninvoiced: colors.UnverifiedUninvoiced,
-			InvoicedUnverified:   colors.InvoicedUnverified,
-			VerifiedUninvoiced:   colors.VerifiedUninvoiced,
-			Completed:            colors.Completed,
+			Unbilled:                    colors.Unbilled,
+			UnverifiedUninvoiced:        colors.UnverifiedUninvoiced,
+			InvoicedUnverified:          colors.InvoicedUnverified,
+			VerifiedUninvoiced:          colors.VerifiedUninvoiced,
+			InvoicedPartiallyVerified:   colors.InvoicedPartiallyVerified,
+			PartiallyVerifiedUninvoiced: colors.PartiallyVerifiedUninvoiced,
+			Completed:                   colors.Completed,
 		},
 		Version:    entity.Version,
 		Customized: true,

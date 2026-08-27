@@ -15,6 +15,18 @@ var ErrFinanceLedgerInvalidArgument = errors.BadRequest("FINANCE_LEDGER_INVALID_
 
 var ledgerCurrencyPattern = regexp.MustCompile(`^[A-Z]{3}$`)
 
+type FeeLedgerFinancialProgress string
+
+const (
+	FeeLedgerUnbilled                    FeeLedgerFinancialProgress = "UNBILLED"
+	FeeLedgerUnverifiedUninvoiced        FeeLedgerFinancialProgress = "UNVERIFIED_UNINVOICED"
+	FeeLedgerInvoicedUnverified          FeeLedgerFinancialProgress = "INVOICED_UNVERIFIED"
+	FeeLedgerVerifiedUninvoiced          FeeLedgerFinancialProgress = "VERIFIED_UNINVOICED"
+	FeeLedgerInvoicedPartiallyVerified   FeeLedgerFinancialProgress = "INVOICED_PARTIALLY_VERIFIED"
+	FeeLedgerPartiallyVerifiedUninvoiced FeeLedgerFinancialProgress = "PARTIALLY_VERIFIED_UNINVOICED"
+	FeeLedgerCompleted                   FeeLedgerFinancialProgress = "COMPLETED"
+)
+
 type FeeLedgerFilter struct {
 	Page              int
 	PageSize          int
@@ -30,11 +42,38 @@ type FeeLedgerFilter struct {
 }
 
 type FeeLedgerItem struct {
-	Fee          *OrderFee
-	OrderNo      string
-	Business     string
-	CustomerID   uuid.UUID
-	CustomerName string
+	Fee               *OrderFee
+	OrderNo           string
+	Business          string
+	CustomerID        uuid.UUID
+	CustomerName      string
+	FinancialProgress FeeLedgerFinancialProgress
+	BillNo            string
+	InvoicedAmount    decimal.Decimal
+	VerifiedAmount    decimal.Decimal
+	UnverifiedAmount  decimal.Decimal
+}
+
+func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount decimal.Decimal) FeeLedgerFinancialProgress {
+	if !hasBill {
+		return FeeLedgerUnbilled
+	}
+	if verifiedAmount.LessThanOrEqual(decimal.Zero) {
+		if invoiced {
+			return FeeLedgerInvoicedUnverified
+		}
+		return FeeLedgerUnverifiedUninvoiced
+	}
+	if verifiedAmount.LessThan(billAmount) {
+		if invoiced {
+			return FeeLedgerInvoicedPartiallyVerified
+		}
+		return FeeLedgerPartiallyVerifiedUninvoiced
+	}
+	if invoiced {
+		return FeeLedgerCompleted
+	}
+	return FeeLedgerVerifiedUninvoiced
 }
 
 type FeeLedgerSummary struct {

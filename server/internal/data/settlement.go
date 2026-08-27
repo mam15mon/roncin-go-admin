@@ -7,6 +7,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -85,7 +91,30 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 	}
 	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
 	items, err := baseQuery.Clone().
-		WithSettlementParty().WithOrder(func(query *ent.OrderQuery) { query.WithCustomer() }).
+		WithSettlementParty().
+		WithOrder(func(query *ent.OrderQuery) { query.WithCustomer() }).
+		WithFinanceBillLines(func(lineQuery *ent.FinanceBillLineQuery) {
+			lineQuery.
+				Where(
+					financebillline.ActiveEQ(true),
+					financebillline.HasBillWith(financebill.StatusNEQ(financebill.StatusCANCELLED)),
+				).
+				WithBill(func(billQuery *ent.FinanceBillQuery) {
+					billQuery.
+						WithInvoiceLinks(func(linkQuery *ent.FinanceInvoiceBillQuery) {
+							linkQuery.Where(
+								financeinvoicebill.ActiveEQ(true),
+								financeinvoicebill.HasInvoiceWith(financeinvoice.StatusEQ(financeinvoice.StatusISSUED)),
+							)
+						}).
+						WithVerificationAllocations(func(allocationQuery *ent.FinanceVerificationAllocationQuery) {
+							allocationQuery.Where(
+								financeverificationallocation.ActiveEQ(true),
+								financeverificationallocation.HasVerificationWith(financeverification.StatusEQ(financeverification.StatusACTIVE)),
+							)
+						})
+				})
+		}).
 		Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
@@ -105,7 +134,60 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		result.Items = append(result.Items, &biz.FeeLedgerItem{Fee: fee, OrderNo: businessOrder.OrderNo, Business: string(businessOrder.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName})
+		ledgerItem := &biz.FeeLedgerItem{
+			Fee:               fee,
+			OrderNo:           businessOrder.OrderNo,
+			Business:          string(businessOrder.BusinessType),
+			CustomerID:        customer.ID,
+			CustomerName:      customer.LegalName,
+			FinancialProgress: biz.FeeLedgerUnbilled,
+			InvoicedAmount:    decimal.Zero,
+			VerifiedAmount:    decimal.Zero,
+			UnverifiedAmount:  decimal.Zero,
+		}
+		billLines, edgeErr := item.Edges.FinanceBillLinesOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		if len(billLines) > 0 {
+			bill, billErr := billLines[0].Edges.BillOrErr()
+			if billErr != nil {
+				return nil, billErr
+			}
+			billAmount, parseErr := decimal.NewFromString(bill.TotalAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			invoiceLinks, linkErr := bill.Edges.InvoiceLinksOrErr()
+			if linkErr != nil {
+				return nil, linkErr
+			}
+			for _, link := range invoiceLinks {
+				amount, amountErr := decimal.NewFromString(link.Amount)
+				if amountErr != nil {
+					return nil, amountErr
+				}
+				ledgerItem.InvoicedAmount = ledgerItem.InvoicedAmount.Add(amount)
+			}
+			allocations, allocationErr := bill.Edges.VerificationAllocationsOrErr()
+			if allocationErr != nil {
+				return nil, allocationErr
+			}
+			for _, allocation := range allocations {
+				amount, amountErr := decimal.NewFromString(allocation.Amount)
+				if amountErr != nil {
+					return nil, amountErr
+				}
+				ledgerItem.VerifiedAmount = ledgerItem.VerifiedAmount.Add(amount)
+			}
+			ledgerItem.BillNo = bill.BillNo
+			ledgerItem.UnverifiedAmount = billAmount.Sub(ledgerItem.VerifiedAmount)
+			if ledgerItem.UnverifiedAmount.IsNegative() {
+				ledgerItem.UnverifiedAmount = decimal.Zero
+			}
+			ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, ledgerItem.VerifiedAmount)
+		}
+		result.Items = append(result.Items, ledgerItem)
 	}
 	return result, nil
 }

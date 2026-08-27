@@ -31,11 +31,13 @@ type FeeLedgerColumnPreference struct {
 }
 
 type FeeLedgerRowColors struct {
-	Unbilled             string
-	UnverifiedUninvoiced string
-	InvoicedUnverified   string
-	VerifiedUninvoiced   string
-	Completed            string
+	Unbilled                    string
+	UnverifiedUninvoiced        string
+	InvoicedUnverified          string
+	VerifiedUninvoiced          string
+	InvoicedPartiallyVerified   string
+	PartiallyVerifiedUninvoiced string
+	Completed                   string
 }
 
 type FeeLedgerPreference struct {
@@ -111,11 +113,13 @@ func (uc *FeeLedgerPreferenceUsecase) Reset(ctx context.Context, organizationID,
 
 func defaultFeeLedgerRowColors() FeeLedgerRowColors {
 	return FeeLedgerRowColors{
-		Unbilled:             "#FFF7E6",
-		UnverifiedUninvoiced: "#FFFBE6",
-		InvoicedUnverified:   "#E6F4FF",
-		VerifiedUninvoiced:   "#F9F0FF",
-		Completed:            "#F6FFED",
+		Unbilled:                    "#FFF7E6",
+		UnverifiedUninvoiced:        "#FFFBE6",
+		InvoicedUnverified:          "#E6F4FF",
+		VerifiedUninvoiced:          "#F9F0FF",
+		InvoicedPartiallyVerified:   "#E6FFFB",
+		PartiallyVerifiedUninvoiced: "#FFF0F6",
+		Completed:                   "#F6FFED",
 	}
 }
 
@@ -135,11 +139,13 @@ func normalizeFeeLedgerPreference(organizationID, userID uuid.UUID, input *FeeLe
 		SortField:      strings.TrimSpace(input.SortField),
 		SortDirection:  strings.ToUpper(strings.TrimSpace(input.SortDirection)),
 		RowColors: FeeLedgerRowColors{
-			Unbilled:             strings.ToUpper(strings.TrimSpace(input.RowColors.Unbilled)),
-			UnverifiedUninvoiced: strings.ToUpper(strings.TrimSpace(input.RowColors.UnverifiedUninvoiced)),
-			InvoicedUnverified:   strings.ToUpper(strings.TrimSpace(input.RowColors.InvoicedUnverified)),
-			VerifiedUninvoiced:   strings.ToUpper(strings.TrimSpace(input.RowColors.VerifiedUninvoiced)),
-			Completed:            strings.ToUpper(strings.TrimSpace(input.RowColors.Completed)),
+			Unbilled:                    strings.ToUpper(strings.TrimSpace(input.RowColors.Unbilled)),
+			UnverifiedUninvoiced:        strings.ToUpper(strings.TrimSpace(input.RowColors.UnverifiedUninvoiced)),
+			InvoicedUnverified:          strings.ToUpper(strings.TrimSpace(input.RowColors.InvoicedUnverified)),
+			VerifiedUninvoiced:          strings.ToUpper(strings.TrimSpace(input.RowColors.VerifiedUninvoiced)),
+			InvoicedPartiallyVerified:   strings.ToUpper(strings.TrimSpace(input.RowColors.InvoicedPartiallyVerified)),
+			PartiallyVerifiedUninvoiced: strings.ToUpper(strings.TrimSpace(input.RowColors.PartiallyVerifiedUninvoiced)),
+			Completed:                   strings.ToUpper(strings.TrimSpace(input.RowColors.Completed)),
 		},
 		Version:    input.Version,
 		Customized: true,
@@ -177,6 +183,8 @@ func normalizeFeeLedgerPreference(organizationID, userID uuid.UUID, input *FeeLe
 		result.RowColors.UnverifiedUninvoiced,
 		result.RowColors.InvoicedUnverified,
 		result.RowColors.VerifiedUninvoiced,
+		result.RowColors.InvoicedPartiallyVerified,
+		result.RowColors.PartiallyVerifiedUninvoiced,
 		result.RowColors.Completed,
 	} {
 		if !feeLedgerColorPattern.MatchString(color) {

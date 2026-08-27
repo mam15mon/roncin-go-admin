@@ -418,26 +418,63 @@ export default function FinanceFeeLedgerPage() {
     },
   ];
 
-  // 根据当前用户的个性化列偏好动态过滤显示
+  // 根据当前用户的个性化列偏好动态过滤显示并按用户拖拽顺序重排
   const columns = useMemo(() => {
     if (!preference?.columns || preference.columns.length === 0) {
       return baseColumns;
     }
-    const visibleMap = new Map<string, boolean>();
-    preference.columns.forEach((c) => {
-      if (c.fieldKey) visibleMap.set(c.fieldKey, Boolean(c.visible));
+    const orderMap = new Map<string, { visible: boolean; order: number }>();
+    preference.columns.forEach((c, idx) => {
+      if (c.fieldKey) {
+        orderMap.set(c.fieldKey, {
+          visible: Boolean(c.visible),
+          order: idx + 1,
+        });
+      }
     });
 
-    return baseColumns.filter((col) => {
-      // 序号列常驻显示
-      if (col.valueType === 'index') return true;
-      const key = String(col.dataIndex || '');
-      if (!key) return true;
-      if (visibleMap.has(key)) {
-        return visibleMap.get(key);
+    const colMap = new Map<string, ProColumns<API.FeeLedgerItem>>();
+    let indexCol: ProColumns<API.FeeLedgerItem> | undefined;
+    let directionCol: ProColumns<API.FeeLedgerItem> | undefined;
+
+    baseColumns.forEach((col) => {
+      if (col.valueType === 'index') {
+        indexCol = col;
+      } else if (col.dataIndex === 'direction') {
+        directionCol = col;
+      } else {
+        const key = String(col.dataIndex || '');
+        if (key) colMap.set(key, col);
       }
-      return true;
     });
+
+    // 1. 序号与属性列保持固定在最左侧
+    const result: ProColumns<API.FeeLedgerItem>[] = [];
+    if (indexCol) result.push(indexCol);
+    if (directionCol) result.push(directionCol);
+
+    // 2. 其余可见列按照用户设置的 order 顺序插入
+    const userOrdered: ProColumns<API.FeeLedgerItem>[] = [];
+    preference.columns.forEach((c) => {
+      if (c.fieldKey && orderMap.get(c.fieldKey)?.visible) {
+        const matched = colMap.get(c.fieldKey);
+        if (matched) userOrdered.push(matched);
+      }
+    });
+
+    result.push(...userOrdered);
+
+    // 3. 补充可能在 baseColumns 中存在但在 preference 中未定义的列（如有）
+    baseColumns.forEach((col) => {
+      if (col !== indexCol && col !== directionCol) {
+        const key = String(col.dataIndex || '');
+        if (key && !orderMap.has(key) && !result.includes(col)) {
+          result.push(col);
+        }
+      }
+    });
+
+    return result;
   }, [baseColumns, preference]);
 
   // 根据费用业务状态映射对应的行高亮背景 key

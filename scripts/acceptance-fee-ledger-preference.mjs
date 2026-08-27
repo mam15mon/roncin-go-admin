@@ -92,6 +92,8 @@ const common = {
     unverifiedUninvoiced: '#FFFBE6',
     invoicedUnverified: '#E6F4FF',
     verifiedUninvoiced: '#F9F0FF',
+    invoicedPartiallyVerified: '#E6FFFB',
+    partiallyVerifiedUninvoiced: '#FFF0F6',
     completed: '#F6FFED',
   },
   version: originalVersion,

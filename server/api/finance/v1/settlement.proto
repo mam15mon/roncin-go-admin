@@ -152,6 +152,11 @@ message FeeLedgerItem {
   optional string tax_rate = 26;
   string customer_id = 27;
   string customer_name = 28;
+  string financial_progress = 29;
+  optional string bill_no = 30;
+  string invoiced_amount = 31;
+  string verified_amount = 32;
+  string unverified_amount = 33;
 }
 
 message FeeLedgerSummary {
@@ -185,6 +190,8 @@ message FeeLedgerRowColors {
   string invoiced_unverified = 3 [(google.api.field_behavior) = REQUIRED];
   string verified_uninvoiced = 4 [(google.api.field_behavior) = REQUIRED];
   string completed = 5 [(google.api.field_behavior) = REQUIRED];
+  string invoiced_partially_verified = 6 [(google.api.field_behavior) = REQUIRED];
+  string partially_verified_uninvoiced = 7 [(google.api.field_behavior) = REQUIRED];
 }
 
 message FeeLedgerPreference {

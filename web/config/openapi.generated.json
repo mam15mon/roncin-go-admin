@@ -9504,6 +9504,21 @@
           },
           "customerName": {
             "type": "string"
+          },
+          "financialProgress": {
+            "type": "string"
+          },
+          "billNo": {
+            "type": "string"
+          },
+          "invoicedAmount": {
+            "type": "string"
+          },
+          "verifiedAmount": {
+            "type": "string"
+          },
+          "unverifiedAmount": {
+            "type": "string"
           }
         }
       },
@@ -9546,7 +9561,9 @@
           "unverifiedUninvoiced",
           "invoicedUnverified",
           "verifiedUninvoiced",
-          "completed"
+          "completed",
+          "invoicedPartiallyVerified",
+          "partiallyVerifiedUninvoiced"
         ],
         "type": "object",
         "properties": {
@@ -9563,6 +9580,12 @@
             "type": "string"
           },
           "completed": {
+            "type": "string"
+          },
+          "invoicedPartiallyVerified": {
+            "type": "string"
+          },
+          "partiallyVerifiedUninvoiced": {
             "type": "string"
           }
         }

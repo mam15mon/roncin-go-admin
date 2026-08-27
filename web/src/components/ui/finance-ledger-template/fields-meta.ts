@@ -177,6 +177,8 @@ export function getDefaultRowColors(): {
   invoicedUnverified: string;
   verifiedUninvoiced: string;
   completed: string;
+  invoicedPartiallyVerified: string;
+  partiallyVerifiedUninvoiced: string;
 } {
   return {
     unbilled: '#FFF7E6',
@@ -184,6 +186,8 @@ export function getDefaultRowColors(): {
     invoicedUnverified: '#E6F4FF',
     verifiedUninvoiced: '#F9F0FF',
     completed: '#F6FFED',
+    invoicedPartiallyVerified: '#E6F4FF',
+    partiallyVerifiedUninvoiced: '#F9F0FF',
   };
 }
 

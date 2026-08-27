@@ -1257,6 +1257,11 @@ declare namespace API {
     taxRate?: string;
     customerId?: string;
     customerName?: string;
+    financialProgress?: string;
+    billNo?: string;
+    invoicedAmount?: string;
+    verifiedAmount?: string;
+    unverifiedAmount?: string;
   };
 
   type FeeLedgerPreference = {
@@ -1276,6 +1281,8 @@ declare namespace API {
     invoicedUnverified: string;
     verifiedUninvoiced: string;
     completed: string;
+    invoicedPartiallyVerified: string;
+    partiallyVerifiedUninvoiced: string;
   };
 
   type FeeLedgerSummary = {

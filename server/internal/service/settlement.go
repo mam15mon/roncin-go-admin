@@ -76,8 +76,12 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8),
 			ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
-			TaxRate: financeDecimalPointer(fee.TaxRate, 4),
+			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
+			FinancialProgress: string(item.FinancialProgress), InvoicedAmount: item.InvoicedAmount.StringFixed(8), VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8),
 		})
+		if item.BillNo != "" {
+			data[len(data)-1].BillNo = &item.BillNo
+		}
 	}
 	return &v1.ListFeeLedgerResponse{
 		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
@@ -125,11 +129,13 @@ func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, reque
 		SortField:     financeOptionalString(request.SortField),
 		SortDirection: financeOptionalString(request.SortDirection),
 		RowColors: biz.FeeLedgerRowColors{
-			Unbilled:             colors.GetUnbilled(),
-			UnverifiedUninvoiced: colors.GetUnverifiedUninvoiced(),
-			InvoicedUnverified:   colors.GetInvoicedUnverified(),
-			VerifiedUninvoiced:   colors.GetVerifiedUninvoiced(),
-			Completed:            colors.GetCompleted(),
+			Unbilled:                    colors.GetUnbilled(),
+			UnverifiedUninvoiced:        colors.GetUnverifiedUninvoiced(),
+			InvoicedUnverified:          colors.GetInvoicedUnverified(),
+			VerifiedUninvoiced:          colors.GetVerifiedUninvoiced(),
+			InvoicedPartiallyVerified:   colors.GetInvoicedPartiallyVerified(),
+			PartiallyVerifiedUninvoiced: colors.GetPartiallyVerifiedUninvoiced(),
+			Completed:                   colors.GetCompleted(),
 		},
 		Version: request.GetVersion(),
 	})
@@ -171,7 +177,7 @@ func feeLedgerPreferenceToAPI(preference *biz.FeeLedgerPreference) *v1.FeeLedger
 	result := &v1.FeeLedgerPreference{
 		Columns:    columns,
 		PageSize:   int32(preference.PageSize),
-		RowColors:  &v1.FeeLedgerRowColors{Unbilled: preference.RowColors.Unbilled, UnverifiedUninvoiced: preference.RowColors.UnverifiedUninvoiced, InvoicedUnverified: preference.RowColors.InvoicedUnverified, VerifiedUninvoiced: preference.RowColors.VerifiedUninvoiced, Completed: preference.RowColors.Completed},
+		RowColors:  &v1.FeeLedgerRowColors{Unbilled: preference.RowColors.Unbilled, UnverifiedUninvoiced: preference.RowColors.UnverifiedUninvoiced, InvoicedUnverified: preference.RowColors.InvoicedUnverified, VerifiedUninvoiced: preference.RowColors.VerifiedUninvoiced, InvoicedPartiallyVerified: preference.RowColors.InvoicedPartiallyVerified, PartiallyVerifiedUninvoiced: preference.RowColors.PartiallyVerifiedUninvoiced, Completed: preference.RowColors.Completed},
 		Version:    preference.Version,
 		Customized: preference.Customized,
 	}

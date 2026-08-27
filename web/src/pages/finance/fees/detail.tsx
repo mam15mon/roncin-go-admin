@@ -124,7 +124,6 @@ export default function FinanceFeeDetailPage() {
       const amt = Number(f.totalAmount || 0);
       const baseAmt = Number(f.baseCurrencyAmount || 0);
       const taxRate = Number(f.taxRate || 0);
-      const netAmt = taxRate > 0 ? amt / (1 + taxRate) : amt;
       const baseNetAmt = taxRate > 0 ? baseAmt / (1 + taxRate) : baseAmt;
 
       if (Number(f.direction) === 1) {

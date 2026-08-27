@@ -177,6 +177,11 @@ type FeeLedgerItem struct {
 	TaxRate             *string                `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
 	CustomerId          string                 `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
 	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	FinancialProgress   string                 `protobuf:"bytes,29,opt,name=financial_progress,json=financialProgress,proto3" json:"financial_progress,omitempty"`
+	BillNo              *string                `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
+	InvoicedAmount      string                 `protobuf:"bytes,31,opt,name=invoiced_amount,json=invoicedAmount,proto3" json:"invoiced_amount,omitempty"`
+	VerifiedAmount      string                 `protobuf:"bytes,32,opt,name=verified_amount,json=verifiedAmount,proto3" json:"verified_amount,omitempty"`
+	UnverifiedAmount    string                 `protobuf:"bytes,33,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -403,6 +408,41 @@ func (x *FeeLedgerItem) GetCustomerId() string {
 func (x *FeeLedgerItem) GetCustomerName() string {
 	if x != nil {
 		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetFinancialProgress() string {
+	if x != nil {
+		return x.FinancialProgress
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetBillNo() string {
+	if x != nil && x.BillNo != nil {
+		return *x.BillNo
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetInvoicedAmount() string {
+	if x != nil {
+		return x.InvoicedAmount
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetVerifiedAmount() string {
+	if x != nil {
+		return x.VerifiedAmount
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetUnverifiedAmount() string {
+	if x != nil {
+		return x.UnverifiedAmount
 	}
 	return ""
 }
@@ -664,14 +704,16 @@ func (x *FeeLedgerColumnPreference) GetVisible() bool {
 }
 
 type FeeLedgerRowColors struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Unbilled             string                 `protobuf:"bytes,1,opt,name=unbilled,proto3" json:"unbilled,omitempty"`
-	UnverifiedUninvoiced string                 `protobuf:"bytes,2,opt,name=unverified_uninvoiced,json=unverifiedUninvoiced,proto3" json:"unverified_uninvoiced,omitempty"`
-	InvoicedUnverified   string                 `protobuf:"bytes,3,opt,name=invoiced_unverified,json=invoicedUnverified,proto3" json:"invoiced_unverified,omitempty"`
-	VerifiedUninvoiced   string                 `protobuf:"bytes,4,opt,name=verified_uninvoiced,json=verifiedUninvoiced,proto3" json:"verified_uninvoiced,omitempty"`
-	Completed            string                 `protobuf:"bytes,5,opt,name=completed,proto3" json:"completed,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"open.v1"`
+	Unbilled                    string                 `protobuf:"bytes,1,opt,name=unbilled,proto3" json:"unbilled,omitempty"`
+	UnverifiedUninvoiced        string                 `protobuf:"bytes,2,opt,name=unverified_uninvoiced,json=unverifiedUninvoiced,proto3" json:"unverified_uninvoiced,omitempty"`
+	InvoicedUnverified          string                 `protobuf:"bytes,3,opt,name=invoiced_unverified,json=invoicedUnverified,proto3" json:"invoiced_unverified,omitempty"`
+	VerifiedUninvoiced          string                 `protobuf:"bytes,4,opt,name=verified_uninvoiced,json=verifiedUninvoiced,proto3" json:"verified_uninvoiced,omitempty"`
+	Completed                   string                 `protobuf:"bytes,5,opt,name=completed,proto3" json:"completed,omitempty"`
+	InvoicedPartiallyVerified   string                 `protobuf:"bytes,6,opt,name=invoiced_partially_verified,json=invoicedPartiallyVerified,proto3" json:"invoiced_partially_verified,omitempty"`
+	PartiallyVerifiedUninvoiced string                 `protobuf:"bytes,7,opt,name=partially_verified_uninvoiced,json=partiallyVerifiedUninvoiced,proto3" json:"partially_verified_uninvoiced,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *FeeLedgerRowColors) Reset() {
@@ -735,6 +777,20 @@ func (x *FeeLedgerRowColors) GetVerifiedUninvoiced() string {
 func (x *FeeLedgerRowColors) GetCompleted() string {
 	if x != nil {
 		return x.Completed
+	}
+	return ""
+}
+
+func (x *FeeLedgerRowColors) GetInvoicedPartiallyVerified() string {
+	if x != nil {
+		return x.InvoicedPartiallyVerified
+	}
+	return ""
+}
+
+func (x *FeeLedgerRowColors) GetPartiallyVerifiedUninvoiced() string {
+	if x != nil {
+		return x.PartiallyVerifiedUninvoiced
 	}
 	return ""
 }
@@ -9013,7 +9069,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\t_currencyB\x14\n" +
 	"\x12_expense_date_fromB\x12\n" +
 	"\x10_expense_date_toB\x0e\n" +
-	"\f_customer_id\"\xb1\a\n" +
+	"\f_customer_id\"\x89\t\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -9049,9 +9105,16 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\btax_rate\x18\x1a \x01(\tH\x01R\ataxRate\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x1b \x01(\tR\n" +
 	"customerId\x12#\n" +
-	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerNameB\a\n" +
+	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12-\n" +
+	"\x12financial_progress\x18\x1d \x01(\tR\x11financialProgress\x12\x1c\n" +
+	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12'\n" +
+	"\x0finvoiced_amount\x18\x1f \x01(\tR\x0einvoicedAmount\x12'\n" +
+	"\x0fverified_amount\x18  \x01(\tR\x0everifiedAmount\x12+\n" +
+	"\x11unverified_amount\x18! \x01(\tR\x10unverifiedAmountB\a\n" +
 	"\x05_noteB\v\n" +
-	"\t_tax_rate\"\xee\x01\n" +
+	"\t_tax_rateB\n" +
+	"\n" +
+	"\b_bill_no\"\xee\x01\n" +
 	"\x10FeeLedgerSummary\x12!\n" +
 	"\factive_count\x18\x01 \x01(\x03R\vactiveCount\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +
@@ -9069,13 +9132,15 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1dGetFeeLedgerPreferenceRequest\"W\n" +
 	"\x19FeeLedgerColumnPreference\x12 \n" +
 	"\tfield_key\x18\x01 \x01(\tB\x03\xe0A\x02R\bfieldKey\x12\x18\n" +
-	"\avisible\x18\x02 \x01(\bR\avisible\"\xfe\x01\n" +
+	"\avisible\x18\x02 \x01(\bR\avisible\"\x8c\x03\n" +
 	"\x12FeeLedgerRowColors\x12\x1f\n" +
 	"\bunbilled\x18\x01 \x01(\tB\x03\xe0A\x02R\bunbilled\x128\n" +
 	"\x15unverified_uninvoiced\x18\x02 \x01(\tB\x03\xe0A\x02R\x14unverifiedUninvoiced\x124\n" +
 	"\x13invoiced_unverified\x18\x03 \x01(\tB\x03\xe0A\x02R\x12invoicedUnverified\x124\n" +
 	"\x13verified_uninvoiced\x18\x04 \x01(\tB\x03\xe0A\x02R\x12verifiedUninvoiced\x12!\n" +
-	"\tcompleted\x18\x05 \x01(\tB\x03\xe0A\x02R\tcompleted\"\x91\x03\n" +
+	"\tcompleted\x18\x05 \x01(\tB\x03\xe0A\x02R\tcompleted\x12C\n" +
+	"\x1binvoiced_partially_verified\x18\x06 \x01(\tB\x03\xe0A\x02R\x19invoicedPartiallyVerified\x12G\n" +
+	"\x1dpartially_verified_uninvoiced\x18\a \x01(\tB\x03\xe0A\x02R\x1bpartiallyVerifiedUninvoiced\"\x91\x03\n" +
 	"\x13FeeLedgerPreference\x12?\n" +
 	"\acolumns\x18\x01 \x03(\v2%.finance.v1.FeeLedgerColumnPreferenceR\acolumns\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\"\n" +

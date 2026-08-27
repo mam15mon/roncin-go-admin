@@ -1,8 +1,12 @@
 import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   CheckOutlined,
+  HolderOutlined,
   ReloadOutlined,
   SearchOutlined,
   SettingOutlined,
+  VerticalAlignTopOutlined,
 } from '@ant-design/icons';
 import {
   App,
@@ -18,12 +22,14 @@ import {
   Select,
   Space,
   Tag,
+  Tooltip,
 } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ALL_153_FINANCE_FIELDS,
   getDefaultColumnPreferences,
   getDefaultRowColors,
+  type FinanceFieldMeta,
 } from './fields-meta';
 import {
   settlementServiceResetFeeLedgerPreference,
@@ -59,45 +65,61 @@ export function TableColumnConfigModal({
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
 
-  // 1. 字段显隐与顺序映射
+  // 1. 字段有序列表与勾选状态
+  const [fieldList, setFieldList] = useState<FinanceFieldMeta[]>(ALL_153_FINANCE_FIELDS);
   const [columnMap, setColumnMap] = useState<Map<string, boolean>>(new Map());
   const [searchKeyword, setSearchKeyword] = useState('');
+
+  // 拖拽状态
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // 2. 基础分页与排序
   const [pageSize, setPageSize] = useState<number>(40);
   const [sortField, setSortField] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC');
 
-  // 3. 5 类状态行背景高亮颜色
-  const [rowColors, setRowColors] = useState({
-    unbilled: '#FFF7E6',
-    unverifiedUninvoiced: '#FFFBE6',
-    invoicedUnverified: '#E6F4FF',
-    verifiedUninvoiced: '#F9F0FF',
-    completed: '#F6FFED',
-  });
+  // 3. 状态行背景高亮颜色
+  const [rowColors, setRowColors] = useState(getDefaultRowColors());
 
-  // 初始化数据
+  // 初始化数据与顺序
   useEffect(() => {
     if (!open) return;
     const defaultCols = getDefaultColumnPreferences();
     const map = new Map<string, boolean>();
+    const metaMap = new Map<string, FinanceFieldMeta>();
+    ALL_153_FINANCE_FIELDS.forEach((f) => {
+      metaMap.set(f.key, f);
+    });
+
+    const ordered: FinanceFieldMeta[] = [];
 
     if (currentPreference?.columns && currentPreference.columns.length > 0) {
       currentPreference.columns.forEach((c) => {
-        if (c.fieldKey) map.set(c.fieldKey, Boolean(c.visible));
+        if (c.fieldKey) {
+          map.set(c.fieldKey, Boolean(c.visible));
+          const meta = metaMap.get(c.fieldKey);
+          if (meta) {
+            ordered.push(meta);
+            metaMap.delete(c.fieldKey);
+          }
+        }
       });
       // 补充可能未包含的新字段
-      defaultCols.forEach((d) => {
-        if (!map.has(d.fieldKey)) {
-          map.set(d.fieldKey, d.visible);
+      metaMap.forEach((meta) => {
+        ordered.push(meta);
+        if (!map.has(meta.key)) {
+          map.set(meta.key, false);
         }
       });
     } else {
       defaultCols.forEach((d) => {
         map.set(d.fieldKey, d.visible);
       });
+      ordered.push(...ALL_153_FINANCE_FIELDS);
     }
+
+    setFieldList(ordered);
     setColumnMap(map);
 
     setPageSize(currentPreference?.pageSize || 40);
@@ -116,6 +138,10 @@ export function TableColumnConfigModal({
         verifiedUninvoiced:
           currentPreference.rowColors.verifiedUninvoiced || '#F9F0FF',
         completed: currentPreference.rowColors.completed || '#F6FFED',
+        invoicedPartiallyVerified:
+          currentPreference.rowColors.invoicedPartiallyVerified || '#E6F4FF',
+        partiallyVerifiedUninvoiced:
+          currentPreference.rowColors.partiallyVerifiedUninvoiced || '#F9F0FF',
       });
     } else {
       setRowColors(getDefaultRowColors());
@@ -125,15 +151,15 @@ export function TableColumnConfigModal({
 
   // 过滤后的 153 字段
   const filteredFields = useMemo(() => {
-    if (!searchKeyword.trim()) return ALL_153_FINANCE_FIELDS;
+    if (!searchKeyword.trim()) return fieldList;
     const kw = searchKeyword.trim().toLowerCase();
-    return ALL_153_FINANCE_FIELDS.filter(
+    return fieldList.filter(
       (f) =>
         f.name.toLowerCase().includes(kw) ||
         f.key.toLowerCase().includes(kw) ||
         String(f.id).includes(kw),
     );
-  }, [searchKeyword]);
+  }, [fieldList, searchKeyword]);
 
   const selectedCount = useMemo(() => {
     let count = 0;
@@ -156,7 +182,7 @@ export function TableColumnConfigModal({
   const handleSelectAll = () => {
     setColumnMap((prev) => {
       const next = new Map(prev);
-      ALL_153_FINANCE_FIELDS.forEach((f) => {
+      fieldList.forEach((f) => {
         next.set(f.key, true);
       });
       return next;
@@ -167,22 +193,91 @@ export function TableColumnConfigModal({
   const handleInvertSelect = () => {
     setColumnMap((prev) => {
       const next = new Map(prev);
-      ALL_153_FINANCE_FIELDS.forEach((f) => {
+      fieldList.forEach((f) => {
         next.set(f.key, !prev.get(f.key));
       });
       return next;
     });
   };
 
-  // 重置默认字段显隐
+  // 重置默认字段显隐与顺序
   const handleResetDefaultFields = () => {
     const defaultCols = getDefaultColumnPreferences();
     const map = new Map<string, boolean>();
     defaultCols.forEach((d) => {
       map.set(d.fieldKey, d.visible);
     });
+    setFieldList(ALL_153_FINANCE_FIELDS);
     setColumnMap(map);
-    message.success('已恢复系统默认推荐显示字段');
+    message.success('已恢复系统默认推荐显示字段与初始顺序');
+  };
+
+  // 拖拽排序事件
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    setFieldList((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(draggedIndex, 1);
+      next.splice(targetIndex, 0, item);
+      return next;
+    });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // 快捷置顶
+  const handleMoveToTop = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (index === 0) return;
+    setFieldList((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
+  };
+
+  // 快捷上移
+  const handleMoveUp = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (index === 0) return;
+    setFieldList((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(index - 1, 0, item);
+      return next;
+    });
+  };
+
+  // 快捷下移
+  const handleMoveDown = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (index >= fieldList.length - 1) return;
+    setFieldList((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(index + 1, 0, item);
+      return next;
+    });
   };
 
   // 重置颜色
@@ -216,10 +311,11 @@ export function TableColumnConfigModal({
     }
     setSaving(true);
     try {
-      // 保持 153 项全量顺序
-      const columnsPayload = ALL_153_FINANCE_FIELDS.map((f) => ({
+      // 按照用户拖拽调整后的 fieldList 顺序保存
+      const columnsPayload = fieldList.map((f, idx) => ({
         fieldKey: f.key,
         visible: Boolean(columnMap.get(f.key)),
+        order: idx + 1,
       }));
 
       const res = await settlementServiceUpdateFeeLedgerPreference({
@@ -232,7 +328,7 @@ export function TableColumnConfigModal({
       });
 
       if (res.data) {
-        message.success('表头与列表个性化配置已成功保存');
+        message.success('表头排序与列表个性化配置已成功保存');
         onSaved(res.data);
         onClose();
       }
@@ -248,14 +344,17 @@ export function TableColumnConfigModal({
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <SettingOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-          <span style={{ fontWeight: 600, fontSize: 16 }}>表头设置与排序</span>
+          <span style={{ fontWeight: 600, fontSize: 16 }}>表头设置与拖拽排序</span>
           <Tag color="blue" style={{ marginLeft: 4 }}>
             已选 {selectedCount} / 153 项
           </Tag>
+          <span style={{ fontSize: 12, color: '#8c8c8c', marginLeft: 8 }}>
+            💡 按住左侧图标拖拽即可自由调整表头列先后顺序
+          </span>
         </div>
       }
       open={open}
-      width={1020}
+      width={1060}
       destroyOnHidden
       onCancel={onClose}
       footer={[
@@ -317,9 +416,7 @@ export function TableColumnConfigModal({
                 placeholder="请选择默认排序字段（默认费用时间）"
                 options={[
                   { label: '无特定排序（按录入与费用时间）', value: '' },
-                  ...ALL_153_FINANCE_FIELDS.filter((f) =>
-                    columnMap.get(f.key),
-                  ).map((f) => ({
+                  ...fieldList.filter((f) => columnMap.get(f.key)).map((f) => ({
                     label: `${f.name} (${f.key})`,
                     value: f.key,
                   })),
@@ -342,7 +439,7 @@ export function TableColumnConfigModal({
           </Row>
         </Card>
 
-        {/* 2. 153 项全量字段列表 */}
+        {/* 2. 153 项全量字段列表与拖拽排序 */}
         <div style={{ marginBottom: 12 }}>
           <div
             style={{
@@ -356,7 +453,7 @@ export function TableColumnConfigModal({
           >
             <Space size={8}>
               <span style={{ fontWeight: 600, fontSize: 14 }}>
-                全量业务字段配置（153 项）
+                全量业务字段配置（153 项，支持拖拽重排）
               </span>
               <Button size="small" onClick={handleSelectAll}>
                 全选
@@ -371,44 +468,76 @@ export function TableColumnConfigModal({
             <Input
               allowClear
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              placeholder="请输入搜索字段名、字段标识或序号..."
+              placeholder="搜索字段名、字段标识或序号..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               style={{ width: 280 }}
             />
           </div>
 
-          {/* 字段选择网格 */}
+          {/* 字段选择与拖拽网格 */}
           <div
             style={{
               border: '1px solid #f0f0f0',
               borderRadius: 6,
               padding: 12,
               background: '#fff',
-              maxHeight: 280,
+              maxHeight: 320,
               overflowY: 'auto',
             }}
           >
             <Row gutter={[8, 8]}>
-              {filteredFields.map((field) => {
+              {filteredFields.map((field, index) => {
                 const checked = Boolean(columnMap.get(field.key));
+                const isDragging = draggedIndex === index;
+                const isDragOver = dragOverIndex === index;
+
                 return (
                   <Col span={6} key={field.key}>
                     <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={() => {
+                        setDraggedIndex(null);
+                        setDragOverIndex(null);
+                      }}
                       onClick={() => handleToggleColumn(field.key)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '5px 8px',
+                        padding: '6px 8px',
                         borderRadius: 4,
-                        border: `1px solid ${checked ? '#91caff' : '#f0f0f0'}`,
-                        background: checked ? '#e6f4ff' : '#fafafa',
+                        border: isDragOver
+                          ? '2px dashed #1677ff'
+                          : `1px solid ${checked ? '#91caff' : '#f0f0f0'}`,
+                        background: isDragging
+                          ? '#f5f5f5'
+                          : checked
+                            ? '#e6f4ff'
+                            : '#fafafa',
                         cursor: 'pointer',
+                        opacity: isDragging ? 0.4 : 1,
                         transition: 'all 0.15s ease',
+                        userSelect: 'none',
                       }}
                     >
-                      <Space size={6} style={{ overflow: 'hidden' }}>
+                      <Space size={6} style={{ overflow: 'hidden', flex: 1 }}>
+                        <Tooltip title="拖动可调整字段前后顺序">
+                          <span
+                            style={{
+                              cursor: 'grab',
+                              color: '#bfbfbf',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <HolderOutlined />
+                          </span>
+                        </Tooltip>
                         <span
                           style={{
                             fontSize: 11,
@@ -432,10 +561,32 @@ export function TableColumnConfigModal({
                           {field.name}
                         </span>
                       </Space>
-                      <Checkbox
-                        checked={checked}
-                        style={{ pointerEvents: 'none' }}
-                      />
+
+                      {/* 右侧微调按钮与 Checkbox */}
+                      <Space size={4} style={{ marginLeft: 4 }}>
+                        <Tooltip title="置顶">
+                          <VerticalAlignTopOutlined
+                            style={{ fontSize: 11, color: '#8c8c8c' }}
+                            onClick={(e) => handleMoveToTop(index, e)}
+                          />
+                        </Tooltip>
+                        <Tooltip title="上移">
+                          <ArrowUpOutlined
+                            style={{ fontSize: 11, color: '#8c8c8c' }}
+                            onClick={(e) => handleMoveUp(index, e)}
+                          />
+                        </Tooltip>
+                        <Tooltip title="下移">
+                          <ArrowDownOutlined
+                            style={{ fontSize: 11, color: '#8c8c8c' }}
+                            onClick={(e) => handleMoveDown(index, e)}
+                          />
+                        </Tooltip>
+                        <Checkbox
+                          checked={checked}
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </Space>
                     </div>
                   </Col>
                 );
@@ -443,7 +594,11 @@ export function TableColumnConfigModal({
             </Row>
             {filteredFields.length === 0 && (
               <div
-                style={{ textAlign: 'center', padding: '24px 0', color: '#8c8c8c' }}
+                style={{
+                  textAlign: 'center',
+                  padding: '24px 0',
+                  color: '#8c8c8c',
+                }}
               >
                 未搜索到匹配的字段
               </div>
@@ -451,135 +606,288 @@ export function TableColumnConfigModal({
           </div>
         </div>
 
-        {/* 3. 列表颜色设置（按费用状态高亮行背景） */}
+        {/* 3. 5 类状态行背景高亮颜色设置 */}
         <Card
           size="small"
           title={
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span>列表颜色设置（按费用业务状态高亮行背景）</span>
-              <a
-                style={{ fontSize: 12, fontWeight: 400 }}
-                onClick={handleResetColors}
-              >
-                重置列表颜色
-              </a>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>5 类费用业务状态 行背景高亮颜色设置</span>
+              <Button size="small" onClick={handleResetColors}>
+                重置默认颜色
+              </Button>
             </div>
           }
           style={{ background: '#fafafa' }}
         >
           <Row gutter={[16, 12]}>
-            {[
-              {
-                key: 'unbilled',
-                label: '账单未建立',
-                desc: '草稿或未生成对账单',
-              },
-              {
-                key: 'unverifiedUninvoiced',
-                label: '未核销未开票',
-                desc: '已建账单但未开票未核销',
-              },
-              {
-                key: 'invoicedUnverified',
-                label: '已开票未核销',
-                desc: '已开具发票待收款/付款核销',
-              },
-              {
-                key: 'verifiedUninvoiced',
-                label: '已核销未开票',
-                desc: '款项已结清但未补齐发票',
-              },
-              {
-                key: 'completed',
-                label: '已完成',
-                desc: '发票开具且款项全额核销完毕',
-              },
-            ].map((st) => {
-              const currentColor = (rowColors as any)[st.key] || '#FFFFFF';
-              return (
-                <Col span={12} key={st.key}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      border: '1px solid #e8e8e8',
-                      background: currentColor,
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 12 }}>
-                        {st.label}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#595959' }}>
-                        {st.desc}
-                      </div>
+            {/* 1. 账单未建立 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.unbilled,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="gold">账单未建立</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （草稿/未出账单）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({ ...prev, unbilled: c }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.unbilled === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.unbilled === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
                     </div>
-                    <Space size={6}>
-                      {/* 快捷预设色块 */}
-                      <Space size={2}>
-                        {PRESET_COLORS.slice(0, 5).map((color) => (
-                          <div
-                            key={color}
-                            onClick={() =>
-                              setRowColors((prev) => ({
-                                ...prev,
-                                [st.key]: color,
-                              }))
-                            }
-                            style={{
-                              width: 16,
-                              height: 16,
-                              borderRadius: 3,
-                              background: color,
-                              border: `1px solid ${currentColor === color ? '#1677ff' : '#d9d9d9'}`,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {currentColor === color && (
-                              <CheckOutlined
-                                style={{ fontSize: 10, color: '#1677ff' }}
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </Space>
-                      {/* 自定义拾色器 */}
-                      <input
-                        type="color"
-                        value={currentColor}
-                        onChange={(e) => {
-                          const val = e.target.value.toUpperCase();
-                          setRowColors((prev) => ({
-                            ...prev,
-                            [st.key]: val,
-                          }));
-                        }}
-                        style={{
-                          width: 26,
-                          height: 24,
-                          padding: 0,
-                          border: 'none',
-                          background: 'none',
-                          cursor: 'pointer',
-                        }}
-                      />
-                    </Space>
-                  </div>
-                </Col>
-              );
-            })}
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 2. 未核销未开票 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.unverifiedUninvoiced,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="orange">未核销未开票</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （已确认待处理）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({
+                          ...prev,
+                          unverifiedUninvoiced: c,
+                        }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.unverifiedUninvoiced === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.unverifiedUninvoiced === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 3. 已开票未核销 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.invoicedUnverified,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="blue">已开票未核销</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （发票已开待付款/收款）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({
+                          ...prev,
+                          invoicedUnverified: c,
+                        }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.invoicedUnverified === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.invoicedUnverified === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 4. 已核销未开票 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.verifiedUninvoiced,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="purple">已核销未开票</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （资金已收付待开票）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({
+                          ...prev,
+                          verifiedUninvoiced: c,
+                        }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.verifiedUninvoiced === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.verifiedUninvoiced === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 5. 已完成 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.completed,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="green">已完成</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （已全额核销并开票完毕）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({ ...prev, completed: c }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.completed === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.completed === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
           </Row>
         </Card>
       </div>

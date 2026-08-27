@@ -5914,6 +5914,16 @@ components:
                     type: string
                 customerName:
                     type: string
+                financialProgress:
+                    type: string
+                billNo:
+                    type: string
+                invoicedAmount:
+                    type: string
+                verifiedAmount:
+                    type: string
+                unverifiedAmount:
+                    type: string
         finance.v1.FeeLedgerPreference:
             type: object
             properties:
@@ -5943,6 +5953,8 @@ components:
                 - invoicedUnverified
                 - verifiedUninvoiced
                 - completed
+                - invoicedPartiallyVerified
+                - partiallyVerifiedUninvoiced
             type: object
             properties:
                 unbilled:
@@ -5954,6 +5966,10 @@ components:
                 verifiedUninvoiced:
                     type: string
                 completed:
+                    type: string
+                invoicedPartiallyVerified:
+                    type: string
+                partiallyVerifiedUninvoiced:
                     type: string
         finance.v1.FeeLedgerSummary:
             type: object
