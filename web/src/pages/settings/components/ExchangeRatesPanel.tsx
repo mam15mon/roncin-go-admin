@@ -360,7 +360,7 @@ export function ExchangeRatesPanel() {
         receivableRate: trimExactDecimal(editing.receivableRate),
         payableRate: trimExactDecimal(editing.payableRate),
       }
-    : { toCurrency: baseCurrency, effectiveFrom: dayjs() };
+    : { rateType: 'BASE_CURRENCY', toCurrency: baseCurrency, effectiveFrom: dayjs() };
 
   return (
     <Card
@@ -462,6 +462,7 @@ export function ExchangeRatesPanel() {
         <ProFormSelect
           name="rateType"
           label="汇率类型"
+          initialValue="BASE_CURRENCY"
           options={exchangeRateTypeOptions}
           rules={[{ required: true, message: '请选择汇率类型' }]}
         />
