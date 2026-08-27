@@ -437,26 +437,32 @@ export default function PartnerDetailPage() {
       };
 
       const assignments: API.PartnerAssignmentInput[] = [];
+      const seenMembers = new Set<string>();
+
       const addAssignment = (role: number, userField: string, orgField: string) => {
         const userId = values[userField];
         const orgId = values[orgField];
         if (userId && orgId) {
-          assignments.push({
-            role,
-            userId,
-            organizationId: orgId,
-          });
+          const key = `${userId}:${orgId}`;
+          if (!seenMembers.has(key)) {
+            seenMembers.add(key);
+            assignments.push({
+              role,
+              userId,
+              organizationId: orgId,
+            });
+          }
         }
       };
 
-      addAssignment(1, 'assignCreatorUser', 'assignCreatorOrg');
+      // 注意：Creator (role: 1) 由服务端从会话自动记录，API 显式传入会触发 ErrPartnerInvalidArgument
       addAssignment(2, 'assignOperatorUser', 'assignOperatorOrg');
       addAssignment(3, 'assignSalesUser', 'assignSalesOrg');
       addAssignment(4, 'assignServiceUser', 'assignServiceOrg');
       addAssignment(5, 'assignDocUser', 'assignDocOrg');
       addAssignment(6, 'assignCommercialUser', 'assignCommercialOrg');
       addAssignment(7, 'assignContactUser', 'assignContactOrg');
-      addAssignment(8, 'assignContact2User', 'assignContact2Org');
+      addAssignment(7, 'assignContact2User', 'assignContact2Org'); // 内部联系人2同为 role: 7
 
       const contactInputs: API.PartnerContactInput[] = contacts.map((c) => ({
         name: c.name,
