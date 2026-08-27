@@ -1,13 +1,11 @@
 import { history } from '@umijs/max';
-import { App, Badge, Button, Tag } from 'antd';
-import { FilterOutlined } from '@ant-design/icons';
+import { App, Tag } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
 import {
   FinanceLedgerTemplate,
   TableColumnConfigModal,
-  standardDateRangePresets,
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
 import {
@@ -17,10 +15,9 @@ import {
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import {
-  AdvancedFilterDrawer,
-  DEFAULT_FEE_FILTER_VALUES,
-  type AdvancedFeeFilterValues,
-} from './components/AdvancedFilterDrawer';
+  FeeLedgerSearchFilter,
+  type FeeLedgerFilterParams,
+} from './components/FeeLedgerSearchFilter';
 
 const businessLabels: Record<string, string> = {
   SE: '海运出口',
@@ -93,42 +90,17 @@ export default function FinanceFeeLedgerPage() {
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [columnConfigOpen, setColumnConfigOpen] = useState(false);
   const [preference, setPreference] = useState<API.FeeLedgerPreference>();
-  const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
-  const [advancedFilters, setAdvancedFilters] =
-    useState<AdvancedFeeFilterValues>(DEFAULT_FEE_FILTER_VALUES);
+  const [filterParams, setFilterParams] = useState<FeeLedgerFilterParams>({});
 
-  // 计算当前生效的高级筛选条件数量
-  const activeAdvancedFilterCount = useMemo(() => {
-    let count = 0;
-    if (advancedFilters.direction) count++;
-    if (advancedFilters.financialProgress) count++;
-    if (advancedFilters.status) count++;
-    if (advancedFilters.billNo) count++;
-    if (advancedFilters.settlementPartyId) count++;
-    if (advancedFilters.customerId) count++;
-    if (advancedFilters.businessType) count++;
-    if (advancedFilters.currency) count++;
-    if (advancedFilters.orderOrMasterNo) count++;
-    if (advancedFilters.feeName) count++;
-    if (advancedFilters.invoiceNo) count++;
-    if (advancedFilters.salesName) count++;
-    if (advancedFilters.csName) count++;
-    if (advancedFilters.operatorName) count++;
-    if (advancedFilters.isReconciled) count++;
-    if (advancedFilters.isLocked) count++;
-    if (advancedFilters.vesselName) count++;
-    if (advancedFilters.voyageNo) count++;
-    if (advancedFilters.contractNo) count++;
-    if (advancedFilters.feeCategory && advancedFilters.feeCategory !== 'ALL') count++;
-    if (advancedFilters.serviceType) count++;
-    if (advancedFilters.invoiceDateRange) count++;
-    if (advancedFilters.verificationDateRange) count++;
-    if (advancedFilters.orderCreatedAtRange) count++;
-    if (advancedFilters.billCreatedAtRange) count++;
-    if (advancedFilters.etdRange) count++;
-    if (advancedFilters.etaRange) count++;
-    return count;
-  }, [advancedFilters]);
+  const handleSearch = (values: FeeLedgerFilterParams) => {
+    setFilterParams(values);
+    actionRef.current?.reload();
+  };
+
+  const handleReset = () => {
+    setFilterParams({});
+    actionRef.current?.reload();
+  };
 
   // 加载当前用户云端表头偏好配置
   useEffect(() => {
@@ -532,17 +504,7 @@ export default function FinanceFeeLedgerPage() {
       title: '费用时间',
       dataIndex: 'expenseDate',
       width: 110,
-      valueType: 'dateRange',
-      order: 40,
-      fieldProps: {
-        presets: standardDateRangePresets,
-      },
-      search: {
-        transform: (value) => ({
-          expenseDateFrom: value[0],
-          expenseDateTo: value[1],
-        }),
-      },
+      search: false,
     },
     {
       title: 'SO号',
@@ -728,12 +690,19 @@ export default function FinanceFeeLedgerPage() {
 
   return (
     <>
+      {/* 顶部嵌入式 33 项全维高密度搜索筛选卡片 */}
+      <FeeLedgerSearchFilter
+        onSearch={handleSearch}
+        onReset={handleReset}
+      />
+
       <FinanceLedgerTemplate<API.FeeLedgerItem>
         headerTitle="集运费用明细台账"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
         scrollX={3200}
+        search={false}
         primaryActionText="创建账单"
         primaryActionRequiresSelection
         onPrimaryAction={(keys) => {
@@ -760,64 +729,39 @@ export default function FinanceFeeLedgerPage() {
             history.push(`/finance/fees/detail/${row.orderId}`);
           }
         }}
-        extraToolBarActions={[
-          <Button
-            key="advanced-filter-btn"
-            icon={<FilterOutlined />}
-            onClick={() => setAdvancedFilterOpen(true)}
-          >
-            高级筛选 (33项)
-            {activeAdvancedFilterCount > 0 && (
-              <Badge
-                count={activeAdvancedFilterCount}
-                size="small"
-                style={{ marginLeft: 6, backgroundColor: '#1677ff' }}
-              />
-            )}
-          </Button>,
-        ]}
         request={async (params) => {
-          const expenseDateFrom = advancedFilters.expenseDateRange?.[0]
-            ? advancedFilters.expenseDateRange[0].format('YYYY-MM-DD')
-            : params.expenseDateFrom;
-          const expenseDateTo = advancedFilters.expenseDateRange?.[1]
-            ? advancedFilters.expenseDateRange[1].format('YYYY-MM-DD')
-            : params.expenseDateTo;
+          const expenseDateFrom = filterParams.expenseDateRange?.[0]
+            ? filterParams.expenseDateRange[0].format('YYYY-MM-DD')
+            : undefined;
+          const expenseDateTo = filterParams.expenseDateRange?.[1]
+            ? filterParams.expenseDateRange[1].format('YYYY-MM-DD')
+            : undefined;
 
           const response = await settlementServiceListFeeLedger({
             page: params.current,
             pageSize: params.pageSize,
             keyword:
-              advancedFilters.orderOrMasterNo ||
-              advancedFilters.feeName ||
-              params.keyword ||
-              params.orderNo ||
-              params.masterNo ||
-              params.houseNo ||
-              params.feeName ||
-              params.operatorName ||
-              params.salesName ||
-              params.invoiceNo ||
+              filterParams.orderNo ||
+              filterParams.masterNo ||
+              filterParams.houseNo ||
+              filterParams.feeName ||
+              filterParams.operatorName ||
+              filterParams.salesName ||
+              filterParams.invoiceNo ||
+              filterParams.consignee ||
+              filterParams.shipper ||
+              filterParams.vesselName ||
+              filterParams.voyageNo ||
+              filterParams.keyword ||
               undefined,
-            billNo:
-              advancedFilters.billNo || params.billNo || undefined,
-            businessType:
-              advancedFilters.businessType || params.businessType || undefined,
-            direction:
-              advancedFilters.direction || params.direction || undefined,
-            status:
-              advancedFilters.status || params.status || undefined,
-            financialProgress:
-              advancedFilters.financialProgress ||
-              params.financialProgress ||
-              undefined,
-            customerId:
-              advancedFilters.customerId || params.customerId || undefined,
-            settlementPartyId:
-              advancedFilters.settlementPartyId ||
-              params.settlementPartyId ||
-              undefined,
-            currency: advancedFilters.currency || params.currency || undefined,
+            billNo: filterParams.billNo || undefined,
+            businessType: filterParams.businessType || undefined,
+            direction: filterParams.direction || undefined,
+            status: filterParams.status || undefined,
+            financialProgress: filterParams.financialProgress || undefined,
+            customerId: filterParams.customerId || undefined,
+            settlementPartyId: filterParams.settlementPartyId || undefined,
+            currency: filterParams.currency || undefined,
             expenseDateFrom,
             expenseDateTo,
           });
@@ -828,17 +772,6 @@ export default function FinanceFeeLedgerPage() {
             success: response.success ?? true,
             summary: response.summary,
           };
-        }}
-      />
-
-      {/* 高级 33 项 6 组全维业务筛选抽屉 */}
-      <AdvancedFilterDrawer
-        open={advancedFilterOpen}
-        onClose={() => setAdvancedFilterOpen(false)}
-        initialValues={advancedFilters}
-        onApply={(values) => {
-          setAdvancedFilters(values);
-          actionRef.current?.reload();
         }}
       />
 
