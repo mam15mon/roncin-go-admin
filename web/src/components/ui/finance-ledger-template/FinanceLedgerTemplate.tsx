@@ -35,7 +35,7 @@ export function FinanceLedgerTemplate<
   headerTitle = '财务明细台账',
   columns,
   rowKey = 'id',
-  scrollX = 2000,
+  scrollX = 'max-content',
   actionRef: externalActionRef,
   metricCards,
   primaryActionText = '创建账单',

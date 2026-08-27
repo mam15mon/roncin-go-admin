@@ -140,13 +140,13 @@ export default function FinanceFeeLedgerPage() {
       title: '序号',
       dataIndex: 'index',
       valueType: 'index',
-      width: 55,
+      width: 50,
       fixed: 'left',
     },
     {
       title: '属性',
       dataIndex: 'direction',
-      width: 75,
+      width: 65,
       fixed: 'left',
       valueType: 'select',
       valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
@@ -162,21 +162,18 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '主单号',
       dataIndex: 'masterNo',
-      width: 140,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={130}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '分单号',
       dataIndex: 'houseNo',
-      width: 130,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '订单编号',
       dataIndex: 'orderNo',
-      width: 155,
       copyable: true,
       render: (_, row) => (
         <a
@@ -190,28 +187,24 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '账单编号',
       dataIndex: 'billNo',
-      width: 150,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={140}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: 'SO号',
       dataIndex: 'soNo',
-      width: 130,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '发票号',
       dataIndex: 'invoiceNo',
-      width: 130,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '业务类型',
       dataIndex: 'businessType',
-      width: 95,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
@@ -222,7 +215,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '委托单位',
       dataIndex: 'customerId',
-      width: 190,
       valueType: 'select',
       request: async () => {
         const response = await partnerServiceListPartners({
@@ -236,56 +228,45 @@ export default function FinanceFeeLedgerPage() {
         }));
       },
       fieldProps: { showSearch: true, optionFilterProp: 'label' },
-      render: (_, row) => (
-        <EllipsisTooltip maxWidth={180}>
-          {row.customerName || '-'}
-        </EllipsisTooltip>
-      ),
+      render: (_, row) => row.customerName || '-',
     },
     {
       title: '结算单位',
       dataIndex: 'settlementPartyName',
-      width: 180,
       ellipsis: true,
       search: false,
-      render: (val) => (
-        <EllipsisTooltip maxWidth={170}>{val || '-'}</EllipsisTooltip>
-      ),
+      render: (val) => val || '-',
     },
     {
       title: '收货人简称',
       dataIndex: 'consignee',
-      width: 120,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '发货人简称',
       dataIndex: 'shipper',
-      width: 120,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '通知人简称',
       dataIndex: 'notifyParty',
-      width: 120,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
 
     // --- 3. 费用与财务金额 ---
     {
       title: '费用名称',
       dataIndex: 'feeName',
-      width: 130,
       search: false,
       render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
     },
     {
       title: '币种',
       dataIndex: 'currency',
-      width: 70,
+      width: 60,
       align: 'center',
       search: false,
       render: (val) => <Tag style={{ margin: 0 }}>{val}</Tag>,
@@ -293,7 +274,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '金额',
       dataIndex: 'totalAmount',
-      width: 110,
       align: 'right',
       search: false,
       render: (_, row) => (
@@ -312,7 +292,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '汇率',
       dataIndex: 'exchangeRate',
-      width: 80,
       align: 'right',
       search: false,
       render: (val) => (
@@ -324,7 +303,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '折本币总价',
       dataIndex: 'baseCurrencyAmount',
-      width: 120,
       align: 'right',
       search: false,
       render: (_, row) => (
@@ -343,7 +321,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '税率(%)',
       dataIndex: 'taxRate',
-      width: 75,
+      width: 70,
       align: 'right',
       search: false,
       render: (val) => (
@@ -355,7 +333,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '税金',
       dataIndex: 'taxAmount',
-      width: 90,
       align: 'right',
       search: false,
       render: (val) => (
@@ -367,7 +344,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '不含税总价',
       dataIndex: 'netAmount',
-      width: 100,
       align: 'right',
       search: false,
       render: (val) => (
@@ -379,7 +355,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '费用状态',
       dataIndex: 'financialProgress',
-      width: 120,
+      width: 110,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(financialProgressLabels).map(([key, value]) => [
@@ -403,7 +379,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '已核销金额',
       dataIndex: 'verifiedAmount',
-      width: 110,
       align: 'right',
       search: false,
       render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
@@ -411,7 +386,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '未核销金额',
       dataIndex: 'unverifiedAmount',
-      width: 110,
       align: 'right',
       search: false,
       render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
@@ -419,7 +393,6 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '费用时间',
       dataIndex: 'expenseDate',
-      width: 110,
       valueType: 'dateRange',
       search: {
         transform: (value) => ({
@@ -433,66 +406,51 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '操作人员',
       dataIndex: 'operatorName',
-      width: 110,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '业务人员',
       dataIndex: 'salesName',
-      width: 110,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '客服人员',
       dataIndex: 'csName',
-      width: 110,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '关联人员',
       dataIndex: 'relatedPersonnel',
-      width: 120,
       search: false,
-      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+      render: (val) => val || '-',
     },
     {
       title: '实际总毛重(KGS)',
       dataIndex: 'grossWeightKg',
-      width: 120,
       align: 'right',
       search: false,
     },
     {
       title: '实际总体积',
       dataIndex: 'volumeCbm',
-      width: 105,
       align: 'right',
       search: false,
     },
     {
       title: '关联信息',
       dataIndex: 'relatedInfo',
-      width: 130,
       search: false,
-      render: (val) => (
-        <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>
-      ),
+      render: (val) => val || '-',
     },
     {
       title: '备注',
       dataIndex: 'note',
-      width: 130,
       ellipsis: true,
       search: false,
-      render: (val) =>
-        val ? (
-          <EllipsisTooltip maxWidth={120}>{val}</EllipsisTooltip>
-        ) : (
-          '-'
-        ),
+      render: (val) => val || '-',
     },
   ];
 
