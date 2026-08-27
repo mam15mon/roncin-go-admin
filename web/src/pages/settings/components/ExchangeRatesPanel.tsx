@@ -499,44 +499,28 @@ export function ExchangeRatesPanel() {
             message.error('生效结束时间必须晚于生效开始时间');
             return false;
           }
-          const fromCurrency = (values.fromCurrency || editing?.fromCurrency || '').trim().toUpperCase();
-          const toCurrency = (values.toCurrency || editing?.toCurrency || baseCurrency || '').trim().toUpperCase();
-          if (!fromCurrency) {
-            message.error('请选择原币币种');
-            return false;
-          }
-          if (!toCurrency) {
-            message.error('未能获取目标本币');
-            return false;
-          }
           const input = {
             rateType: values.rateType,
-            fromCurrency,
-            toCurrency,
+            fromCurrency: values.fromCurrency.trim().toUpperCase(),
+            toCurrency: values.toCurrency.trim().toUpperCase(),
             effectiveFrom,
             effectiveTo,
             receivableRate: values.receivableRate,
             payableRate: values.payableRate,
           };
-          try {
-            if (editing?.id) {
-              await exchangeRateServiceUpdateExchangeRateSetting(
-                { id: editing.id },
-                { id: editing.id, ...input },
-              );
-              message.success('汇率更新成功');
-            } else {
-              await exchangeRateServiceCreateExchangeRateSetting(input);
-              message.success('汇率创建成功');
-            }
-            setModalOpen(false);
-            actionRef.current?.reload();
-            return true;
-          } catch (err: any) {
-            const msg = err.data?.message || err.response?.data?.message || err.message;
-            message.error(msg || '保存汇率失败');
-            return false;
+          if (editing?.id) {
+            await exchangeRateServiceUpdateExchangeRateSetting(
+              { id: editing.id },
+              { id: editing.id, ...input },
+            );
+            message.success('汇率更新成功');
+          } else {
+            await exchangeRateServiceCreateExchangeRateSetting(input);
+            message.success('汇率创建成功');
           }
+          setModalOpen(false);
+          actionRef.current?.reload();
+          return true;
         }}
       >
         <ProFormSelect
