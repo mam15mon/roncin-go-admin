@@ -1012,3 +1012,30 @@ ol {
   }
 }
 
+// ----------------------------------------
+// 宽表横向滚动与左侧锁定列边界隔离（防止 sticky 列脱离表格容器溢出到侧边栏）
+// ----------------------------------------
+.ant-pro-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.ant-table-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.ant-table-container {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.ant-table-cell-fix-left,
+.ant-table-cell-fix-right {
+  z-index: 2 !important;
+}
+
+

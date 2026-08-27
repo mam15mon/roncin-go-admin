@@ -77,7 +77,12 @@ assert(initialResult.response.ok, '读取费用明细表头设置失败');
 const original = initialResult.body.data;
 const originalVersion = Number(original.version || 0);
 assert(original?.pageSize === 40 || original?.customized, '系统默认分页行数应为 40');
-assert(original?.rowColors?.completed, '系统默认列表颜色缺失');
+assert(
+  original?.rowColors?.completed &&
+    original.rowColors.invoicedPartiallyVerified &&
+    original.rowColors.partiallyVerifiedUninvoiced,
+  '系统默认七状态列表颜色缺失',
+);
 
 const columns = Array.from({ length: 153 }, (_, index) => ({
   fieldKey: `field${String(index + 1).padStart(3, '0')}`,

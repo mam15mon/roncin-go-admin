@@ -209,6 +209,21 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 }
 
 const feeIds = createdFees.map((fee) => fee.id);
+async function assertFeeFinancialProgress(expected, message) {
+  const ledger = await request(
+    `/api/v1/finance/fees?page=1&pageSize=200&keyword=${encodeURIComponent(order.orderNo)}`,
+  );
+  const currentFees = (ledger.data || []).filter((item) =>
+    feeIds.includes(item.id),
+  );
+  assert(
+    currentFees.length === feeIds.length &&
+      currentFees.every((item) => item.financialProgress === expected),
+    `${message}，实际 ${currentFees.map((item) => item.financialProgress).join(',')}`,
+  );
+  return currentFees;
+}
+await assertFeeFinancialProgress('UNBILLED', '费用创建后应为账单未建立');
 const feeLedgerByCustomer = await request(
   `/api/v1/finance/fees?page=1&pageSize=200&customerId=${customer.id}`,
 );
@@ -308,6 +323,10 @@ const confirmedBatch = await request(
 assert(
   confirmedBatch.data?.bills?.every((bill) => bill.status === 'CONFIRMED'),
   '批次账单未全部确认',
+);
+await assertFeeFinancialProgress(
+  'UNVERIFIED_UNINVOICED',
+  '账单确认后应为未核销未开票',
 );
 
 let profile;
@@ -456,6 +475,27 @@ assert(
   detail.data?.lines?.length === invoice.lines.length,
   '开票详情未回显税务明细',
 );
+await assertFeeFinancialProgress(
+  'UNVERIFIED_UNINVOICED',
+  '开票草稿不应计为已开票',
+);
+const issuedInvoiceResponse = await request(
+  `/api/v1/finance/invoices/${invoice.id}/issue`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: invoice.id,
+      expectedVersion: invoice.version,
+      taxInvoiceNo: `ACC-TAX-${stamp}`,
+      invoiceDate: today,
+    }),
+  },
+);
+assert(issuedInvoiceResponse.data?.status === 'ISSUED', '开票记录登记失败');
+await assertFeeFinancialProgress(
+  'INVOICED_UNVERIFIED',
+  '登记发票后应为已开票未核销',
+);
 
 const confirmedBill = confirmedBatch.data.bills[0];
 assert(
@@ -581,6 +621,10 @@ assert(
   '相同幂等键的并发核销请求未返回同一核销记录',
 );
 const verificationA = concurrentVerifications[0].body.data;
+await assertFeeFinancialProgress(
+  'INVOICED_PARTIALLY_VERIFIED',
+  '首笔部分核销后应为已开票部分核销',
+);
 
 await request(`/api/v1/orders/${order.id}/personnel`, {
   method: 'POST',
@@ -1004,6 +1048,10 @@ const verificationBResponse = await request('/api/v1/finance/verifications', {
   ),
 });
 const verificationB = verificationBResponse.data;
+await assertFeeFinancialProgress(
+  'COMPLETED',
+  '账单全额核销且已开票后应为已完成',
+);
 
 const balancesAfterFullVerification = await Promise.all([
   request('/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED'),
@@ -1051,6 +1099,10 @@ await request(`/api/v1/finance/verifications/${verificationB.id}/reverse`, {
     reason: '验证反核销释放余额',
   }),
 });
+await assertFeeFinancialProgress(
+  'INVOICED_PARTIALLY_VERIFIED',
+  '反核销第二笔后应恢复为已开票部分核销',
+);
 const cancelledCashflowBResponse = await request(
   `/api/v1/finance/cashflows/${confirmedCashflowB.id}/cancel`,
   {
@@ -1074,6 +1126,10 @@ await request(`/api/v1/finance/verifications/${verificationA.id}/reverse`, {
     reason: '验证全部反核销恢复余额',
   }),
 });
+await assertFeeFinancialProgress(
+  'INVOICED_UNVERIFIED',
+  '全部反核销后应恢复为已开票未核销',
+);
 const balancesAfterReverse = await Promise.all([
   request('/api/v1/finance/cashflows?page=1&pageSize=200'),
   request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
@@ -1096,6 +1152,7 @@ console.log(
       orderNo: order.orderNo,
       feeCount: feeIds.length,
       feeCustomerAndSettlementPartyVerified: true,
+      feeFinancialProgressVerified: true,
       previewGroupCount: preview.data.length,
       batchNo: batch.batchNo,
       billNos: confirmedBatch.data.bills.map((bill) => bill.billNo),

@@ -107,7 +107,15 @@ export function FinanceLedgerTemplate<
   };
 
   return (
-    <div style={{ paddingBottom: 24 }}>
+    <div
+      style={{
+        paddingBottom: 24,
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
       {/* 1. 顶部宏观统计指标卡 */}
       {metricCards && metricCards.length > 0 && (
         <Row gutter={12} style={{ marginBottom: 12 }}>
