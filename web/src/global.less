@@ -821,7 +821,8 @@ body,
     border-radius: 6px !important;
     overflow: hidden;
 
-    .ant-table-thead > tr > th {
+    .ant-table-header .ant-table-thead > tr > th,
+    .ant-table-content .ant-table-thead > tr > th {
       background: #fafafa !important;
       color: rgba(0, 0, 0, 0.88) !important;
       font-weight: 600 !important;
@@ -853,7 +854,8 @@ body,
   // 1. 紧凑模式（small）
   &.ant-table-wrapper-small .ant-table,
   .ant-table-small {
-    .ant-table-thead > tr > th,
+    .ant-table-header .ant-table-thead > tr > th,
+    .ant-table-content .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
       padding: 6px 8px !important;
     }
@@ -862,7 +864,8 @@ body,
   // 2. 中等模式（middle）
   &.ant-table-wrapper-middle .ant-table,
   .ant-table-middle {
-    .ant-table-thead > tr > th,
+    .ant-table-header .ant-table-thead > tr > th,
+    .ant-table-content .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
       padding: 10px 12px !important;
     }
@@ -870,9 +873,25 @@ body,
 
   // 3. 默认宽松模式（large）
   &:not(.ant-table-wrapper-small):not(.ant-table-wrapper-middle) .ant-table:not(.ant-table-small):not(.ant-table-middle) {
-    .ant-table-thead > tr > th,
+    .ant-table-header .ant-table-thead > tr > th,
+    .ant-table-content .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
       padding: 14px 16px !important;
+    }
+  }
+
+  // 4. 彻底重置 scroll 滚动表格 body 内部的测量占位 thead 和 measure-row，防止被撑开出现多余空行
+  .ant-table-body {
+    .ant-table-thead > tr > th,
+    .ant-table-thead > tr,
+    .ant-table-measure-row > td {
+      height: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      font-size: 0 !important;
+      line-height: 0 !important;
+      visibility: hidden !important;
     }
   }
 

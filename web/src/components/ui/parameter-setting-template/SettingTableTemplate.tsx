@@ -113,6 +113,9 @@ export function SettingTableTemplate<
       styles={{ body: { padding: '12px 16px' } }}
     >
       <ProTable<TRecord>
+        cardProps={false}
+        tableAlertRender={false}
+        tableAlertOptionRender={false}
         actionRef={actionRef}
         rowKey={rowKey}
         columns={tableColumns}
