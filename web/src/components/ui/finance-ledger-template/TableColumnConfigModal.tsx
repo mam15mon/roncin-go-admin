@@ -55,6 +55,155 @@ const PRESET_COLORS = [
   '#FFFFFF', // 纯白（无高亮）
 ];
 
+interface FieldConfigCardProps {
+  field: FinanceFieldMeta;
+  checked: boolean;
+  globalIndex: number;
+  onToggle: () => void;
+  onDragStart: (key: string) => void;
+  onDrop: (key: string) => void;
+  onMoveToTop: (key: string) => void;
+  onMoveUp: (key: string) => void;
+  onMoveDown: (key: string) => void;
+}
+
+// 采用 React.memo 隔离 153 个卡片的渲染，消除全量 diff，大幅提升拖拽帧率
+const FieldConfigCard = React.memo(function FieldConfigCard({
+  field,
+  checked,
+  globalIndex,
+  onToggle,
+  onDragStart,
+  onDrop,
+  onMoveToTop,
+  onMoveUp,
+  onMoveDown,
+}: FieldConfigCardProps) {
+  const [isDragTarget, setIsDragTarget] = useState(false);
+
+  return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        onDragStart(field.key);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', field.key);
+        (e.currentTarget as HTMLElement).style.opacity = '0.4';
+      }}
+      onDragEnd={(e) => {
+        (e.currentTarget as HTMLElement).style.opacity = '1';
+        setIsDragTarget(false);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      }}
+      onDragEnter={() => setIsDragTarget(true)}
+      onDragLeave={() => setIsDragTarget(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDragTarget(false);
+        onDrop(field.key);
+      }}
+      onClick={onToggle}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '6px 8px',
+        borderRadius: 4,
+        border: isDragTarget
+          ? '2px dashed #1677ff'
+          : `1px solid ${checked ? '#91caff' : '#f0f0f0'}`,
+        background: isDragTarget
+          ? '#e6f4ff'
+          : checked
+            ? '#e6f4ff'
+            : '#fafafa',
+        cursor: 'pointer',
+        transition: 'border-color 0.12s, background-color 0.12s, box-shadow 0.12s',
+        userSelect: 'none',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+      }}
+    >
+      <Space size={6} style={{ overflow: 'hidden', flex: 1 }}>
+        <Tooltip title="按住拖拽可调整前后顺序">
+          <span
+            style={{
+              cursor: 'grab',
+              color: '#bfbfbf',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <HolderOutlined />
+          </span>
+        </Tooltip>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: checked ? '#1677ff' : '#8c8c8c',
+            minWidth: 26,
+            display: 'inline-block',
+          }}
+        >
+          #{globalIndex}
+        </span>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: checked ? 500 : 400,
+            color: checked ? '#1677ff' : '#262626',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+          }}
+        >
+          {field.name}
+        </span>
+      </Space>
+
+      {/* 右侧微调按钮与 Checkbox */}
+      <Space size={4} style={{ marginLeft: 4 }}>
+        <Tooltip title="置顶">
+          <VerticalAlignTopOutlined
+            style={{ fontSize: 11, color: '#8c8c8c' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveToTop(field.key);
+            }}
+          />
+        </Tooltip>
+        <Tooltip title="上移">
+          <ArrowUpOutlined
+            style={{ fontSize: 11, color: '#8c8c8c' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveUp(field.key);
+            }}
+          />
+        </Tooltip>
+        <Tooltip title="下移">
+          <ArrowDownOutlined
+            style={{ fontSize: 11, color: '#8c8c8c' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveDown(field.key);
+            }}
+          />
+        </Tooltip>
+        <Checkbox
+          checked={checked}
+          style={{ pointerEvents: 'none' }}
+        />
+      </Space>
+    </div>
+  );
+});
+
 export function TableColumnConfigModal({
   open,
   onClose,
@@ -69,10 +218,6 @@ export function TableColumnConfigModal({
   const [fieldList, setFieldList] = useState<FinanceFieldMeta[]>(ALL_153_FINANCE_FIELDS);
   const [columnMap, setColumnMap] = useState<Map<string, boolean>>(new Map());
   const [searchKeyword, setSearchKeyword] = useState('');
-
-  // 拖拽状态（基于 key）
-  const [draggedKey, setDraggedKey] = useState<string | null>(null);
-  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
 
   // 全局实时序号映射（确保搜索/分类过滤后编号依然精准反映真实全局先后顺序）
   const fieldOrderMap = useMemo(() => {
@@ -246,44 +391,34 @@ export function TableColumnConfigModal({
     message.success('已恢复系统默认推荐显示字段与初始顺序');
   };
 
-  // 拖拽排序事件（基于 field key）
-  const handleDragStart = (e: React.DragEvent, key: string) => {
-    setDraggedKey(key);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', key);
+  // 拖拽源 key（仅在 dragstart/drop/dragend 时更新一次）
+  const draggedKeyRef = React.useRef<string | null>(null);
+
+  // 拖拽排序事件（基于 key，0 冗余 re-render）
+  const handleDragStart = (key: string) => {
+    draggedKeyRef.current = key;
   };
 
-  const handleDragOver = (e: React.DragEvent, key: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverKey !== key) {
-      setDragOverKey(key);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent, targetKey: string) => {
-    e.preventDefault();
-    if (!draggedKey || draggedKey === targetKey) {
-      setDraggedKey(null);
-      setDragOverKey(null);
+  const handleDrop = (targetKey: string) => {
+    const srcKey = draggedKeyRef.current;
+    if (!srcKey || srcKey === targetKey) {
+      draggedKeyRef.current = null;
       return;
     }
     setFieldList((prev) => {
       const next = [...prev];
-      const srcIdx = next.findIndex((f) => f.key === draggedKey);
+      const srcIdx = next.findIndex((f) => f.key === srcKey);
       const tgtIdx = next.findIndex((f) => f.key === targetKey);
       if (srcIdx === -1 || tgtIdx === -1) return prev;
       const [item] = next.splice(srcIdx, 1);
       next.splice(tgtIdx, 0, item);
       return next;
     });
-    setDraggedKey(null);
-    setDragOverKey(null);
+    draggedKeyRef.current = null;
   };
 
   // 快捷置顶（基于 key，全局安全）
-  const handleMoveToTop = (key: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleMoveToTop = (key: string) => {
     setFieldList((prev) => {
       const idx = prev.findIndex((f) => f.key === key);
       if (idx <= 0) return prev;
@@ -295,8 +430,7 @@ export function TableColumnConfigModal({
   };
 
   // 快捷上移（基于 key，全局安全）
-  const handleMoveUp = (key: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleMoveUp = (key: string) => {
     setFieldList((prev) => {
       const idx = prev.findIndex((f) => f.key === key);
       if (idx <= 0) return prev;
@@ -308,8 +442,7 @@ export function TableColumnConfigModal({
   };
 
   // 快捷下移（基于 key，全局安全）
-  const handleMoveDown = (key: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleMoveDown = (key: string) => {
     setFieldList((prev) => {
       const idx = prev.findIndex((f) => f.key === key);
       if (idx === -1 || idx >= prev.length - 1) return prev;
@@ -336,8 +469,8 @@ export function TableColumnConfigModal({
         onSaved(res.data);
         onClose();
       }
-    } catch (e: any) {
-      message.error(e.message || '重置系统默认配置失败');
+    } catch {
+      message.error('重置偏好配置失败');
     } finally {
       setResetting(false);
     }
@@ -345,35 +478,28 @@ export function TableColumnConfigModal({
 
   // 提交保存配置
   const handleSave = async () => {
-    if (selectedCount === 0) {
-      message.warning('请至少保留一个可见字段');
-      return;
-    }
     setSaving(true);
     try {
-      // 按照用户拖拽调整后的 fieldList 顺序保存
-      const columnsPayload = fieldList.map((f, idx) => ({
-        fieldKey: f.key,
-        visible: Boolean(columnMap.get(f.key)),
-        order: idx + 1,
+      const columnsPayload = fieldList.map((field) => ({
+        fieldKey: field.key,
+        visible: Boolean(columnMap.get(field.key)),
       }));
 
       const res = await settlementServiceUpdateFeeLedgerPreference({
-        columns: columnsPayload,
         pageSize,
         sortField: sortField || undefined,
-        sortDirection: sortField ? sortDirection : undefined,
+        sortDirection: sortDirection || 'DESC',
+        columns: columnsPayload,
         rowColors,
-        version: String(currentPreference?.version || '0'),
       });
 
       if (res.data) {
-        message.success('表头排序与列表个性化配置已成功保存');
+        message.success('表头偏好与排序已成功保存');
         onSaved(res.data);
         onClose();
       }
-    } catch (e: any) {
-      message.error(e.message || '保存配置失败');
+    } catch {
+      message.error('保存偏好配置失败');
     } finally {
       setSaving(false);
     }
@@ -381,22 +507,18 @@ export function TableColumnConfigModal({
 
   return (
     <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SettingOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-          <span style={{ fontWeight: 600, fontSize: 16 }}>表头设置与拖拽排序</span>
-          <Tag color="blue" style={{ marginLeft: 4 }}>
-            已选 {selectedCount} / 153 项
-          </Tag>
-          <span style={{ fontSize: 12, color: '#8c8c8c', marginLeft: 8 }}>
-            💡 按住左侧图标拖拽即可自由调整表头列先后顺序
-          </span>
-        </div>
-      }
       open={open}
-      width={1060}
-      destroyOnHidden
       onCancel={onClose}
+      width={1120}
+      title={
+        <Space size={8}>
+          <SettingOutlined style={{ color: '#1677ff' }} />
+          <span>全量业务字段配置与表头偏好</span>
+          <Tag color="blue" style={{ marginLeft: 8 }}>
+            已启用 {selectedCount} / 153 项
+          </Tag>
+        </Space>
+      }
       footer={[
         <Popconfirm
           key="reset-default"
@@ -441,6 +563,7 @@ export function TableColumnConfigModal({
                   { label: '40 行 / 页 (默认推荐)', value: 40 },
                   { label: '60 行 / 页 (高密度)', value: 60 },
                   { label: '100 行 / 页 (大屏宽表)', value: 100 },
+                  { label: '200 行 / 页 (全量极限)', value: 200 },
                 ]}
               />
             </Col>
@@ -468,18 +591,20 @@ export function TableColumnConfigModal({
                 排序方式：
               </div>
               <Radio.Group
-                disabled={!sortField}
                 value={sortDirection}
                 onChange={(e) => setSortDirection(e.target.value)}
-              >
-                <Radio value="DESC">降序 (DESC)</Radio>
-                <Radio value="ASC">升序 (ASC)</Radio>
-              </Radio.Group>
+                optionType="button"
+                buttonStyle="solid"
+                options={[
+                  { label: '降序 DESC', value: 'DESC' },
+                  { label: '升序 ASC', value: 'ASC' },
+                ]}
+              />
             </Col>
           </Row>
         </Card>
 
-        {/* 2. 153 项全量字段列表与拖拽排序 */}
+        {/* 2. 字段选择与 153 项拖拽网格 */}
         <div style={{ marginBottom: 12 }}>
           <div
             style={{
@@ -530,7 +655,6 @@ export function TableColumnConfigModal({
             />
           </div>
 
-          {/* 字段选择与拖拽网格 */}
           <div
             style={{
               border: '1px solid #f0f0f0',
@@ -542,112 +666,21 @@ export function TableColumnConfigModal({
             }}
           >
             <Row gutter={[8, 8]}>
-              {filteredFields.map((field) => {
-                const checked = Boolean(columnMap.get(field.key));
-                const isDragging = draggedKey === field.key;
-                const isDragOver = dragOverKey === field.key;
-                const globalIndex = fieldOrderMap.get(field.key) || 1;
-
-                return (
-                  <Col span={6} key={field.key}>
-                    <div
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, field.key)}
-                      onDragOver={(e) => handleDragOver(e, field.key)}
-                      onDrop={(e) => handleDrop(e, field.key)}
-                      onDragEnd={() => {
-                        setDraggedKey(null);
-                        setDragOverKey(null);
-                      }}
-                      onClick={() => handleToggleColumn(field.key)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '6px 8px',
-                        borderRadius: 4,
-                        border: isDragOver
-                          ? '2px dashed #1677ff'
-                          : `1px solid ${checked ? '#91caff' : '#f0f0f0'}`,
-                        background: isDragging
-                          ? '#f5f5f5'
-                          : checked
-                            ? '#e6f4ff'
-                            : '#fafafa',
-                        cursor: 'pointer',
-                        opacity: isDragging ? 0.4 : 1,
-                        transition: 'all 0.15s ease',
-                        userSelect: 'none',
-                      }}
-                    >
-                      <Space size={6} style={{ overflow: 'hidden', flex: 1 }}>
-                        <Tooltip title="拖动可调整字段前后顺序">
-                          <span
-                            style={{
-                              cursor: 'grab',
-                              color: '#bfbfbf',
-                              display: 'flex',
-                              alignItems: 'center',
-                            }}
-                            onMouseDown={(e) => e.stopPropagation()}
-                          >
-                            <HolderOutlined />
-                          </span>
-                        </Tooltip>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: checked ? '#1677ff' : '#8c8c8c',
-                            minWidth: 26,
-                            display: 'inline-block',
-                          }}
-                        >
-                          #{globalIndex}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: checked ? 500 : 400,
-                            color: checked ? '#1677ff' : '#262626',
-                            whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {field.name}
-                        </span>
-                      </Space>
-
-                      {/* 右侧微调按钮与 Checkbox */}
-                      <Space size={4} style={{ marginLeft: 4 }}>
-                        <Tooltip title="置顶">
-                          <VerticalAlignTopOutlined
-                            style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveToTop(field.key, e)}
-                          />
-                        </Tooltip>
-                        <Tooltip title="上移">
-                          <ArrowUpOutlined
-                            style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveUp(field.key, e)}
-                          />
-                        </Tooltip>
-                        <Tooltip title="下移">
-                          <ArrowDownOutlined
-                            style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveDown(field.key, e)}
-                          />
-                        </Tooltip>
-                        <Checkbox
-                          checked={checked}
-                          style={{ pointerEvents: 'none' }}
-                        />
-                      </Space>
-                    </div>
-                  </Col>
-                );
-              })}
+              {filteredFields.map((field) => (
+                <Col span={6} key={field.key}>
+                  <FieldConfigCard
+                    field={field}
+                    checked={Boolean(columnMap.get(field.key))}
+                    globalIndex={fieldOrderMap.get(field.key) || 1}
+                    onToggle={() => handleToggleColumn(field.key)}
+                    onDragStart={handleDragStart}
+                    onDrop={handleDrop}
+                    onMoveToTop={handleMoveToTop}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                  />
+                </Col>
+              ))}
             </Row>
             {filteredFields.length === 0 && (
               <div
