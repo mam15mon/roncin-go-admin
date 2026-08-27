@@ -15,6 +15,7 @@ import { history, useLocation } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { EllipsisTooltip } from '@/components/ui';
 import { resolveRouteTitle } from './routeUtils';
 
 export interface TagItem {
@@ -294,7 +295,11 @@ export const TagsView: React.FC = () => {
               >
                 {/* 标签主体内容 */}
                 {getRouteIcon(tag.path)}
-                <span className="roncin-chrome-tab-title">{tag.title}</span>
+                <span className="roncin-chrome-tab-title">
+                  <EllipsisTooltip autoDetect maxWidth="100%">
+                    {tag.title}
+                  </EllipsisTooltip>
+                </span>
                 {tag.closable && (
                   <button
                     type="button"
