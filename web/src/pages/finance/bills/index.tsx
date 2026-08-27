@@ -25,7 +25,9 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
+  SearchFilterTemplate,
   type FinanceLedgerMetricCard,
+  type SearchFilterFieldItem,
 } from '@/components/ui';
 import {
   settlementServiceCancelBill,
@@ -34,6 +36,7 @@ import {
   settlementServiceListBills,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
+import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 
 const statusOptions: Record<string, { text: string; color: string }> = {
@@ -69,6 +72,85 @@ export default function FinanceBillsPage() {
     payableBase: 0,
     unverifiedBase: 0,
   });
+
+  const [searchParams, setSearchParams] = useState<{
+    keyword?: string;
+    direction?: string;
+    status?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    billDateRange?: [Dayjs, Dayjs];
+  }>({});
+
+  const filterItems: SearchFilterFieldItem[] = [
+    {
+      name: 'keyword',
+      label: '综合搜索',
+      placeholder: '输入账单编号/对账抬头/结算单位',
+      span: 6,
+    },
+    {
+      name: 'direction',
+      label: '账单属性',
+      type: 'select',
+      placeholder: '全部属性',
+      options: [
+        { label: '应收 (RECEIVABLE)', value: 'RECEIVABLE' },
+        { label: '应付 (PAYABLE)', value: 'PAYABLE' },
+      ],
+      span: 6,
+    },
+    {
+      name: 'status',
+      label: '账单状态',
+      type: 'select',
+      placeholder: '全部状态',
+      options: [
+        { label: '草稿 (DRAFT)', value: 'DRAFT' },
+        { label: '已确认 (CONFIRMED)', value: 'CONFIRMED' },
+        { label: '已取消 (CANCELLED)', value: 'CANCELLED' },
+      ],
+      span: 6,
+    },
+    {
+      name: 'billDateRange',
+      label: '账单日期',
+      type: 'date-range',
+      placeholder: ['开始日期', '结束日期'],
+      span: 6,
+    },
+    {
+      name: 'settlementPartyId',
+      label: '结算单位',
+      type: 'searchable-select',
+      placeholder: '输入名称/全拼搜索结算单位',
+      request: async ({ keyWords }) => {
+        const res = await partnerServiceListPartners({
+          page: 1,
+          pageSize: 200,
+          keyword: keyWords,
+        });
+        return (res.data || []).map((p) => ({
+          label: p.legalName || p.code || p.id || '',
+          value: p.id || '',
+        }));
+      },
+      span: 6,
+    },
+    {
+      name: 'currency',
+      label: '计价币种',
+      type: 'select',
+      placeholder: '全部币种',
+      options: [
+        { label: 'CNY - 人民币', value: 'CNY' },
+        { label: 'USD - 美元', value: 'USD' },
+        { label: 'EUR - 欧元', value: 'EUR' },
+        { label: 'HKD - 港币', value: 'HKD' },
+      ],
+      span: 6,
+    },
+  ];
 
   const reload = () => actionRef.current?.reload();
   const openCreate = () => {
@@ -368,13 +450,7 @@ export default function FinanceBillsPage() {
       title: '账单日期',
       dataIndex: 'billDate',
       width: 120,
-      valueType: 'dateRange',
-      search: {
-        transform: (value) => ({
-          billDateFrom: value[0],
-          billDateTo: value[1],
-        }),
-      },
+      search: false,
       render: (_, row) => row.billDate || '-',
     },
     {
@@ -438,6 +514,26 @@ export default function FinanceBillsPage() {
         columns={columns}
         metricCards={metricCards}
         scrollX={2000}
+        search={false}
+        customSearch={
+          <SearchFilterTemplate
+            layout="grid"
+            formLayout="horizontal"
+            labelWidth={80}
+            collapsible={true}
+            defaultCollapsed={true}
+            defaultVisibleCount={3}
+            items={filterItems}
+            onSearch={(values) => {
+              setSearchParams(values);
+              actionRef.current?.reload();
+            }}
+            onReset={() => {
+              setSearchParams({});
+              actionRef.current?.reload();
+            }}
+          />
+        }
         primaryActionText="新建对账单"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={access.canCreateFinanceBills ? () => openCreate() : undefined}
@@ -451,14 +547,23 @@ export default function FinanceBillsPage() {
           },
         ]}
         request={async (params) => {
+          const billDateFrom = searchParams.billDateRange?.[0]
+            ? searchParams.billDateRange[0].format('YYYY-MM-DD')
+            : undefined;
+          const billDateTo = searchParams.billDateRange?.[1]
+            ? searchParams.billDateRange[1].format('YYYY-MM-DD')
+            : undefined;
+
           const response = await settlementServiceListBills({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: params.keyword,
-            direction: params.direction,
-            status: params.status,
-            billDateFrom: params.billDateFrom,
-            billDateTo: params.billDateTo,
+            keyword: searchParams.keyword || undefined,
+            direction: searchParams.direction || undefined,
+            status: searchParams.status || undefined,
+            settlementPartyId: searchParams.settlementPartyId || undefined,
+            currency: searchParams.currency || undefined,
+            billDateFrom,
+            billDateTo,
           });
           const list = response.data || [];
           // 计算指标
