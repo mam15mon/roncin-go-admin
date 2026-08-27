@@ -55,7 +55,111 @@ export interface DocTypeMeta {
 }
 
 export const DOC_TYPES: DocTypeMeta[] = [
-  { key: 'DOCUMENT_TYPE_ORDER', numValue: 1, label: '订单编号设置', shortLabel: '订单', color: 'blue', defaultPrefix: '', businessCodes: ['SE', 'SI', 'AE', 'AI'] },
+  {
+    key: 'DOCUMENT_TYPE_ORDER',
+    numValue: 1,
+    label: '订单编号',
+    shortLabel: '订单',
+    color: 'blue',
+    defaultPrefix: '',
+    businessCodes: ['SE', 'SI', 'AE', 'AI'],
+  },
+  {
+    key: 'DOCUMENT_TYPE_BILL',
+    numValue: 2,
+    label: '账单编号',
+    shortLabel: '账单',
+    color: 'cyan',
+    defaultPrefix: 'BI',
+  },
+  {
+    key: 'DOCUMENT_TYPE_BILL_BATCH',
+    numValue: 14,
+    label: '账单批次号',
+    shortLabel: '批次',
+    color: 'geekblue',
+    defaultPrefix: 'BG',
+  },
+  {
+    key: 'DOCUMENT_TYPE_INVOICE',
+    numValue: 11,
+    label: '发票记录号',
+    shortLabel: '发票',
+    color: 'purple',
+    defaultPrefix: 'IV',
+  },
+  {
+    key: 'DOCUMENT_TYPE_RECEIPT_PAYMENT',
+    numValue: 5,
+    label: '收付款流水号',
+    shortLabel: '流水',
+    color: 'orange',
+    defaultPrefix: 'PR',
+  },
+  {
+    key: 'DOCUMENT_TYPE_WRITE_OFF',
+    numValue: 4,
+    label: '核销单号',
+    shortLabel: '核销',
+    color: 'green',
+    defaultPrefix: 'WO',
+  },
+  {
+    key: 'DOCUMENT_TYPE_COMMISSION',
+    numValue: 13,
+    label: '提成结算单号',
+    shortLabel: '提成',
+    color: 'magenta',
+    defaultPrefix: 'CM',
+  },
+  {
+    key: 'DOCUMENT_TYPE_HOUSE_BILL',
+    numValue: 9,
+    label: '分提单号 (HBL)',
+    shortLabel: '分单',
+    color: 'volcano',
+    defaultPrefix: 'HB',
+  },
+  {
+    key: 'DOCUMENT_TYPE_QUOTATION',
+    numValue: 3,
+    label: '报价单号',
+    shortLabel: '报价',
+    color: 'gold',
+    defaultPrefix: 'QO',
+  },
+  {
+    key: 'DOCUMENT_TYPE_CONTRACT',
+    numValue: 6,
+    label: '合同协议编号',
+    shortLabel: '合同',
+    color: 'lime',
+    defaultPrefix: 'CT',
+  },
+  {
+    key: 'DOCUMENT_TYPE_FREIGHT_RATE',
+    numValue: 12,
+    label: '运价方案号',
+    shortLabel: '运价',
+    color: 'processing',
+    defaultPrefix: 'FR',
+  },
+  {
+    key: 'DOCUMENT_TYPE_INTERNAL_REFERENCE',
+    numValue: 7,
+    label: '内部参考号',
+    shortLabel: '内部',
+    color: 'default',
+    defaultPrefix: 'REF',
+  },
+  {
+    key: 'DOCUMENT_TYPE_CUSTOMER_REFERENCE',
+    numValue: 8,
+    label: '客户参考号',
+    shortLabel: '客户',
+    color: 'default',
+    defaultPrefix: 'CREF',
+  },
 ];
 
 const docTypeMap = new Map<string | number, DocTypeMeta>();
@@ -101,7 +205,10 @@ const RESET_POLICIES: Record<string | number, { label: string; numValue: number 
 // 工具函数：解析生成规则示例预览
 function generatePreviewNumber(rule: API.NumberRule): string {
   const meta = docTypeMap.get(rule.documentType as any);
-  const prefix = `${rule.prefix || ''}${meta?.businessCodes?.[0] || ''}`;
+  let prefix = rule.prefix ?? meta?.defaultPrefix ?? '';
+  if (meta?.businessCodes && meta.businessCodes.length > 0) {
+    prefix = `${prefix}${meta.businessCodes[0]}`;
+  }
   const now = dayjs();
   const dateMeta = DATE_FORMATS[rule.dateFormat as any] || DATE_FORMATS[4];
   const dateStr = dateMeta.formatStr ? now.format(dateMeta.formatStr) : '';
@@ -384,10 +491,10 @@ export function NumberRulesPanel() {
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0, 0, 0, 0.88)' }}>
-                订单编号规则设置
+                单据自动编号规则
               </div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                当前仅订单编号已接入业务流程，按 SE、SI、AE、AI 自动拼接业务代码
+                集中维护订单、账单、批次、发票、核销、流水及提成等全链路 13 类业务单据的自动出号规则
               </Text>
             </div>
           </Space>
@@ -414,16 +521,18 @@ export function NumberRulesPanel() {
             <Button icon={<ReloadOutlined />} onClick={fetchRules}>
               刷新
             </Button>
-            {data.length === 0 && (
+            {data.length < DOC_TYPES.length && (
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => {
                   setEditingItem(null);
+                  const existingTypes = new Set(data.map((r) => docTypeMap.get(r.documentType as any)?.numValue));
+                  const firstUnused = DOC_TYPES.find((t) => !existingTypes.has(t.numValue)) || DOC_TYPES[0];
                   form.resetFields();
                   form.setFieldsValue({
-                    documentType: 1,
-                    prefix: '',
+                    documentType: firstUnused.numValue,
+                    prefix: firstUnused.defaultPrefix,
                     dateFormat: 1,
                     sequenceLength: 5,
                     resetPolicy: 1,
@@ -432,7 +541,7 @@ export function NumberRulesPanel() {
                   setModalOpen(true);
                 }}
               >
-                新建订单编号规则
+                新建编号规则
               </Button>
             )}
           </Space>
@@ -643,7 +752,11 @@ export function NumberRulesPanel() {
 
       {/* 3. Create / Edit Modal Form */}
       <ModalForm
-        title={editingItem ? '编辑订单编号规则' : '新建订单编号规则'}
+        title={
+          editingItem
+            ? `编辑【${docTypeMap.get(editingItem.documentType as any)?.label || '单据'}】规则`
+            : '新建单据编号规则'
+        }
         open={modalOpen}
         form={form}
         onOpenChange={setModalOpen}
@@ -660,7 +773,18 @@ export function NumberRulesPanel() {
           <ProFormSelect
             name="documentType"
             label="单据类型"
-            options={DOC_TYPES.map((t) => ({ label: t.label, value: t.numValue }))}
+            options={DOC_TYPES.map((t) => {
+              const alreadyExists =
+                !editingItem &&
+                data.some(
+                  (r) => docTypeMap.get(r.documentType as any)?.numValue === t.numValue,
+                );
+              return {
+                label: alreadyExists ? `${t.label} (已配置)` : t.label,
+                value: t.numValue,
+                disabled: alreadyExists,
+              };
+            })}
             placeholder="请选择单据类型"
             rules={[{ required: true, message: '请选择单据类型' }]}
             disabled={Boolean(editingItem)}
