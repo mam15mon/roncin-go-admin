@@ -238,20 +238,56 @@ export function ExchangeRatesPanel() {
       title: '应收汇率',
       dataIndex: 'receivableRate',
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.receivableRate),
+      width: 110,
+      render: (_, record) => (
+        <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600, color: '#1677ff' }}>
+          {trimExactDecimal(record.receivableRate)}
+        </span>
+      ),
     },
     {
       title: '应付汇率',
       dataIndex: 'payableRate',
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.payableRate),
+      width: 110,
+      render: (_, record) => (
+        <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600, color: '#52c41a' }}>
+          {trimExactDecimal(record.payableRate)}
+        </span>
+      ),
     },
-    { title: '生效开始', dataIndex: 'effectiveFrom', width: 120 },
     {
-      title: '生效结束（不含）',
-      dataIndex: 'effectiveTo',
-      width: 150,
-      render: (_, record) => record.effectiveTo || '长期有效',
+      title: '生效时间范围',
+      dataIndex: 'effectiveFrom',
+      width: 240,
+      render: (_, record) => {
+        const fromStr = record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-';
+        if (!record.effectiveTo) {
+          return (
+            <Space direction="vertical" size={2}>
+              <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#262626' }}>
+                {fromStr}
+              </span>
+              <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>
+                长期有效
+              </Tag>
+            </Space>
+          );
+        }
+        // 后端存储为左闭右开 effectiveTo，前端展示包含当天至 23:59:59
+        const toDay = dayjs(record.effectiveTo).subtract(1, 'day').format('YYYY-MM-DD');
+        const toStr = `${toDay} 23:59:59`;
+        return (
+          <Space direction="vertical" size={2}>
+            <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#262626' }}>
+              起：{fromStr}
+            </span>
+            <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#595959' }}>
+              止：{toStr}
+            </span>
+          </Space>
+        );
+      },
     },
     {
       title: '状态',
@@ -317,8 +353,9 @@ export function ExchangeRatesPanel() {
         effectiveFrom: editing.effectiveFrom
           ? dayjs(editing.effectiveFrom)
           : undefined,
+        // 编辑回显时，将后端的左闭右开日期还原为用户自然选择的结束日期（减 1 天）
         effectiveTo: editing.effectiveTo
-          ? dayjs(editing.effectiveTo)
+          ? dayjs(editing.effectiveTo).subtract(1, 'day')
           : undefined,
         receivableRate: trimExactDecimal(editing.receivableRate),
         payableRate: trimExactDecimal(editing.payableRate),
@@ -341,6 +378,9 @@ export function ExchangeRatesPanel() {
         columns={columns}
         search={false}
         pagination={false}
+        cardProps={false}
+        tableAlertRender={false}
+        tableAlertOptionRender={false}
         request={async () => {
           const [rateResponse, currencyResponse] = await Promise.all([
             exchangeRateServiceListExchangeRateSettings(),
@@ -376,17 +416,25 @@ export function ExchangeRatesPanel() {
         title={editing ? '编辑汇率' : '新建汇率'}
         open={modalOpen}
         initialValues={initialValues}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false) }}
+        layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '120px' }}
+        wrapperCol={{ flex: 'auto' }}
+        modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 560 }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
           const effectiveFrom = dayjs(values.effectiveFrom).format('YYYY-MM-DD');
-          const effectiveTo = values.effectiveTo
+          const userEndDate = values.effectiveTo
             ? dayjs(values.effectiveTo).format('YYYY-MM-DD')
             : undefined;
-          if (effectiveTo && effectiveTo <= effectiveFrom) {
-            message.error('生效结束日期必须晚于生效开始日期');
+          if (userEndDate && userEndDate < effectiveFrom) {
+            message.error('生效结束日期不能早于生效开始日期');
             return false;
           }
+          // 用户选择了结束日期（含当天），转换给后端的生效右边界（加 1 天）
+          const effectiveTo = userEndDate
+            ? dayjs(userEndDate).add(1, 'day').format('YYYY-MM-DD')
+            : undefined;
           const input = {
             rateType: values.rateType,
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
@@ -451,12 +499,14 @@ export function ExchangeRatesPanel() {
         <ProFormDatePicker
           name="effectiveFrom"
           label="生效开始日期"
+          extra="自所选日期 00:00:00 起正式生效"
           rules={[{ required: true, message: '请选择生效开始日期' }]}
           fieldProps={{ style: { width: '100%' } }}
         />
         <ProFormDatePicker
           name="effectiveTo"
-          label="生效结束日期（不含）"
+          label="生效结束日期"
+          extra="生效至所选日期当天 23:59:59 截止；留空表示长期有效"
           fieldProps={{ style: { width: '100%' } }}
         />
       </ModalForm>
