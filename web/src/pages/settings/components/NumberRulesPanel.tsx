@@ -276,7 +276,7 @@ export function NumberRulesPanel() {
       dateFormat: dateMeta?.numValue || 1,
       sequenceLength: rule.sequenceLength || 4,
       resetPolicy: resetMeta?.numValue || 1,
-      enabled: rule.enabled ?? true,
+      enabled: Boolean(rule.enabled),
     });
     setModalOpen(true);
   };
@@ -645,11 +645,22 @@ export function NumberRulesPanel() {
                         </div>
 
                         {/* Status Switch */}
-                        <Switch
-                          size="small"
-                          checked={rule.enabled ?? true}
-                          onChange={(checked) => handleToggleRuleActive(rule, checked)}
-                        />
+                        <Space size={6} align="center">
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color: Boolean(rule.enabled) ? '#52c41a' : '#8c8c8c',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {Boolean(rule.enabled) ? '启用' : '停用'}
+                          </span>
+                          <Switch
+                            size="small"
+                            checked={Boolean(rule.enabled)}
+                            onChange={(checked) => handleToggleRuleActive(rule, checked)}
+                          />
+                        </Space>
                       </div>
 
                       {/* Rule Attributes Table List */}
