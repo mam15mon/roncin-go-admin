@@ -27,6 +27,9 @@ type BillingUnit func(*sql.Selector)
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 
+// ExchangeRateCustomSetting is the predicate function for exchangeratecustomsetting builders.
+type ExchangeRateCustomSetting func(*sql.Selector)
+
 // ExchangeRateImportBatch is the predicate function for exchangerateimportbatch builders.
 type ExchangeRateImportBatch func(*sql.Selector)
 

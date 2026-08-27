@@ -35,7 +35,7 @@ func (FinanceInvoice) Fields() []ent.Field {
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("exchange_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}),
-		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED").Optional().Nillable(),
+		field.Enum("exchange_rate_source").Values("SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED").Optional().Nillable(),
 		field.String("exchange_rate_date").Optional().Nillable().MinLen(10).MaxLen(10),
 		field.UUID("exchange_rate_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("base_currency_amount").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),

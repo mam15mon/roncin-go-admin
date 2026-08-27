@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -91,6 +92,7 @@ type OrganizationQuery struct {
 	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
 	withFinanceCommissionRules        *FinanceCommissionRuleQuery
 	withFinanceFeeLedgerPreferences   *FinanceFeeLedgerPreferenceQuery
+	withExchangeRateCustomSetting     *ExchangeRateCustomSettingQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -876,6 +878,28 @@ func (_q *OrganizationQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedge
 	return query
 }
 
+// QueryExchangeRateCustomSetting chains the current query on the "exchange_rate_custom_setting" edge.
+func (_q *OrganizationQuery) QueryExchangeRateCustomSetting() *ExchangeRateCustomSettingQuery {
+	query := (&ExchangeRateCustomSettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.ExchangeRateCustomSettingTable, organization.ExchangeRateCustomSettingColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -1102,6 +1126,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
 		withFinanceCommissionRules:        _q.withFinanceCommissionRules.Clone(),
 		withFinanceFeeLedgerPreferences:   _q.withFinanceFeeLedgerPreferences.Clone(),
+		withExchangeRateCustomSetting:     _q.withExchangeRateCustomSetting.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1482,6 +1507,17 @@ func (_q *OrganizationQuery) WithFinanceFeeLedgerPreferences(opts ...func(*Finan
 	return _q
 }
 
+// WithExchangeRateCustomSetting tells the query-builder to eager-load the nodes that are connected to
+// the "exchange_rate_custom_setting" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithExchangeRateCustomSetting(opts ...func(*ExchangeRateCustomSettingQuery)) *OrganizationQuery {
+	query := (&ExchangeRateCustomSettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withExchangeRateCustomSetting = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1560,7 +1596,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [34]bool{
+		loadedTypes = [35]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1595,6 +1631,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceCommissionAdjustments != nil,
 			_q.withFinanceCommissionRules != nil,
 			_q.withFinanceFeeLedgerPreferences != nil,
+			_q.withExchangeRateCustomSetting != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1877,6 +1914,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceFeeLedgerPreferences = []*FinanceFeeLedgerPreference{} },
 			func(n *Organization, e *FinanceFeeLedgerPreference) {
 				n.Edges.FinanceFeeLedgerPreferences = append(n.Edges.FinanceFeeLedgerPreferences, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withExchangeRateCustomSetting; query != nil {
+		if err := _q.loadExchangeRateCustomSetting(ctx, query, nodes,
+			func(n *Organization) { n.Edges.ExchangeRateCustomSetting = []*ExchangeRateCustomSetting{} },
+			func(n *Organization, e *ExchangeRateCustomSetting) {
+				n.Edges.ExchangeRateCustomSetting = append(n.Edges.ExchangeRateCustomSetting, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2894,6 +2940,36 @@ func (_q *OrganizationQuery) loadFinanceFeeLedgerPreferences(ctx context.Context
 	}
 	query.Where(predicate.FinanceFeeLedgerPreference(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceFeeLedgerPreferencesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadExchangeRateCustomSetting(ctx context.Context, query *ExchangeRateCustomSettingQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *ExchangeRateCustomSetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(exchangeratecustomsetting.FieldOrganizationID)
+	}
+	query.Where(predicate.ExchangeRateCustomSetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.ExchangeRateCustomSettingColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

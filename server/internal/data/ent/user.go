@@ -98,9 +98,11 @@ type UserEdges struct {
 	CancelledFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"cancelled_finance_commission_adjustments,omitempty"`
 	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
+	// UpdatedExchangeRateCustomSettings holds the value of the updated_exchange_rate_custom_settings edge.
+	UpdatedExchangeRateCustomSettings []*ExchangeRateCustomSetting `json:"updated_exchange_rate_custom_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [23]bool
+	loadedTypes [24]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -308,6 +310,15 @@ func (e UserEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPrefer
 		return e.FinanceFeeLedgerPreferences, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
+}
+
+// UpdatedExchangeRateCustomSettingsOrErr returns the UpdatedExchangeRateCustomSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UpdatedExchangeRateCustomSettingsOrErr() ([]*ExchangeRateCustomSetting, error) {
+	if e.loadedTypes[23] {
+		return e.UpdatedExchangeRateCustomSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "updated_exchange_rate_custom_settings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -555,6 +566,11 @@ func (_m *User) QueryCancelledFinanceCommissionAdjustments() *FinanceCommissionA
 // QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the User entity.
 func (_m *User) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
 	return NewUserClient(_m.config).QueryFinanceFeeLedgerPreferences(_m)
+}
+
+// QueryUpdatedExchangeRateCustomSettings queries the "updated_exchange_rate_custom_settings" edge of the User entity.
+func (_m *User) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCustomSettingQuery {
+	return NewUserClient(_m.config).QueryUpdatedExchangeRateCustomSettings(_m)
 }
 
 // Update returns a builder for updating this User.

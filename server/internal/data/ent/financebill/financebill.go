@@ -297,10 +297,11 @@ type ExchangeRateSource string
 
 // ExchangeRateSource values.
 const (
-	ExchangeRateSourceSYSTEM        ExchangeRateSource = "SYSTEM"
-	ExchangeRateSourceBASE_CURRENCY ExchangeRateSource = "BASE_CURRENCY"
-	ExchangeRateSourceMANUAL        ExchangeRateSource = "MANUAL"
-	ExchangeRateSourceDERIVED       ExchangeRateSource = "DERIVED"
+	ExchangeRateSourceSYSTEM                  ExchangeRateSource = "SYSTEM"
+	ExchangeRateSourceBASE_CURRENCY           ExchangeRateSource = "BASE_CURRENCY"
+	ExchangeRateSourceINHERITED_BASE_CURRENCY ExchangeRateSource = "INHERITED_BASE_CURRENCY"
+	ExchangeRateSourceMANUAL                  ExchangeRateSource = "MANUAL"
+	ExchangeRateSourceDERIVED                 ExchangeRateSource = "DERIVED"
 )
 
 func (ers ExchangeRateSource) String() string {
@@ -310,7 +311,7 @@ func (ers ExchangeRateSource) String() string {
 // ExchangeRateSourceValidator is a validator for the "exchange_rate_source" field enum values. It is called by the builders before save.
 func ExchangeRateSourceValidator(ers ExchangeRateSource) error {
 	switch ers {
-	case ExchangeRateSourceSYSTEM, ExchangeRateSourceBASE_CURRENCY, ExchangeRateSourceMANUAL, ExchangeRateSourceDERIVED:
+	case ExchangeRateSourceSYSTEM, ExchangeRateSourceBASE_CURRENCY, ExchangeRateSourceINHERITED_BASE_CURRENCY, ExchangeRateSourceMANUAL, ExchangeRateSourceDERIVED:
 		return nil
 	default:
 		return fmt.Errorf("financebill: invalid enum value for exchange_rate_source field: %q", ers)

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
@@ -557,6 +558,21 @@ func (_c *UserCreate) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPrefe
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceFeeLedgerPreferenceIDs(ids...)
+}
+
+// AddUpdatedExchangeRateCustomSettingIDs adds the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity by IDs.
+func (_c *UserCreate) AddUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+	return _c
+}
+
+// AddUpdatedExchangeRateCustomSettings adds the "updated_exchange_rate_custom_settings" edges to the ExchangeRateCustomSetting entity.
+func (_c *UserCreate) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCustomSetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUpdatedExchangeRateCustomSettingIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1136,6 +1152,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UpdatedExchangeRateCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

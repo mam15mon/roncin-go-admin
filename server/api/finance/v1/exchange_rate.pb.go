@@ -1019,6 +1019,326 @@ func (x *UpdateExchangeRateTimeStandardsResponse) GetTraceId() string {
 	return ""
 }
 
+// ExchangeRateCustomSetting 供参数设置中的“自定义设置”使用。
+// 开启继承后，BILL、INVOICE、SETTLEMENT、WRITE_OFF 专用汇率未命中时，
+// 后端才会查询同一时点的 BASE_CURRENCY 汇率；已配置的专用汇率始终优先。
+type ExchangeRateCustomSetting struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationId          string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	InheritBaseCurrencyRate bool                   `protobuf:"varint,2,opt,name=inherit_base_currency_rate,json=inheritBaseCurrencyRate,proto3" json:"inherit_base_currency_rate,omitempty"`
+	// 未保存过自定义设置时为 0；首次保存需携带 expected_version=0。
+	Version       uint64  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt     *string `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	UpdatedBy     *string `protobuf:"bytes,5,opt,name=updated_by,json=updatedBy,proto3,oneof" json:"updated_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExchangeRateCustomSetting) Reset() {
+	*x = ExchangeRateCustomSetting{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExchangeRateCustomSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExchangeRateCustomSetting) ProtoMessage() {}
+
+func (x *ExchangeRateCustomSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExchangeRateCustomSetting.ProtoReflect.Descriptor instead.
+func (*ExchangeRateCustomSetting) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ExchangeRateCustomSetting) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *ExchangeRateCustomSetting) GetInheritBaseCurrencyRate() bool {
+	if x != nil {
+		return x.InheritBaseCurrencyRate
+	}
+	return false
+}
+
+func (x *ExchangeRateCustomSetting) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ExchangeRateCustomSetting) GetUpdatedAt() string {
+	if x != nil && x.UpdatedAt != nil {
+		return *x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *ExchangeRateCustomSetting) GetUpdatedBy() string {
+	if x != nil && x.UpdatedBy != nil {
+		return *x.UpdatedBy
+	}
+	return ""
+}
+
+type GetExchangeRateCustomSettingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetExchangeRateCustomSettingRequest) Reset() {
+	*x = GetExchangeRateCustomSettingRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetExchangeRateCustomSettingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetExchangeRateCustomSettingRequest) ProtoMessage() {}
+
+func (x *GetExchangeRateCustomSettingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetExchangeRateCustomSettingRequest.ProtoReflect.Descriptor instead.
+func (*GetExchangeRateCustomSettingRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{15}
+}
+
+type GetExchangeRateCustomSettingResponse struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Success       bool                       `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                      `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                     `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *ExchangeRateCustomSetting `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                     `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetExchangeRateCustomSettingResponse) Reset() {
+	*x = GetExchangeRateCustomSettingResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetExchangeRateCustomSettingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetExchangeRateCustomSettingResponse) ProtoMessage() {}
+
+func (x *GetExchangeRateCustomSettingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetExchangeRateCustomSettingResponse.ProtoReflect.Descriptor instead.
+func (*GetExchangeRateCustomSettingResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetExchangeRateCustomSettingResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetExchangeRateCustomSettingResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetExchangeRateCustomSettingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetExchangeRateCustomSettingResponse) GetData() *ExchangeRateCustomSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetExchangeRateCustomSettingResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateExchangeRateCustomSettingRequest struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	InheritBaseCurrencyRate bool                   `protobuf:"varint,1,opt,name=inherit_base_currency_rate,json=inheritBaseCurrencyRate,proto3" json:"inherit_base_currency_rate,omitempty"`
+	ExpectedVersion         uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *UpdateExchangeRateCustomSettingRequest) Reset() {
+	*x = UpdateExchangeRateCustomSettingRequest{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateExchangeRateCustomSettingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateExchangeRateCustomSettingRequest) ProtoMessage() {}
+
+func (x *UpdateExchangeRateCustomSettingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateExchangeRateCustomSettingRequest.ProtoReflect.Descriptor instead.
+func (*UpdateExchangeRateCustomSettingRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateExchangeRateCustomSettingRequest) GetInheritBaseCurrencyRate() bool {
+	if x != nil {
+		return x.InheritBaseCurrencyRate
+	}
+	return false
+}
+
+func (x *UpdateExchangeRateCustomSettingRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type UpdateExchangeRateCustomSettingResponse struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Success       bool                       `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                      `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                     `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *ExchangeRateCustomSetting `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                     `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) Reset() {
+	*x = UpdateExchangeRateCustomSettingResponse{}
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateExchangeRateCustomSettingResponse) ProtoMessage() {}
+
+func (x *UpdateExchangeRateCustomSettingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateExchangeRateCustomSettingResponse.ProtoReflect.Descriptor instead.
+func (*UpdateExchangeRateCustomSettingResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) GetData() *ExchangeRateCustomSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateExchangeRateCustomSettingResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type DownloadExchangeRateImportTemplateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1027,7 +1347,7 @@ type DownloadExchangeRateImportTemplateRequest struct {
 
 func (x *DownloadExchangeRateImportTemplateRequest) Reset() {
 	*x = DownloadExchangeRateImportTemplateRequest{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[14]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1039,7 +1359,7 @@ func (x *DownloadExchangeRateImportTemplateRequest) String() string {
 func (*DownloadExchangeRateImportTemplateRequest) ProtoMessage() {}
 
 func (x *DownloadExchangeRateImportTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[14]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1052,7 +1372,7 @@ func (x *DownloadExchangeRateImportTemplateRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use DownloadExchangeRateImportTemplateRequest.ProtoReflect.Descriptor instead.
 func (*DownloadExchangeRateImportTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{14}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{19}
 }
 
 type DownloadExchangeRateImportTemplateResponse struct {
@@ -1071,7 +1391,7 @@ type DownloadExchangeRateImportTemplateResponse struct {
 
 func (x *DownloadExchangeRateImportTemplateResponse) Reset() {
 	*x = DownloadExchangeRateImportTemplateResponse{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[15]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1083,7 +1403,7 @@ func (x *DownloadExchangeRateImportTemplateResponse) String() string {
 func (*DownloadExchangeRateImportTemplateResponse) ProtoMessage() {}
 
 func (x *DownloadExchangeRateImportTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[15]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1416,7 @@ func (x *DownloadExchangeRateImportTemplateResponse) ProtoReflect() protoreflect
 
 // Deprecated: Use DownloadExchangeRateImportTemplateResponse.ProtoReflect.Descriptor instead.
 func (*DownloadExchangeRateImportTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{15}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DownloadExchangeRateImportTemplateResponse) GetSuccess() bool {
@@ -1165,7 +1485,7 @@ type PreviewExchangeRateImportRequest struct {
 
 func (x *PreviewExchangeRateImportRequest) Reset() {
 	*x = PreviewExchangeRateImportRequest{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[16]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1177,7 +1497,7 @@ func (x *PreviewExchangeRateImportRequest) String() string {
 func (*PreviewExchangeRateImportRequest) ProtoMessage() {}
 
 func (x *PreviewExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[16]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1190,7 +1510,7 @@ func (x *PreviewExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewExchangeRateImportRequest.ProtoReflect.Descriptor instead.
 func (*PreviewExchangeRateImportRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{16}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PreviewExchangeRateImportRequest) GetFileName() string {
@@ -1217,7 +1537,7 @@ type ConfirmExchangeRateImportRequest struct {
 
 func (x *ConfirmExchangeRateImportRequest) Reset() {
 	*x = ConfirmExchangeRateImportRequest{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[17]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1229,7 +1549,7 @@ func (x *ConfirmExchangeRateImportRequest) String() string {
 func (*ConfirmExchangeRateImportRequest) ProtoMessage() {}
 
 func (x *ConfirmExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[17]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1242,7 +1562,7 @@ func (x *ConfirmExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmExchangeRateImportRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmExchangeRateImportRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{17}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ConfirmExchangeRateImportRequest) GetPreviewToken() string {
@@ -1268,7 +1588,7 @@ type GetExchangeRateImportRequest struct {
 
 func (x *GetExchangeRateImportRequest) Reset() {
 	*x = GetExchangeRateImportRequest{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[18]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1280,7 +1600,7 @@ func (x *GetExchangeRateImportRequest) String() string {
 func (*GetExchangeRateImportRequest) ProtoMessage() {}
 
 func (x *GetExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[18]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1293,7 +1613,7 @@ func (x *GetExchangeRateImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetExchangeRateImportRequest.ProtoReflect.Descriptor instead.
 func (*GetExchangeRateImportRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{18}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetExchangeRateImportRequest) GetId() string {
@@ -1321,7 +1641,7 @@ type ExchangeRateImportRow struct {
 
 func (x *ExchangeRateImportRow) Reset() {
 	*x = ExchangeRateImportRow{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1333,7 +1653,7 @@ func (x *ExchangeRateImportRow) String() string {
 func (*ExchangeRateImportRow) ProtoMessage() {}
 
 func (x *ExchangeRateImportRow) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[19]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1346,7 +1666,7 @@ func (x *ExchangeRateImportRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExchangeRateImportRow.ProtoReflect.Descriptor instead.
 func (*ExchangeRateImportRow) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{19}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ExchangeRateImportRow) GetRowNumber() int32 {
@@ -1441,7 +1761,7 @@ type ExchangeRateImportBatch struct {
 
 func (x *ExchangeRateImportBatch) Reset() {
 	*x = ExchangeRateImportBatch{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1453,7 +1773,7 @@ func (x *ExchangeRateImportBatch) String() string {
 func (*ExchangeRateImportBatch) ProtoMessage() {}
 
 func (x *ExchangeRateImportBatch) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[20]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1466,7 +1786,7 @@ func (x *ExchangeRateImportBatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExchangeRateImportBatch.ProtoReflect.Descriptor instead.
 func (*ExchangeRateImportBatch) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{20}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ExchangeRateImportBatch) GetId() string {
@@ -1581,7 +1901,7 @@ type PreviewExchangeRateImportResponse struct {
 
 func (x *PreviewExchangeRateImportResponse) Reset() {
 	*x = PreviewExchangeRateImportResponse{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1593,7 +1913,7 @@ func (x *PreviewExchangeRateImportResponse) String() string {
 func (*PreviewExchangeRateImportResponse) ProtoMessage() {}
 
 func (x *PreviewExchangeRateImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[21]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1606,7 +1926,7 @@ func (x *PreviewExchangeRateImportResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use PreviewExchangeRateImportResponse.ProtoReflect.Descriptor instead.
 func (*PreviewExchangeRateImportResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{21}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *PreviewExchangeRateImportResponse) GetSuccess() bool {
@@ -1664,7 +1984,7 @@ type ConfirmExchangeRateImportResponse struct {
 
 func (x *ConfirmExchangeRateImportResponse) Reset() {
 	*x = ConfirmExchangeRateImportResponse{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1676,7 +1996,7 @@ func (x *ConfirmExchangeRateImportResponse) String() string {
 func (*ConfirmExchangeRateImportResponse) ProtoMessage() {}
 
 func (x *ConfirmExchangeRateImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[22]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1689,7 +2009,7 @@ func (x *ConfirmExchangeRateImportResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ConfirmExchangeRateImportResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmExchangeRateImportResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{22}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ConfirmExchangeRateImportResponse) GetSuccess() bool {
@@ -1740,7 +2060,7 @@ type GetExchangeRateImportResponse struct {
 
 func (x *GetExchangeRateImportResponse) Reset() {
 	*x = GetExchangeRateImportResponse{}
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1752,7 +2072,7 @@ func (x *GetExchangeRateImportResponse) String() string {
 func (*GetExchangeRateImportResponse) ProtoMessage() {}
 
 func (x *GetExchangeRateImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_exchange_rate_proto_msgTypes[23]
+	mi := &file_finance_v1_exchange_rate_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1765,7 +2085,7 @@ func (x *GetExchangeRateImportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetExchangeRateImportResponse.ProtoReflect.Descriptor instead.
 func (*GetExchangeRateImportResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{23}
+	return file_finance_v1_exchange_rate_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetExchangeRateImportResponse) GetSuccess() bool {
@@ -1892,6 +2212,32 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12?\n" +
 	"\x04data\x18\x04 \x03(\v2+.finance.v1.ExchangeRateTimeStandardSettingR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x02\n" +
+	"\x19ExchangeRateCustomSetting\x12'\n" +
+	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12;\n" +
+	"\x1ainherit_base_currency_rate\x18\x02 \x01(\bR\x17inheritBaseCurrencyRate\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x04R\aversion\x12\"\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\tH\x00R\tupdatedAt\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"updated_by\x18\x05 \x01(\tH\x01R\tupdatedBy\x88\x01\x01B\r\n" +
+	"\v_updated_atB\r\n" +
+	"\v_updated_by\"%\n" +
+	"#GetExchangeRateCustomSettingRequest\"\xc4\x01\n" +
+	"$GetExchangeRateCustomSettingResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
+	"\x04data\x18\x04 \x01(\v2%.finance.v1.ExchangeRateCustomSettingR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x95\x01\n" +
+	"&UpdateExchangeRateCustomSettingRequest\x12;\n" +
+	"\x1ainherit_base_currency_rate\x18\x01 \x01(\bR\x17inheritBaseCurrencyRate\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xc7\x01\n" +
+	"'UpdateExchangeRateCustomSettingResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
+	"\x04data\x18\x04 \x01(\v2%.finance.v1.ExchangeRateCustomSettingR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"+\n" +
 	")DownloadExchangeRateImportTemplateRequest\"\x94\x02\n" +
 	"*DownloadExchangeRateImportTemplateResponse\x12\x18\n" +
@@ -1967,14 +2313,16 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x127\n" +
 	"\x04data\x18\x04 \x01(\v2#.finance.v1.ExchangeRateImportBatchR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xcc\x11\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xa4\x15\n" +
 	"\x13ExchangeRateService\x12\xc8\x01\n" +
 	"\x18ListExchangeRateSettings\x12+.finance.v1.ListExchangeRateSettingsRequest\x1a,.finance.v1.ListExchangeRateSettingsResponse\"Q\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/finance/exchange-rates\x12\xd0\x01\n" +
 	"\x19CreateExchangeRateSetting\x12,.finance.v1.CreateExchangeRateSettingRequest\x1a-.finance.v1.CreateExchangeRateSettingResponse\"V\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/finance/exchange-rates\x12\xd5\x01\n" +
 	"\x19UpdateExchangeRateSetting\x12,.finance.v1.UpdateExchangeRateSettingRequest\x1a-.finance.v1.UpdateExchangeRateSettingResponse\"[\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x02(:\x01*\x1a#/api/v1/finance/exchange-rates/{id}\x12\xe1\x01\n" +
 	"\x1aDisableExchangeRateSetting\x12-.finance.v1.DisableExchangeRateSettingRequest\x1a..finance.v1.DisableExchangeRateSettingResponse\"d\x82\xb5\x18*\b\x03\x12$system.finance.exchange_rate.disable \x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/finance/exchange-rates/{id}/disable\x12\xe5\x01\n" +
 	"\x1dListExchangeRateTimeStandards\x120.finance.v1.ListExchangeRateTimeStandardsRequest\x1a1.finance.v1.ListExchangeRateTimeStandardsResponse\"_\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/finance/exchange-rate-time-standards\x12\xf0\x01\n" +
-	"\x1fUpdateExchangeRateTimeStandards\x122.finance.v1.UpdateExchangeRateTimeStandardsRequest\x1a3.finance.v1.UpdateExchangeRateTimeStandardsResponse\"d\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/finance/exchange-rate-time-standards\x12\xf5\x01\n" +
+	"\x1fUpdateExchangeRateTimeStandards\x122.finance.v1.UpdateExchangeRateTimeStandardsRequest\x1a3.finance.v1.UpdateExchangeRateTimeStandardsResponse\"d\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/finance/exchange-rate-time-standards\x12\xe2\x01\n" +
+	"\x1cGetExchangeRateCustomSetting\x12/.finance.v1.GetExchangeRateCustomSettingRequest\x1a0.finance.v1.GetExchangeRateCustomSettingResponse\"_\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/finance/exchange-rate-custom-setting\x12\xf0\x01\n" +
+	"\x1fUpdateExchangeRateCustomSetting\x122.finance.v1.UpdateExchangeRateCustomSettingRequest\x1a3.finance.v1.UpdateExchangeRateCustomSettingResponse\"d\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.update \x02\x82\xd3\xe4\x93\x021:\x01*\x1a,/api/v1/finance/exchange-rate-custom-setting\x12\xf5\x01\n" +
 	"\"DownloadExchangeRateImportTemplate\x125.finance.v1.DownloadExchangeRateImportTemplateRequest\x1a6.finance.v1.DownloadExchangeRateImportTemplateResponse\"`\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02/\x12-/api/v1/finance/exchange-rate-import-template\x12\xdf\x01\n" +
 	"\x19PreviewExchangeRateImport\x12,.finance.v1.PreviewExchangeRateImportRequest\x1a-.finance.v1.PreviewExchangeRateImportResponse\"e\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x022:\x01*\"-/api/v1/finance/exchange-rate-imports/preview\x12\xd7\x01\n" +
 	"\x19ConfirmExchangeRateImport\x12,.finance.v1.ConfirmExchangeRateImportRequest\x1a-.finance.v1.ConfirmExchangeRateImportResponse\"]\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/exchange-rate-imports\x12\xcb\x01\n" +
@@ -1992,7 +2340,7 @@ func file_finance_v1_exchange_rate_proto_rawDescGZIP() []byte {
 	return file_finance_v1_exchange_rate_proto_rawDescData
 }
 
-var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_finance_v1_exchange_rate_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_finance_v1_exchange_rate_proto_goTypes = []any{
 	(*ExchangeRateSetting)(nil),                        // 0: finance.v1.ExchangeRateSetting
 	(*ListExchangeRateSettingsRequest)(nil),            // 1: finance.v1.ListExchangeRateSettingsRequest
@@ -2008,16 +2356,21 @@ var file_finance_v1_exchange_rate_proto_goTypes = []any{
 	(*ListExchangeRateTimeStandardsResponse)(nil),      // 11: finance.v1.ListExchangeRateTimeStandardsResponse
 	(*UpdateExchangeRateTimeStandardsRequest)(nil),     // 12: finance.v1.UpdateExchangeRateTimeStandardsRequest
 	(*UpdateExchangeRateTimeStandardsResponse)(nil),    // 13: finance.v1.UpdateExchangeRateTimeStandardsResponse
-	(*DownloadExchangeRateImportTemplateRequest)(nil),  // 14: finance.v1.DownloadExchangeRateImportTemplateRequest
-	(*DownloadExchangeRateImportTemplateResponse)(nil), // 15: finance.v1.DownloadExchangeRateImportTemplateResponse
-	(*PreviewExchangeRateImportRequest)(nil),           // 16: finance.v1.PreviewExchangeRateImportRequest
-	(*ConfirmExchangeRateImportRequest)(nil),           // 17: finance.v1.ConfirmExchangeRateImportRequest
-	(*GetExchangeRateImportRequest)(nil),               // 18: finance.v1.GetExchangeRateImportRequest
-	(*ExchangeRateImportRow)(nil),                      // 19: finance.v1.ExchangeRateImportRow
-	(*ExchangeRateImportBatch)(nil),                    // 20: finance.v1.ExchangeRateImportBatch
-	(*PreviewExchangeRateImportResponse)(nil),          // 21: finance.v1.PreviewExchangeRateImportResponse
-	(*ConfirmExchangeRateImportResponse)(nil),          // 22: finance.v1.ConfirmExchangeRateImportResponse
-	(*GetExchangeRateImportResponse)(nil),              // 23: finance.v1.GetExchangeRateImportResponse
+	(*ExchangeRateCustomSetting)(nil),                  // 14: finance.v1.ExchangeRateCustomSetting
+	(*GetExchangeRateCustomSettingRequest)(nil),        // 15: finance.v1.GetExchangeRateCustomSettingRequest
+	(*GetExchangeRateCustomSettingResponse)(nil),       // 16: finance.v1.GetExchangeRateCustomSettingResponse
+	(*UpdateExchangeRateCustomSettingRequest)(nil),     // 17: finance.v1.UpdateExchangeRateCustomSettingRequest
+	(*UpdateExchangeRateCustomSettingResponse)(nil),    // 18: finance.v1.UpdateExchangeRateCustomSettingResponse
+	(*DownloadExchangeRateImportTemplateRequest)(nil),  // 19: finance.v1.DownloadExchangeRateImportTemplateRequest
+	(*DownloadExchangeRateImportTemplateResponse)(nil), // 20: finance.v1.DownloadExchangeRateImportTemplateResponse
+	(*PreviewExchangeRateImportRequest)(nil),           // 21: finance.v1.PreviewExchangeRateImportRequest
+	(*ConfirmExchangeRateImportRequest)(nil),           // 22: finance.v1.ConfirmExchangeRateImportRequest
+	(*GetExchangeRateImportRequest)(nil),               // 23: finance.v1.GetExchangeRateImportRequest
+	(*ExchangeRateImportRow)(nil),                      // 24: finance.v1.ExchangeRateImportRow
+	(*ExchangeRateImportBatch)(nil),                    // 25: finance.v1.ExchangeRateImportBatch
+	(*PreviewExchangeRateImportResponse)(nil),          // 26: finance.v1.PreviewExchangeRateImportResponse
+	(*ConfirmExchangeRateImportResponse)(nil),          // 27: finance.v1.ConfirmExchangeRateImportResponse
+	(*GetExchangeRateImportResponse)(nil),              // 28: finance.v1.GetExchangeRateImportResponse
 }
 var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
 	0,  // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
@@ -2026,35 +2379,41 @@ var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
 	9,  // 3: finance.v1.ListExchangeRateTimeStandardsResponse.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
 	9,  // 4: finance.v1.UpdateExchangeRateTimeStandardsRequest.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
 	9,  // 5: finance.v1.UpdateExchangeRateTimeStandardsResponse.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
-	19, // 6: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
-	20, // 7: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	20, // 8: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	20, // 9: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	1,  // 10: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
-	3,  // 11: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
-	4,  // 12: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
-	5,  // 13: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
-	10, // 14: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:input_type -> finance.v1.ListExchangeRateTimeStandardsRequest
-	12, // 15: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:input_type -> finance.v1.UpdateExchangeRateTimeStandardsRequest
-	14, // 16: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
-	16, // 17: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
-	17, // 18: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
-	18, // 19: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
-	2,  // 20: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
-	6,  // 21: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
-	7,  // 22: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
-	8,  // 23: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
-	11, // 24: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:output_type -> finance.v1.ListExchangeRateTimeStandardsResponse
-	13, // 25: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:output_type -> finance.v1.UpdateExchangeRateTimeStandardsResponse
-	15, // 26: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
-	21, // 27: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
-	22, // 28: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
-	23, // 29: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
-	20, // [20:30] is the sub-list for method output_type
-	10, // [10:20] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	14, // 6: finance.v1.GetExchangeRateCustomSettingResponse.data:type_name -> finance.v1.ExchangeRateCustomSetting
+	14, // 7: finance.v1.UpdateExchangeRateCustomSettingResponse.data:type_name -> finance.v1.ExchangeRateCustomSetting
+	24, // 8: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
+	25, // 9: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	25, // 10: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	25, // 11: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	1,  // 12: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
+	3,  // 13: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
+	4,  // 14: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
+	5,  // 15: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
+	10, // 16: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:input_type -> finance.v1.ListExchangeRateTimeStandardsRequest
+	12, // 17: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:input_type -> finance.v1.UpdateExchangeRateTimeStandardsRequest
+	15, // 18: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:input_type -> finance.v1.GetExchangeRateCustomSettingRequest
+	17, // 19: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:input_type -> finance.v1.UpdateExchangeRateCustomSettingRequest
+	19, // 20: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
+	21, // 21: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
+	22, // 22: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
+	23, // 23: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
+	2,  // 24: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
+	6,  // 25: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
+	7,  // 26: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
+	8,  // 27: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
+	11, // 28: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:output_type -> finance.v1.ListExchangeRateTimeStandardsResponse
+	13, // 29: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:output_type -> finance.v1.UpdateExchangeRateTimeStandardsResponse
+	16, // 30: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:output_type -> finance.v1.GetExchangeRateCustomSettingResponse
+	18, // 31: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:output_type -> finance.v1.UpdateExchangeRateCustomSettingResponse
+	20, // 32: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
+	26, // 33: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
+	27, // 34: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
+	28, // 35: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
+	24, // [24:36] is the sub-list for method output_type
+	12, // [12:24] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_exchange_rate_proto_init() }
@@ -2065,15 +2424,16 @@ func file_finance_v1_exchange_rate_proto_init() {
 	file_finance_v1_exchange_rate_proto_msgTypes[0].OneofWrappers = []any{}
 	file_finance_v1_exchange_rate_proto_msgTypes[3].OneofWrappers = []any{}
 	file_finance_v1_exchange_rate_proto_msgTypes[4].OneofWrappers = []any{}
-	file_finance_v1_exchange_rate_proto_msgTypes[19].OneofWrappers = []any{}
-	file_finance_v1_exchange_rate_proto_msgTypes[20].OneofWrappers = []any{}
+	file_finance_v1_exchange_rate_proto_msgTypes[14].OneofWrappers = []any{}
+	file_finance_v1_exchange_rate_proto_msgTypes[24].OneofWrappers = []any{}
+	file_finance_v1_exchange_rate_proto_msgTypes[25].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_exchange_rate_proto_rawDesc), len(file_finance_v1_exchange_rate_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

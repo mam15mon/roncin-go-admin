@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	stderrors "errors"
 	"regexp"
 	"strings"
 	"time"
@@ -12,31 +13,33 @@ import (
 )
 
 var (
-	ErrExchangeRateNotFound            = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
-	ErrExchangeRateInvalidArgument     = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
-	ErrExchangeRateOverlap             = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效区间与现有设置重叠")
-	ErrExchangeRateMissing             = errors.BadRequest("FEE_EXCHANGE_RATE_MISSING", "汇率日期未命中生效汇率")
-	ErrExchangeRateConflict            = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")
-	ErrExchangeRateCurrencyInvalid     = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
-	ErrExchangeRateOrganizationInvalid = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织未配置有效本币")
-	ErrExchangeRateDateMissing         = errors.BadRequest("EXCHANGE_RATE_DATE_MISSING", "未能按汇率类型时间标准确定汇率日期")
+	ErrExchangeRateNotFound              = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
+	ErrExchangeRateInvalidArgument       = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
+	ErrExchangeRateOverlap               = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效区间与现有设置重叠")
+	ErrExchangeRateMissing               = errors.BadRequest("FEE_EXCHANGE_RATE_MISSING", "汇率日期未命中生效汇率")
+	ErrExchangeRateConflict              = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")
+	ErrExchangeRateCurrencyInvalid       = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
+	ErrExchangeRateOrganizationInvalid   = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织未配置有效本币")
+	ErrExchangeRateDateMissing           = errors.BadRequest("EXCHANGE_RATE_DATE_MISSING", "未能按汇率类型时间标准确定汇率日期")
+	ErrExchangeRateCustomSettingConflict = errors.Conflict("EXCHANGE_RATE_CUSTOM_SETTING_CONFLICT", "汇率自定义设置已被更新，请刷新后重试")
 )
 
 const (
-	BaseCurrencyRateType      = "BASE_CURRENCY"
-	InvoiceRateType           = "INVOICE"
-	SettlementRateType        = "SETTLEMENT"
-	WriteOffRateType          = "WRITE_OFF"
-	BillRateType              = "BILL"
-	ETDETAOrTrainDateStandard = "ETD_ETA_TRAIN_DATE"
-	BusinessTimeStandard      = "BUSINESS_TIME"
-	BargeETDStandard          = "BARGE_ETD"
-	ExpenseTimeStandard       = "EXPENSE_TIME"
-	OrderCreatedAtStandard    = "ORDER_CREATED_AT"
-	BillDateStandard          = "BILL_DATE"
-	InvoiceDateStandard       = "INVOICE_DATE"
-	TransactionDateStandard   = "TRANSACTION_DATE"
-	WriteOffTimeStandard      = "WRITE_OFF_TIME"
+	BaseCurrencyRateType        = "BASE_CURRENCY"
+	InvoiceRateType             = "INVOICE"
+	SettlementRateType          = "SETTLEMENT"
+	WriteOffRateType            = "WRITE_OFF"
+	BillRateType                = "BILL"
+	ETDETAOrTrainDateStandard   = "ETD_ETA_TRAIN_DATE"
+	BusinessTimeStandard        = "BUSINESS_TIME"
+	BargeETDStandard            = "BARGE_ETD"
+	ExpenseTimeStandard         = "EXPENSE_TIME"
+	OrderCreatedAtStandard      = "ORDER_CREATED_AT"
+	BillDateStandard            = "BILL_DATE"
+	InvoiceDateStandard         = "INVOICE_DATE"
+	TransactionDateStandard     = "TRANSACTION_DATE"
+	WriteOffTimeStandard        = "WRITE_OFF_TIME"
+	InheritedBaseCurrencySource = "INHERITED_BASE_CURRENCY"
 )
 
 var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$`)
@@ -64,6 +67,14 @@ type ExchangeRateTimeStandardSetting struct {
 	TimeStandards []string
 }
 
+type ExchangeRateCustomSetting struct {
+	OrganizationID          uuid.UUID
+	InheritBaseCurrencyRate bool
+	Version                 uint64
+	UpdatedAt               *time.Time
+	UpdatedBy               *uuid.UUID
+}
+
 type ResolvedExchangeRate struct {
 	Rate      decimal.Decimal
 	Source    string
@@ -84,6 +95,8 @@ type ExchangeRateRepo interface {
 	Disable(ctx context.Context, organizationID, id uuid.UUID, audit *AuditEvent) error
 	ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error)
 	ReplaceTimeStandards(ctx context.Context, organizationID uuid.UUID, settings []*ExchangeRateTimeStandardSetting, audit *AuditEvent) error
+	GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*ExchangeRateCustomSetting, error)
+	SaveCustomSetting(ctx context.Context, setting *ExchangeRateCustomSetting, expectedVersion uint64, audit *AuditEvent) (*ExchangeRateCustomSetting, error)
 	Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*ResolvedExchangeRate, error)
 	InspectImport(ctx context.Context, ownerOrganizationID uuid.UUID, rows []*ExchangeRateImportRow) (map[int][]string, error)
 	CreateImportPreview(ctx context.Context, batch *ExchangeRateImportBatch, audit *AuditEvent) (*ExchangeRateImportBatch, error)
@@ -182,6 +195,41 @@ func (uc *ExchangeRateUsecase) UpdateTimeStandards(ctx context.Context, organiza
 	return uc.repo.ListTimeStandards(ctx, rateContext.OwnerOrganizationID)
 }
 
+func (uc *ExchangeRateUsecase) GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*ExchangeRateCustomSetting, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrExchangeRateInvalidArgument
+	}
+	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	setting, err := uc.repo.GetCustomSetting(ctx, rateContext.OwnerOrganizationID)
+	if err != nil {
+		return nil, err
+	}
+	if setting == nil {
+		return &ExchangeRateCustomSetting{OrganizationID: rateContext.OwnerOrganizationID}, nil
+	}
+	return setting, nil
+}
+
+func (uc *ExchangeRateUsecase) UpdateCustomSetting(ctx context.Context, organizationID, actorID uuid.UUID, inheritBaseCurrencyRate bool, expectedVersion uint64) (*ExchangeRateCustomSetting, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrExchangeRateInvalidArgument
+	}
+	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	setting := &ExchangeRateCustomSetting{
+		OrganizationID:          rateContext.OwnerOrganizationID,
+		InheritBaseCurrencyRate: inheritBaseCurrencyRate,
+		UpdatedBy:               &actorID,
+	}
+	audit := exchangeRateCustomSettingAudit(organizationID, actorID, rateContext.OwnerOrganizationID)
+	return uc.repo.SaveCustomSetting(ctx, setting, expectedVersion, audit)
+}
+
 func (uc *ExchangeRateUsecase) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction OrderFeeDirection, currency string, dateCandidates map[string]string) (*ResolvedExchangeRate, error) {
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if organizationID == uuid.Nil || !validExchangeRateType(rateType) || !currencyPattern.MatchString(currency) || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
@@ -202,7 +250,23 @@ func (uc *ExchangeRateUsecase) Resolve(ctx context.Context, organizationID uuid.
 	if currency == rateContext.BaseCurrency {
 		return &ResolvedExchangeRate{Rate: decimal.NewFromInt(1), Source: "BASE_CURRENCY", RateDate: rateDate}, nil
 	}
-	return uc.repo.Resolve(ctx, rateContext.OwnerOrganizationID, rateType, direction, currency, rateContext.BaseCurrency, rateDate)
+	resolved, err := uc.repo.Resolve(ctx, rateContext.OwnerOrganizationID, rateType, direction, currency, rateContext.BaseCurrency, rateDate)
+	if err == nil || !stderrors.Is(err, ErrExchangeRateMissing) || rateType == BaseCurrencyRateType {
+		return resolved, err
+	}
+	customSetting, settingErr := uc.repo.GetCustomSetting(ctx, rateContext.OwnerOrganizationID)
+	if settingErr != nil {
+		return nil, settingErr
+	}
+	if customSetting == nil || !customSetting.InheritBaseCurrencyRate {
+		return nil, err
+	}
+	inherited, inheritErr := uc.repo.Resolve(ctx, rateContext.OwnerOrganizationID, BaseCurrencyRateType, direction, currency, rateContext.BaseCurrency, rateDate)
+	if inheritErr != nil {
+		return nil, inheritErr
+	}
+	inherited.Source = InheritedBaseCurrencySource
+	return inherited, nil
 }
 
 func (uc *ExchangeRateUsecase) BaseCurrency(ctx context.Context, organizationID uuid.UUID) (string, error) {
@@ -363,4 +427,8 @@ func exchangeRateAudit(organizationID, actorID, id uuid.UUID, action string) *Au
 
 func exchangeRateTimeStandardAudit(organizationID, actorID, ownerOrganizationID uuid.UUID) *AuditEvent {
 	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "finance.exchange_rate.time_standard.update", Result: "success", ResourceType: "exchange_rate_time_standard", ResourceID: ownerOrganizationID.String()}
+}
+
+func exchangeRateCustomSettingAudit(organizationID, actorID, ownerOrganizationID uuid.UUID) *AuditEvent {
+	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "finance.exchange_rate.custom_setting.update", Result: "success", ResourceType: "exchange_rate_custom_setting", ResourceID: ownerOrganizationID.String()}
 }

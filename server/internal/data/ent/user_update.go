@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
@@ -575,6 +576,21 @@ func (_u *UserUpdate) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPrefe
 	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
+// AddUpdatedExchangeRateCustomSettingIDs adds the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity by IDs.
+func (_u *UserUpdate) AddUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+	return _u
+}
+
+// AddUpdatedExchangeRateCustomSettings adds the "updated_exchange_rate_custom_settings" edges to the ExchangeRateCustomSetting entity.
+func (_u *UserUpdate) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCustomSetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -1061,6 +1077,27 @@ func (_u *UserUpdate) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPr
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
+}
+
+// ClearUpdatedExchangeRateCustomSettings clears all "updated_exchange_rate_custom_settings" edges to the ExchangeRateCustomSetting entity.
+func (_u *UserUpdate) ClearUpdatedExchangeRateCustomSettings() *UserUpdate {
+	_u.mutation.ClearUpdatedExchangeRateCustomSettings()
+	return _u
+}
+
+// RemoveUpdatedExchangeRateCustomSettingIDs removes the "updated_exchange_rate_custom_settings" edge to ExchangeRateCustomSetting entities by IDs.
+func (_u *UserUpdate) RemoveUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedExchangeRateCustomSettings removes "updated_exchange_rate_custom_settings" edges to ExchangeRateCustomSetting entities.
+func (_u *UserUpdate) RemoveUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCustomSetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2246,6 +2283,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.UpdatedExchangeRateCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedExchangeRateCustomSettingsIDs(); len(nodes) > 0 && !_u.mutation.UpdatedExchangeRateCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedExchangeRateCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -2799,6 +2881,21 @@ func (_u *UserUpdateOne) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPr
 	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
+// AddUpdatedExchangeRateCustomSettingIDs adds the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity by IDs.
+func (_u *UserUpdateOne) AddUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+	return _u
+}
+
+// AddUpdatedExchangeRateCustomSettings adds the "updated_exchange_rate_custom_settings" edges to the ExchangeRateCustomSetting entity.
+func (_u *UserUpdateOne) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCustomSetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -3285,6 +3382,27 @@ func (_u *UserUpdateOne) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedge
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
+}
+
+// ClearUpdatedExchangeRateCustomSettings clears all "updated_exchange_rate_custom_settings" edges to the ExchangeRateCustomSetting entity.
+func (_u *UserUpdateOne) ClearUpdatedExchangeRateCustomSettings() *UserUpdateOne {
+	_u.mutation.ClearUpdatedExchangeRateCustomSettings()
+	return _u
+}
+
+// RemoveUpdatedExchangeRateCustomSettingIDs removes the "updated_exchange_rate_custom_settings" edge to ExchangeRateCustomSetting entities by IDs.
+func (_u *UserUpdateOne) RemoveUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedExchangeRateCustomSettings removes "updated_exchange_rate_custom_settings" edges to ExchangeRateCustomSetting entities.
+func (_u *UserUpdateOne) RemoveUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCustomSetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -4493,6 +4611,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdatedExchangeRateCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedExchangeRateCustomSettingsIDs(); len(nodes) > 0 && !_u.mutation.UpdatedExchangeRateCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedExchangeRateCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedExchangeRateCustomSettingsTable,
+			Columns: []string{user.UpdatedExchangeRateCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

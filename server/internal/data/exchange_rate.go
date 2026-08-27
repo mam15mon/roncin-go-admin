@@ -10,6 +10,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	exchangeratecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -246,6 +247,75 @@ func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizatio
 	return tx.Commit()
 }
 
+func (r *exchangeRateRepo) GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateCustomSetting, error) {
+	item, err := r.data.db.ExchangeRateCustomSetting.Query().
+		Where(exchangeratecustomsettingent.OrganizationIDEQ(organizationID)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return exchangeRateCustomSettingToBiz(item), nil
+}
+
+func (r *exchangeRateRepo) SaveCustomSetting(ctx context.Context, setting *biz.ExchangeRateCustomSetting, expectedVersion uint64, audit *biz.AuditEvent) (*biz.ExchangeRateCustomSetting, error) {
+	if setting == nil || setting.OrganizationID == uuid.Nil || setting.UpdatedBy == nil || *setting.UpdatedBy == uuid.Nil {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	current, err := tx.ExchangeRateCustomSetting.Query().
+		Where(exchangeratecustomsettingent.OrganizationIDEQ(setting.OrganizationID)).
+		ForUpdate().
+		Only(ctx)
+	var saved *ent.ExchangeRateCustomSetting
+	switch {
+	case ent.IsNotFound(err):
+		if expectedVersion != 0 {
+			_ = tx.Rollback()
+			return nil, biz.ErrExchangeRateCustomSettingConflict
+		}
+		saved, err = tx.ExchangeRateCustomSetting.Create().
+			SetOrganizationID(setting.OrganizationID).
+			SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
+			SetVersion(1).
+			SetUpdatedBy(*setting.UpdatedBy).
+			Save(ctx)
+		if ent.IsConstraintError(err) {
+			_ = tx.Rollback()
+			return nil, biz.ErrExchangeRateCustomSettingConflict
+		}
+	case err != nil:
+		_ = tx.Rollback()
+		return nil, err
+	case current.Version != expectedVersion:
+		_ = tx.Rollback()
+		return nil, biz.ErrExchangeRateCustomSettingConflict
+	default:
+		saved, err = tx.ExchangeRateCustomSetting.UpdateOneID(current.ID).
+			SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
+			SetVersion(current.Version + 1).
+			SetUpdatedBy(*setting.UpdatedBy).
+			Save(ctx)
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return exchangeRateCustomSettingToBiz(saved), nil
+}
+
 func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
 	lookupTime, err := parseExchangeRateStorageTime(rateDate)
 	if err != nil {
@@ -305,6 +375,18 @@ func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting,
 		effectiveTo = &value
 	}
 	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
+}
+
+func exchangeRateCustomSettingToBiz(item *ent.ExchangeRateCustomSetting) *biz.ExchangeRateCustomSetting {
+	updatedAt := item.UpdatedAt
+	updatedBy := item.UpdatedBy
+	return &biz.ExchangeRateCustomSetting{
+		OrganizationID:          item.OrganizationID,
+		InheritBaseCurrencyRate: item.InheritBaseCurrencyRate,
+		Version:                 item.Version,
+		UpdatedAt:               &updatedAt,
+		UpdatedBy:               &updatedBy,
+	}
 }
 
 func parseExchangeRateStorageTime(value string) (time.Time, error) {

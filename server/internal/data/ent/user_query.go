@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
@@ -61,6 +62,7 @@ type UserQuery struct {
 	withPaidFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
 	withCancelledFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
 	withFinanceFeeLedgerPreferences           *FinanceFeeLedgerPreferenceQuery
+	withUpdatedExchangeRateCustomSettings     *ExchangeRateCustomSettingQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -604,6 +606,28 @@ func (_q *UserQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPrefere
 	return query
 }
 
+// QueryUpdatedExchangeRateCustomSettings chains the current query on the "updated_exchange_rate_custom_settings" edge.
+func (_q *UserQuery) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCustomSettingQuery {
+	query := (&ExchangeRateCustomSettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedExchangeRateCustomSettingsTable, user.UpdatedExchangeRateCustomSettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -819,6 +843,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withPaidFinanceCommissionAdjustments:      _q.withPaidFinanceCommissionAdjustments.Clone(),
 		withCancelledFinanceCommissionAdjustments: _q.withCancelledFinanceCommissionAdjustments.Clone(),
 		withFinanceFeeLedgerPreferences:           _q.withFinanceFeeLedgerPreferences.Clone(),
+		withUpdatedExchangeRateCustomSettings:     _q.withUpdatedExchangeRateCustomSettings.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1078,6 +1103,17 @@ func (_q *UserQuery) WithFinanceFeeLedgerPreferences(opts ...func(*FinanceFeeLed
 	return _q
 }
 
+// WithUpdatedExchangeRateCustomSettings tells the query-builder to eager-load the nodes that are connected to
+// the "updated_exchange_rate_custom_settings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithUpdatedExchangeRateCustomSettings(opts ...func(*ExchangeRateCustomSettingQuery)) *UserQuery {
+	query := (&ExchangeRateCustomSettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUpdatedExchangeRateCustomSettings = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1156,7 +1192,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [23]bool{
+		loadedTypes = [24]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1180,6 +1216,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withPaidFinanceCommissionAdjustments != nil,
 			_q.withCancelledFinanceCommissionAdjustments != nil,
 			_q.withFinanceFeeLedgerPreferences != nil,
+			_q.withUpdatedExchangeRateCustomSettings != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1398,6 +1435,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.FinanceFeeLedgerPreferences = []*FinanceFeeLedgerPreference{} },
 			func(n *User, e *FinanceFeeLedgerPreference) {
 				n.Edges.FinanceFeeLedgerPreferences = append(n.Edges.FinanceFeeLedgerPreferences, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUpdatedExchangeRateCustomSettings; query != nil {
+		if err := _q.loadUpdatedExchangeRateCustomSettings(ctx, query, nodes,
+			func(n *User) { n.Edges.UpdatedExchangeRateCustomSettings = []*ExchangeRateCustomSetting{} },
+			func(n *User, e *ExchangeRateCustomSetting) {
+				n.Edges.UpdatedExchangeRateCustomSettings = append(n.Edges.UpdatedExchangeRateCustomSettings, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2135,6 +2181,36 @@ func (_q *UserQuery) loadFinanceFeeLedgerPreferences(ctx context.Context, query 
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadUpdatedExchangeRateCustomSettings(ctx context.Context, query *ExchangeRateCustomSettingQuery, nodes []*User, init func(*User), assign func(*User, *ExchangeRateCustomSetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(exchangeratecustomsetting.FieldUpdatedBy)
+	}
+	query.Where(predicate.ExchangeRateCustomSetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UpdatedExchangeRateCustomSettingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UpdatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "updated_by" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

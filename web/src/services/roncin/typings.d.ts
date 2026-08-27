@@ -1200,6 +1200,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ExchangeRateCustomSetting = {
+    organizationId?: string;
+    inheritBaseCurrencyRate?: boolean;
+    /** 未保存过自定义设置时为 0；首次保存需携带 expected_version=0。 */
+    version?: string;
+    updatedAt?: string;
+    updatedBy?: string;
+  };
+
   type ExchangeRateImportBatch = {
     id?: string;
     fileName?: string;
@@ -1711,6 +1720,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetExchangeRateCustomSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateCustomSetting;
     traceId?: string;
   };
 
@@ -4189,6 +4206,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderContainer;
+    traceId?: string;
+  };
+
+  type UpdateExchangeRateCustomSettingRequest = {
+    inheritBaseCurrencyRate?: boolean;
+    expectedVersion: string;
+  };
+
+  type UpdateExchangeRateCustomSettingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateCustomSetting;
     traceId?: string;
   };
 

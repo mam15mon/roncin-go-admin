@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
@@ -778,6 +779,35 @@ func init() {
 	currencyDescID := currencyMixinFields0[0].Descriptor()
 	// currency.DefaultID holds the default value on creation for the id field.
 	currency.DefaultID = currencyDescID.Default.(func() uuid.UUID)
+	exchangeratecustomsettingMixin := schema.ExchangeRateCustomSetting{}.Mixin()
+	exchangeratecustomsettingMixinFields0 := exchangeratecustomsettingMixin[0].Fields()
+	_ = exchangeratecustomsettingMixinFields0
+	exchangeratecustomsettingMixinFields1 := exchangeratecustomsettingMixin[1].Fields()
+	_ = exchangeratecustomsettingMixinFields1
+	exchangeratecustomsettingFields := schema.ExchangeRateCustomSetting{}.Fields()
+	_ = exchangeratecustomsettingFields
+	// exchangeratecustomsettingDescCreatedAt is the schema descriptor for created_at field.
+	exchangeratecustomsettingDescCreatedAt := exchangeratecustomsettingMixinFields1[0].Descriptor()
+	// exchangeratecustomsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exchangeratecustomsetting.DefaultCreatedAt = exchangeratecustomsettingDescCreatedAt.Default.(func() time.Time)
+	// exchangeratecustomsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	exchangeratecustomsettingDescUpdatedAt := exchangeratecustomsettingMixinFields1[1].Descriptor()
+	// exchangeratecustomsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	exchangeratecustomsetting.DefaultUpdatedAt = exchangeratecustomsettingDescUpdatedAt.Default.(func() time.Time)
+	// exchangeratecustomsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	exchangeratecustomsetting.UpdateDefaultUpdatedAt = exchangeratecustomsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// exchangeratecustomsettingDescInheritBaseCurrencyRate is the schema descriptor for inherit_base_currency_rate field.
+	exchangeratecustomsettingDescInheritBaseCurrencyRate := exchangeratecustomsettingFields[1].Descriptor()
+	// exchangeratecustomsetting.DefaultInheritBaseCurrencyRate holds the default value on creation for the inherit_base_currency_rate field.
+	exchangeratecustomsetting.DefaultInheritBaseCurrencyRate = exchangeratecustomsettingDescInheritBaseCurrencyRate.Default.(bool)
+	// exchangeratecustomsettingDescVersion is the schema descriptor for version field.
+	exchangeratecustomsettingDescVersion := exchangeratecustomsettingFields[2].Descriptor()
+	// exchangeratecustomsetting.DefaultVersion holds the default value on creation for the version field.
+	exchangeratecustomsetting.DefaultVersion = exchangeratecustomsettingDescVersion.Default.(uint64)
+	// exchangeratecustomsettingDescID is the schema descriptor for id field.
+	exchangeratecustomsettingDescID := exchangeratecustomsettingMixinFields0[0].Descriptor()
+	// exchangeratecustomsetting.DefaultID holds the default value on creation for the id field.
+	exchangeratecustomsetting.DefaultID = exchangeratecustomsettingDescID.Default.(func() uuid.UUID)
 	exchangerateimportbatchMixin := schema.ExchangeRateImportBatch{}.Mixin()
 	exchangerateimportbatchMixinFields0 := exchangerateimportbatchMixin[0].Fields()
 	_ = exchangerateimportbatchMixinFields0

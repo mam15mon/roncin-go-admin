@@ -25,6 +25,8 @@ const (
 	ExchangeRateService_DisableExchangeRateSetting_FullMethodName         = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
 	ExchangeRateService_ListExchangeRateTimeStandards_FullMethodName      = "/finance.v1.ExchangeRateService/ListExchangeRateTimeStandards"
 	ExchangeRateService_UpdateExchangeRateTimeStandards_FullMethodName    = "/finance.v1.ExchangeRateService/UpdateExchangeRateTimeStandards"
+	ExchangeRateService_GetExchangeRateCustomSetting_FullMethodName       = "/finance.v1.ExchangeRateService/GetExchangeRateCustomSetting"
+	ExchangeRateService_UpdateExchangeRateCustomSetting_FullMethodName    = "/finance.v1.ExchangeRateService/UpdateExchangeRateCustomSetting"
 	ExchangeRateService_DownloadExchangeRateImportTemplate_FullMethodName = "/finance.v1.ExchangeRateService/DownloadExchangeRateImportTemplate"
 	ExchangeRateService_PreviewExchangeRateImport_FullMethodName          = "/finance.v1.ExchangeRateService/PreviewExchangeRateImport"
 	ExchangeRateService_ConfirmExchangeRateImport_FullMethodName          = "/finance.v1.ExchangeRateService/ConfirmExchangeRateImport"
@@ -43,6 +45,10 @@ type ExchangeRateServiceClient interface {
 	DisableExchangeRateSetting(ctx context.Context, in *DisableExchangeRateSettingRequest, opts ...grpc.CallOption) (*DisableExchangeRateSettingResponse, error)
 	ListExchangeRateTimeStandards(ctx context.Context, in *ListExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*ListExchangeRateTimeStandardsResponse, error)
 	UpdateExchangeRateTimeStandards(ctx context.Context, in *UpdateExchangeRateTimeStandardsRequest, opts ...grpc.CallOption) (*UpdateExchangeRateTimeStandardsResponse, error)
+	// GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+	GetExchangeRateCustomSetting(ctx context.Context, in *GetExchangeRateCustomSettingRequest, opts ...grpc.CallOption) (*GetExchangeRateCustomSettingResponse, error)
+	// UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+	UpdateExchangeRateCustomSetting(ctx context.Context, in *UpdateExchangeRateCustomSettingRequest, opts ...grpc.CallOption) (*UpdateExchangeRateCustomSettingResponse, error)
 	// DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(ctx context.Context, in *DownloadExchangeRateImportTemplateRequest, opts ...grpc.CallOption) (*DownloadExchangeRateImportTemplateResponse, error)
 	// PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
@@ -120,6 +126,26 @@ func (c *exchangeRateServiceClient) UpdateExchangeRateTimeStandards(ctx context.
 	return out, nil
 }
 
+func (c *exchangeRateServiceClient) GetExchangeRateCustomSetting(ctx context.Context, in *GetExchangeRateCustomSettingRequest, opts ...grpc.CallOption) (*GetExchangeRateCustomSettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetExchangeRateCustomSettingResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_GetExchangeRateCustomSetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *exchangeRateServiceClient) UpdateExchangeRateCustomSetting(ctx context.Context, in *UpdateExchangeRateCustomSettingRequest, opts ...grpc.CallOption) (*UpdateExchangeRateCustomSettingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateExchangeRateCustomSettingResponse)
+	err := c.cc.Invoke(ctx, ExchangeRateService_UpdateExchangeRateCustomSetting_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *exchangeRateServiceClient) DownloadExchangeRateImportTemplate(ctx context.Context, in *DownloadExchangeRateImportTemplateRequest, opts ...grpc.CallOption) (*DownloadExchangeRateImportTemplateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DownloadExchangeRateImportTemplateResponse)
@@ -172,6 +198,10 @@ type ExchangeRateServiceServer interface {
 	DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error)
 	ListExchangeRateTimeStandards(context.Context, *ListExchangeRateTimeStandardsRequest) (*ListExchangeRateTimeStandardsResponse, error)
 	UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error)
+	// GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+	GetExchangeRateCustomSetting(context.Context, *GetExchangeRateCustomSettingRequest) (*GetExchangeRateCustomSettingResponse, error)
+	// UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+	UpdateExchangeRateCustomSetting(context.Context, *UpdateExchangeRateCustomSettingRequest) (*UpdateExchangeRateCustomSettingResponse, error)
 	// DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(context.Context, *DownloadExchangeRateImportTemplateRequest) (*DownloadExchangeRateImportTemplateResponse, error)
 	// PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
@@ -206,6 +236,12 @@ func (UnimplementedExchangeRateServiceServer) ListExchangeRateTimeStandards(cont
 }
 func (UnimplementedExchangeRateServiceServer) UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateExchangeRateTimeStandards not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) GetExchangeRateCustomSetting(context.Context, *GetExchangeRateCustomSettingRequest) (*GetExchangeRateCustomSettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetExchangeRateCustomSetting not implemented")
+}
+func (UnimplementedExchangeRateServiceServer) UpdateExchangeRateCustomSetting(context.Context, *UpdateExchangeRateCustomSettingRequest) (*UpdateExchangeRateCustomSettingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateExchangeRateCustomSetting not implemented")
 }
 func (UnimplementedExchangeRateServiceServer) DownloadExchangeRateImportTemplate(context.Context, *DownloadExchangeRateImportTemplateRequest) (*DownloadExchangeRateImportTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DownloadExchangeRateImportTemplate not implemented")
@@ -348,6 +384,42 @@ func _ExchangeRateService_UpdateExchangeRateTimeStandards_Handler(srv interface{
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ExchangeRateService_GetExchangeRateCustomSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExchangeRateCustomSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).GetExchangeRateCustomSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_GetExchangeRateCustomSetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).GetExchangeRateCustomSetting(ctx, req.(*GetExchangeRateCustomSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ExchangeRateService_UpdateExchangeRateCustomSetting_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateExchangeRateCustomSettingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeRateServiceServer).UpdateExchangeRateCustomSetting(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeRateService_UpdateExchangeRateCustomSetting_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeRateServiceServer).UpdateExchangeRateCustomSetting(ctx, req.(*UpdateExchangeRateCustomSettingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ExchangeRateService_DownloadExchangeRateImportTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DownloadExchangeRateImportTemplateRequest)
 	if err := dec(in); err != nil {
@@ -450,6 +522,14 @@ var ExchangeRateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateExchangeRateTimeStandards",
 			Handler:    _ExchangeRateService_UpdateExchangeRateTimeStandards_Handler,
+		},
+		{
+			MethodName: "GetExchangeRateCustomSetting",
+			Handler:    _ExchangeRateService_GetExchangeRateCustomSetting_Handler,
+		},
+		{
+			MethodName: "UpdateExchangeRateCustomSetting",
+			Handler:    _ExchangeRateService_UpdateExchangeRateCustomSetting_Handler,
 		},
 		{
 			MethodName: "DownloadExchangeRateImportTemplate",

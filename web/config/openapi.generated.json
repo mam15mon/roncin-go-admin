@@ -2204,6 +2204,56 @@
         }
       }
     },
+    "/api/v1/finance/exchange-rate-custom-setting": {
+      "get": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "description": "GetExchangeRateCustomSetting 获取组织级汇率自定义策略。",
+        "operationId": "ExchangeRateService_GetExchangeRateCustomSetting",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetExchangeRateCustomSettingResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "description": "UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。",
+        "operationId": "ExchangeRateService_UpdateExchangeRateCustomSetting",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateCustomSettingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.UpdateExchangeRateCustomSettingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/exchange-rate-import-template": {
       "get": {
         "tags": [
@@ -9793,6 +9843,28 @@
           }
         }
       },
+      "finance.v1.ExchangeRateCustomSetting": {
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "inheritBaseCurrencyRate": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "description": "未保存过自定义设置时为 0；首次保存需携带 expected_version=0。"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          }
+        },
+        "description": "ExchangeRateCustomSetting 供参数设置中的“自定义设置”使用。\n 开启继承后，BILL、INVOICE、SETTLEMENT、WRITE_OFF 专用汇率未命中时，\n 后端才会查询同一时点的 BASE_CURRENCY 汇率；已配置的专用汇率始终优先。"
+      },
       "finance.v1.ExchangeRateImportBatch": {
         "type": "object",
         "properties": {
@@ -11098,6 +11170,27 @@
           }
         }
       },
+      "finance.v1.GetExchangeRateCustomSettingResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.ExchangeRateCustomSetting"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.GetExchangeRateImportResponse": {
         "type": "object",
         "properties": {
@@ -11964,6 +12057,41 @@
             "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
           },
           "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.UpdateExchangeRateCustomSettingRequest": {
+        "required": [
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "inheritBaseCurrencyRate": {
+            "type": "boolean"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.UpdateExchangeRateCustomSettingResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.ExchangeRateCustomSetting"
+          },
+          "traceId": {
             "type": "string"
           }
         }

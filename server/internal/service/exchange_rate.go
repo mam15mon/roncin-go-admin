@@ -114,6 +114,30 @@ func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Contex
 	return &v1.UpdateExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *ExchangeRateService) GetExchangeRateCustomSetting(ctx context.Context, _ *v1.GetExchangeRateCustomSettingRequest) (*v1.GetExchangeRateCustomSettingResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	setting, err := s.usecase.GetCustomSetting(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetExchangeRateCustomSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateCustomSettingToAPI(setting), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Context, request *v1.UpdateExchangeRateCustomSettingRequest) (*v1.UpdateExchangeRateCustomSettingResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	setting, err := s.usecase.UpdateCustomSetting(ctx, principal.Organization.ID, principal.UserID, request.GetInheritBaseCurrencyRate(), request.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateExchangeRateCustomSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateCustomSettingToAPI(setting), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Context, _ *v1.DownloadExchangeRateImportTemplateRequest) (*v1.DownloadExchangeRateImportTemplateResponse, error) {
 	if _, ok := biz.PrincipalFromContext(ctx); !ok {
 		return nil, biz.ErrSessionRequired
@@ -189,6 +213,26 @@ func exchangeRateTimeStandardsToAPI(settings []*biz.ExchangeRateTimeStandardSett
 	result := make([]*v1.ExchangeRateTimeStandardSetting, 0, len(settings))
 	for _, setting := range settings {
 		result = append(result, &v1.ExchangeRateTimeStandardSetting{RateType: setting.RateType, TimeStandards: append([]string(nil), setting.TimeStandards...)})
+	}
+	return result
+}
+
+func exchangeRateCustomSettingToAPI(setting *biz.ExchangeRateCustomSetting) *v1.ExchangeRateCustomSetting {
+	if setting == nil {
+		return nil
+	}
+	result := &v1.ExchangeRateCustomSetting{
+		OrganizationId:          setting.OrganizationID.String(),
+		InheritBaseCurrencyRate: setting.InheritBaseCurrencyRate,
+		Version:                 setting.Version,
+	}
+	if setting.UpdatedAt != nil {
+		value := setting.UpdatedAt.UTC().Format(time.RFC3339)
+		result.UpdatedAt = &value
+	}
+	if setting.UpdatedBy != nil {
+		value := setting.UpdatedBy.String()
+		result.UpdatedBy = &value
 	}
 	return result
 }

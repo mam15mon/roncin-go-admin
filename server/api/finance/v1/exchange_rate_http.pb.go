@@ -21,10 +21,12 @@ const OperationExchangeRateServiceConfirmExchangeRateImport = "/finance.v1.Excha
 const OperationExchangeRateServiceCreateExchangeRateSetting = "/finance.v1.ExchangeRateService/CreateExchangeRateSetting"
 const OperationExchangeRateServiceDisableExchangeRateSetting = "/finance.v1.ExchangeRateService/DisableExchangeRateSetting"
 const OperationExchangeRateServiceDownloadExchangeRateImportTemplate = "/finance.v1.ExchangeRateService/DownloadExchangeRateImportTemplate"
+const OperationExchangeRateServiceGetExchangeRateCustomSetting = "/finance.v1.ExchangeRateService/GetExchangeRateCustomSetting"
 const OperationExchangeRateServiceGetExchangeRateImport = "/finance.v1.ExchangeRateService/GetExchangeRateImport"
 const OperationExchangeRateServiceListExchangeRateSettings = "/finance.v1.ExchangeRateService/ListExchangeRateSettings"
 const OperationExchangeRateServiceListExchangeRateTimeStandards = "/finance.v1.ExchangeRateService/ListExchangeRateTimeStandards"
 const OperationExchangeRateServicePreviewExchangeRateImport = "/finance.v1.ExchangeRateService/PreviewExchangeRateImport"
+const OperationExchangeRateServiceUpdateExchangeRateCustomSetting = "/finance.v1.ExchangeRateService/UpdateExchangeRateCustomSetting"
 const OperationExchangeRateServiceUpdateExchangeRateSetting = "/finance.v1.ExchangeRateService/UpdateExchangeRateSetting"
 const OperationExchangeRateServiceUpdateExchangeRateTimeStandards = "/finance.v1.ExchangeRateService/UpdateExchangeRateTimeStandards"
 
@@ -35,11 +37,15 @@ type ExchangeRateServiceHTTPServer interface {
 	DisableExchangeRateSetting(context.Context, *DisableExchangeRateSettingRequest) (*DisableExchangeRateSettingResponse, error)
 	// DownloadExchangeRateImportTemplate DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(context.Context, *DownloadExchangeRateImportTemplateRequest) (*DownloadExchangeRateImportTemplateResponse, error)
+	// GetExchangeRateCustomSetting GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+	GetExchangeRateCustomSetting(context.Context, *GetExchangeRateCustomSettingRequest) (*GetExchangeRateCustomSettingResponse, error)
 	GetExchangeRateImport(context.Context, *GetExchangeRateImportRequest) (*GetExchangeRateImportResponse, error)
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
 	ListExchangeRateTimeStandards(context.Context, *ListExchangeRateTimeStandardsRequest) (*ListExchangeRateTimeStandardsResponse, error)
 	// PreviewExchangeRateImport PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
 	PreviewExchangeRateImport(context.Context, *PreviewExchangeRateImportRequest) (*PreviewExchangeRateImportResponse, error)
+	// UpdateExchangeRateCustomSetting UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+	UpdateExchangeRateCustomSetting(context.Context, *UpdateExchangeRateCustomSettingRequest) (*UpdateExchangeRateCustomSettingResponse, error)
 	UpdateExchangeRateSetting(context.Context, *UpdateExchangeRateSettingRequest) (*UpdateExchangeRateSettingResponse, error)
 	UpdateExchangeRateTimeStandards(context.Context, *UpdateExchangeRateTimeStandardsRequest) (*UpdateExchangeRateTimeStandardsResponse, error)
 }
@@ -52,6 +58,8 @@ func RegisterExchangeRateServiceHTTPServer(s *http.Server, srv ExchangeRateServi
 	r.Handle("POST", "/api/v1/finance/exchange-rates/{id}/disable", _ExchangeRateService_DisableExchangeRateSetting0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/exchange-rate-time-standards", _ExchangeRateService_ListExchangeRateTimeStandards0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/exchange-rate-time-standards", _ExchangeRateService_UpdateExchangeRateTimeStandards0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/exchange-rate-custom-setting", _ExchangeRateService_GetExchangeRateCustomSetting0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/exchange-rate-custom-setting", _ExchangeRateService_UpdateExchangeRateCustomSetting0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/exchange-rate-import-template", _ExchangeRateService_DownloadExchangeRateImportTemplate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/exchange-rate-imports/preview", _ExchangeRateService_PreviewExchangeRateImport0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/exchange-rate-imports", _ExchangeRateService_ConfirmExchangeRateImport0_HTTP_Handler(srv))
@@ -178,6 +186,44 @@ func _ExchangeRateService_UpdateExchangeRateTimeStandards0_HTTP_Handler(srv Exch
 	}
 }
 
+func _ExchangeRateService_GetExchangeRateCustomSetting0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetExchangeRateCustomSettingRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceGetExchangeRateCustomSetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetExchangeRateCustomSetting(ctx, req.(*GetExchangeRateCustomSettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetExchangeRateCustomSettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ExchangeRateService_UpdateExchangeRateCustomSetting0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateExchangeRateCustomSettingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationExchangeRateServiceUpdateExchangeRateCustomSetting)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateExchangeRateCustomSetting(ctx, req.(*UpdateExchangeRateCustomSettingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateExchangeRateCustomSettingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _ExchangeRateService_DownloadExchangeRateImportTemplate0_HTTP_Handler(srv ExchangeRateServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DownloadExchangeRateImportTemplateRequest
@@ -264,11 +310,15 @@ type ExchangeRateServiceHTTPClient interface {
 	DisableExchangeRateSetting(ctx context.Context, req *DisableExchangeRateSettingRequest, opts ...http.CallOption) (rsp *DisableExchangeRateSettingResponse, err error)
 	// DownloadExchangeRateImportTemplate DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
 	DownloadExchangeRateImportTemplate(ctx context.Context, req *DownloadExchangeRateImportTemplateRequest, opts ...http.CallOption) (rsp *DownloadExchangeRateImportTemplateResponse, err error)
+	// GetExchangeRateCustomSetting GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+	GetExchangeRateCustomSetting(ctx context.Context, req *GetExchangeRateCustomSettingRequest, opts ...http.CallOption) (rsp *GetExchangeRateCustomSettingResponse, err error)
 	GetExchangeRateImport(ctx context.Context, req *GetExchangeRateImportRequest, opts ...http.CallOption) (rsp *GetExchangeRateImportResponse, err error)
 	ListExchangeRateSettings(ctx context.Context, req *ListExchangeRateSettingsRequest, opts ...http.CallOption) (rsp *ListExchangeRateSettingsResponse, err error)
 	ListExchangeRateTimeStandards(ctx context.Context, req *ListExchangeRateTimeStandardsRequest, opts ...http.CallOption) (rsp *ListExchangeRateTimeStandardsResponse, err error)
 	// PreviewExchangeRateImport PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
 	PreviewExchangeRateImport(ctx context.Context, req *PreviewExchangeRateImportRequest, opts ...http.CallOption) (rsp *PreviewExchangeRateImportResponse, err error)
+	// UpdateExchangeRateCustomSetting UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+	UpdateExchangeRateCustomSetting(ctx context.Context, req *UpdateExchangeRateCustomSettingRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateCustomSettingResponse, err error)
 	UpdateExchangeRateSetting(ctx context.Context, req *UpdateExchangeRateSettingRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateSettingResponse, err error)
 	UpdateExchangeRateTimeStandards(ctx context.Context, req *UpdateExchangeRateTimeStandardsRequest, opts ...http.CallOption) (rsp *UpdateExchangeRateTimeStandardsResponse, err error)
 }
@@ -350,6 +400,23 @@ func (c *ExchangeRateServiceHTTPClientImpl) DownloadExchangeRateImportTemplate(c
 	return &out, nil
 }
 
+// GetExchangeRateCustomSetting GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+func (c *ExchangeRateServiceHTTPClientImpl) GetExchangeRateCustomSetting(ctx context.Context, in *GetExchangeRateCustomSettingRequest, opts ...http.CallOption) (*GetExchangeRateCustomSettingResponse, error) {
+	var out GetExchangeRateCustomSettingResponse
+	pattern := "/api/v1/finance/exchange-rate-custom-setting"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationExchangeRateServiceGetExchangeRateCustomSetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ExchangeRateServiceHTTPClientImpl) GetExchangeRateImport(ctx context.Context, in *GetExchangeRateImportRequest, opts ...http.CallOption) (*GetExchangeRateImportResponse, error) {
 	var out GetExchangeRateImportResponse
 	pattern := "/api/v1/finance/exchange-rate-imports/{id}"
@@ -410,6 +477,24 @@ func (c *ExchangeRateServiceHTTPClientImpl) PreviewExchangeRateImport(ctx contex
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateExchangeRateCustomSetting UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+func (c *ExchangeRateServiceHTTPClientImpl) UpdateExchangeRateCustomSetting(ctx context.Context, in *UpdateExchangeRateCustomSettingRequest, opts ...http.CallOption) (*UpdateExchangeRateCustomSettingResponse, error) {
+	var out UpdateExchangeRateCustomSettingResponse
+	pattern := "/api/v1/finance/exchange-rate-custom-setting"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationExchangeRateServiceUpdateExchangeRateCustomSetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

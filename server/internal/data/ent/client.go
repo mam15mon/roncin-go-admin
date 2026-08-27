@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
@@ -109,6 +110,8 @@ type Client struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// ExchangeRateCustomSetting is the client for interacting with the ExchangeRateCustomSetting builders.
+	ExchangeRateCustomSetting *ExchangeRateCustomSettingClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
 	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
@@ -257,6 +260,7 @@ func (c *Client) init() {
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
+	c.ExchangeRateCustomSetting = NewExchangeRateCustomSettingClient(c.config)
 	c.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
 	c.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(c.config)
@@ -421,6 +425,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BackgroundTask:                NewBackgroundTaskClient(cfg),
 		BillingUnit:                   NewBillingUnitClient(cfg),
 		Currency:                      NewCurrencyClient(cfg),
+		ExchangeRateCustomSetting:     NewExchangeRateCustomSettingClient(cfg),
 		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
@@ -512,6 +517,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BackgroundTask:                NewBackgroundTaskClient(cfg),
 		BillingUnit:                   NewBillingUnitClient(cfg),
 		Currency:                      NewCurrencyClient(cfg),
+		ExchangeRateCustomSetting:     NewExchangeRateCustomSettingClient(cfg),
 		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
@@ -607,25 +613,25 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
-		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
-		c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateCustomSetting,
+		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
+		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
+		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -636,25 +642,25 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
-		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
-		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
-		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
-		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
-		c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateCustomSetting,
+		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
+		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
+		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
+		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
+		c.StatusTemplateItem, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -677,6 +683,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingUnit.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
+	case *ExchangeRateCustomSettingMutation:
+		return c.ExchangeRateCustomSetting.mutate(ctx, m)
 	case *ExchangeRateImportBatchMutation:
 		return c.ExchangeRateImportBatch.mutate(ctx, m)
 	case *ExchangeRateSettingMutation:
@@ -1841,6 +1849,171 @@ func (c *CurrencyClient) mutate(ctx context.Context, m *CurrencyMutation) (Value
 		return (&CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Currency mutation op: %q", m.Op())
+	}
+}
+
+// ExchangeRateCustomSettingClient is a client for the ExchangeRateCustomSetting schema.
+type ExchangeRateCustomSettingClient struct {
+	config
+}
+
+// NewExchangeRateCustomSettingClient returns a client for the ExchangeRateCustomSetting from the given config.
+func NewExchangeRateCustomSettingClient(c config) *ExchangeRateCustomSettingClient {
+	return &ExchangeRateCustomSettingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `exchangeratecustomsetting.Hooks(f(g(h())))`.
+func (c *ExchangeRateCustomSettingClient) Use(hooks ...Hook) {
+	c.hooks.ExchangeRateCustomSetting = append(c.hooks.ExchangeRateCustomSetting, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `exchangeratecustomsetting.Intercept(f(g(h())))`.
+func (c *ExchangeRateCustomSettingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExchangeRateCustomSetting = append(c.inters.ExchangeRateCustomSetting, interceptors...)
+}
+
+// Create returns a builder for creating a ExchangeRateCustomSetting entity.
+func (c *ExchangeRateCustomSettingClient) Create() *ExchangeRateCustomSettingCreate {
+	mutation := newExchangeRateCustomSettingMutation(c.config, OpCreate)
+	return &ExchangeRateCustomSettingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExchangeRateCustomSetting entities.
+func (c *ExchangeRateCustomSettingClient) CreateBulk(builders ...*ExchangeRateCustomSettingCreate) *ExchangeRateCustomSettingCreateBulk {
+	return &ExchangeRateCustomSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExchangeRateCustomSettingClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateCustomSettingCreate, int)) *ExchangeRateCustomSettingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExchangeRateCustomSettingCreateBulk{err: fmt.Errorf("calling to ExchangeRateCustomSettingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExchangeRateCustomSettingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExchangeRateCustomSettingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExchangeRateCustomSetting.
+func (c *ExchangeRateCustomSettingClient) Update() *ExchangeRateCustomSettingUpdate {
+	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdate)
+	return &ExchangeRateCustomSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExchangeRateCustomSettingClient) UpdateOne(_m *ExchangeRateCustomSetting) *ExchangeRateCustomSettingUpdateOne {
+	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdateOne, withExchangeRateCustomSetting(_m))
+	return &ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExchangeRateCustomSettingClient) UpdateOneID(id uuid.UUID) *ExchangeRateCustomSettingUpdateOne {
+	mutation := newExchangeRateCustomSettingMutation(c.config, OpUpdateOne, withExchangeRateCustomSettingID(id))
+	return &ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExchangeRateCustomSetting.
+func (c *ExchangeRateCustomSettingClient) Delete() *ExchangeRateCustomSettingDelete {
+	mutation := newExchangeRateCustomSettingMutation(c.config, OpDelete)
+	return &ExchangeRateCustomSettingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExchangeRateCustomSettingClient) DeleteOne(_m *ExchangeRateCustomSetting) *ExchangeRateCustomSettingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExchangeRateCustomSettingClient) DeleteOneID(id uuid.UUID) *ExchangeRateCustomSettingDeleteOne {
+	builder := c.Delete().Where(exchangeratecustomsetting.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExchangeRateCustomSettingDeleteOne{builder}
+}
+
+// Query returns a query builder for ExchangeRateCustomSetting.
+func (c *ExchangeRateCustomSettingClient) Query() *ExchangeRateCustomSettingQuery {
+	return &ExchangeRateCustomSettingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExchangeRateCustomSetting},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExchangeRateCustomSetting entity by its id.
+func (c *ExchangeRateCustomSettingClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRateCustomSetting, error) {
+	return c.Query().Where(exchangeratecustomsetting.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExchangeRateCustomSettingClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRateCustomSetting {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a ExchangeRateCustomSetting.
+func (c *ExchangeRateCustomSettingClient) QueryOrganization(_m *ExchangeRateCustomSetting) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, exchangeratecustomsetting.OrganizationTable, exchangeratecustomsetting.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdatedByUser queries the updated_by_user edge of a ExchangeRateCustomSetting.
+func (c *ExchangeRateCustomSettingClient) QueryUpdatedByUser(_m *ExchangeRateCustomSetting) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, exchangeratecustomsetting.UpdatedByUserTable, exchangeratecustomsetting.UpdatedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ExchangeRateCustomSettingClient) Hooks() []Hook {
+	return c.hooks.ExchangeRateCustomSetting
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExchangeRateCustomSettingClient) Interceptors() []Interceptor {
+	return c.inters.ExchangeRateCustomSetting
+}
+
+func (c *ExchangeRateCustomSettingClient) mutate(ctx context.Context, m *ExchangeRateCustomSettingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExchangeRateCustomSettingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExchangeRateCustomSettingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExchangeRateCustomSettingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExchangeRateCustomSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExchangeRateCustomSetting mutation op: %q", m.Op())
 	}
 }
 
@@ -9818,6 +9991,22 @@ func (c *OrganizationClient) QueryFinanceFeeLedgerPreferences(_m *Organization) 
 	return query
 }
 
+// QueryExchangeRateCustomSetting queries the exchange_rate_custom_setting edge of a Organization.
+func (c *OrganizationClient) QueryExchangeRateCustomSetting(_m *Organization) *ExchangeRateCustomSettingQuery {
+	query := (&ExchangeRateCustomSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.ExchangeRateCustomSettingTable, organization.ExchangeRateCustomSettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	hooks := c.hooks.Organization
@@ -14248,6 +14437,22 @@ func (c *UserClient) QueryFinanceFeeLedgerPreferences(_m *User) *FinanceFeeLedge
 	return query
 }
 
+// QueryUpdatedExchangeRateCustomSettings queries the updated_exchange_rate_custom_settings edge of a User.
+func (c *UserClient) QueryUpdatedExchangeRateCustomSettings(_m *User) *ExchangeRateCustomSettingQuery {
+	query := (&ExchangeRateCustomSettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(exchangeratecustomsetting.Table, exchangeratecustomsetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedExchangeRateCustomSettingsTable, user.UpdatedExchangeRateCustomSettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -14278,9 +14483,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateImportBatch, ExchangeRateSetting,
-		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
-		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		Currency, ExchangeRateCustomSetting, ExchangeRateImportBatch,
+		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
+		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
 		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,
@@ -14299,9 +14504,9 @@ type (
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateImportBatch, ExchangeRateSetting,
-		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
-		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		Currency, ExchangeRateCustomSetting, ExchangeRateImportBatch,
+		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
+		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
 		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,

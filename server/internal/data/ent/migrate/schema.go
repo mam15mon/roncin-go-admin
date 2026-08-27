@@ -357,6 +357,48 @@ var (
 			},
 		},
 	}
+	// ExchangeRateCustomSettingsColumns holds the columns for the "exchange_rate_custom_settings" table.
+	ExchangeRateCustomSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "inherit_base_currency_rate", Type: field.TypeBool, Default: false},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+	}
+	// ExchangeRateCustomSettingsTable holds the schema information for the "exchange_rate_custom_settings" table.
+	ExchangeRateCustomSettingsTable = &schema.Table{
+		Name:       "exchange_rate_custom_settings",
+		Columns:    ExchangeRateCustomSettingsColumns,
+		PrimaryKey: []*schema.Column{ExchangeRateCustomSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "exchange_rate_custom_settings_organizations_exchange_rate_custom_setting",
+				Columns:    []*schema.Column{ExchangeRateCustomSettingsColumns[5]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "exchange_rate_custom_settings_users_updated_exchange_rate_custom_settings",
+				Columns:    []*schema.Column{ExchangeRateCustomSettingsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "exchangeratecustomsetting_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateCustomSettingsColumns[2]},
+			},
+			{
+				Name:    "exchange_rate_custom_setting_organization_unique",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateCustomSettingsColumns[5]},
+			},
+		},
+	}
 	// ExchangeRateImportBatchesColumns holds the columns for the "exchange_rate_import_batches" table.
 	ExchangeRateImportBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -582,7 +624,7 @@ var (
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -824,7 +866,7 @@ var (
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -1317,7 +1359,7 @@ var (
 		{Name: "currency", Type: field.TypeString, Size: 3},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Nullable: true, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Nullable: true, Enums: []string{"SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Nullable: true, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_currency_amount", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -1540,7 +1582,7 @@ var (
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "exchange_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,8)"}},
-		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "MANUAL", "DERIVED"}},
+		{Name: "exchange_rate_source", Type: field.TypeEnum, Enums: []string{"SYSTEM", "BASE_CURRENCY", "INHERITED_BASE_CURRENCY", "MANUAL", "DERIVED"}},
 		{Name: "exchange_rate_date", Type: field.TypeString, Size: 10},
 		{Name: "exchange_rate_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -4032,6 +4074,7 @@ var (
 		BackgroundTasksTable,
 		BillingUnitsTable,
 		CurrenciesTable,
+		ExchangeRateCustomSettingsTable,
 		ExchangeRateImportBatchesTable,
 		ExchangeRateSettingsTable,
 		ExchangeRateTimeStandardsTable,
@@ -4106,6 +4149,8 @@ func init() {
 	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BillingUnitsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	ExchangeRateCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	ExchangeRateCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FeeSettingsTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	FeeSettingsTable.ForeignKeys[1].RefTable = MasterDataItemsTable
 	FeeSettingsTable.ForeignKeys[2].RefTable = MasterDataItemsTable

@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
@@ -105,6 +106,7 @@ const (
 	TypeBackgroundTask                = "BackgroundTask"
 	TypeBillingUnit                   = "BillingUnit"
 	TypeCurrency                      = "Currency"
+	TypeExchangeRateCustomSetting     = "ExchangeRateCustomSetting"
 	TypeExchangeRateImportBatch       = "ExchangeRateImportBatch"
 	TypeExchangeRateSetting           = "ExchangeRateSetting"
 	TypeExchangeRateTimeStandard      = "ExchangeRateTimeStandard"
@@ -7630,6 +7632,757 @@ func (m *CurrencyMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CurrencyMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Currency edge %s", name)
+}
+
+// ExchangeRateCustomSettingMutation represents an operation that mutates the ExchangeRateCustomSetting nodes in the graph.
+type ExchangeRateCustomSettingMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	inherit_base_currency_rate *bool
+	version                    *uint64
+	addversion                 *int64
+	clearedFields              map[string]struct{}
+	organization               *uuid.UUID
+	clearedorganization        bool
+	updated_by_user            *uuid.UUID
+	clearedupdated_by_user     bool
+	done                       bool
+	oldValue                   func(context.Context) (*ExchangeRateCustomSetting, error)
+	predicates                 []predicate.ExchangeRateCustomSetting
+}
+
+var _ ent.Mutation = (*ExchangeRateCustomSettingMutation)(nil)
+
+// exchangeratecustomsettingOption allows management of the mutation configuration using functional options.
+type exchangeratecustomsettingOption func(*ExchangeRateCustomSettingMutation)
+
+// newExchangeRateCustomSettingMutation creates new mutation for the ExchangeRateCustomSetting entity.
+func newExchangeRateCustomSettingMutation(c config, op Op, opts ...exchangeratecustomsettingOption) *ExchangeRateCustomSettingMutation {
+	m := &ExchangeRateCustomSettingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeExchangeRateCustomSetting,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withExchangeRateCustomSettingID sets the ID field of the mutation.
+func withExchangeRateCustomSettingID(id uuid.UUID) exchangeratecustomsettingOption {
+	return func(m *ExchangeRateCustomSettingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ExchangeRateCustomSetting
+		)
+		m.oldValue = func(ctx context.Context) (*ExchangeRateCustomSetting, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ExchangeRateCustomSetting.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withExchangeRateCustomSetting sets the old ExchangeRateCustomSetting of the mutation.
+func withExchangeRateCustomSetting(node *ExchangeRateCustomSetting) exchangeratecustomsettingOption {
+	return func(m *ExchangeRateCustomSettingMutation) {
+		m.oldValue = func(context.Context) (*ExchangeRateCustomSetting, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ExchangeRateCustomSettingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ExchangeRateCustomSettingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ExchangeRateCustomSetting entities.
+func (m *ExchangeRateCustomSettingMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ExchangeRateCustomSettingMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ExchangeRateCustomSettingMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ExchangeRateCustomSetting.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ExchangeRateCustomSettingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ExchangeRateCustomSettingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ExchangeRateCustomSettingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ExchangeRateCustomSettingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *ExchangeRateCustomSettingMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *ExchangeRateCustomSettingMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetInheritBaseCurrencyRate sets the "inherit_base_currency_rate" field.
+func (m *ExchangeRateCustomSettingMutation) SetInheritBaseCurrencyRate(b bool) {
+	m.inherit_base_currency_rate = &b
+}
+
+// InheritBaseCurrencyRate returns the value of the "inherit_base_currency_rate" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) InheritBaseCurrencyRate() (r bool, exists bool) {
+	v := m.inherit_base_currency_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInheritBaseCurrencyRate returns the old "inherit_base_currency_rate" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldInheritBaseCurrencyRate(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInheritBaseCurrencyRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInheritBaseCurrencyRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInheritBaseCurrencyRate: %w", err)
+	}
+	return oldValue.InheritBaseCurrencyRate, nil
+}
+
+// ResetInheritBaseCurrencyRate resets all changes to the "inherit_base_currency_rate" field.
+func (m *ExchangeRateCustomSettingMutation) ResetInheritBaseCurrencyRate() {
+	m.inherit_base_currency_rate = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *ExchangeRateCustomSettingMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *ExchangeRateCustomSettingMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *ExchangeRateCustomSettingMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *ExchangeRateCustomSettingMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *ExchangeRateCustomSettingMutation) SetUpdatedBy(u uuid.UUID) {
+	m.updated_by_user = &u
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *ExchangeRateCustomSettingMutation) UpdatedBy() (r uuid.UUID, exists bool) {
+	v := m.updated_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the ExchangeRateCustomSetting entity.
+// If the ExchangeRateCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateCustomSettingMutation) OldUpdatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *ExchangeRateCustomSettingMutation) ResetUpdatedBy() {
+	m.updated_by_user = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *ExchangeRateCustomSettingMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[exchangeratecustomsetting.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *ExchangeRateCustomSettingMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *ExchangeRateCustomSettingMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *ExchangeRateCustomSettingMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// SetUpdatedByUserID sets the "updated_by_user" edge to the User entity by id.
+func (m *ExchangeRateCustomSettingMutation) SetUpdatedByUserID(id uuid.UUID) {
+	m.updated_by_user = &id
+}
+
+// ClearUpdatedByUser clears the "updated_by_user" edge to the User entity.
+func (m *ExchangeRateCustomSettingMutation) ClearUpdatedByUser() {
+	m.clearedupdated_by_user = true
+	m.clearedFields[exchangeratecustomsetting.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdatedByUserCleared reports if the "updated_by_user" edge to the User entity was cleared.
+func (m *ExchangeRateCustomSettingMutation) UpdatedByUserCleared() bool {
+	return m.clearedupdated_by_user
+}
+
+// UpdatedByUserID returns the "updated_by_user" edge ID in the mutation.
+func (m *ExchangeRateCustomSettingMutation) UpdatedByUserID() (id uuid.UUID, exists bool) {
+	if m.updated_by_user != nil {
+		return *m.updated_by_user, true
+	}
+	return
+}
+
+// UpdatedByUserIDs returns the "updated_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdatedByUserID instead. It exists only for internal usage by the builders.
+func (m *ExchangeRateCustomSettingMutation) UpdatedByUserIDs() (ids []uuid.UUID) {
+	if id := m.updated_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdatedByUser resets all changes to the "updated_by_user" edge.
+func (m *ExchangeRateCustomSettingMutation) ResetUpdatedByUser() {
+	m.updated_by_user = nil
+	m.clearedupdated_by_user = false
+}
+
+// Where appends a list predicates to the ExchangeRateCustomSettingMutation builder.
+func (m *ExchangeRateCustomSettingMutation) Where(ps ...predicate.ExchangeRateCustomSetting) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ExchangeRateCustomSettingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ExchangeRateCustomSettingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ExchangeRateCustomSetting, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ExchangeRateCustomSettingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ExchangeRateCustomSettingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ExchangeRateCustomSetting).
+func (m *ExchangeRateCustomSettingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ExchangeRateCustomSettingMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldOrganizationID)
+	}
+	if m.inherit_base_currency_rate != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldInheritBaseCurrencyRate)
+	}
+	if m.version != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldVersion)
+	}
+	if m.updated_by_user != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ExchangeRateCustomSettingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case exchangeratecustomsetting.FieldCreatedAt:
+		return m.CreatedAt()
+	case exchangeratecustomsetting.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case exchangeratecustomsetting.FieldOrganizationID:
+		return m.OrganizationID()
+	case exchangeratecustomsetting.FieldInheritBaseCurrencyRate:
+		return m.InheritBaseCurrencyRate()
+	case exchangeratecustomsetting.FieldVersion:
+		return m.Version()
+	case exchangeratecustomsetting.FieldUpdatedBy:
+		return m.UpdatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ExchangeRateCustomSettingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case exchangeratecustomsetting.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case exchangeratecustomsetting.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case exchangeratecustomsetting.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case exchangeratecustomsetting.FieldInheritBaseCurrencyRate:
+		return m.OldInheritBaseCurrencyRate(ctx)
+	case exchangeratecustomsetting.FieldVersion:
+		return m.OldVersion(ctx)
+	case exchangeratecustomsetting.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown ExchangeRateCustomSetting field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExchangeRateCustomSettingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case exchangeratecustomsetting.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case exchangeratecustomsetting.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case exchangeratecustomsetting.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case exchangeratecustomsetting.FieldInheritBaseCurrencyRate:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInheritBaseCurrencyRate(v)
+		return nil
+	case exchangeratecustomsetting.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case exchangeratecustomsetting.FieldUpdatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateCustomSetting field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ExchangeRateCustomSettingMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, exchangeratecustomsetting.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ExchangeRateCustomSettingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case exchangeratecustomsetting.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExchangeRateCustomSettingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case exchangeratecustomsetting.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateCustomSetting numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ExchangeRateCustomSettingMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ExchangeRateCustomSettingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ExchangeRateCustomSettingMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ExchangeRateCustomSetting nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ExchangeRateCustomSettingMutation) ResetField(name string) error {
+	switch name {
+	case exchangeratecustomsetting.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case exchangeratecustomsetting.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case exchangeratecustomsetting.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case exchangeratecustomsetting.FieldInheritBaseCurrencyRate:
+		m.ResetInheritBaseCurrencyRate()
+		return nil
+	case exchangeratecustomsetting.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case exchangeratecustomsetting.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateCustomSetting field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ExchangeRateCustomSettingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, exchangeratecustomsetting.EdgeOrganization)
+	}
+	if m.updated_by_user != nil {
+		edges = append(edges, exchangeratecustomsetting.EdgeUpdatedByUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ExchangeRateCustomSettingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case exchangeratecustomsetting.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case exchangeratecustomsetting.EdgeUpdatedByUser:
+		if id := m.updated_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ExchangeRateCustomSettingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ExchangeRateCustomSettingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ExchangeRateCustomSettingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, exchangeratecustomsetting.EdgeOrganization)
+	}
+	if m.clearedupdated_by_user {
+		edges = append(edges, exchangeratecustomsetting.EdgeUpdatedByUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ExchangeRateCustomSettingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case exchangeratecustomsetting.EdgeOrganization:
+		return m.clearedorganization
+	case exchangeratecustomsetting.EdgeUpdatedByUser:
+		return m.clearedupdated_by_user
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ExchangeRateCustomSettingMutation) ClearEdge(name string) error {
+	switch name {
+	case exchangeratecustomsetting.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case exchangeratecustomsetting.EdgeUpdatedByUser:
+		m.ClearUpdatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateCustomSetting unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ExchangeRateCustomSettingMutation) ResetEdge(name string) error {
+	switch name {
+	case exchangeratecustomsetting.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case exchangeratecustomsetting.EdgeUpdatedByUser:
+		m.ResetUpdatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateCustomSetting edge %s", name)
 }
 
 // ExchangeRateImportBatchMutation represents an operation that mutates the ExchangeRateImportBatch nodes in the graph.
@@ -63443,6 +64196,9 @@ type OrganizationMutation struct {
 	finance_fee_ledger_preferences          map[uuid.UUID]struct{}
 	removedfinance_fee_ledger_preferences   map[uuid.UUID]struct{}
 	clearedfinance_fee_ledger_preferences   bool
+	exchange_rate_custom_setting            map[uuid.UUID]struct{}
+	removedexchange_rate_custom_setting     map[uuid.UUID]struct{}
+	clearedexchange_rate_custom_setting     bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -65711,6 +66467,60 @@ func (m *OrganizationMutation) ResetFinanceFeeLedgerPreferences() {
 	m.removedfinance_fee_ledger_preferences = nil
 }
 
+// AddExchangeRateCustomSettingIDs adds the "exchange_rate_custom_setting" edge to the ExchangeRateCustomSetting entity by ids.
+func (m *OrganizationMutation) AddExchangeRateCustomSettingIDs(ids ...uuid.UUID) {
+	if m.exchange_rate_custom_setting == nil {
+		m.exchange_rate_custom_setting = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.exchange_rate_custom_setting[ids[i]] = struct{}{}
+	}
+}
+
+// ClearExchangeRateCustomSetting clears the "exchange_rate_custom_setting" edge to the ExchangeRateCustomSetting entity.
+func (m *OrganizationMutation) ClearExchangeRateCustomSetting() {
+	m.clearedexchange_rate_custom_setting = true
+}
+
+// ExchangeRateCustomSettingCleared reports if the "exchange_rate_custom_setting" edge to the ExchangeRateCustomSetting entity was cleared.
+func (m *OrganizationMutation) ExchangeRateCustomSettingCleared() bool {
+	return m.clearedexchange_rate_custom_setting
+}
+
+// RemoveExchangeRateCustomSettingIDs removes the "exchange_rate_custom_setting" edge to the ExchangeRateCustomSetting entity by IDs.
+func (m *OrganizationMutation) RemoveExchangeRateCustomSettingIDs(ids ...uuid.UUID) {
+	if m.removedexchange_rate_custom_setting == nil {
+		m.removedexchange_rate_custom_setting = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.exchange_rate_custom_setting, ids[i])
+		m.removedexchange_rate_custom_setting[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedExchangeRateCustomSetting returns the removed IDs of the "exchange_rate_custom_setting" edge to the ExchangeRateCustomSetting entity.
+func (m *OrganizationMutation) RemovedExchangeRateCustomSettingIDs() (ids []uuid.UUID) {
+	for id := range m.removedexchange_rate_custom_setting {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ExchangeRateCustomSettingIDs returns the "exchange_rate_custom_setting" edge IDs in the mutation.
+func (m *OrganizationMutation) ExchangeRateCustomSettingIDs() (ids []uuid.UUID) {
+	for id := range m.exchange_rate_custom_setting {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetExchangeRateCustomSetting resets all changes to the "exchange_rate_custom_setting" edge.
+func (m *OrganizationMutation) ResetExchangeRateCustomSetting() {
+	m.exchange_rate_custom_setting = nil
+	m.clearedexchange_rate_custom_setting = false
+	m.removedexchange_rate_custom_setting = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -65995,7 +66805,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -66097,6 +66907,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_fee_ledger_preferences != nil {
 		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
+	}
+	if m.exchange_rate_custom_setting != nil {
+		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
 	}
 	return edges
 }
@@ -66307,13 +67120,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeExchangeRateCustomSetting:
+		ids := make([]ent.Value, 0, len(m.exchange_rate_custom_setting))
+		for id := range m.exchange_rate_custom_setting {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -66412,6 +67231,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_fee_ledger_preferences != nil {
 		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
+	}
+	if m.removedexchange_rate_custom_setting != nil {
+		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
 	}
 	return edges
 }
@@ -66618,13 +67440,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeExchangeRateCustomSetting:
+		ids := make([]ent.Value, 0, len(m.removedexchange_rate_custom_setting))
+		for id := range m.removedexchange_rate_custom_setting {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -66727,6 +67555,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedfinance_fee_ledger_preferences {
 		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
 	}
+	if m.clearedexchange_rate_custom_setting {
+		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
+	}
 	return edges
 }
 
@@ -66802,6 +67633,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_commission_rules
 	case organization.EdgeFinanceFeeLedgerPreferences:
 		return m.clearedfinance_fee_ledger_preferences
+	case organization.EdgeExchangeRateCustomSetting:
+		return m.clearedexchange_rate_custom_setting
 	}
 	return false
 }
@@ -66922,6 +67755,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeFinanceFeeLedgerPreferences:
 		m.ResetFinanceFeeLedgerPreferences()
+		return nil
+	case organization.EdgeExchangeRateCustomSetting:
+		m.ResetExchangeRateCustomSetting()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
@@ -90798,6 +91634,9 @@ type UserMutation struct {
 	finance_fee_ledger_preferences                  map[uuid.UUID]struct{}
 	removedfinance_fee_ledger_preferences           map[uuid.UUID]struct{}
 	clearedfinance_fee_ledger_preferences           bool
+	updated_exchange_rate_custom_settings           map[uuid.UUID]struct{}
+	removedupdated_exchange_rate_custom_settings    map[uuid.UUID]struct{}
+	clearedupdated_exchange_rate_custom_settings    bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -92708,6 +93547,60 @@ func (m *UserMutation) ResetFinanceFeeLedgerPreferences() {
 	m.removedfinance_fee_ledger_preferences = nil
 }
 
+// AddUpdatedExchangeRateCustomSettingIDs adds the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity by ids.
+func (m *UserMutation) AddUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) {
+	if m.updated_exchange_rate_custom_settings == nil {
+		m.updated_exchange_rate_custom_settings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.updated_exchange_rate_custom_settings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpdatedExchangeRateCustomSettings clears the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity.
+func (m *UserMutation) ClearUpdatedExchangeRateCustomSettings() {
+	m.clearedupdated_exchange_rate_custom_settings = true
+}
+
+// UpdatedExchangeRateCustomSettingsCleared reports if the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity was cleared.
+func (m *UserMutation) UpdatedExchangeRateCustomSettingsCleared() bool {
+	return m.clearedupdated_exchange_rate_custom_settings
+}
+
+// RemoveUpdatedExchangeRateCustomSettingIDs removes the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity by IDs.
+func (m *UserMutation) RemoveUpdatedExchangeRateCustomSettingIDs(ids ...uuid.UUID) {
+	if m.removedupdated_exchange_rate_custom_settings == nil {
+		m.removedupdated_exchange_rate_custom_settings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.updated_exchange_rate_custom_settings, ids[i])
+		m.removedupdated_exchange_rate_custom_settings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpdatedExchangeRateCustomSettings returns the removed IDs of the "updated_exchange_rate_custom_settings" edge to the ExchangeRateCustomSetting entity.
+func (m *UserMutation) RemovedUpdatedExchangeRateCustomSettingsIDs() (ids []uuid.UUID) {
+	for id := range m.removedupdated_exchange_rate_custom_settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpdatedExchangeRateCustomSettingsIDs returns the "updated_exchange_rate_custom_settings" edge IDs in the mutation.
+func (m *UserMutation) UpdatedExchangeRateCustomSettingsIDs() (ids []uuid.UUID) {
+	for id := range m.updated_exchange_rate_custom_settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpdatedExchangeRateCustomSettings resets all changes to the "updated_exchange_rate_custom_settings" edge.
+func (m *UserMutation) ResetUpdatedExchangeRateCustomSettings() {
+	m.updated_exchange_rate_custom_settings = nil
+	m.clearedupdated_exchange_rate_custom_settings = false
+	m.removedupdated_exchange_rate_custom_settings = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -93090,7 +93983,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -93159,6 +94052,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.finance_fee_ledger_preferences != nil {
 		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
+	}
+	if m.updated_exchange_rate_custom_settings != nil {
+		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
 	}
 	return edges
 }
@@ -93305,13 +94201,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUpdatedExchangeRateCustomSettings:
+		ids := make([]ent.Value, 0, len(m.updated_exchange_rate_custom_settings))
+		for id := range m.updated_exchange_rate_custom_settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -93380,6 +94282,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_fee_ledger_preferences != nil {
 		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
+	}
+	if m.removedupdated_exchange_rate_custom_settings != nil {
+		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
 	}
 	return edges
 }
@@ -93526,13 +94431,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUpdatedExchangeRateCustomSettings:
+		ids := make([]ent.Value, 0, len(m.removedupdated_exchange_rate_custom_settings))
+		for id := range m.removedupdated_exchange_rate_custom_settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 23)
+	edges := make([]string, 0, 24)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -93602,6 +94513,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedfinance_fee_ledger_preferences {
 		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
 	}
+	if m.clearedupdated_exchange_rate_custom_settings {
+		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
+	}
 	return edges
 }
 
@@ -93655,6 +94569,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcancelled_finance_commission_adjustments
 	case user.EdgeFinanceFeeLedgerPreferences:
 		return m.clearedfinance_fee_ledger_preferences
+	case user.EdgeUpdatedExchangeRateCustomSettings:
+		return m.clearedupdated_exchange_rate_custom_settings
 	}
 	return false
 }
@@ -93739,6 +94655,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeFinanceFeeLedgerPreferences:
 		m.ResetFinanceFeeLedgerPreferences()
+		return nil
+	case user.EdgeUpdatedExchangeRateCustomSettings:
+		m.ResetUpdatedExchangeRateCustomSettings()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

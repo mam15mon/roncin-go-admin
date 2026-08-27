@@ -112,9 +112,11 @@ type OrganizationEdges struct {
 	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
 	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
+	// ExchangeRateCustomSetting holds the value of the exchange_rate_custom_setting edge.
+	ExchangeRateCustomSetting []*ExchangeRateCustomSetting `json:"exchange_rate_custom_setting,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [34]bool
+	loadedTypes [35]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -425,6 +427,15 @@ func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedg
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
 }
 
+// ExchangeRateCustomSettingOrErr returns the ExchangeRateCustomSetting value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCustomSetting, error) {
+	if e.loadedTypes[34] {
+		return e.ExchangeRateCustomSetting, nil
+	}
+	return nil, &NotLoadedError{edge: "exchange_rate_custom_setting"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -698,6 +709,11 @@ func (_m *Organization) QueryFinanceCommissionRules() *FinanceCommissionRuleQuer
 // QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the Organization entity.
 func (_m *Organization) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceFeeLedgerPreferences(_m)
+}
+
+// QueryExchangeRateCustomSetting queries the "exchange_rate_custom_setting" edge of the Organization entity.
+func (_m *Organization) QueryExchangeRateCustomSetting() *ExchangeRateCustomSettingQuery {
+	return NewOrganizationClient(_m.config).QueryExchangeRateCustomSetting(_m)
 }
 
 // Update returns a builder for updating this Organization.

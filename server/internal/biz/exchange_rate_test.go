@@ -10,10 +10,16 @@ import (
 
 type exchangeRateRepoStub struct {
 	ExchangeRateRepo
-	rateContext   *ExchangeRateContext
-	timeStandards []*ExchangeRateTimeStandardSetting
-	resolved      *ResolvedExchangeRate
-	resolveErr    error
+	rateContext        *ExchangeRateContext
+	timeStandards      []*ExchangeRateTimeStandardSetting
+	resolved           *ResolvedExchangeRate
+	resolveErr         error
+	resolvedByType     map[string]*ResolvedExchangeRate
+	resolveErrByType   map[string]error
+	resolveTypes       []string
+	customSetting      *ExchangeRateCustomSetting
+	savedCustomSetting *ExchangeRateCustomSetting
+	savedExpected      uint64
 }
 
 func (s *exchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*ExchangeRateContext, error) {
@@ -44,7 +50,21 @@ func (*exchangeRateRepoStub) ReplaceTimeStandards(context.Context, uuid.UUID, []
 	return nil
 }
 
-func (s *exchangeRateRepoStub) Resolve(context.Context, uuid.UUID, string, OrderFeeDirection, string, string, string) (*ResolvedExchangeRate, error) {
+func (s *exchangeRateRepoStub) GetCustomSetting(context.Context, uuid.UUID) (*ExchangeRateCustomSetting, error) {
+	return s.customSetting, nil
+}
+
+func (s *exchangeRateRepoStub) SaveCustomSetting(_ context.Context, setting *ExchangeRateCustomSetting, expectedVersion uint64, _ *AuditEvent) (*ExchangeRateCustomSetting, error) {
+	s.savedCustomSetting = setting
+	s.savedExpected = expectedVersion
+	return setting, nil
+}
+
+func (s *exchangeRateRepoStub) Resolve(_ context.Context, _ uuid.UUID, rateType string, _ OrderFeeDirection, _, _, _ string) (*ResolvedExchangeRate, error) {
+	s.resolveTypes = append(s.resolveTypes, rateType)
+	if s.resolvedByType != nil || s.resolveErrByType != nil {
+		return s.resolvedByType[rateType], s.resolveErrByType[rateType]
+	}
 	return s.resolved, s.resolveErr
 }
 
@@ -148,6 +168,107 @@ func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
 	}
 	if resolved.Rate.StringFixed(8) != "1.00000000" || resolved.Source != "BASE_CURRENCY" || resolved.SettingID != nil {
 		t.Fatalf("本币汇率解析结果不正确: %#v", resolved)
+	}
+}
+
+func TestGetExchangeRateCustomSettingDefaultsToDisabled(t *testing.T) {
+	ownerID := uuid.Must(uuid.NewV7())
+	usecase := NewExchangeRateUsecase(&exchangeRateRepoStub{
+		rateContext: &ExchangeRateContext{OwnerOrganizationID: ownerID, BaseCurrency: "CNY"},
+	})
+	setting, err := usecase.GetCustomSetting(context.Background(), uuid.Must(uuid.NewV7()))
+	if err != nil {
+		t.Fatalf("读取默认汇率自定义设置失败: %v", err)
+	}
+	if setting.OrganizationID != ownerID || setting.InheritBaseCurrencyRate || setting.Version != 0 || setting.UpdatedAt != nil || setting.UpdatedBy != nil {
+		t.Fatalf("未保存的自定义设置应默认关闭且版本为 0: %#v", setting)
+	}
+}
+
+func TestUpdateExchangeRateCustomSettingUsesOwnerOrganizationAndVersion(t *testing.T) {
+	ownerID := uuid.Must(uuid.NewV7())
+	actorID := uuid.Must(uuid.NewV7())
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: ownerID, BaseCurrency: "CNY"}}
+	usecase := NewExchangeRateUsecase(repo)
+	if _, err := usecase.UpdateCustomSetting(context.Background(), uuid.Must(uuid.NewV7()), actorID, true, 3); err != nil {
+		t.Fatalf("更新汇率自定义设置失败: %v", err)
+	}
+	if repo.savedCustomSetting == nil || repo.savedCustomSetting.OrganizationID != ownerID || !repo.savedCustomSetting.InheritBaseCurrencyRate || repo.savedCustomSetting.UpdatedBy == nil || *repo.savedCustomSetting.UpdatedBy != actorID || repo.savedExpected != 3 {
+		t.Fatalf("汇率自定义设置保存参数不正确: setting=%#v expected=%d", repo.savedCustomSetting, repo.savedExpected)
+	}
+}
+
+func TestResolveUsesDedicatedRateBeforeInheritance(t *testing.T) {
+	dedicatedID := uuid.Must(uuid.NewV7())
+	repo := &exchangeRateRepoStub{
+		rateContext:   &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
+		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
+		resolvedByType: map[string]*ResolvedExchangeRate{
+			BillRateType: {Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-08-27", SettingID: &dedicatedID},
+		},
+		customSetting: &ExchangeRateCustomSetting{InheritBaseCurrencyRate: true},
+	}
+	resolved, err := NewExchangeRateUsecase(repo).Resolve(context.Background(), uuid.Must(uuid.NewV7()), BillRateType, OrderFeeReceivable, "USD", map[string]string{BillDateStandard: "2026-08-27"})
+	if err != nil {
+		t.Fatalf("解析专用账单汇率失败: %v", err)
+	}
+	if resolved.Source != "SYSTEM" || resolved.SettingID == nil || *resolved.SettingID != dedicatedID || len(repo.resolveTypes) != 1 || repo.resolveTypes[0] != BillRateType {
+		t.Fatalf("专用汇率应始终优先，实际 result=%#v calls=%v", resolved, repo.resolveTypes)
+	}
+}
+
+func TestResolveInheritsBaseCurrencyRateWhenEnabledAndDedicatedMissing(t *testing.T) {
+	baseSettingID := uuid.Must(uuid.NewV7())
+	repo := &exchangeRateRepoStub{
+		rateContext:   &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
+		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: InvoiceRateType, TimeStandards: []string{InvoiceDateStandard}}},
+		resolvedByType: map[string]*ResolvedExchangeRate{
+			BaseCurrencyRateType: {Rate: decimal.RequireFromString("7.18"), Source: "SYSTEM", RateDate: "2026-08-27", SettingID: &baseSettingID},
+		},
+		resolveErrByType: map[string]error{InvoiceRateType: ErrExchangeRateMissing},
+		customSetting:    &ExchangeRateCustomSetting{InheritBaseCurrencyRate: true},
+	}
+	resolved, err := NewExchangeRateUsecase(repo).Resolve(context.Background(), uuid.Must(uuid.NewV7()), InvoiceRateType, OrderFeeReceivable, "USD", map[string]string{InvoiceDateStandard: "2026-08-27"})
+	if err != nil {
+		t.Fatalf("继承折本币汇率失败: %v", err)
+	}
+	if resolved.Rate.StringFixed(8) != "7.18000000" || resolved.Source != InheritedBaseCurrencySource || resolved.RateDate != "2026-08-27" || resolved.SettingID == nil || *resolved.SettingID != baseSettingID {
+		t.Fatalf("继承结果未保留折本币汇率快照: %#v", resolved)
+	}
+	if len(repo.resolveTypes) != 2 || repo.resolveTypes[0] != InvoiceRateType || repo.resolveTypes[1] != BaseCurrencyRateType {
+		t.Fatalf("汇率解析顺序不正确: %v", repo.resolveTypes)
+	}
+}
+
+func TestResolveDoesNotInheritWhenCustomSettingDisabled(t *testing.T) {
+	repo := &exchangeRateRepoStub{
+		rateContext:      &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
+		timeStandards:    []*ExchangeRateTimeStandardSetting{{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}}},
+		resolveErrByType: map[string]error{SettlementRateType: ErrExchangeRateMissing},
+		customSetting:    &ExchangeRateCustomSetting{InheritBaseCurrencyRate: false},
+	}
+	_, err := NewExchangeRateUsecase(repo).Resolve(context.Background(), uuid.Must(uuid.NewV7()), SettlementRateType, OrderFeePayable, "USD", map[string]string{TransactionDateStandard: "2026-08-27"})
+	if err != ErrExchangeRateMissing {
+		t.Fatalf("关闭继承时应保留专用汇率缺失错误，实际 %v", err)
+	}
+	if len(repo.resolveTypes) != 1 || repo.resolveTypes[0] != SettlementRateType {
+		t.Fatalf("关闭继承时不应查询折本币汇率: %v", repo.resolveTypes)
+	}
+}
+
+func TestResolveDoesNotMaskDedicatedRateConflict(t *testing.T) {
+	repo := &exchangeRateRepoStub{
+		rateContext:      &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"},
+		timeStandards:    []*ExchangeRateTimeStandardSetting{{RateType: WriteOffRateType, TimeStandards: []string{WriteOffTimeStandard}}},
+		resolveErrByType: map[string]error{WriteOffRateType: ErrExchangeRateConflict},
+		customSetting:    &ExchangeRateCustomSetting{InheritBaseCurrencyRate: true},
+	}
+	_, err := NewExchangeRateUsecase(repo).Resolve(context.Background(), uuid.Must(uuid.NewV7()), WriteOffRateType, OrderFeeReceivable, "USD", map[string]string{WriteOffTimeStandard: "2026-08-27"})
+	if err != ErrExchangeRateConflict {
+		t.Fatalf("专用汇率冲突不应被继承逻辑掩盖，实际 %v", err)
+	}
+	if len(repo.resolveTypes) != 1 || repo.resolveTypes[0] != WriteOffRateType {
+		t.Fatalf("专用汇率冲突时不应查询折本币汇率: %v", repo.resolveTypes)
 	}
 }
 

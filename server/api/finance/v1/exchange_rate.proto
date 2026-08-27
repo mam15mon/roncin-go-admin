@@ -40,6 +40,18 @@ service ExchangeRateService {
     option (google.api.http) = {put: "/api/v1/finance/exchange-rate-time-standards" body: "*"};
   }
 
+  // GetExchangeRateCustomSetting 获取组织级汇率自定义策略。
+  rpc GetExchangeRateCustomSetting(GetExchangeRateCustomSettingRequest) returns (GetExchangeRateCustomSettingResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-custom-setting"};
+  }
+
+  // UpdateExchangeRateCustomSetting 更新组织级汇率自定义策略。
+  rpc UpdateExchangeRateCustomSetting(UpdateExchangeRateCustomSettingRequest) returns (UpdateExchangeRateCustomSettingResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/exchange-rate-custom-setting" body: "*"};
+  }
+
   // DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
   rpc DownloadExchangeRateImportTemplate(DownloadExchangeRateImportTemplateRequest) returns (DownloadExchangeRateImportTemplateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -172,6 +184,41 @@ message UpdateExchangeRateTimeStandardsResponse {
   int32 code = 2;
   string message = 3;
   repeated ExchangeRateTimeStandardSetting data = 4;
+  string trace_id = 5;
+}
+
+// ExchangeRateCustomSetting 供参数设置中的“自定义设置”使用。
+// 开启继承后，BILL、INVOICE、SETTLEMENT、WRITE_OFF 专用汇率未命中时，
+// 后端才会查询同一时点的 BASE_CURRENCY 汇率；已配置的专用汇率始终优先。
+message ExchangeRateCustomSetting {
+  string organization_id = 1;
+  bool inherit_base_currency_rate = 2;
+  // 未保存过自定义设置时为 0；首次保存需携带 expected_version=0。
+  uint64 version = 3;
+  optional string updated_at = 4;
+  optional string updated_by = 5;
+}
+
+message GetExchangeRateCustomSettingRequest {}
+
+message GetExchangeRateCustomSettingResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateCustomSetting data = 4;
+  string trace_id = 5;
+}
+
+message UpdateExchangeRateCustomSettingRequest {
+  bool inherit_base_currency_rate = 1;
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateExchangeRateCustomSettingResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateCustomSetting data = 4;
   string trace_id = 5;
 }
 

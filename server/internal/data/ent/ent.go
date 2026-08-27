@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
@@ -151,6 +152,7 @@ func checkColumn(t, c string) error {
 			backgroundtask.Table:                backgroundtask.ValidColumn,
 			billingunit.Table:                   billingunit.ValidColumn,
 			currency.Table:                      currency.ValidColumn,
+			exchangeratecustomsetting.Table:     exchangeratecustomsetting.ValidColumn,
 			exchangerateimportbatch.Table:       exchangerateimportbatch.ValidColumn,
 			exchangeratesetting.Table:           exchangeratesetting.ValidColumn,
 			exchangeratetimestandard.Table:      exchangeratetimestandard.ValidColumn,

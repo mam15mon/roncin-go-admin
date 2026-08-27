@@ -88,6 +88,8 @@ const (
 	EdgeCancelledFinanceCommissionAdjustments = "cancelled_finance_commission_adjustments"
 	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
 	EdgeFinanceFeeLedgerPreferences = "finance_fee_ledger_preferences"
+	// EdgeUpdatedExchangeRateCustomSettings holds the string denoting the updated_exchange_rate_custom_settings edge name in mutations.
+	EdgeUpdatedExchangeRateCustomSettings = "updated_exchange_rate_custom_settings"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -251,6 +253,13 @@ const (
 	FinanceFeeLedgerPreferencesInverseTable = "finance_fee_ledger_preferences"
 	// FinanceFeeLedgerPreferencesColumn is the table column denoting the finance_fee_ledger_preferences relation/edge.
 	FinanceFeeLedgerPreferencesColumn = "user_id"
+	// UpdatedExchangeRateCustomSettingsTable is the table that holds the updated_exchange_rate_custom_settings relation/edge.
+	UpdatedExchangeRateCustomSettingsTable = "exchange_rate_custom_settings"
+	// UpdatedExchangeRateCustomSettingsInverseTable is the table name for the ExchangeRateCustomSetting entity.
+	// It exists in this package in order to avoid circular dependency with the "exchangeratecustomsetting" package.
+	UpdatedExchangeRateCustomSettingsInverseTable = "exchange_rate_custom_settings"
+	// UpdatedExchangeRateCustomSettingsColumn is the table column denoting the updated_exchange_rate_custom_settings relation/edge.
+	UpdatedExchangeRateCustomSettingsColumn = "updated_by"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -712,6 +721,20 @@ func ByFinanceFeeLedgerPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) O
 		sqlgraph.OrderByNeighborTerms(s, newFinanceFeeLedgerPreferencesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUpdatedExchangeRateCustomSettingsCount orders the results by updated_exchange_rate_custom_settings count.
+func ByUpdatedExchangeRateCustomSettingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUpdatedExchangeRateCustomSettingsStep(), opts...)
+	}
+}
+
+// ByUpdatedExchangeRateCustomSettings orders the results by updated_exchange_rate_custom_settings terms.
+func ByUpdatedExchangeRateCustomSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpdatedExchangeRateCustomSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -871,5 +894,12 @@ func newFinanceFeeLedgerPreferencesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceFeeLedgerPreferencesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceFeeLedgerPreferencesTable, FinanceFeeLedgerPreferencesColumn),
+	)
+}
+func newUpdatedExchangeRateCustomSettingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpdatedExchangeRateCustomSettingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UpdatedExchangeRateCustomSettingsTable, UpdatedExchangeRateCustomSettingsColumn),
 	)
 }
