@@ -753,7 +753,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 160,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'shipping_document.update'))
+        if (!access.canOrder(config.businessType, 'update'))
           return null;
         return (
           <Space size="small">
@@ -2395,7 +2395,7 @@ export default function OrderListPage() {
             toolBarRender={() => [
               access.canOrder(
                 config.businessType,
-                'shipping_document.create',
+                'update',
               ) && (
                 <Button
                   key="create"
