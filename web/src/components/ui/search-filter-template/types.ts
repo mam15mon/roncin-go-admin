@@ -58,11 +58,13 @@ export interface SearchFilterTemplateProps<TValues = any> {
   formLayout?: 'horizontal' | 'vertical' | 'inline';
   /** 标签固定宽度（当 formLayout='horizontal' 时生效），默认 80 */
   labelWidth?: number | string;
+  /** 默认栅格跨度（默认 4，即 24 栅格下一行 6 列高密度排布） */
+  colSpan?: number;
   /** 是否可折叠（当 layout='grid' 时），默认 true */
   collapsible?: boolean;
   /** 默认是否折叠，默认 true */
   defaultCollapsed?: boolean;
-  /** 折叠状态下默认展示的字段数量，默认 3 */
+  /** 折叠状态下默认展示的字段数量，默认 5 */
   defaultVisibleCount?: number;
   /** 表单字段配置项列表（用于 'grid' 模式） */
   items?: SearchFilterFieldItem[];

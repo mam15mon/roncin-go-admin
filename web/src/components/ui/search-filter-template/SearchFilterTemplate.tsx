@@ -36,9 +36,10 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   layout = 'grid',
   formLayout = 'horizontal',
   labelWidth = 80,
+  colSpan = 4,
   collapsible = true,
   defaultCollapsed = true,
-  defaultVisibleCount = 3,
+  defaultVisibleCount = 5,
   items = [],
   keywordPlaceholder = '输入关键字搜索...',
   keywordName = 'keyword',
@@ -70,8 +71,13 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
 
   // 计算栅格使用量与操作按钮跨度
   const usedSpan = useMemo(() => {
-    return visibleItems.reduce((acc, it) => acc + (it.span || 6), 0) % 24;
-  }, [visibleItems]);
+    return (
+      visibleItems.reduce(
+        (acc, it) => acc + (it.span || colSpan || 4),
+        0,
+      ) % 24
+    );
+  }, [visibleItems, colSpan]);
 
   const actionSpan = useMemo(() => {
     if (usedSpan === 0) return 24;
@@ -271,7 +277,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
       <Form form={form} layout={formLayout} onFinish={handleFinish}>
         <Row gutter={[16, 0]}>
           {visibleItems.map((item) => (
-            <Col key={item.name} span={item.span || 6}>
+            <Col key={item.name} span={item.span || colSpan || 4}>
               <Form.Item
                 name={item.name}
                 label={item.label}

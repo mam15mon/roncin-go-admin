@@ -87,7 +87,6 @@ export default function FinanceBillsPage() {
       name: 'keyword',
       label: '综合搜索',
       placeholder: '输入账单编号/对账抬头/结算单位',
-      span: 6,
     },
     {
       name: 'direction',
@@ -98,7 +97,6 @@ export default function FinanceBillsPage() {
         { label: '应收 (RECEIVABLE)', value: 'RECEIVABLE' },
         { label: '应付 (PAYABLE)', value: 'PAYABLE' },
       ],
-      span: 6,
     },
     {
       name: 'status',
@@ -110,14 +108,12 @@ export default function FinanceBillsPage() {
         { label: '已确认 (CONFIRMED)', value: 'CONFIRMED' },
         { label: '已取消 (CANCELLED)', value: 'CANCELLED' },
       ],
-      span: 6,
     },
     {
       name: 'billDateRange',
       label: '账单日期',
       type: 'date-range',
       placeholder: ['开始日期', '结束日期'],
-      span: 6,
     },
     {
       name: 'settlementPartyId',
@@ -135,7 +131,6 @@ export default function FinanceBillsPage() {
           value: p.id || '',
         }));
       },
-      span: 6,
     },
     {
       name: 'currency',
@@ -148,7 +143,6 @@ export default function FinanceBillsPage() {
         { label: 'EUR - 欧元', value: 'EUR' },
         { label: 'HKD - 港币', value: 'HKD' },
       ],
-      span: 6,
     },
   ];
 
@@ -522,7 +516,7 @@ export default function FinanceBillsPage() {
             labelWidth={80}
             collapsible={true}
             defaultCollapsed={true}
-            defaultVisibleCount={3}
+            defaultVisibleCount={5}
             items={filterItems}
             onSearch={(values) => {
               setSearchParams(values);

@@ -14,7 +14,7 @@ vi.mock('@/services/roncin/partnerService', () => ({
 }));
 
 describe('FeeLedgerSearchFilter', () => {
-  it('正确基于 SearchFilterTemplate 渲染首屏 3 项与行内展开按钮', () => {
+  it('正确基于 SearchFilterTemplate 渲染首屏 5 项高密度行内搜索与展开按钮', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
@@ -25,6 +25,8 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('综合搜索')).not.toBeNull();
     expect(screen.getByText('费用属性')).not.toBeNull();
     expect(screen.getByText('财务进度')).not.toBeNull();
+    expect(screen.getByText('费用状态')).not.toBeNull();
+    expect(screen.getByText('结算单位')).not.toBeNull();
     expect(screen.getByText(/展开/)).not.toBeNull();
   });
 

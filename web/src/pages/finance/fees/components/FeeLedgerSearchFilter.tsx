@@ -63,12 +63,11 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
   loading = false,
 }) => {
   const items: SearchFilterFieldItem[] = [
-    // --- 默认首屏展示的前 4 项核心字段 ---
+    // --- 默认首屏展示的前 5 项核心字段 (高密度单行) ---
     {
       name: 'keyword',
       label: '综合搜索',
       placeholder: '输入订单/主单/单位/账单号',
-      span: 6,
     },
     {
       name: 'direction',
@@ -79,7 +78,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '应收 (RECEIVABLE)', value: 'RECEIVABLE' },
         { label: '应付 (PAYABLE)', value: 'PAYABLE' },
       ],
-      span: 6,
     },
     {
       name: 'financialProgress',
@@ -95,7 +93,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '已核销未开票', value: 'VERIFIED_UNINVOICED' },
         { label: '已完成', value: 'COMPLETED' },
       ],
-      span: 6,
     },
     {
       name: 'status',
@@ -108,10 +105,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '已开账 (BILLED)', value: 'BILLED' },
         { label: '已作废 (CANCELLED)', value: 'CANCELLED' },
       ],
-      span: 6,
     },
-
-    // --- 第二行高频项 ---
     {
       name: 'settlementPartyId',
       label: '结算单位',
@@ -128,14 +122,14 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
           value: p.id || '',
         }));
       },
-      span: 6,
     },
+
+    // --- 展开后展示的其余 33 项全维高密度业务字段 (一行 6 列) ---
     {
       name: 'expenseDateRange',
       label: '费用时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'customerId',
@@ -154,45 +148,36 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
           value: p.id || '',
         }));
       },
-      span: 6,
     },
     {
       name: 'billNo',
       label: '账单编号',
       placeholder: '输入账单编号',
-      span: 6,
     },
-
-    // --- 展开后展示的其余 33 项全维业务字段 ---
     {
       name: 'orderNo',
       label: '订单编号',
       placeholder: '输入订单编号',
-      span: 6,
     },
     {
       name: 'masterNo',
       label: '主提单号',
       placeholder: '海运MBL / 空运AWB',
-      span: 6,
     },
     {
       name: 'houseNo',
       label: '分提单号',
       placeholder: '输入分单号 HBL',
-      span: 6,
     },
     {
       name: 'feeName',
       label: '费用科目',
       placeholder: '如海运费/报关费/港杂费',
-      span: 6,
     },
     {
       name: 'invoiceNo',
       label: '发票号码',
       placeholder: '输入发票号码',
-      span: 6,
     },
     {
       name: 'businessType',
@@ -208,7 +193,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '散货拼箱 (LCL)', value: 'LCL' },
         { label: '其他业务', value: 'OTHER' },
       ],
-      span: 6,
     },
     {
       name: 'currency',
@@ -221,91 +205,77 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: 'EUR - 欧元', value: 'EUR' },
         { label: 'HKD - 港币', value: 'HKD' },
       ],
-      span: 6,
     },
     {
       name: 'etdRange',
-      label: '离港时间 (ETD)',
+      label: '离港时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'etaRange',
-      label: '到港时间 (ETA)',
+      label: '到港时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'salesName',
       label: '业务人员',
-      placeholder: '输入业务人员姓名',
-      span: 6,
+      placeholder: '输入业务员姓名',
     },
     {
       name: 'operatorName',
       label: '操作人员',
-      placeholder: '输入操作人员姓名',
-      span: 6,
+      placeholder: '输入操作员姓名',
     },
     {
       name: 'csName',
       label: '客服人员',
-      placeholder: '输入客服人员姓名',
-      span: 6,
+      placeholder: '输入客服姓名',
     },
     {
       name: 'vesselName',
       label: '船名',
       placeholder: '输入船名',
-      span: 6,
     },
     {
       name: 'voyageNo',
       label: '航次',
       placeholder: '输入航次编号',
-      span: 6,
     },
     {
       name: 'consignee',
       label: '收货人',
       placeholder: '输入收货人抬头',
-      span: 6,
     },
     {
       name: 'shipper',
       label: '发货人',
       placeholder: '输入发货人抬头',
-      span: 6,
     },
     {
       name: 'invoiceDateRange',
       label: '开票时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'verificationDateRange',
       label: '核销时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'orderCreatedAtRange',
       label: '接单时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'billCreatedAtRange',
       label: '开账时间',
       type: 'date-range',
       placeholder: ['开始时间', '结束时间'],
-      span: 6,
     },
     {
       name: 'isReconciled',
@@ -316,7 +286,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '已对账', value: 'YES' },
         { label: '未对账', value: 'NO' },
       ],
-      span: 6,
     },
     {
       name: 'isLocked',
@@ -327,25 +296,21 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '已锁单', value: 'YES' },
         { label: '未锁单', value: 'NO' },
       ],
-      span: 6,
     },
     {
       name: 'contractNo',
-      label: '合约协议号',
+      label: '合约协议',
       placeholder: '输入合约协议号',
-      span: 6,
     },
     {
       name: 'feeTags',
       label: '费用标签',
       placeholder: '输入费用标签',
-      span: 6,
     },
     {
       name: 'billTags',
       label: '账单标签',
       placeholder: '输入账单标签',
-      span: 6,
     },
   ];
 
@@ -353,10 +318,11 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
     <SearchFilterTemplate
       layout="grid"
       formLayout="horizontal"
-      labelWidth={80}
+      labelWidth={75}
+      colSpan={4}
       collapsible={true}
       defaultCollapsed={true}
-      defaultVisibleCount={3}
+      defaultVisibleCount={5}
       items={items}
       onSearch={onSearch}
       onReset={onReset}
