@@ -1,13 +1,15 @@
 import {
+  CheckCircleOutlined,
   DollarOutlined,
+  InfoCircleOutlined,
   ReloadOutlined,
-  SafetyCertificateOutlined,
+  SwapRightOutlined,
 } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
 import {
-  Alert,
   App,
   Button,
+  Card,
   Col,
   Row,
   Space,
@@ -27,34 +29,30 @@ import {
 
 const { Text, Paragraph } = Typography;
 
-const inheritanceRulesData = [
+const businessNodeData = [
   {
     key: 'BILL',
     node: '建立账单',
-    rateType: 'BILL (账单汇率)',
-    fallback: '查询同期 BASE_CURRENCY (折本币) 汇率',
-    sourceTag: 'INHERITED_BASE_CURRENCY',
+    specialRate: '账单汇率',
+    fallbackRate: '自动采用同期折本币汇率',
   },
   {
     key: 'INVOICE',
     node: '登记开票',
-    rateType: 'INVOICE (开票汇率)',
-    fallback: '查询同期 BASE_CURRENCY (折本币) 汇率',
-    sourceTag: 'INHERITED_BASE_CURRENCY',
+    specialRate: '开票汇率',
+    fallbackRate: '自动采用同期折本币汇率',
   },
   {
     key: 'SETTLEMENT',
     node: '收付结算',
-    rateType: 'SETTLEMENT (结算汇率)',
-    fallback: '查询同期 BASE_CURRENCY (折本币) 汇率',
-    sourceTag: 'INHERITED_BASE_CURRENCY',
+    specialRate: '结算汇率',
+    fallbackRate: '自动采用同期折本币汇率',
   },
   {
     key: 'WRITE_OFF',
     node: '资金核销',
-    rateType: 'WRITE_OFF (核销汇率)',
-    fallback: '查询同期 BASE_CURRENCY (折本币) 汇率',
-    sourceTag: 'INHERITED_BASE_CURRENCY',
+    specialRate: '核销汇率',
+    fallbackRate: '自动采用同期折本币汇率',
   },
 ];
 
@@ -71,7 +69,7 @@ export function CustomSettingsPanel() {
       const response = await exchangeRateServiceGetExchangeRateCustomSetting();
       setSetting(response.data);
     } catch (e: any) {
-      message.error(e.message || '获取汇率自定义设置失败');
+      message.error(e.message || '获取汇率设置失败');
     } finally {
       setLoading(false);
     }
@@ -91,12 +89,11 @@ export function CustomSettingsPanel() {
       setSetting(response.data);
       message.success(
         checked
-          ? '已成功开启「专用汇率未配置时继承折本币汇率」'
-          : '已关闭「专用汇率未配置时继承折本币汇率」',
+          ? '已开启：专用汇率未配置时自动继承折本币汇率'
+          : '已关闭：专用汇率未配置时继承折本币汇率',
       );
     } catch (e: any) {
-      message.error(e.message || '更新汇率自定义设置失败');
-      // 冲突或失败时重新拉取最新版本
+      message.error(e.message || '更新汇率设置失败，请刷新重试');
       loadSetting();
     } finally {
       setSaving(false);
@@ -105,40 +102,38 @@ export function CustomSettingsPanel() {
 
   const columns = [
     {
-      title: '业务节点',
+      title: '业务环节',
       dataIndex: 'node',
       key: 'node',
       width: 140,
       render: (val: string) => <Text strong>{val}</Text>,
     },
     {
-      title: '专用汇率类型',
-      dataIndex: 'rateType',
-      key: 'rateType',
-      width: 180,
+      title: '专属汇率类型',
+      dataIndex: 'specialRate',
+      key: 'specialRate',
+      width: 160,
       render: (val: string) => <Tag color="blue">{val}</Tag>,
     },
     {
-      title: '专用汇率未配置时处理',
-      dataIndex: 'fallback',
-      key: 'fallback',
-      render: (val: string) => <Text style={{ color: '#1677ff' }}>{val}</Text>,
-    },
-    {
-      title: '财务追溯标识 (exchange_rate_source)',
-      dataIndex: 'sourceTag',
-      key: 'sourceTag',
-      width: 260,
-      render: (val: string) => <Tag color="cyan">{val}</Tag>,
+      title: '未配置专属汇率时的取值规则',
+      dataIndex: 'fallbackRate',
+      key: 'fallbackRate',
+      render: (val: string) => (
+        <Space size={6}>
+          <SwapRightOutlined style={{ color: '#1677ff' }} />
+          <Text style={{ color: '#1677ff', fontWeight: 500 }}>{val}</Text>
+        </Space>
+      ),
     },
   ];
 
   return (
     <Spin spinning={loading}>
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
-        {/* 1. 财务汇率自定义配置卡片 */}
+        {/* 1. 核心开关卡片 */}
         <SectionCard
-          title="财务汇率自定义规则"
+          title="财务汇率继承设置"
           extra={
             <Button
               type="text"
@@ -165,7 +160,7 @@ export function CustomSettingsPanel() {
                   <Space align="center" size={8} wrap>
                     <DollarOutlined style={{ fontSize: 16, color: '#1677ff' }} />
                     <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
-                      专用汇率未配置时继承折本币汇率
+                      专用汇率未配置时，继承折本币汇率
                     </Text>
                     {setting?.inheritBaseCurrencyRate ? (
                       <Tag color="success">已开启继承</Tag>
@@ -181,9 +176,8 @@ export function CustomSettingsPanel() {
                   </Paragraph>
                   {setting?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      最近更新时间：{dayjs(setting.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      最近修改时间：{dayjs(setting.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
                       {setting.updatedBy ? `（操作人：${setting.updatedBy}）` : ''}
-                      {setting.version ? ` · 策略版本号: v${setting.version}` : ''}
                     </Text>
                   )}
                 </Space>
@@ -203,53 +197,78 @@ export function CustomSettingsPanel() {
           </div>
         </SectionCard>
 
-        {/* 2. 汇率继承机制与财务追溯说明 */}
-        <SectionCard title="继承规则与财务追溯说明">
+        {/* 2. 业务生效规则与优先级 */}
+        <SectionCard title="汇率生效与优先级规则">
           <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Alert
-              type="info"
-              showIcon
-              icon={<SafetyCertificateOutlined />}
-              message="汇率解析与审计追溯保障"
-              description={
-                <ul style={{ margin: '6px 0 0 0', paddingLeft: 18, lineHeight: '22px' }}>
-                  <li>
-                    <strong>专用汇率绝对优先</strong>
-                    ：系统优先按业务节点的日期和专用汇率类型查询，只要命中专用汇率则始终直接采用。
-                  </li>
-                  <li>
-                    <strong>继承受控查询</strong>
-                    ：仅当专用汇率返回“未命中”，且本开关已打开时，才查询同一币种、同一日期、同一收付方向的折本币汇率（BASE_CURRENCY）。
-                  </li>
-                  <li>
-                    <strong>无静默默认值</strong>
-                    ：若折本币汇率也未配置，将明确报错提示“汇率未配置”，不会静默使用 1.0 或其他默认值。
-                  </li>
-                  <li>
-                    <strong>冲突严谨暴露</strong>
-                    ：若专用汇率存在生效区间冲突，将继续返回冲突错误，绝不通过继承折本币掩盖数据异常。
-                  </li>
-                  <li>
-                    <strong>组织本币直通</strong>
-                    ：费用币种若本来就是组织本币，直接采用汇率 1.0，与此开关无关。
-                  </li>
-                  <li>
-                    <strong>完整财务追溯</strong>
-                    ：继承结果在账单、发票、收付流水与核销记录中明确标记{' '}
-                    <code>exchange_rate_source = INHERITED_BASE_CURRENCY</code> 并记录折本币汇率设置
-                    ID，保障财务审计透明追溯。
-                  </li>
-                </ul>
-              }
-            />
+            {/* 三步取值优先级 */}
+            <Row gutter={[12, 12]}>
+              <Col xs={24} md={8}>
+                <Card
+                  size="small"
+                  style={{
+                    height: '100%',
+                    backgroundColor: '#fafafa',
+                    borderColor: '#f0f0f0',
+                  }}
+                >
+                  <Space direction="vertical" size={4}>
+                    <Text strong style={{ color: '#1677ff', fontSize: 13 }}>
+                      1. 优先使用专属汇率
+                    </Text>
+                    <Paragraph type="secondary" style={{ margin: 0, fontSize: 12, lineHeight: '20px' }}>
+                      只要在「汇率设置」中配置了对应环节的专属汇率（如开票汇率、结算汇率等），系统始终优先采用专属汇率。
+                    </Paragraph>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card
+                  size="small"
+                  style={{
+                    height: '100%',
+                    backgroundColor: '#fafafa',
+                    borderColor: '#f0f0f0',
+                  }}
+                >
+                  <Space direction="vertical" size={4}>
+                    <Text strong style={{ color: '#52c41a', fontSize: 13 }}>
+                      2. 未设专属时继承折本币
+                    </Text>
+                    <Paragraph type="secondary" style={{ margin: 0, fontSize: 12, lineHeight: '20px' }}>
+                      当某个环节未配置专属汇率且本开关开启时，系统自动匹配同币种、同业务日期的折本币汇率。
+                    </Paragraph>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={24} md={8}>
+                <Card
+                  size="small"
+                  style={{
+                    height: '100%',
+                    backgroundColor: '#fafafa',
+                    borderColor: '#f0f0f0',
+                  }}
+                >
+                  <Space direction="vertical" size={4}>
+                    <Text strong style={{ color: '#fa8c16', fontSize: 13 }}>
+                      3. 严谨防错与拦截
+                    </Text>
+                    <Paragraph type="secondary" style={{ margin: 0, fontSize: 12, lineHeight: '20px' }}>
+                      若折本币汇率也未维护，系统将明确提示“汇率未配置”，不会随意按 1.0 折算，确保财务数据准确。
+                    </Paragraph>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
 
+            {/* 业务环节表格 */}
             <div>
               <Text strong style={{ fontSize: 13, marginBottom: 8, display: 'block' }}>
-                支持继承的业务节点与专用汇率类型映射
+                适用的业务环节与汇率对照
               </Text>
               <Table
                 columns={columns}
-                dataSource={inheritanceRulesData}
+                dataSource={businessNodeData}
                 pagination={false}
                 size="small"
                 bordered
