@@ -240,7 +240,7 @@ export function ExchangeRatesPanel() {
       align: 'right',
       width: 110,
       render: (_, record) => (
-        <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600, color: '#1677ff' }}>
+        <span style={{ fontWeight: 600, color: '#1677ff' }}>
           {trimExactDecimal(record.receivableRate)}
         </span>
       ),
@@ -251,7 +251,7 @@ export function ExchangeRatesPanel() {
       align: 'right',
       width: 110,
       render: (_, record) => (
-        <span style={{ fontFamily: 'ui-monospace, monospace', fontWeight: 600, color: '#52c41a' }}>
+        <span style={{ fontWeight: 600, color: '#52c41a' }}>
           {trimExactDecimal(record.payableRate)}
         </span>
       ),
@@ -259,28 +259,21 @@ export function ExchangeRatesPanel() {
     {
       title: '开始时间',
       dataIndex: 'effectiveFrom',
-      width: 170,
-      render: (_, record) => (
-        <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, color: '#262626' }}>
-          {record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-'}
-        </span>
-      ),
+      width: 165,
+      render: (_, record) =>
+        record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-',
     },
     {
       title: '结束时间',
       dataIndex: 'effectiveTo',
-      width: 170,
+      width: 165,
       render: (_, record) => {
         if (!record.effectiveTo) {
           return <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>长期有效</Tag>;
         }
         // 后端存储为左闭右开 effectiveTo，前端展示包含当天至 23:59:59
         const toDay = dayjs(record.effectiveTo).subtract(1, 'day').format('YYYY-MM-DD');
-        return (
-          <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, color: '#595959' }}>
-            {`${toDay} 23:59:59`}
-          </span>
-        );
+        return `${toDay} 23:59:59`;
       },
     },
     {
