@@ -1177,6 +1177,57 @@ var (
 			},
 		},
 	}
+	// FinanceFeeLedgerPreferencesColumns holds the columns for the "finance_fee_ledger_preferences" table.
+	FinanceFeeLedgerPreferencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "columns", Type: field.TypeJSON},
+		{Name: "page_size", Type: field.TypeInt},
+		{Name: "sort_field", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "sort_direction", Type: field.TypeEnum, Nullable: true, Enums: []string{"ASC", "DESC"}},
+		{Name: "row_colors", Type: field.TypeJSON},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// FinanceFeeLedgerPreferencesTable holds the schema information for the "finance_fee_ledger_preferences" table.
+	FinanceFeeLedgerPreferencesTable = &schema.Table{
+		Name:       "finance_fee_ledger_preferences",
+		Columns:    FinanceFeeLedgerPreferencesColumns,
+		PrimaryKey: []*schema.Column{FinanceFeeLedgerPreferencesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_fee_ledger_preferences_organizations_finance_fee_ledger_preferences",
+				Columns:    []*schema.Column{FinanceFeeLedgerPreferencesColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_fee_ledger_preferences_users_finance_fee_ledger_preferences",
+				Columns:    []*schema.Column{FinanceFeeLedgerPreferencesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financefeeledgerpreference_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceFeeLedgerPreferencesColumns[2]},
+			},
+			{
+				Name:    "financefeeledgerpreference_organization_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceFeeLedgerPreferencesColumns[9], FinanceFeeLedgerPreferencesColumns[10]},
+			},
+			{
+				Name:    "financefeeledgerpreference_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceFeeLedgerPreferencesColumns[10]},
+			},
+		},
+	}
 	// FinanceInvoicesColumns holds the columns for the "finance_invoices" table.
 	FinanceInvoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3896,6 +3947,7 @@ var (
 		FinanceCommissionAdjustmentsTable,
 		FinanceCommissionLinesTable,
 		FinanceCommissionRulesTable,
+		FinanceFeeLedgerPreferencesTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
 		FinanceInvoiceLinesTable,
@@ -3994,6 +4046,8 @@ func init() {
 	FinanceCommissionLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceCommissionLinesTable.ForeignKeys[2].RefTable = OrganizationsTable
 	FinanceCommissionRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceFeeLedgerPreferencesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceFeeLedgerPreferencesTable.ForeignKeys[1].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoicesTable.ForeignKeys[1].RefTable = PartnersTable
 	FinanceInvoicesTable.ForeignKeys[2].RefTable = PartnerInvoiceProfilesTable

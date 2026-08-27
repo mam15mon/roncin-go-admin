@@ -1223,6 +1223,11 @@ declare namespace API {
     id: string;
   };
 
+  type FeeLedgerColumnPreference = {
+    fieldKey: string;
+    visible?: boolean;
+  };
+
   type FeeLedgerItem = {
     id?: string;
     orderId?: string;
@@ -1252,6 +1257,25 @@ declare namespace API {
     taxRate?: string;
     customerId?: string;
     customerName?: string;
+  };
+
+  type FeeLedgerPreference = {
+    columns?: FeeLedgerColumnPreference[];
+    pageSize?: number;
+    sortField?: string;
+    sortDirection?: string;
+    rowColors?: FeeLedgerRowColors;
+    version?: string;
+    customized?: boolean;
+    updatedAt?: string;
+  };
+
+  type FeeLedgerRowColors = {
+    unbilled: string;
+    unverifiedUninvoiced: string;
+    invoicedUnverified: string;
+    verifiedUninvoiced: string;
+    completed: string;
   };
 
   type FeeLedgerSummary = {
@@ -1578,6 +1602,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetFeeLedgerPreferenceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerPreference;
     traceId?: string;
   };
 
@@ -3473,6 +3505,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ResetFeeLedgerPreferenceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerPreference;
+    traceId?: string;
+  };
+
   type ResetUserPasswordRequest = {
     id: string;
     password: string;
@@ -3724,6 +3764,10 @@ declare namespace API {
 
   type SettlementServiceRedFlushInvoiceParams = {
     id: string;
+  };
+
+  type SettlementServiceResetFeeLedgerPreferenceParams = {
+    version?: string;
   };
 
   type SettlementServiceReverseVerificationParams = {
@@ -4007,6 +4051,23 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateTimeStandardSetting[];
+    traceId?: string;
+  };
+
+  type UpdateFeeLedgerPreferenceRequest = {
+    columns: FeeLedgerColumnPreference[];
+    pageSize: number;
+    sortField?: string;
+    sortDirection?: string;
+    rowColors: FeeLedgerRowColors;
+    version?: string;
+  };
+
+  type UpdateFeeLedgerPreferenceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerPreference;
     traceId?: string;
   };
 

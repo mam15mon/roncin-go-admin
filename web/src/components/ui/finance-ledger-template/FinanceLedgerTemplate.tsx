@@ -3,6 +3,7 @@ import {
   DownOutlined,
   DownloadOutlined,
   FileDoneOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import {
   type ActionType,
@@ -46,6 +47,9 @@ export function FinanceLedgerTemplate<
   extraToolBarActions = [],
   request,
   showSummaryBoard = true,
+  onOpenColumnConfig,
+  rowColors,
+  getRowStatusColorKey,
 }: FinanceLedgerTemplateProps<T>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -77,7 +81,9 @@ export function FinanceLedgerTemplate<
         col.valueType !== 'option' &&
         col.valueType !== 'index',
     );
-    const headers = exportableCols.map((col) => String(col.title || col.dataIndex));
+    const headers = exportableCols.map((col) =>
+      String(col.title || col.dataIndex),
+    );
     const rows = list.map((item: any) =>
       exportableCols.map((col) => {
         const key = String(col.dataIndex);
@@ -134,7 +140,17 @@ export function FinanceLedgerTemplate<
         bordered
         size="small"
         scroll={{ x: scrollX }}
-        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+        pagination={{ defaultPageSize: 40, showSizeChanger: true }}
+        onRow={(record) => {
+          if (!rowColors || !getRowStatusColorKey) return {};
+          const statusKey = getRowStatusColorKey(record);
+          if (!statusKey) return {};
+          const bgColor = (rowColors as any)[statusKey];
+          if (!bgColor || bgColor === '#FFFFFF') return {};
+          return {
+            style: { backgroundColor: bgColor },
+          };
+        }}
         toolBarRender={() => [
           onPrimaryAction && (
             <Button
@@ -194,6 +210,15 @@ export function FinanceLedgerTemplate<
                 导入数据
               </Button>
             </Tooltip>
+          ),
+          onOpenColumnConfig && (
+            <Button
+              key="col-config"
+              icon={<SettingOutlined />}
+              onClick={onOpenColumnConfig}
+            >
+              表头排序与设置
+            </Button>
           ),
           ...extraToolBarActions,
         ].filter(Boolean)}

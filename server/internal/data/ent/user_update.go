@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -545,6 +546,21 @@ func (_u *UserUpdate) AddCancelledFinanceCommissionAdjustments(v ...*FinanceComm
 	return _u.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
 }
 
+// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
+func (_u *UserUpdate) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddFinanceFeeLedgerPreferenceIDs(ids...)
+	return _u
+}
+
+// AddFinanceFeeLedgerPreferences adds the "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
+func (_u *UserUpdate) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -1010,6 +1026,27 @@ func (_u *UserUpdate) RemoveCancelledFinanceCommissionAdjustments(v ...*FinanceC
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearFinanceFeeLedgerPreferences clears all "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
+func (_u *UserUpdate) ClearFinanceFeeLedgerPreferences() *UserUpdate {
+	_u.mutation.ClearFinanceFeeLedgerPreferences()
+	return _u
+}
+
+// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to FinanceFeeLedgerPreference entities by IDs.
+func (_u *UserUpdate) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceFeeLedgerPreferences removes "finance_fee_ledger_preferences" edges to FinanceFeeLedgerPreference entities.
+func (_u *UserUpdate) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2141,6 +2178,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceFeeLedgerPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 && !_u.mutation.FinanceFeeLedgerPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -2665,6 +2747,21 @@ func (_u *UserUpdateOne) AddCancelledFinanceCommissionAdjustments(v ...*FinanceC
 	return _u.AddCancelledFinanceCommissionAdjustmentIDs(ids...)
 }
 
+// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
+func (_u *UserUpdateOne) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddFinanceFeeLedgerPreferenceIDs(ids...)
+	return _u
+}
+
+// AddFinanceFeeLedgerPreferences adds the "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
+func (_u *UserUpdateOne) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -3130,6 +3227,27 @@ func (_u *UserUpdateOne) RemoveCancelledFinanceCommissionAdjustments(v ...*Finan
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCancelledFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearFinanceFeeLedgerPreferences clears all "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
+func (_u *UserUpdateOne) ClearFinanceFeeLedgerPreferences() *UserUpdateOne {
+	_u.mutation.ClearFinanceFeeLedgerPreferences()
+	return _u
+}
+
+// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to FinanceFeeLedgerPreference entities by IDs.
+func (_u *UserUpdateOne) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceFeeLedgerPreferences removes "finance_fee_ledger_preferences" edges to FinanceFeeLedgerPreference entities.
+func (_u *UserUpdateOne) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -4284,6 +4402,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceFeeLedgerPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 && !_u.mutation.FinanceFeeLedgerPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{user.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

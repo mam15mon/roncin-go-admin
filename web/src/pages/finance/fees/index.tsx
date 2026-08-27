@@ -1,13 +1,17 @@
 import { history } from '@umijs/max';
 import { App, Tag, Tooltip } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
 import {
   FinanceLedgerTemplate,
+  TableColumnConfigModal,
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
-import { settlementServiceListFeeLedger } from '@/services/roncin/settlementService';
+import {
+  settlementServiceGetFeeLedgerPreference,
+  settlementServiceListFeeLedger,
+} from '@/services/roncin/settlementService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 
@@ -42,6 +46,19 @@ export default function FinanceFeeLedgerPage() {
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
+  const [columnConfigOpen, setColumnConfigOpen] = useState(false);
+  const [preference, setPreference] = useState<API.FeeLedgerPreference>();
+
+  // 加载当前用户云端表头偏好配置
+  useEffect(() => {
+    settlementServiceGetFeeLedgerPreference({})
+      .then((res) => {
+        if (res.data) {
+          setPreference(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const metricCards: FinanceLedgerMetricCard[] = [
     {
@@ -77,7 +94,8 @@ export default function FinanceFeeLedgerPage() {
     },
   ];
 
-  const columns: ProColumns<API.FeeLedgerItem>[] = [
+  // 全量预置列定义
+  const baseColumns: ProColumns<API.FeeLedgerItem>[] = [
     {
       title: '序号',
       dataIndex: 'index',
@@ -165,7 +183,7 @@ export default function FinanceFeeLedgerPage() {
         const response = await partnerServiceListPartners({
           role: 1,
           page: 1,
-          pageSize: 100,
+          pageSize: 200,
         });
         return (response.data || []).map((item) => ({
           label: item.legalName || item.code || item.id,
@@ -334,6 +352,42 @@ export default function FinanceFeeLedgerPage() {
     },
   ];
 
+  // 根据当前用户的个性化列偏好动态过滤显示
+  const columns = useMemo(() => {
+    if (!preference?.columns || preference.columns.length === 0) {
+      return baseColumns;
+    }
+    const visibleMap = new Map<string, boolean>();
+    preference.columns.forEach((c) => {
+      if (c.fieldKey) visibleMap.set(c.fieldKey, Boolean(c.visible));
+    });
+
+    return baseColumns.filter((col) => {
+      // 序号与操作列常驻显示
+      if (col.valueType === 'index' || col.valueType === 'option') return true;
+      const key = String(col.dataIndex || '');
+      if (!key) return true;
+      if (visibleMap.has(key)) {
+        return visibleMap.get(key);
+      }
+      return true;
+    });
+  }, [baseColumns, preference]);
+
+  // 根据费用业务状态映射对应的行高亮背景 key
+  const getRowStatusColorKey = (row: API.FeeLedgerItem) => {
+    if (row.status === 'DRAFT' || !row.status || row.status === 'CANCELLED') {
+      return 'unbilled' as const;
+    }
+    if (row.status === 'CONFIRMED') {
+      return 'unverifiedUninvoiced' as const;
+    }
+    if (row.status === 'BILLED') {
+      return 'invoicedUnverified' as const;
+    }
+    return undefined;
+  };
+
   return (
     <>
       <FinanceLedgerTemplate<API.FeeLedgerItem>
@@ -360,6 +414,9 @@ export default function FinanceFeeLedgerPage() {
           },
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
+        onOpenColumnConfig={() => setColumnConfigOpen(true)}
+        rowColors={preference?.rowColors}
+        getRowStatusColorKey={getRowStatusColorKey}
         request={async (params) => {
           const response = await settlementServiceListFeeLedger({
             page: params.current,
@@ -391,6 +448,17 @@ export default function FinanceFeeLedgerPage() {
         onCreated={() => {
           setBillWorkbenchOpen(false);
           setSelectedFeeIds([]);
+          actionRef.current?.reload();
+        }}
+      />
+
+      {/* 表头排序与 153 字段/颜色配置弹窗 */}
+      <TableColumnConfigModal
+        open={columnConfigOpen}
+        onClose={() => setColumnConfigOpen(false)}
+        currentPreference={preference}
+        onSaved={(updated) => {
+          setPreference(updated);
           actionRef.current?.reload();
         }}
       />

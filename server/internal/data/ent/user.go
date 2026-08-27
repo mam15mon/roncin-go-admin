@@ -94,9 +94,11 @@ type UserEdges struct {
 	PaidFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"paid_finance_commission_adjustments,omitempty"`
 	// CancelledFinanceCommissionAdjustments holds the value of the cancelled_finance_commission_adjustments edge.
 	CancelledFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"cancelled_finance_commission_adjustments,omitempty"`
+	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
+	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [22]bool
+	loadedTypes [23]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -295,6 +297,15 @@ func (e UserEdges) CancelledFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommi
 		return e.CancelledFinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_commission_adjustments"}
+}
+
+// FinanceFeeLedgerPreferencesOrErr returns the FinanceFeeLedgerPreferences value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPreference, error) {
+	if e.loadedTypes[22] {
+		return e.FinanceFeeLedgerPreferences, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -531,6 +542,11 @@ func (_m *User) QueryPaidFinanceCommissionAdjustments() *FinanceCommissionAdjust
 // QueryCancelledFinanceCommissionAdjustments queries the "cancelled_finance_commission_adjustments" edge of the User entity.
 func (_m *User) QueryCancelledFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
 	return NewUserClient(_m.config).QueryCancelledFinanceCommissionAdjustments(_m)
+}
+
+// QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the User entity.
+func (_m *User) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
+	return NewUserClient(_m.config).QueryFinanceFeeLedgerPreferences(_m)
 }
 
 // Update returns a builder for updating this User.

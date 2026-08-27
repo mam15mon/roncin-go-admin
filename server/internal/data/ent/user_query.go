@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -59,6 +60,7 @@ type UserQuery struct {
 	withConfirmedFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
 	withPaidFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
 	withCancelledFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
+	withFinanceFeeLedgerPreferences           *FinanceFeeLedgerPreferenceQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -580,6 +582,28 @@ func (_q *UserQuery) QueryCancelledFinanceCommissionAdjustments() *FinanceCommis
 	return query
 }
 
+// QueryFinanceFeeLedgerPreferences chains the current query on the "finance_fee_ledger_preferences" edge.
+func (_q *UserQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
+	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financefeeledgerpreference.Table, financefeeledgerpreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceFeeLedgerPreferencesTable, user.FinanceFeeLedgerPreferencesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -794,6 +818,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withConfirmedFinanceCommissionAdjustments: _q.withConfirmedFinanceCommissionAdjustments.Clone(),
 		withPaidFinanceCommissionAdjustments:      _q.withPaidFinanceCommissionAdjustments.Clone(),
 		withCancelledFinanceCommissionAdjustments: _q.withCancelledFinanceCommissionAdjustments.Clone(),
+		withFinanceFeeLedgerPreferences:           _q.withFinanceFeeLedgerPreferences.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1042,6 +1067,17 @@ func (_q *UserQuery) WithCancelledFinanceCommissionAdjustments(opts ...func(*Fin
 	return _q
 }
 
+// WithFinanceFeeLedgerPreferences tells the query-builder to eager-load the nodes that are connected to
+// the "finance_fee_ledger_preferences" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFinanceFeeLedgerPreferences(opts ...func(*FinanceFeeLedgerPreferenceQuery)) *UserQuery {
+	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceFeeLedgerPreferences = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1120,7 +1156,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [22]bool{
+		loadedTypes = [23]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1143,6 +1179,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withConfirmedFinanceCommissionAdjustments != nil,
 			_q.withPaidFinanceCommissionAdjustments != nil,
 			_q.withCancelledFinanceCommissionAdjustments != nil,
+			_q.withFinanceFeeLedgerPreferences != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1352,6 +1389,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
 			func(n *User, e *FinanceCommissionAdjustment) {
 				n.Edges.CancelledFinanceCommissionAdjustments = append(n.Edges.CancelledFinanceCommissionAdjustments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceFeeLedgerPreferences; query != nil {
+		if err := _q.loadFinanceFeeLedgerPreferences(ctx, query, nodes,
+			func(n *User) { n.Edges.FinanceFeeLedgerPreferences = []*FinanceFeeLedgerPreference{} },
+			func(n *User, e *FinanceFeeLedgerPreference) {
+				n.Edges.FinanceFeeLedgerPreferences = append(n.Edges.FinanceFeeLedgerPreferences, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2059,6 +2105,36 @@ func (_q *UserQuery) loadCancelledFinanceCommissionAdjustments(ctx context.Conte
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadFinanceFeeLedgerPreferences(ctx context.Context, query *FinanceFeeLedgerPreferenceQuery, nodes []*User, init func(*User), assign func(*User, *FinanceFeeLedgerPreference)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financefeeledgerpreference.FieldUserID)
+	}
+	query.Where(predicate.FinanceFeeLedgerPreference(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.FinanceFeeLedgerPreferencesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

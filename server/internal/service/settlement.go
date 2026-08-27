@@ -20,10 +20,11 @@ type SettlementService struct {
 	cashflowUsecase     *biz.FinanceCashflowUsecase
 	verificationUsecase *biz.VerificationUsecase
 	commissionUsecase   *biz.CommissionUsecase
+	preferenceUsecase   *biz.FeeLedgerPreferenceUsecase
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase}
 }
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
@@ -82,6 +83,107 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
 		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: result.Summary.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: result.Summary.ProfitBaseAmount.StringFixed(8), BaseCurrency: result.Summary.BaseCurrency},
 	}, nil
+}
+
+func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	preference, err := s.preferenceUsecase.Get(ctx, principal.Organization.ID, principal.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetFeeLedgerPreferenceResponse{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    feeLedgerPreferenceToAPI(preference),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, request *v1.UpdateFeeLedgerPreferenceRequest) (*v1.UpdateFeeLedgerPreferenceResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	columns := make([]biz.FeeLedgerColumnPreference, 0, len(request.GetColumns()))
+	for _, column := range request.GetColumns() {
+		if column == nil {
+			return nil, biz.ErrFeeLedgerPreferenceInvalidArgument
+		}
+		columns = append(columns, biz.FeeLedgerColumnPreference{FieldKey: column.GetFieldKey(), Visible: column.GetVisible()})
+	}
+	colors := request.GetRowColors()
+	if colors == nil {
+		return nil, biz.ErrFeeLedgerPreferenceInvalidArgument
+	}
+	preference, err := s.preferenceUsecase.Save(ctx, principal.Organization.ID, principal.UserID, &biz.FeeLedgerPreference{
+		Columns:       columns,
+		PageSize:      int(request.GetPageSize()),
+		SortField:     financeOptionalString(request.SortField),
+		SortDirection: financeOptionalString(request.SortDirection),
+		RowColors: biz.FeeLedgerRowColors{
+			Unbilled:             colors.GetUnbilled(),
+			UnverifiedUninvoiced: colors.GetUnverifiedUninvoiced(),
+			InvoicedUnverified:   colors.GetInvoicedUnverified(),
+			VerifiedUninvoiced:   colors.GetVerifiedUninvoiced(),
+			Completed:            colors.GetCompleted(),
+		},
+		Version: request.GetVersion(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateFeeLedgerPreferenceResponse{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    feeLedgerPreferenceToAPI(preference),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, request *v1.ResetFeeLedgerPreferenceRequest) (*v1.ResetFeeLedgerPreferenceResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	preference, err := s.preferenceUsecase.Reset(ctx, principal.Organization.ID, principal.UserID, request.GetVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ResetFeeLedgerPreferenceResponse{
+		Success: true,
+		Code:    0,
+		Message: "OK",
+		Data:    feeLedgerPreferenceToAPI(preference),
+		TraceId: requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func feeLedgerPreferenceToAPI(preference *biz.FeeLedgerPreference) *v1.FeeLedgerPreference {
+	columns := make([]*v1.FeeLedgerColumnPreference, 0, len(preference.Columns))
+	for _, column := range preference.Columns {
+		columns = append(columns, &v1.FeeLedgerColumnPreference{FieldKey: column.FieldKey, Visible: column.Visible})
+	}
+	result := &v1.FeeLedgerPreference{
+		Columns:    columns,
+		PageSize:   int32(preference.PageSize),
+		RowColors:  &v1.FeeLedgerRowColors{Unbilled: preference.RowColors.Unbilled, UnverifiedUninvoiced: preference.RowColors.UnverifiedUninvoiced, InvoicedUnverified: preference.RowColors.InvoicedUnverified, VerifiedUninvoiced: preference.RowColors.VerifiedUninvoiced, Completed: preference.RowColors.Completed},
+		Version:    preference.Version,
+		Customized: preference.Customized,
+	}
+	if preference.SortField != "" {
+		result.SortField = &preference.SortField
+		result.SortDirection = &preference.SortDirection
+	}
+	if !preference.UpdatedAt.IsZero() {
+		updatedAt := preference.UpdatedAt.UTC().Format(time.RFC3339)
+		result.UpdatedAt = &updatedAt
+	}
+	return result
 }
 
 func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBillsRequest) (*v1.ListBillsResponse, error) {

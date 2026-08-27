@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
@@ -637,6 +638,21 @@ func (_c *OrganizationCreate) AddFinanceCommissionRules(v ...*FinanceCommissionR
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCommissionRuleIDs(ids...)
+}
+
+// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
+func (_c *OrganizationCreate) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceFeeLedgerPreferenceIDs(ids...)
+	return _c
+}
+
+// AddFinanceFeeLedgerPreferences adds the "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
+func (_c *OrganizationCreate) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1317,6 +1333,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceFeeLedgerPreferencesTable,
+			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

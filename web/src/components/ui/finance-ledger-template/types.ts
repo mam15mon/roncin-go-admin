@@ -75,4 +75,20 @@ export interface FinanceLedgerTemplateProps<
 
   // 是否展示底部双层多币种动态汇总底栏（默认 true）
   showSummaryBoard?: boolean;
+
+  // 表头排序/设置弹窗入口
+  onOpenColumnConfig?: () => void;
+
+  // 5 类状态行背景高亮颜色配置
+  rowColors?: API.FeeLedgerRowColors;
+  getRowStatusColorKey?: (
+    record: T,
+  ) =>
+    | 'unbilled'
+    | 'unverifiedUninvoiced'
+    | 'invoicedUnverified'
+    | 'verifiedUninvoiced'
+    | 'completed'
+    | undefined;
 }
+

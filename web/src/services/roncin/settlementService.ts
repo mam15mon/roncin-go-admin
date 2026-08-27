@@ -561,6 +561,55 @@ export async function settlementServiceListFeeLedger(
   });
 }
 
+/** GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。 GET /api/v1/finance/fees/preference */
+export async function settlementServiceGetFeeLedgerPreference(options?: {
+  [key: string]: any;
+}) {
+  return request<API.GetFeeLedgerPreferenceResponse>(
+    "/api/v1/finance/fees/preference",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。 PUT /api/v1/finance/fees/preference */
+export async function settlementServiceUpdateFeeLedgerPreference(
+  body: API.UpdateFeeLedgerPreferenceRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.UpdateFeeLedgerPreferenceResponse>(
+    "/api/v1/finance/fees/preference",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。 DELETE /api/v1/finance/fees/preference */
+export async function settlementServiceResetFeeLedgerPreference(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceResetFeeLedgerPreferenceParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ResetFeeLedgerPreferenceResponse>(
+    "/api/v1/finance/fees/preference",
+    {
+      method: "DELETE",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/invoices */
 export async function settlementServiceListInvoices(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

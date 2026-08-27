@@ -108,9 +108,11 @@ type OrganizationEdges struct {
 	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
 	// FinanceCommissionRules holds the value of the finance_commission_rules edge.
 	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
+	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
+	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [33]bool
+	loadedTypes [34]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -412,6 +414,15 @@ func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRu
 	return nil, &NotLoadedError{edge: "finance_commission_rules"}
 }
 
+// FinanceFeeLedgerPreferencesOrErr returns the FinanceFeeLedgerPreferences value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPreference, error) {
+	if e.loadedTypes[33] {
+		return e.FinanceFeeLedgerPreferences, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -674,6 +685,11 @@ func (_m *Organization) QueryFinanceCommissionAdjustments() *FinanceCommissionAd
 // QueryFinanceCommissionRules queries the "finance_commission_rules" edge of the Organization entity.
 func (_m *Organization) QueryFinanceCommissionRules() *FinanceCommissionRuleQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceCommissionRules(_m)
+}
+
+// QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the Organization entity.
+func (_m *Organization) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceFeeLedgerPreferences(_m)
 }
 
 // Update returns a builder for updating this Organization.

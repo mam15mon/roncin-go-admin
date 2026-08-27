@@ -60,6 +60,9 @@ type FinanceCommissionLine func(*sql.Selector)
 // FinanceCommissionRule is the predicate function for financecommissionrule builders.
 type FinanceCommissionRule func(*sql.Selector)
 
+// FinanceFeeLedgerPreference is the predicate function for financefeeledgerpreference builders.
+type FinanceFeeLedgerPreference func(*sql.Selector)
+
 // FinanceInvoice is the predicate function for financeinvoice builders.
 type FinanceInvoice func(*sql.Selector)
 

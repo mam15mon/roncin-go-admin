@@ -37,6 +37,7 @@ const OperationSettlementServiceCreateInvoice = "/finance.v1.SettlementService/C
 const OperationSettlementServiceCreateVerification = "/finance.v1.SettlementService/CreateVerification"
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/GetCommission"
+const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
@@ -53,9 +54,11 @@ const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementServ
 const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementService/PreviewBillBatch"
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
+const OperationSettlementServiceResetFeeLedgerPreference = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 const OperationSettlementServiceUpdateCommissionRule = "/finance.v1.SettlementService/UpdateCommissionRule"
+const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
@@ -78,6 +81,8 @@ type SettlementServiceHTTPServer interface {
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*CommissionResponse, error)
+	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
+	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
@@ -95,14 +100,21 @@ type SettlementServiceHTTPServer interface {
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
+	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
+	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error)
+	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
+	UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error)
 }
 
 func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/finance/fees", _SettlementService_ListFeeLedger0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/fees/preference", _SettlementService_GetFeeLedgerPreference0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/fees/preference", _SettlementService_UpdateFeeLedgerPreference0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/api/v1/finance/fees/preference", _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
@@ -158,6 +170,63 @@ func _SettlementService_ListFeeLedger0_HTTP_Handler(srv SettlementServiceHTTPSer
 			return err
 		}
 		reply := out.(*ListFeeLedgerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetFeeLedgerPreferenceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetFeeLedgerPreference)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetFeeLedgerPreference(ctx, req.(*GetFeeLedgerPreferenceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetFeeLedgerPreferenceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_UpdateFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateFeeLedgerPreferenceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceUpdateFeeLedgerPreference)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateFeeLedgerPreference(ctx, req.(*UpdateFeeLedgerPreferenceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateFeeLedgerPreferenceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetFeeLedgerPreferenceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceResetFeeLedgerPreference)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetFeeLedgerPreference(ctx, req.(*ResetFeeLedgerPreferenceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetFeeLedgerPreferenceResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -968,6 +1037,8 @@ type SettlementServiceHTTPClient interface {
 	CreateVerification(ctx context.Context, req *CreateVerificationRequest, opts ...http.CallOption) (rsp *CreateVerificationResponse, err error)
 	GetBill(ctx context.Context, req *GetBillRequest, opts ...http.CallOption) (rsp *GetBillResponse, err error)
 	GetCommission(ctx context.Context, req *GetCommissionRequest, opts ...http.CallOption) (rsp *CommissionResponse, err error)
+	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
+	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
@@ -985,9 +1056,13 @@ type SettlementServiceHTTPClient interface {
 	PreviewBillBatch(ctx context.Context, req *PreviewBillBatchRequest, opts ...http.CallOption) (rsp *PreviewBillBatchResponse, err error)
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
+	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
+	ResetFeeLedgerPreference(ctx context.Context, req *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *ResetFeeLedgerPreferenceResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
 	UpdateCommissionRule(ctx context.Context, req *UpdateCommissionRuleRequest, opts ...http.CallOption) (rsp *CommissionRuleResponse, err error)
+	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
+	UpdateFeeLedgerPreference(ctx context.Context, req *UpdateFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *UpdateFeeLedgerPreferenceResponse, err error)
 }
 
 type SettlementServiceHTTPClientImpl struct {
@@ -1336,6 +1411,23 @@ func (c *SettlementServiceHTTPClientImpl) GetCommission(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
+func (c *SettlementServiceHTTPClientImpl) GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (*GetFeeLedgerPreferenceResponse, error) {
+	var out GetFeeLedgerPreferenceResponse
+	pattern := "/api/v1/finance/fees/preference"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetFeeLedgerPreference),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) GetInvoice(ctx context.Context, in *GetInvoiceRequest, opts ...http.CallOption) (*GetInvoiceResponse, error) {
 	var out GetInvoiceResponse
 	pattern := "/api/v1/finance/invoices/{id}"
@@ -1599,6 +1691,23 @@ func (c *SettlementServiceHTTPClientImpl) RedFlushInvoice(ctx context.Context, i
 	return &out, nil
 }
 
+// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
+func (c *SettlementServiceHTTPClientImpl) ResetFeeLedgerPreference(ctx context.Context, in *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (*ResetFeeLedgerPreferenceResponse, error) {
+	var out ResetFeeLedgerPreferenceResponse
+	pattern := "/api/v1/finance/fees/preference"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceResetFeeLedgerPreference),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...http.CallOption) (*ReverseVerificationResponse, error) {
 	var out ReverseVerificationResponse
 	pattern := "/api/v1/finance/verifications/{id}/reverse"
@@ -1641,6 +1750,24 @@ func (c *SettlementServiceHTTPClientImpl) UpdateCommissionRule(ctx context.Conte
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceUpdateCommissionRule),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
+func (c *SettlementServiceHTTPClientImpl) UpdateFeeLedgerPreference(ctx context.Context, in *UpdateFeeLedgerPreferenceRequest, opts ...http.CallOption) (*UpdateFeeLedgerPreferenceResponse, error) {
+	var out UpdateFeeLedgerPreferenceResponse
+	pattern := "/api/v1/finance/fees/preference"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceUpdateFeeLedgerPreference),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

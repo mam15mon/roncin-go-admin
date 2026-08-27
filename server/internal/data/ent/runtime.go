@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
@@ -2096,6 +2097,35 @@ func init() {
 	financecommissionruleDescID := financecommissionruleMixinFields0[0].Descriptor()
 	// financecommissionrule.DefaultID holds the default value on creation for the id field.
 	financecommissionrule.DefaultID = financecommissionruleDescID.Default.(func() uuid.UUID)
+	financefeeledgerpreferenceMixin := schema.FinanceFeeLedgerPreference{}.Mixin()
+	financefeeledgerpreferenceMixinFields0 := financefeeledgerpreferenceMixin[0].Fields()
+	_ = financefeeledgerpreferenceMixinFields0
+	financefeeledgerpreferenceMixinFields1 := financefeeledgerpreferenceMixin[1].Fields()
+	_ = financefeeledgerpreferenceMixinFields1
+	financefeeledgerpreferenceFields := schema.FinanceFeeLedgerPreference{}.Fields()
+	_ = financefeeledgerpreferenceFields
+	// financefeeledgerpreferenceDescCreatedAt is the schema descriptor for created_at field.
+	financefeeledgerpreferenceDescCreatedAt := financefeeledgerpreferenceMixinFields1[0].Descriptor()
+	// financefeeledgerpreference.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financefeeledgerpreference.DefaultCreatedAt = financefeeledgerpreferenceDescCreatedAt.Default.(func() time.Time)
+	// financefeeledgerpreferenceDescUpdatedAt is the schema descriptor for updated_at field.
+	financefeeledgerpreferenceDescUpdatedAt := financefeeledgerpreferenceMixinFields1[1].Descriptor()
+	// financefeeledgerpreference.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financefeeledgerpreference.DefaultUpdatedAt = financefeeledgerpreferenceDescUpdatedAt.Default.(func() time.Time)
+	// financefeeledgerpreference.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financefeeledgerpreference.UpdateDefaultUpdatedAt = financefeeledgerpreferenceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financefeeledgerpreferenceDescSortField is the schema descriptor for sort_field field.
+	financefeeledgerpreferenceDescSortField := financefeeledgerpreferenceFields[4].Descriptor()
+	// financefeeledgerpreference.SortFieldValidator is a validator for the "sort_field" field. It is called by the builders before save.
+	financefeeledgerpreference.SortFieldValidator = financefeeledgerpreferenceDescSortField.Validators[0].(func(string) error)
+	// financefeeledgerpreferenceDescVersion is the schema descriptor for version field.
+	financefeeledgerpreferenceDescVersion := financefeeledgerpreferenceFields[7].Descriptor()
+	// financefeeledgerpreference.DefaultVersion holds the default value on creation for the version field.
+	financefeeledgerpreference.DefaultVersion = financefeeledgerpreferenceDescVersion.Default.(uint64)
+	// financefeeledgerpreferenceDescID is the schema descriptor for id field.
+	financefeeledgerpreferenceDescID := financefeeledgerpreferenceMixinFields0[0].Descriptor()
+	// financefeeledgerpreference.DefaultID holds the default value on creation for the id field.
+	financefeeledgerpreference.DefaultID = financefeeledgerpreferenceDescID.Default.(func() uuid.UUID)
 	financeinvoiceMixin := schema.FinanceInvoice{}.Mixin()
 	financeinvoiceMixinFields0 := financeinvoiceMixin[0].Fields()
 	_ = financeinvoiceMixinFields0

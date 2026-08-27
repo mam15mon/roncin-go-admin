@@ -83,6 +83,8 @@ const (
 	EdgePaidFinanceCommissionAdjustments = "paid_finance_commission_adjustments"
 	// EdgeCancelledFinanceCommissionAdjustments holds the string denoting the cancelled_finance_commission_adjustments edge name in mutations.
 	EdgeCancelledFinanceCommissionAdjustments = "cancelled_finance_commission_adjustments"
+	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
+	EdgeFinanceFeeLedgerPreferences = "finance_fee_ledger_preferences"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -239,6 +241,13 @@ const (
 	CancelledFinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
 	// CancelledFinanceCommissionAdjustmentsColumn is the table column denoting the cancelled_finance_commission_adjustments relation/edge.
 	CancelledFinanceCommissionAdjustmentsColumn = "cancelled_by"
+	// FinanceFeeLedgerPreferencesTable is the table that holds the finance_fee_ledger_preferences relation/edge.
+	FinanceFeeLedgerPreferencesTable = "finance_fee_ledger_preferences"
+	// FinanceFeeLedgerPreferencesInverseTable is the table name for the FinanceFeeLedgerPreference entity.
+	// It exists in this package in order to avoid circular dependency with the "financefeeledgerpreference" package.
+	FinanceFeeLedgerPreferencesInverseTable = "finance_fee_ledger_preferences"
+	// FinanceFeeLedgerPreferencesColumn is the table column denoting the finance_fee_ledger_preferences relation/edge.
+	FinanceFeeLedgerPreferencesColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -672,6 +681,20 @@ func ByCancelledFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.Or
 		sqlgraph.OrderByNeighborTerms(s, newCancelledFinanceCommissionAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFinanceFeeLedgerPreferencesCount orders the results by finance_fee_ledger_preferences count.
+func ByFinanceFeeLedgerPreferencesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceFeeLedgerPreferencesStep(), opts...)
+	}
+}
+
+// ByFinanceFeeLedgerPreferences orders the results by finance_fee_ledger_preferences terms.
+func ByFinanceFeeLedgerPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceFeeLedgerPreferencesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -824,5 +847,12 @@ func newCancelledFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CancelledFinanceCommissionAdjustmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CancelledFinanceCommissionAdjustmentsTable, CancelledFinanceCommissionAdjustmentsColumn),
+	)
+}
+func newFinanceFeeLedgerPreferencesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceFeeLedgerPreferencesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceFeeLedgerPreferencesTable, FinanceFeeLedgerPreferencesColumn),
 	)
 }
