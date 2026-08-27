@@ -29,6 +29,104 @@ import type {
   FinanceLedgerTemplateProps,
 } from './types';
 
+interface ResizableHeaderCellProps
+  extends React.HTMLAttributes<HTMLTableHeaderCellElement> {
+  onResize?: (width: number) => void;
+  onAutoFit?: () => void;
+  width?: number;
+  resizable?: boolean;
+}
+
+const ResizableHeaderCell: React.FC<ResizableHeaderCellProps> = ({
+  onResize,
+  onAutoFit,
+  width,
+  resizable = true,
+  children,
+  style,
+  className,
+  ...restProps
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  if (!resizable || !width || !onResize) {
+    return (
+      <th style={style} className={className} {...restProps}>
+        {children}
+      </th>
+    );
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+
+    const startX = e.clientX;
+    const startWidth = width;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const nextWidth = Math.max(50, Math.min(600, startWidth + deltaX));
+      onResize(nextWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onAutoFit) {
+      onAutoFit();
+    }
+  };
+
+  return (
+    <th
+      style={{
+        ...style,
+        position: 'relative',
+        userSelect: isDragging ? 'none' : undefined,
+      }}
+      className={className}
+      {...restProps}
+    >
+      {children}
+      <div
+        style={{
+          position: 'absolute',
+          right: -3,
+          top: 0,
+          bottom: 0,
+          width: 7,
+          cursor: 'col-resize',
+          zIndex: 2,
+          backgroundColor: isDragging
+            ? '#1677ff'
+            : isHovered
+            ? 'rgba(22, 119, 255, 0.45)'
+            : 'transparent',
+          transition: 'background-color 0.15s',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
+        title="按住鼠标左右拖拽调节列宽；双击缝隙自动展开/还原"
+      />
+    </th>
+  );
+};
+
 export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
 >({
@@ -65,6 +163,47 @@ export function FinanceLedgerTemplate<
   const [globalSummary, setGlobalSummary] =
     useState<FinanceLedgerGlobalSummary>();
   const [densitySize, setDensitySize] = useState<DensitySize>('small');
+  const [colWidths, setColWidths] = useState<Record<string, number>>({});
+
+  const handleResize = (colKey: string) => (newWidth: number) => {
+    setColWidths((prev) => ({ ...prev, [colKey]: newWidth }));
+  };
+
+  const handleAutoFit = (colKey: string, initialWidth: number) => () => {
+    setColWidths((prev) => {
+      const current = prev[colKey] || initialWidth;
+      const expandedWidth = Math.max(initialWidth * 1.6, 240);
+      if (current >= expandedWidth - 10) {
+        return { ...prev, [colKey]: initialWidth };
+      }
+      return { ...prev, [colKey]: expandedWidth };
+    });
+  };
+
+  // 为每个非固定列动态挂载拖拽拉伸与双击自适应属性
+  const resizableColumns = React.useMemo(() => {
+    return columns.map((col) => {
+      const key = String(col.dataIndex || col.key || '');
+      const isFixed = Boolean(col.fixed);
+      const initialWidth = typeof col.width === 'number' ? col.width : 120;
+      const currentWidth = colWidths[key] || initialWidth;
+
+      if (!key || isFixed) {
+        return col;
+      }
+
+      return {
+        ...col,
+        width: currentWidth,
+        onHeaderCell: (column: any) => ({
+          width: column.width,
+          resizable: true,
+          onResize: handleResize(key),
+          onAutoFit: handleAutoFit(key, initialWidth),
+        }),
+      };
+    });
+  }, [columns, colWidths]);
 
   // 默认导出 CSV 处理
   const handleDefaultExport = () => {
@@ -148,7 +287,12 @@ export function FinanceLedgerTemplate<
         headerTitle={headerTitle}
         actionRef={actionRef}
         rowKey={rowKey}
-        columns={columns}
+        columns={resizableColumns}
+        components={{
+          header: {
+            cell: ResizableHeaderCell,
+          },
+        }}
         bordered
         size={densitySize}
         onSizeChange={(size) => setDensitySize(size || 'small')}
