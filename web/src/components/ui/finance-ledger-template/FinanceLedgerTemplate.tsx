@@ -50,6 +50,7 @@ export function FinanceLedgerTemplate<
   onOpenColumnConfig,
   rowColors,
   getRowStatusColorKey,
+  onRowClick,
 }: FinanceLedgerTemplateProps<T>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -142,13 +143,36 @@ export function FinanceLedgerTemplate<
         scroll={{ x: scrollX }}
         pagination={{ defaultPageSize: 40, showSizeChanger: true }}
         onRow={(record) => {
-          if (!rowColors || !getRowStatusColorKey) return {};
-          const statusKey = getRowStatusColorKey(record);
-          if (!statusKey) return {};
-          const bgColor = (rowColors as any)[statusKey];
-          if (!bgColor || bgColor === '#FFFFFF') return {};
+          const style: React.CSSProperties = {};
+          if (onRowClick) {
+            style.cursor = 'pointer';
+          }
+          if (rowColors && getRowStatusColorKey) {
+            const statusKey = getRowStatusColorKey(record);
+            if (statusKey) {
+              const bgColor = (rowColors as any)[statusKey];
+              if (bgColor && bgColor !== '#FFFFFF') {
+                style.backgroundColor = bgColor;
+              }
+            }
+          }
           return {
-            style: { backgroundColor: bgColor },
+            style,
+            onClick: (event: React.MouseEvent) => {
+              if (!onRowClick) return;
+              const target = event.target as HTMLElement | null;
+              if (
+                target?.closest('input') ||
+                target?.closest('button') ||
+                target?.closest('a') ||
+                target?.closest('.ant-table-selection-column') ||
+                target?.closest('.ant-checkbox-wrapper') ||
+                target?.closest('.ant-typography-copy')
+              ) {
+                return;
+              }
+              onRowClick(record, event);
+            },
           };
         }}
         toolBarRender={() => [

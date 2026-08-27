@@ -90,5 +90,9 @@ export interface FinanceLedgerTemplateProps<
     | 'verifiedUninvoiced'
     | 'completed'
     | undefined;
+
+  // 整行点击事件（如点击行跳转详情）
+  onRowClick?: (record: T, event: React.MouseEvent) => void;
 }
+
 

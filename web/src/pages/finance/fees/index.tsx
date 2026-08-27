@@ -308,35 +308,6 @@ export default function FinanceFeeLedgerPage() {
           '-'
         ),
     },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 125,
-      fixed: 'right',
-      render: (_, row) => [
-        <a
-          key="view-detail"
-          onClick={() => {
-            if (row.orderId) {
-              history.push(`/finance/fees/detail/${row.orderId}`);
-            }
-          }}
-        >
-          费用详情
-        </a>,
-        <a
-          key="to-bill"
-          onClick={() => {
-            if (row.id) {
-              setSelectedFeeIds([row.id]);
-              setBillWorkbenchOpen(true);
-            }
-          }}
-        >
-          转账单
-        </a>,
-      ],
-    },
   ];
 
   // 根据当前用户的个性化列偏好动态过滤显示
@@ -350,8 +321,8 @@ export default function FinanceFeeLedgerPage() {
     });
 
     return baseColumns.filter((col) => {
-      // 序号与操作列常驻显示
-      if (col.valueType === 'index' || col.valueType === 'option') return true;
+      // 序号列常驻显示
+      if (col.valueType === 'index') return true;
       const key = String(col.dataIndex || '');
       if (!key) return true;
       if (visibleMap.has(key)) {
@@ -404,6 +375,11 @@ export default function FinanceFeeLedgerPage() {
         onOpenColumnConfig={() => setColumnConfigOpen(true)}
         rowColors={preference?.rowColors}
         getRowStatusColorKey={getRowStatusColorKey}
+        onRowClick={(row) => {
+          if (row.orderId) {
+            history.push(`/finance/fees/detail/${row.orderId}`);
+          }
+        }}
         request={async (params) => {
           const response = await settlementServiceListFeeLedger({
             page: params.current,
