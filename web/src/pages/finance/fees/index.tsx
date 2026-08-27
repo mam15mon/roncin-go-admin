@@ -217,7 +217,10 @@ export default function FinanceFeeLedgerPage() {
       title: '主单号',
       dataIndex: 'masterNo',
       width: 140,
-      search: false,
+      order: 68,
+      fieldProps: {
+        placeholder: '输入主提单号',
+      },
       render: (val) => val || '-',
     },
     {
@@ -225,7 +228,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'customerId',
       width: 180,
       valueType: 'select',
-      order: 70,
+      order: 75,
       request: async ({ keyWords }) => {
         const response = await partnerServiceListPartners({
           role: 1,
@@ -251,7 +254,7 @@ export default function FinanceFeeLedgerPage() {
       width: 180,
       ellipsis: true,
       valueType: 'select',
-      order: 60,
+      order: 80,
       request: async ({ keyWords }) => {
         const response = await partnerServiceListPartners({
           page: 1,
@@ -287,7 +290,10 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'feeName',
       width: 120,
       ellipsis: true,
-      search: false,
+      order: 60,
+      fieldProps: {
+        placeholder: '输入费用科目 (如海运费)',
+      },
       render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
     },
     {
@@ -296,7 +302,7 @@ export default function FinanceFeeLedgerPage() {
       width: 65,
       align: 'center',
       valueType: 'select',
-      order: 40,
+      order: 45,
       valueEnum: {
         CNY: { text: 'CNY' },
         USD: { text: 'USD' },
@@ -328,7 +334,10 @@ export default function FinanceFeeLedgerPage() {
       title: '发票号',
       dataIndex: 'invoiceNo',
       width: 130,
-      search: false,
+      order: 25,
+      fieldProps: {
+        placeholder: '输入发票号',
+      },
       render: (val) => val || '-',
     },
     {
@@ -336,7 +345,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'financialProgress',
       width: 120,
       valueType: 'select',
-      order: 80,
+      order: 85,
       valueEnum: Object.fromEntries(
         Object.entries(financialProgressLabels).map(([key, value]) => [
           key,
@@ -375,7 +384,10 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'operatorName',
       width: 100,
       ellipsis: true,
-      search: false,
+      order: 30,
+      fieldProps: {
+        placeholder: '输入操作员姓名',
+      },
       render: (val) => val || '-',
     },
     {
@@ -383,7 +395,10 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'salesName',
       width: 100,
       ellipsis: true,
-      search: false,
+      order: 35,
+      fieldProps: {
+        placeholder: '输入业务员姓名',
+      },
       render: (val) => val || '-',
     },
     {
@@ -446,21 +461,30 @@ export default function FinanceFeeLedgerPage() {
       title: '分单号',
       dataIndex: 'houseNo',
       width: 130,
-      search: false,
+      order: 66,
+      fieldProps: {
+        placeholder: '输入分提单号',
+      },
       render: (val) => val || '-',
     },
     {
       title: '账单编号',
       dataIndex: 'billNo',
       width: 155,
-      search: false,
+      order: 64,
+      fieldProps: {
+        placeholder: '输入账单编号',
+      },
       render: (val) => val || '-',
     },
     {
       title: '订单编号',
       dataIndex: 'orderNo',
       width: 160,
-      search: false,
+      order: 70,
+      fieldProps: {
+        placeholder: '输入订单编号',
+      },
       copyable: true,
       render: (_, row) => (
         <a
@@ -476,7 +500,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'expenseDate',
       width: 110,
       valueType: 'dateRange',
-      order: 30,
+      order: 40,
       search: {
         transform: (value) => ({
           expenseDateFrom: value[0],
@@ -732,6 +756,13 @@ export default function FinanceFeeLedgerPage() {
               advancedFilters.feeName ||
               params.keyword ||
               params.orderNo ||
+              params.masterNo ||
+              params.houseNo ||
+              params.billNo ||
+              params.feeName ||
+              params.operatorName ||
+              params.salesName ||
+              params.invoiceNo ||
               undefined,
             businessType:
               advancedFilters.businessType || params.businessType || undefined,
