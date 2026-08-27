@@ -1,7 +1,7 @@
 import type { TimeRangePickerProps } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 
-export type RangeValue = [Dayjs, Dayjs];
+export type RangeValue = [Dayjs | null, Dayjs | null] | null;
 
 /**
  * 货代与财务全站标准日期区间预设快捷选项 (Date Range Presets)

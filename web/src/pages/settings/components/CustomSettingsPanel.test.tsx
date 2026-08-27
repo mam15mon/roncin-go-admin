@@ -94,9 +94,11 @@ describe('CustomSettingsPanel', () => {
     expect(screen.getByLabelText('单价')).toBeInTheDocument();
     expect(screen.getByLabelText('税率')).toBeInTheDocument();
 
-    expect(screen.getByLabelText('数量')).toBeChecked();
-    expect(screen.getByLabelText('单价')).toBeChecked();
-    expect(screen.getByLabelText('费用名称')).not.toBeChecked();
+    await waitFor(() => {
+      expect(screen.getByLabelText('数量')).toBeChecked();
+      expect(screen.getByLabelText('单价')).toBeChecked();
+      expect(screen.getByLabelText('费用名称')).not.toBeChecked();
+    });
   });
 
   it('切换账单费用修改策略总开关并提交 expectedVersion', async () => {
