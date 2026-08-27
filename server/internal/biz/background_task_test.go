@@ -511,13 +511,13 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for nil orgID, got %v", err)
 	}
 
-	// invalid pagination (page < 1, pageSize < 1, pageSize > 100)
+	// invalid pagination (page < 1, pageSize < 1, pageSize > 200)
 	for _, opt := range []BackgroundTaskListOptions{
 		{Page: 0, PageSize: 20},
 		{Page: -1, PageSize: 20},
 		{Page: 1, PageSize: 0},
 		{Page: 1, PageSize: -5},
-		{Page: 1, PageSize: 101},
+		{Page: 1, PageSize: MaxListPageSize + 1},
 	} {
 		if _, err := uc.List(context.Background(), orgID, opt); err != ErrBackgroundTaskInvalidArgument {
 			t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid pagination %+v, got %v", opt, err)

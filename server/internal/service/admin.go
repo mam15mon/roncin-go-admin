@@ -341,7 +341,7 @@ func adminPageValues(page, pageSize int32) (int, int, error) {
 	if pageSizeValue == 0 {
 		pageSizeValue = 20
 	}
-	if pageValue < 1 || pageSizeValue < 1 || pageSizeValue > 100 {
+	if !biz.ValidListPagination(pageValue, pageSizeValue) {
 		return 0, 0, biz.ErrAdminInvalidArgument
 	}
 	return pageValue, pageSizeValue, nil

@@ -200,7 +200,7 @@ func (uc *BackgroundTaskUsecase) Get(ctx context.Context, organizationID, id uui
 }
 
 func (uc *BackgroundTaskUsecase) List(ctx context.Context, organizationID uuid.UUID, options BackgroundTaskListOptions) (*BackgroundTaskList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrBackgroundTaskInvalidArgument
 	}
 	if options.Status != nil && !options.Status.Valid() {

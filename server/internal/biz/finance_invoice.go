@@ -122,7 +122,7 @@ func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecas
 
 func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
-	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.List(ctx, organizationID, filter)

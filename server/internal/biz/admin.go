@@ -221,7 +221,7 @@ func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organiza
 }
 
 func (uc *AdminUsecase) ListUsers(ctx context.Context, organizationID uuid.UUID, options AdminUserListOptions) (*AdminUserList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrAdminInvalidArgument
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
@@ -361,7 +361,7 @@ func (uc *AdminUsecase) ListPermissions(ctx context.Context) ([]*AdminPermission
 }
 
 func (uc *AdminUsecase) ListAuditLogs(ctx context.Context, organizationID uuid.UUID, options AdminAuditLogListOptions) (*AdminAuditLogList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrAdminInvalidArgument
 	}
 	options.Action = strings.TrimSpace(options.Action)

@@ -103,7 +103,7 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.BusinessType = strings.ToUpper(strings.TrimSpace(filter.BusinessType))
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
-	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || len([]rune(filter.Keyword)) > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.CustomerID != nil && *filter.CustomerID == uuid.Nil {

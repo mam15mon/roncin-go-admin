@@ -185,7 +185,7 @@ func NewMasterDataUsecase(repo MasterDataRepo, audit AuditRepo) *MasterDataUseca
 }
 
 func (uc *MasterDataUsecase) List(ctx context.Context, organizationID uuid.UUID, options MasterDataListOptions) (*MasterDataList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrMasterDataInvalidArgument
 	}
 	if options.Kind != "" && !options.Kind.Valid() {

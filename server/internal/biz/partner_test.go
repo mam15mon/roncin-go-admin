@@ -99,7 +99,10 @@ func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 0, 20); err != ErrPartnerInvalidArgument {
 		t.Fatalf("invalid page error = %v, want ErrPartnerInvalidArgument", err)
 	}
-	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 1, 101); err != ErrPartnerInvalidArgument {
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 1, MaxListPageSize); err != nil {
+		t.Fatalf("maximum page size error = %v, want nil", err)
+	}
+	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 1, MaxListPageSize+1); err != ErrPartnerInvalidArgument {
 		t.Fatalf("invalid page size error = %v, want ErrPartnerInvalidArgument", err)
 	}
 }

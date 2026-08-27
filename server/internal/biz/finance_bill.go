@@ -217,7 +217,7 @@ func NewFinanceBillUsecase(repo FinanceBillRepo) *FinanceBillUsecase {
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
-	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || utf8.RuneCountInString(filter.Keyword) > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	if filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable {

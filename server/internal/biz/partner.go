@@ -271,7 +271,7 @@ func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID)
 }
 
 func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, options PartnerListOptions) (*PartnerList, error) {
-	if organizationID == uuid.Nil || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrPartnerInvalidArgument
 	}
 	if options.Role != "" && !options.Role.Valid() {
@@ -289,7 +289,7 @@ func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizatio
 }
 
 func (uc *PartnerUsecase) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*PartnerAuditLogList, error) {
-	if organizationID == uuid.Nil || partnerID == uuid.Nil || page < 1 || pageSize < 1 || pageSize > 100 {
+	if organizationID == uuid.Nil || partnerID == uuid.Nil || !ValidListPagination(page, pageSize) {
 		return nil, ErrPartnerInvalidArgument
 	}
 	return uc.repo.ListAuditLogs(ctx, organizationID, partnerID, page, pageSize)

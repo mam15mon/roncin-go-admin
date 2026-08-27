@@ -298,7 +298,7 @@ func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) 
 }
 
 func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, options OrderListOptions) (*OrderList, error) {
-	if len(organizationIDs) == 0 || options.Page < 1 || options.PageSize < 1 || options.PageSize > 100 || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
+	if len(organizationIDs) == 0 || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	for _, organizationID := range organizationIDs {

@@ -80,7 +80,7 @@ func NewVerificationUsecase(r VerificationRepo) *VerificationUsecase {
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || f.Page < 1 || f.PageSize < 1 || f.PageSize > 200 || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) {
+	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) {
 		return nil, ErrVerificationInvalid
 	}
 	return u.repo.List(ctx, org, f)

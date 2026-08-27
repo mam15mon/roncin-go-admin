@@ -127,7 +127,7 @@ func normalizeFeeLedgerPreference(organizationID, userID uuid.UUID, input *FeeLe
 	if organizationID == uuid.Nil || userID == uuid.Nil || input == nil || len(input.Columns) == 0 || len(input.Columns) > 200 {
 		return nil, ErrFeeLedgerPreferenceInvalidArgument
 	}
-	if input.PageSize != 40 && input.PageSize != 60 && input.PageSize != 100 {
+	if input.PageSize != 40 && input.PageSize != 60 && input.PageSize != 100 && input.PageSize != MaxListPageSize {
 		return nil, ErrFeeLedgerPreferenceInvalidArgument
 	}
 

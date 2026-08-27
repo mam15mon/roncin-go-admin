@@ -56,6 +56,14 @@ func TestNormalizeFeeLedgerPreferencePreservesColumnOrder(t *testing.T) {
 	}
 }
 
+func TestNormalizeFeeLedgerPreferenceAcceptsUnifiedMaximumPageSize(t *testing.T) {
+	value := validFeeLedgerPreference()
+	value.PageSize = MaxListPageSize
+	if _, err := normalizeFeeLedgerPreference(uuid.New(), uuid.New(), value); err != nil {
+		t.Fatalf("统一最大分页行数应当有效: %v", err)
+	}
+}
+
 func TestFeeLedgerPreferenceResetReturnsDefaults(t *testing.T) {
 	stub := &feeLedgerPreferenceRepoStub{value: &FeeLedgerPreference{Version: 3}}
 	usecase := NewFeeLedgerPreferenceUsecase(stub)

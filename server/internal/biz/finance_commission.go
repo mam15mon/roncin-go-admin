@@ -214,7 +214,7 @@ func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase) *Comm
 
 func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || f.Page < 1 || f.PageSize < 1 || f.PageSize > 200 || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) {
+	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) {
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.List(ctx, org, f)
@@ -236,7 +236,7 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, em
 
 func (u *CommissionUsecase) ListRules(ctx context.Context, org uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || f.Page < 1 || f.PageSize < 1 || f.PageSize > 200 || utf8.RuneCountInString(f.Keyword) > 100 || (f.PersonnelRole != "" && f.PersonnelRole != CommissionRoleSales && f.PersonnelRole != CommissionRoleOperator) {
+	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.PersonnelRole != "" && f.PersonnelRole != CommissionRoleSales && f.PersonnelRole != CommissionRoleOperator) {
 		return nil, ErrCommissionRuleInvalid
 	}
 	return u.repo.ListRules(ctx, org, f)

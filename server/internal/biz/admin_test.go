@@ -128,7 +128,10 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 0, PageSize: 20}); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid page error = %v, want ErrAdminInvalidArgument", err)
 	}
-	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: 101}); err != ErrAdminInvalidArgument {
+	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: MaxListPageSize}); err != nil {
+		t.Fatalf("maximum page size error = %v, want nil", err)
+	}
+	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: MaxListPageSize + 1}); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid page size error = %v, want ErrAdminInvalidArgument", err)
 	}
 }

@@ -463,7 +463,7 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	options := biz.PartnerListOptions{Page: 1, PageSize: 100, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole())}
+	options := biz.PartnerListOptions{Page: 1, PageSize: biz.MaxListPageSize, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole())}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
@@ -686,7 +686,7 @@ func pageValues(page, pageSize int32) (int, int, error) {
 	if pageSizeValue == 0 {
 		pageSizeValue = 20
 	}
-	if pageValue < 1 || pageSizeValue < 1 || pageSizeValue > 100 {
+	if !biz.ValidListPagination(pageValue, pageSizeValue) {
 		return 0, 0, biz.ErrPartnerInvalidArgument
 	}
 	return pageValue, pageSizeValue, nil
