@@ -579,13 +579,21 @@ export function ExchangeRatesPanel() {
           label="生效开始时间"
           extra="精确至秒级（左闭区间包含该时刻起生效）"
           rules={[{ required: true, message: '请选择生效开始时间' }]}
-          fieldProps={{ style: { width: '100%' }, format: 'YYYY-MM-DD HH:mm:ss' }}
+          fieldProps={{
+            style: { width: '100%' },
+            format: 'YYYY-MM-DD HH:mm:ss',
+            showTime: { defaultValue: dayjs('00:00:00', 'HH:mm:ss') },
+          }}
         />
         <ProFormDateTimePicker
           name="effectiveTo"
           label="生效结束时间"
           extra="精确至秒级（右开区间不包含该时刻）；留空表示长期有效"
-          fieldProps={{ style: { width: '100%' }, format: 'YYYY-MM-DD HH:mm:ss' }}
+          fieldProps={{
+            style: { width: '100%' },
+            format: 'YYYY-MM-DD HH:mm:ss',
+            showTime: { defaultValue: dayjs('23:59:59', 'HH:mm:ss') },
+          }}
         />
       </ModalForm>
 
