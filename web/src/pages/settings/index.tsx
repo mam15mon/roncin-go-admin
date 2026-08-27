@@ -6,12 +6,14 @@ import {
   FileTextOutlined,
   NodeIndexOutlined,
   NumberOutlined,
+  SlidersOutlined,
 } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
 import React from 'react';
 import { ParameterSettingTemplate } from '@/components/ui';
 import AbnormalCasesPanel from './components/AbnormalCasesPanel';
 import BillingUnitsPanel from './components/BillingUnitsPanel';
+import CustomSettingsPanel from './components/CustomSettingsPanel';
 import ExchangeRatesPanel from './components/ExchangeRatesPanel';
 import FeeItemsPanel from './components/FeeItemsPanel';
 import MilestoneTemplatesPanel from './components/MilestoneTemplatesPanel';
@@ -77,6 +79,14 @@ export default function SettingsPage() {
       visible: access.canReadMasterDataMilestoneTemplates,
       tooltip: '各业务类型履约进度节点与时序流程模板',
       children: <MilestoneTemplatesPanel />,
+    },
+    {
+      key: 'custom-settings',
+      label: '自定义设置',
+      icon: <SlidersOutlined />,
+      visible: access.canReadExchangeRates,
+      tooltip: '配置专用汇率继承折本币、组织级策略及全局自定义财务规则',
+      children: <CustomSettingsPanel />,
     },
   ];
 
