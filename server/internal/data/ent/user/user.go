@@ -80,6 +80,8 @@ const (
 	EdgeCancelledFinanceCommissions = "cancelled_finance_commissions"
 	// EdgeFinanceCommissionAdjustments holds the string denoting the finance_commission_adjustments edge name in mutations.
 	EdgeFinanceCommissionAdjustments = "finance_commission_adjustments"
+	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
+	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeConfirmedFinanceCommissionAdjustments holds the string denoting the confirmed_finance_commission_adjustments edge name in mutations.
 	EdgeConfirmedFinanceCommissionAdjustments = "confirmed_finance_commission_adjustments"
 	// EdgePaidFinanceCommissionAdjustments holds the string denoting the paid_finance_commission_adjustments edge name in mutations.
@@ -227,6 +229,13 @@ const (
 	FinanceCommissionAdjustmentsInverseTable = "finance_commission_adjustments"
 	// FinanceCommissionAdjustmentsColumn is the table column denoting the finance_commission_adjustments relation/edge.
 	FinanceCommissionAdjustmentsColumn = "employee_id"
+	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
+	OrderCommissionAttributionsTable = "order_commission_attributions"
+	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercommissionattribution" package.
+	OrderCommissionAttributionsInverseTable = "order_commission_attributions"
+	// OrderCommissionAttributionsColumn is the table column denoting the order_commission_attributions relation/edge.
+	OrderCommissionAttributionsColumn = "employee_id"
 	// ConfirmedFinanceCommissionAdjustmentsTable is the table that holds the confirmed_finance_commission_adjustments relation/edge.
 	ConfirmedFinanceCommissionAdjustmentsTable = "finance_commission_adjustments"
 	// ConfirmedFinanceCommissionAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
@@ -675,6 +684,20 @@ func ByFinanceCommissionAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) 
 	}
 }
 
+// ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
+func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderCommissionAttributionsStep(), opts...)
+	}
+}
+
+// ByOrderCommissionAttributions orders the results by order_commission_attributions terms.
+func ByOrderCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderCommissionAttributionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByConfirmedFinanceCommissionAdjustmentsCount orders the results by confirmed_finance_commission_adjustments count.
 func ByConfirmedFinanceCommissionAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -889,6 +912,13 @@ func newFinanceCommissionAdjustmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCommissionAdjustmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionAdjustmentsTable, FinanceCommissionAdjustmentsColumn),
+	)
+}
+func newOrderCommissionAttributionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderCommissionAttributionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderCommissionAttributionsTable, OrderCommissionAttributionsColumn),
 	)
 }
 func newConfirmedFinanceCommissionAdjustmentsStep() *sqlgraph.Step {

@@ -80,9 +80,11 @@ type PartnerEdges struct {
 	FinanceCashflows []*FinanceCashflow `json:"finance_cashflows,omitempty"`
 	// FinanceVerifications holds the value of the finance_verifications edge.
 	FinanceVerifications []*FinanceVerification `json:"finance_verifications,omitempty"`
+	// OrderCommissionAttributions holds the value of the order_commission_attributions edge.
+	OrderCommissionAttributions []*OrderCommissionAttribution `json:"order_commission_attributions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [16]bool
+	loadedTypes [17]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -231,6 +233,15 @@ func (e PartnerEdges) FinanceVerificationsOrErr() ([]*FinanceVerification, error
 		return e.FinanceVerifications, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_verifications"}
+}
+
+// OrderCommissionAttributionsOrErr returns the OrderCommissionAttributions value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartnerEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
+	if e.loadedTypes[16] {
+		return e.OrderCommissionAttributions, nil
+	}
+	return nil, &NotLoadedError{edge: "order_commission_attributions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -419,6 +430,11 @@ func (_m *Partner) QueryFinanceCashflows() *FinanceCashflowQuery {
 // QueryFinanceVerifications queries the "finance_verifications" edge of the Partner entity.
 func (_m *Partner) QueryFinanceVerifications() *FinanceVerificationQuery {
 	return NewPartnerClient(_m.config).QueryFinanceVerifications(_m)
+}
+
+// QueryOrderCommissionAttributions queries the "order_commission_attributions" edge of the Partner entity.
+func (_m *Partner) QueryOrderCommissionAttributions() *OrderCommissionAttributionQuery {
+	return NewPartnerClient(_m.config).QueryOrderCommissionAttributions(_m)
 }
 
 // Update returns a builder for updating this Partner.

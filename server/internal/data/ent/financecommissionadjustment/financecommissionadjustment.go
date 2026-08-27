@@ -38,6 +38,10 @@ const (
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
 	FieldEmployeeName = "employee_name"
+	// FieldSourceType holds the string denoting the source_type field in the database.
+	FieldSourceType = "source_type"
+	// FieldSourceVerificationID holds the string denoting the source_verification_id field in the database.
+	FieldSourceVerificationID = "source_verification_id"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -74,6 +78,8 @@ const (
 	EdgeOrder = "order"
 	// EdgeEmployee holds the string denoting the employee edge name in mutations.
 	EdgeEmployee = "employee"
+	// EdgeSourceVerification holds the string denoting the source_verification edge name in mutations.
+	EdgeSourceVerification = "source_verification"
 	// EdgeConfirmedByUser holds the string denoting the confirmed_by_user edge name in mutations.
 	EdgeConfirmedByUser = "confirmed_by_user"
 	// EdgePaidByUser holds the string denoting the paid_by_user edge name in mutations.
@@ -110,6 +116,13 @@ const (
 	EmployeeInverseTable = "users"
 	// EmployeeColumn is the table column denoting the employee relation/edge.
 	EmployeeColumn = "employee_id"
+	// SourceVerificationTable is the table that holds the source_verification relation/edge.
+	SourceVerificationTable = "finance_commission_adjustments"
+	// SourceVerificationInverseTable is the table name for the FinanceVerification entity.
+	// It exists in this package in order to avoid circular dependency with the "financeverification" package.
+	SourceVerificationInverseTable = "finance_verifications"
+	// SourceVerificationColumn is the table column denoting the source_verification relation/edge.
+	SourceVerificationColumn = "source_verification_id"
 	// ConfirmedByUserTable is the table that holds the confirmed_by_user relation/edge.
 	ConfirmedByUserTable = "finance_commission_adjustments"
 	// ConfirmedByUserInverseTable is the table name for the User entity.
@@ -147,6 +160,8 @@ var Columns = []string{
 	FieldOrderNo,
 	FieldEmployeeID,
 	FieldEmployeeName,
+	FieldSourceType,
+	FieldSourceVerificationID,
 	FieldDirection,
 	FieldStatus,
 	FieldBaseCurrency,
@@ -203,6 +218,32 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// SourceType defines the type for the "source_type" enum field.
+type SourceType string
+
+// SourceTypeMANUAL is the default value of the SourceType enum.
+const DefaultSourceType = SourceTypeMANUAL
+
+// SourceType values.
+const (
+	SourceTypeMANUAL                SourceType = "MANUAL"
+	SourceTypeVERIFICATION_REVERSAL SourceType = "VERIFICATION_REVERSAL"
+)
+
+func (st SourceType) String() string {
+	return string(st)
+}
+
+// SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
+func SourceTypeValidator(st SourceType) error {
+	switch st {
+	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL:
+		return nil
+	default:
+		return fmt.Errorf("financecommissionadjustment: invalid enum value for source_type field: %q", st)
+	}
+}
 
 // Direction defines the type for the "direction" enum field.
 type Direction string
@@ -318,6 +359,16 @@ func ByEmployeeName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmployeeName, opts...).ToFunc()
 }
 
+// BySourceType orders the results by the source_type field.
+func BySourceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceType, opts...).ToFunc()
+}
+
+// BySourceVerificationID orders the results by the source_verification_id field.
+func BySourceVerificationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceVerificationID, opts...).ToFunc()
+}
+
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
@@ -416,6 +467,13 @@ func ByEmployeeField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// BySourceVerificationField orders the results by source_verification field.
+func BySourceVerificationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceVerificationStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByConfirmedByUserField orders the results by confirmed_by_user field.
 func ByConfirmedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -462,6 +520,13 @@ func newEmployeeStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EmployeeInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, EmployeeTable, EmployeeColumn),
+	)
+}
+func newSourceVerificationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SourceVerificationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceVerificationTable, SourceVerificationColumn),
 	)
 }
 func newConfirmedByUserStep() *sqlgraph.Step {

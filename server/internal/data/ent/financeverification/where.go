@@ -1631,6 +1631,29 @@ func HasCommissionsWith(preds ...predicate.FinanceCommission) predicate.FinanceV
 	})
 }
 
+// HasCommissionReversalAdjustments applies the HasEdge predicate on the "commission_reversal_adjustments" edge.
+func HasCommissionReversalAdjustments() predicate.FinanceVerification {
+	return predicate.FinanceVerification(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CommissionReversalAdjustmentsTable, CommissionReversalAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommissionReversalAdjustmentsWith applies the HasEdge predicate on the "commission_reversal_adjustments" edge with a given conditions (other predicates).
+func HasCommissionReversalAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.FinanceVerification {
+	return predicate.FinanceVerification(func(s *sql.Selector) {
+		step := newCommissionReversalAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceVerification) predicate.FinanceVerification {
 	return predicate.FinanceVerification(sql.AndPredicates(predicates...))

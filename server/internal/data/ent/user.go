@@ -90,6 +90,8 @@ type UserEdges struct {
 	CancelledFinanceCommissions []*FinanceCommission `json:"cancelled_finance_commissions,omitempty"`
 	// FinanceCommissionAdjustments holds the value of the finance_commission_adjustments edge.
 	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
+	// OrderCommissionAttributions holds the value of the order_commission_attributions edge.
+	OrderCommissionAttributions []*OrderCommissionAttribution `json:"order_commission_attributions,omitempty"`
 	// ConfirmedFinanceCommissionAdjustments holds the value of the confirmed_finance_commission_adjustments edge.
 	ConfirmedFinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"confirmed_finance_commission_adjustments,omitempty"`
 	// PaidFinanceCommissionAdjustments holds the value of the paid_finance_commission_adjustments edge.
@@ -104,7 +106,7 @@ type UserEdges struct {
 	UpdatedFinanceCustomSettings []*FinanceCustomSetting `json:"updated_finance_custom_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [25]bool
+	loadedTypes [26]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -278,10 +280,19 @@ func (e UserEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdju
 	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
 }
 
+// OrderCommissionAttributionsOrErr returns the OrderCommissionAttributions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
+	if e.loadedTypes[19] {
+		return e.OrderCommissionAttributions, nil
+	}
+	return nil, &NotLoadedError{edge: "order_commission_attributions"}
+}
+
 // ConfirmedFinanceCommissionAdjustmentsOrErr returns the ConfirmedFinanceCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ConfirmedFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[20] {
 		return e.ConfirmedFinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "confirmed_finance_commission_adjustments"}
@@ -290,7 +301,7 @@ func (e UserEdges) ConfirmedFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommi
 // PaidFinanceCommissionAdjustmentsOrErr returns the PaidFinanceCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) PaidFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.PaidFinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "paid_finance_commission_adjustments"}
@@ -299,7 +310,7 @@ func (e UserEdges) PaidFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommission
 // CancelledFinanceCommissionAdjustmentsOrErr returns the CancelledFinanceCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CancelledFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[21] {
+	if e.loadedTypes[22] {
 		return e.CancelledFinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "cancelled_finance_commission_adjustments"}
@@ -308,7 +319,7 @@ func (e UserEdges) CancelledFinanceCommissionAdjustmentsOrErr() ([]*FinanceCommi
 // FinanceFeeLedgerPreferencesOrErr returns the FinanceFeeLedgerPreferences value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPreference, error) {
-	if e.loadedTypes[22] {
+	if e.loadedTypes[23] {
 		return e.FinanceFeeLedgerPreferences, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
@@ -317,7 +328,7 @@ func (e UserEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPrefer
 // UpdatedExchangeRateCustomSettingsOrErr returns the UpdatedExchangeRateCustomSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UpdatedExchangeRateCustomSettingsOrErr() ([]*ExchangeRateCustomSetting, error) {
-	if e.loadedTypes[23] {
+	if e.loadedTypes[24] {
 		return e.UpdatedExchangeRateCustomSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_exchange_rate_custom_settings"}
@@ -326,7 +337,7 @@ func (e UserEdges) UpdatedExchangeRateCustomSettingsOrErr() ([]*ExchangeRateCust
 // UpdatedFinanceCustomSettingsOrErr returns the UpdatedFinanceCustomSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UpdatedFinanceCustomSettingsOrErr() ([]*FinanceCustomSetting, error) {
-	if e.loadedTypes[24] {
+	if e.loadedTypes[25] {
 		return e.UpdatedFinanceCustomSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_finance_custom_settings"}
@@ -557,6 +568,11 @@ func (_m *User) QueryCancelledFinanceCommissions() *FinanceCommissionQuery {
 // QueryFinanceCommissionAdjustments queries the "finance_commission_adjustments" edge of the User entity.
 func (_m *User) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
 	return NewUserClient(_m.config).QueryFinanceCommissionAdjustments(_m)
+}
+
+// QueryOrderCommissionAttributions queries the "order_commission_attributions" edge of the User entity.
+func (_m *User) QueryOrderCommissionAttributions() *OrderCommissionAttributionQuery {
+	return NewUserClient(_m.config).QueryOrderCommissionAttributions(_m)
 }
 
 // QueryConfirmedFinanceCommissionAdjustments queries the "confirmed_finance_commission_adjustments" edge of the User entity.

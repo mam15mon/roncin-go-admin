@@ -90,6 +90,8 @@ type Tx struct {
 	OrderCargoCategory *OrderCargoCategoryClient
 	// OrderCargoItem is the client for interacting with the OrderCargoItem builders.
 	OrderCargoItem *OrderCargoItemClient
+	// OrderCommissionAttribution is the client for interacting with the OrderCommissionAttribution builders.
+	OrderCommissionAttribution *OrderCommissionAttributionClient
 	// OrderConsolidation is the client for interacting with the OrderConsolidation builders.
 	OrderConsolidation *OrderConsolidationClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
@@ -326,6 +328,7 @@ func (tx *Tx) init() {
 	tx.OrderAttachment = NewOrderAttachmentClient(tx.config)
 	tx.OrderCargoCategory = NewOrderCargoCategoryClient(tx.config)
 	tx.OrderCargoItem = NewOrderCargoItemClient(tx.config)
+	tx.OrderCommissionAttribution = NewOrderCommissionAttributionClient(tx.config)
 	tx.OrderConsolidation = NewOrderConsolidationClient(tx.config)
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)

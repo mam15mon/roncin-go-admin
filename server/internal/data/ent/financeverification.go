@@ -91,9 +91,11 @@ type FinanceVerificationEdges struct {
 	Allocations []*FinanceVerificationAllocation `json:"allocations,omitempty"`
 	// Commissions holds the value of the commissions edge.
 	Commissions []*FinanceCommission `json:"commissions,omitempty"`
+	// CommissionReversalAdjustments holds the value of the commission_reversal_adjustments edge.
+	CommissionReversalAdjustments []*FinanceCommissionAdjustment `json:"commission_reversal_adjustments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -145,6 +147,15 @@ func (e FinanceVerificationEdges) CommissionsOrErr() ([]*FinanceCommission, erro
 		return e.Commissions, nil
 	}
 	return nil, &NotLoadedError{edge: "commissions"}
+}
+
+// CommissionReversalAdjustmentsOrErr returns the CommissionReversalAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceVerificationEdges) CommissionReversalAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[5] {
+		return e.CommissionReversalAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "commission_reversal_adjustments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -380,6 +391,11 @@ func (_m *FinanceVerification) QueryAllocations() *FinanceVerificationAllocation
 // QueryCommissions queries the "commissions" edge of the FinanceVerification entity.
 func (_m *FinanceVerification) QueryCommissions() *FinanceCommissionQuery {
 	return NewFinanceVerificationClient(_m.config).QueryCommissions(_m)
+}
+
+// QueryCommissionReversalAdjustments queries the "commission_reversal_adjustments" edge of the FinanceVerification entity.
+func (_m *FinanceVerification) QueryCommissionReversalAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewFinanceVerificationClient(_m.config).QueryCommissionReversalAdjustments(_m)
 }
 
 // Update returns a builder for updating this FinanceVerification.

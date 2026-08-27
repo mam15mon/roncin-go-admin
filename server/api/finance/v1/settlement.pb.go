@@ -9279,30 +9279,32 @@ func (x *ListCommissionCandidateSummariesResponse) GetTraceId() string {
 }
 
 type FinanceCommissionAdjustment struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	AdjustmentNo       string                 `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
-	CommissionId       string                 `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
-	CommissionNo       string                 `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
-	OrderId            string                 `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo            string                 `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	EmployeeId         string                 `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName       string                 `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	Direction          string                 `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status             string                 `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
-	BaseCurrency       string                 `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	Amount             string                 `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
-	Reason             string                 `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
-	Note               *string                `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version            uint64                 `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
-	ConfirmedAt        *string                `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	PaidAt             *string                `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
-	CancelledAt        *string                `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
-	CancellationReason *string                `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
-	CreatedAt          string                 `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          string                 `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AdjustmentNo         string                 `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
+	CommissionId         string                 `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
+	CommissionNo         string                 `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
+	OrderId              string                 `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo              string                 `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	EmployeeId           string                 `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName         string                 `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	Direction            string                 `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
+	Status               string                 `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
+	BaseCurrency         string                 `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	Amount               string                 `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
+	Reason               string                 `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
+	Note                 *string                `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version              uint64                 `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
+	ConfirmedAt          *string                `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	PaidAt               *string                `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
+	CancelledAt          *string                `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
+	CancellationReason   *string                `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
+	CreatedAt            string                 `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string                 `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceType           string                 `protobuf:"bytes,22,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	SourceVerificationId *string                `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *FinanceCommissionAdjustment) Reset() {
@@ -9478,6 +9480,20 @@ func (x *FinanceCommissionAdjustment) GetCreatedAt() string {
 func (x *FinanceCommissionAdjustment) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceType() string {
+	if x != nil {
+		return x.SourceType
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceVerificationId() string {
+	if x != nil && x.SourceVerificationId != nil {
+		return *x.SourceVerificationId
 	}
 	return ""
 }
@@ -11197,7 +11213,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12:\n" +
 	"\x04data\x18\x04 \x03(\v2&.finance.v1.CommissionCandidateSummaryR\x04data\x12\x14\n" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\x87\x06\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xfe\x06\n" +
 	"\x1bFinanceCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12#\n" +
@@ -11223,13 +11239,17 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x14 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x15 \x01(\tR\tupdatedAtB\a\n" +
+	"updated_at\x18\x15 \x01(\tR\tupdatedAt\x12\x1f\n" +
+	"\vsource_type\x18\x16 \x01(\tR\n" +
+	"sourceType\x129\n" +
+	"\x16source_verification_id\x18\x17 \x01(\tH\x05R\x14sourceVerificationId\x88\x01\x01B\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\n" +
 	"\n" +
 	"\b_paid_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +
-	"\x14_cancellation_reason\"\x8d\f\n" +
+	"\x14_cancellation_reasonB\x19\n" +
+	"\x17_source_verification_id\"\x8d\f\n" +
 	"\x11FinanceCommission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rcommission_no\x18\x02 \x01(\tR\fcommissionNo\x12'\n" +

@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"strings"
+	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
+	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -24,6 +26,7 @@ import (
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -358,10 +361,51 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := snapshotOrderCommissionAttributions(ctx, tx, organizationID, created.ID, input.CustomerID, created.CreatedAt); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, created.ID)
+}
+
+func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID, attributedAt time.Time) error {
+	assignments, err := tx.PartnerAssignment.Query().Where(
+		partnerassignmentent.OrganizationIDEQ(organizationID),
+		partnerassignmentent.PartnerIDEQ(customerID),
+		partnerassignmentent.RoleIn(partnerassignmentent.RoleSALES, partnerassignmentent.RoleOPERATOR, partnerassignmentent.RoleCUSTOMER_SERVICE),
+	).WithUser().Order(partnerassignmentent.ByRole(), partnerassignmentent.BySortOrder()).All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(assignments) == 0 {
+		return nil
+	}
+	builders := make([]*ent.OrderCommissionAttributionCreate, 0, len(assignments))
+	seenAttributions := make(map[string]struct{}, len(assignments))
+	for _, item := range assignments {
+		role := ordercommissionattributionent.PersonnelRole(item.Role)
+		key := item.UserID.String() + ":" + string(role)
+		if _, exists := seenAttributions[key]; exists {
+			continue
+		}
+		employee, edgeErr := item.Edges.UserOrErr()
+		if edgeErr != nil {
+			return edgeErr
+		}
+		builders = append(builders, tx.OrderCommissionAttribution.Create().
+			SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(organizationID).SetOrderID(orderID).SetCustomerID(customerID).
+			SetSourceAssignmentID(item.ID).SetEmployeeID(item.UserID).SetEmployeeName(employee.DisplayName).
+			SetPersonnelRole(role).SetAttributedAt(attributedAt))
+		seenAttributions[key] = struct{}{}
+	}
+	if len(builders) == 0 {
+		return nil
+	}
+	_, err = tx.OrderCommissionAttribution.CreateBulk(builders...).Save(ctx)
+	return err
 }
 
 func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order) (*biz.Order, error) {
@@ -458,6 +502,16 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	if err := syncOrderContainerRequests(ctx, tx, organizationID, id, input.ContainerRequests); err != nil {
 		_ = tx.Rollback()
 		return nil, err
+	}
+	if existing.CustomerID != input.CustomerID {
+		if _, err := tx.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrderIDEQ(id)).Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		if err := snapshotOrderCommissionAttributions(ctx, tx, organizationID, id, input.CustomerID, existing.CreatedAt); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err

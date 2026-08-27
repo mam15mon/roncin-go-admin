@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -499,6 +500,21 @@ func (_c *UserCreate) AddFinanceCommissionAdjustments(v ...*FinanceCommissionAdj
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
+func (_c *UserCreate) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddOrderCommissionAttributionIDs(ids...)
+	return _c
+}
+
+// AddOrderCommissionAttributions adds the "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_c *UserCreate) AddOrderCommissionAttributions(v ...*OrderCommissionAttribution) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderCommissionAttributionIDs(ids...)
 }
 
 // AddConfirmedFinanceCommissionAdjustmentIDs adds the "confirmed_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
@@ -1104,6 +1120,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderCommissionAttributionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

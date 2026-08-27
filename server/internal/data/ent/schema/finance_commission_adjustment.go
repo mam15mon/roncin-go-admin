@@ -25,6 +25,8 @@ func (FinanceCommissionAdjustment) Fields() []ent.Field {
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
+		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL").Default("MANUAL").Immutable(),
+		field.UUID("source_verification_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Enum("direction").Values("INCREASE", "DECREASE").Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "PAID", "CANCELLED").Default("DRAFT"),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
@@ -48,6 +50,7 @@ func (FinanceCommissionAdjustment) Edges() []ent.Edge {
 		edge.From("commission", FinanceCommission.Type).Ref("adjustments").Field("commission_id").Unique().Required().Immutable(),
 		edge.From("order", Order.Type).Ref("finance_commission_adjustments").Field("order_id").Unique().Required().Immutable(),
 		edge.From("employee", User.Type).Ref("finance_commission_adjustments").Field("employee_id").Unique().Required().Immutable(),
+		edge.From("source_verification", FinanceVerification.Type).Ref("commission_reversal_adjustments").Field("source_verification_id").Unique().Immutable(),
 		edge.From("confirmed_by_user", User.Type).Ref("confirmed_finance_commission_adjustments").Field("confirmed_by").Unique(),
 		edge.From("paid_by_user", User.Type).Ref("paid_finance_commission_adjustments").Field("paid_by").Unique(),
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_commission_adjustments").Field("cancelled_by").Unique(),
@@ -60,5 +63,6 @@ func (FinanceCommissionAdjustment) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("commission_id", "status", "created_at"),
 		index.Fields("order_id", "status"),
+		index.Fields("commission_id", "order_id", "source_type", "source_verification_id").Unique(),
 	}
 }

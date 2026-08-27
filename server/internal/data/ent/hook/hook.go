@@ -477,6 +477,18 @@ func (f OrderCargoItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderCargoItemMutation", m)
 }
 
+// The OrderCommissionAttributionFunc type is an adapter to allow the use of ordinary
+// function as OrderCommissionAttribution mutator.
+type OrderCommissionAttributionFunc func(context.Context, *ent.OrderCommissionAttributionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderCommissionAttributionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderCommissionAttributionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderCommissionAttributionMutation", m)
+}
+
 // The OrderConsolidationFunc type is an adapter to allow the use of ordinary
 // function as OrderConsolidation mutator.
 type OrderConsolidationFunc func(context.Context, *ent.OrderConsolidationMutation) (ent.Value, error)

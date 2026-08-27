@@ -17,7 +17,6 @@ var (
 	ErrCommissionSource               = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")
 	ErrCommissionDuplicate            = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销、员工与规则已存在提成记录")
 	ErrCommissionTransition           = errors.Conflict("FINANCE_COMMISSION_TRANSITION", "当前提成状态不允许该操作")
-	ErrVerificationHasCommission      = errors.Conflict("FINANCE_VERIFICATION_HAS_COMMISSION", "核销已生成未取消提成，请先取消提成")
 	ErrCommissionRuleNotFound         = errors.NotFound("FINANCE_COMMISSION_RULE_NOT_FOUND", "提成规则不存在")
 	ErrCommissionRuleInvalid          = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
 	ErrCommissionRuleConflict         = errors.Conflict("FINANCE_COMMISSION_RULE_CONFLICT", "提成规则名称已存在或版本已变化")
@@ -34,20 +33,23 @@ type CommissionStatus string
 type CommissionPersonnelRole string
 type CommissionCalculationBasis string
 type CommissionAdjustmentDirection string
+type CommissionAdjustmentSourceType string
 
 const (
-	CommissionDraft                CommissionStatus              = "DRAFT"
-	CommissionConfirmed            CommissionStatus              = "CONFIRMED"
-	CommissionPaid                 CommissionStatus              = "PAID"
-	CommissionCancelled            CommissionStatus              = "CANCELLED"
-	CommissionRoleSales            CommissionPersonnelRole       = "SALES"
-	CommissionRoleOperator         CommissionPersonnelRole       = "OPERATOR"
-	CommissionRoleCustomerService  CommissionPersonnelRole       = "CUSTOMER_SERVICE"
-	CommissionBasisRealizedProfit  CommissionCalculationBasis    = "REALIZED_PROFIT"
-	CommissionBasisRealizedRevenue CommissionCalculationBasis    = "REALIZED_REVENUE"
-	CommissionCalculationVersion                                 = "CUSTOMER_REALIZED_PROFIT_V2"
-	CommissionAdjustmentIncrease   CommissionAdjustmentDirection = "INCREASE"
-	CommissionAdjustmentDecrease   CommissionAdjustmentDirection = "DECREASE"
+	CommissionDraft                                CommissionStatus               = "DRAFT"
+	CommissionConfirmed                            CommissionStatus               = "CONFIRMED"
+	CommissionPaid                                 CommissionStatus               = "PAID"
+	CommissionCancelled                            CommissionStatus               = "CANCELLED"
+	CommissionRoleSales                            CommissionPersonnelRole        = "SALES"
+	CommissionRoleOperator                         CommissionPersonnelRole        = "OPERATOR"
+	CommissionRoleCustomerService                  CommissionPersonnelRole        = "CUSTOMER_SERVICE"
+	CommissionBasisRealizedProfit                  CommissionCalculationBasis     = "REALIZED_PROFIT"
+	CommissionBasisRealizedRevenue                 CommissionCalculationBasis     = "REALIZED_REVENUE"
+	CommissionCalculationVersion                                                  = "CUSTOMER_REALIZED_PROFIT_V2"
+	CommissionAdjustmentIncrease                   CommissionAdjustmentDirection  = "INCREASE"
+	CommissionAdjustmentDecrease                   CommissionAdjustmentDirection  = "DECREASE"
+	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"
+	CommissionAdjustmentSourceVerificationReversal CommissionAdjustmentSourceType = "VERIFICATION_REVERSAL"
 )
 
 // FinanceCommissionAdjustment 以独立单据记录原始提成确认后的增提或冲减。
@@ -55,6 +57,8 @@ type FinanceCommissionAdjustment struct {
 	ID, OrganizationID, CommissionID, OrderID, EmployeeID             uuid.UUID
 	AdjustmentNo, IdempotencyKey, CommissionNo, OrderNo, EmployeeName string
 	Direction                                                         CommissionAdjustmentDirection
+	SourceType                                                        CommissionAdjustmentSourceType
+	SourceVerificationID                                              *uuid.UUID
 	Status                                                            CommissionStatus
 	BaseCurrency                                                      string
 	Amount                                                            decimal.Decimal
@@ -140,6 +144,82 @@ type CommissionEmployeeOption struct {
 	ID          uuid.UUID
 	DisplayName string
 }
+
+// CommissionReversalLine 是核销撤销时逐订单的有效提成输入与冲减结果。
+type CommissionReversalLine struct {
+	OrderID uuid.UUID
+	Amount  decimal.Decimal
+}
+
+// CommissionReversalPlan 描述核销撤销对提成单和调整单的原子处理计划。
+type CommissionReversalPlan struct {
+	CancelCommission    bool
+	CancelAdjustmentIDs []uuid.UUID
+	Recoveries          []CommissionReversalLine
+}
+
+// PlanCommissionReversal 保留已支付历史，取消未支付权益，并把剩余有效提成冲减至零。
+func PlanCommissionReversal(status CommissionStatus, baseAmount decimal.Decimal, lines []CommissionReversalLine, adjustments []*FinanceCommissionAdjustment) (*CommissionReversalPlan, error) {
+	plan := &CommissionReversalPlan{}
+	hasPaidExposure := status == CommissionPaid
+	for _, item := range adjustments {
+		if item.Status == CommissionPaid {
+			hasPaidExposure = true
+		}
+	}
+	if !hasPaidExposure {
+		plan.CancelCommission = true
+		for _, item := range adjustments {
+			if item.Status == CommissionDraft || item.Status == CommissionConfirmed {
+				plan.CancelAdjustmentIDs = append(plan.CancelAdjustmentIDs, item.ID)
+			}
+		}
+		return plan, nil
+	}
+	for _, item := range adjustments {
+		if item.Status == CommissionDraft {
+			plan.CancelAdjustmentIDs = append(plan.CancelAdjustmentIDs, item.ID)
+		}
+	}
+	if len(lines) == 0 {
+		return nil, ErrCommissionSource
+	}
+	orderEffective := make(map[uuid.UUID]decimal.Decimal, len(lines))
+	for _, line := range lines {
+		orderEffective[line.OrderID] = orderEffective[line.OrderID].Add(line.Amount)
+	}
+	effective := baseAmount
+	for _, item := range adjustments {
+		if item.Status != CommissionConfirmed && item.Status != CommissionPaid {
+			continue
+		}
+		if item.Direction == CommissionAdjustmentDecrease {
+			effective = effective.Sub(item.Amount)
+			orderEffective[item.OrderID] = orderEffective[item.OrderID].Sub(item.Amount)
+		} else {
+			effective = effective.Add(item.Amount)
+			orderEffective[item.OrderID] = orderEffective[item.OrderID].Add(item.Amount)
+		}
+	}
+	remaining := effective.Round(8)
+	if !remaining.IsPositive() {
+		return plan, nil
+	}
+	for _, line := range lines {
+		available := orderEffective[line.OrderID].Round(8)
+		if !available.IsPositive() || !remaining.IsPositive() {
+			continue
+		}
+		amount := decimal.Min(available, remaining).Round(8)
+		plan.Recoveries = append(plan.Recoveries, CommissionReversalLine{OrderID: line.OrderID, Amount: amount})
+		remaining = remaining.Sub(amount).Round(8)
+	}
+	if remaining.IsPositive() {
+		return nil, ErrCommissionSource
+	}
+	return plan, nil
+}
+
 type CommissionCandidateFilter struct {
 	Page, PageSize         int
 	Keyword                string
@@ -389,7 +469,7 @@ func (u *CommissionUsecase) CreateAdjustment(ctx context.Context, org, actor uui
 	}
 	item := &FinanceCommissionAdjustment{
 		ID: uuid.Must(uuid.NewV7()), OrganizationID: org, CommissionID: in.CommissionID, OrderID: in.OrderID,
-		IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, Status: CommissionDraft,
+		IdempotencyKey: in.IdempotencyKey, Direction: in.Direction, SourceType: CommissionAdjustmentSourceManual, Status: CommissionDraft,
 		Amount: in.Amount.Round(8), Reason: in.Reason, Note: in.Note, Version: 1,
 	}
 	created, err := u.repo.CreateAdjustment(ctx, org, actor, item, commissionAdjustmentAudit(org, actor, item.ID, "finance.commission_adjustment.create"))

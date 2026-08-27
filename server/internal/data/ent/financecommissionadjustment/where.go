@@ -111,6 +111,11 @@ func EmployeeName(v string) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldEmployeeName, v))
 }
 
+// SourceVerificationID applies equality check predicate on the "source_verification_id" field. It's identical to SourceVerificationIDEQ.
+func SourceVerificationID(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceVerificationID, v))
+}
+
 // BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
 func BaseCurrency(v string) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldBaseCurrency, v))
@@ -654,6 +659,56 @@ func EmployeeNameEqualFold(v string) predicate.FinanceCommissionAdjustment {
 // EmployeeNameContainsFold applies the ContainsFold predicate on the "employee_name" field.
 func EmployeeNameContainsFold(v string) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldContainsFold(FieldEmployeeName, v))
+}
+
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v SourceType) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceType, v))
+}
+
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v SourceType) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldSourceType, v))
+}
+
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...SourceType) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldSourceType, vs...))
+}
+
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...SourceType) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldSourceType, vs...))
+}
+
+// SourceVerificationIDEQ applies the EQ predicate on the "source_verification_id" field.
+func SourceVerificationIDEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceVerificationID, v))
+}
+
+// SourceVerificationIDNEQ applies the NEQ predicate on the "source_verification_id" field.
+func SourceVerificationIDNEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldSourceVerificationID, v))
+}
+
+// SourceVerificationIDIn applies the In predicate on the "source_verification_id" field.
+func SourceVerificationIDIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldSourceVerificationID, vs...))
+}
+
+// SourceVerificationIDNotIn applies the NotIn predicate on the "source_verification_id" field.
+func SourceVerificationIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldSourceVerificationID, vs...))
+}
+
+// SourceVerificationIDIsNil applies the IsNil predicate on the "source_verification_id" field.
+func SourceVerificationIDIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldSourceVerificationID))
+}
+
+// SourceVerificationIDNotNil applies the NotNil predicate on the "source_verification_id" field.
+func SourceVerificationIDNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldSourceVerificationID))
 }
 
 // DirectionEQ applies the EQ predicate on the "direction" field.
@@ -1405,6 +1460,29 @@ func HasEmployee() predicate.FinanceCommissionAdjustment {
 func HasEmployeeWith(preds ...predicate.User) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
 		step := newEmployeeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSourceVerification applies the HasEdge predicate on the "source_verification" edge.
+func HasSourceVerification() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SourceVerificationTable, SourceVerificationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSourceVerificationWith applies the HasEdge predicate on the "source_verification" edge with a given conditions (other predicates).
+func HasSourceVerificationWith(preds ...predicate.FinanceVerification) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := newSourceVerificationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

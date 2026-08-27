@@ -68,6 +68,8 @@ const (
 	EdgeFinanceCashflows = "finance_cashflows"
 	// EdgeFinanceVerifications holds the string denoting the finance_verifications edge name in mutations.
 	EdgeFinanceVerifications = "finance_verifications"
+	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
+	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -182,6 +184,13 @@ const (
 	FinanceVerificationsInverseTable = "finance_verifications"
 	// FinanceVerificationsColumn is the table column denoting the finance_verifications relation/edge.
 	FinanceVerificationsColumn = "settlement_party_id"
+	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
+	OrderCommissionAttributionsTable = "order_commission_attributions"
+	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
+	// It exists in this package in order to avoid circular dependency with the "ordercommissionattribution" package.
+	OrderCommissionAttributionsInverseTable = "order_commission_attributions"
+	// OrderCommissionAttributionsColumn is the table column denoting the order_commission_attributions relation/edge.
+	OrderCommissionAttributionsColumn = "customer_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -507,6 +516,20 @@ func ByFinanceVerifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newFinanceVerificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
+func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderCommissionAttributionsStep(), opts...)
+	}
+}
+
+// ByOrderCommissionAttributions orders the results by order_commission_attributions terms.
+func ByOrderCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderCommissionAttributionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -617,5 +640,12 @@ func newFinanceVerificationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceVerificationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceVerificationsTable, FinanceVerificationsColumn),
+	)
+}
+func newOrderCommissionAttributionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderCommissionAttributionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderCommissionAttributionsTable, OrderCommissionAttributionsColumn),
 	)
 }

@@ -108,6 +108,8 @@ type OrganizationEdges struct {
 	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
 	// FinanceCommissionRules holds the value of the finance_commission_rules edge.
 	FinanceCommissionRules []*FinanceCommissionRule `json:"finance_commission_rules,omitempty"`
+	// OrderCommissionAttributions holds the value of the order_commission_attributions edge.
+	OrderCommissionAttributions []*OrderCommissionAttribution `json:"order_commission_attributions,omitempty"`
 	// FinanceFeeLedgerPreferences holds the value of the finance_fee_ledger_preferences edge.
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
 	// ExchangeRateCustomSetting holds the value of the exchange_rate_custom_setting edge.
@@ -116,7 +118,7 @@ type OrganizationEdges struct {
 	FinanceCustomSetting []*FinanceCustomSetting `json:"finance_custom_setting,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [35]bool
+	loadedTypes [36]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -409,10 +411,19 @@ func (e OrganizationEdges) FinanceCommissionRulesOrErr() ([]*FinanceCommissionRu
 	return nil, &NotLoadedError{edge: "finance_commission_rules"}
 }
 
+// OrderCommissionAttributionsOrErr returns the OrderCommissionAttributions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderCommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
+	if e.loadedTypes[32] {
+		return e.OrderCommissionAttributions, nil
+	}
+	return nil, &NotLoadedError{edge: "order_commission_attributions"}
+}
+
 // FinanceFeeLedgerPreferencesOrErr returns the FinanceFeeLedgerPreferences value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedgerPreference, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[33] {
 		return e.FinanceFeeLedgerPreferences, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_fee_ledger_preferences"}
@@ -421,7 +432,7 @@ func (e OrganizationEdges) FinanceFeeLedgerPreferencesOrErr() ([]*FinanceFeeLedg
 // ExchangeRateCustomSettingOrErr returns the ExchangeRateCustomSetting value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCustomSetting, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[34] {
 		return e.ExchangeRateCustomSetting, nil
 	}
 	return nil, &NotLoadedError{edge: "exchange_rate_custom_setting"}
@@ -430,7 +441,7 @@ func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCust
 // FinanceCustomSettingOrErr returns the FinanceCustomSetting value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) FinanceCustomSettingOrErr() ([]*FinanceCustomSetting, error) {
-	if e.loadedTypes[34] {
+	if e.loadedTypes[35] {
 		return e.FinanceCustomSetting, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_custom_setting"}
@@ -699,6 +710,11 @@ func (_m *Organization) QueryFinanceCommissionAdjustments() *FinanceCommissionAd
 // QueryFinanceCommissionRules queries the "finance_commission_rules" edge of the Organization entity.
 func (_m *Organization) QueryFinanceCommissionRules() *FinanceCommissionRuleQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceCommissionRules(_m)
+}
+
+// QueryOrderCommissionAttributions queries the "order_commission_attributions" edge of the Organization entity.
+func (_m *Organization) QueryOrderCommissionAttributions() *OrderCommissionAttributionQuery {
+	return NewOrganizationClient(_m.config).QueryOrderCommissionAttributions(_m)
 }
 
 // QueryFinanceFeeLedgerPreferences queries the "finance_fee_ledger_preferences" edge of the Organization entity.

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -44,6 +45,10 @@ type FinanceCommissionAdjustment struct {
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
 	EmployeeName string `json:"employee_name,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType financecommissionadjustment.SourceType `json:"source_type,omitempty"`
+	// SourceVerificationID holds the value of the "source_verification_id" field.
+	SourceVerificationID *uuid.UUID `json:"source_verification_id,omitempty"`
 	// Direction holds the value of the "direction" field.
 	Direction financecommissionadjustment.Direction `json:"direction,omitempty"`
 	// Status holds the value of the "status" field.
@@ -88,6 +93,8 @@ type FinanceCommissionAdjustmentEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// Employee holds the value of the employee edge.
 	Employee *User `json:"employee,omitempty"`
+	// SourceVerification holds the value of the source_verification edge.
+	SourceVerification *FinanceVerification `json:"source_verification,omitempty"`
 	// ConfirmedByUser holds the value of the confirmed_by_user edge.
 	ConfirmedByUser *User `json:"confirmed_by_user,omitempty"`
 	// PaidByUser holds the value of the paid_by_user edge.
@@ -96,7 +103,7 @@ type FinanceCommissionAdjustmentEdges struct {
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -143,12 +150,23 @@ func (e FinanceCommissionAdjustmentEdges) EmployeeOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "employee"}
 }
 
+// SourceVerificationOrErr returns the SourceVerification value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionAdjustmentEdges) SourceVerificationOrErr() (*FinanceVerification, error) {
+	if e.SourceVerification != nil {
+		return e.SourceVerification, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: financeverification.Label}
+	}
+	return nil, &NotLoadedError{edge: "source_verification"}
+}
+
 // ConfirmedByUserOrErr returns the ConfirmedByUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceCommissionAdjustmentEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -159,7 +177,7 @@ func (e FinanceCommissionAdjustmentEdges) ConfirmedByUserOrErr() (*User, error) 
 func (e FinanceCommissionAdjustmentEdges) PaidByUserOrErr() (*User, error) {
 	if e.PaidByUser != nil {
 		return e.PaidByUser, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "paid_by_user"}
@@ -170,7 +188,7 @@ func (e FinanceCommissionAdjustmentEdges) PaidByUserOrErr() (*User, error) {
 func (e FinanceCommissionAdjustmentEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[6] {
+	} else if e.loadedTypes[7] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -181,11 +199,11 @@ func (*FinanceCommissionAdjustment) scanValues(columns []string) ([]any, error) 
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
+		case financecommissionadjustment.FieldSourceVerificationID, financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommissionadjustment.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommissionadjustment.FieldAdjustmentNo, financecommissionadjustment.FieldIdempotencyKey, financecommissionadjustment.FieldCommissionNo, financecommissionadjustment.FieldOrderNo, financecommissionadjustment.FieldEmployeeName, financecommissionadjustment.FieldDirection, financecommissionadjustment.FieldStatus, financecommissionadjustment.FieldBaseCurrency, financecommissionadjustment.FieldAmount, financecommissionadjustment.FieldReason, financecommissionadjustment.FieldNote, financecommissionadjustment.FieldCancellationReason:
+		case financecommissionadjustment.FieldAdjustmentNo, financecommissionadjustment.FieldIdempotencyKey, financecommissionadjustment.FieldCommissionNo, financecommissionadjustment.FieldOrderNo, financecommissionadjustment.FieldEmployeeName, financecommissionadjustment.FieldSourceType, financecommissionadjustment.FieldDirection, financecommissionadjustment.FieldStatus, financecommissionadjustment.FieldBaseCurrency, financecommissionadjustment.FieldAmount, financecommissionadjustment.FieldReason, financecommissionadjustment.FieldNote, financecommissionadjustment.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommissionadjustment.FieldCreatedAt, financecommissionadjustment.FieldUpdatedAt, financecommissionadjustment.FieldConfirmedAt, financecommissionadjustment.FieldPaidAt, financecommissionadjustment.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -277,6 +295,19 @@ func (_m *FinanceCommissionAdjustment) assignValues(columns []string, values []a
 				return fmt.Errorf("unexpected type %T for field employee_name", values[i])
 			} else if value.Valid {
 				_m.EmployeeName = value.String
+			}
+		case financecommissionadjustment.FieldSourceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
+			} else if value.Valid {
+				_m.SourceType = financecommissionadjustment.SourceType(value.String)
+			}
+		case financecommissionadjustment.FieldSourceVerificationID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field source_verification_id", values[i])
+			} else if value.Valid {
+				_m.SourceVerificationID = new(uuid.UUID)
+				*_m.SourceVerificationID = *value.S.(*uuid.UUID)
 			}
 		case financecommissionadjustment.FieldDirection:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -403,6 +434,11 @@ func (_m *FinanceCommissionAdjustment) QueryEmployee() *UserQuery {
 	return NewFinanceCommissionAdjustmentClient(_m.config).QueryEmployee(_m)
 }
 
+// QuerySourceVerification queries the "source_verification" edge of the FinanceCommissionAdjustment entity.
+func (_m *FinanceCommissionAdjustment) QuerySourceVerification() *FinanceVerificationQuery {
+	return NewFinanceCommissionAdjustmentClient(_m.config).QuerySourceVerification(_m)
+}
+
 // QueryConfirmedByUser queries the "confirmed_by_user" edge of the FinanceCommissionAdjustment entity.
 func (_m *FinanceCommissionAdjustment) QueryConfirmedByUser() *UserQuery {
 	return NewFinanceCommissionAdjustmentClient(_m.config).QueryConfirmedByUser(_m)
@@ -473,6 +509,14 @@ func (_m *FinanceCommissionAdjustment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("employee_name=")
 	builder.WriteString(_m.EmployeeName)
+	builder.WriteString(", ")
+	builder.WriteString("source_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SourceType))
+	builder.WriteString(", ")
+	if v := _m.SourceVerificationID; v != nil {
+		builder.WriteString("source_verification_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("direction=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Direction))

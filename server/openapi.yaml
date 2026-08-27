@@ -6853,6 +6853,10 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                sourceType:
+                    type: string
+                sourceVerificationId:
+                    type: string
         finance.v1.FinanceCommissionLine:
             type: object
             properties:

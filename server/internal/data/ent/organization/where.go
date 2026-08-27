@@ -1242,6 +1242,29 @@ func HasFinanceCommissionRulesWith(preds ...predicate.FinanceCommissionRule) pre
 	})
 }
 
+// HasOrderCommissionAttributions applies the HasEdge predicate on the "order_commission_attributions" edge.
+func HasOrderCommissionAttributions() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderCommissionAttributionsTable, OrderCommissionAttributionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderCommissionAttributionsWith applies the HasEdge predicate on the "order_commission_attributions" edge with a given conditions (other predicates).
+func HasOrderCommissionAttributionsWith(preds ...predicate.OrderCommissionAttribution) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderCommissionAttributionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFinanceFeeLedgerPreferences applies the HasEdge predicate on the "finance_fee_ledger_preferences" edge.
 func HasFinanceFeeLedgerPreferences() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

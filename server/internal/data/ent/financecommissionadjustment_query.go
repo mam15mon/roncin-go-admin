@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -24,18 +25,19 @@ import (
 // FinanceCommissionAdjustmentQuery is the builder for querying FinanceCommissionAdjustment entities.
 type FinanceCommissionAdjustmentQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []financecommissionadjustment.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.FinanceCommissionAdjustment
-	withOrganization    *OrganizationQuery
-	withCommission      *FinanceCommissionQuery
-	withOrder           *OrderQuery
-	withEmployee        *UserQuery
-	withConfirmedByUser *UserQuery
-	withPaidByUser      *UserQuery
-	withCancelledByUser *UserQuery
-	modifiers           []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []financecommissionadjustment.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.FinanceCommissionAdjustment
+	withOrganization       *OrganizationQuery
+	withCommission         *FinanceCommissionQuery
+	withOrder              *OrderQuery
+	withEmployee           *UserQuery
+	withSourceVerification *FinanceVerificationQuery
+	withConfirmedByUser    *UserQuery
+	withPaidByUser         *UserQuery
+	withCancelledByUser    *UserQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -153,6 +155,28 @@ func (_q *FinanceCommissionAdjustmentQuery) QueryEmployee() *UserQuery {
 			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.EmployeeTable, financecommissionadjustment.EmployeeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySourceVerification chains the current query on the "source_verification" edge.
+func (_q *FinanceCommissionAdjustmentQuery) QuerySourceVerification() *FinanceVerificationQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
+			sqlgraph.To(financeverification.Table, financeverification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceVerificationTable, financecommissionadjustment.SourceVerificationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -413,18 +437,19 @@ func (_q *FinanceCommissionAdjustmentQuery) Clone() *FinanceCommissionAdjustment
 		return nil
 	}
 	return &FinanceCommissionAdjustmentQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]financecommissionadjustment.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.FinanceCommissionAdjustment{}, _q.predicates...),
-		withOrganization:    _q.withOrganization.Clone(),
-		withCommission:      _q.withCommission.Clone(),
-		withOrder:           _q.withOrder.Clone(),
-		withEmployee:        _q.withEmployee.Clone(),
-		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
-		withPaidByUser:      _q.withPaidByUser.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]financecommissionadjustment.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.FinanceCommissionAdjustment{}, _q.predicates...),
+		withOrganization:       _q.withOrganization.Clone(),
+		withCommission:         _q.withCommission.Clone(),
+		withOrder:              _q.withOrder.Clone(),
+		withEmployee:           _q.withEmployee.Clone(),
+		withSourceVerification: _q.withSourceVerification.Clone(),
+		withConfirmedByUser:    _q.withConfirmedByUser.Clone(),
+		withPaidByUser:         _q.withPaidByUser.Clone(),
+		withCancelledByUser:    _q.withCancelledByUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -472,6 +497,17 @@ func (_q *FinanceCommissionAdjustmentQuery) WithEmployee(opts ...func(*UserQuery
 		opt(query)
 	}
 	_q.withEmployee = query
+	return _q
+}
+
+// WithSourceVerification tells the query-builder to eager-load the nodes that are connected to
+// the "source_verification" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionAdjustmentQuery) WithSourceVerification(opts ...func(*FinanceVerificationQuery)) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceVerificationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSourceVerification = query
 	return _q
 }
 
@@ -586,11 +622,12 @@ func (_q *FinanceCommissionAdjustmentQuery) sqlAll(ctx context.Context, hooks ..
 	var (
 		nodes       = []*FinanceCommissionAdjustment{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withOrganization != nil,
 			_q.withCommission != nil,
 			_q.withOrder != nil,
 			_q.withEmployee != nil,
+			_q.withSourceVerification != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withPaidByUser != nil,
 			_q.withCancelledByUser != nil,
@@ -638,6 +675,12 @@ func (_q *FinanceCommissionAdjustmentQuery) sqlAll(ctx context.Context, hooks ..
 	if query := _q.withEmployee; query != nil {
 		if err := _q.loadEmployee(ctx, query, nodes, nil,
 			func(n *FinanceCommissionAdjustment, e *User) { n.Edges.Employee = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSourceVerification; query != nil {
+		if err := _q.loadSourceVerification(ctx, query, nodes, nil,
+			func(n *FinanceCommissionAdjustment, e *FinanceVerification) { n.Edges.SourceVerification = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -771,6 +814,38 @@ func (_q *FinanceCommissionAdjustmentQuery) loadEmployee(ctx context.Context, qu
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "employee_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceCommissionAdjustmentQuery) loadSourceVerification(ctx context.Context, query *FinanceVerificationQuery, nodes []*FinanceCommissionAdjustment, init func(*FinanceCommissionAdjustment), assign func(*FinanceCommissionAdjustment, *FinanceVerification)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommissionAdjustment)
+	for i := range nodes {
+		if nodes[i].SourceVerificationID == nil {
+			continue
+		}
+		fk := *nodes[i].SourceVerificationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(financeverification.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "source_verification_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -914,6 +989,9 @@ func (_q *FinanceCommissionAdjustmentQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withEmployee != nil {
 			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldEmployeeID)
+		}
+		if _q.withSourceVerification != nil {
+			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldSourceVerificationID)
 		}
 		if _q.withConfirmedByUser != nil {
 			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldConfirmedBy)

@@ -190,9 +190,11 @@ type OrderEdges struct {
 	FinanceCommissionLines []*FinanceCommissionLine `json:"finance_commission_lines,omitempty"`
 	// FinanceCommissionAdjustments holds the value of the finance_commission_adjustments edge.
 	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
+	// CommissionAttributions holds the value of the commission_attributions edge.
+	CommissionAttributions []*OrderCommissionAttribution `json:"commission_attributions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [18]bool
+	loadedTypes [19]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -359,6 +361,15 @@ func (e OrderEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdj
 		return e.FinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
+}
+
+// CommissionAttributionsOrErr returns the CommissionAttributions value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) CommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
+	if e.loadedTypes[18] {
+		return e.CommissionAttributions, nil
+	}
+	return nil, &NotLoadedError{edge: "commission_attributions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -899,6 +910,11 @@ func (_m *Order) QueryFinanceCommissionLines() *FinanceCommissionLineQuery {
 // QueryFinanceCommissionAdjustments queries the "finance_commission_adjustments" edge of the Order entity.
 func (_m *Order) QueryFinanceCommissionAdjustments() *FinanceCommissionAdjustmentQuery {
 	return NewOrderClient(_m.config).QueryFinanceCommissionAdjustments(_m)
+}
+
+// QueryCommissionAttributions queries the "commission_attributions" edge of the Order entity.
+func (_m *Order) QueryCommissionAttributions() *OrderCommissionAttributionQuery {
+	return NewOrderClient(_m.config).QueryCommissionAttributions(_m)
 }
 
 // Update returns a builder for updating this Order.

@@ -123,6 +123,9 @@ type OrderCargoCategory func(*sql.Selector)
 // OrderCargoItem is the predicate function for ordercargoitem builders.
 type OrderCargoItem func(*sql.Selector)
 
+// OrderCommissionAttribution is the predicate function for ordercommissionattribution builders.
+type OrderCommissionAttribution func(*sql.Selector)
+
 // OrderConsolidation is the predicate function for orderconsolidation builders.
 type OrderConsolidation func(*sql.Selector)
 

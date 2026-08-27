@@ -55,6 +55,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
@@ -173,6 +174,8 @@ type Client struct {
 	OrderCargoCategory *OrderCargoCategoryClient
 	// OrderCargoItem is the client for interacting with the OrderCargoItem builders.
 	OrderCargoItem *OrderCargoItemClient
+	// OrderCommissionAttribution is the client for interacting with the OrderCommissionAttribution builders.
+	OrderCommissionAttribution *OrderCommissionAttributionClient
 	// OrderConsolidation is the client for interacting with the OrderConsolidation builders.
 	OrderConsolidation *OrderConsolidationClient
 	// OrderContainer is the client for interacting with the OrderContainer builders.
@@ -289,6 +292,7 @@ func (c *Client) init() {
 	c.OrderAttachment = NewOrderAttachmentClient(c.config)
 	c.OrderCargoCategory = NewOrderCargoCategoryClient(c.config)
 	c.OrderCargoItem = NewOrderCargoItemClient(c.config)
+	c.OrderCommissionAttribution = NewOrderCommissionAttributionClient(c.config)
 	c.OrderConsolidation = NewOrderConsolidationClient(c.config)
 	c.OrderContainer = NewOrderContainerClient(c.config)
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
@@ -453,6 +457,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderAttachment:               NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:            NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:                NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:    NewOrderCommissionAttributionClient(cfg),
 		OrderConsolidation:            NewOrderConsolidationClient(cfg),
 		OrderContainer:                NewOrderContainerClient(cfg),
 		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
@@ -544,6 +549,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderAttachment:               NewOrderAttachmentClient(cfg),
 		OrderCargoCategory:            NewOrderCargoCategoryClient(cfg),
 		OrderCargoItem:                NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:    NewOrderCommissionAttributionClient(cfg),
 		OrderConsolidation:            NewOrderConsolidationClient(cfg),
 		OrderContainer:                NewOrderContainerClient(cfg),
 		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
@@ -617,14 +623,15 @@ func (c *Client) Use(hooks ...Hook) {
 		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -645,14 +652,15 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -739,6 +747,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderCargoCategory.mutate(ctx, m)
 	case *OrderCargoItemMutation:
 		return c.OrderCargoItem.mutate(ctx, m)
+	case *OrderCommissionAttributionMutation:
+		return c.OrderCommissionAttribution.mutate(ctx, m)
 	case *OrderConsolidationMutation:
 		return c.OrderConsolidation.mutate(ctx, m)
 	case *OrderContainerMutation:
@@ -3921,6 +3931,22 @@ func (c *FinanceCommissionAdjustmentClient) QueryEmployee(_m *FinanceCommissionA
 	return query
 }
 
+// QuerySourceVerification queries the source_verification edge of a FinanceCommissionAdjustment.
+func (c *FinanceCommissionAdjustmentClient) QuerySourceVerification(_m *FinanceCommissionAdjustment) *FinanceVerificationQuery {
+	query := (&FinanceVerificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, id),
+			sqlgraph.To(financeverification.Table, financeverification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceVerificationTable, financecommissionadjustment.SourceVerificationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryConfirmedByUser queries the confirmed_by_user edge of a FinanceCommissionAdjustment.
 func (c *FinanceCommissionAdjustmentClient) QueryConfirmedByUser(_m *FinanceCommissionAdjustment) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -5426,6 +5452,22 @@ func (c *FinanceVerificationClient) QueryCommissions(_m *FinanceVerification) *F
 			sqlgraph.From(financeverification.Table, financeverification.FieldID, id),
 			sqlgraph.To(financecommission.Table, financecommission.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financeverification.CommissionsTable, financeverification.CommissionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCommissionReversalAdjustments queries the commission_reversal_adjustments edge of a FinanceVerification.
+func (c *FinanceVerificationClient) QueryCommissionReversalAdjustments(_m *FinanceVerification) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeverification.Table, financeverification.FieldID, id),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeverification.CommissionReversalAdjustmentsTable, financeverification.CommissionReversalAdjustmentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -7159,6 +7201,22 @@ func (c *OrderClient) QueryFinanceCommissionAdjustments(_m *Order) *FinanceCommi
 	return query
 }
 
+// QueryCommissionAttributions queries the commission_attributions edge of a Order.
+func (c *OrderClient) QueryCommissionAttributions(_m *Order) *OrderCommissionAttributionQuery {
+	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.CommissionAttributionsTable, order.CommissionAttributionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -7777,6 +7835,203 @@ func (c *OrderCargoItemClient) mutate(ctx context.Context, m *OrderCargoItemMuta
 		return (&OrderCargoItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderCargoItem mutation op: %q", m.Op())
+	}
+}
+
+// OrderCommissionAttributionClient is a client for the OrderCommissionAttribution schema.
+type OrderCommissionAttributionClient struct {
+	config
+}
+
+// NewOrderCommissionAttributionClient returns a client for the OrderCommissionAttribution from the given config.
+func NewOrderCommissionAttributionClient(c config) *OrderCommissionAttributionClient {
+	return &OrderCommissionAttributionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ordercommissionattribution.Hooks(f(g(h())))`.
+func (c *OrderCommissionAttributionClient) Use(hooks ...Hook) {
+	c.hooks.OrderCommissionAttribution = append(c.hooks.OrderCommissionAttribution, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ordercommissionattribution.Intercept(f(g(h())))`.
+func (c *OrderCommissionAttributionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderCommissionAttribution = append(c.inters.OrderCommissionAttribution, interceptors...)
+}
+
+// Create returns a builder for creating a OrderCommissionAttribution entity.
+func (c *OrderCommissionAttributionClient) Create() *OrderCommissionAttributionCreate {
+	mutation := newOrderCommissionAttributionMutation(c.config, OpCreate)
+	return &OrderCommissionAttributionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderCommissionAttribution entities.
+func (c *OrderCommissionAttributionClient) CreateBulk(builders ...*OrderCommissionAttributionCreate) *OrderCommissionAttributionCreateBulk {
+	return &OrderCommissionAttributionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderCommissionAttributionClient) MapCreateBulk(slice any, setFunc func(*OrderCommissionAttributionCreate, int)) *OrderCommissionAttributionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderCommissionAttributionCreateBulk{err: fmt.Errorf("calling to OrderCommissionAttributionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderCommissionAttributionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderCommissionAttributionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) Update() *OrderCommissionAttributionUpdate {
+	mutation := newOrderCommissionAttributionMutation(c.config, OpUpdate)
+	return &OrderCommissionAttributionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderCommissionAttributionClient) UpdateOne(_m *OrderCommissionAttribution) *OrderCommissionAttributionUpdateOne {
+	mutation := newOrderCommissionAttributionMutation(c.config, OpUpdateOne, withOrderCommissionAttribution(_m))
+	return &OrderCommissionAttributionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderCommissionAttributionClient) UpdateOneID(id uuid.UUID) *OrderCommissionAttributionUpdateOne {
+	mutation := newOrderCommissionAttributionMutation(c.config, OpUpdateOne, withOrderCommissionAttributionID(id))
+	return &OrderCommissionAttributionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) Delete() *OrderCommissionAttributionDelete {
+	mutation := newOrderCommissionAttributionMutation(c.config, OpDelete)
+	return &OrderCommissionAttributionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderCommissionAttributionClient) DeleteOne(_m *OrderCommissionAttribution) *OrderCommissionAttributionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderCommissionAttributionClient) DeleteOneID(id uuid.UUID) *OrderCommissionAttributionDeleteOne {
+	builder := c.Delete().Where(ordercommissionattribution.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderCommissionAttributionDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) Query() *OrderCommissionAttributionQuery {
+	return &OrderCommissionAttributionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderCommissionAttribution},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderCommissionAttribution entity by its id.
+func (c *OrderCommissionAttributionClient) Get(ctx context.Context, id uuid.UUID) (*OrderCommissionAttribution, error) {
+	return c.Query().Where(ordercommissionattribution.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderCommissionAttributionClient) GetX(ctx context.Context, id uuid.UUID) *OrderCommissionAttribution {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) QueryOrganization(_m *OrderCommissionAttribution) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercommissionattribution.Table, ordercommissionattribution.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercommissionattribution.OrganizationTable, ordercommissionattribution.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) QueryOrder(_m *OrderCommissionAttribution) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercommissionattribution.Table, ordercommissionattribution.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercommissionattribution.OrderTable, ordercommissionattribution.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCustomer queries the customer edge of a OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) QueryCustomer(_m *OrderCommissionAttribution) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercommissionattribution.Table, ordercommissionattribution.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercommissionattribution.CustomerTable, ordercommissionattribution.CustomerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmployee queries the employee edge of a OrderCommissionAttribution.
+func (c *OrderCommissionAttributionClient) QueryEmployee(_m *OrderCommissionAttribution) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ordercommissionattribution.Table, ordercommissionattribution.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ordercommissionattribution.EmployeeTable, ordercommissionattribution.EmployeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderCommissionAttributionClient) Hooks() []Hook {
+	return c.hooks.OrderCommissionAttribution
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderCommissionAttributionClient) Interceptors() []Interceptor {
+	return c.inters.OrderCommissionAttribution
+}
+
+func (c *OrderCommissionAttributionClient) mutate(ctx context.Context, m *OrderCommissionAttributionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderCommissionAttributionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderCommissionAttributionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderCommissionAttributionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderCommissionAttributionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderCommissionAttribution mutation op: %q", m.Op())
 	}
 }
 
@@ -10098,6 +10353,22 @@ func (c *OrganizationClient) QueryFinanceCommissionRules(_m *Organization) *Fina
 	return query
 }
 
+// QueryOrderCommissionAttributions queries the order_commission_attributions edge of a Organization.
+func (c *OrganizationClient) QueryOrderCommissionAttributions(_m *Organization) *OrderCommissionAttributionQuery {
+	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderCommissionAttributionsTable, organization.OrderCommissionAttributionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceFeeLedgerPreferences queries the finance_fee_ledger_preferences edge of a Organization.
 func (c *OrganizationClient) QueryFinanceFeeLedgerPreferences(_m *Organization) *FinanceFeeLedgerPreferenceQuery {
 	query := (&FinanceFeeLedgerPreferenceClient{config: c.config}).Query()
@@ -10529,6 +10800,22 @@ func (c *PartnerClient) QueryFinanceVerifications(_m *Partner) *FinanceVerificat
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(financeverification.Table, financeverification.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.FinanceVerificationsTable, partner.FinanceVerificationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderCommissionAttributions queries the order_commission_attributions edge of a Partner.
+func (c *PartnerClient) QueryOrderCommissionAttributions(_m *Partner) *OrderCommissionAttributionQuery {
+	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrderCommissionAttributionsTable, partner.OrderCommissionAttributionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -14182,6 +14469,22 @@ func (c *UserClient) QueryFinanceCommissionAdjustments(_m *User) *FinanceCommiss
 	return query
 }
 
+// QueryOrderCommissionAttributions queries the order_commission_attributions edge of a User.
+func (c *UserClient) QueryOrderCommissionAttributions(_m *User) *OrderCommissionAttributionQuery {
+	query := (&OrderCommissionAttributionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderCommissionAttributionsTable, user.OrderCommissionAttributionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryConfirmedFinanceCommissionAdjustments queries the confirmed_finance_commission_adjustments edge of a User.
 func (c *UserClient) QueryConfirmedFinanceCommissionAdjustments(_m *User) *FinanceCommissionAdjustmentQuery {
 	query := (&FinanceCommissionAdjustmentClient{config: c.config}).Query()
@@ -14317,14 +14620,14 @@ type (
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
+		OrderCargoItem, OrderCommissionAttribution, OrderConsolidation, OrderContainer,
+		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -14337,13 +14640,14 @@ type (
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
+		OrderCargoItem, OrderCommissionAttribution, OrderConsolidation, OrderContainer,
+		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
+		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
+		ShippingLine, ShippingLineContainerPrefix, TaxableService,
+		User []ent.Interceptor
 	}
 )

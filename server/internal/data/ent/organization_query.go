@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -90,6 +91,7 @@ type OrganizationQuery struct {
 	withFinanceCommissionLines        *FinanceCommissionLineQuery
 	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
 	withFinanceCommissionRules        *FinanceCommissionRuleQuery
+	withOrderCommissionAttributions   *OrderCommissionAttributionQuery
 	withFinanceFeeLedgerPreferences   *FinanceFeeLedgerPreferenceQuery
 	withExchangeRateCustomSetting     *ExchangeRateCustomSettingQuery
 	withFinanceCustomSetting          *FinanceCustomSettingQuery
@@ -834,6 +836,28 @@ func (_q *OrganizationQuery) QueryFinanceCommissionRules() *FinanceCommissionRul
 	return query
 }
 
+// QueryOrderCommissionAttributions chains the current query on the "order_commission_attributions" edge.
+func (_q *OrganizationQuery) QueryOrderCommissionAttributions() *OrderCommissionAttributionQuery {
+	query := (&OrderCommissionAttributionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderCommissionAttributionsTable, organization.OrderCommissionAttributionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryFinanceFeeLedgerPreferences chains the current query on the "finance_fee_ledger_preferences" edge.
 func (_q *OrganizationQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
 	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
@@ -1124,6 +1148,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
 		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
 		withFinanceCommissionRules:        _q.withFinanceCommissionRules.Clone(),
+		withOrderCommissionAttributions:   _q.withOrderCommissionAttributions.Clone(),
 		withFinanceFeeLedgerPreferences:   _q.withFinanceFeeLedgerPreferences.Clone(),
 		withExchangeRateCustomSetting:     _q.withExchangeRateCustomSetting.Clone(),
 		withFinanceCustomSetting:          _q.withFinanceCustomSetting.Clone(),
@@ -1485,6 +1510,17 @@ func (_q *OrganizationQuery) WithFinanceCommissionRules(opts ...func(*FinanceCom
 	return _q
 }
 
+// WithOrderCommissionAttributions tells the query-builder to eager-load the nodes that are connected to
+// the "order_commission_attributions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderCommissionAttributions(opts ...func(*OrderCommissionAttributionQuery)) *OrganizationQuery {
+	query := (&OrderCommissionAttributionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderCommissionAttributions = query
+	return _q
+}
+
 // WithFinanceFeeLedgerPreferences tells the query-builder to eager-load the nodes that are connected to
 // the "finance_fee_ledger_preferences" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithFinanceFeeLedgerPreferences(opts ...func(*FinanceFeeLedgerPreferenceQuery)) *OrganizationQuery {
@@ -1596,7 +1632,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [35]bool{
+		loadedTypes = [36]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1629,6 +1665,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceCommissionLines != nil,
 			_q.withFinanceCommissionAdjustments != nil,
 			_q.withFinanceCommissionRules != nil,
+			_q.withOrderCommissionAttributions != nil,
 			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withExchangeRateCustomSetting != nil,
 			_q.withFinanceCustomSetting != nil,
@@ -1898,6 +1935,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceCommissionRules = []*FinanceCommissionRule{} },
 			func(n *Organization, e *FinanceCommissionRule) {
 				n.Edges.FinanceCommissionRules = append(n.Edges.FinanceCommissionRules, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderCommissionAttributions; query != nil {
+		if err := _q.loadOrderCommissionAttributions(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderCommissionAttributions = []*OrderCommissionAttribution{} },
+			func(n *Organization, e *OrderCommissionAttribution) {
+				n.Edges.OrderCommissionAttributions = append(n.Edges.OrderCommissionAttributions, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2882,6 +2928,36 @@ func (_q *OrganizationQuery) loadFinanceCommissionRules(ctx context.Context, que
 	}
 	query.Where(predicate.FinanceCommissionRule(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceCommissionRulesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderCommissionAttributions(ctx context.Context, query *OrderCommissionAttributionQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderCommissionAttribution)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(ordercommissionattribution.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderCommissionAttribution(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderCommissionAttributionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

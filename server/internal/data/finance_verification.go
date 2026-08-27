@@ -2,9 +2,11 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -13,6 +15,8 @@ import (
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	ver "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	alloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -236,12 +240,8 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 	if x.Version != version || x.Status != ver.StatusACTIVE {
 		return rollback(biz.ErrVerificationTransition)
 	}
-	hasCommission, e := tx.FinanceCommission.Query().Where(commission.VerificationIDEQ(id), commission.StatusNEQ(commission.StatusCANCELLED)).Exist(ctx)
-	if e != nil {
+	if e = reconcileCommissionsForVerificationReversal(ctx, tx, org, id, actor, reason); e != nil {
 		return rollback(e)
-	}
-	if hasCommission {
-		return rollback(biz.ErrVerificationHasCommission)
 	}
 	if _, e = tx.FinanceVerificationAllocation.Update().Where(alloc.VerificationIDEQ(id), alloc.ActiveEQ(true)).SetActive(false).Save(ctx); e != nil {
 		return rollback(e)
@@ -257,6 +257,104 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		return nil, e
 	}
 	return r.Get(ctx, org, id)
+}
+
+// reconcileCommissionsForVerificationReversal 在同一事务内撤销未支付提成，或对已支付提成形成待追回冲减。
+func reconcileCommissionsForVerificationReversal(ctx context.Context, tx *ent.Tx, org, verificationID, actor uuid.UUID, reason string) error {
+	commissions, err := tx.FinanceCommission.Query().Where(
+		commission.OrganizationIDEQ(org), commission.VerificationIDEQ(verificationID), commission.StatusNEQ(commission.StatusCANCELLED),
+	).Order(commission.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	cancellationReason := limitedFinanceReason("核销撤销自动取消：" + reason)
+	recoveryReason := limitedFinanceReason("核销撤销自动冲减：" + reason)
+	for _, parent := range commissions {
+		lines, queryErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID)).Order(commissionline.ByOrderID()).ForUpdate().All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		adjustments, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
+			adjustment.CommissionIDEQ(parent.ID), adjustment.StatusNEQ(adjustment.StatusCANCELLED),
+		).Order(adjustment.ByCreatedAt(), adjustment.ByID()).ForUpdate().All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		baseAmount, parseErr := decimal.NewFromString(parent.CommissionAmount)
+		if parseErr != nil {
+			return parseErr
+		}
+		domainLines := make([]biz.CommissionReversalLine, 0, len(lines))
+		lineByOrder := make(map[uuid.UUID]*ent.FinanceCommissionLine, len(lines))
+		for _, line := range lines {
+			lineAmount, amountErr := decimal.NewFromString(line.CommissionAmount)
+			if amountErr != nil {
+				return amountErr
+			}
+			domainLines = append(domainLines, biz.CommissionReversalLine{OrderID: line.OrderID, Amount: lineAmount})
+			lineByOrder[line.OrderID] = line
+		}
+		domainAdjustments := make([]*biz.FinanceCommissionAdjustment, 0, len(adjustments))
+		for _, item := range adjustments {
+			converted, convertErr := commissionAdjustmentToBiz(item)
+			if convertErr != nil {
+				return convertErr
+			}
+			domainAdjustments = append(domainAdjustments, converted)
+		}
+		plan, planErr := biz.PlanCommissionReversal(biz.CommissionStatus(parent.Status), baseAmount, domainLines, domainAdjustments)
+		if planErr != nil {
+			return planErr
+		}
+		if len(plan.CancelAdjustmentIDs) > 0 {
+			if _, queryErr = tx.FinanceCommissionAdjustment.Update().Where(
+				adjustment.IDIn(plan.CancelAdjustmentIDs...),
+			).SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(cancellationReason).AddVersion(1).Save(ctx); queryErr != nil {
+				return queryErr
+			}
+		}
+		if plan.CancelCommission {
+			if _, queryErr = tx.FinanceCommission.UpdateOne(parent).SetStatus(commission.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(cancellationReason).AddVersion(1).Save(ctx); queryErr != nil {
+				return queryErr
+			}
+			continue
+		}
+		if len(plan.Recoveries) == 0 {
+			continue
+		}
+		sequence := parent.AdjustmentSequence
+		for _, recovery := range plan.Recoveries {
+			line := lineByOrder[recovery.OrderID]
+			if line == nil {
+				return biz.ErrCommissionSource
+			}
+			sequence++
+			idempotencyKey := fmt.Sprintf("vr:%s:%s:%s", verificationID, parent.ID, line.OrderID)
+			_, createErr := tx.FinanceCommissionAdjustment.Create().
+				SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(org).SetCommissionID(parent.ID).SetOrderID(line.OrderID).
+				SetAdjustmentNo(fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)).SetIdempotencyKey(idempotencyKey).
+				SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
+				SetSourceType(adjustment.SourceTypeVERIFICATION_REVERSAL).SetSourceVerificationID(verificationID).
+				SetDirection(adjustment.DirectionDECREASE).SetStatus(adjustment.StatusCONFIRMED).SetBaseCurrency(parent.BaseCurrency).
+				SetAmount(recovery.Amount.StringFixed(8)).SetReason(recoveryReason).SetVersion(1).SetConfirmedAt(now).SetConfirmedBy(actor).Save(ctx)
+			if createErr != nil {
+				return createErr
+			}
+		}
+		if _, queryErr = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).AddVersion(1).Save(ctx); queryErr != nil {
+			return queryErr
+		}
+	}
+	return nil
+}
+
+func limitedFinanceReason(value string) string {
+	if utf8.RuneCountInString(value) <= 500 {
+		return value
+	}
+	runes := []rune(value)
+	return string(runes[:500])
 }
 func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, error) {
 	amount, e := decimal.NewFromString(x.Amount)

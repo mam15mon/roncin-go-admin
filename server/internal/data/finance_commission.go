@@ -24,8 +24,8 @@ import (
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 	"github.com/shopspring/decimal"
@@ -93,37 +93,24 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f bi
 	if len(orders) == 0 {
 		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}}, nil
 	}
-	customerIDs := make([]uuid.UUID, 0, len(orders))
-	seenCustomers := make(map[uuid.UUID]struct{}, len(orders))
-	for _, item := range orders {
-		if _, exists := seenCustomers[item.CustomerID]; !exists {
-			seenCustomers[item.CustomerID] = struct{}{}
-			customerIDs = append(customerIDs, item.CustomerID)
-		}
-	}
-	predicates := []predicate.PartnerAssignment{
-		assignment.OrganizationIDEQ(org), assignment.PartnerIDIn(customerIDs...), assignment.RoleEQ(assignment.Role(ruleItem.PersonnelRole)),
-		assignment.HasUserWith(user.EnabledEQ(true)),
+	predicates := []predicate.OrderCommissionAttribution{
+		attribution.OrganizationIDEQ(org), attribution.OrderIDIn(orderIDs...), attribution.PersonnelRoleEQ(attribution.PersonnelRole(ruleItem.PersonnelRole)),
 	}
 	if f.Keyword != "" {
-		predicates = append(predicates, assignment.HasUserWith(user.Or(user.UsernameContainsFold(f.Keyword), user.DisplayNameContainsFold(f.Keyword), user.SearchKeywordsContainsFold(f.Keyword))))
+		predicates = append(predicates, attribution.Or(attribution.EmployeeNameContainsFold(f.Keyword), attribution.HasEmployeeWith(user.Or(user.UsernameContainsFold(f.Keyword), user.DisplayNameContainsFold(f.Keyword), user.SearchKeywordsContainsFold(f.Keyword)))))
 	}
-	items, err := r.data.db.PartnerAssignment.Query().Where(predicates...).WithUser().Order(assignment.ByUserID()).All(ctx)
+	items, err := r.data.db.OrderCommissionAttribution.Query().Where(predicates...).Order(attribution.ByEmployeeName(), attribution.ByEmployeeID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	employeeIDs := make([]uuid.UUID, 0, len(items))
 	seenUsers := make(map[uuid.UUID]struct{}, len(items))
 	for _, item := range items {
-		employee, edgeErr := item.Edges.UserOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		if _, ok := seenUsers[employee.ID]; ok {
+		if _, ok := seenUsers[item.EmployeeID]; ok {
 			continue
 		}
-		seenUsers[employee.ID] = struct{}{}
-		employeeIDs = append(employeeIDs, employee.ID)
+		seenUsers[item.EmployeeID] = struct{}{}
+		employeeIDs = append(employeeIDs, item.EmployeeID)
 	}
 	result := &biz.CommissionCandidateListResult{Items: make([]*biz.CommissionCalculation, 0, len(employeeIDs))}
 	for _, employeeID := range employeeIDs {
@@ -301,17 +288,17 @@ type commissionCalculationStore struct {
 	rules         *ent.FinanceCommissionRuleClient
 	users         *ent.UserClient
 	bills         *ent.FinanceBillClient
-	assignments   *ent.PartnerAssignmentClient
+	attributions  *ent.OrderCommissionAttributionClient
 	fees          *ent.OrderFeeClient
 	orders        *ent.OrderClient
 }
 
 func commissionStoreFromClient(client *ent.Client) commissionCalculationStore {
-	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, assignments: client.PartnerAssignment, fees: client.OrderFee, orders: client.Order}
+	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
 }
 
 func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
-	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, assignments: tx.PartnerAssignment, fees: tx.OrderFee, orders: tx.Order}
+	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
 }
 
 func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
@@ -350,7 +337,7 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	uq := store.users.Query().Where(user.IDEQ(employeeID), user.EnabledEQ(true), user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true)))
+	uq := store.users.Query().Where(user.IDEQ(employeeID))
 	if lock {
 		uq.ForUpdate()
 	}
@@ -444,41 +431,31 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		return nil, biz.ErrCommissionSource
 	}
 	orderByID := make(map[uuid.UUID]*ent.Order, len(orders))
-	customerIDs := make([]uuid.UUID, 0, len(orders))
-	seenCustomers := make(map[uuid.UUID]struct{})
 	for _, item := range orders {
 		orderByID[item.ID] = item
-		if _, exists := seenCustomers[item.CustomerID]; !exists {
-			seenCustomers[item.CustomerID] = struct{}{}
-			customerIDs = append(customerIDs, item.CustomerID)
-		}
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order|%s|%s|%s|%s|%d", item.ID, item.OrderNo, item.CustomerID, item.OrderDate, item.Version))
 	}
-	aq := store.assignments.Query().Where(
-		assignment.OrganizationIDEQ(org), assignment.PartnerIDIn(customerIDs...), assignment.UserIDEQ(employeeID), assignment.RoleEQ(assignment.Role(ruleItem.PersonnelRole)),
-	).WithPartner()
+	aq := store.attributions.Query().Where(
+		attribution.OrganizationIDEQ(org), attribution.OrderIDIn(orderIDs...), attribution.EmployeeIDEQ(employeeID), attribution.PersonnelRoleEQ(attribution.PersonnelRole(ruleItem.PersonnelRole)),
+	).Order(attribution.ByAttributedAt(), attribution.ByID())
 	if lock {
 		aq.ForUpdate()
 	}
-	assignments, err := aq.All(ctx)
+	attributions, err := aq.All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(assignments) == 0 {
+	if len(attributions) == 0 {
 		return nil, biz.ErrCommissionEmployeeRole
 	}
-	assignmentByCustomer := make(map[uuid.UUID]*ent.PartnerAssignment, len(assignments))
-	for _, item := range assignments {
-		customer, edgeErr := item.Edges.PartnerOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		assignmentByCustomer[item.PartnerID] = item
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("customer_assignment|%s|%s|%s|%s|%s|%s|%s|%t", item.ID, item.PartnerID, item.UserID, item.OrganizationID, item.Role, item.CreatedAt.UTC().Format(time.RFC3339Nano), customer.Code, customer.Enabled))
+	attributionByOrder := make(map[uuid.UUID]*ent.OrderCommissionAttribution, len(attributions))
+	for _, item := range attributions {
+		attributionByOrder[item.OrderID] = item
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order_attribution|%s|%s|%s|%s|%s|%s|%s|%s", item.ID, item.OrderID, item.CustomerID, item.EmployeeID, item.PersonnelRole, item.SourceAssignmentID, item.EmployeeName, item.AttributedAt.UTC().Format(time.RFC3339Nano)))
 	}
 	eligibleOrderIDs := make([]uuid.UUID, 0, len(orderIDs))
 	for _, id := range orderIDs {
-		if _, eligible := assignmentByCustomer[orderByID[id].CustomerID]; eligible {
+		if _, eligible := attributionByOrder[id]; eligible {
 			eligibleOrderIDs = append(eligibleOrderIDs, id)
 		}
 	}
@@ -499,7 +476,7 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	}
 	result := &biz.CommissionCalculation{
 		VerificationID: verificationID, VerificationNo: v.VerificationNo,
-		EmployeeID: employeeID, EmployeeName: employee.DisplayName,
+		EmployeeID: employeeID, EmployeeName: attributions[0].EmployeeName,
 		RuleID: ruleID, RuleName: ruleItem.Name, PersonnelRole: biz.CommissionPersonnelRole(ruleItem.PersonnelRole),
 		CalculationBasis: biz.CommissionCalculationBasis(ruleItem.CalculationBasis), RuleVersion: ruleItem.Version,
 		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: baseCurrency, RatePercent: rate,
@@ -513,12 +490,12 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		assignmentItem := assignmentByCustomer[orderItem.CustomerID]
+		attributionItem := attributionByOrder[orderItem.ID]
 		line := &biz.FinanceCommissionLine{
 			OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, OrderDate: orderItem.OrderDate,
 			CustomerID: customer.ID, CustomerCode: customer.Code, CustomerName: customer.LegalName,
-			CustomerAssignmentID: assignmentItem.ID, CustomerAssignmentOrganizationID: assignmentItem.OrganizationID, CustomerAssignedAt: assignmentItem.CreatedAt,
-			EmployeeID: employeeID, EmployeeName: employee.DisplayName, PersonnelRole: result.PersonnelRole,
+			CustomerAssignmentID: attributionItem.SourceAssignmentID, CustomerAssignmentOrganizationID: attributionItem.OrganizationID, CustomerAssignedAt: attributionItem.AttributedAt,
+			EmployeeID: employeeID, EmployeeName: attributionItem.EmployeeName, PersonnelRole: result.PersonnelRole,
 			CalculationBasis: result.CalculationBasis, RatePercent: rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
 		}
 		for _, feeItem := range orderFees {
@@ -906,7 +883,7 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 		SetAdjustmentNo(item.AdjustmentNo).SetIdempotencyKey(item.IdempotencyKey).
 		SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).
 		SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
-		SetDirection(adjustment.Direction(item.Direction)).SetStatus(adjustment.StatusDRAFT).
+		SetSourceType(adjustment.SourceType(item.SourceType)).SetDirection(adjustment.Direction(item.Direction)).SetStatus(adjustment.StatusDRAFT).
 		SetBaseCurrency(parent.BaseCurrency).SetAmount(item.Amount.StringFixed(8)).SetReason(item.Reason).
 		SetNillableNote(item.Note).SetVersion(1).Save(ctx)
 	if ent.IsConstraintError(err) {
@@ -1024,7 +1001,7 @@ func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.Finance
 		ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID,
 		AdjustmentNo: x.AdjustmentNo, IdempotencyKey: x.IdempotencyKey, CommissionNo: x.CommissionNo,
 		OrderNo: x.OrderNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName,
-		Direction: biz.CommissionAdjustmentDirection(x.Direction), Status: biz.CommissionStatus(x.Status),
+		Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), SourceVerificationID: x.SourceVerificationID, Status: biz.CommissionStatus(x.Status),
 		BaseCurrency: x.BaseCurrency, Amount: amount, Reason: x.Reason, Note: x.Note, Version: x.Version,
 		ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt,
 		CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt,

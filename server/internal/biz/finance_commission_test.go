@@ -146,7 +146,7 @@ func TestCreateCommissionAdjustment(t *testing.T) {
 		if err != nil {
 			t.Fatalf("CreateAdjustment() error = %v", err)
 		}
-		if item.Status != CommissionDraft || item.Direction != CommissionAdjustmentIncrease || item.Amount.StringFixed(8) != "1.25000000" {
+		if item.Status != CommissionDraft || item.SourceType != CommissionAdjustmentSourceManual || item.Direction != CommissionAdjustmentIncrease || item.Amount.StringFixed(8) != "1.25000000" {
 			t.Fatalf("调整草稿不符: %#v", item)
 		}
 	})
@@ -166,4 +166,51 @@ func TestCreateCommissionAdjustment(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPlanCommissionReversal(t *testing.T) {
+	firstID, secondID := uuid.New(), uuid.New()
+	lines := []CommissionReversalLine{
+		{OrderID: firstID, Amount: decimal.RequireFromString("30")},
+		{OrderID: secondID, Amount: decimal.RequireFromString("0")},
+	}
+
+	t.Run("未支付提成和调整直接取消", func(t *testing.T) {
+		draftID, confirmedID := uuid.New(), uuid.New()
+		plan, err := PlanCommissionReversal(CommissionConfirmed, decimal.NewFromInt(30), lines, []*FinanceCommissionAdjustment{
+			{ID: draftID, Status: CommissionDraft},
+			{ID: confirmedID, Status: CommissionConfirmed},
+		})
+		if err != nil {
+			t.Fatalf("PlanCommissionReversal() error = %v", err)
+		}
+		if !plan.CancelCommission || len(plan.CancelAdjustmentIDs) != 2 || len(plan.Recoveries) != 0 {
+			t.Fatalf("取消计划不符: %#v", plan)
+		}
+	})
+
+	t.Run("已支付提成形成等额待追回冲减", func(t *testing.T) {
+		plan, err := PlanCommissionReversal(CommissionPaid, decimal.NewFromInt(30), lines, []*FinanceCommissionAdjustment{
+			{OrderID: firstID, Status: CommissionConfirmed, Direction: CommissionAdjustmentIncrease, Amount: decimal.NewFromInt(10)},
+		})
+		if err != nil {
+			t.Fatalf("PlanCommissionReversal() error = %v", err)
+		}
+		if plan.CancelCommission || len(plan.Recoveries) != 1 || plan.Recoveries[0].Amount.StringFixed(8) != "40.00000000" {
+			t.Fatalf("冲减计划不符: %#v", plan)
+		}
+	})
+
+	t.Run("负向订单不导致超额冲减", func(t *testing.T) {
+		plan, err := PlanCommissionReversal(CommissionPaid, decimal.NewFromInt(20), []CommissionReversalLine{
+			{OrderID: firstID, Amount: decimal.NewFromInt(30)},
+			{OrderID: secondID, Amount: decimal.NewFromInt(-10)},
+		}, nil)
+		if err != nil {
+			t.Fatalf("PlanCommissionReversal() error = %v", err)
+		}
+		if len(plan.Recoveries) != 1 || plan.Recoveries[0].OrderID != firstID || plan.Recoveries[0].Amount.StringFixed(8) != "20.00000000" {
+			t.Fatalf("冲减分配不符: %#v", plan.Recoveries)
+		}
+	})
 }

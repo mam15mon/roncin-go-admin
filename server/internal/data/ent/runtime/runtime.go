@@ -45,6 +45,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
@@ -2026,7 +2027,7 @@ func init() {
 		}
 	}()
 	// financecommissionadjustmentDescBaseCurrency is the schema descriptor for base_currency field.
-	financecommissionadjustmentDescBaseCurrency := financecommissionadjustmentFields[11].Descriptor()
+	financecommissionadjustmentDescBaseCurrency := financecommissionadjustmentFields[13].Descriptor()
 	// financecommissionadjustment.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financecommissionadjustment.BaseCurrencyValidator = func() func(string) error {
 		validators := financecommissionadjustmentDescBaseCurrency.Validators
@@ -2045,7 +2046,7 @@ func init() {
 		}
 	}()
 	// financecommissionadjustmentDescReason is the schema descriptor for reason field.
-	financecommissionadjustmentDescReason := financecommissionadjustmentFields[13].Descriptor()
+	financecommissionadjustmentDescReason := financecommissionadjustmentFields[15].Descriptor()
 	// financecommissionadjustment.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	financecommissionadjustment.ReasonValidator = func() func(string) error {
 		validators := financecommissionadjustmentDescReason.Validators
@@ -2063,15 +2064,15 @@ func init() {
 		}
 	}()
 	// financecommissionadjustmentDescNote is the schema descriptor for note field.
-	financecommissionadjustmentDescNote := financecommissionadjustmentFields[14].Descriptor()
+	financecommissionadjustmentDescNote := financecommissionadjustmentFields[16].Descriptor()
 	// financecommissionadjustment.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommissionadjustment.NoteValidator = financecommissionadjustmentDescNote.Validators[0].(func(string) error)
 	// financecommissionadjustmentDescVersion is the schema descriptor for version field.
-	financecommissionadjustmentDescVersion := financecommissionadjustmentFields[15].Descriptor()
+	financecommissionadjustmentDescVersion := financecommissionadjustmentFields[17].Descriptor()
 	// financecommissionadjustment.DefaultVersion holds the default value on creation for the version field.
 	financecommissionadjustment.DefaultVersion = financecommissionadjustmentDescVersion.Default.(uint64)
 	// financecommissionadjustmentDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionadjustmentDescCancellationReason := financecommissionadjustmentFields[22].Descriptor()
+	financecommissionadjustmentDescCancellationReason := financecommissionadjustmentFields[24].Descriptor()
 	// financecommissionadjustment.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommissionadjustment.CancellationReasonValidator = financecommissionadjustmentDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionadjustmentDescID is the schema descriptor for id field.
@@ -3825,6 +3826,45 @@ func init() {
 	ordercargoitemDescID := ordercargoitemMixinFields0[0].Descriptor()
 	// ordercargoitem.DefaultID holds the default value on creation for the id field.
 	ordercargoitem.DefaultID = ordercargoitemDescID.Default.(func() uuid.UUID)
+	ordercommissionattributionMixin := schema.OrderCommissionAttribution{}.Mixin()
+	ordercommissionattributionMixinFields0 := ordercommissionattributionMixin[0].Fields()
+	_ = ordercommissionattributionMixinFields0
+	ordercommissionattributionMixinFields1 := ordercommissionattributionMixin[1].Fields()
+	_ = ordercommissionattributionMixinFields1
+	ordercommissionattributionFields := schema.OrderCommissionAttribution{}.Fields()
+	_ = ordercommissionattributionFields
+	// ordercommissionattributionDescCreatedAt is the schema descriptor for created_at field.
+	ordercommissionattributionDescCreatedAt := ordercommissionattributionMixinFields1[0].Descriptor()
+	// ordercommissionattribution.DefaultCreatedAt holds the default value on creation for the created_at field.
+	ordercommissionattribution.DefaultCreatedAt = ordercommissionattributionDescCreatedAt.Default.(func() time.Time)
+	// ordercommissionattributionDescUpdatedAt is the schema descriptor for updated_at field.
+	ordercommissionattributionDescUpdatedAt := ordercommissionattributionMixinFields1[1].Descriptor()
+	// ordercommissionattribution.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	ordercommissionattribution.DefaultUpdatedAt = ordercommissionattributionDescUpdatedAt.Default.(func() time.Time)
+	// ordercommissionattribution.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	ordercommissionattribution.UpdateDefaultUpdatedAt = ordercommissionattributionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// ordercommissionattributionDescEmployeeName is the schema descriptor for employee_name field.
+	ordercommissionattributionDescEmployeeName := ordercommissionattributionFields[5].Descriptor()
+	// ordercommissionattribution.EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
+	ordercommissionattribution.EmployeeNameValidator = func() func(string) error {
+		validators := ordercommissionattributionDescEmployeeName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(employee_name string) error {
+			for _, fn := range fns {
+				if err := fn(employee_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ordercommissionattributionDescID is the schema descriptor for id field.
+	ordercommissionattributionDescID := ordercommissionattributionMixinFields0[0].Descriptor()
+	// ordercommissionattribution.DefaultID holds the default value on creation for the id field.
+	ordercommissionattribution.DefaultID = ordercommissionattributionDescID.Default.(func() uuid.UUID)
 	orderconsolidationMixin := schema.OrderConsolidation{}.Mixin()
 	orderconsolidationMixinFields0 := orderconsolidationMixin[0].Fields()
 	_ = orderconsolidationMixinFields0

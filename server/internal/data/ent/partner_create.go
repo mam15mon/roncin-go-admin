@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -391,6 +392,21 @@ func (_c *PartnerCreate) AddFinanceVerifications(v ...*FinanceVerification) *Par
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceVerificationIDs(ids...)
+}
+
+// AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
+func (_c *PartnerCreate) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddOrderCommissionAttributionIDs(ids...)
+	return _c
+}
+
+// AddOrderCommissionAttributions adds the "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_c *PartnerCreate) AddOrderCommissionAttributions(v ...*OrderCommissionAttribution) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddOrderCommissionAttributionIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -837,6 +853,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OrderCommissionAttributionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.OrderCommissionAttributionsTable,
+			Columns: []string{partner.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

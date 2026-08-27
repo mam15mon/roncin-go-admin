@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -325,6 +326,21 @@ func (_c *FinanceVerificationCreate) AddCommissions(v ...*FinanceCommission) *Fi
 		ids[i] = v[i].ID
 	}
 	return _c.AddCommissionIDs(ids...)
+}
+
+// AddCommissionReversalAdjustmentIDs adds the "commission_reversal_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_c *FinanceVerificationCreate) AddCommissionReversalAdjustmentIDs(ids ...uuid.UUID) *FinanceVerificationCreate {
+	_c.mutation.AddCommissionReversalAdjustmentIDs(ids...)
+	return _c
+}
+
+// AddCommissionReversalAdjustments adds the "commission_reversal_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_c *FinanceVerificationCreate) AddCommissionReversalAdjustments(v ...*FinanceCommissionAdjustment) *FinanceVerificationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCommissionReversalAdjustmentIDs(ids...)
 }
 
 // Mutation returns the FinanceVerificationMutation object of the builder.
@@ -718,6 +734,22 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CommissionReversalAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

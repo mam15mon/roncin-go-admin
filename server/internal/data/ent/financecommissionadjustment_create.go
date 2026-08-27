@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -104,6 +105,34 @@ func (_c *FinanceCommissionAdjustmentCreate) SetEmployeeID(v uuid.UUID) *Finance
 // SetEmployeeName sets the "employee_name" field.
 func (_c *FinanceCommissionAdjustmentCreate) SetEmployeeName(v string) *FinanceCommissionAdjustmentCreate {
 	_c.mutation.SetEmployeeName(v)
+	return _c
+}
+
+// SetSourceType sets the "source_type" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceType(v financecommissionadjustment.SourceType) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSourceType(v)
+	return _c
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceType(v *financecommissionadjustment.SourceType) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSourceType(*v)
+	}
+	return _c
+}
+
+// SetSourceVerificationID sets the "source_verification_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceVerificationID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSourceVerificationID(v)
+	return _c
+}
+
+// SetNillableSourceVerificationID sets the "source_verification_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceVerificationID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSourceVerificationID(*v)
+	}
 	return _c
 }
 
@@ -305,6 +334,11 @@ func (_c *FinanceCommissionAdjustmentCreate) SetEmployee(v *User) *FinanceCommis
 	return _c.SetEmployeeID(v.ID)
 }
 
+// SetSourceVerification sets the "source_verification" edge to the FinanceVerification entity.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceVerification(v *FinanceVerification) *FinanceCommissionAdjustmentCreate {
+	return _c.SetSourceVerificationID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_c *FinanceCommissionAdjustmentCreate) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionAdjustmentCreate {
 	_c.mutation.SetConfirmedByUserID(id)
@@ -405,6 +439,10 @@ func (_c *FinanceCommissionAdjustmentCreate) defaults() {
 		v := financecommissionadjustment.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.SourceType(); !ok {
+		v := financecommissionadjustment.DefaultSourceType
+		_c.mutation.SetSourceType(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financecommissionadjustment.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -477,6 +515,14 @@ func (_c *FinanceCommissionAdjustmentCreate) check() error {
 	if v, ok := _c.mutation.EmployeeName(); ok {
 		if err := financecommissionadjustment.EmployeeNameValidator(v); err != nil {
 			return &ValidationError{Name: "employee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.employee_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "FinanceCommissionAdjustment.source_type"`)}
+	}
+	if v, ok := _c.mutation.SourceType(); ok {
+		if err := financecommissionadjustment.SourceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.source_type": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Direction(); !ok {
@@ -602,6 +648,10 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 		_spec.SetField(financecommissionadjustment.FieldEmployeeName, field.TypeString, value)
 		_node.EmployeeName = value
 	}
+	if value, ok := _c.mutation.SourceType(); ok {
+		_spec.SetField(financecommissionadjustment.FieldSourceType, field.TypeEnum, value)
+		_node.SourceType = value
+	}
 	if value, ok := _c.mutation.Direction(); ok {
 		_spec.SetField(financecommissionadjustment.FieldDirection, field.TypeEnum, value)
 		_node.Direction = value
@@ -712,6 +762,23 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.EmployeeID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SourceVerificationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SourceVerificationTable,
+			Columns: []string{financecommissionadjustment.SourceVerificationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeverification.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceVerificationID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ConfirmedByUserIDs(); len(nodes) > 0 {

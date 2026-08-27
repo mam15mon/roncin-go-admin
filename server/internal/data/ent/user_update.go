@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -517,6 +518,21 @@ func (_u *UserUpdate) AddFinanceCommissionAdjustments(v ...*FinanceCommissionAdj
 	return _u.AddFinanceCommissionAdjustmentIDs(ids...)
 }
 
+// AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
+func (_u *UserUpdate) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddOrderCommissionAttributionIDs(ids...)
+	return _u
+}
+
+// AddOrderCommissionAttributions adds the "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_u *UserUpdate) AddOrderCommissionAttributions(v ...*OrderCommissionAttribution) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderCommissionAttributionIDs(ids...)
+}
+
 // AddConfirmedFinanceCommissionAdjustmentIDs adds the "confirmed_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
 func (_u *UserUpdate) AddConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
@@ -1009,6 +1025,27 @@ func (_u *UserUpdate) RemoveFinanceCommissionAdjustments(v ...*FinanceCommission
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_u *UserUpdate) ClearOrderCommissionAttributions() *UserUpdate {
+	_u.mutation.ClearOrderCommissionAttributions()
+	return _u
+}
+
+// RemoveOrderCommissionAttributionIDs removes the "order_commission_attributions" edge to OrderCommissionAttribution entities by IDs.
+func (_u *UserUpdate) RemoveOrderCommissionAttributionIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveOrderCommissionAttributionIDs(ids...)
+	return _u
+}
+
+// RemoveOrderCommissionAttributions removes "order_commission_attributions" edges to OrderCommissionAttribution entities.
+func (_u *UserUpdate) RemoveOrderCommissionAttributions(v ...*OrderCommissionAttribution) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderCommissionAttributionIDs(ids...)
 }
 
 // ClearConfirmedFinanceCommissionAdjustments clears all "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
@@ -2140,6 +2177,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderCommissionAttributionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderCommissionAttributionsIDs(); len(nodes) > 0 && !_u.mutation.OrderCommissionAttributionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderCommissionAttributionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ConfirmedFinanceCommissionAdjustmentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2903,6 +2985,21 @@ func (_u *UserUpdateOne) AddFinanceCommissionAdjustments(v ...*FinanceCommission
 	return _u.AddFinanceCommissionAdjustmentIDs(ids...)
 }
 
+// AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
+func (_u *UserUpdateOne) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddOrderCommissionAttributionIDs(ids...)
+	return _u
+}
+
+// AddOrderCommissionAttributions adds the "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_u *UserUpdateOne) AddOrderCommissionAttributions(v ...*OrderCommissionAttribution) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderCommissionAttributionIDs(ids...)
+}
+
 // AddConfirmedFinanceCommissionAdjustmentIDs adds the "confirmed_finance_commission_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
 func (_u *UserUpdateOne) AddConfirmedFinanceCommissionAdjustmentIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddConfirmedFinanceCommissionAdjustmentIDs(ids...)
@@ -3395,6 +3492,27 @@ func (_u *UserUpdateOne) RemoveFinanceCommissionAdjustments(v ...*FinanceCommiss
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCommissionAdjustmentIDs(ids...)
+}
+
+// ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
+func (_u *UserUpdateOne) ClearOrderCommissionAttributions() *UserUpdateOne {
+	_u.mutation.ClearOrderCommissionAttributions()
+	return _u
+}
+
+// RemoveOrderCommissionAttributionIDs removes the "order_commission_attributions" edge to OrderCommissionAttribution entities by IDs.
+func (_u *UserUpdateOne) RemoveOrderCommissionAttributionIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveOrderCommissionAttributionIDs(ids...)
+	return _u
+}
+
+// RemoveOrderCommissionAttributions removes "order_commission_attributions" edges to OrderCommissionAttribution entities.
+func (_u *UserUpdateOne) RemoveOrderCommissionAttributions(v ...*OrderCommissionAttribution) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderCommissionAttributionIDs(ids...)
 }
 
 // ClearConfirmedFinanceCommissionAdjustments clears all "confirmed_finance_commission_adjustments" edges to the FinanceCommissionAdjustment entity.
@@ -4549,6 +4667,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderCommissionAttributionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderCommissionAttributionsIDs(); len(nodes) > 0 && !_u.mutation.OrderCommissionAttributionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderCommissionAttributionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OrderCommissionAttributionsTable,
+			Columns: []string{user.OrderCommissionAttributionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

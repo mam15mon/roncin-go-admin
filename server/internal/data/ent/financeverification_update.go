@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -202,6 +203,21 @@ func (_u *FinanceVerificationUpdate) AddCommissions(v ...*FinanceCommission) *Fi
 	return _u.AddCommissionIDs(ids...)
 }
 
+// AddCommissionReversalAdjustmentIDs adds the "commission_reversal_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceVerificationUpdate) AddCommissionReversalAdjustmentIDs(ids ...uuid.UUID) *FinanceVerificationUpdate {
+	_u.mutation.AddCommissionReversalAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCommissionReversalAdjustments adds the "commission_reversal_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceVerificationUpdate) AddCommissionReversalAdjustments(v ...*FinanceCommissionAdjustment) *FinanceVerificationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionReversalAdjustmentIDs(ids...)
+}
+
 // Mutation returns the FinanceVerificationMutation object of the builder.
 func (_u *FinanceVerificationUpdate) Mutation() *FinanceVerificationMutation {
 	return _u.mutation
@@ -253,6 +269,27 @@ func (_u *FinanceVerificationUpdate) RemoveCommissions(v ...*FinanceCommission) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionIDs(ids...)
+}
+
+// ClearCommissionReversalAdjustments clears all "commission_reversal_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceVerificationUpdate) ClearCommissionReversalAdjustments() *FinanceVerificationUpdate {
+	_u.mutation.ClearCommissionReversalAdjustments()
+	return _u
+}
+
+// RemoveCommissionReversalAdjustmentIDs removes the "commission_reversal_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceVerificationUpdate) RemoveCommissionReversalAdjustmentIDs(ids ...uuid.UUID) *FinanceVerificationUpdate {
+	_u.mutation.RemoveCommissionReversalAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCommissionReversalAdjustments removes "commission_reversal_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceVerificationUpdate) RemoveCommissionReversalAdjustments(v ...*FinanceCommissionAdjustment) *FinanceVerificationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionReversalAdjustmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -481,6 +518,51 @@ func (_u *FinanceVerificationUpdate) sqlSave(ctx context.Context) (_node int, er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.CommissionReversalAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionReversalAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CommissionReversalAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionReversalAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financeverification.Label}
@@ -671,6 +753,21 @@ func (_u *FinanceVerificationUpdateOne) AddCommissions(v ...*FinanceCommission) 
 	return _u.AddCommissionIDs(ids...)
 }
 
+// AddCommissionReversalAdjustmentIDs adds the "commission_reversal_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceVerificationUpdateOne) AddCommissionReversalAdjustmentIDs(ids ...uuid.UUID) *FinanceVerificationUpdateOne {
+	_u.mutation.AddCommissionReversalAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCommissionReversalAdjustments adds the "commission_reversal_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceVerificationUpdateOne) AddCommissionReversalAdjustments(v ...*FinanceCommissionAdjustment) *FinanceVerificationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionReversalAdjustmentIDs(ids...)
+}
+
 // Mutation returns the FinanceVerificationMutation object of the builder.
 func (_u *FinanceVerificationUpdateOne) Mutation() *FinanceVerificationMutation {
 	return _u.mutation
@@ -722,6 +819,27 @@ func (_u *FinanceVerificationUpdateOne) RemoveCommissions(v ...*FinanceCommissio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionIDs(ids...)
+}
+
+// ClearCommissionReversalAdjustments clears all "commission_reversal_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceVerificationUpdateOne) ClearCommissionReversalAdjustments() *FinanceVerificationUpdateOne {
+	_u.mutation.ClearCommissionReversalAdjustments()
+	return _u
+}
+
+// RemoveCommissionReversalAdjustmentIDs removes the "commission_reversal_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceVerificationUpdateOne) RemoveCommissionReversalAdjustmentIDs(ids ...uuid.UUID) *FinanceVerificationUpdateOne {
+	_u.mutation.RemoveCommissionReversalAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCommissionReversalAdjustments removes "commission_reversal_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceVerificationUpdateOne) RemoveCommissionReversalAdjustments(v ...*FinanceCommissionAdjustment) *FinanceVerificationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionReversalAdjustmentIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceVerificationUpdate builder.
@@ -973,6 +1091,51 @@ func (_u *FinanceVerificationUpdateOne) sqlSave(ctx context.Context) (_node *Fin
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommission.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommissionReversalAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionReversalAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CommissionReversalAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionReversalAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeverification.CommissionReversalAdjustmentsTable,
+			Columns: []string{financeverification.CommissionReversalAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

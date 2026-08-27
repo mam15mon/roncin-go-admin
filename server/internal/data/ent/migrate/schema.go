@@ -1080,6 +1080,7 @@ var (
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
+		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL"}, Default: "MANUAL"},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -1092,6 +1093,7 @@ var (
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "commission_id", Type: field.TypeUUID},
+		{Name: "source_verification_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "employee_id", Type: field.TypeUUID},
@@ -1107,43 +1109,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commission_adjustments_finance_commissions_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[19]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[20]},
 				RefColumns: []*schema.Column{FinanceCommissionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "finance_commission_adjustments_finance_verifications_commission_reversal_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[21]},
+				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "finance_commission_adjustments_orders_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[20]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[22]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_organizations_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[21]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[22]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_confirmed_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[23]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_paid_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_cancelled_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1157,22 +1165,27 @@ var (
 			{
 				Name:    "financecommissionadjustment_organization_id_adjustment_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[21], FinanceCommissionAdjustmentsColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[23], FinanceCommissionAdjustmentsColumns[3]},
 			},
 			{
 				Name:    "financecommissionadjustment_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[21], FinanceCommissionAdjustmentsColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[23], FinanceCommissionAdjustmentsColumns[4]},
 			},
 			{
 				Name:    "financecommissionadjustment_commission_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[19], FinanceCommissionAdjustmentsColumns[9], FinanceCommissionAdjustmentsColumns[1]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[20], FinanceCommissionAdjustmentsColumns[10], FinanceCommissionAdjustmentsColumns[1]},
 			},
 			{
 				Name:    "financecommissionadjustment_order_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[20], FinanceCommissionAdjustmentsColumns[9]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[10]},
+			},
+			{
+				Name:    "financecommissionadjustment_commission_id_order_id_source_type_source_verification_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[20], FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[21]},
 			},
 		},
 	}
@@ -2372,6 +2385,74 @@ var (
 				Name:    "ordercargoitem_order_id",
 				Unique:  false,
 				Columns: []*schema.Column{OrderCargoItemsColumns[9]},
+			},
+		},
+	}
+	// OrderCommissionAttributionsColumns holds the columns for the "order_commission_attributions" table.
+	OrderCommissionAttributionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "source_assignment_id", Type: field.TypeUUID},
+		{Name: "employee_name", Type: field.TypeString, Size: 100},
+		{Name: "personnel_role", Type: field.TypeEnum, Enums: []string{"SALES", "OPERATOR", "CUSTOMER_SERVICE"}},
+		{Name: "attributed_at", Type: field.TypeTime},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "customer_id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+	}
+	// OrderCommissionAttributionsTable holds the schema information for the "order_commission_attributions" table.
+	OrderCommissionAttributionsTable = &schema.Table{
+		Name:       "order_commission_attributions",
+		Columns:    OrderCommissionAttributionsColumns,
+		PrimaryKey: []*schema.Column{OrderCommissionAttributionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_commission_attributions_orders_commission_attributions",
+				Columns:    []*schema.Column{OrderCommissionAttributionsColumns[7]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_commission_attributions_organizations_order_commission_attributions",
+				Columns:    []*schema.Column{OrderCommissionAttributionsColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_commission_attributions_partners_order_commission_attributions",
+				Columns:    []*schema.Column{OrderCommissionAttributionsColumns[9]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_commission_attributions_users_order_commission_attributions",
+				Columns:    []*schema.Column{OrderCommissionAttributionsColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "ordercommissionattribution_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCommissionAttributionsColumns[2]},
+			},
+			{
+				Name:    "ordercommissionattribution_order_id_employee_id_personnel_role",
+				Unique:  true,
+				Columns: []*schema.Column{OrderCommissionAttributionsColumns[7], OrderCommissionAttributionsColumns[10], OrderCommissionAttributionsColumns[5]},
+			},
+			{
+				Name:    "ordercommissionattribution_organization_id_employee_id_personnel_role",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCommissionAttributionsColumns[8], OrderCommissionAttributionsColumns[10], OrderCommissionAttributionsColumns[5]},
+			},
+			{
+				Name:    "ordercommissionattribution_customer_id_personnel_role",
+				Unique:  false,
+				Columns: []*schema.Column{OrderCommissionAttributionsColumns[9], OrderCommissionAttributionsColumns[5]},
 			},
 		},
 	}
@@ -4084,6 +4165,7 @@ var (
 		OrderAttachmentsTable,
 		OrderCargoCategoriesTable,
 		OrderCargoItemsTable,
+		OrderCommissionAttributionsTable,
 		OrderConsolidationsTable,
 		OrderContainersTable,
 		OrderContainerRequestsTable,
@@ -4155,12 +4237,13 @@ func init() {
 	FinanceCommissionsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceCommissionsTable.ForeignKeys[6].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = OrdersTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = OrganizationsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = FinanceVerificationsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = OrdersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = OrganizationsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[4].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[6].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[7].RefTable = UsersTable
 	FinanceCommissionLinesTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
 	FinanceCommissionLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceCommissionLinesTable.ForeignKeys[2].RefTable = OrganizationsTable
@@ -4197,6 +4280,10 @@ func init() {
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoItemsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderCommissionAttributionsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderCommissionAttributionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	OrderCommissionAttributionsTable.ForeignKeys[2].RefTable = PartnersTable
+	OrderCommissionAttributionsTable.ForeignKeys[3].RefTable = UsersTable
 	OrderConsolidationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable

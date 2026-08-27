@@ -78,6 +78,8 @@ const (
 	EdgeAllocations = "allocations"
 	// EdgeCommissions holds the string denoting the commissions edge name in mutations.
 	EdgeCommissions = "commissions"
+	// EdgeCommissionReversalAdjustments holds the string denoting the commission_reversal_adjustments edge name in mutations.
+	EdgeCommissionReversalAdjustments = "commission_reversal_adjustments"
 	// Table holds the table name of the financeverification in the database.
 	Table = "finance_verifications"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -115,6 +117,13 @@ const (
 	CommissionsInverseTable = "finance_commissions"
 	// CommissionsColumn is the table column denoting the commissions relation/edge.
 	CommissionsColumn = "verification_id"
+	// CommissionReversalAdjustmentsTable is the table that holds the commission_reversal_adjustments relation/edge.
+	CommissionReversalAdjustmentsTable = "finance_commission_adjustments"
+	// CommissionReversalAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	CommissionReversalAdjustmentsInverseTable = "finance_commission_adjustments"
+	// CommissionReversalAdjustmentsColumn is the table column denoting the commission_reversal_adjustments relation/edge.
+	CommissionReversalAdjustmentsColumn = "source_verification_id"
 )
 
 // Columns holds all SQL columns for financeverification fields.
@@ -450,6 +459,20 @@ func ByCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCommissionReversalAdjustmentsCount orders the results by commission_reversal_adjustments count.
+func ByCommissionReversalAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommissionReversalAdjustmentsStep(), opts...)
+	}
+}
+
+// ByCommissionReversalAdjustments orders the results by commission_reversal_adjustments terms.
+func ByCommissionReversalAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommissionReversalAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -483,5 +506,12 @@ func newCommissionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CommissionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CommissionsTable, CommissionsColumn),
+	)
+}
+func newCommissionReversalAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommissionReversalAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommissionReversalAdjustmentsTable, CommissionReversalAdjustmentsColumn),
 	)
 }
