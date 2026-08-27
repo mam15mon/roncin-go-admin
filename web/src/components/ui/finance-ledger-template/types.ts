@@ -87,6 +87,9 @@ export interface FinanceLedgerTemplateProps<
 
   // 整行点击事件（如点击行跳转详情）
   onRowClick?: (record: T, event: React.MouseEvent) => void;
+
+  // ProTable 搜索表单配置覆盖（默认固定 labelWidth: 80 保持对齐）
+  search?: Record<string, any> | false;
 }
 
 

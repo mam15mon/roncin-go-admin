@@ -248,6 +248,7 @@ export function FinanceLedgerTemplate<
   rowColors,
   getRowStatusColorKey,
   onRowClick,
+  search,
 }: FinanceLedgerTemplateProps<T>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -395,12 +396,18 @@ export function FinanceLedgerTemplate<
         onSizeChange={(size) => setDensitySize(size || 'small')}
         scroll={{ x: scrollX }}
         pagination={{ defaultPageSize: 40, showSizeChanger: true }}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-          searchText: '查询',
-          resetText: '重置',
-        }}
+        search={
+          search === false
+            ? false
+            : {
+                labelWidth: 80,
+                defaultCollapsed: false,
+                searchText: '查询',
+                resetText: '重置',
+                span: { xs: 24, sm: 12, md: 8, lg: 6, xl: 6, xxl: 6 },
+                ...search,
+              }
+        }
         onRow={(record) => {
           const style: React.CSSProperties = {};
           if (onRowClick) {

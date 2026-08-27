@@ -217,7 +217,7 @@ export default function BackgroundTasksPanel() {
           刷新
         </Button>,
       ]}
-      search={{ labelWidth: 'auto', defaultCollapsed: false }}
+      search={{ labelWidth: 80, defaultCollapsed: false }}
     />
   );
 }
