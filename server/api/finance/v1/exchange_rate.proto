@@ -5,6 +5,7 @@ package finance.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
@@ -211,7 +212,7 @@ message GetExchangeRateCustomSettingResponse {
 
 message UpdateExchangeRateCustomSettingRequest {
   bool inherit_base_currency_rate = 1;
-  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.UInt64Value expected_version = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateExchangeRateCustomSettingResponse {

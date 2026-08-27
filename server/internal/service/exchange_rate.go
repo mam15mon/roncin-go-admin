@@ -131,7 +131,10 @@ func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Contex
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	setting, err := s.usecase.UpdateCustomSetting(ctx, principal.Organization.ID, principal.UserID, request.GetInheritBaseCurrencyRate(), request.GetExpectedVersion())
+	if request == nil || request.ExpectedVersion == nil {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
+	setting, err := s.usecase.UpdateCustomSetting(ctx, principal.Organization.ID, principal.UserID, request.GetInheritBaseCurrencyRate(), request.GetExpectedVersion().GetValue())
 	if err != nil {
 		return nil, err
 	}

@@ -188,6 +188,9 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
+	if request == nil || request.ExpectedVersion == nil {
+		return nil, biz.ErrFinanceCustomSettingInvalidArgument
+	}
 	fields := make([]biz.BilledFeeEditableField, 0, len(request.GetEditableFields()))
 	for _, field := range request.GetEditableFields() {
 		converted, valid := billedFeeEditableFieldFromAPI(field)
@@ -196,7 +199,7 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 		}
 		fields = append(fields, converted)
 	}
-	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion())
+	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion().GetValue())
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -1212,9 +1213,9 @@ func (x *GetExchangeRateCustomSettingResponse) GetTraceId() string {
 }
 
 type UpdateExchangeRateCustomSettingRequest struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	InheritBaseCurrencyRate bool                   `protobuf:"varint,1,opt,name=inherit_base_currency_rate,json=inheritBaseCurrencyRate,proto3" json:"inherit_base_currency_rate,omitempty"`
-	ExpectedVersion         uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	state                   protoimpl.MessageState  `protogen:"open.v1"`
+	InheritBaseCurrencyRate bool                    `protobuf:"varint,1,opt,name=inherit_base_currency_rate,json=inheritBaseCurrencyRate,proto3" json:"inherit_base_currency_rate,omitempty"`
+	ExpectedVersion         *wrapperspb.UInt64Value `protobuf:"bytes,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -1256,11 +1257,11 @@ func (x *UpdateExchangeRateCustomSettingRequest) GetInheritBaseCurrencyRate() bo
 	return false
 }
 
-func (x *UpdateExchangeRateCustomSettingRequest) GetExpectedVersion() uint64 {
+func (x *UpdateExchangeRateCustomSettingRequest) GetExpectedVersion() *wrapperspb.UInt64Value {
 	if x != nil {
 		return x.ExpectedVersion
 	}
-	return 0
+	return nil
 }
 
 type UpdateExchangeRateCustomSettingResponse struct {
@@ -2128,7 +2129,7 @@ var File_finance_v1_exchange_rate_proto protoreflect.FileDescriptor
 const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\n" +
 	"\x1efinance/v1/exchange_rate.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xcd\x03\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xcd\x03\n" +
 	"\x13ExchangeRateSetting\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1b\n" +
@@ -2229,10 +2230,10 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
 	"\x04data\x18\x04 \x01(\v2%.finance.v1.ExchangeRateCustomSettingR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x95\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
 	"&UpdateExchangeRateCustomSettingRequest\x12;\n" +
-	"\x1ainherit_base_currency_rate\x18\x01 \x01(\bR\x17inheritBaseCurrencyRate\x12.\n" +
-	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xc7\x01\n" +
+	"\x1ainherit_base_currency_rate\x18\x01 \x01(\bR\x17inheritBaseCurrencyRate\x12L\n" +
+	"\x10expected_version\x18\x02 \x01(\v2\x1c.google.protobuf.UInt64ValueB\x03\xe0A\x02R\x0fexpectedVersion\"\xc7\x01\n" +
 	"'UpdateExchangeRateCustomSettingResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2371,6 +2372,7 @@ var file_finance_v1_exchange_rate_proto_goTypes = []any{
 	(*PreviewExchangeRateImportResponse)(nil),          // 26: finance.v1.PreviewExchangeRateImportResponse
 	(*ConfirmExchangeRateImportResponse)(nil),          // 27: finance.v1.ConfirmExchangeRateImportResponse
 	(*GetExchangeRateImportResponse)(nil),              // 28: finance.v1.GetExchangeRateImportResponse
+	(*wrapperspb.UInt64Value)(nil),                     // 29: google.protobuf.UInt64Value
 }
 var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
 	0,  // 0: finance.v1.ListExchangeRateSettingsResponse.data:type_name -> finance.v1.ExchangeRateSetting
@@ -2380,40 +2382,41 @@ var file_finance_v1_exchange_rate_proto_depIdxs = []int32{
 	9,  // 4: finance.v1.UpdateExchangeRateTimeStandardsRequest.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
 	9,  // 5: finance.v1.UpdateExchangeRateTimeStandardsResponse.data:type_name -> finance.v1.ExchangeRateTimeStandardSetting
 	14, // 6: finance.v1.GetExchangeRateCustomSettingResponse.data:type_name -> finance.v1.ExchangeRateCustomSetting
-	14, // 7: finance.v1.UpdateExchangeRateCustomSettingResponse.data:type_name -> finance.v1.ExchangeRateCustomSetting
-	24, // 8: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
-	25, // 9: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	25, // 10: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	25, // 11: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
-	1,  // 12: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
-	3,  // 13: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
-	4,  // 14: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
-	5,  // 15: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
-	10, // 16: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:input_type -> finance.v1.ListExchangeRateTimeStandardsRequest
-	12, // 17: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:input_type -> finance.v1.UpdateExchangeRateTimeStandardsRequest
-	15, // 18: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:input_type -> finance.v1.GetExchangeRateCustomSettingRequest
-	17, // 19: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:input_type -> finance.v1.UpdateExchangeRateCustomSettingRequest
-	19, // 20: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
-	21, // 21: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
-	22, // 22: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
-	23, // 23: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
-	2,  // 24: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
-	6,  // 25: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
-	7,  // 26: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
-	8,  // 27: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
-	11, // 28: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:output_type -> finance.v1.ListExchangeRateTimeStandardsResponse
-	13, // 29: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:output_type -> finance.v1.UpdateExchangeRateTimeStandardsResponse
-	16, // 30: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:output_type -> finance.v1.GetExchangeRateCustomSettingResponse
-	18, // 31: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:output_type -> finance.v1.UpdateExchangeRateCustomSettingResponse
-	20, // 32: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
-	26, // 33: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
-	27, // 34: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
-	28, // 35: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	29, // 7: finance.v1.UpdateExchangeRateCustomSettingRequest.expected_version:type_name -> google.protobuf.UInt64Value
+	14, // 8: finance.v1.UpdateExchangeRateCustomSettingResponse.data:type_name -> finance.v1.ExchangeRateCustomSetting
+	24, // 9: finance.v1.ExchangeRateImportBatch.rows:type_name -> finance.v1.ExchangeRateImportRow
+	25, // 10: finance.v1.PreviewExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	25, // 11: finance.v1.ConfirmExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	25, // 12: finance.v1.GetExchangeRateImportResponse.data:type_name -> finance.v1.ExchangeRateImportBatch
+	1,  // 13: finance.v1.ExchangeRateService.ListExchangeRateSettings:input_type -> finance.v1.ListExchangeRateSettingsRequest
+	3,  // 14: finance.v1.ExchangeRateService.CreateExchangeRateSetting:input_type -> finance.v1.CreateExchangeRateSettingRequest
+	4,  // 15: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:input_type -> finance.v1.UpdateExchangeRateSettingRequest
+	5,  // 16: finance.v1.ExchangeRateService.DisableExchangeRateSetting:input_type -> finance.v1.DisableExchangeRateSettingRequest
+	10, // 17: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:input_type -> finance.v1.ListExchangeRateTimeStandardsRequest
+	12, // 18: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:input_type -> finance.v1.UpdateExchangeRateTimeStandardsRequest
+	15, // 19: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:input_type -> finance.v1.GetExchangeRateCustomSettingRequest
+	17, // 20: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:input_type -> finance.v1.UpdateExchangeRateCustomSettingRequest
+	19, // 21: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:input_type -> finance.v1.DownloadExchangeRateImportTemplateRequest
+	21, // 22: finance.v1.ExchangeRateService.PreviewExchangeRateImport:input_type -> finance.v1.PreviewExchangeRateImportRequest
+	22, // 23: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:input_type -> finance.v1.ConfirmExchangeRateImportRequest
+	23, // 24: finance.v1.ExchangeRateService.GetExchangeRateImport:input_type -> finance.v1.GetExchangeRateImportRequest
+	2,  // 25: finance.v1.ExchangeRateService.ListExchangeRateSettings:output_type -> finance.v1.ListExchangeRateSettingsResponse
+	6,  // 26: finance.v1.ExchangeRateService.CreateExchangeRateSetting:output_type -> finance.v1.CreateExchangeRateSettingResponse
+	7,  // 27: finance.v1.ExchangeRateService.UpdateExchangeRateSetting:output_type -> finance.v1.UpdateExchangeRateSettingResponse
+	8,  // 28: finance.v1.ExchangeRateService.DisableExchangeRateSetting:output_type -> finance.v1.DisableExchangeRateSettingResponse
+	11, // 29: finance.v1.ExchangeRateService.ListExchangeRateTimeStandards:output_type -> finance.v1.ListExchangeRateTimeStandardsResponse
+	13, // 30: finance.v1.ExchangeRateService.UpdateExchangeRateTimeStandards:output_type -> finance.v1.UpdateExchangeRateTimeStandardsResponse
+	16, // 31: finance.v1.ExchangeRateService.GetExchangeRateCustomSetting:output_type -> finance.v1.GetExchangeRateCustomSettingResponse
+	18, // 32: finance.v1.ExchangeRateService.UpdateExchangeRateCustomSetting:output_type -> finance.v1.UpdateExchangeRateCustomSettingResponse
+	20, // 33: finance.v1.ExchangeRateService.DownloadExchangeRateImportTemplate:output_type -> finance.v1.DownloadExchangeRateImportTemplateResponse
+	26, // 34: finance.v1.ExchangeRateService.PreviewExchangeRateImport:output_type -> finance.v1.PreviewExchangeRateImportResponse
+	27, // 35: finance.v1.ExchangeRateService.ConfirmExchangeRateImport:output_type -> finance.v1.ConfirmExchangeRateImportResponse
+	28, // 36: finance.v1.ExchangeRateService.GetExchangeRateImport:output_type -> finance.v1.GetExchangeRateImportResponse
+	25, // [25:37] is the sub-list for method output_type
+	13, // [13:25] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_exchange_rate_proto_init() }

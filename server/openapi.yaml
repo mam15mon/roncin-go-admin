@@ -7602,7 +7602,6 @@ components:
                     type: string
         finance.v1.UpdateBilledFeeEditPolicyRequest:
             required:
-                - editableFields
                 - expectedVersion
             type: object
             properties:

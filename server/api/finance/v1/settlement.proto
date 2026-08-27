@@ -5,6 +5,7 @@ package finance.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
@@ -284,8 +285,8 @@ message GetBilledFeeEditPolicyResponse {
 
 message UpdateBilledFeeEditPolicyRequest {
   bool enabled = 1;
-  repeated BilledFeeEditableField editable_fields = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  repeated BilledFeeEditableField editable_fields = 2;
+  google.protobuf.UInt64Value expected_version = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateBilledFeeEditPolicyResponse {
