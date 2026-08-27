@@ -127,10 +127,10 @@ export function FeeItemsPanel() {
           currencyResponse,
           optionResponse,
         ] = await Promise.all([
-          feeCatalogServiceListFeeSettings(),
-          feeCatalogServiceListBillingUnits(),
-          feeCatalogServiceListTaxableServices(),
-          masterDataServiceListCurrencies(),
+          feeCatalogServiceListFeeSettings({ page: 1, pageSize: 200 }),
+          feeCatalogServiceListBillingUnits({ page: 1, pageSize: 200 }),
+          feeCatalogServiceListTaxableServices({ page: 1, pageSize: 200 }),
+          masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
           masterDataServiceListOptions(),
         ]);
         setBillingUnits((unitResponse.data ?? []).filter((item) => item.enabled));

@@ -120,7 +120,7 @@ export default function OrderDetailPage() {
         fetchOrderMasterData(),
         loadStatusTemplatesByBusinessType(config.businessType),
         config.category === 'sea'
-          ? orderServiceListPersonnelOptions({ businessType: config.businessType }).catch(() => ({ data: [] }))
+          ? orderServiceListPersonnelOptions({ businessType: config.businessType, page: 1, pageSize: 200 }).catch(() => ({ data: [] }))
           : Promise.resolve({ data: [] }),
         orderServiceGetOrder({ id: orderId }),
         orderShippingDocumentServiceListShippingDocuments({ orderId }).catch(() => ({ data: [] })),

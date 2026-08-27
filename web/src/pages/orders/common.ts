@@ -218,6 +218,8 @@ export async function searchPartnersByRole(
     role,
     enabled: true,
     keyword,
+    page: 1,
+    pageSize: 200,
   });
   return (res.data ?? []).map((p) => ({
     label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',

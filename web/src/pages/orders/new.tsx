@@ -145,6 +145,8 @@ export default function NewOrderPage() {
       config.category === 'sea'
         ? orderServiceListPersonnelOptions({
             businessType: config.businessType,
+            page: 1,
+            pageSize: 200,
           })
         : Promise.resolve({ data: [] }),
     ])
