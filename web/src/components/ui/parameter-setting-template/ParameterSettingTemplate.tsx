@@ -140,6 +140,9 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
           onChange={handleTabChange}
           items={tabItems}
           tabBarStyle={{
+            position: 'sticky',
+            top: 84, // 48px Header + 36px TagsView
+            zIndex: 18,
             marginBottom: 12,
             backgroundColor: '#ffffff',
             padding: '0 16px',

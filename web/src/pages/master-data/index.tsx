@@ -123,6 +123,9 @@ export default function MasterDataPage() {
           type="card"
           items={tabItems}
           tabBarStyle={{
+            position: 'sticky',
+            top: 84,
+            zIndex: 18,
             marginBottom: 16,
             backgroundColor: '#ffffff',
             padding: '8px 12px 0',
