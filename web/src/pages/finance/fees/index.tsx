@@ -157,12 +157,6 @@ export default function FinanceFeeLedgerPage() {
       render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
     },
     {
-      title: '费用代码',
-      dataIndex: 'feeCode',
-      width: 90,
-      search: false,
-    },
-    {
       title: '委托单位',
       dataIndex: 'customerId',
       width: 190,
