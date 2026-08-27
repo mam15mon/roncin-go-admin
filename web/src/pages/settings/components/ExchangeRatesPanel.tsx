@@ -257,35 +257,29 @@ export function ExchangeRatesPanel() {
       ),
     },
     {
-      title: '生效时间范围',
+      title: '生效开始',
       dataIndex: 'effectiveFrom',
-      width: 240,
+      width: 170,
+      render: (_, record) => (
+        <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, color: '#262626' }}>
+          {record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-'}
+        </span>
+      ),
+    },
+    {
+      title: '生效结束',
+      dataIndex: 'effectiveTo',
+      width: 170,
       render: (_, record) => {
-        const fromStr = record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-';
         if (!record.effectiveTo) {
-          return (
-            <Space direction="vertical" size={2}>
-              <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#262626' }}>
-                {fromStr}
-              </span>
-              <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>
-                长期有效
-              </Tag>
-            </Space>
-          );
+          return <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>长期有效</Tag>;
         }
         // 后端存储为左闭右开 effectiveTo，前端展示包含当天至 23:59:59
         const toDay = dayjs(record.effectiveTo).subtract(1, 'day').format('YYYY-MM-DD');
-        const toStr = `${toDay} 23:59:59`;
         return (
-          <Space direction="vertical" size={2}>
-            <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#262626' }}>
-              起：{fromStr}
-            </span>
-            <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#595959' }}>
-              止：{toStr}
-            </span>
-          </Space>
+          <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 13, color: '#595959' }}>
+            {`${toDay} 23:59:59`}
+          </span>
         );
       },
     },
