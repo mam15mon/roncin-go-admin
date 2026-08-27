@@ -18,7 +18,7 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
   queryParamKey = 'tab',
   style,
   className,
-  tabType = 'card',
+  tabType = 'line',
 }) => {
   const location = useLocation();
 
@@ -70,7 +70,16 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
   const tabItems = useMemo(() => {
     return visibleItems.map((item) => {
       const labelNode = (
-        <span key={`tab-label-${item.key}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span
+          key={`tab-label-${item.key}`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 14,
+            fontWeight: 500,
+          }}
+        >
           {item.icon}
           <span>{item.label}</span>
           {item.badge}
@@ -85,7 +94,7 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
         ) : (
           labelNode
         ),
-        children: <div style={{ paddingTop: 4 }}>{item.children}</div>,
+        children: <div style={{ paddingTop: 0 }}>{item.children}</div>,
       };
     });
   }, [visibleItems]);
@@ -124,19 +133,19 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
         ...style,
       }}
     >
-      <div style={{ marginTop: 4 }}>
+      <div style={{ marginTop: 0 }}>
         <Tabs
           type={tabType}
           activeKey={currentActiveKey}
           onChange={handleTabChange}
           items={tabItems}
           tabBarStyle={{
-            marginBottom: 16,
+            marginBottom: 12,
             backgroundColor: '#ffffff',
-            padding: '8px 12px 0',
-            borderRadius: '8px 8px 0 0',
+            padding: '0 16px',
+            borderRadius: 8,
             border: '1px solid #f0f0f0',
-            borderBottom: 'none',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
           }}
         />
       </div>
