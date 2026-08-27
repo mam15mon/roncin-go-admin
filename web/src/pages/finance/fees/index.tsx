@@ -25,11 +25,37 @@ const businessLabels: Record<string, string> = {
   RAIL: '铁路',
 };
 
-const statusLabels: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '账单未建立', color: 'gold' },
-  CONFIRMED: { text: '已确认', color: 'green' },
-  BILLED: { text: '已进账单', color: 'blue' },
-  CANCELLED: { text: '已作废', color: 'default' },
+const financialProgressLabels: Record<
+  string,
+  { text: string; color: string; key: keyof API.FeeLedgerRowColors }
+> = {
+  UNBILLED: { text: '账单未建立', color: 'gold', key: 'unbilled' },
+  UNVERIFIED_UNINVOICED: {
+    text: '未核销未开票',
+    color: 'orange',
+    key: 'unverifiedUninvoiced',
+  },
+  INVOICED_UNVERIFIED: {
+    text: '已开票未核销',
+    color: 'blue',
+    key: 'invoicedUnverified',
+  },
+  INVOICED_PARTIALLY_VERIFIED: {
+    text: '已开票部分核销',
+    color: 'cyan',
+    key: 'invoicedPartiallyVerified',
+  },
+  PARTIALLY_VERIFIED_UNINVOICED: {
+    text: '部分核销未开票',
+    color: 'geekblue',
+    key: 'partiallyVerifiedUninvoiced',
+  },
+  VERIFIED_UNINVOICED: {
+    text: '已核销未开票',
+    color: 'purple',
+    key: 'verifiedUninvoiced',
+  },
+  COMPLETED: { text: '已完成', color: 'green', key: 'completed' },
 };
 
 function amount(value?: string | number) {
@@ -306,20 +332,24 @@ export default function FinanceFeeLedgerPage() {
     },
     {
       title: '费用状态',
-      dataIndex: 'status',
-      width: 95,
+      dataIndex: 'financialProgress',
+      width: 120,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        Object.entries(statusLabels).map(([key, value]) => [
+        Object.entries(financialProgressLabels).map(([key, value]) => [
           key,
           { text: value.text },
         ]),
       ),
       render: (_, row) => {
-        const value = statusLabels[row.status || 'DRAFT'];
+        const progress = row.financialProgress || 'UNBILLED';
+        const item = financialProgressLabels[progress] || {
+          text: progress,
+          color: 'default',
+        };
         return (
-          <Tag color={value.color} style={{ margin: 0 }}>
-            {value.text}
+          <Tag color={item.color} style={{ margin: 0 }}>
+            {item.text}
           </Tag>
         );
       },
@@ -330,6 +360,7 @@ export default function FinanceFeeLedgerPage() {
       width: 110,
       align: 'right',
       search: false,
+      render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
     },
     {
       title: '未核销金额',
@@ -337,6 +368,7 @@ export default function FinanceFeeLedgerPage() {
       width: 110,
       align: 'right',
       search: false,
+      render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
     },
     {
       title: '费用时间',
@@ -477,18 +509,11 @@ export default function FinanceFeeLedgerPage() {
     return result;
   }, [baseColumns, preference]);
 
-  // 根据费用业务状态映射对应的行高亮背景 key
+  // 根据费用财务进度映射对应的行高亮背景 key（支持 7 状态）
   const getRowStatusColorKey = (row: API.FeeLedgerItem) => {
-    if (row.status === 'DRAFT' || !row.status || row.status === 'CANCELLED') {
-      return 'unbilled' as const;
-    }
-    if (row.status === 'CONFIRMED') {
-      return 'unverifiedUninvoiced' as const;
-    }
-    if (row.status === 'BILLED') {
-      return 'invoicedUnverified' as const;
-    }
-    return undefined;
+    const progress = row.financialProgress || 'UNBILLED';
+    const matched = financialProgressLabels[progress];
+    return matched?.key;
   };
 
   return (

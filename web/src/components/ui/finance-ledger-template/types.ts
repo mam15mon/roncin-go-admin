@@ -79,17 +79,11 @@ export interface FinanceLedgerTemplateProps<
   // 表头排序/设置弹窗入口
   onOpenColumnConfig?: () => void;
 
-  // 5 类状态行背景高亮颜色配置
+  // 7 类业务状态行背景高亮颜色配置
   rowColors?: API.FeeLedgerRowColors;
   getRowStatusColorKey?: (
     record: T,
-  ) =>
-    | 'unbilled'
-    | 'unverifiedUninvoiced'
-    | 'invoicedUnverified'
-    | 'verifiedUninvoiced'
-    | 'completed'
-    | undefined;
+  ) => keyof API.FeeLedgerRowColors | undefined;
 
   // 整行点击事件（如点击行跳转详情）
   onRowClick?: (record: T, event: React.MouseEvent) => void;

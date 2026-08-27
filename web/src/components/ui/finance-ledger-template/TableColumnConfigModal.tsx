@@ -606,12 +606,12 @@ export function TableColumnConfigModal({
           </div>
         </div>
 
-        {/* 3. 5 类状态行背景高亮颜色设置 */}
+        {/* 3. 7 类状态行背景高亮颜色设置 */}
         <Card
           size="small"
           title={
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>5 类费用业务状态 行背景高亮颜色设置</span>
+              <span>7 类费用财务进度 行背景高亮颜色设置</span>
               <Button size="small" onClick={handleResetColors}>
                 重置默认颜色
               </Button>
@@ -743,7 +743,7 @@ export function TableColumnConfigModal({
                 <Space>
                   <Tag color="blue">已开票未核销</Tag>
                   <span style={{ fontSize: 12, color: '#595959' }}>
-                    （发票已开待付款/收款）
+                    （发票已开待收付款）
                   </span>
                 </Space>
                 <Space size={4}>
@@ -782,7 +782,117 @@ export function TableColumnConfigModal({
               </div>
             </Col>
 
-            {/* 4. 已核销未开票 */}
+            {/* 4. 已开票部分核销 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.invoicedPartiallyVerified,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="cyan">已开票部分核销</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （已开发票且部分收付款）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({
+                          ...prev,
+                          invoicedPartiallyVerified: c,
+                        }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.invoicedPartiallyVerified === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.invoicedPartiallyVerified === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 5. 部分核销未开票 */}
+            <Col span={12}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: rowColors.partiallyVerifiedUninvoiced,
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 4,
+                }}
+              >
+                <Space>
+                  <Tag color="geekblue">部分核销未开票</Tag>
+                  <span style={{ fontSize: 12, color: '#595959' }}>
+                    （已部分收付款待开票）
+                  </span>
+                </Space>
+                <Space size={4}>
+                  {PRESET_COLORS.map((c) => (
+                    <div
+                      key={c}
+                      onClick={() =>
+                        setRowColors((prev) => ({
+                          ...prev,
+                          partiallyVerifiedUninvoiced: c,
+                        }))
+                      }
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: c,
+                        border:
+                          rowColors.partiallyVerifiedUninvoiced === c
+                            ? '2px solid #1677ff'
+                            : '1px solid #d9d9d9',
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowColors.partiallyVerifiedUninvoiced === c && (
+                        <CheckOutlined
+                          style={{ fontSize: 10, color: '#1677ff' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </Space>
+              </div>
+            </Col>
+
+            {/* 6. 已核销未开票 */}
             <Col span={12}>
               <div
                 style={{
@@ -798,7 +908,7 @@ export function TableColumnConfigModal({
                 <Space>
                   <Tag color="purple">已核销未开票</Tag>
                   <span style={{ fontSize: 12, color: '#595959' }}>
-                    （资金已收付待开票）
+                    （资金已全收付待开票）
                   </span>
                 </Space>
                 <Space size={4}>
@@ -837,7 +947,7 @@ export function TableColumnConfigModal({
               </div>
             </Col>
 
-            {/* 5. 已完成 */}
+            {/* 7. 已完成 */}
             <Col span={12}>
               <div
                 style={{
