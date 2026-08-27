@@ -237,6 +237,7 @@ export function FinanceLedgerTemplate<
   primaryActionIcon = <FileDoneOutlined />,
   onPrimaryAction,
   primaryActionRequiresSelection = false,
+  rowSelection,
   batchActions = [],
   exportFileName = `财务明细导出_${new Date().toISOString().slice(0, 10)}.csv`,
   onExport,
@@ -523,13 +524,25 @@ export function FinanceLedgerTemplate<
           density: true,
           setting: false,
         }}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (keys, rows) => {
-            setSelectedRowKeys(keys);
-            setSelectedRows(rows);
-          },
-        }}
+        rowSelection={
+          rowSelection === false
+            ? undefined
+            : {
+                selectedRowKeys,
+                preserveSelectedRowKeys: true,
+                onChange: (keys, rows, info) => {
+                  setSelectedRowKeys(keys);
+                  setSelectedRows(rows);
+                  if (
+                    typeof rowSelection === 'object' &&
+                    rowSelection?.onChange
+                  ) {
+                    rowSelection.onChange(keys, rows, info);
+                  }
+                },
+                ...(typeof rowSelection === 'object' ? rowSelection : {}),
+              }
+        }
         request={async (params) => {
           const res = await request(params);
           const list = res.data || [];

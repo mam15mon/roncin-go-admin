@@ -12,6 +12,7 @@ import {
   settlementServiceGetFeeLedgerPreference,
   settlementServiceListFeeLedger,
 } from '@/services/roncin/settlementService';
+import { orderFeeServiceConfirmFee } from '@/services/roncin/orderFeeService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import {
@@ -100,6 +101,43 @@ export default function FinanceFeeLedgerPage() {
   const handleReset = () => {
     setFilterParams({});
     actionRef.current?.reload();
+  };
+
+  const canCreateBill = (row: API.FeeLedgerItem) =>
+    row.status === 'CONFIRMED' && !row.billNo;
+
+  const handleBatchConfirm = async (
+    _keys: React.Key[],
+    rows: API.FeeLedgerItem[],
+  ) => {
+    const draftRows = rows.filter(
+      (row) => row.status === 'DRAFT' && row.orderId && row.id && row.version,
+    );
+    if (draftRows.length === 0) {
+      message.info('当前勾选中没有可确认的草稿费用');
+      return;
+    }
+    const results = await Promise.allSettled(
+      draftRows.map((row) =>
+        orderFeeServiceConfirmFee(
+          { orderId: row.orderId as string, id: row.id as string },
+          {
+            orderId: row.orderId as string,
+            id: row.id as string,
+            expectedVersion: row.version as string,
+          },
+          { skipErrorHandler: true },
+        ),
+      ),
+    );
+    const succeeded = results.filter((item) => item.status === 'fulfilled').length;
+    const failed = results.length - succeeded;
+    if (succeeded > 0) {
+      message.success(`已确认 ${succeeded} 笔费用${failed > 0 ? `，${failed} 笔失败` : ''}`);
+      actionRef.current?.reload();
+    } else {
+      message.error('费用确认失败，请检查费用版本或权限');
+    }
   };
 
   // 加载当前用户云端表头偏好配置
@@ -705,7 +743,30 @@ export default function FinanceFeeLedgerPage() {
         search={false}
         primaryActionText="创建账单"
         primaryActionRequiresSelection
-        onPrimaryAction={(keys) => {
+        rowSelection={{
+          getCheckboxProps: (record) => {
+            const blocked =
+              Boolean(record.billNo) ||
+              record.status === 'BILLED' ||
+              record.status === 'CANCELLED';
+            return {
+              disabled: blocked,
+              title: blocked
+                ? record.billNo
+                  ? `已进入账单 ${record.billNo}`
+                  : record.status === 'BILLED'
+                    ? '已开账费用不可再次操作'
+                    : '已作废费用不可操作'
+                : undefined,
+            };
+          },
+        }}
+        onPrimaryAction={(keys, rows) => {
+          const invalidRows = rows.filter((row) => !canCreateBill(row));
+          if (invalidRows.length > 0) {
+            message.warning('所选费用中包含不可建账的记录，请仅选择已确认且未入账单的费用');
+            return;
+          }
           setSelectedFeeIds(keys.map(String));
           setBillWorkbenchOpen(true);
         }}
@@ -713,11 +774,7 @@ export default function FinanceFeeLedgerPage() {
           {
             key: 'batch-confirm',
             label: '批量确认勾选费用',
-            onClick: (keys) => {
-              message.info(
-                `已选 ${keys.length} 笔费用，可直接点击【创建账单】自动原子确认并生成批次`,
-              );
-            },
+            onClick: handleBatchConfirm,
           },
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}

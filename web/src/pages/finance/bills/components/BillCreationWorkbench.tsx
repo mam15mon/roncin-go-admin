@@ -40,7 +40,7 @@ import {
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
@@ -98,12 +98,21 @@ function requestReason(error: RequestError) {
 }
 
 function requestMessage(error: RequestError, fallback: string) {
-  return (
-    error.data?.message ||
+  const msg =
     error.response?.data?.message ||
-    error.message ||
-    fallback
-  );
+    error.data?.message ||
+    (error.message && !error.message.toLowerCase().includes('status code')
+      ? error.message
+      : '');
+  if (msg) return msg;
+  const reason = requestReason(error);
+  if (reason === 'FINANCE_BILL_FEE_INVALID') {
+    return '所选费用必须为已确认状态且尚未进入其他账单';
+  }
+  if (reason === 'FINANCE_BILL_PREVIEW_STALE') {
+    return '费用已发生变化，请重新预览后再生成账单';
+  }
+  return fallback;
 }
 
 export default function BillCreationWorkbench({
@@ -129,6 +138,12 @@ export default function BillCreationWorkbench({
   const [loading, setLoading] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const previewInitKeyRef = useRef<string | undefined>(undefined);
+  const previewErrorKeyRef = useRef<string | undefined>(undefined);
+  const previewPendingRef = useRef<{
+    key: string;
+    promise: Promise<boolean>;
+  } | null>(null);
 
   // 就地快捷新增客商开票抬头状态
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -137,27 +152,40 @@ export default function BillCreationWorkbench({
   const [quickAddPartnerName, setQuickAddPartnerName] = useState('');
   const [quickAddSaving, setQuickAddSaving] = useState(false);
 
-  const initialFeeKey = initialFeeIds.join('|');
-  const fixedSelection = initialFeeIds.length > 0;
+  const initialFeeKey = useMemo(
+    () => (initialFeeIds || []).filter(Boolean).join('|'),
+    [initialFeeIds],
+  );
+  const fixedSelection = initialFeeKey.length > 0;
 
   const selectedIds = useMemo(
-    () => selectedFeeIds.map(String),
+    () => selectedFeeIds.map(String).filter(Boolean),
     [selectedFeeIds],
   );
+
+  const selectedIdsRef = useRef<string[]>([]);
+  selectedIdsRef.current = selectedIds;
+  const splitByOrderRef = useRef(splitByOrder);
+  splitByOrderRef.current = splitByOrder;
+  const splitByTaxRateRef = useRef(splitByTaxRate);
+  splitByTaxRateRef.current = splitByTaxRate;
 
   const loadPreview = useCallback(
     async (
       overrideIds?: string[],
       policyOverride?: { splitByOrder: boolean; splitByTaxRate: boolean },
     ) => {
-      const ids = overrideIds ?? selectedIds;
+      const ids = overrideIds ?? selectedIdsRef.current;
       if (ids.length === 0) {
-        message.warning('请至少选择一笔已确认费用');
+        message.warning('请至少选择一笔已确认且未建立账单的费用');
         return false;
       }
       setLoading(true);
       try {
-        const policy = policyOverride ?? { splitByOrder, splitByTaxRate };
+        const policy = policyOverride ?? {
+          splitByOrder: splitByOrderRef.current,
+          splitByTaxRate: splitByTaxRateRef.current,
+        };
         const response = await settlementServicePreviewBillBatch(
           {
             feeIds: ids,
@@ -169,6 +197,7 @@ export default function BillCreationWorkbench({
         if (!response.previewToken || groups.length === 0) {
           throw new Error('服务端未返回有效的拆单预览');
         }
+        previewErrorKeyRef.current = undefined;
         setPreview(response);
 
         // 异步批量查询各结算单位维护的全部开票抬头资料
@@ -213,19 +242,41 @@ export default function BillCreationWorkbench({
         return true;
       } catch (rawError: unknown) {
         const error = rawError as RequestError;
-        message.error(requestMessage(error, '拆单预览失败'));
+        const errorKey = `${ids.join('|')}:${requestReason(error) || requestMessage(error, '拆单预览失败')}`;
+        if (previewErrorKeyRef.current !== errorKey) {
+          previewErrorKeyRef.current = errorKey;
+          message.error(requestMessage(error, '拆单预览失败'));
+        }
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [form, message, selectedIds, splitByOrder, splitByTaxRate],
+    [form, message],
   );
 
   // 初始化或当从业务页面进入时，自动快速预览并直达账单资料页
   useEffect(() => {
-    if (!open) return;
-    const initialIds = initialFeeKey ? initialFeeKey.split('|') : [];
+    if (!open) {
+      previewInitKeyRef.current = undefined;
+      previewErrorKeyRef.current = undefined;
+      previewPendingRef.current = null;
+      return;
+    }
+    const initialIds = initialFeeKey ? initialFeeKey.split('|').filter(Boolean) : [];
+    const initKey = `${initialFeeKey}:${open ? 'open' : 'closed'}`;
+    let cancelled = false;
+    const pending = previewPendingRef.current;
+    if (previewInitKeyRef.current === initKey && pending?.key === initKey) {
+      void pending.promise.then((ok) => {
+        if (cancelled) return;
+        setCurrent(ok ? 2 : 0);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    previewInitKeyRef.current = initKey;
     setSelectedFeeIds(initialIds);
     setSplitByOrder(false);
     setSplitByTaxRate(false);
@@ -238,15 +289,26 @@ export default function BillCreationWorkbench({
 
     if (initialIds.length > 0) {
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
-      void loadPreview(initialIds, {
+      const previewPromise = loadPreview(initialIds, {
         splitByOrder: false,
         splitByTaxRate: false,
-      }).then((ok) => {
-        if (ok) setCurrent(2);
+      });
+      previewPendingRef.current = { key: initKey, promise: previewPromise };
+      void previewPromise.then((ok) => {
+        if (cancelled) return;
+        if (ok) {
+          setCurrent(2);
+        } else {
+          setCurrent(0);
+        }
       });
     } else {
+      previewPendingRef.current = null;
       setCurrent(0);
     }
+    return () => {
+      cancelled = true;
+    };
   }, [open, initialFeeKey, form, loadPreview]);
 
   // 从预览明细中即时剔除误选行
@@ -369,6 +431,24 @@ export default function BillCreationWorkbench({
       ),
     },
     {
+      title: '状态',
+      dataIndex: 'status',
+      width: 85,
+      search: false,
+      render: (_, row) => {
+        if (row.status === 'CONFIRMED') {
+          return <Tag color="blue">已确认</Tag>;
+        }
+        if (row.status === 'BILLED') {
+          return <Tag color="green">已开账</Tag>;
+        }
+        if (row.status === 'CANCELLED') {
+          return <Tag color="red">已作废</Tag>;
+        }
+        return <Tag>草稿</Tag>;
+      },
+    },
+    {
       title: '结算单位',
       dataIndex: 'settlementPartyName',
       width: 180,
@@ -458,7 +538,7 @@ export default function BillCreationWorkbench({
   const next = async () => {
     if (current === 0) {
       if (selectedIds.length === 0) {
-        message.warning('请至少选择一笔已确认费用');
+        message.warning('请至少选择一笔已确认且未建立账单的费用');
         return;
       }
       setCurrent(1);
@@ -470,7 +550,10 @@ export default function BillCreationWorkbench({
   };
 
   const createBatch = async () => {
-    if (!preview?.previewToken || !preview.data?.length) return;
+    if (!preview?.previewToken || !preview.data?.length) {
+      message.warning('账单预览快照已失效或为空，请重新预览');
+      return;
+    }
     const values = await form.validateFields();
     setLoading(true);
     try {
@@ -504,6 +587,8 @@ export default function BillCreationWorkbench({
         message.warning('费用已发生变化，请重新预览后再生成账单');
         setPreview(undefined);
         setCurrent(1);
+      } else if (requestReason(error) === 'FINANCE_BILL_FEE_INVALID') {
+        message.error('所选费用必须为已确认状态且尚未进入其他账单');
       } else {
         message.error(requestMessage(error, '批量生成账单失败'));
       }
@@ -620,6 +705,18 @@ export default function BillCreationWorkbench({
               selectedRowKeys: selectedFeeIds,
               preserveSelectedRowKeys: true,
               onChange: setSelectedFeeIds,
+              getCheckboxProps: (record) => {
+                const isSelectable =
+                  record.status === 'CONFIRMED' && !record.billNo;
+                return {
+                  disabled: !isSelectable,
+                  title: !isSelectable
+                    ? record.billNo
+                      ? `已进入账单 ${record.billNo}`
+                      : '只有已确认且未入账单的费用方可创建账单'
+                    : undefined,
+                };
+              },
             }}
             tableAlertRender={({ selectedRowKeys }) => (
               <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>

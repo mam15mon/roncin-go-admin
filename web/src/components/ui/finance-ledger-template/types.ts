@@ -1,4 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type { TableProps } from 'antd';
 import type React from 'react';
 import type { ReactNode } from 'react';
 
@@ -53,6 +54,9 @@ export interface FinanceLedgerTemplateProps<
   primaryActionIcon?: ReactNode;
   onPrimaryAction?: (selectedKeys: React.Key[], selectedRows: T[]) => void;
   primaryActionRequiresSelection?: boolean;
+
+  // 自定义表格行选择配置
+  rowSelection?: TableProps<T>['rowSelection'] | false;
 
   // 批量操作下拉组
   batchActions?: FinanceBatchActionItem<T>[];
