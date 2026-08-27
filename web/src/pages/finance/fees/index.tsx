@@ -502,10 +502,17 @@ export default function FinanceFeeLedgerPage() {
     if (!preference?.columns || preference.columns.length === 0) {
       return baseColumns;
     }
+    const normalizeKey = (k: string) => {
+      if (k === 'status') return 'financialProgress';
+      if (k === 'customerName') return 'customerId';
+      return k;
+    };
+
     const orderMap = new Map<string, { visible: boolean; order: number }>();
     preference.columns.forEach((c, idx) => {
       if (c.fieldKey) {
-        orderMap.set(c.fieldKey, {
+        const normKey = normalizeKey(c.fieldKey);
+        orderMap.set(normKey, {
           visible: Boolean(c.visible),
           order: idx + 1,
         });
@@ -535,9 +542,14 @@ export default function FinanceFeeLedgerPage() {
     // 2. 其余可见列按照用户设置的 order 顺序插入
     const userOrdered: ProColumns<API.FeeLedgerItem>[] = [];
     preference.columns.forEach((c) => {
-      if (c.fieldKey && orderMap.get(c.fieldKey)?.visible) {
-        const matched = colMap.get(c.fieldKey);
-        if (matched) userOrdered.push(matched);
+      if (c.fieldKey) {
+        const normKey = normalizeKey(c.fieldKey);
+        if (orderMap.get(normKey)?.visible) {
+          const matched = colMap.get(normKey);
+          if (matched && !userOrdered.includes(matched)) {
+            userOrdered.push(matched);
+          }
+        }
       }
     });
 

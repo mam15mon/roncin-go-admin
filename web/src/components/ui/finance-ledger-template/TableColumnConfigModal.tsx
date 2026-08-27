@@ -92,16 +92,23 @@ export function TableColumnConfigModal({
       metaMap.set(f.key, f);
     });
 
+    const normalizeKey = (k: string) => {
+      if (k === 'status') return 'financialProgress';
+      if (k === 'customerName') return 'customerId';
+      return k;
+    };
+
     const ordered: FinanceFieldMeta[] = [];
 
     if (currentPreference?.columns && currentPreference.columns.length > 0) {
       currentPreference.columns.forEach((c) => {
         if (c.fieldKey) {
-          map.set(c.fieldKey, Boolean(c.visible));
-          const meta = metaMap.get(c.fieldKey);
+          const normKey = normalizeKey(c.fieldKey);
+          map.set(normKey, Boolean(c.visible));
+          const meta = metaMap.get(normKey);
           if (meta) {
             ordered.push(meta);
-            metaMap.delete(c.fieldKey);
+            metaMap.delete(normKey);
           }
         }
       });
@@ -149,17 +156,35 @@ export function TableColumnConfigModal({
     setSearchKeyword('');
   }, [open, currentPreference]);
 
+  const [filterType, setFilterType] = useState<'all' | 'checked' | 'unchecked'>('all');
+
+  // 一键将所有已启用字段整齐置顶
+  const handleSortCheckedFirst = () => {
+    setFieldList((prev) => {
+      const checkedList = prev.filter((f) => columnMap.get(f.key));
+      const uncheckedList = prev.filter((f) => !columnMap.get(f.key));
+      return [...checkedList, ...uncheckedList];
+    });
+    message.success('已将全部启用字段按顺序整齐置顶');
+  };
+
   // 过滤后的 153 字段
   const filteredFields = useMemo(() => {
-    if (!searchKeyword.trim()) return fieldList;
+    let list = fieldList;
+    if (filterType === 'checked') {
+      list = list.filter((f) => columnMap.get(f.key));
+    } else if (filterType === 'unchecked') {
+      list = list.filter((f) => !columnMap.get(f.key));
+    }
+
+    if (!searchKeyword.trim()) return list;
     const kw = searchKeyword.trim().toLowerCase();
-    return fieldList.filter(
+    return list.filter(
       (f) =>
         f.name.toLowerCase().includes(kw) ||
-        f.key.toLowerCase().includes(kw) ||
-        String(f.id).includes(kw),
+        f.key.toLowerCase().includes(kw),
     );
-  }, [fieldList, searchKeyword]);
+  }, [fieldList, filterType, columnMap, searchKeyword]);
 
   const selectedCount = useMemo(() => {
     let count = 0;
@@ -451,10 +476,25 @@ export function TableColumnConfigModal({
               gap: 8,
             }}
           >
-            <Space size={8}>
+            <Space size={8} wrap>
               <span style={{ fontWeight: 600, fontSize: 14 }}>
-                全量业务字段配置（153 项，支持拖拽重排）
+                全量业务字段配置
               </span>
+              <Radio.Group
+                size="small"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                optionType="button"
+                buttonStyle="solid"
+                options={[
+                  { label: `全部 (${fieldList.length})`, value: 'all' },
+                  { label: `已启用 (${selectedCount})`, value: 'checked' },
+                  { label: `未启用 (${fieldList.length - selectedCount})`, value: 'unchecked' },
+                ]}
+              />
+              <Button size="small" type="dashed" onClick={handleSortCheckedFirst}>
+                已启用一键置顶
+              </Button>
               <Button size="small" onClick={handleSelectAll}>
                 全选
               </Button>
@@ -462,16 +502,16 @@ export function TableColumnConfigModal({
                 反选
               </Button>
               <Button size="small" onClick={handleResetDefaultFields}>
-                重置默认推荐字段
+                重置默认推荐
               </Button>
             </Space>
             <Input
               allowClear
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              placeholder="搜索字段名、字段标识或序号..."
+              placeholder="搜索字段名或标识..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              style={{ width: 280 }}
+              style={{ width: 240 }}
             />
           </div>
 
@@ -482,7 +522,7 @@ export function TableColumnConfigModal({
               borderRadius: 6,
               padding: 12,
               background: '#fff',
-              maxHeight: 320,
+              maxHeight: 340,
               overflowY: 'auto',
             }}
           >
@@ -541,12 +581,13 @@ export function TableColumnConfigModal({
                         <span
                           style={{
                             fontSize: 11,
-                            color: '#8c8c8c',
-                            minWidth: 22,
+                            fontWeight: 600,
+                            color: checked ? '#1677ff' : '#8c8c8c',
+                            minWidth: 26,
                             display: 'inline-block',
                           }}
                         >
-                          #{field.id}
+                          #{index + 1}
                         </span>
                         <span
                           style={{
