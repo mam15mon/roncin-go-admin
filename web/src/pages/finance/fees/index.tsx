@@ -4,6 +4,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
 import {
+  EllipsisTooltip,
   FinanceLedgerTemplate,
   TableColumnConfigModal,
   type FinanceLedgerMetricCard,
@@ -192,9 +193,9 @@ export default function FinanceFeeLedgerPage() {
       },
       fieldProps: { showSearch: true, optionFilterProp: 'label' },
       render: (_, row) => (
-        <Tooltip title={row.customerName}>
-          <span>{row.customerName || '-'}</span>
-        </Tooltip>
+        <EllipsisTooltip maxWidth={180}>
+          {row.customerName || '-'}
+        </EllipsisTooltip>
       ),
     },
     {
@@ -204,9 +205,7 @@ export default function FinanceFeeLedgerPage() {
       ellipsis: true,
       search: false,
       render: (val) => (
-        <Tooltip title={val}>
-          <span>{val}</span>
-        </Tooltip>
+        <EllipsisTooltip maxWidth={170}>{val || '-'}</EllipsisTooltip>
       ),
     },
     {
@@ -315,9 +314,7 @@ export default function FinanceFeeLedgerPage() {
       search: false,
       render: (val) =>
         val ? (
-          <Tooltip title={val}>
-            <span>{val}</span>
-          </Tooltip>
+          <EllipsisTooltip maxWidth={120}>{val}</EllipsisTooltip>
         ) : (
           '-'
         ),

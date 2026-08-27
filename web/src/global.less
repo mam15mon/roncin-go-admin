@@ -988,3 +988,27 @@ ol {
     max-width: 100% !important;
   }
 }
+
+// ----------------------------------------
+// 全局 Tooltip 视觉对比度与清晰度增强（确保暗黑气泡内文字绝对纯白高对比）
+// ----------------------------------------
+.ant-tooltip {
+  .ant-tooltip-inner {
+    color: #ffffff !important;
+    background-color: rgba(0, 0, 0, 0.85) !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+
+    * {
+      color: #ffffff !important;
+    }
+  }
+
+  .ant-tooltip-arrow::before {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+  }
+}
+
