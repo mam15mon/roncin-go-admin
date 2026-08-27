@@ -471,9 +471,9 @@ export function ExchangeRatesPanel() {
         modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 580 }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          const effectiveFrom = dayjs(values.effectiveFrom).toISOString();
+          const effectiveFrom = dayjs(values.effectiveFrom).format('YYYY-MM-DDTHH:mm:ssZ');
           const effectiveTo = values.effectiveTo
-            ? dayjs(values.effectiveTo).toISOString()
+            ? dayjs(values.effectiveTo).format('YYYY-MM-DDTHH:mm:ssZ')
             : undefined;
           if (effectiveTo && (dayjs(effectiveTo).isBefore(dayjs(effectiveFrom)) || dayjs(effectiveTo).isSame(dayjs(effectiveFrom)))) {
             message.error('生效结束时间必须晚于生效开始时间');
