@@ -16,6 +16,7 @@ import {
   Space,
 } from 'antd';
 import React, { useMemo, useState } from 'react';
+import { standardDateRangePresets } from '../date-presets';
 import { SearchableSelect } from '../searchable-select';
 import type {
   SearchFilterFieldItem,
@@ -113,6 +114,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
         return (
           <RangePicker
             allowClear={allowClear}
+            presets={standardDateRangePresets}
             placeholder={placeholder as [string, string]}
             style={{ width: '100%' }}
             {...fieldProps}

@@ -18,6 +18,7 @@ import {
   ClearOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { standardDateRangePresets } from '@/components/ui';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 
 const { RangePicker } = DatePicker;
@@ -220,7 +221,7 @@ export function AdvancedFilterDrawer({
                 name="expenseDateRange"
                 tooltip="费用实际发生的业务归属时间"
               >
-                <RangePicker style={{ width: '100%' }} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -266,12 +267,12 @@ export function AdvancedFilterDrawer({
             </Col>
             <Col span={6}>
               <Form.Item label="开票时间" name="invoiceDateRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
             <Col span={6}>
               <Form.Item label="核销时间" name="verificationDateRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
           </Row>
@@ -345,12 +346,12 @@ export function AdvancedFilterDrawer({
             </Col>
             <Col span={8}>
               <Form.Item label="订单创建时间" name="orderCreatedAtRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="账单创建时间" name="billCreatedAtRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
           </Row>
@@ -385,12 +386,12 @@ export function AdvancedFilterDrawer({
           <Row gutter={12}>
             <Col span={8}>
               <Form.Item label="ETD（预计离港时间）" name="etdRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="ETA（预计到港时间）" name="etaRange">
-                <RangePicker style={{ width: '100%' }} placeholder={['开始', '结束']} />
+                <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} placeholder={['开始', '结束']} />
               </Form.Item>
             </Col>
             <Col span={8}>

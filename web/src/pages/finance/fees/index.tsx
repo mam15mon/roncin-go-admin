@@ -7,6 +7,7 @@ import type { ActionType } from '@ant-design/pro-components';
 import {
   FinanceLedgerTemplate,
   TableColumnConfigModal,
+  standardDateRangePresets,
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
 import {
@@ -501,6 +502,9 @@ export default function FinanceFeeLedgerPage() {
       width: 110,
       valueType: 'dateRange',
       order: 40,
+      fieldProps: {
+        presets: standardDateRangePresets,
+      },
       search: {
         transform: (value) => ({
           expenseDateFrom: value[0],

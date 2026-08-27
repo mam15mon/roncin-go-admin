@@ -18,6 +18,7 @@ import {
   Space,
 } from 'antd';
 import React, { useState } from 'react';
+import { standardDateRangePresets } from '../date-presets';
 import type { OrderListFilterParams } from './types';
 
 const { RangePicker } = DatePicker;
@@ -150,7 +151,7 @@ export function OrderListSearchFilter({
           </Col>
           <Col xs={24} sm={24} md={12} lg={6}>
             <Form.Item name="etdRange" label="ETD (预计离港日期)">
-              <RangePicker style={{ width: '100%' }} />
+              <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
         </Row>
@@ -162,22 +163,22 @@ export function OrderListSearchFilter({
             <Row gutter={[12, 0]}>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item name="createdAtRange" label="创建时间">
-                  <RangePicker style={{ width: '100%' }} />
+                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item name="etaRange" label="ETA (预计到达日期)">
-                  <RangePicker style={{ width: '100%' }} />
+                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item name="lockedAtRange" label="订单锁定时间">
-                  <RangePicker style={{ width: '100%' }} />
+                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item name="statusTimeRange" label="订单状态时间">
-                  <RangePicker style={{ width: '100%' }} />
+                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
             </Row>
