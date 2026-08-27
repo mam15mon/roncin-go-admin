@@ -102,6 +102,8 @@ export default function FinanceFeeLedgerPage() {
     let count = 0;
     if (advancedFilters.direction) count++;
     if (advancedFilters.financialProgress) count++;
+    if (advancedFilters.status) count++;
+    if (advancedFilters.billNo) count++;
     if (advancedFilters.settlementPartyId) count++;
     if (advancedFilters.customerId) count++;
     if (advancedFilters.businessType) count++;
@@ -792,19 +794,19 @@ export default function FinanceFeeLedgerPage() {
               params.orderNo ||
               params.masterNo ||
               params.houseNo ||
-              params.billNo ||
               params.feeName ||
               params.operatorName ||
               params.salesName ||
               params.invoiceNo ||
               undefined,
             billNo:
-              advancedFilters.contractNo || params.billNo || undefined,
+              advancedFilters.billNo || params.billNo || undefined,
             businessType:
               advancedFilters.businessType || params.businessType || undefined,
             direction:
               advancedFilters.direction || params.direction || undefined,
-            status: params.status || undefined,
+            status:
+              advancedFilters.status || params.status || undefined,
             financialProgress:
               advancedFilters.financialProgress ||
               params.financialProgress ||
