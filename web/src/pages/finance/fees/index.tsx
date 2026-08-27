@@ -1,5 +1,5 @@
 import { history } from '@umijs/max';
-import { App, Tag, Tooltip } from 'antd';
+import { App, Tag } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
@@ -23,12 +23,6 @@ const businessLabels: Record<string, string> = {
   AI: '空运进口',
   LAND: '陆运',
   RAIL: '铁路',
-};
-const businessRoutes: Record<string, string> = {
-  SE: 'sea-export',
-  SI: 'sea-import',
-  AE: 'air-export',
-  AI: 'air-import',
 };
 const statusLabels: Record<string, { text: string; color: string }> = {
   DRAFT: { text: '草稿', color: 'gold' },
@@ -145,19 +139,14 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'orderNo',
       width: 155,
       copyable: true,
-      render: (_, row) => {
-        const route = businessRoutes[row.businessType || ''];
-        return route ? (
-          <a
-            style={{ fontWeight: 500 }}
-            onClick={() => history.push(`/orders/${route}/${row.orderId}`)}
-          >
-            {row.orderNo}
-          </a>
-        ) : (
-          row.orderNo
-        );
-      },
+      render: (_, row) => (
+        <a
+          style={{ fontWeight: 500 }}
+          onClick={() => history.push(`/finance/fees/detail/${row.orderId}`)}
+        >
+          {row.orderNo}
+        </a>
+      ),
     },
     {
       title: '业务类型',
@@ -322,17 +311,18 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 110,
+      width: 125,
       fixed: 'right',
       render: (_, row) => [
         <a
-          key="view-order"
+          key="view-detail"
           onClick={() => {
-            const route = businessRoutes[row.businessType || ''];
-            if (route) history.push(`/orders/${route}/${row.orderId}`);
+            if (row.orderId) {
+              history.push(`/finance/fees/detail/${row.orderId}`);
+            }
           }}
         >
-          查看订单
+          费用详情
         </a>,
         <a
           key="to-bill"

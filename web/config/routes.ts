@@ -164,6 +164,13 @@ export default [
         component: './finance/fees',
       },
       {
+        path: '/finance/fees/detail/:orderId',
+        name: '费用详情',
+        access: 'canReadFinanceFees',
+        hideInMenu: true,
+        component: './finance/fees/detail',
+      },
+      {
         path: '/finance/bills',
         name: '账单管理',
         access: 'canReadFinanceBills',
