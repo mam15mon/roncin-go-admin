@@ -20,8 +20,18 @@ import {
   masterDataServiceListOptions,
 } from '@/services/roncin/masterDataService';
 
-const SERVICE_TYPE_KIND = 8;
-const ABNORMAL_CASE_KIND = 10;
+const isServiceType = (kind?: number | string) =>
+  kind === 8 ||
+  kind === '8' ||
+  kind === 'MASTER_DATA_KIND_SERVICE_TYPE' ||
+  kind === 'service_type';
+
+const isAbnormalCase = (kind?: number | string) =>
+  kind === 10 ||
+  kind === '10' ||
+  kind === 'MASTER_DATA_KIND_ABNORMAL_CASE' ||
+  kind === 'abnormal_case';
+
 const codePattern = /^[A-Z0-9_]{2,32}$/;
 const taxRatePattern =
   /^(100(?:\.0{1,2})?|(?:[0-9]|[1-9][0-9])(?:\.[0-9]{1,2})?)$/;
@@ -141,12 +151,12 @@ export function FeeItemsPanel() {
         setCurrencies((currencyResponse.data ?? []).filter((item) => item.enabled));
         setServiceTypes(
           (optionResponse.data ?? []).filter(
-            (item) => item.kind === SERVICE_TYPE_KIND,
+            (item) => isServiceType(item.kind) && item.enabled !== false,
           ),
         );
         setAbnormalCases(
           (optionResponse.data ?? []).filter(
-            (item) => item.kind === ABNORMAL_CASE_KIND,
+            (item) => isAbnormalCase(item.kind) && item.enabled !== false,
           ),
         );
         return {

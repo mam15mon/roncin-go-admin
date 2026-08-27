@@ -30,7 +30,11 @@ export type AbnormalCasePanelRef = {
   open: (order: API.Order) => void;
 };
 
-const ABNORMAL_CASE_KIND = 10;
+const isAbnormalCase = (kind?: number | string) =>
+  kind === 10 ||
+  kind === '10' ||
+  kind === 'MASTER_DATA_KIND_ABNORMAL_CASE' ||
+  kind === 'abnormal_case';
 
 const abnormalCaseStatusValueEnum: Record<
   number,
@@ -60,7 +64,7 @@ const AbnormalCasePanel = forwardRef<
 
   const options = masterOptions
     .filter(
-      (item) => item.kind === ABNORMAL_CASE_KIND && item.enabled !== false,
+      (item) => isAbnormalCase(item.kind) && item.enabled !== false,
     )
     .map((item) => ({
       label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -68,7 +72,7 @@ const AbnormalCasePanel = forwardRef<
     }));
   const nameMap = Object.fromEntries(
     masterOptions
-      .filter((item) => item.kind === ABNORMAL_CASE_KIND && item.id)
+      .filter((item) => isAbnormalCase(item.kind) && item.id)
       .map((item) => [
         item.id as string,
         item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
