@@ -95,6 +95,27 @@ func TestNormalizeOrderFeeRequiresCatalogReferences(t *testing.T) {
 	}
 }
 
+func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
+	for _, direction := range []OrderFeeDirection{OrderFeeReceivable, OrderFeePayable} {
+		t.Run(string(direction), func(t *testing.T) {
+			fee := validOrderFeeForTest()
+			fee.Direction = direction
+			normalized, err := normalizeOrderFee(fee)
+			if err != nil {
+				t.Fatalf("规范化%s费用失败: %v", direction, err)
+			}
+			if normalized.Direction != direction {
+				t.Fatalf("费用方向 = %s，期望 %s", normalized.Direction, direction)
+			}
+		})
+	}
+	fee := validOrderFeeForTest()
+	fee.Direction = ""
+	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
+		t.Fatalf("未指定收付方向应被拒绝，实际错误为 %v", err)
+	}
+}
+
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
 	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
