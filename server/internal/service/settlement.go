@@ -44,8 +44,17 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))
-	filter.Status = biz.OrderFeeStatus(strings.ToUpper(financeOptionalString(request.Status)))
+	feeStatus, financialProgress, err := feeLedgerStatusFilters(
+		financeOptionalString(request.Status),
+		financeOptionalString(request.FinancialProgress),
+	)
+	if err != nil {
+		return nil, err
+	}
+	filter.Status = feeStatus
+	filter.FinancialProgress = financialProgress
 	filter.Currency = financeOptionalString(request.Currency)
+	filter.BillNo = financeOptionalString(request.BillNo)
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
 	filter.ExpenseDateTo = financeOptionalString(request.ExpenseDateTo)
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
@@ -89,6 +98,19 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
 		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: result.Summary.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: result.Summary.ProfitBaseAmount.StringFixed(8), BaseCurrency: result.Summary.BaseCurrency},
 	}, nil
+}
+
+func feeLedgerStatusFilters(statusValue, progressValue string) (biz.OrderFeeStatus, biz.FeeLedgerFinancialProgress, error) {
+	statusValue = strings.ToUpper(strings.TrimSpace(statusValue))
+	progress := biz.FeeLedgerFinancialProgress(strings.ToUpper(strings.TrimSpace(progressValue)))
+	// 兼容现有费用明细页把七种财务进度放入 status 的请求；正式客户端应使用 financial_progress。
+	if legacyProgress := biz.FeeLedgerFinancialProgress(statusValue); biz.IsFeeLedgerFinancialProgress(legacyProgress) {
+		if progress != "" && progress != legacyProgress {
+			return "", "", biz.ErrFinanceLedgerInvalidArgument
+		}
+		return "", legacyProgress, nil
+	}
+	return biz.OrderFeeStatus(statusValue), progress, nil
 }
 
 func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {

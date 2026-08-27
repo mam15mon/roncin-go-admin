@@ -134,6 +134,8 @@ message ListFeeLedgerRequest {
   optional string expense_date_from = 9;
   optional string expense_date_to = 10;
   optional string customer_id = 11;
+  optional string financial_progress = 12;
+  optional string bill_no = 13;
 }
 
 message FeeLedgerItem {

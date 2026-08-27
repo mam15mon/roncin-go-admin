@@ -1,10 +1,21 @@
 package biz
 
 import (
+	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type settlementRepoStub struct {
+	filter FeeLedgerFilter
+}
+
+func (stub *settlementRepoStub) ListFeeLedger(_ context.Context, _ uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error) {
+	stub.filter = filter
+	return &FeeLedgerResult{}, nil
+}
 
 func TestResolveFeeLedgerFinancialProgressCoversSevenStates(t *testing.T) {
 	tests := []struct {
@@ -30,5 +41,37 @@ func TestResolveFeeLedgerFinancialProgressCoversSevenStates(t *testing.T) {
 				t.Fatalf("财务进度 = %s，期望 %s", actual, test.expected)
 			}
 		})
+	}
+}
+
+func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
+	repo := &settlementRepoStub{}
+	usecase := NewSettlementUsecase(repo)
+	_, err := usecase.ListFeeLedger(context.Background(), uuid.Must(uuid.NewV7()), FeeLedgerFilter{
+		Page:              1,
+		PageSize:          200,
+		FinancialProgress: "completed",
+		BillNo:            "  FB202608280001  ",
+	})
+	if err != nil {
+		t.Fatalf("查询费用台账失败: %v", err)
+	}
+	if repo.filter.FinancialProgress != FeeLedgerCompleted {
+		t.Fatalf("财务进度 = %q，期望 %q", repo.filter.FinancialProgress, FeeLedgerCompleted)
+	}
+	if repo.filter.BillNo != "FB202608280001" {
+		t.Fatalf("账单编号 = %q，期望去除首尾空格", repo.filter.BillNo)
+	}
+}
+
+func TestListFeeLedgerRejectsInvalidFinancialProgress(t *testing.T) {
+	usecase := NewSettlementUsecase(&settlementRepoStub{})
+	_, err := usecase.ListFeeLedger(context.Background(), uuid.Must(uuid.NewV7()), FeeLedgerFilter{
+		Page:              1,
+		PageSize:          20,
+		FinancialProgress: "PAID",
+	})
+	if err != ErrFinanceLedgerInvalidArgument {
+		t.Fatalf("错误 = %v，期望 ErrFinanceLedgerInvalidArgument", err)
 	}
 }

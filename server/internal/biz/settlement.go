@@ -34,9 +34,11 @@ type FeeLedgerFilter struct {
 	BusinessType      string
 	Direction         OrderFeeDirection
 	Status            OrderFeeStatus
+	FinancialProgress FeeLedgerFinancialProgress
 	SettlementPartyID *uuid.UUID
 	CustomerID        *uuid.UUID
 	Currency          string
+	BillNo            string
 	ExpenseDateFrom   string
 	ExpenseDateTo     string
 }
@@ -103,7 +105,9 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.BusinessType = strings.ToUpper(strings.TrimSpace(filter.BusinessType))
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
-	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 {
+	filter.BillNo = strings.TrimSpace(filter.BillNo)
+	filter.FinancialProgress = FeeLedgerFinancialProgress(strings.ToUpper(strings.TrimSpace(string(filter.FinancialProgress))))
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 || len([]rune(filter.BillNo)) > 64 {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.CustomerID != nil && *filter.CustomerID == uuid.Nil {
@@ -116,6 +120,9 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.Status != "" && filter.Status != OrderFeeDraft && filter.Status != OrderFeeConfirmed && filter.Status != OrderFeeBilled && filter.Status != OrderFeeCancelled {
+		return nil, ErrFinanceLedgerInvalidArgument
+	}
+	if filter.FinancialProgress != "" && !IsFeeLedgerFinancialProgress(filter.FinancialProgress) {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.Currency != "" && !ledgerCurrencyPattern.MatchString(filter.Currency) {
@@ -133,4 +140,20 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	return uc.repo.ListFeeLedger(ctx, organizationID, filter)
+}
+
+// IsFeeLedgerFinancialProgress 判断费用台账的账单、开票与核销综合进度是否合法。
+func IsFeeLedgerFinancialProgress(value FeeLedgerFinancialProgress) bool {
+	switch value {
+	case FeeLedgerUnbilled,
+		FeeLedgerUnverifiedUninvoiced,
+		FeeLedgerInvoicedUnverified,
+		FeeLedgerVerifiedUninvoiced,
+		FeeLedgerInvoicedPartiallyVerified,
+		FeeLedgerPartiallyVerifiedUninvoiced,
+		FeeLedgerCompleted:
+		return true
+	default:
+		return false
+	}
 }

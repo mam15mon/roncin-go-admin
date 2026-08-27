@@ -98,6 +98,8 @@ type ListFeeLedgerRequest struct {
 	ExpenseDateFrom   *string                `protobuf:"bytes,9,opt,name=expense_date_from,json=expenseDateFrom,proto3,oneof" json:"expense_date_from,omitempty"`
 	ExpenseDateTo     *string                `protobuf:"bytes,10,opt,name=expense_date_to,json=expenseDateTo,proto3,oneof" json:"expense_date_to,omitempty"`
 	CustomerId        *string                `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
+	FinancialProgress *string                `protobuf:"bytes,12,opt,name=financial_progress,json=financialProgress,proto3,oneof" json:"financial_progress,omitempty"`
+	BillNo            *string                `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -205,6 +207,20 @@ func (x *ListFeeLedgerRequest) GetExpenseDateTo() string {
 func (x *ListFeeLedgerRequest) GetCustomerId() string {
 	if x != nil && x.CustomerId != nil {
 		return *x.CustomerId
+	}
+	return ""
+}
+
+func (x *ListFeeLedgerRequest) GetFinancialProgress() string {
+	if x != nil && x.FinancialProgress != nil {
+		return *x.FinancialProgress
+	}
+	return ""
+}
+
+func (x *ListFeeLedgerRequest) GetBillNo() string {
+	if x != nil && x.BillNo != nil {
+		return *x.BillNo
 	}
 	return ""
 }
@@ -10207,7 +10223,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xc0\x04\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xb5\x05\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -10221,7 +10237,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x0fexpense_date_to\x18\n" +
 	" \x01(\tH\aR\rexpenseDateTo\x88\x01\x01\x12$\n" +
 	"\vcustomer_id\x18\v \x01(\tH\bR\n" +
-	"customerId\x88\x01\x01B\n" +
+	"customerId\x88\x01\x01\x122\n" +
+	"\x12financial_progress\x18\f \x01(\tH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
+	"\abill_no\x18\r \x01(\tH\n" +
+	"R\x06billNo\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -10232,7 +10251,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\t_currencyB\x14\n" +
 	"\x12_expense_date_fromB\x12\n" +
 	"\x10_expense_date_toB\x0e\n" +
-	"\f_customer_id\"\x90\b\n" +
+	"\f_customer_idB\x15\n" +
+	"\x13_financial_progressB\n" +
+	"\n" +
+	"\b_bill_no\"\x90\b\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +

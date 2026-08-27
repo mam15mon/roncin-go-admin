@@ -3969,6 +3969,8 @@ declare namespace API {
     expenseDateFrom?: string;
     expenseDateTo?: string;
     customerId?: string;
+    financialProgress?: string;
+    billNo?: string;
   };
 
   type SettlementServiceListInvoicesParams = {

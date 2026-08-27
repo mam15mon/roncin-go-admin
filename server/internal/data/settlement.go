@@ -37,6 +37,13 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			orderfee.HasOrderWith(order.OrderNoContainsFold(filter.Keyword)),
 			orderfee.HasSettlementPartyWith(partner.LegalNameContainsFold(filter.Keyword)),
 			orderfee.HasOrderWith(order.HasCustomerWith(partner.LegalNameContainsFold(filter.Keyword))),
+			orderfee.HasFinanceBillLinesWith(
+				financebillline.ActiveEQ(true),
+				financebillline.HasBillWith(
+					financebill.StatusNEQ(financebill.StatusCANCELLED),
+					financebill.BillNoContainsFold(filter.Keyword),
+				),
+			),
 		))
 	}
 	if filter.BusinessType != "" {
@@ -57,40 +64,22 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 	if filter.Currency != "" {
 		predicates = append(predicates, orderfee.CurrencyEQ(filter.Currency))
 	}
+	if filter.BillNo != "" {
+		predicates = append(predicates, orderfee.HasFinanceBillLinesWith(
+			financebillline.ActiveEQ(true),
+			financebillline.HasBillWith(
+				financebill.StatusNEQ(financebill.StatusCANCELLED),
+				financebill.BillNoContainsFold(filter.BillNo),
+			),
+		))
+	}
 	if filter.ExpenseDateFrom != "" {
 		predicates = append(predicates, orderfee.ExpenseDateGTE(filter.ExpenseDateFrom))
 	}
 	if filter.ExpenseDateTo != "" {
 		predicates = append(predicates, orderfee.ExpenseDateLTE(filter.ExpenseDateTo))
 	}
-	baseQuery := r.data.db.OrderFee.Query().Where(predicates...)
-	total, err := baseQuery.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	all, err := baseQuery.Clone().WithSettlementParty().WithOrder().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	summary := biz.FeeLedgerSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
-	for _, item := range all {
-		if item.Status == orderfee.StatusCANCELLED {
-			continue
-		}
-		amount, parseErr := decimal.NewFromString(item.BaseCurrencyAmount)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		summary.ActiveCount++
-		summary.BaseCurrency = item.BaseCurrency
-		if item.Direction == orderfee.DirectionRECEIVABLE {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
-		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
-		}
-	}
-	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
-	items, err := baseQuery.Clone().
+	items, err := r.data.db.OrderFee.Query().Where(predicates...).
 		WithSettlementParty().
 		WithOrder(func(query *ent.OrderQuery) { query.WithCustomer() }).
 		WithFinanceBillLines(func(lineQuery *ent.FinanceBillLineQuery) {
@@ -116,11 +105,12 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 				})
 		}).
 		Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
-		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FeeLedgerResult{Items: make([]*biz.FeeLedgerItem, 0, len(items)), Total: int64(total), Summary: summary}
+	filtered := make([]*biz.FeeLedgerItem, 0, len(items))
+	summary := biz.FeeLedgerSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
 	for _, item := range items {
 		fee, convertErr := orderFeeToBiz(item)
 		if convertErr != nil {
@@ -177,7 +167,35 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			ledgerItem.BillNo = bill.BillNo
 			ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, verifiedAmount)
 		}
-		result.Items = append(result.Items, ledgerItem)
+		if filter.FinancialProgress != "" && ledgerItem.FinancialProgress != filter.FinancialProgress {
+			continue
+		}
+		filtered = append(filtered, ledgerItem)
+		if item.Status == orderfee.StatusCANCELLED {
+			continue
+		}
+		amount, parseErr := decimal.NewFromString(item.BaseCurrencyAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.ActiveCount++
+		summary.BaseCurrency = item.BaseCurrency
+		if item.Direction == orderfee.DirectionRECEIVABLE {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
+	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
+	start := (filter.Page - 1) * filter.PageSize
+	if start > len(filtered) {
+		start = len(filtered)
+	}
+	end := min(start+filter.PageSize, len(filtered))
+	result := &biz.FeeLedgerResult{
+		Items:   filtered[start:end],
+		Total:   int64(len(filtered)),
+		Summary: summary,
 	}
 	return result, nil
 }

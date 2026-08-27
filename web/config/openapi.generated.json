@@ -2835,6 +2835,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "financialProgress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "billNo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
