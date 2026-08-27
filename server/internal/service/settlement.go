@@ -1181,6 +1181,7 @@ func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCo
 		Direction: string(x.Direction), Status: string(x.Status), BaseCurrency: x.BaseCurrency, Amount: x.Amount.StringFixed(8),
 		Reason: x.Reason, Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt),
 		CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason,
+		SourceType: string(x.SourceType), SourceVerificationId: financeUUID(x.SourceVerificationID),
 		CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
