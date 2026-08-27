@@ -1038,13 +1038,14 @@ const file_order_v1_order_shipping_document_proto_rawDesc = "" +
 	"*ORDER_SHIPPING_DOCUMENT_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT\x10\x01\x12,\n" +
 	"(ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED\x10\x02\x12+\n" +
-	"'ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED\x10\x032\xb3\b\n" +
-	"\x1cOrderShippingDocumentService\x12\xbe\x01\n" +
-	"\x15ListShippingDocuments\x12&.order.v1.ListShippingDocumentsRequest\x1a'.order.v1.ListShippingDocumentsResponse\"T\x82\xb5\x18\x1c\b\x04\x1a\x16shipping_document.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/orders/{order_id}/shipping-documents\x12\xbd\x01\n" +
-	"\x13AddShippingDocument\x12$.order.v1.AddShippingDocumentRequest\x1a%.order.v1.AddShippingDocumentResponse\"Y\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.create \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/shipping-documents\x12\xcb\x01\n" +
-	"\x16UpdateShippingDocument\x12'.order.v1.UpdateShippingDocumentRequest\x1a(.order.v1.UpdateShippingDocumentResponse\"^\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.update \x02\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v1/orders/{order_id}/shipping-documents/{id}\x12\xf8\x01\n" +
-	" TransitionShippingDocumentStatus\x121.order.v1.TransitionShippingDocumentStatusRequest\x1a2.order.v1.TransitionShippingDocumentStatusResponse\"m\x82\xb5\x18\"\b\x04\x1a\x1cshipping_document.transition \x02\x82\xd3\xe4\x93\x02A:\x01*\"</api/v1/orders/{order_id}/shipping-documents/{id}/transition\x12\xc8\x01\n" +
-	"\x16RemoveShippingDocument\x12'.order.v1.RemoveShippingDocumentRequest\x1a(.order.v1.RemoveShippingDocumentResponse\"[\x82\xb5\x18\x1e\b\x04\x1a\x18shipping_document.delete \x02\x82\xd3\xe4\x93\x023*1/api/v1/orders/{order_id}/shipping-documents/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"'ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED\x10\x032\xd5\a\n" +
+	"\x1cOrderShippingDocumentService\x12\xac\x01\n" +
+	"\x15ListShippingDocuments\x12&.order.v1.ListShippingDocumentsRequest\x1a'.order.v1.ListShippingDocumentsResponse\"B\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/orders/{order_id}/shipping-documents\x12\xab\x01\n" +
+	"\x13AddShippingDocument\x12$.order.v1.AddShippingDocumentRequest\x1a%.order.v1.AddShippingDocumentResponse\"G\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/shipping-documents\x12\xb9\x01\n" +
+	"\x16UpdateShippingDocument\x12'.order.v1.UpdateShippingDocumentRequest\x1a(.order.v1.UpdateShippingDocumentResponse\"L\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v1/orders/{order_id}/shipping-documents/{id}\x12\xe2\x01\n" +
+	" TransitionShippingDocumentStatus\x121.order.v1.TransitionShippingDocumentStatusRequest\x1a2.order.v1.TransitionShippingDocumentStatusResponse\"W\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02A:\x01*\"</api/v1/orders/{order_id}/shipping-documents/{id}/transition\x12\xb6\x01\n" +
+	"\x16RemoveShippingDocument\x12'.order.v1.RemoveShippingDocumentRequest\x1a(.order.v1.RemoveShippingDocumentResponse\"I\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x023*1/api/v1/orders/{order_id}/shipping-documents/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_shipping_document_proto_rawDescOnce sync.Once

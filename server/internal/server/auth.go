@@ -93,7 +93,7 @@ func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUseca
 
 func orderOperationWrites(operation access.OrderOperation) bool {
 	switch operation {
-	case access.OrderRead, access.OrderMilestoneRead, access.OrderAttachmentRead, access.OrderPersonnelRead, access.OrderContainerRead, access.OrderCargoItemRead, access.OrderShippingDocumentRead, access.OrderAbnormalCaseRead, access.OrderReleasePodRead:
+	case access.OrderRead, access.OrderMilestoneRead, access.OrderAttachmentRead, access.OrderPersonnelRead, access.OrderContainerRead, access.OrderCargoItemRead, access.OrderAbnormalCaseRead, access.OrderReleasePodRead:
 		return false
 	default:
 		return true

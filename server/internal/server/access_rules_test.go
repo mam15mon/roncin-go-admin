@@ -58,6 +58,26 @@ func TestGeneratedAccessRulesMatchProto(t *testing.T) {
 	}
 }
 
+func TestShippingDocumentAccessInheritsOrderPermissions(t *testing.T) {
+	tests := map[string]access.OrderOperation{
+		"/order.v1.OrderShippingDocumentService/ListShippingDocuments":            access.OrderRead,
+		"/order.v1.OrderShippingDocumentService/AddShippingDocument":              access.OrderUpdate,
+		"/order.v1.OrderShippingDocumentService/UpdateShippingDocument":           access.OrderUpdate,
+		"/order.v1.OrderShippingDocumentService/TransitionShippingDocumentStatus": access.OrderUpdate,
+		"/order.v1.OrderShippingDocumentService/RemoveShippingDocument":           access.OrderUpdate,
+	}
+	for operation, expected := range tests {
+		rule, ok := operationAccessRules[operation]
+		if !ok {
+			t.Errorf("缺少单证接口访问规则 %s", operation)
+			continue
+		}
+		if rule.mode != accessModeOrderPermission || rule.orderOperation != expected {
+			t.Errorf("单证接口 %s 的权限规则为 %+v，期望继承订单权限 %s", operation, rule, expected)
+		}
+	}
+}
+
 func accessRuleFromMethod(method protoreflect.MethodDescriptor) (accessRule, bool) {
 	options, ok := method.Options().(*descriptorpb.MethodOptions)
 	if !ok || !proto.HasExtension(options, accessv1.E_Rule) {

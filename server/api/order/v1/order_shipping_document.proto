@@ -14,13 +14,13 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 service OrderShippingDocumentService {
   // ListShippingDocuments 获取指定订单的提单列表。
   rpc ListShippingDocuments(ListShippingDocumentsRequest) returns (ListShippingDocumentsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/shipping-documents"};
   }
 
   // AddShippingDocument 添加订单提单，初始状态为草稿。
   rpc AddShippingDocument(AddShippingDocumentRequest) returns (AddShippingDocumentResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/shipping-documents"
       body: "*"
@@ -29,7 +29,7 @@ service OrderShippingDocumentService {
 
   // UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。
   rpc UpdateShippingDocument(UpdateShippingDocumentRequest) returns (UpdateShippingDocumentResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/shipping-documents/{id}"
       body: "*"
@@ -38,7 +38,7 @@ service OrderShippingDocumentService {
 
   // TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。
   rpc TransitionShippingDocumentStatus(TransitionShippingDocumentStatusRequest) returns (TransitionShippingDocumentStatusResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.transition" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/shipping-documents/{id}/transition"
       body: "*"
@@ -47,7 +47,7 @@ service OrderShippingDocumentService {
 
   // RemoveShippingDocument 移除提单，已放货的提单不可删除。
   rpc RemoveShippingDocument(RemoveShippingDocumentRequest) returns (RemoveShippingDocumentResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "shipping_document.delete" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/shipping-documents/{id}"};
   }
 }
