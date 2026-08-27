@@ -814,7 +814,7 @@ body,
   }
 }
 
-// Table 紧凑浅灰表头与高密度行
+// Table 浅灰表头与自适应多档密度支持（紧凑 / 中等 / 默认）
 .ant-table-wrapper {
   .ant-table {
     border: 1px solid #f0f0f0 !important;
@@ -826,7 +826,6 @@ body,
       color: rgba(0, 0, 0, 0.88) !important;
       font-weight: 600 !important;
       font-size: 12px !important;
-      padding: 7px 10px !important;
       border-bottom: 1px solid #f0f0f0 !important;
 
       &::before {
@@ -835,7 +834,6 @@ body,
     }
 
     .ant-table-tbody > tr > td {
-      padding: 7px 10px !important;
       font-size: 13px !important;
       border-bottom: 1px solid #f0f0f0 !important;
       color: rgba(0, 0, 0, 0.88);
@@ -843,6 +841,32 @@ body,
 
     .ant-table-tbody > tr:hover > td {
       background: #f5f5f5 !important;
+    }
+  }
+
+  // 1. 紧凑模式（small）
+  &.ant-table-wrapper-small .ant-table,
+  .ant-table-small {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 6px 8px !important;
+    }
+  }
+
+  // 2. 中等模式（middle）
+  &.ant-table-wrapper-middle .ant-table,
+  .ant-table-middle {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 10px 12px !important;
+    }
+  }
+
+  // 3. 默认宽松模式（large）
+  &:not(.ant-table-wrapper-small):not(.ant-table-wrapper-middle) .ant-table:not(.ant-table-small):not(.ant-table-middle) {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 14px 16px !important;
     }
   }
 
