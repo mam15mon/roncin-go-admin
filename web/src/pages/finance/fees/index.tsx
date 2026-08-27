@@ -24,8 +24,9 @@ const businessLabels: Record<string, string> = {
   LAND: '陆运',
   RAIL: '铁路',
 };
+
 const statusLabels: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '草稿', color: 'gold' },
+  DRAFT: { text: '账单未建立', color: 'gold' },
   CONFIRMED: { text: '已确认', color: 'green' },
   BILLED: { text: '已进账单', color: 'blue' },
   CANCELLED: { text: '已作废', color: 'default' },
@@ -89,8 +90,9 @@ export default function FinanceFeeLedgerPage() {
     },
   ];
 
-  // 全量预置列定义
+  // 34 项核心业务字段预置列定义
   const baseColumns: ProColumns<API.FeeLedgerItem>[] = [
+    // --- 1. 基础与单据信息 ---
     {
       title: '序号',
       dataIndex: 'index',
@@ -115,24 +117,18 @@ export default function FinanceFeeLedgerPage() {
       ),
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      width: 85,
-      valueType: 'select',
-      valueEnum: Object.fromEntries(
-        Object.entries(statusLabels).map(([key, value]) => [
-          key,
-          { text: value.text },
-        ]),
-      ),
-      render: (_, row) => {
-        const value = statusLabels[row.status || 'DRAFT'];
-        return (
-          <Tag color={value.color} style={{ margin: 0 }}>
-            {value.text}
-          </Tag>
-        );
-      },
+      title: '主单号',
+      dataIndex: 'masterNo',
+      width: 140,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={130}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '分单号',
+      dataIndex: 'houseNo',
+      width: 130,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
     },
     {
       title: '订单编号',
@@ -149,6 +145,27 @@ export default function FinanceFeeLedgerPage() {
       ),
     },
     {
+      title: '账单编号',
+      dataIndex: 'billNo',
+      width: 150,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={140}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: 'SO号',
+      dataIndex: 'soNo',
+      width: 130,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '发票号',
+      dataIndex: 'invoiceNo',
+      width: 130,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
       title: '业务类型',
       dataIndex: 'businessType',
       width: 95,
@@ -157,13 +174,8 @@ export default function FinanceFeeLedgerPage() {
         Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
       ),
     },
-    {
-      title: '费用科目',
-      dataIndex: 'feeName',
-      width: 130,
-      search: false,
-      render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
-    },
+
+    // --- 2. 主体与往来单位 ---
     {
       title: '委托单位',
       dataIndex: 'customerId',
@@ -198,6 +210,36 @@ export default function FinanceFeeLedgerPage() {
       ),
     },
     {
+      title: '收货人简称',
+      dataIndex: 'consignee',
+      width: 120,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '发货人简称',
+      dataIndex: 'shipper',
+      width: 120,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '通知人简称',
+      dataIndex: 'notifyParty',
+      width: 120,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+    },
+
+    // --- 3. 费用与财务金额 ---
+    {
+      title: '费用名称',
+      dataIndex: 'feeName',
+      width: 130,
+      search: false,
+      render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
+    },
+    {
       title: '币种',
       dataIndex: 'currency',
       width: 70,
@@ -206,28 +248,7 @@ export default function FinanceFeeLedgerPage() {
       render: (val) => <Tag style={{ margin: 0 }}>{val}</Tag>,
     },
     {
-      title: '单价',
-      dataIndex: 'unitPrice',
-      width: 90,
-      align: 'right',
-      search: false,
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 75,
-      align: 'right',
-      search: false,
-    },
-    {
-      title: '单位',
-      dataIndex: 'billingUnit',
-      width: 70,
-      align: 'center',
-      search: false,
-    },
-    {
-      title: '原币金额',
+      title: '金额',
       dataIndex: 'totalAmount',
       width: 125,
       align: 'right',
@@ -246,7 +267,7 @@ export default function FinanceFeeLedgerPage() {
       search: false,
     },
     {
-      title: '折本币金额',
+      title: '折本币总价',
       dataIndex: 'baseCurrencyAmount',
       width: 135,
       align: 'right',
@@ -262,7 +283,7 @@ export default function FinanceFeeLedgerPage() {
       ),
     },
     {
-      title: '税率',
+      title: '税率(%)',
       dataIndex: 'taxRate',
       width: 75,
       align: 'right',
@@ -270,21 +291,55 @@ export default function FinanceFeeLedgerPage() {
       render: (val) => (val ? `${Number(val) * 100}%` : '-'),
     },
     {
-      title: '税额',
+      title: '税金',
       dataIndex: 'taxAmount',
       width: 95,
       align: 'right',
       search: false,
     },
     {
-      title: '不含税金额',
+      title: '不含税总价',
       dataIndex: 'netAmount',
       width: 110,
       align: 'right',
       search: false,
     },
     {
-      title: '费用日期',
+      title: '费用状态',
+      dataIndex: 'status',
+      width: 95,
+      valueType: 'select',
+      valueEnum: Object.fromEntries(
+        Object.entries(statusLabels).map(([key, value]) => [
+          key,
+          { text: value.text },
+        ]),
+      ),
+      render: (_, row) => {
+        const value = statusLabels[row.status || 'DRAFT'];
+        return (
+          <Tag color={value.color} style={{ margin: 0 }}>
+            {value.text}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: '已核销金额',
+      dataIndex: 'verifiedAmount',
+      width: 110,
+      align: 'right',
+      search: false,
+    },
+    {
+      title: '未核销金额',
+      dataIndex: 'unverifiedAmount',
+      width: 110,
+      align: 'right',
+      search: false,
+    },
+    {
+      title: '费用时间',
       dataIndex: 'expenseDate',
       width: 110,
       valueType: 'dateRange',
@@ -295,8 +350,61 @@ export default function FinanceFeeLedgerPage() {
         }),
       },
     },
+
+    // --- 4. 人员与货物属性 ---
     {
-      title: '备注说明',
+      title: '操作人员',
+      dataIndex: 'operatorName',
+      width: 110,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '业务人员',
+      dataIndex: 'salesName',
+      width: 110,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '客服人员',
+      dataIndex: 'csName',
+      width: 110,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={100}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '关联人员',
+      dataIndex: 'relatedPersonnel',
+      width: 120,
+      search: false,
+      render: (val) => <EllipsisTooltip maxWidth={110}>{val || '-'}</EllipsisTooltip>,
+    },
+    {
+      title: '实际总毛重(KGS)',
+      dataIndex: 'grossWeightKg',
+      width: 120,
+      align: 'right',
+      search: false,
+    },
+    {
+      title: '实际总体积',
+      dataIndex: 'volumeCbm',
+      width: 105,
+      align: 'right',
+      search: false,
+    },
+    {
+      title: '关联信息',
+      dataIndex: 'relatedInfo',
+      width: 130,
+      search: false,
+      render: (val) => (
+        <EllipsisTooltip maxWidth={120}>{val || '-'}</EllipsisTooltip>
+      ),
+    },
+    {
+      title: '备注',
       dataIndex: 'note',
       width: 130,
       ellipsis: true,
@@ -353,7 +461,7 @@ export default function FinanceFeeLedgerPage() {
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={2300}
+        scrollX={3200}
         primaryActionText="创建账单"
         primaryActionRequiresSelection
         onPrimaryAction={(keys) => {
