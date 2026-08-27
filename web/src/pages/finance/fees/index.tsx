@@ -135,6 +135,17 @@ export default function FinanceFeeLedgerPage() {
 
   // 34 项核心业务字段预置列定义
   const baseColumns: ProColumns<API.FeeLedgerItem>[] = [
+    // --- 0. 全局综合关键字搜索（表格内隐藏，固定在搜索栏首位） ---
+    {
+      title: '综合搜索',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      order: 100,
+      fieldProps: {
+        placeholder: '输入订单号/费用名/往来单位搜索',
+      },
+    },
+
     // 1. 序号与属性（固定左侧）
     {
       title: '序号',
@@ -142,6 +153,7 @@ export default function FinanceFeeLedgerPage() {
       valueType: 'index',
       width: 50,
       fixed: 'left',
+      search: false,
     },
     {
       title: '属性',
@@ -149,6 +161,7 @@ export default function FinanceFeeLedgerPage() {
       width: 65,
       fixed: 'left',
       valueType: 'select',
+      order: 90,
       valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
       render: (_, row) => (
         <Tag
@@ -173,6 +186,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'customerId',
       width: 180,
       valueType: 'select',
+      order: 70,
       request: async ({ keyWords }) => {
         const response = await partnerServiceListPartners({
           role: 1,
@@ -198,6 +212,7 @@ export default function FinanceFeeLedgerPage() {
       width: 180,
       ellipsis: true,
       valueType: 'select',
+      order: 60,
       request: async ({ keyWords }) => {
         const response = await partnerServiceListPartners({
           page: 1,
@@ -221,6 +236,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'businessType',
       width: 95,
       valueType: 'select',
+      order: 50,
       valueEnum: Object.fromEntries(
         Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
       ),
@@ -241,6 +257,7 @@ export default function FinanceFeeLedgerPage() {
       width: 65,
       align: 'center',
       valueType: 'select',
+      order: 40,
       valueEnum: {
         CNY: { text: 'CNY' },
         USD: { text: 'USD' },
@@ -280,6 +297,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'financialProgress',
       width: 120,
       valueType: 'select',
+      order: 80,
       valueEnum: Object.fromEntries(
         Object.entries(financialProgressLabels).map(([key, value]) => [
           key,
@@ -403,6 +421,7 @@ export default function FinanceFeeLedgerPage() {
       title: '订单编号',
       dataIndex: 'orderNo',
       width: 160,
+      search: false,
       copyable: true,
       render: (_, row) => (
         <a
@@ -418,6 +437,7 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'expenseDate',
       width: 110,
       valueType: 'dateRange',
+      order: 30,
       search: {
         transform: (value) => ({
           expenseDateFrom: value[0],
@@ -564,8 +584,10 @@ export default function FinanceFeeLedgerPage() {
       }
     });
 
-    // 1. 序号与属性列保持固定在最左侧
+    // 1. 全局搜索项、序号与属性列保持稳定
     const result: ProColumns<API.FeeLedgerItem>[] = [];
+    const keywordCol = baseColumns.find((c) => c.dataIndex === 'keyword');
+    if (keywordCol) result.push(keywordCol);
     if (indexCol) result.push(indexCol);
     if (directionCol) result.push(directionCol);
 
