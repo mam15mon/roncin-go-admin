@@ -1,4 +1,12 @@
-import { EditOutlined, HolderOutlined, PlusOutlined, SettingOutlined, StopOutlined } from '@ant-design/icons';
+import {
+  DownloadOutlined,
+  EditOutlined,
+  HolderOutlined,
+  PlusOutlined,
+  SettingOutlined,
+  StopOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
 import {
   closestCenter,
   DndContext,
@@ -19,7 +27,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
-  ProFormDatePicker,
+  ProFormDateTimePicker,
   ProFormSelect,
   ProFormText,
   ProTable,
@@ -31,6 +39,7 @@ import React, { useRef, useState } from 'react';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
+  exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServiceListExchangeRateSettings,
   exchangeRateServiceListExchangeRateTimeStandards,
   exchangeRateServiceUpdateExchangeRateSetting,
@@ -38,6 +47,7 @@ import {
 } from '@/services/roncin/exchangeRateService';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
+import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
 const exchangeRateTypeLabels: Record<string, string> = {
@@ -162,6 +172,8 @@ export function ExchangeRatesPanel() {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
   const [currencies, setCurrencies] = useState<API.Currency[]>([]);
@@ -174,34 +186,65 @@ export function ExchangeRatesPanel() {
     setModalOpen(true);
   };
 
+  const handleDownloadTemplate = async () => {
+    setDownloadingTemplate(true);
+    try {
+      const res = await exchangeRateServiceDownloadExchangeRateImportTemplate();
+      const base64Data = res.content;
+      if (!base64Data) {
+        message.error('下载模板失败：文件内容为空');
+        return;
+      }
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], {
+        type:
+          res.contentType ||
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.fileName || '汇率导入模板.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      message.success('导入模板下载成功');
+    } catch (e: any) {
+      message.error(e.message || '下载导入模板失败');
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  };
+
   const openTimeStandards = async () => {
     const response = await exchangeRateServiceListExchangeRateTimeStandards();
     setTimeStandards(
       Object.fromEntries(
-        (response.data ?? []).map((setting) => [
-          setting.rateType ?? '',
-          setting.timeStandards ?? [],
-        ]),
+        (response.data ?? []).map((item) => [item.rateType ?? '', item.timeStandards ?? []]),
       ),
     );
     setTimeStandardsOpen(true);
   };
 
   const saveTimeStandards = async () => {
-    if (exchangeRateTypeOptions.some(({ value }) => !timeStandards[value]?.length)) {
-      message.error('每种汇率类型至少选择一个时间标准');
-      return;
-    }
     setTimeStandardsSaving(true);
     try {
       await exchangeRateServiceUpdateExchangeRateTimeStandards({
-        data: exchangeRateTypeOptions.map(({ value }) => ({
-          rateType: value,
-          timeStandards: timeStandards[value],
+        data: Object.entries(timeStandards).map(([rateType, standards]) => ({
+          rateType,
+          timeStandards: standards,
         })),
       });
-      message.success('汇率类型时间标准已更新');
+      message.success('时间标准配置已更新');
       setTimeStandardsOpen(false);
+    } catch {
+      message.error('时间标准配置更新失败');
     } finally {
       setTimeStandardsSaving(false);
     }
@@ -210,14 +253,17 @@ export function ExchangeRatesPanel() {
   const columns: ProColumns<API.ExchangeRateSetting>[] = [
     {
       title: '序号',
+      dataIndex: 'index',
       valueType: 'index',
-      width: 60,
+      width: 55,
+      align: 'center',
     },
     {
       title: '汇率类型',
       dataIndex: 'rateType',
-      width: 130,
-      render: (_, record) => record.rateType && exchangeRateTypeLabels[record.rateType],
+      width: 140,
+      render: (_, record) =>
+        record.rateType ? exchangeRateTypeLabels[record.rateType] ?? record.rateType : '-',
     },
     {
       title: '原币种',
@@ -264,7 +310,7 @@ export function ExchangeRatesPanel() {
       dataIndex: 'effectiveFrom',
       width: 165,
       render: (_, record) =>
-        record.effectiveFrom ? `${record.effectiveFrom} 00:00:00` : '-',
+        record.effectiveFrom ? dayjs(record.effectiveFrom).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {
       title: '结束时间',
@@ -274,9 +320,7 @@ export function ExchangeRatesPanel() {
         if (!record.effectiveTo) {
           return <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>长期有效</Tag>;
         }
-        // 后端存储为左闭右开 effectiveTo，前端展示包含当天至 23:59:59
-        const toDay = dayjs(record.effectiveTo).subtract(1, 'day').format('YYYY-MM-DD');
-        return `${toDay} 23:59:59`;
+        return dayjs(record.effectiveTo).format('YYYY-MM-DD HH:mm:ss');
       },
     },
     {
@@ -340,13 +384,8 @@ export function ExchangeRatesPanel() {
         rateType: editing.rateType,
         fromCurrency: editing.fromCurrency,
         toCurrency: editing.toCurrency,
-        effectiveFrom: editing.effectiveFrom
-          ? dayjs(editing.effectiveFrom)
-          : undefined,
-        // 编辑回显时，将后端的左闭右开日期还原为用户自然选择的结束日期（减 1 天）
-        effectiveTo: editing.effectiveTo
-          ? dayjs(editing.effectiveTo).subtract(1, 'day')
-          : undefined,
+        effectiveFrom: editing.effectiveFrom ? dayjs(editing.effectiveFrom) : undefined,
+        effectiveTo: editing.effectiveTo ? dayjs(editing.effectiveTo) : undefined,
         receivableRate: trimExactDecimal(editing.receivableRate),
         payableRate: trimExactDecimal(editing.payableRate),
       }
@@ -381,6 +420,25 @@ export function ExchangeRatesPanel() {
           return { data: rateResponse.data ?? [], success: rateResponse.success ?? true };
         }}
         toolBarRender={() => [
+          <Button
+            key="download-template"
+            icon={<DownloadOutlined />}
+            loading={downloadingTemplate}
+            onClick={handleDownloadTemplate}
+          >
+            下载模板
+          </Button>,
+          ...(access.canCreateExchangeRates
+            ? [
+                <Button
+                  key="import"
+                  icon={<UploadOutlined />}
+                  onClick={() => setImportModalOpen(true)}
+                >
+                  批量导入
+                </Button>,
+              ]
+            : []),
           ...(access.canUpdateExchangeRates
             ? [
                 <Button
@@ -410,21 +468,17 @@ export function ExchangeRatesPanel() {
         labelAlign="right"
         labelCol={{ flex: '120px' }}
         wrapperCol={{ flex: 'auto' }}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 560 }}
+        modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 580 }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          const effectiveFrom = dayjs(values.effectiveFrom).format('YYYY-MM-DD');
-          const userEndDate = values.effectiveTo
-            ? dayjs(values.effectiveTo).format('YYYY-MM-DD')
+          const effectiveFrom = dayjs(values.effectiveFrom).toISOString();
+          const effectiveTo = values.effectiveTo
+            ? dayjs(values.effectiveTo).toISOString()
             : undefined;
-          if (userEndDate && userEndDate < effectiveFrom) {
-            message.error('生效结束日期不能早于生效开始日期');
+          if (effectiveTo && (dayjs(effectiveTo).isBefore(dayjs(effectiveFrom)) || dayjs(effectiveTo).isSame(dayjs(effectiveFrom)))) {
+            message.error('生效结束时间必须晚于生效开始时间');
             return false;
           }
-          // 用户选择了结束日期（含当天），转换给后端的生效右边界（加 1 天）
-          const effectiveTo = userEndDate
-            ? dayjs(userEndDate).add(1, 'day').format('YYYY-MM-DD')
-            : undefined;
           const input = {
             rateType: values.rateType,
             fromCurrency: values.fromCurrency.trim().toUpperCase(),
@@ -487,20 +541,26 @@ export function ExchangeRatesPanel() {
         />
         <ProFormText name="receivableRate" label="应收汇率" rules={[{ validator: rateRule }]} />
         <ProFormText name="payableRate" label="应付汇率" rules={[{ validator: rateRule }]} />
-        <ProFormDatePicker
+        <ProFormDateTimePicker
           name="effectiveFrom"
-          label="生效开始日期"
-          extra="自所选日期 00:00:00 起正式生效"
-          rules={[{ required: true, message: '请选择生效开始日期' }]}
-          fieldProps={{ style: { width: '100%' } }}
+          label="生效开始时间"
+          extra="精确至秒级（左闭区间包含该时刻起生效）"
+          rules={[{ required: true, message: '请选择生效开始时间' }]}
+          fieldProps={{ style: { width: '100%' }, format: 'YYYY-MM-DD HH:mm:ss' }}
         />
-        <ProFormDatePicker
+        <ProFormDateTimePicker
           name="effectiveTo"
-          label="生效结束日期"
-          extra="生效至所选日期当天 23:59:59 截止；留空表示长期有效"
-          fieldProps={{ style: { width: '100%' } }}
+          label="生效结束时间"
+          extra="精确至秒级（右开区间不包含该时刻）；留空表示长期有效"
+          fieldProps={{ style: { width: '100%' }, format: 'YYYY-MM-DD HH:mm:ss' }}
         />
       </ModalForm>
+
+      <ExchangeRateImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onSuccess={() => actionRef.current?.reload()}
+      />
 
       <Modal
         title="汇率类型时间标准"
