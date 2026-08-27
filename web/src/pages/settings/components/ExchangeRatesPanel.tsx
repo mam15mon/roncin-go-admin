@@ -217,18 +217,18 @@ export function ExchangeRatesPanel() {
       render: (_, record) => record.rateType && exchangeRateTypeLabels[record.rateType],
     },
     {
-      title: '原币',
+      title: '原币种',
       dataIndex: 'fromCurrency',
-      width: 100,
+      width: 110,
       render: (_, record) => {
         const cur = currencies.find((c) => c.code === record.fromCurrency);
         return cur?.name ? `${record.fromCurrency} (${cur.name})` : record.fromCurrency;
       },
     },
     {
-      title: '目标币',
+      title: '目标币种',
       dataIndex: 'toCurrency',
-      width: 100,
+      width: 110,
       render: (_, record) => {
         const cur = currencies.find((c) => c.code === record.toCurrency);
         return cur?.name ? `${record.toCurrency} (${cur.name})` : record.toCurrency;
@@ -257,7 +257,7 @@ export function ExchangeRatesPanel() {
       ),
     },
     {
-      title: '生效开始',
+      title: '开始时间',
       dataIndex: 'effectiveFrom',
       width: 170,
       render: (_, record) => (
@@ -267,7 +267,7 @@ export function ExchangeRatesPanel() {
       ),
     },
     {
-      title: '生效结束',
+      title: '结束时间',
       dataIndex: 'effectiveTo',
       width: 170,
       render: (_, record) => {
