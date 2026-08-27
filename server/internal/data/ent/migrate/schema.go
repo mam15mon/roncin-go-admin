@@ -2103,7 +2103,17 @@ var (
 		{Name: "shipment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"FCL", "LCL", "BREAK_BULK"}},
 		{Name: "container_ownership", Type: field.TypeEnum, Nullable: true, Enums: []string{"COC", "SOC"}},
 		{Name: "shipment_mode", Type: field.TypeEnum, Nullable: true, Enums: []string{"TRADITIONAL_FORWARDING", "CROSS_BORDER"}},
-		{Name: "status", Type: field.TypeString, Size: 64, Default: "DRAFT"},
+		{Name: "flow_status", Type: field.TypeEnum, Enums: []string{"DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED"}, Default: "DRAFT"},
+		{Name: "termination_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "TERMINATING", "TERMINATED"}, Default: "ACTIVE"},
+		{Name: "termination_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"CUSTOMER_CANCEL", "CARRIER_CANCEL", "CUSTOMS_RETURN", "OPERATION_CANCEL", "OTHER"}},
+		{Name: "termination_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "terminated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "terminated_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "closure_status", Type: field.TypeEnum, Enums: []string{"OPEN", "CLOSED"}, Default: "OPEN"},
+		{Name: "closure_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "closed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "closed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "discharge_location_id", Type: field.TypeUUID, Nullable: true},
@@ -2128,7 +2138,6 @@ var (
 		{Name: "operation_notes", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "customer_id", Type: field.TypeUUID},
-		{Name: "status_template_id", Type: field.TypeUUID},
 	}
 	// OrdersTable holds the schema information for the "orders" table.
 	OrdersTable = &schema.Table{
@@ -2138,20 +2147,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[52]},
+				Columns:    []*schema.Column{OrdersColumns[62]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[53]},
+				Columns:    []*schema.Column{OrdersColumns[63]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "orders_status_templates_orders",
-				Columns:    []*schema.Column{OrdersColumns[54]},
-				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -2164,22 +2167,32 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[3]},
 			},
 			{
-				Name:    "order_organization_id_status",
+				Name:    "order_organization_id_flow_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[29]},
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[29]},
+			},
+			{
+				Name:    "order_organization_id_termination_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[30]},
+			},
+			{
+				Name:    "order_organization_id_closure_status",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[35]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[22]},
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[22]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[52], OrdersColumns[53]},
+				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[63]},
 			},
 		},
 	}
@@ -2608,6 +2621,39 @@ var (
 			},
 		},
 	}
+	// OrderLifecycleEventsColumns holds the columns for the "order_lifecycle_events" table.
+	OrderLifecycleEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "dimension", Type: field.TypeEnum, Enums: []string{"FLOW", "TERMINATION", "CLOSURE"}},
+		{Name: "from_status", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "to_status", Type: field.TypeString, Size: 64},
+		{Name: "action", Type: field.TypeString, Size: 64},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "operator_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "changed_at", Type: field.TypeTime},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderLifecycleEventsTable holds the schema information for the "order_lifecycle_events" table.
+	OrderLifecycleEventsTable = &schema.Table{
+		Name:       "order_lifecycle_events",
+		Columns:    OrderLifecycleEventsColumns,
+		PrimaryKey: []*schema.Column{OrderLifecycleEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_lifecycle_events_orders_lifecycle_events",
+				Columns:    []*schema.Column{OrderLifecycleEventsColumns[8]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderlifecycleevent_order_id_dimension_changed_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderLifecycleEventsColumns[8], OrderLifecycleEventsColumns[1], OrderLifecycleEventsColumns[7]},
+			},
+		},
+	}
 	// OrderMilestonesColumns holds the columns for the "order_milestones" table.
 	OrderMilestonesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2852,38 +2898,6 @@ var (
 				Name:    "ordershippingdocument_order_id_status",
 				Unique:  false,
 				Columns: []*schema.Column{OrderShippingDocumentsColumns[7], OrderShippingDocumentsColumns[5]},
-			},
-		},
-	}
-	// OrderStatusLogsColumns holds the columns for the "order_status_logs" table.
-	OrderStatusLogsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "from_status", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "to_status", Type: field.TypeString, Size: 64},
-		{Name: "action", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "operator_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "changed_at", Type: field.TypeTime},
-		{Name: "order_id", Type: field.TypeUUID},
-	}
-	// OrderStatusLogsTable holds the schema information for the "order_status_logs" table.
-	OrderStatusLogsTable = &schema.Table{
-		Name:       "order_status_logs",
-		Columns:    OrderStatusLogsColumns,
-		PrimaryKey: []*schema.Column{OrderStatusLogsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "order_status_logs_orders_status_logs",
-				Columns:    []*schema.Column{OrderStatusLogsColumns[7]},
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "orderstatuslog_order_id_changed_at",
-				Unique:  false,
-				Columns: []*schema.Column{OrderStatusLogsColumns[7], OrderStatusLogsColumns[6]},
 			},
 		},
 	}
@@ -3899,103 +3913,6 @@ var (
 			},
 		},
 	}
-	// StatusTemplatesColumns holds the columns for the "status_templates" table.
-	StatusTemplatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "code", Type: field.TypeString, Size: 64},
-		{Name: "name", Type: field.TypeString, Size: 100},
-		{Name: "business_type", Type: field.TypeEnum, Enums: []string{"SE", "SI", "AE", "AI", "LAND", "RAIL"}},
-		{Name: "version", Type: field.TypeInt},
-		{Name: "is_default", Type: field.TypeBool, Default: false},
-		{Name: "published_at", Type: field.TypeTime, Nullable: true},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "organization_id", Type: field.TypeUUID},
-	}
-	// StatusTemplatesTable holds the schema information for the "status_templates" table.
-	StatusTemplatesTable = &schema.Table{
-		Name:       "status_templates",
-		Columns:    StatusTemplatesColumns,
-		PrimaryKey: []*schema.Column{StatusTemplatesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "status_templates_organizations_status_templates",
-				Columns:    []*schema.Column{StatusTemplatesColumns[10]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "statustemplate_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{StatusTemplatesColumns[2]},
-			},
-			{
-				Name:    "statustemplate_organization_id_business_type_code_version",
-				Unique:  true,
-				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5], StatusTemplatesColumns[3], StatusTemplatesColumns[6]},
-			},
-			{
-				Name:    "statustemplate_organization_id_business_type",
-				Unique:  true,
-				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "is_default",
-				},
-			},
-			{
-				Name:    "statustemplate_organization_id_business_type_published_at_enabled",
-				Unique:  false,
-				Columns: []*schema.Column{StatusTemplatesColumns[10], StatusTemplatesColumns[5], StatusTemplatesColumns[8], StatusTemplatesColumns[9]},
-			},
-		},
-	}
-	// StatusTemplateItemsColumns holds the columns for the "status_template_items" table.
-	StatusTemplateItemsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "code", Type: field.TypeString, Size: 64},
-		{Name: "label", Type: field.TypeString, Size: 100},
-		{Name: "sort_order", Type: field.TypeInt, Default: 100},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "color_token", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "system", Type: field.TypeBool, Default: false},
-		{Name: "template_id", Type: field.TypeUUID},
-	}
-	// StatusTemplateItemsTable holds the schema information for the "status_template_items" table.
-	StatusTemplateItemsTable = &schema.Table{
-		Name:       "status_template_items",
-		Columns:    StatusTemplateItemsColumns,
-		PrimaryKey: []*schema.Column{StatusTemplateItemsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "status_template_items_status_templates_items",
-				Columns:    []*schema.Column{StatusTemplateItemsColumns[9]},
-				RefColumns: []*schema.Column{StatusTemplatesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "statustemplateitem_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{StatusTemplateItemsColumns[2]},
-			},
-			{
-				Name:    "statustemplateitem_template_id_code",
-				Unique:  true,
-				Columns: []*schema.Column{StatusTemplateItemsColumns[9], StatusTemplateItemsColumns[3]},
-			},
-			{
-				Name:    "statustemplateitem_template_id_sort_order",
-				Unique:  false,
-				Columns: []*schema.Column{StatusTemplateItemsColumns[9], StatusTemplateItemsColumns[5]},
-			},
-		},
-	}
 	// TaxableServicesColumns holds the columns for the "taxable_services" table.
 	TaxableServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4160,12 +4077,12 @@ var (
 		OrderContainersTable,
 		OrderContainerRequestsTable,
 		OrderFeesTable,
+		OrderLifecycleEventsTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
 		OrderReleasePodsTable,
 		OrderServiceTypesTable,
 		OrderShippingDocumentsTable,
-		OrderStatusLogsTable,
 		OrganizationsTable,
 		PartnersTable,
 		PartnerAccountsTable,
@@ -4187,8 +4104,6 @@ var (
 		SessionsTable,
 		ShippingLinesTable,
 		ShippingLineContainerPrefixesTable,
-		StatusTemplatesTable,
-		StatusTemplateItemsTable,
 		TaxableServicesTable,
 		UsersTable,
 		RolePermissionsTable,
@@ -4267,7 +4182,6 @@ func init() {
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
-	OrdersTable.ForeignKeys[2].RefTable = StatusTemplatesTable
 	OrderAbnormalCasesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderCargoCategoriesTable.ForeignKeys[0].RefTable = OrdersTable
@@ -4281,6 +4195,7 @@ func init() {
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
 	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
 	OrderFeesTable.ForeignKeys[4].RefTable = UsersTable
+	OrderLifecycleEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable
@@ -4290,7 +4205,6 @@ func init() {
 	OrderServiceTypesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderShippingDocumentsTable.ForeignKeys[1].RefTable = OrderConsolidationsTable
-	OrderStatusLogsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnerRolesTable
@@ -4317,8 +4231,6 @@ func init() {
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
 	ShippingLinesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
-	StatusTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
-	StatusTemplateItemsTable.ForeignKeys[0].RefTable = StatusTemplatesTable
 	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable
 	RolePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable

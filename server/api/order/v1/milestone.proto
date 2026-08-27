@@ -49,7 +49,7 @@ message ListMilestonesRequest {
 message SetMilestoneRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string type = 2 [(google.api.field_behavior) = REQUIRED];
-  string expected_order_status = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_order_version = 3 [(google.api.field_behavior) = REQUIRED];
   optional string occurred_at = 4;
   optional string note = 5;
   optional bool clear_occurred_at = 6;

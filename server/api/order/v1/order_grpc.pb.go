@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderService_GetOrder_FullMethodName                = "/order.v1.OrderService/GetOrder"
-	OrderService_ListOrders_FullMethodName              = "/order.v1.OrderService/ListOrders"
-	OrderService_CheckOrderReference_FullMethodName     = "/order.v1.OrderService/CheckOrderReference"
-	OrderService_ListPersonnelOptions_FullMethodName    = "/order.v1.OrderService/ListPersonnelOptions"
-	OrderService_ListOrderConsolidations_FullMethodName = "/order.v1.OrderService/ListOrderConsolidations"
-	OrderService_CreateOrder_FullMethodName             = "/order.v1.OrderService/CreateOrder"
-	OrderService_UpdateOrder_FullMethodName             = "/order.v1.OrderService/UpdateOrder"
-	OrderService_TransitionOrderStatus_FullMethodName   = "/order.v1.OrderService/TransitionOrderStatus"
+	OrderService_GetOrder_FullMethodName                   = "/order.v1.OrderService/GetOrder"
+	OrderService_ListOrders_FullMethodName                 = "/order.v1.OrderService/ListOrders"
+	OrderService_CheckOrderReference_FullMethodName        = "/order.v1.OrderService/CheckOrderReference"
+	OrderService_ListPersonnelOptions_FullMethodName       = "/order.v1.OrderService/ListPersonnelOptions"
+	OrderService_ListOrderConsolidations_FullMethodName    = "/order.v1.OrderService/ListOrderConsolidations"
+	OrderService_CreateOrder_FullMethodName                = "/order.v1.OrderService/CreateOrder"
+	OrderService_UpdateOrder_FullMethodName                = "/order.v1.OrderService/UpdateOrder"
+	OrderService_TransitionOrderStatus_FullMethodName      = "/order.v1.OrderService/TransitionOrderStatus"
+	OrderService_TransitionOrderTermination_FullMethodName = "/order.v1.OrderService/TransitionOrderTermination"
+	OrderService_TransitionOrderClosure_FullMethodName     = "/order.v1.OrderService/TransitionOrderClosure"
 )
 
 // OrderServiceClient is the client API for OrderService service.
@@ -43,6 +45,8 @@ type OrderServiceClient interface {
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*UpdateOrderResponse, error)
 	TransitionOrderStatus(ctx context.Context, in *TransitionOrderStatusRequest, opts ...grpc.CallOption) (*TransitionOrderStatusResponse, error)
+	TransitionOrderTermination(ctx context.Context, in *TransitionOrderTerminationRequest, opts ...grpc.CallOption) (*TransitionOrderTerminationResponse, error)
+	TransitionOrderClosure(ctx context.Context, in *TransitionOrderClosureRequest, opts ...grpc.CallOption) (*TransitionOrderClosureResponse, error)
 }
 
 type orderServiceClient struct {
@@ -133,6 +137,26 @@ func (c *orderServiceClient) TransitionOrderStatus(ctx context.Context, in *Tran
 	return out, nil
 }
 
+func (c *orderServiceClient) TransitionOrderTermination(ctx context.Context, in *TransitionOrderTerminationRequest, opts ...grpc.CallOption) (*TransitionOrderTerminationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransitionOrderTerminationResponse)
+	err := c.cc.Invoke(ctx, OrderService_TransitionOrderTermination_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) TransitionOrderClosure(ctx context.Context, in *TransitionOrderClosureRequest, opts ...grpc.CallOption) (*TransitionOrderClosureResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransitionOrderClosureResponse)
+	err := c.cc.Invoke(ctx, OrderService_TransitionOrderClosure_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility.
@@ -147,6 +171,8 @@ type OrderServiceServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
+	TransitionOrderTermination(context.Context, *TransitionOrderTerminationRequest) (*TransitionOrderTerminationResponse, error)
+	TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -180,6 +206,12 @@ func (UnimplementedOrderServiceServer) UpdateOrder(context.Context, *UpdateOrder
 }
 func (UnimplementedOrderServiceServer) TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransitionOrderStatus not implemented")
+}
+func (UnimplementedOrderServiceServer) TransitionOrderTermination(context.Context, *TransitionOrderTerminationRequest) (*TransitionOrderTerminationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TransitionOrderTermination not implemented")
+}
+func (UnimplementedOrderServiceServer) TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TransitionOrderClosure not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 func (UnimplementedOrderServiceServer) testEmbeddedByValue()                      {}
@@ -346,6 +378,42 @@ func _OrderService_TransitionOrderStatus_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_TransitionOrderTermination_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransitionOrderTerminationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).TransitionOrderTermination(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_TransitionOrderTermination_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).TransitionOrderTermination(ctx, req.(*TransitionOrderTerminationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_TransitionOrderClosure_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransitionOrderClosureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).TransitionOrderClosure(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_TransitionOrderClosure_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).TransitionOrderClosure(ctx, req.(*TransitionOrderClosureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -384,6 +452,14 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TransitionOrderStatus",
 			Handler:    _OrderService_TransitionOrderStatus_Handler,
+		},
+		{
+			MethodName: "TransitionOrderTermination",
+			Handler:    _OrderService_TransitionOrderTermination_Handler,
+		},
+		{
+			MethodName: "TransitionOrderClosure",
+			Handler:    _OrderService_TransitionOrderClosure_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

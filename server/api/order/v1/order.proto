@@ -60,6 +60,22 @@ service OrderService {
       body: "*"
     };
   }
+
+  rpc TransitionOrderTermination(TransitionOrderTerminationRequest) returns (TransitionOrderTerminationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transition" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{id}/termination"
+      body: "*"
+    };
+  }
+
+  rpc TransitionOrderClosure(TransitionOrderClosureRequest) returns (TransitionOrderClosureResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transition" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{id}/closure"
+      body: "*"
+    };
+  }
 }
 
 // BusinessType 业务类型。
@@ -133,6 +149,55 @@ enum OrderReferenceType {
   ORDER_REFERENCE_TYPE_INTERNAL = 2;
 }
 
+// OrderFlowStatus 海运出口订单主流程状态。
+enum OrderFlowStatus {
+  ORDER_FLOW_STATUS_UNSPECIFIED = 0;
+  ORDER_FLOW_STATUS_DRAFT = 1;
+  ORDER_FLOW_STATUS_BOOKED = 2;
+  ORDER_FLOW_STATUS_SPACE_ALLOCATED = 3;
+  ORDER_FLOW_STATUS_TRUCKING_ARRANGED = 4;
+  ORDER_FLOW_STATUS_DOCUMENT_CUTOFF = 5;
+  ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED = 6;
+  ORDER_FLOW_STATUS_DOCUMENT_RELEASED = 7;
+}
+
+// OrderTerminationStatus 订单终止处理状态。
+enum OrderTerminationStatus {
+  ORDER_TERMINATION_STATUS_UNSPECIFIED = 0;
+  ORDER_TERMINATION_STATUS_ACTIVE = 1;
+  ORDER_TERMINATION_STATUS_TERMINATING = 2;
+  ORDER_TERMINATION_STATUS_TERMINATED = 3;
+}
+
+// OrderTerminationType 订单终止原因类别。
+enum OrderTerminationType {
+  ORDER_TERMINATION_TYPE_UNSPECIFIED = 0;
+  ORDER_TERMINATION_TYPE_CUSTOMER_CANCEL = 1;
+  ORDER_TERMINATION_TYPE_CARRIER_CANCEL = 2;
+  ORDER_TERMINATION_TYPE_CUSTOMS_RETURN = 3;
+  ORDER_TERMINATION_TYPE_OPERATION_CANCEL = 4;
+  ORDER_TERMINATION_TYPE_OTHER = 5;
+}
+
+// OrderClosureStatus 订单业务与财务结案状态。
+enum OrderClosureStatus {
+  ORDER_CLOSURE_STATUS_UNSPECIFIED = 0;
+  ORDER_CLOSURE_STATUS_OPEN = 1;
+  ORDER_CLOSURE_STATUS_CLOSED = 2;
+}
+
+// OrderAllowedAction 服务端计算的订单可执行动作。
+enum OrderAllowedAction {
+  ORDER_ALLOWED_ACTION_UNSPECIFIED = 0;
+  ORDER_ALLOWED_ACTION_EDIT = 1;
+  ORDER_ALLOWED_ACTION_TRANSITION_FLOW = 2;
+  ORDER_ALLOWED_ACTION_START_TERMINATION = 3;
+  ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION = 4;
+  ORDER_ALLOWED_ACTION_CANCEL_TERMINATION = 5;
+  ORDER_ALLOWED_ACTION_CLOSE = 6;
+  ORDER_ALLOWED_ACTION_REOPEN = 7;
+}
+
 // Order 订单核心信息。
 message Order {
   string id = 1;
@@ -148,8 +213,9 @@ message Order {
   optional ShipmentType shipment_type = 11;
   optional ContainerOwnership container_ownership = 12;
   optional ShipmentMode shipment_mode = 13;
-  string status = 14;
-  string status_template_id = 15;
+  OrderFlowStatus flow_status = 14;
+  reserved 15;
+  reserved "status_template_id";
   repeated string service_type_ids = 16;
   repeated string cargo_category_ids = 17;
   optional string origin_location_id = 18;
@@ -196,6 +262,19 @@ message Order {
   optional string declaration_cutoff_at = 59;
   optional double total_gross_weight_kg = 60;
   optional double total_volume_cbm = 61;
+  OrderTerminationStatus termination_status = 62;
+  optional OrderTerminationType termination_type = 63;
+  optional string termination_reason = 64;
+  optional string terminated_at = 65;
+  optional string terminated_by = 66;
+  OrderClosureStatus closure_status = 67;
+  optional string closure_reason = 68;
+  optional string closed_at = 69;
+  optional string closed_by = 70;
+  uint64 version = 71;
+  bool has_active_exception = 72;
+  int32 active_exception_count = 73;
+  repeated OrderAllowedAction allowed_actions = 74;
 }
 
 message OrderCargoMeasurement {
@@ -305,9 +384,12 @@ message ListOrdersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string keyword = 3;
-  string status = 4;
+  optional OrderFlowStatus flow_status = 4;
   optional BusinessType business_type = 5;
   string customer_id = 6;
+  optional OrderTerminationStatus termination_status = 7;
+  optional OrderClosureStatus closure_status = 8;
+  optional bool has_active_exception = 9;
 }
 
 // CheckOrderReferenceRequest 检查订单业务编号是否重复。
@@ -343,7 +425,8 @@ message CreateOrderRequest {
   TradeDirection trade_direction = 3 [(google.api.field_behavior) = REQUIRED];
   TradeTerm trade_term = 4 [(google.api.field_behavior) = REQUIRED];
   PaymentTerm payment_term = 5 [(google.api.field_behavior) = REQUIRED];
-  string status_template_id = 6 [(google.api.field_behavior) = REQUIRED];
+  reserved 6;
+  reserved "status_template_id";
   optional string carrier_id = 7;
   optional string booking_agent_id = 8;
   optional ShipmentType shipment_type = 9;
@@ -394,10 +477,10 @@ message CreateOrderRequest {
   optional double total_volume_cbm = 54;
 }
 
-// UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。
+// UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
 message UpdateOrderRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string expected_status = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
   optional string customer_id = 3;
   optional BusinessType business_type = 4;
   optional TradeDirection trade_direction = 5;
@@ -455,9 +538,24 @@ message UpdateOrderRequest {
 // TransitionOrderStatusRequest 流转订单状态请求。
 message TransitionOrderStatusRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string expected_status = 2 [(google.api.field_behavior) = REQUIRED];
-  string target_status = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderFlowStatus target_flow_status = 3 [(google.api.field_behavior) = REQUIRED];
   optional string reason = 4;
+}
+
+message TransitionOrderTerminationRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderTerminationStatus target_status = 3 [(google.api.field_behavior) = REQUIRED];
+  optional OrderTerminationType termination_type = 4;
+  string reason = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TransitionOrderClosureRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  OrderClosureStatus target_status = 3 [(google.api.field_behavior) = REQUIRED];
+  string reason = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // GetOrderResponse 单条订单响应。
@@ -486,6 +584,22 @@ message UpdateOrderResponse {
 }
 
 message TransitionOrderStatusResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+message TransitionOrderTerminationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Order data = 4;
+  string trace_id = 5;
+}
+
+message TransitionOrderClosureResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

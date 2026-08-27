@@ -171,14 +171,39 @@ func ReceivedAt(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldReceivedAt, v))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldStatus, v))
+// TerminationReason applies equality check predicate on the "termination_reason" field. It's identical to TerminationReasonEQ.
+func TerminationReason(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminationReason, v))
 }
 
-// StatusTemplateID applies equality check predicate on the "status_template_id" field. It's identical to StatusTemplateIDEQ.
-func StatusTemplateID(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldStatusTemplateID, v))
+// TerminatedAt applies equality check predicate on the "terminated_at" field. It's identical to TerminatedAtEQ.
+func TerminatedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminatedAt, v))
+}
+
+// TerminatedBy applies equality check predicate on the "terminated_by" field. It's identical to TerminatedByEQ.
+func TerminatedBy(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminatedBy, v))
+}
+
+// ClosureReason applies equality check predicate on the "closure_reason" field. It's identical to ClosureReasonEQ.
+func ClosureReason(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosureReason, v))
+}
+
+// ClosedAt applies equality check predicate on the "closed_at" field. It's identical to ClosedAtEQ.
+func ClosedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosedAt, v))
+}
+
+// ClosedBy applies equality check predicate on the "closed_by" field. It's identical to ClosedByEQ.
+func ClosedBy(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosedBy, v))
+}
+
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldVersion, v))
 }
 
 // OriginLocationID applies equality check predicate on the "origin_location_id" field. It's identical to OriginLocationIDEQ.
@@ -1896,89 +1921,484 @@ func ShipmentModeNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldShipmentMode))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldStatus, v))
+// FlowStatusEQ applies the EQ predicate on the "flow_status" field.
+func FlowStatusEQ(v FlowStatus) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFlowStatus, v))
 }
 
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldStatus, v))
+// FlowStatusNEQ applies the NEQ predicate on the "flow_status" field.
+func FlowStatusNEQ(v FlowStatus) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFlowStatus, v))
 }
 
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldStatus, vs...))
+// FlowStatusIn applies the In predicate on the "flow_status" field.
+func FlowStatusIn(vs ...FlowStatus) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFlowStatus, vs...))
 }
 
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldStatus, vs...))
+// FlowStatusNotIn applies the NotIn predicate on the "flow_status" field.
+func FlowStatusNotIn(vs ...FlowStatus) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFlowStatus, vs...))
 }
 
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.Order {
-	return predicate.Order(sql.FieldGT(FieldStatus, v))
+// TerminationStatusEQ applies the EQ predicate on the "termination_status" field.
+func TerminationStatusEQ(v TerminationStatus) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminationStatus, v))
 }
 
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldGTE(FieldStatus, v))
+// TerminationStatusNEQ applies the NEQ predicate on the "termination_status" field.
+func TerminationStatusNEQ(v TerminationStatus) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTerminationStatus, v))
 }
 
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.Order {
-	return predicate.Order(sql.FieldLT(FieldStatus, v))
+// TerminationStatusIn applies the In predicate on the "termination_status" field.
+func TerminationStatusIn(vs ...TerminationStatus) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTerminationStatus, vs...))
 }
 
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.Order {
-	return predicate.Order(sql.FieldLTE(FieldStatus, v))
+// TerminationStatusNotIn applies the NotIn predicate on the "termination_status" field.
+func TerminationStatusNotIn(vs ...TerminationStatus) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTerminationStatus, vs...))
 }
 
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.Order {
-	return predicate.Order(sql.FieldContains(FieldStatus, v))
+// TerminationTypeEQ applies the EQ predicate on the "termination_type" field.
+func TerminationTypeEQ(v TerminationType) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminationType, v))
 }
 
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasPrefix(FieldStatus, v))
+// TerminationTypeNEQ applies the NEQ predicate on the "termination_type" field.
+func TerminationTypeNEQ(v TerminationType) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTerminationType, v))
 }
 
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.Order {
-	return predicate.Order(sql.FieldHasSuffix(FieldStatus, v))
+// TerminationTypeIn applies the In predicate on the "termination_type" field.
+func TerminationTypeIn(vs ...TerminationType) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTerminationType, vs...))
 }
 
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldEqualFold(FieldStatus, v))
+// TerminationTypeNotIn applies the NotIn predicate on the "termination_type" field.
+func TerminationTypeNotIn(vs ...TerminationType) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTerminationType, vs...))
 }
 
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.Order {
-	return predicate.Order(sql.FieldContainsFold(FieldStatus, v))
+// TerminationTypeIsNil applies the IsNil predicate on the "termination_type" field.
+func TerminationTypeIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTerminationType))
 }
 
-// StatusTemplateIDEQ applies the EQ predicate on the "status_template_id" field.
-func StatusTemplateIDEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldStatusTemplateID, v))
+// TerminationTypeNotNil applies the NotNil predicate on the "termination_type" field.
+func TerminationTypeNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTerminationType))
 }
 
-// StatusTemplateIDNEQ applies the NEQ predicate on the "status_template_id" field.
-func StatusTemplateIDNEQ(v uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldStatusTemplateID, v))
+// TerminationReasonEQ applies the EQ predicate on the "termination_reason" field.
+func TerminationReasonEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminationReason, v))
 }
 
-// StatusTemplateIDIn applies the In predicate on the "status_template_id" field.
-func StatusTemplateIDIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldStatusTemplateID, vs...))
+// TerminationReasonNEQ applies the NEQ predicate on the "termination_reason" field.
+func TerminationReasonNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTerminationReason, v))
 }
 
-// StatusTemplateIDNotIn applies the NotIn predicate on the "status_template_id" field.
-func StatusTemplateIDNotIn(vs ...uuid.UUID) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldStatusTemplateID, vs...))
+// TerminationReasonIn applies the In predicate on the "termination_reason" field.
+func TerminationReasonIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTerminationReason, vs...))
+}
+
+// TerminationReasonNotIn applies the NotIn predicate on the "termination_reason" field.
+func TerminationReasonNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTerminationReason, vs...))
+}
+
+// TerminationReasonGT applies the GT predicate on the "termination_reason" field.
+func TerminationReasonGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldTerminationReason, v))
+}
+
+// TerminationReasonGTE applies the GTE predicate on the "termination_reason" field.
+func TerminationReasonGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldTerminationReason, v))
+}
+
+// TerminationReasonLT applies the LT predicate on the "termination_reason" field.
+func TerminationReasonLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldTerminationReason, v))
+}
+
+// TerminationReasonLTE applies the LTE predicate on the "termination_reason" field.
+func TerminationReasonLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldTerminationReason, v))
+}
+
+// TerminationReasonContains applies the Contains predicate on the "termination_reason" field.
+func TerminationReasonContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldTerminationReason, v))
+}
+
+// TerminationReasonHasPrefix applies the HasPrefix predicate on the "termination_reason" field.
+func TerminationReasonHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldTerminationReason, v))
+}
+
+// TerminationReasonHasSuffix applies the HasSuffix predicate on the "termination_reason" field.
+func TerminationReasonHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldTerminationReason, v))
+}
+
+// TerminationReasonIsNil applies the IsNil predicate on the "termination_reason" field.
+func TerminationReasonIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTerminationReason))
+}
+
+// TerminationReasonNotNil applies the NotNil predicate on the "termination_reason" field.
+func TerminationReasonNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTerminationReason))
+}
+
+// TerminationReasonEqualFold applies the EqualFold predicate on the "termination_reason" field.
+func TerminationReasonEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldTerminationReason, v))
+}
+
+// TerminationReasonContainsFold applies the ContainsFold predicate on the "termination_reason" field.
+func TerminationReasonContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldTerminationReason, v))
+}
+
+// TerminatedAtEQ applies the EQ predicate on the "terminated_at" field.
+func TerminatedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminatedAt, v))
+}
+
+// TerminatedAtNEQ applies the NEQ predicate on the "terminated_at" field.
+func TerminatedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTerminatedAt, v))
+}
+
+// TerminatedAtIn applies the In predicate on the "terminated_at" field.
+func TerminatedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTerminatedAt, vs...))
+}
+
+// TerminatedAtNotIn applies the NotIn predicate on the "terminated_at" field.
+func TerminatedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTerminatedAt, vs...))
+}
+
+// TerminatedAtGT applies the GT predicate on the "terminated_at" field.
+func TerminatedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldTerminatedAt, v))
+}
+
+// TerminatedAtGTE applies the GTE predicate on the "terminated_at" field.
+func TerminatedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldTerminatedAt, v))
+}
+
+// TerminatedAtLT applies the LT predicate on the "terminated_at" field.
+func TerminatedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldTerminatedAt, v))
+}
+
+// TerminatedAtLTE applies the LTE predicate on the "terminated_at" field.
+func TerminatedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldTerminatedAt, v))
+}
+
+// TerminatedAtIsNil applies the IsNil predicate on the "terminated_at" field.
+func TerminatedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTerminatedAt))
+}
+
+// TerminatedAtNotNil applies the NotNil predicate on the "terminated_at" field.
+func TerminatedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTerminatedAt))
+}
+
+// TerminatedByEQ applies the EQ predicate on the "terminated_by" field.
+func TerminatedByEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldTerminatedBy, v))
+}
+
+// TerminatedByNEQ applies the NEQ predicate on the "terminated_by" field.
+func TerminatedByNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldTerminatedBy, v))
+}
+
+// TerminatedByIn applies the In predicate on the "terminated_by" field.
+func TerminatedByIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldTerminatedBy, vs...))
+}
+
+// TerminatedByNotIn applies the NotIn predicate on the "terminated_by" field.
+func TerminatedByNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldTerminatedBy, vs...))
+}
+
+// TerminatedByGT applies the GT predicate on the "terminated_by" field.
+func TerminatedByGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldTerminatedBy, v))
+}
+
+// TerminatedByGTE applies the GTE predicate on the "terminated_by" field.
+func TerminatedByGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldTerminatedBy, v))
+}
+
+// TerminatedByLT applies the LT predicate on the "terminated_by" field.
+func TerminatedByLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldTerminatedBy, v))
+}
+
+// TerminatedByLTE applies the LTE predicate on the "terminated_by" field.
+func TerminatedByLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldTerminatedBy, v))
+}
+
+// TerminatedByIsNil applies the IsNil predicate on the "terminated_by" field.
+func TerminatedByIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldTerminatedBy))
+}
+
+// TerminatedByNotNil applies the NotNil predicate on the "terminated_by" field.
+func TerminatedByNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldTerminatedBy))
+}
+
+// ClosureStatusEQ applies the EQ predicate on the "closure_status" field.
+func ClosureStatusEQ(v ClosureStatus) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosureStatus, v))
+}
+
+// ClosureStatusNEQ applies the NEQ predicate on the "closure_status" field.
+func ClosureStatusNEQ(v ClosureStatus) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldClosureStatus, v))
+}
+
+// ClosureStatusIn applies the In predicate on the "closure_status" field.
+func ClosureStatusIn(vs ...ClosureStatus) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldClosureStatus, vs...))
+}
+
+// ClosureStatusNotIn applies the NotIn predicate on the "closure_status" field.
+func ClosureStatusNotIn(vs ...ClosureStatus) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldClosureStatus, vs...))
+}
+
+// ClosureReasonEQ applies the EQ predicate on the "closure_reason" field.
+func ClosureReasonEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosureReason, v))
+}
+
+// ClosureReasonNEQ applies the NEQ predicate on the "closure_reason" field.
+func ClosureReasonNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldClosureReason, v))
+}
+
+// ClosureReasonIn applies the In predicate on the "closure_reason" field.
+func ClosureReasonIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldClosureReason, vs...))
+}
+
+// ClosureReasonNotIn applies the NotIn predicate on the "closure_reason" field.
+func ClosureReasonNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldClosureReason, vs...))
+}
+
+// ClosureReasonGT applies the GT predicate on the "closure_reason" field.
+func ClosureReasonGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldClosureReason, v))
+}
+
+// ClosureReasonGTE applies the GTE predicate on the "closure_reason" field.
+func ClosureReasonGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldClosureReason, v))
+}
+
+// ClosureReasonLT applies the LT predicate on the "closure_reason" field.
+func ClosureReasonLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldClosureReason, v))
+}
+
+// ClosureReasonLTE applies the LTE predicate on the "closure_reason" field.
+func ClosureReasonLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldClosureReason, v))
+}
+
+// ClosureReasonContains applies the Contains predicate on the "closure_reason" field.
+func ClosureReasonContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldClosureReason, v))
+}
+
+// ClosureReasonHasPrefix applies the HasPrefix predicate on the "closure_reason" field.
+func ClosureReasonHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldClosureReason, v))
+}
+
+// ClosureReasonHasSuffix applies the HasSuffix predicate on the "closure_reason" field.
+func ClosureReasonHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldClosureReason, v))
+}
+
+// ClosureReasonIsNil applies the IsNil predicate on the "closure_reason" field.
+func ClosureReasonIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldClosureReason))
+}
+
+// ClosureReasonNotNil applies the NotNil predicate on the "closure_reason" field.
+func ClosureReasonNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldClosureReason))
+}
+
+// ClosureReasonEqualFold applies the EqualFold predicate on the "closure_reason" field.
+func ClosureReasonEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldClosureReason, v))
+}
+
+// ClosureReasonContainsFold applies the ContainsFold predicate on the "closure_reason" field.
+func ClosureReasonContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldClosureReason, v))
+}
+
+// ClosedAtEQ applies the EQ predicate on the "closed_at" field.
+func ClosedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosedAt, v))
+}
+
+// ClosedAtNEQ applies the NEQ predicate on the "closed_at" field.
+func ClosedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldClosedAt, v))
+}
+
+// ClosedAtIn applies the In predicate on the "closed_at" field.
+func ClosedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldClosedAt, vs...))
+}
+
+// ClosedAtNotIn applies the NotIn predicate on the "closed_at" field.
+func ClosedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldClosedAt, vs...))
+}
+
+// ClosedAtGT applies the GT predicate on the "closed_at" field.
+func ClosedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldClosedAt, v))
+}
+
+// ClosedAtGTE applies the GTE predicate on the "closed_at" field.
+func ClosedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldClosedAt, v))
+}
+
+// ClosedAtLT applies the LT predicate on the "closed_at" field.
+func ClosedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldClosedAt, v))
+}
+
+// ClosedAtLTE applies the LTE predicate on the "closed_at" field.
+func ClosedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldClosedAt, v))
+}
+
+// ClosedAtIsNil applies the IsNil predicate on the "closed_at" field.
+func ClosedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldClosedAt))
+}
+
+// ClosedAtNotNil applies the NotNil predicate on the "closed_at" field.
+func ClosedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldClosedAt))
+}
+
+// ClosedByEQ applies the EQ predicate on the "closed_by" field.
+func ClosedByEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldClosedBy, v))
+}
+
+// ClosedByNEQ applies the NEQ predicate on the "closed_by" field.
+func ClosedByNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldClosedBy, v))
+}
+
+// ClosedByIn applies the In predicate on the "closed_by" field.
+func ClosedByIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldClosedBy, vs...))
+}
+
+// ClosedByNotIn applies the NotIn predicate on the "closed_by" field.
+func ClosedByNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldClosedBy, vs...))
+}
+
+// ClosedByGT applies the GT predicate on the "closed_by" field.
+func ClosedByGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldClosedBy, v))
+}
+
+// ClosedByGTE applies the GTE predicate on the "closed_by" field.
+func ClosedByGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldClosedBy, v))
+}
+
+// ClosedByLT applies the LT predicate on the "closed_by" field.
+func ClosedByLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldClosedBy, v))
+}
+
+// ClosedByLTE applies the LTE predicate on the "closed_by" field.
+func ClosedByLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldClosedBy, v))
+}
+
+// ClosedByIsNil applies the IsNil predicate on the "closed_by" field.
+func ClosedByIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldClosedBy))
+}
+
+// ClosedByNotNil applies the NotNil predicate on the "closed_by" field.
+func ClosedByNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldClosedBy))
+}
+
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldVersion, v))
 }
 
 // OriginLocationIDEQ applies the EQ predicate on the "origin_location_id" field.
@@ -3502,44 +3922,21 @@ func HasCustomerWith(preds ...predicate.Partner) predicate.Order {
 	})
 }
 
-// HasStatusTemplate applies the HasEdge predicate on the "status_template" edge.
-func HasStatusTemplate() predicate.Order {
+// HasLifecycleEvents applies the HasEdge predicate on the "lifecycle_events" edge.
+func HasLifecycleEvents() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, StatusTemplateTable, StatusTemplateColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, LifecycleEventsTable, LifecycleEventsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasStatusTemplateWith applies the HasEdge predicate on the "status_template" edge with a given conditions (other predicates).
-func HasStatusTemplateWith(preds ...predicate.StatusTemplate) predicate.Order {
+// HasLifecycleEventsWith applies the HasEdge predicate on the "lifecycle_events" edge with a given conditions (other predicates).
+func HasLifecycleEventsWith(preds ...predicate.OrderLifecycleEvent) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
-		step := newStatusTemplateStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasStatusLogs applies the HasEdge predicate on the "status_logs" edge.
-func HasStatusLogs() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, StatusLogsTable, StatusLogsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasStatusLogsWith applies the HasEdge predicate on the "status_logs" edge with a given conditions (other predicates).
-func HasStatusLogsWith(preds ...predicate.OrderStatusLog) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newStatusLogsStep()
+		step := newLifecycleEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -23,16 +23,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
 // OrderUpdate is the builder for updating Order entities.
@@ -558,31 +557,206 @@ func (_u *OrderUpdate) ClearShipmentMode() *OrderUpdate {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *OrderUpdate) SetStatus(v string) *OrderUpdate {
-	_u.mutation.SetStatus(v)
+// SetFlowStatus sets the "flow_status" field.
+func (_u *OrderUpdate) SetFlowStatus(v order.FlowStatus) *OrderUpdate {
+	_u.mutation.SetFlowStatus(v)
 	return _u
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableStatus(v *string) *OrderUpdate {
+// SetNillableFlowStatus sets the "flow_status" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFlowStatus(v *order.FlowStatus) *OrderUpdate {
 	if v != nil {
-		_u.SetStatus(*v)
+		_u.SetFlowStatus(*v)
 	}
 	return _u
 }
 
-// SetStatusTemplateID sets the "status_template_id" field.
-func (_u *OrderUpdate) SetStatusTemplateID(v uuid.UUID) *OrderUpdate {
-	_u.mutation.SetStatusTemplateID(v)
+// SetTerminationStatus sets the "termination_status" field.
+func (_u *OrderUpdate) SetTerminationStatus(v order.TerminationStatus) *OrderUpdate {
+	_u.mutation.SetTerminationStatus(v)
 	return _u
 }
 
-// SetNillableStatusTemplateID sets the "status_template_id" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableStatusTemplateID(v *uuid.UUID) *OrderUpdate {
+// SetNillableTerminationStatus sets the "termination_status" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTerminationStatus(v *order.TerminationStatus) *OrderUpdate {
 	if v != nil {
-		_u.SetStatusTemplateID(*v)
+		_u.SetTerminationStatus(*v)
 	}
+	return _u
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (_u *OrderUpdate) SetTerminationType(v order.TerminationType) *OrderUpdate {
+	_u.mutation.SetTerminationType(v)
+	return _u
+}
+
+// SetNillableTerminationType sets the "termination_type" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTerminationType(v *order.TerminationType) *OrderUpdate {
+	if v != nil {
+		_u.SetTerminationType(*v)
+	}
+	return _u
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (_u *OrderUpdate) ClearTerminationType() *OrderUpdate {
+	_u.mutation.ClearTerminationType()
+	return _u
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (_u *OrderUpdate) SetTerminationReason(v string) *OrderUpdate {
+	_u.mutation.SetTerminationReason(v)
+	return _u
+}
+
+// SetNillableTerminationReason sets the "termination_reason" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTerminationReason(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetTerminationReason(*v)
+	}
+	return _u
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (_u *OrderUpdate) ClearTerminationReason() *OrderUpdate {
+	_u.mutation.ClearTerminationReason()
+	return _u
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (_u *OrderUpdate) SetTerminatedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetTerminatedAt(v)
+	return _u
+}
+
+// SetNillableTerminatedAt sets the "terminated_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTerminatedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetTerminatedAt(*v)
+	}
+	return _u
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (_u *OrderUpdate) ClearTerminatedAt() *OrderUpdate {
+	_u.mutation.ClearTerminatedAt()
+	return _u
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (_u *OrderUpdate) SetTerminatedBy(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetTerminatedBy(v)
+	return _u
+}
+
+// SetNillableTerminatedBy sets the "terminated_by" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableTerminatedBy(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetTerminatedBy(*v)
+	}
+	return _u
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (_u *OrderUpdate) ClearTerminatedBy() *OrderUpdate {
+	_u.mutation.ClearTerminatedBy()
+	return _u
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (_u *OrderUpdate) SetClosureStatus(v order.ClosureStatus) *OrderUpdate {
+	_u.mutation.SetClosureStatus(v)
+	return _u
+}
+
+// SetNillableClosureStatus sets the "closure_status" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableClosureStatus(v *order.ClosureStatus) *OrderUpdate {
+	if v != nil {
+		_u.SetClosureStatus(*v)
+	}
+	return _u
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (_u *OrderUpdate) SetClosureReason(v string) *OrderUpdate {
+	_u.mutation.SetClosureReason(v)
+	return _u
+}
+
+// SetNillableClosureReason sets the "closure_reason" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableClosureReason(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetClosureReason(*v)
+	}
+	return _u
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (_u *OrderUpdate) ClearClosureReason() *OrderUpdate {
+	_u.mutation.ClearClosureReason()
+	return _u
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (_u *OrderUpdate) SetClosedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetClosedAt(v)
+	return _u
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableClosedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetClosedAt(*v)
+	}
+	return _u
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (_u *OrderUpdate) ClearClosedAt() *OrderUpdate {
+	_u.mutation.ClearClosedAt()
+	return _u
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (_u *OrderUpdate) SetClosedBy(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetClosedBy(v)
+	return _u
+}
+
+// SetNillableClosedBy sets the "closed_by" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableClosedBy(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetClosedBy(*v)
+	}
+	return _u
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (_u *OrderUpdate) ClearClosedBy() *OrderUpdate {
+	_u.mutation.ClearClosedBy()
+	return _u
+}
+
+// SetVersion sets the "version" field.
+func (_u *OrderUpdate) SetVersion(v uint64) *OrderUpdate {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableVersion(v *uint64) *OrderUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *OrderUpdate) AddVersion(v int64) *OrderUpdate {
+	_u.mutation.AddVersion(v)
 	return _u
 }
 
@@ -1057,24 +1231,19 @@ func (_u *OrderUpdate) SetCustomer(v *Partner) *OrderUpdate {
 	return _u.SetCustomerID(v.ID)
 }
 
-// SetStatusTemplate sets the "status_template" edge to the StatusTemplate entity.
-func (_u *OrderUpdate) SetStatusTemplate(v *StatusTemplate) *OrderUpdate {
-	return _u.SetStatusTemplateID(v.ID)
-}
-
-// AddStatusLogIDs adds the "status_logs" edge to the OrderStatusLog entity by IDs.
-func (_u *OrderUpdate) AddStatusLogIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.AddStatusLogIDs(ids...)
+// AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
+func (_u *OrderUpdate) AddLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddLifecycleEventIDs(ids...)
 	return _u
 }
 
-// AddStatusLogs adds the "status_logs" edges to the OrderStatusLog entity.
-func (_u *OrderUpdate) AddStatusLogs(v ...*OrderStatusLog) *OrderUpdate {
+// AddLifecycleEvents adds the "lifecycle_events" edges to the OrderLifecycleEvent entity.
+func (_u *OrderUpdate) AddLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddStatusLogIDs(ids...)
+	return _u.AddLifecycleEventIDs(ids...)
 }
 
 // AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by IDs.
@@ -1319,31 +1488,25 @@ func (_u *OrderUpdate) ClearCustomer() *OrderUpdate {
 	return _u
 }
 
-// ClearStatusTemplate clears the "status_template" edge to the StatusTemplate entity.
-func (_u *OrderUpdate) ClearStatusTemplate() *OrderUpdate {
-	_u.mutation.ClearStatusTemplate()
+// ClearLifecycleEvents clears all "lifecycle_events" edges to the OrderLifecycleEvent entity.
+func (_u *OrderUpdate) ClearLifecycleEvents() *OrderUpdate {
+	_u.mutation.ClearLifecycleEvents()
 	return _u
 }
 
-// ClearStatusLogs clears all "status_logs" edges to the OrderStatusLog entity.
-func (_u *OrderUpdate) ClearStatusLogs() *OrderUpdate {
-	_u.mutation.ClearStatusLogs()
+// RemoveLifecycleEventIDs removes the "lifecycle_events" edge to OrderLifecycleEvent entities by IDs.
+func (_u *OrderUpdate) RemoveLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveLifecycleEventIDs(ids...)
 	return _u
 }
 
-// RemoveStatusLogIDs removes the "status_logs" edge to OrderStatusLog entities by IDs.
-func (_u *OrderUpdate) RemoveStatusLogIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.RemoveStatusLogIDs(ids...)
-	return _u
-}
-
-// RemoveStatusLogs removes "status_logs" edges to OrderStatusLog entities.
-func (_u *OrderUpdate) RemoveStatusLogs(v ...*OrderStatusLog) *OrderUpdate {
+// RemoveLifecycleEvents removes "lifecycle_events" edges to OrderLifecycleEvent entities.
+func (_u *OrderUpdate) RemoveLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveStatusLogIDs(ids...)
+	return _u.RemoveLifecycleEventIDs(ids...)
 }
 
 // ClearServiceTypes clears all "service_types" edges to the OrderServiceType entity.
@@ -1804,9 +1967,34 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "shipment_mode", err: fmt.Errorf(`ent: validator failed for field "Order.shipment_mode": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := order.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Order.status": %w`, err)}
+	if v, ok := _u.mutation.FlowStatus(); ok {
+		if err := order.FlowStatusValidator(v); err != nil {
+			return &ValidationError{Name: "flow_status", err: fmt.Errorf(`ent: validator failed for field "Order.flow_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationStatus(); ok {
+		if err := order.TerminationStatusValidator(v); err != nil {
+			return &ValidationError{Name: "termination_status", err: fmt.Errorf(`ent: validator failed for field "Order.termination_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationType(); ok {
+		if err := order.TerminationTypeValidator(v); err != nil {
+			return &ValidationError{Name: "termination_type", err: fmt.Errorf(`ent: validator failed for field "Order.termination_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationReason(); ok {
+		if err := order.TerminationReasonValidator(v); err != nil {
+			return &ValidationError{Name: "termination_reason", err: fmt.Errorf(`ent: validator failed for field "Order.termination_reason": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ClosureStatus(); ok {
+		if err := order.ClosureStatusValidator(v); err != nil {
+			return &ValidationError{Name: "closure_status", err: fmt.Errorf(`ent: validator failed for field "Order.closure_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ClosureReason(); ok {
+		if err := order.ClosureReasonValidator(v); err != nil {
+			return &ValidationError{Name: "closure_reason", err: fmt.Errorf(`ent: validator failed for field "Order.closure_reason": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
@@ -1899,9 +2087,6 @@ func (_u *OrderUpdate) check() error {
 	}
 	if _u.mutation.CustomerCleared() && len(_u.mutation.CustomerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Order.customer"`)
-	}
-	if _u.mutation.StatusTemplateCleared() && len(_u.mutation.StatusTemplateIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Order.status_template"`)
 	}
 	return nil
 }
@@ -2059,8 +2244,62 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.ShipmentModeCleared() {
 		_spec.ClearField(order.FieldShipmentMode, field.TypeEnum)
 	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(order.FieldStatus, field.TypeString, value)
+	if value, ok := _u.mutation.FlowStatus(); ok {
+		_spec.SetField(order.FieldFlowStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.TerminationStatus(); ok {
+		_spec.SetField(order.FieldTerminationStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.TerminationType(); ok {
+		_spec.SetField(order.FieldTerminationType, field.TypeEnum, value)
+	}
+	if _u.mutation.TerminationTypeCleared() {
+		_spec.ClearField(order.FieldTerminationType, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.TerminationReason(); ok {
+		_spec.SetField(order.FieldTerminationReason, field.TypeString, value)
+	}
+	if _u.mutation.TerminationReasonCleared() {
+		_spec.ClearField(order.FieldTerminationReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.TerminatedAt(); ok {
+		_spec.SetField(order.FieldTerminatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.TerminatedAtCleared() {
+		_spec.ClearField(order.FieldTerminatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.TerminatedBy(); ok {
+		_spec.SetField(order.FieldTerminatedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.TerminatedByCleared() {
+		_spec.ClearField(order.FieldTerminatedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ClosureStatus(); ok {
+		_spec.SetField(order.FieldClosureStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ClosureReason(); ok {
+		_spec.SetField(order.FieldClosureReason, field.TypeString, value)
+	}
+	if _u.mutation.ClosureReasonCleared() {
+		_spec.ClearField(order.FieldClosureReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.ClosedAt(); ok {
+		_spec.SetField(order.FieldClosedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ClosedAtCleared() {
+		_spec.ClearField(order.FieldClosedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ClosedBy(); ok {
+		_spec.SetField(order.FieldClosedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.ClosedByCleared() {
+		_spec.ClearField(order.FieldClosedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(order.FieldVersion, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(order.FieldOriginLocationID, field.TypeUUID, value)
@@ -2261,57 +2500,28 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.StatusTemplateCleared() {
+	if _u.mutation.LifecycleEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   order.StatusTemplateTable,
-			Columns: []string{order.StatusTemplateColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.StatusTemplateIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   order.StatusTemplateTable,
-			Columns: []string{order.StatusTemplateColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.StatusLogsCleared() {
+	if nodes := _u.mutation.RemovedLifecycleEventsIDs(); len(nodes) > 0 && !_u.mutation.LifecycleEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedStatusLogsIDs(); len(nodes) > 0 && !_u.mutation.StatusLogsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2319,15 +2529,15 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.StatusLogsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LifecycleEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3540,31 +3750,206 @@ func (_u *OrderUpdateOne) ClearShipmentMode() *OrderUpdateOne {
 	return _u
 }
 
-// SetStatus sets the "status" field.
-func (_u *OrderUpdateOne) SetStatus(v string) *OrderUpdateOne {
-	_u.mutation.SetStatus(v)
+// SetFlowStatus sets the "flow_status" field.
+func (_u *OrderUpdateOne) SetFlowStatus(v order.FlowStatus) *OrderUpdateOne {
+	_u.mutation.SetFlowStatus(v)
 	return _u
 }
 
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableStatus(v *string) *OrderUpdateOne {
+// SetNillableFlowStatus sets the "flow_status" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFlowStatus(v *order.FlowStatus) *OrderUpdateOne {
 	if v != nil {
-		_u.SetStatus(*v)
+		_u.SetFlowStatus(*v)
 	}
 	return _u
 }
 
-// SetStatusTemplateID sets the "status_template_id" field.
-func (_u *OrderUpdateOne) SetStatusTemplateID(v uuid.UUID) *OrderUpdateOne {
-	_u.mutation.SetStatusTemplateID(v)
+// SetTerminationStatus sets the "termination_status" field.
+func (_u *OrderUpdateOne) SetTerminationStatus(v order.TerminationStatus) *OrderUpdateOne {
+	_u.mutation.SetTerminationStatus(v)
 	return _u
 }
 
-// SetNillableStatusTemplateID sets the "status_template_id" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableStatusTemplateID(v *uuid.UUID) *OrderUpdateOne {
+// SetNillableTerminationStatus sets the "termination_status" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTerminationStatus(v *order.TerminationStatus) *OrderUpdateOne {
 	if v != nil {
-		_u.SetStatusTemplateID(*v)
+		_u.SetTerminationStatus(*v)
 	}
+	return _u
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (_u *OrderUpdateOne) SetTerminationType(v order.TerminationType) *OrderUpdateOne {
+	_u.mutation.SetTerminationType(v)
+	return _u
+}
+
+// SetNillableTerminationType sets the "termination_type" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTerminationType(v *order.TerminationType) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTerminationType(*v)
+	}
+	return _u
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (_u *OrderUpdateOne) ClearTerminationType() *OrderUpdateOne {
+	_u.mutation.ClearTerminationType()
+	return _u
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (_u *OrderUpdateOne) SetTerminationReason(v string) *OrderUpdateOne {
+	_u.mutation.SetTerminationReason(v)
+	return _u
+}
+
+// SetNillableTerminationReason sets the "termination_reason" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTerminationReason(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTerminationReason(*v)
+	}
+	return _u
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (_u *OrderUpdateOne) ClearTerminationReason() *OrderUpdateOne {
+	_u.mutation.ClearTerminationReason()
+	return _u
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (_u *OrderUpdateOne) SetTerminatedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetTerminatedAt(v)
+	return _u
+}
+
+// SetNillableTerminatedAt sets the "terminated_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTerminatedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTerminatedAt(*v)
+	}
+	return _u
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (_u *OrderUpdateOne) ClearTerminatedAt() *OrderUpdateOne {
+	_u.mutation.ClearTerminatedAt()
+	return _u
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (_u *OrderUpdateOne) SetTerminatedBy(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetTerminatedBy(v)
+	return _u
+}
+
+// SetNillableTerminatedBy sets the "terminated_by" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableTerminatedBy(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetTerminatedBy(*v)
+	}
+	return _u
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (_u *OrderUpdateOne) ClearTerminatedBy() *OrderUpdateOne {
+	_u.mutation.ClearTerminatedBy()
+	return _u
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (_u *OrderUpdateOne) SetClosureStatus(v order.ClosureStatus) *OrderUpdateOne {
+	_u.mutation.SetClosureStatus(v)
+	return _u
+}
+
+// SetNillableClosureStatus sets the "closure_status" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableClosureStatus(v *order.ClosureStatus) *OrderUpdateOne {
+	if v != nil {
+		_u.SetClosureStatus(*v)
+	}
+	return _u
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (_u *OrderUpdateOne) SetClosureReason(v string) *OrderUpdateOne {
+	_u.mutation.SetClosureReason(v)
+	return _u
+}
+
+// SetNillableClosureReason sets the "closure_reason" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableClosureReason(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetClosureReason(*v)
+	}
+	return _u
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (_u *OrderUpdateOne) ClearClosureReason() *OrderUpdateOne {
+	_u.mutation.ClearClosureReason()
+	return _u
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (_u *OrderUpdateOne) SetClosedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetClosedAt(v)
+	return _u
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableClosedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetClosedAt(*v)
+	}
+	return _u
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (_u *OrderUpdateOne) ClearClosedAt() *OrderUpdateOne {
+	_u.mutation.ClearClosedAt()
+	return _u
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (_u *OrderUpdateOne) SetClosedBy(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetClosedBy(v)
+	return _u
+}
+
+// SetNillableClosedBy sets the "closed_by" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableClosedBy(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetClosedBy(*v)
+	}
+	return _u
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (_u *OrderUpdateOne) ClearClosedBy() *OrderUpdateOne {
+	_u.mutation.ClearClosedBy()
+	return _u
+}
+
+// SetVersion sets the "version" field.
+func (_u *OrderUpdateOne) SetVersion(v uint64) *OrderUpdateOne {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableVersion(v *uint64) *OrderUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *OrderUpdateOne) AddVersion(v int64) *OrderUpdateOne {
+	_u.mutation.AddVersion(v)
 	return _u
 }
 
@@ -4039,24 +4424,19 @@ func (_u *OrderUpdateOne) SetCustomer(v *Partner) *OrderUpdateOne {
 	return _u.SetCustomerID(v.ID)
 }
 
-// SetStatusTemplate sets the "status_template" edge to the StatusTemplate entity.
-func (_u *OrderUpdateOne) SetStatusTemplate(v *StatusTemplate) *OrderUpdateOne {
-	return _u.SetStatusTemplateID(v.ID)
-}
-
-// AddStatusLogIDs adds the "status_logs" edge to the OrderStatusLog entity by IDs.
-func (_u *OrderUpdateOne) AddStatusLogIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.AddStatusLogIDs(ids...)
+// AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
+func (_u *OrderUpdateOne) AddLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddLifecycleEventIDs(ids...)
 	return _u
 }
 
-// AddStatusLogs adds the "status_logs" edges to the OrderStatusLog entity.
-func (_u *OrderUpdateOne) AddStatusLogs(v ...*OrderStatusLog) *OrderUpdateOne {
+// AddLifecycleEvents adds the "lifecycle_events" edges to the OrderLifecycleEvent entity.
+func (_u *OrderUpdateOne) AddLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddStatusLogIDs(ids...)
+	return _u.AddLifecycleEventIDs(ids...)
 }
 
 // AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by IDs.
@@ -4301,31 +4681,25 @@ func (_u *OrderUpdateOne) ClearCustomer() *OrderUpdateOne {
 	return _u
 }
 
-// ClearStatusTemplate clears the "status_template" edge to the StatusTemplate entity.
-func (_u *OrderUpdateOne) ClearStatusTemplate() *OrderUpdateOne {
-	_u.mutation.ClearStatusTemplate()
+// ClearLifecycleEvents clears all "lifecycle_events" edges to the OrderLifecycleEvent entity.
+func (_u *OrderUpdateOne) ClearLifecycleEvents() *OrderUpdateOne {
+	_u.mutation.ClearLifecycleEvents()
 	return _u
 }
 
-// ClearStatusLogs clears all "status_logs" edges to the OrderStatusLog entity.
-func (_u *OrderUpdateOne) ClearStatusLogs() *OrderUpdateOne {
-	_u.mutation.ClearStatusLogs()
+// RemoveLifecycleEventIDs removes the "lifecycle_events" edge to OrderLifecycleEvent entities by IDs.
+func (_u *OrderUpdateOne) RemoveLifecycleEventIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveLifecycleEventIDs(ids...)
 	return _u
 }
 
-// RemoveStatusLogIDs removes the "status_logs" edge to OrderStatusLog entities by IDs.
-func (_u *OrderUpdateOne) RemoveStatusLogIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.RemoveStatusLogIDs(ids...)
-	return _u
-}
-
-// RemoveStatusLogs removes "status_logs" edges to OrderStatusLog entities.
-func (_u *OrderUpdateOne) RemoveStatusLogs(v ...*OrderStatusLog) *OrderUpdateOne {
+// RemoveLifecycleEvents removes "lifecycle_events" edges to OrderLifecycleEvent entities.
+func (_u *OrderUpdateOne) RemoveLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveStatusLogIDs(ids...)
+	return _u.RemoveLifecycleEventIDs(ids...)
 }
 
 // ClearServiceTypes clears all "service_types" edges to the OrderServiceType entity.
@@ -4799,9 +5173,34 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "shipment_mode", err: fmt.Errorf(`ent: validator failed for field "Order.shipment_mode": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := order.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Order.status": %w`, err)}
+	if v, ok := _u.mutation.FlowStatus(); ok {
+		if err := order.FlowStatusValidator(v); err != nil {
+			return &ValidationError{Name: "flow_status", err: fmt.Errorf(`ent: validator failed for field "Order.flow_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationStatus(); ok {
+		if err := order.TerminationStatusValidator(v); err != nil {
+			return &ValidationError{Name: "termination_status", err: fmt.Errorf(`ent: validator failed for field "Order.termination_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationType(); ok {
+		if err := order.TerminationTypeValidator(v); err != nil {
+			return &ValidationError{Name: "termination_type", err: fmt.Errorf(`ent: validator failed for field "Order.termination_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TerminationReason(); ok {
+		if err := order.TerminationReasonValidator(v); err != nil {
+			return &ValidationError{Name: "termination_reason", err: fmt.Errorf(`ent: validator failed for field "Order.termination_reason": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ClosureStatus(); ok {
+		if err := order.ClosureStatusValidator(v); err != nil {
+			return &ValidationError{Name: "closure_status", err: fmt.Errorf(`ent: validator failed for field "Order.closure_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ClosureReason(); ok {
+		if err := order.ClosureReasonValidator(v); err != nil {
+			return &ValidationError{Name: "closure_reason", err: fmt.Errorf(`ent: validator failed for field "Order.closure_reason": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
@@ -4894,9 +5293,6 @@ func (_u *OrderUpdateOne) check() error {
 	}
 	if _u.mutation.CustomerCleared() && len(_u.mutation.CustomerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Order.customer"`)
-	}
-	if _u.mutation.StatusTemplateCleared() && len(_u.mutation.StatusTemplateIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Order.status_template"`)
 	}
 	return nil
 }
@@ -5071,8 +5467,62 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if _u.mutation.ShipmentModeCleared() {
 		_spec.ClearField(order.FieldShipmentMode, field.TypeEnum)
 	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(order.FieldStatus, field.TypeString, value)
+	if value, ok := _u.mutation.FlowStatus(); ok {
+		_spec.SetField(order.FieldFlowStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.TerminationStatus(); ok {
+		_spec.SetField(order.FieldTerminationStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.TerminationType(); ok {
+		_spec.SetField(order.FieldTerminationType, field.TypeEnum, value)
+	}
+	if _u.mutation.TerminationTypeCleared() {
+		_spec.ClearField(order.FieldTerminationType, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.TerminationReason(); ok {
+		_spec.SetField(order.FieldTerminationReason, field.TypeString, value)
+	}
+	if _u.mutation.TerminationReasonCleared() {
+		_spec.ClearField(order.FieldTerminationReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.TerminatedAt(); ok {
+		_spec.SetField(order.FieldTerminatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.TerminatedAtCleared() {
+		_spec.ClearField(order.FieldTerminatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.TerminatedBy(); ok {
+		_spec.SetField(order.FieldTerminatedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.TerminatedByCleared() {
+		_spec.ClearField(order.FieldTerminatedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ClosureStatus(); ok {
+		_spec.SetField(order.FieldClosureStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ClosureReason(); ok {
+		_spec.SetField(order.FieldClosureReason, field.TypeString, value)
+	}
+	if _u.mutation.ClosureReasonCleared() {
+		_spec.ClearField(order.FieldClosureReason, field.TypeString)
+	}
+	if value, ok := _u.mutation.ClosedAt(); ok {
+		_spec.SetField(order.FieldClosedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ClosedAtCleared() {
+		_spec.ClearField(order.FieldClosedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ClosedBy(); ok {
+		_spec.SetField(order.FieldClosedBy, field.TypeUUID, value)
+	}
+	if _u.mutation.ClosedByCleared() {
+		_spec.ClearField(order.FieldClosedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(order.FieldVersion, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(order.FieldOriginLocationID, field.TypeUUID, value)
@@ -5273,57 +5723,28 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.StatusTemplateCleared() {
+	if _u.mutation.LifecycleEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   order.StatusTemplateTable,
-			Columns: []string{order.StatusTemplateColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.StatusTemplateIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   order.StatusTemplateTable,
-			Columns: []string{order.StatusTemplateColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.StatusLogsCleared() {
+	if nodes := _u.mutation.RemovedLifecycleEventsIDs(); len(nodes) > 0 && !_u.mutation.LifecycleEventsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedStatusLogsIDs(); len(nodes) > 0 && !_u.mutation.StatusLogsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5331,15 +5752,15 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.StatusLogsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LifecycleEventsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   order.StatusLogsTable,
-			Columns: []string{order.StatusLogsColumn},
+			Table:   order.LifecycleEventsTable,
+			Columns: []string{order.LifecycleEventsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -24,7 +24,6 @@ const OperationMasterDataServiceCreateMilestoneTemplate = "/masterdata.v1.Master
 const OperationMasterDataServiceCreateNumberRule = "/masterdata.v1.MasterDataService/CreateNumberRule"
 const OperationMasterDataServiceCreatePort = "/masterdata.v1.MasterDataService/CreatePort"
 const OperationMasterDataServiceCreateShippingLine = "/masterdata.v1.MasterDataService/CreateShippingLine"
-const OperationMasterDataServiceCreateStatusTemplate = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
 const OperationMasterDataServiceImportItems = "/masterdata.v1.MasterDataService/ImportItems"
 const OperationMasterDataServiceListAdministrativeRegions = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
 const OperationMasterDataServiceListAirlines = "/masterdata.v1.MasterDataService/ListAirlines"
@@ -36,12 +35,9 @@ const OperationMasterDataServiceListNumberRules = "/masterdata.v1.MasterDataServ
 const OperationMasterDataServiceListOptions = "/masterdata.v1.MasterDataService/ListOptions"
 const OperationMasterDataServiceListPorts = "/masterdata.v1.MasterDataService/ListPorts"
 const OperationMasterDataServiceListShippingLines = "/masterdata.v1.MasterDataService/ListShippingLines"
-const OperationMasterDataServiceListStatusTemplates = "/masterdata.v1.MasterDataService/ListStatusTemplates"
 const OperationMasterDataServicePublishMilestoneTemplate = "/masterdata.v1.MasterDataService/PublishMilestoneTemplate"
-const OperationMasterDataServicePublishStatusTemplate = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
 const OperationMasterDataServiceSearchCurrencies = "/masterdata.v1.MasterDataService/SearchCurrencies"
 const OperationMasterDataServiceSetDefaultMilestoneTemplate = "/masterdata.v1.MasterDataService/SetDefaultMilestoneTemplate"
-const OperationMasterDataServiceSetDefaultStatusTemplate = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
 const OperationMasterDataServiceUpdateAirline = "/masterdata.v1.MasterDataService/UpdateAirline"
 const OperationMasterDataServiceUpdateAirport = "/masterdata.v1.MasterDataService/UpdateAirport"
 const OperationMasterDataServiceUpdateItem = "/masterdata.v1.MasterDataService/UpdateItem"
@@ -57,7 +53,6 @@ type MasterDataServiceHTTPServer interface {
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
 	CreatePort(context.Context, *CreatePortRequest) (*CreatePortResponse, error)
 	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error)
-	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error)
 	ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error)
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
 	ListAirlines(context.Context, *ListAirlinesRequest) (*ListAirlinesResponse, error)
@@ -69,12 +64,9 @@ type MasterDataServiceHTTPServer interface {
 	ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error)
 	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
 	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
-	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error)
 	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
-	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error)
 	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error)
 	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
-	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error)
 	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
 	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
 	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
@@ -108,10 +100,6 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/number-rules", _MasterDataService_CreateNumberRule0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/number-rules/{id}", _MasterDataService_UpdateNumberRule0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/master-data/status-templates", _MasterDataService_ListStatusTemplates0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/master-data/status-templates", _MasterDataService_CreateStatusTemplate0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/master-data/status-templates/{id}/publish", _MasterDataService_PublishStatusTemplate0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/master-data/status-templates/{id}/set-default", _MasterDataService_SetDefaultStatusTemplate0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/milestone-templates", _MasterDataService_ListMilestoneTemplates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/milestone-templates", _MasterDataService_CreateMilestoneTemplate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/milestone-templates/{id}/publish", _MasterDataService_PublishMilestoneTemplate0_HTTP_Handler(srv))
@@ -573,88 +561,6 @@ func _MasterDataService_UpdateNumberRule0_HTTP_Handler(srv MasterDataServiceHTTP
 	}
 }
 
-func _MasterDataService_ListStatusTemplates0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListStatusTemplatesRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationMasterDataServiceListStatusTemplates)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListStatusTemplates(ctx, req.(*ListStatusTemplatesRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListStatusTemplatesResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _MasterDataService_CreateStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in CreateStatusTemplateRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationMasterDataServiceCreateStatusTemplate)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateStatusTemplate(ctx, req.(*CreateStatusTemplateRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*CreateStatusTemplateResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _MasterDataService_PublishStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PublishStatusTemplateRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationMasterDataServicePublishStatusTemplate)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PublishStatusTemplate(ctx, req.(*PublishStatusTemplateRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PublishStatusTemplateResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _MasterDataService_SetDefaultStatusTemplate0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in SetDefaultStatusTemplateRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationMasterDataServiceSetDefaultStatusTemplate)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SetDefaultStatusTemplate(ctx, req.(*SetDefaultStatusTemplateRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*SetDefaultStatusTemplateResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _MasterDataService_ListMilestoneTemplates0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListMilestoneTemplatesRequest
@@ -745,7 +651,6 @@ type MasterDataServiceHTTPClient interface {
 	CreateNumberRule(ctx context.Context, req *CreateNumberRuleRequest, opts ...http.CallOption) (rsp *CreateNumberRuleResponse, err error)
 	CreatePort(ctx context.Context, req *CreatePortRequest, opts ...http.CallOption) (rsp *CreatePortResponse, err error)
 	CreateShippingLine(ctx context.Context, req *CreateShippingLineRequest, opts ...http.CallOption) (rsp *CreateShippingLineResponse, err error)
-	CreateStatusTemplate(ctx context.Context, req *CreateStatusTemplateRequest, opts ...http.CallOption) (rsp *CreateStatusTemplateResponse, err error)
 	ImportItems(ctx context.Context, req *ImportItemsRequest, opts ...http.CallOption) (rsp *ImportItemsResponse, err error)
 	ListAdministrativeRegions(ctx context.Context, req *ListAdministrativeRegionsRequest, opts ...http.CallOption) (rsp *ListAdministrativeRegionsResponse, err error)
 	ListAirlines(ctx context.Context, req *ListAirlinesRequest, opts ...http.CallOption) (rsp *ListAirlinesResponse, err error)
@@ -757,12 +662,9 @@ type MasterDataServiceHTTPClient interface {
 	ListOptions(ctx context.Context, req *ListOptionsRequest, opts ...http.CallOption) (rsp *ListOptionsResponse, err error)
 	ListPorts(ctx context.Context, req *ListPortsRequest, opts ...http.CallOption) (rsp *ListPortsResponse, err error)
 	ListShippingLines(ctx context.Context, req *ListShippingLinesRequest, opts ...http.CallOption) (rsp *ListShippingLinesResponse, err error)
-	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *ListStatusTemplatesResponse, err error)
 	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *PublishMilestoneTemplateResponse, err error)
-	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *PublishStatusTemplateResponse, err error)
 	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *ListCurrenciesResponse, err error)
 	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultMilestoneTemplateResponse, err error)
-	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultStatusTemplateResponse, err error)
 	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
 	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *UpdateAirportResponse, err error)
 	UpdateItem(ctx context.Context, req *UpdateItemRequest, opts ...http.CallOption) (rsp *UpdateItemResponse, err error)
@@ -889,23 +791,6 @@ func (c *MasterDataServiceHTTPClientImpl) CreateShippingLine(ctx context.Context
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServiceCreateShippingLine),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *MasterDataServiceHTTPClientImpl) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...http.CallOption) (*CreateStatusTemplateResponse, error) {
-	var out CreateStatusTemplateResponse
-	pattern := "/api/v1/master-data/status-templates"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationMasterDataServiceCreateStatusTemplate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1092,22 +977,6 @@ func (c *MasterDataServiceHTTPClientImpl) ListShippingLines(ctx context.Context,
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...http.CallOption) (*ListStatusTemplatesResponse, error) {
-	var out ListStatusTemplatesResponse
-	pattern := "/api/v1/master-data/status-templates"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationMasterDataServiceListStatusTemplates),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...http.CallOption) (*PublishMilestoneTemplateResponse, error) {
 	var out PublishMilestoneTemplateResponse
 	pattern := "/api/v1/master-data/milestone-templates/{id}/publish"
@@ -1116,23 +985,6 @@ func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.C
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServicePublishMilestoneTemplate),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...http.CallOption) (*PublishStatusTemplateResponse, error) {
-	var out PublishStatusTemplateResponse
-	pattern := "/api/v1/master-data/status-templates/{id}/publish"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationMasterDataServicePublishStatusTemplate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1166,23 +1018,6 @@ func (c *MasterDataServiceHTTPClientImpl) SetDefaultMilestoneTemplate(ctx contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationMasterDataServiceSetDefaultMilestoneTemplate),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *MasterDataServiceHTTPClientImpl) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (*SetDefaultStatusTemplateResponse, error) {
-	var out SetDefaultStatusTemplateResponse
-	pattern := "/api/v1/master-data/status-templates/{id}/set-default"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationMasterDataServiceSetDefaultStatusTemplate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -96,10 +96,6 @@ const (
 	MasterDataNumberRuleRead              = "system.master_data.number_rule.read"
 	MasterDataNumberRuleCreate            = "system.master_data.number_rule.create"
 	MasterDataNumberRuleUpdate            = "system.master_data.number_rule.update"
-	MasterDataStatusTemplateRead          = "system.master_data.status_template.read"
-	MasterDataStatusTemplateCreate        = "system.master_data.status_template.create"
-	MasterDataStatusTemplatePublish       = "system.master_data.status_template.publish"
-	MasterDataStatusTemplateSetDefault    = "system.master_data.status_template.set_default"
 	MasterDataMilestoneTemplateRead       = "system.master_data.milestone_template.read"
 	MasterDataMilestoneTemplateCreate     = "system.master_data.milestone_template.create"
 	MasterDataMilestoneTemplatePublish    = "system.master_data.milestone_template.publish"
@@ -247,10 +243,6 @@ var manifest = append([]Permission{
 	{Key: MasterDataNumberRuleRead, Name: "查看编号规则", Group: "主数据 · 编号规则", Description: "查看业务编号规则"},
 	{Key: MasterDataNumberRuleCreate, Name: "新建编号规则", Group: "主数据 · 编号规则", Description: "新建业务编号规则"},
 	{Key: MasterDataNumberRuleUpdate, Name: "编辑编号规则", Group: "主数据 · 编号规则", Description: "修改业务编号规则"},
-	{Key: MasterDataStatusTemplateRead, Name: "查看状态模板", Group: "主数据 · 状态模板", Description: "查看订单状态模板"},
-	{Key: MasterDataStatusTemplateCreate, Name: "新建状态模板", Group: "主数据 · 状态模板", Description: "新建订单状态模板"},
-	{Key: MasterDataStatusTemplatePublish, Name: "发布状态模板", Group: "主数据 · 状态模板", Description: "发布订单状态模板版本"},
-	{Key: MasterDataStatusTemplateSetDefault, Name: "设置默认状态模板", Group: "主数据 · 状态模板", Description: "设置订单默认状态模板"},
 	{Key: MasterDataMilestoneTemplateRead, Name: "查看里程碑模板", Group: "主数据 · 里程碑模板", Description: "查看订单里程碑模板"},
 	{Key: MasterDataMilestoneTemplateCreate, Name: "新建里程碑模板", Group: "主数据 · 里程碑模板", Description: "新建订单里程碑模板"},
 	{Key: MasterDataMilestoneTemplatePublish, Name: "发布里程碑模板", Group: "主数据 · 里程碑模板", Description: "发布订单里程碑模板版本"},

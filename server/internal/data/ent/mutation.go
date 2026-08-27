@@ -56,12 +56,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -85,8 +85,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -143,12 +141,12 @@ const (
 	TypeOrderContainer                = "OrderContainer"
 	TypeOrderContainerRequest         = "OrderContainerRequest"
 	TypeOrderFee                      = "OrderFee"
+	TypeOrderLifecycleEvent           = "OrderLifecycleEvent"
 	TypeOrderMilestone                = "OrderMilestone"
 	TypeOrderPersonnel                = "OrderPersonnel"
 	TypeOrderReleasePod               = "OrderReleasePod"
 	TypeOrderServiceType              = "OrderServiceType"
 	TypeOrderShippingDocument         = "OrderShippingDocument"
-	TypeOrderStatusLog                = "OrderStatusLog"
 	TypeOrganization                  = "Organization"
 	TypePartner                       = "Partner"
 	TypePartnerAccount                = "PartnerAccount"
@@ -170,8 +168,6 @@ const (
 	TypeSession                       = "Session"
 	TypeShippingLine                  = "ShippingLine"
 	TypeShippingLineContainerPrefix   = "ShippingLineContainerPrefix"
-	TypeStatusTemplate                = "StatusTemplate"
-	TypeStatusTemplateItem            = "StatusTemplateItem"
 	TypeTaxableService                = "TaxableService"
 	TypeUser                          = "User"
 )
@@ -45923,7 +45919,18 @@ type OrderMutation struct {
 	shipment_type                         *order.ShipmentType
 	container_ownership                   *order.ContainerOwnership
 	shipment_mode                         *order.ShipmentMode
-	status                                *string
+	flow_status                           *order.FlowStatus
+	termination_status                    *order.TerminationStatus
+	termination_type                      *order.TerminationType
+	termination_reason                    *string
+	terminated_at                         *time.Time
+	terminated_by                         *uuid.UUID
+	closure_status                        *order.ClosureStatus
+	closure_reason                        *string
+	closed_at                             *time.Time
+	closed_by                             *uuid.UUID
+	version                               *uint64
+	addversion                            *int64
 	origin_location_id                    *uuid.UUID
 	destination_location_id               *uuid.UUID
 	discharge_location_id                 *uuid.UUID
@@ -45954,11 +45961,9 @@ type OrderMutation struct {
 	clearedorganization                   bool
 	customer                              *uuid.UUID
 	clearedcustomer                       bool
-	status_template                       *uuid.UUID
-	clearedstatus_template                bool
-	status_logs                           map[uuid.UUID]struct{}
-	removedstatus_logs                    map[uuid.UUID]struct{}
-	clearedstatus_logs                    bool
+	lifecycle_events                      map[uuid.UUID]struct{}
+	removedlifecycle_events               map[uuid.UUID]struct{}
+	clearedlifecycle_events               bool
 	service_types                         map[uuid.UUID]struct{}
 	removedservice_types                  map[uuid.UUID]struct{}
 	clearedservice_types                  bool
@@ -47466,76 +47471,511 @@ func (m *OrderMutation) ResetShipmentMode() {
 	delete(m.clearedFields, order.FieldShipmentMode)
 }
 
-// SetStatus sets the "status" field.
-func (m *OrderMutation) SetStatus(s string) {
-	m.status = &s
+// SetFlowStatus sets the "flow_status" field.
+func (m *OrderMutation) SetFlowStatus(os order.FlowStatus) {
+	m.flow_status = &os
 }
 
-// Status returns the value of the "status" field in the mutation.
-func (m *OrderMutation) Status() (r string, exists bool) {
-	v := m.status
+// FlowStatus returns the value of the "flow_status" field in the mutation.
+func (m *OrderMutation) FlowStatus() (r order.FlowStatus, exists bool) {
+	v := m.flow_status
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the Order entity.
+// OldFlowStatus returns the old "flow_status" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *OrderMutation) OldFlowStatus(ctx context.Context) (v order.FlowStatus, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+		return v, errors.New("OldFlowStatus is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
+		return v, errors.New("OldFlowStatus requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+		return v, fmt.Errorf("querying old value for OldFlowStatus: %w", err)
 	}
-	return oldValue.Status, nil
+	return oldValue.FlowStatus, nil
 }
 
-// ResetStatus resets all changes to the "status" field.
-func (m *OrderMutation) ResetStatus() {
-	m.status = nil
+// ResetFlowStatus resets all changes to the "flow_status" field.
+func (m *OrderMutation) ResetFlowStatus() {
+	m.flow_status = nil
 }
 
-// SetStatusTemplateID sets the "status_template_id" field.
-func (m *OrderMutation) SetStatusTemplateID(u uuid.UUID) {
-	m.status_template = &u
+// SetTerminationStatus sets the "termination_status" field.
+func (m *OrderMutation) SetTerminationStatus(os order.TerminationStatus) {
+	m.termination_status = &os
 }
 
-// StatusTemplateID returns the value of the "status_template_id" field in the mutation.
-func (m *OrderMutation) StatusTemplateID() (r uuid.UUID, exists bool) {
-	v := m.status_template
+// TerminationStatus returns the value of the "termination_status" field in the mutation.
+func (m *OrderMutation) TerminationStatus() (r order.TerminationStatus, exists bool) {
+	v := m.termination_status
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatusTemplateID returns the old "status_template_id" field's value of the Order entity.
+// OldTerminationStatus returns the old "termination_status" field's value of the Order entity.
 // If the Order object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldStatusTemplateID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *OrderMutation) OldTerminationStatus(ctx context.Context) (v order.TerminationStatus, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatusTemplateID is only allowed on UpdateOne operations")
+		return v, errors.New("OldTerminationStatus is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatusTemplateID requires an ID field in the mutation")
+		return v, errors.New("OldTerminationStatus requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatusTemplateID: %w", err)
+		return v, fmt.Errorf("querying old value for OldTerminationStatus: %w", err)
 	}
-	return oldValue.StatusTemplateID, nil
+	return oldValue.TerminationStatus, nil
 }
 
-// ResetStatusTemplateID resets all changes to the "status_template_id" field.
-func (m *OrderMutation) ResetStatusTemplateID() {
-	m.status_template = nil
+// ResetTerminationStatus resets all changes to the "termination_status" field.
+func (m *OrderMutation) ResetTerminationStatus() {
+	m.termination_status = nil
+}
+
+// SetTerminationType sets the "termination_type" field.
+func (m *OrderMutation) SetTerminationType(ot order.TerminationType) {
+	m.termination_type = &ot
+}
+
+// TerminationType returns the value of the "termination_type" field in the mutation.
+func (m *OrderMutation) TerminationType() (r order.TerminationType, exists bool) {
+	v := m.termination_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminationType returns the old "termination_type" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTerminationType(ctx context.Context) (v *order.TerminationType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminationType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminationType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminationType: %w", err)
+	}
+	return oldValue.TerminationType, nil
+}
+
+// ClearTerminationType clears the value of the "termination_type" field.
+func (m *OrderMutation) ClearTerminationType() {
+	m.termination_type = nil
+	m.clearedFields[order.FieldTerminationType] = struct{}{}
+}
+
+// TerminationTypeCleared returns if the "termination_type" field was cleared in this mutation.
+func (m *OrderMutation) TerminationTypeCleared() bool {
+	_, ok := m.clearedFields[order.FieldTerminationType]
+	return ok
+}
+
+// ResetTerminationType resets all changes to the "termination_type" field.
+func (m *OrderMutation) ResetTerminationType() {
+	m.termination_type = nil
+	delete(m.clearedFields, order.FieldTerminationType)
+}
+
+// SetTerminationReason sets the "termination_reason" field.
+func (m *OrderMutation) SetTerminationReason(s string) {
+	m.termination_reason = &s
+}
+
+// TerminationReason returns the value of the "termination_reason" field in the mutation.
+func (m *OrderMutation) TerminationReason() (r string, exists bool) {
+	v := m.termination_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminationReason returns the old "termination_reason" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTerminationReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminationReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminationReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminationReason: %w", err)
+	}
+	return oldValue.TerminationReason, nil
+}
+
+// ClearTerminationReason clears the value of the "termination_reason" field.
+func (m *OrderMutation) ClearTerminationReason() {
+	m.termination_reason = nil
+	m.clearedFields[order.FieldTerminationReason] = struct{}{}
+}
+
+// TerminationReasonCleared returns if the "termination_reason" field was cleared in this mutation.
+func (m *OrderMutation) TerminationReasonCleared() bool {
+	_, ok := m.clearedFields[order.FieldTerminationReason]
+	return ok
+}
+
+// ResetTerminationReason resets all changes to the "termination_reason" field.
+func (m *OrderMutation) ResetTerminationReason() {
+	m.termination_reason = nil
+	delete(m.clearedFields, order.FieldTerminationReason)
+}
+
+// SetTerminatedAt sets the "terminated_at" field.
+func (m *OrderMutation) SetTerminatedAt(t time.Time) {
+	m.terminated_at = &t
+}
+
+// TerminatedAt returns the value of the "terminated_at" field in the mutation.
+func (m *OrderMutation) TerminatedAt() (r time.Time, exists bool) {
+	v := m.terminated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminatedAt returns the old "terminated_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTerminatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminatedAt: %w", err)
+	}
+	return oldValue.TerminatedAt, nil
+}
+
+// ClearTerminatedAt clears the value of the "terminated_at" field.
+func (m *OrderMutation) ClearTerminatedAt() {
+	m.terminated_at = nil
+	m.clearedFields[order.FieldTerminatedAt] = struct{}{}
+}
+
+// TerminatedAtCleared returns if the "terminated_at" field was cleared in this mutation.
+func (m *OrderMutation) TerminatedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldTerminatedAt]
+	return ok
+}
+
+// ResetTerminatedAt resets all changes to the "terminated_at" field.
+func (m *OrderMutation) ResetTerminatedAt() {
+	m.terminated_at = nil
+	delete(m.clearedFields, order.FieldTerminatedAt)
+}
+
+// SetTerminatedBy sets the "terminated_by" field.
+func (m *OrderMutation) SetTerminatedBy(u uuid.UUID) {
+	m.terminated_by = &u
+}
+
+// TerminatedBy returns the value of the "terminated_by" field in the mutation.
+func (m *OrderMutation) TerminatedBy() (r uuid.UUID, exists bool) {
+	v := m.terminated_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTerminatedBy returns the old "terminated_by" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTerminatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTerminatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTerminatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTerminatedBy: %w", err)
+	}
+	return oldValue.TerminatedBy, nil
+}
+
+// ClearTerminatedBy clears the value of the "terminated_by" field.
+func (m *OrderMutation) ClearTerminatedBy() {
+	m.terminated_by = nil
+	m.clearedFields[order.FieldTerminatedBy] = struct{}{}
+}
+
+// TerminatedByCleared returns if the "terminated_by" field was cleared in this mutation.
+func (m *OrderMutation) TerminatedByCleared() bool {
+	_, ok := m.clearedFields[order.FieldTerminatedBy]
+	return ok
+}
+
+// ResetTerminatedBy resets all changes to the "terminated_by" field.
+func (m *OrderMutation) ResetTerminatedBy() {
+	m.terminated_by = nil
+	delete(m.clearedFields, order.FieldTerminatedBy)
+}
+
+// SetClosureStatus sets the "closure_status" field.
+func (m *OrderMutation) SetClosureStatus(os order.ClosureStatus) {
+	m.closure_status = &os
+}
+
+// ClosureStatus returns the value of the "closure_status" field in the mutation.
+func (m *OrderMutation) ClosureStatus() (r order.ClosureStatus, exists bool) {
+	v := m.closure_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosureStatus returns the old "closure_status" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldClosureStatus(ctx context.Context) (v order.ClosureStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosureStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosureStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosureStatus: %w", err)
+	}
+	return oldValue.ClosureStatus, nil
+}
+
+// ResetClosureStatus resets all changes to the "closure_status" field.
+func (m *OrderMutation) ResetClosureStatus() {
+	m.closure_status = nil
+}
+
+// SetClosureReason sets the "closure_reason" field.
+func (m *OrderMutation) SetClosureReason(s string) {
+	m.closure_reason = &s
+}
+
+// ClosureReason returns the value of the "closure_reason" field in the mutation.
+func (m *OrderMutation) ClosureReason() (r string, exists bool) {
+	v := m.closure_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosureReason returns the old "closure_reason" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldClosureReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosureReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosureReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosureReason: %w", err)
+	}
+	return oldValue.ClosureReason, nil
+}
+
+// ClearClosureReason clears the value of the "closure_reason" field.
+func (m *OrderMutation) ClearClosureReason() {
+	m.closure_reason = nil
+	m.clearedFields[order.FieldClosureReason] = struct{}{}
+}
+
+// ClosureReasonCleared returns if the "closure_reason" field was cleared in this mutation.
+func (m *OrderMutation) ClosureReasonCleared() bool {
+	_, ok := m.clearedFields[order.FieldClosureReason]
+	return ok
+}
+
+// ResetClosureReason resets all changes to the "closure_reason" field.
+func (m *OrderMutation) ResetClosureReason() {
+	m.closure_reason = nil
+	delete(m.clearedFields, order.FieldClosureReason)
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (m *OrderMutation) SetClosedAt(t time.Time) {
+	m.closed_at = &t
+}
+
+// ClosedAt returns the value of the "closed_at" field in the mutation.
+func (m *OrderMutation) ClosedAt() (r time.Time, exists bool) {
+	v := m.closed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosedAt returns the old "closed_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldClosedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosedAt: %w", err)
+	}
+	return oldValue.ClosedAt, nil
+}
+
+// ClearClosedAt clears the value of the "closed_at" field.
+func (m *OrderMutation) ClearClosedAt() {
+	m.closed_at = nil
+	m.clearedFields[order.FieldClosedAt] = struct{}{}
+}
+
+// ClosedAtCleared returns if the "closed_at" field was cleared in this mutation.
+func (m *OrderMutation) ClosedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldClosedAt]
+	return ok
+}
+
+// ResetClosedAt resets all changes to the "closed_at" field.
+func (m *OrderMutation) ResetClosedAt() {
+	m.closed_at = nil
+	delete(m.clearedFields, order.FieldClosedAt)
+}
+
+// SetClosedBy sets the "closed_by" field.
+func (m *OrderMutation) SetClosedBy(u uuid.UUID) {
+	m.closed_by = &u
+}
+
+// ClosedBy returns the value of the "closed_by" field in the mutation.
+func (m *OrderMutation) ClosedBy() (r uuid.UUID, exists bool) {
+	v := m.closed_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosedBy returns the old "closed_by" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldClosedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosedBy: %w", err)
+	}
+	return oldValue.ClosedBy, nil
+}
+
+// ClearClosedBy clears the value of the "closed_by" field.
+func (m *OrderMutation) ClearClosedBy() {
+	m.closed_by = nil
+	m.clearedFields[order.FieldClosedBy] = struct{}{}
+}
+
+// ClosedByCleared returns if the "closed_by" field was cleared in this mutation.
+func (m *OrderMutation) ClosedByCleared() bool {
+	_, ok := m.clearedFields[order.FieldClosedBy]
+	return ok
+}
+
+// ResetClosedBy resets all changes to the "closed_by" field.
+func (m *OrderMutation) ResetClosedBy() {
+	m.closed_by = nil
+	delete(m.clearedFields, order.FieldClosedBy)
+}
+
+// SetVersion sets the "version" field.
+func (m *OrderMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *OrderMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *OrderMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *OrderMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *OrderMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
 }
 
 // SetOriginLocationID sets the "origin_location_id" field.
@@ -48733,85 +49173,58 @@ func (m *OrderMutation) ResetCustomer() {
 	m.clearedcustomer = false
 }
 
-// ClearStatusTemplate clears the "status_template" edge to the StatusTemplate entity.
-func (m *OrderMutation) ClearStatusTemplate() {
-	m.clearedstatus_template = true
-	m.clearedFields[order.FieldStatusTemplateID] = struct{}{}
-}
-
-// StatusTemplateCleared reports if the "status_template" edge to the StatusTemplate entity was cleared.
-func (m *OrderMutation) StatusTemplateCleared() bool {
-	return m.clearedstatus_template
-}
-
-// StatusTemplateIDs returns the "status_template" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// StatusTemplateID instead. It exists only for internal usage by the builders.
-func (m *OrderMutation) StatusTemplateIDs() (ids []uuid.UUID) {
-	if id := m.status_template; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetStatusTemplate resets all changes to the "status_template" edge.
-func (m *OrderMutation) ResetStatusTemplate() {
-	m.status_template = nil
-	m.clearedstatus_template = false
-}
-
-// AddStatusLogIDs adds the "status_logs" edge to the OrderStatusLog entity by ids.
-func (m *OrderMutation) AddStatusLogIDs(ids ...uuid.UUID) {
-	if m.status_logs == nil {
-		m.status_logs = make(map[uuid.UUID]struct{})
+// AddLifecycleEventIDs adds the "lifecycle_events" edge to the OrderLifecycleEvent entity by ids.
+func (m *OrderMutation) AddLifecycleEventIDs(ids ...uuid.UUID) {
+	if m.lifecycle_events == nil {
+		m.lifecycle_events = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.status_logs[ids[i]] = struct{}{}
+		m.lifecycle_events[ids[i]] = struct{}{}
 	}
 }
 
-// ClearStatusLogs clears the "status_logs" edge to the OrderStatusLog entity.
-func (m *OrderMutation) ClearStatusLogs() {
-	m.clearedstatus_logs = true
+// ClearLifecycleEvents clears the "lifecycle_events" edge to the OrderLifecycleEvent entity.
+func (m *OrderMutation) ClearLifecycleEvents() {
+	m.clearedlifecycle_events = true
 }
 
-// StatusLogsCleared reports if the "status_logs" edge to the OrderStatusLog entity was cleared.
-func (m *OrderMutation) StatusLogsCleared() bool {
-	return m.clearedstatus_logs
+// LifecycleEventsCleared reports if the "lifecycle_events" edge to the OrderLifecycleEvent entity was cleared.
+func (m *OrderMutation) LifecycleEventsCleared() bool {
+	return m.clearedlifecycle_events
 }
 
-// RemoveStatusLogIDs removes the "status_logs" edge to the OrderStatusLog entity by IDs.
-func (m *OrderMutation) RemoveStatusLogIDs(ids ...uuid.UUID) {
-	if m.removedstatus_logs == nil {
-		m.removedstatus_logs = make(map[uuid.UUID]struct{})
+// RemoveLifecycleEventIDs removes the "lifecycle_events" edge to the OrderLifecycleEvent entity by IDs.
+func (m *OrderMutation) RemoveLifecycleEventIDs(ids ...uuid.UUID) {
+	if m.removedlifecycle_events == nil {
+		m.removedlifecycle_events = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.status_logs, ids[i])
-		m.removedstatus_logs[ids[i]] = struct{}{}
+		delete(m.lifecycle_events, ids[i])
+		m.removedlifecycle_events[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedStatusLogs returns the removed IDs of the "status_logs" edge to the OrderStatusLog entity.
-func (m *OrderMutation) RemovedStatusLogsIDs() (ids []uuid.UUID) {
-	for id := range m.removedstatus_logs {
+// RemovedLifecycleEvents returns the removed IDs of the "lifecycle_events" edge to the OrderLifecycleEvent entity.
+func (m *OrderMutation) RemovedLifecycleEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedlifecycle_events {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// StatusLogsIDs returns the "status_logs" edge IDs in the mutation.
-func (m *OrderMutation) StatusLogsIDs() (ids []uuid.UUID) {
-	for id := range m.status_logs {
+// LifecycleEventsIDs returns the "lifecycle_events" edge IDs in the mutation.
+func (m *OrderMutation) LifecycleEventsIDs() (ids []uuid.UUID) {
+	for id := range m.lifecycle_events {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetStatusLogs resets all changes to the "status_logs" edge.
-func (m *OrderMutation) ResetStatusLogs() {
-	m.status_logs = nil
-	m.clearedstatus_logs = false
-	m.removedstatus_logs = nil
+// ResetLifecycleEvents resets all changes to the "lifecycle_events" edge.
+func (m *OrderMutation) ResetLifecycleEvents() {
+	m.lifecycle_events = nil
+	m.clearedlifecycle_events = false
+	m.removedlifecycle_events = nil
 }
 
 // AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by ids.
@@ -49658,7 +50071,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 54)
+	fields := make([]string, 0, 63)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -49749,11 +50162,38 @@ func (m *OrderMutation) Fields() []string {
 	if m.shipment_mode != nil {
 		fields = append(fields, order.FieldShipmentMode)
 	}
-	if m.status != nil {
-		fields = append(fields, order.FieldStatus)
+	if m.flow_status != nil {
+		fields = append(fields, order.FieldFlowStatus)
 	}
-	if m.status_template != nil {
-		fields = append(fields, order.FieldStatusTemplateID)
+	if m.termination_status != nil {
+		fields = append(fields, order.FieldTerminationStatus)
+	}
+	if m.termination_type != nil {
+		fields = append(fields, order.FieldTerminationType)
+	}
+	if m.termination_reason != nil {
+		fields = append(fields, order.FieldTerminationReason)
+	}
+	if m.terminated_at != nil {
+		fields = append(fields, order.FieldTerminatedAt)
+	}
+	if m.terminated_by != nil {
+		fields = append(fields, order.FieldTerminatedBy)
+	}
+	if m.closure_status != nil {
+		fields = append(fields, order.FieldClosureStatus)
+	}
+	if m.closure_reason != nil {
+		fields = append(fields, order.FieldClosureReason)
+	}
+	if m.closed_at != nil {
+		fields = append(fields, order.FieldClosedAt)
+	}
+	if m.closed_by != nil {
+		fields = append(fields, order.FieldClosedBy)
+	}
+	if m.version != nil {
+		fields = append(fields, order.FieldVersion)
 	}
 	if m.origin_location_id != nil {
 		fields = append(fields, order.FieldOriginLocationID)
@@ -49889,10 +50329,28 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.ContainerOwnership()
 	case order.FieldShipmentMode:
 		return m.ShipmentMode()
-	case order.FieldStatus:
-		return m.Status()
-	case order.FieldStatusTemplateID:
-		return m.StatusTemplateID()
+	case order.FieldFlowStatus:
+		return m.FlowStatus()
+	case order.FieldTerminationStatus:
+		return m.TerminationStatus()
+	case order.FieldTerminationType:
+		return m.TerminationType()
+	case order.FieldTerminationReason:
+		return m.TerminationReason()
+	case order.FieldTerminatedAt:
+		return m.TerminatedAt()
+	case order.FieldTerminatedBy:
+		return m.TerminatedBy()
+	case order.FieldClosureStatus:
+		return m.ClosureStatus()
+	case order.FieldClosureReason:
+		return m.ClosureReason()
+	case order.FieldClosedAt:
+		return m.ClosedAt()
+	case order.FieldClosedBy:
+		return m.ClosedBy()
+	case order.FieldVersion:
+		return m.Version()
 	case order.FieldOriginLocationID:
 		return m.OriginLocationID()
 	case order.FieldDestinationLocationID:
@@ -50006,10 +50464,28 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldContainerOwnership(ctx)
 	case order.FieldShipmentMode:
 		return m.OldShipmentMode(ctx)
-	case order.FieldStatus:
-		return m.OldStatus(ctx)
-	case order.FieldStatusTemplateID:
-		return m.OldStatusTemplateID(ctx)
+	case order.FieldFlowStatus:
+		return m.OldFlowStatus(ctx)
+	case order.FieldTerminationStatus:
+		return m.OldTerminationStatus(ctx)
+	case order.FieldTerminationType:
+		return m.OldTerminationType(ctx)
+	case order.FieldTerminationReason:
+		return m.OldTerminationReason(ctx)
+	case order.FieldTerminatedAt:
+		return m.OldTerminatedAt(ctx)
+	case order.FieldTerminatedBy:
+		return m.OldTerminatedBy(ctx)
+	case order.FieldClosureStatus:
+		return m.OldClosureStatus(ctx)
+	case order.FieldClosureReason:
+		return m.OldClosureReason(ctx)
+	case order.FieldClosedAt:
+		return m.OldClosedAt(ctx)
+	case order.FieldClosedBy:
+		return m.OldClosedBy(ctx)
+	case order.FieldVersion:
+		return m.OldVersion(ctx)
 	case order.FieldOriginLocationID:
 		return m.OldOriginLocationID(ctx)
 	case order.FieldDestinationLocationID:
@@ -50273,19 +50749,82 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetShipmentMode(v)
 		return nil
-	case order.FieldStatus:
+	case order.FieldFlowStatus:
+		v, ok := value.(order.FlowStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlowStatus(v)
+		return nil
+	case order.FieldTerminationStatus:
+		v, ok := value.(order.TerminationStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTerminationStatus(v)
+		return nil
+	case order.FieldTerminationType:
+		v, ok := value.(order.TerminationType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTerminationType(v)
+		return nil
+	case order.FieldTerminationReason:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStatus(v)
+		m.SetTerminationReason(v)
 		return nil
-	case order.FieldStatusTemplateID:
+	case order.FieldTerminatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTerminatedAt(v)
+		return nil
+	case order.FieldTerminatedBy:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStatusTemplateID(v)
+		m.SetTerminatedBy(v)
+		return nil
+	case order.FieldClosureStatus:
+		v, ok := value.(order.ClosureStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosureStatus(v)
+		return nil
+	case order.FieldClosureReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosureReason(v)
+		return nil
+	case order.FieldClosedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosedAt(v)
+		return nil
+	case order.FieldClosedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosedBy(v)
+		return nil
+	case order.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
 		return nil
 	case order.FieldOriginLocationID:
 		v, ok := value.(uuid.UUID)
@@ -50449,6 +50988,9 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *OrderMutation) AddedFields() []string {
 	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, order.FieldVersion)
+	}
 	if m.addtotal_packages != nil {
 		fields = append(fields, order.FieldTotalPackages)
 	}
@@ -50466,6 +51008,8 @@ func (m *OrderMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case order.FieldVersion:
+		return m.AddedVersion()
 	case order.FieldTotalPackages:
 		return m.AddedTotalPackages()
 	case order.FieldTotalGrossWeightKg:
@@ -50481,6 +51025,13 @@ func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OrderMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case order.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
 	case order.FieldTotalPackages:
 		v, ok := value.(int)
 		if !ok {
@@ -50572,6 +51123,27 @@ func (m *OrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(order.FieldShipmentMode) {
 		fields = append(fields, order.FieldShipmentMode)
+	}
+	if m.FieldCleared(order.FieldTerminationType) {
+		fields = append(fields, order.FieldTerminationType)
+	}
+	if m.FieldCleared(order.FieldTerminationReason) {
+		fields = append(fields, order.FieldTerminationReason)
+	}
+	if m.FieldCleared(order.FieldTerminatedAt) {
+		fields = append(fields, order.FieldTerminatedAt)
+	}
+	if m.FieldCleared(order.FieldTerminatedBy) {
+		fields = append(fields, order.FieldTerminatedBy)
+	}
+	if m.FieldCleared(order.FieldClosureReason) {
+		fields = append(fields, order.FieldClosureReason)
+	}
+	if m.FieldCleared(order.FieldClosedAt) {
+		fields = append(fields, order.FieldClosedAt)
+	}
+	if m.FieldCleared(order.FieldClosedBy) {
+		fields = append(fields, order.FieldClosedBy)
 	}
 	if m.FieldCleared(order.FieldOriginLocationID) {
 		fields = append(fields, order.FieldOriginLocationID)
@@ -50715,6 +51287,27 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldShipmentMode:
 		m.ClearShipmentMode()
+		return nil
+	case order.FieldTerminationType:
+		m.ClearTerminationType()
+		return nil
+	case order.FieldTerminationReason:
+		m.ClearTerminationReason()
+		return nil
+	case order.FieldTerminatedAt:
+		m.ClearTerminatedAt()
+		return nil
+	case order.FieldTerminatedBy:
+		m.ClearTerminatedBy()
+		return nil
+	case order.FieldClosureReason:
+		m.ClearClosureReason()
+		return nil
+	case order.FieldClosedAt:
+		m.ClearClosedAt()
+		return nil
+	case order.FieldClosedBy:
+		m.ClearClosedBy()
 		return nil
 	case order.FieldOriginLocationID:
 		m.ClearOriginLocationID()
@@ -50880,11 +51473,38 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldShipmentMode:
 		m.ResetShipmentMode()
 		return nil
-	case order.FieldStatus:
-		m.ResetStatus()
+	case order.FieldFlowStatus:
+		m.ResetFlowStatus()
 		return nil
-	case order.FieldStatusTemplateID:
-		m.ResetStatusTemplateID()
+	case order.FieldTerminationStatus:
+		m.ResetTerminationStatus()
+		return nil
+	case order.FieldTerminationType:
+		m.ResetTerminationType()
+		return nil
+	case order.FieldTerminationReason:
+		m.ResetTerminationReason()
+		return nil
+	case order.FieldTerminatedAt:
+		m.ResetTerminatedAt()
+		return nil
+	case order.FieldTerminatedBy:
+		m.ResetTerminatedBy()
+		return nil
+	case order.FieldClosureStatus:
+		m.ResetClosureStatus()
+		return nil
+	case order.FieldClosureReason:
+		m.ResetClosureReason()
+		return nil
+	case order.FieldClosedAt:
+		m.ResetClosedAt()
+		return nil
+	case order.FieldClosedBy:
+		m.ResetClosedBy()
+		return nil
+	case order.FieldVersion:
+		m.ResetVersion()
 		return nil
 	case order.FieldOriginLocationID:
 		m.ResetOriginLocationID()
@@ -50958,18 +51578,15 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 18)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
 	if m.customer != nil {
 		edges = append(edges, order.EdgeCustomer)
 	}
-	if m.status_template != nil {
-		edges = append(edges, order.EdgeStatusTemplate)
-	}
-	if m.status_logs != nil {
-		edges = append(edges, order.EdgeStatusLogs)
+	if m.lifecycle_events != nil {
+		edges = append(edges, order.EdgeLifecycleEvents)
 	}
 	if m.service_types != nil {
 		edges = append(edges, order.EdgeServiceTypes)
@@ -51031,13 +51648,9 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.customer; id != nil {
 			return []ent.Value{*id}
 		}
-	case order.EdgeStatusTemplate:
-		if id := m.status_template; id != nil {
-			return []ent.Value{*id}
-		}
-	case order.EdgeStatusLogs:
-		ids := make([]ent.Value, 0, len(m.status_logs))
-		for id := range m.status_logs {
+	case order.EdgeLifecycleEvents:
+		ids := make([]ent.Value, 0, len(m.lifecycle_events))
+		for id := range m.lifecycle_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -51137,9 +51750,9 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 19)
-	if m.removedstatus_logs != nil {
-		edges = append(edges, order.EdgeStatusLogs)
+	edges := make([]string, 0, 18)
+	if m.removedlifecycle_events != nil {
+		edges = append(edges, order.EdgeLifecycleEvents)
 	}
 	if m.removedservice_types != nil {
 		edges = append(edges, order.EdgeServiceTypes)
@@ -51193,9 +51806,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case order.EdgeStatusLogs:
-		ids := make([]ent.Value, 0, len(m.removedstatus_logs))
-		for id := range m.removedstatus_logs {
+	case order.EdgeLifecycleEvents:
+		ids := make([]ent.Value, 0, len(m.removedlifecycle_events))
+		for id := range m.removedlifecycle_events {
 			ids = append(ids, id)
 		}
 		return ids
@@ -51295,18 +51908,15 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 18)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
 	if m.clearedcustomer {
 		edges = append(edges, order.EdgeCustomer)
 	}
-	if m.clearedstatus_template {
-		edges = append(edges, order.EdgeStatusTemplate)
-	}
-	if m.clearedstatus_logs {
-		edges = append(edges, order.EdgeStatusLogs)
+	if m.clearedlifecycle_events {
+		edges = append(edges, order.EdgeLifecycleEvents)
 	}
 	if m.clearedservice_types {
 		edges = append(edges, order.EdgeServiceTypes)
@@ -51364,10 +51974,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedorganization
 	case order.EdgeCustomer:
 		return m.clearedcustomer
-	case order.EdgeStatusTemplate:
-		return m.clearedstatus_template
-	case order.EdgeStatusLogs:
-		return m.clearedstatus_logs
+	case order.EdgeLifecycleEvents:
+		return m.clearedlifecycle_events
 	case order.EdgeServiceTypes:
 		return m.clearedservice_types
 	case order.EdgeCargoCategories:
@@ -51412,9 +52020,6 @@ func (m *OrderMutation) ClearEdge(name string) error {
 	case order.EdgeCustomer:
 		m.ClearCustomer()
 		return nil
-	case order.EdgeStatusTemplate:
-		m.ClearStatusTemplate()
-		return nil
 	}
 	return fmt.Errorf("unknown Order unique edge %s", name)
 }
@@ -51429,11 +52034,8 @@ func (m *OrderMutation) ResetEdge(name string) error {
 	case order.EdgeCustomer:
 		m.ResetCustomer()
 		return nil
-	case order.EdgeStatusTemplate:
-		m.ResetStatusTemplate()
-		return nil
-	case order.EdgeStatusLogs:
-		m.ResetStatusLogs()
+	case order.EdgeLifecycleEvents:
+		m.ResetLifecycleEvents()
 		return nil
 	case order.EdgeServiceTypes:
 		m.ResetServiceTypes()
@@ -60156,6 +60758,830 @@ func (m *OrderFeeMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderFee edge %s", name)
 }
 
+// OrderLifecycleEventMutation represents an operation that mutates the OrderLifecycleEvent nodes in the graph.
+type OrderLifecycleEventMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	dimension     *orderlifecycleevent.Dimension
+	from_status   *string
+	to_status     *string
+	action        *string
+	reason        *string
+	operator_id   *uuid.UUID
+	changed_at    *time.Time
+	clearedFields map[string]struct{}
+	_order        *uuid.UUID
+	cleared_order bool
+	done          bool
+	oldValue      func(context.Context) (*OrderLifecycleEvent, error)
+	predicates    []predicate.OrderLifecycleEvent
+}
+
+var _ ent.Mutation = (*OrderLifecycleEventMutation)(nil)
+
+// orderlifecycleeventOption allows management of the mutation configuration using functional options.
+type orderlifecycleeventOption func(*OrderLifecycleEventMutation)
+
+// newOrderLifecycleEventMutation creates new mutation for the OrderLifecycleEvent entity.
+func newOrderLifecycleEventMutation(c config, op Op, opts ...orderlifecycleeventOption) *OrderLifecycleEventMutation {
+	m := &OrderLifecycleEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderLifecycleEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderLifecycleEventID sets the ID field of the mutation.
+func withOrderLifecycleEventID(id uuid.UUID) orderlifecycleeventOption {
+	return func(m *OrderLifecycleEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderLifecycleEvent
+		)
+		m.oldValue = func(ctx context.Context) (*OrderLifecycleEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderLifecycleEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderLifecycleEvent sets the old OrderLifecycleEvent of the mutation.
+func withOrderLifecycleEvent(node *OrderLifecycleEvent) orderlifecycleeventOption {
+	return func(m *OrderLifecycleEventMutation) {
+		m.oldValue = func(context.Context) (*OrderLifecycleEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderLifecycleEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderLifecycleEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderLifecycleEvent entities.
+func (m *OrderLifecycleEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderLifecycleEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderLifecycleEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderLifecycleEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderLifecycleEventMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderLifecycleEventMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderLifecycleEventMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetDimension sets the "dimension" field.
+func (m *OrderLifecycleEventMutation) SetDimension(o orderlifecycleevent.Dimension) {
+	m.dimension = &o
+}
+
+// Dimension returns the value of the "dimension" field in the mutation.
+func (m *OrderLifecycleEventMutation) Dimension() (r orderlifecycleevent.Dimension, exists bool) {
+	v := m.dimension
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDimension returns the old "dimension" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldDimension(ctx context.Context) (v orderlifecycleevent.Dimension, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDimension is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDimension requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDimension: %w", err)
+	}
+	return oldValue.Dimension, nil
+}
+
+// ResetDimension resets all changes to the "dimension" field.
+func (m *OrderLifecycleEventMutation) ResetDimension() {
+	m.dimension = nil
+}
+
+// SetFromStatus sets the "from_status" field.
+func (m *OrderLifecycleEventMutation) SetFromStatus(s string) {
+	m.from_status = &s
+}
+
+// FromStatus returns the value of the "from_status" field in the mutation.
+func (m *OrderLifecycleEventMutation) FromStatus() (r string, exists bool) {
+	v := m.from_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromStatus returns the old "from_status" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldFromStatus(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromStatus: %w", err)
+	}
+	return oldValue.FromStatus, nil
+}
+
+// ClearFromStatus clears the value of the "from_status" field.
+func (m *OrderLifecycleEventMutation) ClearFromStatus() {
+	m.from_status = nil
+	m.clearedFields[orderlifecycleevent.FieldFromStatus] = struct{}{}
+}
+
+// FromStatusCleared returns if the "from_status" field was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) FromStatusCleared() bool {
+	_, ok := m.clearedFields[orderlifecycleevent.FieldFromStatus]
+	return ok
+}
+
+// ResetFromStatus resets all changes to the "from_status" field.
+func (m *OrderLifecycleEventMutation) ResetFromStatus() {
+	m.from_status = nil
+	delete(m.clearedFields, orderlifecycleevent.FieldFromStatus)
+}
+
+// SetToStatus sets the "to_status" field.
+func (m *OrderLifecycleEventMutation) SetToStatus(s string) {
+	m.to_status = &s
+}
+
+// ToStatus returns the value of the "to_status" field in the mutation.
+func (m *OrderLifecycleEventMutation) ToStatus() (r string, exists bool) {
+	v := m.to_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToStatus returns the old "to_status" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldToStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToStatus: %w", err)
+	}
+	return oldValue.ToStatus, nil
+}
+
+// ResetToStatus resets all changes to the "to_status" field.
+func (m *OrderLifecycleEventMutation) ResetToStatus() {
+	m.to_status = nil
+}
+
+// SetAction sets the "action" field.
+func (m *OrderLifecycleEventMutation) SetAction(s string) {
+	m.action = &s
+}
+
+// Action returns the value of the "action" field in the mutation.
+func (m *OrderLifecycleEventMutation) Action() (r string, exists bool) {
+	v := m.action
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAction returns the old "action" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldAction(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAction: %w", err)
+	}
+	return oldValue.Action, nil
+}
+
+// ResetAction resets all changes to the "action" field.
+func (m *OrderLifecycleEventMutation) ResetAction() {
+	m.action = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *OrderLifecycleEventMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *OrderLifecycleEventMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *OrderLifecycleEventMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[orderlifecycleevent.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[orderlifecycleevent.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *OrderLifecycleEventMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, orderlifecycleevent.FieldReason)
+}
+
+// SetOperatorID sets the "operator_id" field.
+func (m *OrderLifecycleEventMutation) SetOperatorID(u uuid.UUID) {
+	m.operator_id = &u
+}
+
+// OperatorID returns the value of the "operator_id" field in the mutation.
+func (m *OrderLifecycleEventMutation) OperatorID() (r uuid.UUID, exists bool) {
+	v := m.operator_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperatorID returns the old "operator_id" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldOperatorID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperatorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperatorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperatorID: %w", err)
+	}
+	return oldValue.OperatorID, nil
+}
+
+// ClearOperatorID clears the value of the "operator_id" field.
+func (m *OrderLifecycleEventMutation) ClearOperatorID() {
+	m.operator_id = nil
+	m.clearedFields[orderlifecycleevent.FieldOperatorID] = struct{}{}
+}
+
+// OperatorIDCleared returns if the "operator_id" field was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) OperatorIDCleared() bool {
+	_, ok := m.clearedFields[orderlifecycleevent.FieldOperatorID]
+	return ok
+}
+
+// ResetOperatorID resets all changes to the "operator_id" field.
+func (m *OrderLifecycleEventMutation) ResetOperatorID() {
+	m.operator_id = nil
+	delete(m.clearedFields, orderlifecycleevent.FieldOperatorID)
+}
+
+// SetChangedAt sets the "changed_at" field.
+func (m *OrderLifecycleEventMutation) SetChangedAt(t time.Time) {
+	m.changed_at = &t
+}
+
+// ChangedAt returns the value of the "changed_at" field in the mutation.
+func (m *OrderLifecycleEventMutation) ChangedAt() (r time.Time, exists bool) {
+	v := m.changed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChangedAt returns the old "changed_at" field's value of the OrderLifecycleEvent entity.
+// If the OrderLifecycleEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLifecycleEventMutation) OldChangedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChangedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChangedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChangedAt: %w", err)
+	}
+	return oldValue.ChangedAt, nil
+}
+
+// ResetChangedAt resets all changes to the "changed_at" field.
+func (m *OrderLifecycleEventMutation) ResetChangedAt() {
+	m.changed_at = nil
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderLifecycleEventMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderlifecycleevent.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderLifecycleEventMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderLifecycleEventMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderLifecycleEventMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderLifecycleEventMutation builder.
+func (m *OrderLifecycleEventMutation) Where(ps ...predicate.OrderLifecycleEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderLifecycleEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderLifecycleEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderLifecycleEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderLifecycleEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderLifecycleEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderLifecycleEvent).
+func (m *OrderLifecycleEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderLifecycleEventMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m._order != nil {
+		fields = append(fields, orderlifecycleevent.FieldOrderID)
+	}
+	if m.dimension != nil {
+		fields = append(fields, orderlifecycleevent.FieldDimension)
+	}
+	if m.from_status != nil {
+		fields = append(fields, orderlifecycleevent.FieldFromStatus)
+	}
+	if m.to_status != nil {
+		fields = append(fields, orderlifecycleevent.FieldToStatus)
+	}
+	if m.action != nil {
+		fields = append(fields, orderlifecycleevent.FieldAction)
+	}
+	if m.reason != nil {
+		fields = append(fields, orderlifecycleevent.FieldReason)
+	}
+	if m.operator_id != nil {
+		fields = append(fields, orderlifecycleevent.FieldOperatorID)
+	}
+	if m.changed_at != nil {
+		fields = append(fields, orderlifecycleevent.FieldChangedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderLifecycleEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderlifecycleevent.FieldOrderID:
+		return m.OrderID()
+	case orderlifecycleevent.FieldDimension:
+		return m.Dimension()
+	case orderlifecycleevent.FieldFromStatus:
+		return m.FromStatus()
+	case orderlifecycleevent.FieldToStatus:
+		return m.ToStatus()
+	case orderlifecycleevent.FieldAction:
+		return m.Action()
+	case orderlifecycleevent.FieldReason:
+		return m.Reason()
+	case orderlifecycleevent.FieldOperatorID:
+		return m.OperatorID()
+	case orderlifecycleevent.FieldChangedAt:
+		return m.ChangedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderLifecycleEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderlifecycleevent.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderlifecycleevent.FieldDimension:
+		return m.OldDimension(ctx)
+	case orderlifecycleevent.FieldFromStatus:
+		return m.OldFromStatus(ctx)
+	case orderlifecycleevent.FieldToStatus:
+		return m.OldToStatus(ctx)
+	case orderlifecycleevent.FieldAction:
+		return m.OldAction(ctx)
+	case orderlifecycleevent.FieldReason:
+		return m.OldReason(ctx)
+	case orderlifecycleevent.FieldOperatorID:
+		return m.OldOperatorID(ctx)
+	case orderlifecycleevent.FieldChangedAt:
+		return m.OldChangedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderLifecycleEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderlifecycleevent.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderlifecycleevent.FieldDimension:
+		v, ok := value.(orderlifecycleevent.Dimension)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDimension(v)
+		return nil
+	case orderlifecycleevent.FieldFromStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromStatus(v)
+		return nil
+	case orderlifecycleevent.FieldToStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToStatus(v)
+		return nil
+	case orderlifecycleevent.FieldAction:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAction(v)
+		return nil
+	case orderlifecycleevent.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case orderlifecycleevent.FieldOperatorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperatorID(v)
+		return nil
+	case orderlifecycleevent.FieldChangedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChangedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderLifecycleEventMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderLifecycleEventMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderLifecycleEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderLifecycleEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderlifecycleevent.FieldFromStatus) {
+		fields = append(fields, orderlifecycleevent.FieldFromStatus)
+	}
+	if m.FieldCleared(orderlifecycleevent.FieldReason) {
+		fields = append(fields, orderlifecycleevent.FieldReason)
+	}
+	if m.FieldCleared(orderlifecycleevent.FieldOperatorID) {
+		fields = append(fields, orderlifecycleevent.FieldOperatorID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderLifecycleEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderLifecycleEventMutation) ClearField(name string) error {
+	switch name {
+	case orderlifecycleevent.FieldFromStatus:
+		m.ClearFromStatus()
+		return nil
+	case orderlifecycleevent.FieldReason:
+		m.ClearReason()
+		return nil
+	case orderlifecycleevent.FieldOperatorID:
+		m.ClearOperatorID()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderLifecycleEventMutation) ResetField(name string) error {
+	switch name {
+	case orderlifecycleevent.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderlifecycleevent.FieldDimension:
+		m.ResetDimension()
+		return nil
+	case orderlifecycleevent.FieldFromStatus:
+		m.ResetFromStatus()
+		return nil
+	case orderlifecycleevent.FieldToStatus:
+		m.ResetToStatus()
+		return nil
+	case orderlifecycleevent.FieldAction:
+		m.ResetAction()
+		return nil
+	case orderlifecycleevent.FieldReason:
+		m.ResetReason()
+		return nil
+	case orderlifecycleevent.FieldOperatorID:
+		m.ResetOperatorID()
+		return nil
+	case orderlifecycleevent.FieldChangedAt:
+		m.ResetChangedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderLifecycleEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, orderlifecycleevent.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderLifecycleEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderlifecycleevent.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderLifecycleEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderLifecycleEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderLifecycleEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, orderlifecycleevent.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderLifecycleEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderlifecycleevent.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderLifecycleEventMutation) ClearEdge(name string) error {
+	switch name {
+	case orderlifecycleevent.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderLifecycleEventMutation) ResetEdge(name string) error {
+	switch name {
+	case orderlifecycleevent.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderLifecycleEvent edge %s", name)
+}
+
 // OrderMilestoneMutation represents an operation that mutates the OrderMilestone nodes in the graph.
 type OrderMilestoneMutation struct {
 	config
@@ -64476,795 +65902,6 @@ func (m *OrderShippingDocumentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderShippingDocument edge %s", name)
 }
 
-// OrderStatusLogMutation represents an operation that mutates the OrderStatusLog nodes in the graph.
-type OrderStatusLogMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	from_status   *string
-	to_status     *string
-	action        *string
-	reason        *string
-	operator_id   *uuid.UUID
-	changed_at    *time.Time
-	clearedFields map[string]struct{}
-	_order        *uuid.UUID
-	cleared_order bool
-	done          bool
-	oldValue      func(context.Context) (*OrderStatusLog, error)
-	predicates    []predicate.OrderStatusLog
-}
-
-var _ ent.Mutation = (*OrderStatusLogMutation)(nil)
-
-// orderstatuslogOption allows management of the mutation configuration using functional options.
-type orderstatuslogOption func(*OrderStatusLogMutation)
-
-// newOrderStatusLogMutation creates new mutation for the OrderStatusLog entity.
-func newOrderStatusLogMutation(c config, op Op, opts ...orderstatuslogOption) *OrderStatusLogMutation {
-	m := &OrderStatusLogMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeOrderStatusLog,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withOrderStatusLogID sets the ID field of the mutation.
-func withOrderStatusLogID(id uuid.UUID) orderstatuslogOption {
-	return func(m *OrderStatusLogMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *OrderStatusLog
-		)
-		m.oldValue = func(ctx context.Context) (*OrderStatusLog, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().OrderStatusLog.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withOrderStatusLog sets the old OrderStatusLog of the mutation.
-func withOrderStatusLog(node *OrderStatusLog) orderstatuslogOption {
-	return func(m *OrderStatusLogMutation) {
-		m.oldValue = func(context.Context) (*OrderStatusLog, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m OrderStatusLogMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m OrderStatusLogMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of OrderStatusLog entities.
-func (m *OrderStatusLogMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *OrderStatusLogMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *OrderStatusLogMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().OrderStatusLog.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetOrderID sets the "order_id" field.
-func (m *OrderStatusLogMutation) SetOrderID(u uuid.UUID) {
-	m._order = &u
-}
-
-// OrderID returns the value of the "order_id" field in the mutation.
-func (m *OrderStatusLogMutation) OrderID() (r uuid.UUID, exists bool) {
-	v := m._order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOrderID returns the old "order_id" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOrderID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
-	}
-	return oldValue.OrderID, nil
-}
-
-// ResetOrderID resets all changes to the "order_id" field.
-func (m *OrderStatusLogMutation) ResetOrderID() {
-	m._order = nil
-}
-
-// SetFromStatus sets the "from_status" field.
-func (m *OrderStatusLogMutation) SetFromStatus(s string) {
-	m.from_status = &s
-}
-
-// FromStatus returns the value of the "from_status" field in the mutation.
-func (m *OrderStatusLogMutation) FromStatus() (r string, exists bool) {
-	v := m.from_status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFromStatus returns the old "from_status" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldFromStatus(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFromStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFromStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFromStatus: %w", err)
-	}
-	return oldValue.FromStatus, nil
-}
-
-// ClearFromStatus clears the value of the "from_status" field.
-func (m *OrderStatusLogMutation) ClearFromStatus() {
-	m.from_status = nil
-	m.clearedFields[orderstatuslog.FieldFromStatus] = struct{}{}
-}
-
-// FromStatusCleared returns if the "from_status" field was cleared in this mutation.
-func (m *OrderStatusLogMutation) FromStatusCleared() bool {
-	_, ok := m.clearedFields[orderstatuslog.FieldFromStatus]
-	return ok
-}
-
-// ResetFromStatus resets all changes to the "from_status" field.
-func (m *OrderStatusLogMutation) ResetFromStatus() {
-	m.from_status = nil
-	delete(m.clearedFields, orderstatuslog.FieldFromStatus)
-}
-
-// SetToStatus sets the "to_status" field.
-func (m *OrderStatusLogMutation) SetToStatus(s string) {
-	m.to_status = &s
-}
-
-// ToStatus returns the value of the "to_status" field in the mutation.
-func (m *OrderStatusLogMutation) ToStatus() (r string, exists bool) {
-	v := m.to_status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldToStatus returns the old "to_status" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldToStatus(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldToStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldToStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldToStatus: %w", err)
-	}
-	return oldValue.ToStatus, nil
-}
-
-// ResetToStatus resets all changes to the "to_status" field.
-func (m *OrderStatusLogMutation) ResetToStatus() {
-	m.to_status = nil
-}
-
-// SetAction sets the "action" field.
-func (m *OrderStatusLogMutation) SetAction(s string) {
-	m.action = &s
-}
-
-// Action returns the value of the "action" field in the mutation.
-func (m *OrderStatusLogMutation) Action() (r string, exists bool) {
-	v := m.action
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAction returns the old "action" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldAction(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAction is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAction requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAction: %w", err)
-	}
-	return oldValue.Action, nil
-}
-
-// ClearAction clears the value of the "action" field.
-func (m *OrderStatusLogMutation) ClearAction() {
-	m.action = nil
-	m.clearedFields[orderstatuslog.FieldAction] = struct{}{}
-}
-
-// ActionCleared returns if the "action" field was cleared in this mutation.
-func (m *OrderStatusLogMutation) ActionCleared() bool {
-	_, ok := m.clearedFields[orderstatuslog.FieldAction]
-	return ok
-}
-
-// ResetAction resets all changes to the "action" field.
-func (m *OrderStatusLogMutation) ResetAction() {
-	m.action = nil
-	delete(m.clearedFields, orderstatuslog.FieldAction)
-}
-
-// SetReason sets the "reason" field.
-func (m *OrderStatusLogMutation) SetReason(s string) {
-	m.reason = &s
-}
-
-// Reason returns the value of the "reason" field in the mutation.
-func (m *OrderStatusLogMutation) Reason() (r string, exists bool) {
-	v := m.reason
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldReason returns the old "reason" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldReason(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldReason is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldReason requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldReason: %w", err)
-	}
-	return oldValue.Reason, nil
-}
-
-// ClearReason clears the value of the "reason" field.
-func (m *OrderStatusLogMutation) ClearReason() {
-	m.reason = nil
-	m.clearedFields[orderstatuslog.FieldReason] = struct{}{}
-}
-
-// ReasonCleared returns if the "reason" field was cleared in this mutation.
-func (m *OrderStatusLogMutation) ReasonCleared() bool {
-	_, ok := m.clearedFields[orderstatuslog.FieldReason]
-	return ok
-}
-
-// ResetReason resets all changes to the "reason" field.
-func (m *OrderStatusLogMutation) ResetReason() {
-	m.reason = nil
-	delete(m.clearedFields, orderstatuslog.FieldReason)
-}
-
-// SetOperatorID sets the "operator_id" field.
-func (m *OrderStatusLogMutation) SetOperatorID(u uuid.UUID) {
-	m.operator_id = &u
-}
-
-// OperatorID returns the value of the "operator_id" field in the mutation.
-func (m *OrderStatusLogMutation) OperatorID() (r uuid.UUID, exists bool) {
-	v := m.operator_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOperatorID returns the old "operator_id" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldOperatorID(ctx context.Context) (v *uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOperatorID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOperatorID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOperatorID: %w", err)
-	}
-	return oldValue.OperatorID, nil
-}
-
-// ClearOperatorID clears the value of the "operator_id" field.
-func (m *OrderStatusLogMutation) ClearOperatorID() {
-	m.operator_id = nil
-	m.clearedFields[orderstatuslog.FieldOperatorID] = struct{}{}
-}
-
-// OperatorIDCleared returns if the "operator_id" field was cleared in this mutation.
-func (m *OrderStatusLogMutation) OperatorIDCleared() bool {
-	_, ok := m.clearedFields[orderstatuslog.FieldOperatorID]
-	return ok
-}
-
-// ResetOperatorID resets all changes to the "operator_id" field.
-func (m *OrderStatusLogMutation) ResetOperatorID() {
-	m.operator_id = nil
-	delete(m.clearedFields, orderstatuslog.FieldOperatorID)
-}
-
-// SetChangedAt sets the "changed_at" field.
-func (m *OrderStatusLogMutation) SetChangedAt(t time.Time) {
-	m.changed_at = &t
-}
-
-// ChangedAt returns the value of the "changed_at" field in the mutation.
-func (m *OrderStatusLogMutation) ChangedAt() (r time.Time, exists bool) {
-	v := m.changed_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChangedAt returns the old "changed_at" field's value of the OrderStatusLog entity.
-// If the OrderStatusLog object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderStatusLogMutation) OldChangedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChangedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChangedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChangedAt: %w", err)
-	}
-	return oldValue.ChangedAt, nil
-}
-
-// ResetChangedAt resets all changes to the "changed_at" field.
-func (m *OrderStatusLogMutation) ResetChangedAt() {
-	m.changed_at = nil
-}
-
-// ClearOrder clears the "order" edge to the Order entity.
-func (m *OrderStatusLogMutation) ClearOrder() {
-	m.cleared_order = true
-	m.clearedFields[orderstatuslog.FieldOrderID] = struct{}{}
-}
-
-// OrderCleared reports if the "order" edge to the Order entity was cleared.
-func (m *OrderStatusLogMutation) OrderCleared() bool {
-	return m.cleared_order
-}
-
-// OrderIDs returns the "order" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OrderID instead. It exists only for internal usage by the builders.
-func (m *OrderStatusLogMutation) OrderIDs() (ids []uuid.UUID) {
-	if id := m._order; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOrder resets all changes to the "order" edge.
-func (m *OrderStatusLogMutation) ResetOrder() {
-	m._order = nil
-	m.cleared_order = false
-}
-
-// Where appends a list predicates to the OrderStatusLogMutation builder.
-func (m *OrderStatusLogMutation) Where(ps ...predicate.OrderStatusLog) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the OrderStatusLogMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *OrderStatusLogMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.OrderStatusLog, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *OrderStatusLogMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *OrderStatusLogMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (OrderStatusLog).
-func (m *OrderStatusLogMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *OrderStatusLogMutation) Fields() []string {
-	fields := make([]string, 0, 7)
-	if m._order != nil {
-		fields = append(fields, orderstatuslog.FieldOrderID)
-	}
-	if m.from_status != nil {
-		fields = append(fields, orderstatuslog.FieldFromStatus)
-	}
-	if m.to_status != nil {
-		fields = append(fields, orderstatuslog.FieldToStatus)
-	}
-	if m.action != nil {
-		fields = append(fields, orderstatuslog.FieldAction)
-	}
-	if m.reason != nil {
-		fields = append(fields, orderstatuslog.FieldReason)
-	}
-	if m.operator_id != nil {
-		fields = append(fields, orderstatuslog.FieldOperatorID)
-	}
-	if m.changed_at != nil {
-		fields = append(fields, orderstatuslog.FieldChangedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *OrderStatusLogMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case orderstatuslog.FieldOrderID:
-		return m.OrderID()
-	case orderstatuslog.FieldFromStatus:
-		return m.FromStatus()
-	case orderstatuslog.FieldToStatus:
-		return m.ToStatus()
-	case orderstatuslog.FieldAction:
-		return m.Action()
-	case orderstatuslog.FieldReason:
-		return m.Reason()
-	case orderstatuslog.FieldOperatorID:
-		return m.OperatorID()
-	case orderstatuslog.FieldChangedAt:
-		return m.ChangedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *OrderStatusLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case orderstatuslog.FieldOrderID:
-		return m.OldOrderID(ctx)
-	case orderstatuslog.FieldFromStatus:
-		return m.OldFromStatus(ctx)
-	case orderstatuslog.FieldToStatus:
-		return m.OldToStatus(ctx)
-	case orderstatuslog.FieldAction:
-		return m.OldAction(ctx)
-	case orderstatuslog.FieldReason:
-		return m.OldReason(ctx)
-	case orderstatuslog.FieldOperatorID:
-		return m.OldOperatorID(ctx)
-	case orderstatuslog.FieldChangedAt:
-		return m.OldChangedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown OrderStatusLog field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *OrderStatusLogMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case orderstatuslog.FieldOrderID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOrderID(v)
-		return nil
-	case orderstatuslog.FieldFromStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFromStatus(v)
-		return nil
-	case orderstatuslog.FieldToStatus:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetToStatus(v)
-		return nil
-	case orderstatuslog.FieldAction:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAction(v)
-		return nil
-	case orderstatuslog.FieldReason:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetReason(v)
-		return nil
-	case orderstatuslog.FieldOperatorID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOperatorID(v)
-		return nil
-	case orderstatuslog.FieldChangedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChangedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown OrderStatusLog field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *OrderStatusLogMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *OrderStatusLogMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *OrderStatusLogMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown OrderStatusLog numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *OrderStatusLogMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(orderstatuslog.FieldFromStatus) {
-		fields = append(fields, orderstatuslog.FieldFromStatus)
-	}
-	if m.FieldCleared(orderstatuslog.FieldAction) {
-		fields = append(fields, orderstatuslog.FieldAction)
-	}
-	if m.FieldCleared(orderstatuslog.FieldReason) {
-		fields = append(fields, orderstatuslog.FieldReason)
-	}
-	if m.FieldCleared(orderstatuslog.FieldOperatorID) {
-		fields = append(fields, orderstatuslog.FieldOperatorID)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *OrderStatusLogMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *OrderStatusLogMutation) ClearField(name string) error {
-	switch name {
-	case orderstatuslog.FieldFromStatus:
-		m.ClearFromStatus()
-		return nil
-	case orderstatuslog.FieldAction:
-		m.ClearAction()
-		return nil
-	case orderstatuslog.FieldReason:
-		m.ClearReason()
-		return nil
-	case orderstatuslog.FieldOperatorID:
-		m.ClearOperatorID()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderStatusLog nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *OrderStatusLogMutation) ResetField(name string) error {
-	switch name {
-	case orderstatuslog.FieldOrderID:
-		m.ResetOrderID()
-		return nil
-	case orderstatuslog.FieldFromStatus:
-		m.ResetFromStatus()
-		return nil
-	case orderstatuslog.FieldToStatus:
-		m.ResetToStatus()
-		return nil
-	case orderstatuslog.FieldAction:
-		m.ResetAction()
-		return nil
-	case orderstatuslog.FieldReason:
-		m.ResetReason()
-		return nil
-	case orderstatuslog.FieldOperatorID:
-		m.ResetOperatorID()
-		return nil
-	case orderstatuslog.FieldChangedAt:
-		m.ResetChangedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderStatusLog field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *OrderStatusLogMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m._order != nil {
-		edges = append(edges, orderstatuslog.EdgeOrder)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *OrderStatusLogMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case orderstatuslog.EdgeOrder:
-		if id := m._order; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *OrderStatusLogMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *OrderStatusLogMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *OrderStatusLogMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.cleared_order {
-		edges = append(edges, orderstatuslog.EdgeOrder)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *OrderStatusLogMutation) EdgeCleared(name string) bool {
-	switch name {
-	case orderstatuslog.EdgeOrder:
-		return m.cleared_order
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *OrderStatusLogMutation) ClearEdge(name string) error {
-	switch name {
-	case orderstatuslog.EdgeOrder:
-		m.ClearOrder()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderStatusLog unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *OrderStatusLogMutation) ResetEdge(name string) error {
-	switch name {
-	case orderstatuslog.EdgeOrder:
-		m.ResetOrder()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderStatusLog edge %s", name)
-}
-
 // OrganizationMutation represents an operation that mutates the Organization nodes in the graph.
 type OrganizationMutation struct {
 	config
@@ -65330,9 +65967,6 @@ type OrganizationMutation struct {
 	number_rules                            map[uuid.UUID]struct{}
 	removednumber_rules                     map[uuid.UUID]struct{}
 	clearednumber_rules                     bool
-	status_templates                        map[uuid.UUID]struct{}
-	removedstatus_templates                 map[uuid.UUID]struct{}
-	clearedstatus_templates                 bool
 	milestone_templates                     map[uuid.UUID]struct{}
 	removedmilestone_templates              map[uuid.UUID]struct{}
 	clearedmilestone_templates              bool
@@ -66737,60 +67371,6 @@ func (m *OrganizationMutation) ResetNumberRules() {
 	m.removednumber_rules = nil
 }
 
-// AddStatusTemplateIDs adds the "status_templates" edge to the StatusTemplate entity by ids.
-func (m *OrganizationMutation) AddStatusTemplateIDs(ids ...uuid.UUID) {
-	if m.status_templates == nil {
-		m.status_templates = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.status_templates[ids[i]] = struct{}{}
-	}
-}
-
-// ClearStatusTemplates clears the "status_templates" edge to the StatusTemplate entity.
-func (m *OrganizationMutation) ClearStatusTemplates() {
-	m.clearedstatus_templates = true
-}
-
-// StatusTemplatesCleared reports if the "status_templates" edge to the StatusTemplate entity was cleared.
-func (m *OrganizationMutation) StatusTemplatesCleared() bool {
-	return m.clearedstatus_templates
-}
-
-// RemoveStatusTemplateIDs removes the "status_templates" edge to the StatusTemplate entity by IDs.
-func (m *OrganizationMutation) RemoveStatusTemplateIDs(ids ...uuid.UUID) {
-	if m.removedstatus_templates == nil {
-		m.removedstatus_templates = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.status_templates, ids[i])
-		m.removedstatus_templates[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedStatusTemplates returns the removed IDs of the "status_templates" edge to the StatusTemplate entity.
-func (m *OrganizationMutation) RemovedStatusTemplatesIDs() (ids []uuid.UUID) {
-	for id := range m.removedstatus_templates {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// StatusTemplatesIDs returns the "status_templates" edge IDs in the mutation.
-func (m *OrganizationMutation) StatusTemplatesIDs() (ids []uuid.UUID) {
-	for id := range m.status_templates {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetStatusTemplates resets all changes to the "status_templates" edge.
-func (m *OrganizationMutation) ResetStatusTemplates() {
-	m.status_templates = nil
-	m.clearedstatus_templates = false
-	m.removedstatus_templates = nil
-}
-
 // AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by ids.
 func (m *OrganizationMutation) AddMilestoneTemplateIDs(ids ...uuid.UUID) {
 	if m.milestone_templates == nil {
@@ -68047,7 +68627,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -68098,9 +68678,6 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.number_rules != nil {
 		edges = append(edges, organization.EdgeNumberRules)
-	}
-	if m.status_templates != nil {
-		edges = append(edges, organization.EdgeStatusTemplates)
 	}
 	if m.milestone_templates != nil {
 		edges = append(edges, organization.EdgeMilestoneTemplates)
@@ -68263,12 +68840,6 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeStatusTemplates:
-		ids := make([]ent.Value, 0, len(m.status_templates))
-		for id := range m.status_templates {
-			ids = append(ids, id)
-		}
-		return ids
 	case organization.EdgeMilestoneTemplates:
 		ids := make([]ent.Value, 0, len(m.milestone_templates))
 		for id := range m.milestone_templates {
@@ -68383,7 +68954,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -68431,9 +69002,6 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removednumber_rules != nil {
 		edges = append(edges, organization.EdgeNumberRules)
-	}
-	if m.removedstatus_templates != nil {
-		edges = append(edges, organization.EdgeStatusTemplates)
 	}
 	if m.removedmilestone_templates != nil {
 		edges = append(edges, organization.EdgeMilestoneTemplates)
@@ -68592,12 +69160,6 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeStatusTemplates:
-		ids := make([]ent.Value, 0, len(m.removedstatus_templates))
-		for id := range m.removedstatus_templates {
-			ids = append(ids, id)
-		}
-		return ids
 	case organization.EdgeMilestoneTemplates:
 		ids := make([]ent.Value, 0, len(m.removedmilestone_templates))
 		for id := range m.removedmilestone_templates {
@@ -68712,7 +69274,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -68763,9 +69325,6 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearednumber_rules {
 		edges = append(edges, organization.EdgeNumberRules)
-	}
-	if m.clearedstatus_templates {
-		edges = append(edges, organization.EdgeStatusTemplates)
 	}
 	if m.clearedmilestone_templates {
 		edges = append(edges, organization.EdgeMilestoneTemplates)
@@ -68862,8 +69421,6 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedshipping_lines
 	case organization.EdgeNumberRules:
 		return m.clearednumber_rules
-	case organization.EdgeStatusTemplates:
-		return m.clearedstatus_templates
 	case organization.EdgeMilestoneTemplates:
 		return m.clearedmilestone_templates
 	case organization.EdgeOrders:
@@ -68969,9 +69526,6 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeNumberRules:
 		m.ResetNumberRules()
-		return nil
-	case organization.EdgeStatusTemplates:
-		m.ResetStatusTemplates()
 		return nil
 	case organization.EdgeMilestoneTemplates:
 		m.ResetMilestoneTemplates()
@@ -89893,1980 +90447,6 @@ func (m *ShippingLineContainerPrefixMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ShippingLineContainerPrefix edge %s", name)
-}
-
-// StatusTemplateMutation represents an operation that mutates the StatusTemplate nodes in the graph.
-type StatusTemplateMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	code                *string
-	name                *string
-	business_type       *statustemplate.BusinessType
-	version             *int
-	addversion          *int
-	is_default          *bool
-	published_at        *time.Time
-	enabled             *bool
-	clearedFields       map[string]struct{}
-	organization        *uuid.UUID
-	clearedorganization bool
-	items               map[uuid.UUID]struct{}
-	removeditems        map[uuid.UUID]struct{}
-	cleareditems        bool
-	orders              map[uuid.UUID]struct{}
-	removedorders       map[uuid.UUID]struct{}
-	clearedorders       bool
-	done                bool
-	oldValue            func(context.Context) (*StatusTemplate, error)
-	predicates          []predicate.StatusTemplate
-}
-
-var _ ent.Mutation = (*StatusTemplateMutation)(nil)
-
-// statustemplateOption allows management of the mutation configuration using functional options.
-type statustemplateOption func(*StatusTemplateMutation)
-
-// newStatusTemplateMutation creates new mutation for the StatusTemplate entity.
-func newStatusTemplateMutation(c config, op Op, opts ...statustemplateOption) *StatusTemplateMutation {
-	m := &StatusTemplateMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeStatusTemplate,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withStatusTemplateID sets the ID field of the mutation.
-func withStatusTemplateID(id uuid.UUID) statustemplateOption {
-	return func(m *StatusTemplateMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *StatusTemplate
-		)
-		m.oldValue = func(ctx context.Context) (*StatusTemplate, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().StatusTemplate.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withStatusTemplate sets the old StatusTemplate of the mutation.
-func withStatusTemplate(node *StatusTemplate) statustemplateOption {
-	return func(m *StatusTemplateMutation) {
-		m.oldValue = func(context.Context) (*StatusTemplate, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m StatusTemplateMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m StatusTemplateMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of StatusTemplate entities.
-func (m *StatusTemplateMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *StatusTemplateMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *StatusTemplateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().StatusTemplate.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *StatusTemplateMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *StatusTemplateMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *StatusTemplateMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *StatusTemplateMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *StatusTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *StatusTemplateMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (m *StatusTemplateMutation) SetOrganizationID(u uuid.UUID) {
-	m.organization = &u
-}
-
-// OrganizationID returns the value of the "organization_id" field in the mutation.
-func (m *StatusTemplateMutation) OrganizationID() (r uuid.UUID, exists bool) {
-	v := m.organization
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOrganizationID returns the old "organization_id" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
-	}
-	return oldValue.OrganizationID, nil
-}
-
-// ResetOrganizationID resets all changes to the "organization_id" field.
-func (m *StatusTemplateMutation) ResetOrganizationID() {
-	m.organization = nil
-}
-
-// SetCode sets the "code" field.
-func (m *StatusTemplateMutation) SetCode(s string) {
-	m.code = &s
-}
-
-// Code returns the value of the "code" field in the mutation.
-func (m *StatusTemplateMutation) Code() (r string, exists bool) {
-	v := m.code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCode returns the old "code" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldCode(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCode: %w", err)
-	}
-	return oldValue.Code, nil
-}
-
-// ResetCode resets all changes to the "code" field.
-func (m *StatusTemplateMutation) ResetCode() {
-	m.code = nil
-}
-
-// SetName sets the "name" field.
-func (m *StatusTemplateMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *StatusTemplateMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *StatusTemplateMutation) ResetName() {
-	m.name = nil
-}
-
-// SetBusinessType sets the "business_type" field.
-func (m *StatusTemplateMutation) SetBusinessType(st statustemplate.BusinessType) {
-	m.business_type = &st
-}
-
-// BusinessType returns the value of the "business_type" field in the mutation.
-func (m *StatusTemplateMutation) BusinessType() (r statustemplate.BusinessType, exists bool) {
-	v := m.business_type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBusinessType returns the old "business_type" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldBusinessType(ctx context.Context) (v statustemplate.BusinessType, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBusinessType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
-	}
-	return oldValue.BusinessType, nil
-}
-
-// ResetBusinessType resets all changes to the "business_type" field.
-func (m *StatusTemplateMutation) ResetBusinessType() {
-	m.business_type = nil
-}
-
-// SetVersion sets the "version" field.
-func (m *StatusTemplateMutation) SetVersion(i int) {
-	m.version = &i
-	m.addversion = nil
-}
-
-// Version returns the value of the "version" field in the mutation.
-func (m *StatusTemplateMutation) Version() (r int, exists bool) {
-	v := m.version
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldVersion returns the old "version" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldVersion(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVersion requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
-	}
-	return oldValue.Version, nil
-}
-
-// AddVersion adds i to the "version" field.
-func (m *StatusTemplateMutation) AddVersion(i int) {
-	if m.addversion != nil {
-		*m.addversion += i
-	} else {
-		m.addversion = &i
-	}
-}
-
-// AddedVersion returns the value that was added to the "version" field in this mutation.
-func (m *StatusTemplateMutation) AddedVersion() (r int, exists bool) {
-	v := m.addversion
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetVersion resets all changes to the "version" field.
-func (m *StatusTemplateMutation) ResetVersion() {
-	m.version = nil
-	m.addversion = nil
-}
-
-// SetIsDefault sets the "is_default" field.
-func (m *StatusTemplateMutation) SetIsDefault(b bool) {
-	m.is_default = &b
-}
-
-// IsDefault returns the value of the "is_default" field in the mutation.
-func (m *StatusTemplateMutation) IsDefault() (r bool, exists bool) {
-	v := m.is_default
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsDefault returns the old "is_default" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsDefault requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
-	}
-	return oldValue.IsDefault, nil
-}
-
-// ResetIsDefault resets all changes to the "is_default" field.
-func (m *StatusTemplateMutation) ResetIsDefault() {
-	m.is_default = nil
-}
-
-// SetPublishedAt sets the "published_at" field.
-func (m *StatusTemplateMutation) SetPublishedAt(t time.Time) {
-	m.published_at = &t
-}
-
-// PublishedAt returns the value of the "published_at" field in the mutation.
-func (m *StatusTemplateMutation) PublishedAt() (r time.Time, exists bool) {
-	v := m.published_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPublishedAt returns the old "published_at" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPublishedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPublishedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPublishedAt: %w", err)
-	}
-	return oldValue.PublishedAt, nil
-}
-
-// ClearPublishedAt clears the value of the "published_at" field.
-func (m *StatusTemplateMutation) ClearPublishedAt() {
-	m.published_at = nil
-	m.clearedFields[statustemplate.FieldPublishedAt] = struct{}{}
-}
-
-// PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
-func (m *StatusTemplateMutation) PublishedAtCleared() bool {
-	_, ok := m.clearedFields[statustemplate.FieldPublishedAt]
-	return ok
-}
-
-// ResetPublishedAt resets all changes to the "published_at" field.
-func (m *StatusTemplateMutation) ResetPublishedAt() {
-	m.published_at = nil
-	delete(m.clearedFields, statustemplate.FieldPublishedAt)
-}
-
-// SetEnabled sets the "enabled" field.
-func (m *StatusTemplateMutation) SetEnabled(b bool) {
-	m.enabled = &b
-}
-
-// Enabled returns the value of the "enabled" field in the mutation.
-func (m *StatusTemplateMutation) Enabled() (r bool, exists bool) {
-	v := m.enabled
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnabled returns the old "enabled" field's value of the StatusTemplate entity.
-// If the StatusTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateMutation) OldEnabled(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnabled requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
-	}
-	return oldValue.Enabled, nil
-}
-
-// ResetEnabled resets all changes to the "enabled" field.
-func (m *StatusTemplateMutation) ResetEnabled() {
-	m.enabled = nil
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (m *StatusTemplateMutation) ClearOrganization() {
-	m.clearedorganization = true
-	m.clearedFields[statustemplate.FieldOrganizationID] = struct{}{}
-}
-
-// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
-func (m *StatusTemplateMutation) OrganizationCleared() bool {
-	return m.clearedorganization
-}
-
-// OrganizationIDs returns the "organization" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OrganizationID instead. It exists only for internal usage by the builders.
-func (m *StatusTemplateMutation) OrganizationIDs() (ids []uuid.UUID) {
-	if id := m.organization; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOrganization resets all changes to the "organization" edge.
-func (m *StatusTemplateMutation) ResetOrganization() {
-	m.organization = nil
-	m.clearedorganization = false
-}
-
-// AddItemIDs adds the "items" edge to the StatusTemplateItem entity by ids.
-func (m *StatusTemplateMutation) AddItemIDs(ids ...uuid.UUID) {
-	if m.items == nil {
-		m.items = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.items[ids[i]] = struct{}{}
-	}
-}
-
-// ClearItems clears the "items" edge to the StatusTemplateItem entity.
-func (m *StatusTemplateMutation) ClearItems() {
-	m.cleareditems = true
-}
-
-// ItemsCleared reports if the "items" edge to the StatusTemplateItem entity was cleared.
-func (m *StatusTemplateMutation) ItemsCleared() bool {
-	return m.cleareditems
-}
-
-// RemoveItemIDs removes the "items" edge to the StatusTemplateItem entity by IDs.
-func (m *StatusTemplateMutation) RemoveItemIDs(ids ...uuid.UUID) {
-	if m.removeditems == nil {
-		m.removeditems = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.items, ids[i])
-		m.removeditems[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedItems returns the removed IDs of the "items" edge to the StatusTemplateItem entity.
-func (m *StatusTemplateMutation) RemovedItemsIDs() (ids []uuid.UUID) {
-	for id := range m.removeditems {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ItemsIDs returns the "items" edge IDs in the mutation.
-func (m *StatusTemplateMutation) ItemsIDs() (ids []uuid.UUID) {
-	for id := range m.items {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetItems resets all changes to the "items" edge.
-func (m *StatusTemplateMutation) ResetItems() {
-	m.items = nil
-	m.cleareditems = false
-	m.removeditems = nil
-}
-
-// AddOrderIDs adds the "orders" edge to the Order entity by ids.
-func (m *StatusTemplateMutation) AddOrderIDs(ids ...uuid.UUID) {
-	if m.orders == nil {
-		m.orders = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.orders[ids[i]] = struct{}{}
-	}
-}
-
-// ClearOrders clears the "orders" edge to the Order entity.
-func (m *StatusTemplateMutation) ClearOrders() {
-	m.clearedorders = true
-}
-
-// OrdersCleared reports if the "orders" edge to the Order entity was cleared.
-func (m *StatusTemplateMutation) OrdersCleared() bool {
-	return m.clearedorders
-}
-
-// RemoveOrderIDs removes the "orders" edge to the Order entity by IDs.
-func (m *StatusTemplateMutation) RemoveOrderIDs(ids ...uuid.UUID) {
-	if m.removedorders == nil {
-		m.removedorders = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.orders, ids[i])
-		m.removedorders[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedOrders returns the removed IDs of the "orders" edge to the Order entity.
-func (m *StatusTemplateMutation) RemovedOrdersIDs() (ids []uuid.UUID) {
-	for id := range m.removedorders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// OrdersIDs returns the "orders" edge IDs in the mutation.
-func (m *StatusTemplateMutation) OrdersIDs() (ids []uuid.UUID) {
-	for id := range m.orders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetOrders resets all changes to the "orders" edge.
-func (m *StatusTemplateMutation) ResetOrders() {
-	m.orders = nil
-	m.clearedorders = false
-	m.removedorders = nil
-}
-
-// Where appends a list predicates to the StatusTemplateMutation builder.
-func (m *StatusTemplateMutation) Where(ps ...predicate.StatusTemplate) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the StatusTemplateMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *StatusTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.StatusTemplate, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *StatusTemplateMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *StatusTemplateMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (StatusTemplate).
-func (m *StatusTemplateMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *StatusTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.created_at != nil {
-		fields = append(fields, statustemplate.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, statustemplate.FieldUpdatedAt)
-	}
-	if m.organization != nil {
-		fields = append(fields, statustemplate.FieldOrganizationID)
-	}
-	if m.code != nil {
-		fields = append(fields, statustemplate.FieldCode)
-	}
-	if m.name != nil {
-		fields = append(fields, statustemplate.FieldName)
-	}
-	if m.business_type != nil {
-		fields = append(fields, statustemplate.FieldBusinessType)
-	}
-	if m.version != nil {
-		fields = append(fields, statustemplate.FieldVersion)
-	}
-	if m.is_default != nil {
-		fields = append(fields, statustemplate.FieldIsDefault)
-	}
-	if m.published_at != nil {
-		fields = append(fields, statustemplate.FieldPublishedAt)
-	}
-	if m.enabled != nil {
-		fields = append(fields, statustemplate.FieldEnabled)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *StatusTemplateMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case statustemplate.FieldCreatedAt:
-		return m.CreatedAt()
-	case statustemplate.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case statustemplate.FieldOrganizationID:
-		return m.OrganizationID()
-	case statustemplate.FieldCode:
-		return m.Code()
-	case statustemplate.FieldName:
-		return m.Name()
-	case statustemplate.FieldBusinessType:
-		return m.BusinessType()
-	case statustemplate.FieldVersion:
-		return m.Version()
-	case statustemplate.FieldIsDefault:
-		return m.IsDefault()
-	case statustemplate.FieldPublishedAt:
-		return m.PublishedAt()
-	case statustemplate.FieldEnabled:
-		return m.Enabled()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *StatusTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case statustemplate.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case statustemplate.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case statustemplate.FieldOrganizationID:
-		return m.OldOrganizationID(ctx)
-	case statustemplate.FieldCode:
-		return m.OldCode(ctx)
-	case statustemplate.FieldName:
-		return m.OldName(ctx)
-	case statustemplate.FieldBusinessType:
-		return m.OldBusinessType(ctx)
-	case statustemplate.FieldVersion:
-		return m.OldVersion(ctx)
-	case statustemplate.FieldIsDefault:
-		return m.OldIsDefault(ctx)
-	case statustemplate.FieldPublishedAt:
-		return m.OldPublishedAt(ctx)
-	case statustemplate.FieldEnabled:
-		return m.OldEnabled(ctx)
-	}
-	return nil, fmt.Errorf("unknown StatusTemplate field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *StatusTemplateMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case statustemplate.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case statustemplate.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case statustemplate.FieldOrganizationID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOrganizationID(v)
-		return nil
-	case statustemplate.FieldCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCode(v)
-		return nil
-	case statustemplate.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case statustemplate.FieldBusinessType:
-		v, ok := value.(statustemplate.BusinessType)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBusinessType(v)
-		return nil
-	case statustemplate.FieldVersion:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetVersion(v)
-		return nil
-	case statustemplate.FieldIsDefault:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsDefault(v)
-		return nil
-	case statustemplate.FieldPublishedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPublishedAt(v)
-		return nil
-	case statustemplate.FieldEnabled:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnabled(v)
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *StatusTemplateMutation) AddedFields() []string {
-	var fields []string
-	if m.addversion != nil {
-		fields = append(fields, statustemplate.FieldVersion)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *StatusTemplateMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case statustemplate.FieldVersion:
-		return m.AddedVersion()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *StatusTemplateMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case statustemplate.FieldVersion:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddVersion(v)
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *StatusTemplateMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(statustemplate.FieldPublishedAt) {
-		fields = append(fields, statustemplate.FieldPublishedAt)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *StatusTemplateMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *StatusTemplateMutation) ClearField(name string) error {
-	switch name {
-	case statustemplate.FieldPublishedAt:
-		m.ClearPublishedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *StatusTemplateMutation) ResetField(name string) error {
-	switch name {
-	case statustemplate.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case statustemplate.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case statustemplate.FieldOrganizationID:
-		m.ResetOrganizationID()
-		return nil
-	case statustemplate.FieldCode:
-		m.ResetCode()
-		return nil
-	case statustemplate.FieldName:
-		m.ResetName()
-		return nil
-	case statustemplate.FieldBusinessType:
-		m.ResetBusinessType()
-		return nil
-	case statustemplate.FieldVersion:
-		m.ResetVersion()
-		return nil
-	case statustemplate.FieldIsDefault:
-		m.ResetIsDefault()
-		return nil
-	case statustemplate.FieldPublishedAt:
-		m.ResetPublishedAt()
-		return nil
-	case statustemplate.FieldEnabled:
-		m.ResetEnabled()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *StatusTemplateMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.organization != nil {
-		edges = append(edges, statustemplate.EdgeOrganization)
-	}
-	if m.items != nil {
-		edges = append(edges, statustemplate.EdgeItems)
-	}
-	if m.orders != nil {
-		edges = append(edges, statustemplate.EdgeOrders)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *StatusTemplateMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case statustemplate.EdgeOrganization:
-		if id := m.organization; id != nil {
-			return []ent.Value{*id}
-		}
-	case statustemplate.EdgeItems:
-		ids := make([]ent.Value, 0, len(m.items))
-		for id := range m.items {
-			ids = append(ids, id)
-		}
-		return ids
-	case statustemplate.EdgeOrders:
-		ids := make([]ent.Value, 0, len(m.orders))
-		for id := range m.orders {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *StatusTemplateMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.removeditems != nil {
-		edges = append(edges, statustemplate.EdgeItems)
-	}
-	if m.removedorders != nil {
-		edges = append(edges, statustemplate.EdgeOrders)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *StatusTemplateMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case statustemplate.EdgeItems:
-		ids := make([]ent.Value, 0, len(m.removeditems))
-		for id := range m.removeditems {
-			ids = append(ids, id)
-		}
-		return ids
-	case statustemplate.EdgeOrders:
-		ids := make([]ent.Value, 0, len(m.removedorders))
-		for id := range m.removedorders {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *StatusTemplateMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.clearedorganization {
-		edges = append(edges, statustemplate.EdgeOrganization)
-	}
-	if m.cleareditems {
-		edges = append(edges, statustemplate.EdgeItems)
-	}
-	if m.clearedorders {
-		edges = append(edges, statustemplate.EdgeOrders)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *StatusTemplateMutation) EdgeCleared(name string) bool {
-	switch name {
-	case statustemplate.EdgeOrganization:
-		return m.clearedorganization
-	case statustemplate.EdgeItems:
-		return m.cleareditems
-	case statustemplate.EdgeOrders:
-		return m.clearedorders
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *StatusTemplateMutation) ClearEdge(name string) error {
-	switch name {
-	case statustemplate.EdgeOrganization:
-		m.ClearOrganization()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *StatusTemplateMutation) ResetEdge(name string) error {
-	switch name {
-	case statustemplate.EdgeOrganization:
-		m.ResetOrganization()
-		return nil
-	case statustemplate.EdgeItems:
-		m.ResetItems()
-		return nil
-	case statustemplate.EdgeOrders:
-		m.ResetOrders()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplate edge %s", name)
-}
-
-// StatusTemplateItemMutation represents an operation that mutates the StatusTemplateItem nodes in the graph.
-type StatusTemplateItemMutation struct {
-	config
-	op              Op
-	typ             string
-	id              *uuid.UUID
-	created_at      *time.Time
-	updated_at      *time.Time
-	code            *string
-	label           *string
-	sort_order      *int
-	addsort_order   *int
-	enabled         *bool
-	color_token     *string
-	system          *bool
-	clearedFields   map[string]struct{}
-	template        *uuid.UUID
-	clearedtemplate bool
-	done            bool
-	oldValue        func(context.Context) (*StatusTemplateItem, error)
-	predicates      []predicate.StatusTemplateItem
-}
-
-var _ ent.Mutation = (*StatusTemplateItemMutation)(nil)
-
-// statustemplateitemOption allows management of the mutation configuration using functional options.
-type statustemplateitemOption func(*StatusTemplateItemMutation)
-
-// newStatusTemplateItemMutation creates new mutation for the StatusTemplateItem entity.
-func newStatusTemplateItemMutation(c config, op Op, opts ...statustemplateitemOption) *StatusTemplateItemMutation {
-	m := &StatusTemplateItemMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeStatusTemplateItem,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withStatusTemplateItemID sets the ID field of the mutation.
-func withStatusTemplateItemID(id uuid.UUID) statustemplateitemOption {
-	return func(m *StatusTemplateItemMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *StatusTemplateItem
-		)
-		m.oldValue = func(ctx context.Context) (*StatusTemplateItem, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().StatusTemplateItem.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withStatusTemplateItem sets the old StatusTemplateItem of the mutation.
-func withStatusTemplateItem(node *StatusTemplateItem) statustemplateitemOption {
-	return func(m *StatusTemplateItemMutation) {
-		m.oldValue = func(context.Context) (*StatusTemplateItem, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m StatusTemplateItemMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m StatusTemplateItemMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of StatusTemplateItem entities.
-func (m *StatusTemplateItemMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *StatusTemplateItemMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *StatusTemplateItemMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().StatusTemplateItem.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *StatusTemplateItemMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *StatusTemplateItemMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *StatusTemplateItemMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *StatusTemplateItemMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *StatusTemplateItemMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *StatusTemplateItemMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetTemplateID sets the "template_id" field.
-func (m *StatusTemplateItemMutation) SetTemplateID(u uuid.UUID) {
-	m.template = &u
-}
-
-// TemplateID returns the value of the "template_id" field in the mutation.
-func (m *StatusTemplateItemMutation) TemplateID() (r uuid.UUID, exists bool) {
-	v := m.template
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTemplateID returns the old "template_id" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldTemplateID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTemplateID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
-	}
-	return oldValue.TemplateID, nil
-}
-
-// ResetTemplateID resets all changes to the "template_id" field.
-func (m *StatusTemplateItemMutation) ResetTemplateID() {
-	m.template = nil
-}
-
-// SetCode sets the "code" field.
-func (m *StatusTemplateItemMutation) SetCode(s string) {
-	m.code = &s
-}
-
-// Code returns the value of the "code" field in the mutation.
-func (m *StatusTemplateItemMutation) Code() (r string, exists bool) {
-	v := m.code
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCode returns the old "code" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldCode(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCode: %w", err)
-	}
-	return oldValue.Code, nil
-}
-
-// ResetCode resets all changes to the "code" field.
-func (m *StatusTemplateItemMutation) ResetCode() {
-	m.code = nil
-}
-
-// SetLabel sets the "label" field.
-func (m *StatusTemplateItemMutation) SetLabel(s string) {
-	m.label = &s
-}
-
-// Label returns the value of the "label" field in the mutation.
-func (m *StatusTemplateItemMutation) Label() (r string, exists bool) {
-	v := m.label
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLabel returns the old "label" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldLabel(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLabel is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLabel requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLabel: %w", err)
-	}
-	return oldValue.Label, nil
-}
-
-// ResetLabel resets all changes to the "label" field.
-func (m *StatusTemplateItemMutation) ResetLabel() {
-	m.label = nil
-}
-
-// SetSortOrder sets the "sort_order" field.
-func (m *StatusTemplateItemMutation) SetSortOrder(i int) {
-	m.sort_order = &i
-	m.addsort_order = nil
-}
-
-// SortOrder returns the value of the "sort_order" field in the mutation.
-func (m *StatusTemplateItemMutation) SortOrder() (r int, exists bool) {
-	v := m.sort_order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSortOrder returns the old "sort_order" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldSortOrder(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSortOrder requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
-	}
-	return oldValue.SortOrder, nil
-}
-
-// AddSortOrder adds i to the "sort_order" field.
-func (m *StatusTemplateItemMutation) AddSortOrder(i int) {
-	if m.addsort_order != nil {
-		*m.addsort_order += i
-	} else {
-		m.addsort_order = &i
-	}
-}
-
-// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
-func (m *StatusTemplateItemMutation) AddedSortOrder() (r int, exists bool) {
-	v := m.addsort_order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetSortOrder resets all changes to the "sort_order" field.
-func (m *StatusTemplateItemMutation) ResetSortOrder() {
-	m.sort_order = nil
-	m.addsort_order = nil
-}
-
-// SetEnabled sets the "enabled" field.
-func (m *StatusTemplateItemMutation) SetEnabled(b bool) {
-	m.enabled = &b
-}
-
-// Enabled returns the value of the "enabled" field in the mutation.
-func (m *StatusTemplateItemMutation) Enabled() (r bool, exists bool) {
-	v := m.enabled
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEnabled returns the old "enabled" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldEnabled(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnabled requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
-	}
-	return oldValue.Enabled, nil
-}
-
-// ResetEnabled resets all changes to the "enabled" field.
-func (m *StatusTemplateItemMutation) ResetEnabled() {
-	m.enabled = nil
-}
-
-// SetColorToken sets the "color_token" field.
-func (m *StatusTemplateItemMutation) SetColorToken(s string) {
-	m.color_token = &s
-}
-
-// ColorToken returns the value of the "color_token" field in the mutation.
-func (m *StatusTemplateItemMutation) ColorToken() (r string, exists bool) {
-	v := m.color_token
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldColorToken returns the old "color_token" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldColorToken(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldColorToken is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldColorToken requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldColorToken: %w", err)
-	}
-	return oldValue.ColorToken, nil
-}
-
-// ClearColorToken clears the value of the "color_token" field.
-func (m *StatusTemplateItemMutation) ClearColorToken() {
-	m.color_token = nil
-	m.clearedFields[statustemplateitem.FieldColorToken] = struct{}{}
-}
-
-// ColorTokenCleared returns if the "color_token" field was cleared in this mutation.
-func (m *StatusTemplateItemMutation) ColorTokenCleared() bool {
-	_, ok := m.clearedFields[statustemplateitem.FieldColorToken]
-	return ok
-}
-
-// ResetColorToken resets all changes to the "color_token" field.
-func (m *StatusTemplateItemMutation) ResetColorToken() {
-	m.color_token = nil
-	delete(m.clearedFields, statustemplateitem.FieldColorToken)
-}
-
-// SetSystem sets the "system" field.
-func (m *StatusTemplateItemMutation) SetSystem(b bool) {
-	m.system = &b
-}
-
-// System returns the value of the "system" field in the mutation.
-func (m *StatusTemplateItemMutation) System() (r bool, exists bool) {
-	v := m.system
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSystem returns the old "system" field's value of the StatusTemplateItem entity.
-// If the StatusTemplateItem object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StatusTemplateItemMutation) OldSystem(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSystem is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSystem requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSystem: %w", err)
-	}
-	return oldValue.System, nil
-}
-
-// ResetSystem resets all changes to the "system" field.
-func (m *StatusTemplateItemMutation) ResetSystem() {
-	m.system = nil
-}
-
-// ClearTemplate clears the "template" edge to the StatusTemplate entity.
-func (m *StatusTemplateItemMutation) ClearTemplate() {
-	m.clearedtemplate = true
-	m.clearedFields[statustemplateitem.FieldTemplateID] = struct{}{}
-}
-
-// TemplateCleared reports if the "template" edge to the StatusTemplate entity was cleared.
-func (m *StatusTemplateItemMutation) TemplateCleared() bool {
-	return m.clearedtemplate
-}
-
-// TemplateIDs returns the "template" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// TemplateID instead. It exists only for internal usage by the builders.
-func (m *StatusTemplateItemMutation) TemplateIDs() (ids []uuid.UUID) {
-	if id := m.template; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetTemplate resets all changes to the "template" edge.
-func (m *StatusTemplateItemMutation) ResetTemplate() {
-	m.template = nil
-	m.clearedtemplate = false
-}
-
-// Where appends a list predicates to the StatusTemplateItemMutation builder.
-func (m *StatusTemplateItemMutation) Where(ps ...predicate.StatusTemplateItem) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the StatusTemplateItemMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *StatusTemplateItemMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.StatusTemplateItem, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *StatusTemplateItemMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *StatusTemplateItemMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (StatusTemplateItem).
-func (m *StatusTemplateItemMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *StatusTemplateItemMutation) Fields() []string {
-	fields := make([]string, 0, 9)
-	if m.created_at != nil {
-		fields = append(fields, statustemplateitem.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, statustemplateitem.FieldUpdatedAt)
-	}
-	if m.template != nil {
-		fields = append(fields, statustemplateitem.FieldTemplateID)
-	}
-	if m.code != nil {
-		fields = append(fields, statustemplateitem.FieldCode)
-	}
-	if m.label != nil {
-		fields = append(fields, statustemplateitem.FieldLabel)
-	}
-	if m.sort_order != nil {
-		fields = append(fields, statustemplateitem.FieldSortOrder)
-	}
-	if m.enabled != nil {
-		fields = append(fields, statustemplateitem.FieldEnabled)
-	}
-	if m.color_token != nil {
-		fields = append(fields, statustemplateitem.FieldColorToken)
-	}
-	if m.system != nil {
-		fields = append(fields, statustemplateitem.FieldSystem)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *StatusTemplateItemMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case statustemplateitem.FieldCreatedAt:
-		return m.CreatedAt()
-	case statustemplateitem.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case statustemplateitem.FieldTemplateID:
-		return m.TemplateID()
-	case statustemplateitem.FieldCode:
-		return m.Code()
-	case statustemplateitem.FieldLabel:
-		return m.Label()
-	case statustemplateitem.FieldSortOrder:
-		return m.SortOrder()
-	case statustemplateitem.FieldEnabled:
-		return m.Enabled()
-	case statustemplateitem.FieldColorToken:
-		return m.ColorToken()
-	case statustemplateitem.FieldSystem:
-		return m.System()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *StatusTemplateItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case statustemplateitem.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case statustemplateitem.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case statustemplateitem.FieldTemplateID:
-		return m.OldTemplateID(ctx)
-	case statustemplateitem.FieldCode:
-		return m.OldCode(ctx)
-	case statustemplateitem.FieldLabel:
-		return m.OldLabel(ctx)
-	case statustemplateitem.FieldSortOrder:
-		return m.OldSortOrder(ctx)
-	case statustemplateitem.FieldEnabled:
-		return m.OldEnabled(ctx)
-	case statustemplateitem.FieldColorToken:
-		return m.OldColorToken(ctx)
-	case statustemplateitem.FieldSystem:
-		return m.OldSystem(ctx)
-	}
-	return nil, fmt.Errorf("unknown StatusTemplateItem field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *StatusTemplateItemMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case statustemplateitem.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case statustemplateitem.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case statustemplateitem.FieldTemplateID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTemplateID(v)
-		return nil
-	case statustemplateitem.FieldCode:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCode(v)
-		return nil
-	case statustemplateitem.FieldLabel:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLabel(v)
-		return nil
-	case statustemplateitem.FieldSortOrder:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSortOrder(v)
-		return nil
-	case statustemplateitem.FieldEnabled:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEnabled(v)
-		return nil
-	case statustemplateitem.FieldColorToken:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetColorToken(v)
-		return nil
-	case statustemplateitem.FieldSystem:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSystem(v)
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *StatusTemplateItemMutation) AddedFields() []string {
-	var fields []string
-	if m.addsort_order != nil {
-		fields = append(fields, statustemplateitem.FieldSortOrder)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *StatusTemplateItemMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case statustemplateitem.FieldSortOrder:
-		return m.AddedSortOrder()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *StatusTemplateItemMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case statustemplateitem.FieldSortOrder:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSortOrder(v)
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *StatusTemplateItemMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(statustemplateitem.FieldColorToken) {
-		fields = append(fields, statustemplateitem.FieldColorToken)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *StatusTemplateItemMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *StatusTemplateItemMutation) ClearField(name string) error {
-	switch name {
-	case statustemplateitem.FieldColorToken:
-		m.ClearColorToken()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *StatusTemplateItemMutation) ResetField(name string) error {
-	switch name {
-	case statustemplateitem.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case statustemplateitem.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case statustemplateitem.FieldTemplateID:
-		m.ResetTemplateID()
-		return nil
-	case statustemplateitem.FieldCode:
-		m.ResetCode()
-		return nil
-	case statustemplateitem.FieldLabel:
-		m.ResetLabel()
-		return nil
-	case statustemplateitem.FieldSortOrder:
-		m.ResetSortOrder()
-		return nil
-	case statustemplateitem.FieldEnabled:
-		m.ResetEnabled()
-		return nil
-	case statustemplateitem.FieldColorToken:
-		m.ResetColorToken()
-		return nil
-	case statustemplateitem.FieldSystem:
-		m.ResetSystem()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *StatusTemplateItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.template != nil {
-		edges = append(edges, statustemplateitem.EdgeTemplate)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *StatusTemplateItemMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case statustemplateitem.EdgeTemplate:
-		if id := m.template; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *StatusTemplateItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *StatusTemplateItemMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *StatusTemplateItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedtemplate {
-		edges = append(edges, statustemplateitem.EdgeTemplate)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *StatusTemplateItemMutation) EdgeCleared(name string) bool {
-	switch name {
-	case statustemplateitem.EdgeTemplate:
-		return m.clearedtemplate
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *StatusTemplateItemMutation) ClearEdge(name string) error {
-	switch name {
-	case statustemplateitem.EdgeTemplate:
-		m.ClearTemplate()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *StatusTemplateItemMutation) ResetEdge(name string) error {
-	switch name {
-	case statustemplateitem.EdgeTemplate:
-		m.ResetTemplate()
-		return nil
-	}
-	return fmt.Errorf("unknown StatusTemplateItem edge %s", name)
 }
 
 // TaxableServiceMutation represents an operation that mutates the TaxableService nodes in the graph.

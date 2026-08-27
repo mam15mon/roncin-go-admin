@@ -25,16 +25,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 )
 
 // OrderQuery is the builder for querying Order entities.
@@ -46,8 +45,7 @@ type OrderQuery struct {
 	predicates                       []predicate.Order
 	withOrganization                 *OrganizationQuery
 	withCustomer                     *PartnerQuery
-	withStatusTemplate               *StatusTemplateQuery
-	withStatusLogs                   *OrderStatusLogQuery
+	withLifecycleEvents              *OrderLifecycleEventQuery
 	withServiceTypes                 *OrderServiceTypeQuery
 	withCargoCategories              *OrderCargoCategoryQuery
 	withMilestones                   *OrderMilestoneQuery
@@ -144,9 +142,9 @@ func (_q *OrderQuery) QueryCustomer() *PartnerQuery {
 	return query
 }
 
-// QueryStatusTemplate chains the current query on the "status_template" edge.
-func (_q *OrderQuery) QueryStatusTemplate() *StatusTemplateQuery {
-	query := (&StatusTemplateClient{config: _q.config}).Query()
+// QueryLifecycleEvents chains the current query on the "lifecycle_events" edge.
+func (_q *OrderQuery) QueryLifecycleEvents() *OrderLifecycleEventQuery {
+	query := (&OrderLifecycleEventClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -157,30 +155,8 @@ func (_q *OrderQuery) QueryStatusTemplate() *StatusTemplateQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, order.StatusTemplateTable, order.StatusTemplateColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryStatusLogs chains the current query on the "status_logs" edge.
-func (_q *OrderQuery) QueryStatusLogs() *OrderStatusLogQuery {
-	query := (&OrderStatusLogClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(orderstatuslog.Table, orderstatuslog.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.StatusLogsTable, order.StatusLogsColumn),
+			sqlgraph.To(orderlifecycleevent.Table, orderlifecycleevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.LifecycleEventsTable, order.LifecycleEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -712,8 +688,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		predicates:                       append([]predicate.Order{}, _q.predicates...),
 		withOrganization:                 _q.withOrganization.Clone(),
 		withCustomer:                     _q.withCustomer.Clone(),
-		withStatusTemplate:               _q.withStatusTemplate.Clone(),
-		withStatusLogs:                   _q.withStatusLogs.Clone(),
+		withLifecycleEvents:              _q.withLifecycleEvents.Clone(),
 		withServiceTypes:                 _q.withServiceTypes.Clone(),
 		withCargoCategories:              _q.withCargoCategories.Clone(),
 		withMilestones:                   _q.withMilestones.Clone(),
@@ -757,25 +732,14 @@ func (_q *OrderQuery) WithCustomer(opts ...func(*PartnerQuery)) *OrderQuery {
 	return _q
 }
 
-// WithStatusTemplate tells the query-builder to eager-load the nodes that are connected to
-// the "status_template" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithStatusTemplate(opts ...func(*StatusTemplateQuery)) *OrderQuery {
-	query := (&StatusTemplateClient{config: _q.config}).Query()
+// WithLifecycleEvents tells the query-builder to eager-load the nodes that are connected to
+// the "lifecycle_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithLifecycleEvents(opts ...func(*OrderLifecycleEventQuery)) *OrderQuery {
+	query := (&OrderLifecycleEventClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withStatusTemplate = query
-	return _q
-}
-
-// WithStatusLogs tells the query-builder to eager-load the nodes that are connected to
-// the "status_logs" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithStatusLogs(opts ...func(*OrderStatusLogQuery)) *OrderQuery {
-	query := (&OrderStatusLogClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withStatusLogs = query
+	_q.withLifecycleEvents = query
 	return _q
 }
 
@@ -1022,11 +986,10 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [19]bool{
+		loadedTypes = [18]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
-			_q.withStatusTemplate != nil,
-			_q.withStatusLogs != nil,
+			_q.withLifecycleEvents != nil,
 			_q.withServiceTypes != nil,
 			_q.withCargoCategories != nil,
 			_q.withMilestones != nil,
@@ -1077,16 +1040,10 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			return nil, err
 		}
 	}
-	if query := _q.withStatusTemplate; query != nil {
-		if err := _q.loadStatusTemplate(ctx, query, nodes, nil,
-			func(n *Order, e *StatusTemplate) { n.Edges.StatusTemplate = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withStatusLogs; query != nil {
-		if err := _q.loadStatusLogs(ctx, query, nodes,
-			func(n *Order) { n.Edges.StatusLogs = []*OrderStatusLog{} },
-			func(n *Order, e *OrderStatusLog) { n.Edges.StatusLogs = append(n.Edges.StatusLogs, e) }); err != nil {
+	if query := _q.withLifecycleEvents; query != nil {
+		if err := _q.loadLifecycleEvents(ctx, query, nodes,
+			func(n *Order) { n.Edges.LifecycleEvents = []*OrderLifecycleEvent{} },
+			func(n *Order, e *OrderLifecycleEvent) { n.Edges.LifecycleEvents = append(n.Edges.LifecycleEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1264,36 +1221,7 @@ func (_q *OrderQuery) loadCustomer(ctx context.Context, query *PartnerQuery, nod
 	}
 	return nil
 }
-func (_q *OrderQuery) loadStatusTemplate(ctx context.Context, query *StatusTemplateQuery, nodes []*Order, init func(*Order), assign func(*Order, *StatusTemplate)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Order)
-	for i := range nodes {
-		fk := nodes[i].StatusTemplateID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(statustemplate.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "status_template_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *OrderQuery) loadStatusLogs(ctx context.Context, query *OrderStatusLogQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderStatusLog)) error {
+func (_q *OrderQuery) loadLifecycleEvents(ctx context.Context, query *OrderLifecycleEventQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderLifecycleEvent)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Order)
 	for i := range nodes {
@@ -1304,10 +1232,10 @@ func (_q *OrderQuery) loadStatusLogs(ctx context.Context, query *OrderStatusLogQ
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(orderstatuslog.FieldOrderID)
+		query.ctx.AppendFieldOnce(orderlifecycleevent.FieldOrderID)
 	}
-	query.Where(predicate.OrderStatusLog(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(order.StatusLogsColumn), fks...))
+	query.Where(predicate.OrderLifecycleEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.LifecycleEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -1807,9 +1735,6 @@ func (_q *OrderQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withCustomer != nil {
 			_spec.Node.AddColumnOnce(order.FieldCustomerID)
-		}
-		if _q.withStatusTemplate != nil {
-			_spec.Node.AddColumnOnce(order.FieldStatusTemplateID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

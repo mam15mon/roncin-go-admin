@@ -139,35 +139,6 @@ service MasterDataService {
     };
   }
 
-  rpc ListStatusTemplates(ListStatusTemplatesRequest) returns (ListStatusTemplatesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/master-data/status-templates"};
-  }
-
-  rpc CreateStatusTemplate(CreateStatusTemplateRequest) returns (CreateStatusTemplateResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.create" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/master-data/status-templates"
-      body: "*"
-    };
-  }
-
-  rpc PublishStatusTemplate(PublishStatusTemplateRequest) returns (PublishStatusTemplateResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.publish" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/master-data/status-templates/{id}/publish"
-      body: "*"
-    };
-  }
-
-  rpc SetDefaultStatusTemplate(SetDefaultStatusTemplateRequest) returns (SetDefaultStatusTemplateResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.status_template.set_default" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/master-data/status-templates/{id}/set-default"
-      body: "*"
-    };
-  }
-
   rpc ListMilestoneTemplates(ListMilestoneTemplatesRequest) returns (ListMilestoneTemplatesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.milestone_template.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/master-data/milestone-templates"};
@@ -800,94 +771,6 @@ message UpdateNumberRuleResponse {
   int32 code = 2;
   string message = 3;
   NumberRule data = 4;
-  string trace_id = 5;
-}
-
-message StatusTemplateItemInput {
-  string code = 1 [(google.api.field_behavior) = REQUIRED];
-  string label = 2 [(google.api.field_behavior) = REQUIRED];
-  int32 sort_order = 3;
-  optional bool enabled = 4;
-  optional string color_token = 5;
-  bool system = 6;
-}
-
-message CreateStatusTemplateRequest {
-  string code = 1 [(google.api.field_behavior) = REQUIRED];
-  string name = 2 [(google.api.field_behavior) = REQUIRED];
-  BusinessType business_type = 3 [(google.api.field_behavior) = REQUIRED];
-  int32 version = 4 [(google.api.field_behavior) = REQUIRED];
-  repeated StatusTemplateItemInput items = 5 [(google.api.field_behavior) = REQUIRED];
-}
-
-message ListStatusTemplatesRequest {
-  BusinessType business_type = 1;
-  optional bool published = 2;
-}
-
-message PublishStatusTemplateRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-  bool is_default = 2;
-}
-
-message SetDefaultStatusTemplateRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-message StatusTemplateItem {
-  string id = 1;
-  string code = 2;
-  string label = 3;
-  int32 sort_order = 4;
-  bool enabled = 5;
-  optional string color_token = 6;
-  bool system = 7;
-}
-
-message StatusTemplate {
-  string id = 1;
-  string organization_id = 2;
-  string code = 3;
-  string name = 4;
-  BusinessType business_type = 5;
-  int32 version = 6;
-  bool is_default = 7;
-  optional string published_at = 8;
-  bool enabled = 9;
-  repeated StatusTemplateItem items = 10;
-  string created_at = 11;
-  string updated_at = 12;
-}
-
-message ListStatusTemplatesResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated StatusTemplate data = 4;
-  string trace_id = 5;
-}
-
-message CreateStatusTemplateResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  StatusTemplate data = 4;
-  string trace_id = 5;
-}
-
-message PublishStatusTemplateResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  StatusTemplate data = 4;
-  string trace_id = 5;
-}
-
-message SetDefaultStatusTemplateResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  StatusTemplate data = 4;
   string trace_id = 5;
 }
 

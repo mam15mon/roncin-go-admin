@@ -129,7 +129,7 @@ func readFiles(dir string) ([]file, error) {
 
 func ensureRevisionTable(ctx context.Context, conn *sql.Conn) error {
 	var exists bool
-	if err := conn.QueryRowContext(ctx, "SELECT to_regclass('schema_migrations') IS NOT NULL").Scan(&exists); err != nil {
+	if err := conn.QueryRowContext(ctx, "SELECT to_regclass(current_schema() || '.schema_migrations') IS NOT NULL").Scan(&exists); err != nil {
 		return fmt.Errorf("检查迁移记录表: %w", err)
 	}
 	if exists {

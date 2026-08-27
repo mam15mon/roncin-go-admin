@@ -18,6 +18,7 @@ import {
   Col,
   Dropdown,
   Empty,
+  Input,
   type MenuProps,
   Select,
   Space,
@@ -34,6 +35,8 @@ import type { OrderFormTemplateSection } from '@/components/ui/order-template/ty
 import {
   orderServiceGetOrder,
   orderServiceListPersonnelOptions,
+  orderServiceTransitionOrderClosure,
+  orderServiceTransitionOrderTermination,
   orderServiceUpdateOrder,
 } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
@@ -47,7 +50,6 @@ import AbnormalCasePanel, {
 import {
   fetchOrderMasterData,
   isMasterDataKind,
-  loadStatusTemplatesByBusinessType,
   MASTER_DATA_KINDS,
   PARTNER_ROLES,
   parseOrderKind,
@@ -67,7 +69,7 @@ const { Text } = Typography;
 export default function OrderDetailPage() {
   const params = useParams<{ kind: string; id: string }>();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const access = useAccess();
 
   const kind = params.kind || 'sea-export';
@@ -83,19 +85,28 @@ export default function OrderDetailPage() {
   const [saving, setSaving] = useState(false);
 
   const [order, setOrder] = useState<API.Order>();
-  const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>([]);
+  const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
+    [],
+  );
   const [_containers, setContainers] = useState<API.OrderContainer[]>([]);
   const [_cargoItems, setCargoItems] = useState<API.OrderCargoItem[]>([]);
   const [_milestones, setMilestones] = useState<API.OrderMilestone[]>([]);
   const [personnel, setPersonnel] = useState<API.OrderPersonnel[]>([]);
 
-  const [statusTemplateOptions, setStatusTemplateOptions] = useState<{ label: string; value: string }[]>([]);
-  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>([]);
-  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<SelectOption[]>([]);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
+    [],
+  );
+  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<
+    SelectOption[]
+  >([]);
   const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
-  const [containerSpecOptions, setContainerSpecOptions] = useState<SelectOption[]>([]);
-  const [personnelOptions, setPersonnelOptions] = useState<API.OrderPersonnelOption[]>([]);
+  const [containerSpecOptions, setContainerSpecOptions] = useState<
+    SelectOption[]
+  >([]);
+  const [personnelOptions, setPersonnelOptions] = useState<
+    API.OrderPersonnelOption[]
+  >([]);
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
@@ -108,7 +119,6 @@ export default function OrderDetailPage() {
     try {
       const [
         masterData,
-        templates,
         personnelOptRes,
         orderRes,
         docsRes,
@@ -118,22 +128,37 @@ export default function OrderDetailPage() {
         personnelRes,
       ] = await Promise.all([
         fetchOrderMasterData(),
-        loadStatusTemplatesByBusinessType(config.businessType),
         config.category === 'sea'
-          ? orderServiceListPersonnelOptions({ businessType: config.businessType, page: 1, pageSize: 200 }).catch(() => ({ data: [] }))
+          ? orderServiceListPersonnelOptions({
+              businessType: config.businessType,
+              page: 1,
+              pageSize: 200,
+            }).catch(() => ({ data: [] }))
           : Promise.resolve({ data: [] }),
         orderServiceGetOrder({ id: orderId }),
-        orderShippingDocumentServiceListShippingDocuments({ orderId }).catch(() => ({ data: [] })),
-        orderContainerServiceListContainers({ orderId }).catch(() => ({ data: [] })),
-        orderCargoItemServiceListCargoItems({ orderId }).catch(() => ({ data: [] })),
-        orderMilestoneServiceListMilestones({ orderId }).catch(() => ({ data: [] })),
-        orderPersonnelServiceListPersonnel({ orderId }).catch(() => ({ data: [] })),
+        orderShippingDocumentServiceListShippingDocuments({ orderId }).catch(
+          () => ({ data: [] }),
+        ),
+        orderContainerServiceListContainers({ orderId }).catch(() => ({
+          data: [],
+        })),
+        orderCargoItemServiceListCargoItems({ orderId }).catch(() => ({
+          data: [],
+        })),
+        orderMilestoneServiceListMilestones({ orderId }).catch(() => ({
+          data: [],
+        })),
+        orderPersonnelServiceListPersonnel({ orderId }).catch(() => ({
+          data: [],
+        })),
       ]);
 
       const nextServiceTypeOptions =
         config.category === 'sea'
           ? seaServiceTypeNames.map((name) => {
-              const option = masterData.serviceTypeOptions.find((item) => item.label === name);
+              const option = masterData.serviceTypeOptions.find(
+                (item) => item.label === name,
+              );
               return option || { label: name, value: name };
             })
           : masterData.serviceTypeOptions;
@@ -141,7 +166,9 @@ export default function OrderDetailPage() {
       setServiceTypeOptions(nextServiceTypeOptions);
       setCargoCategoryOptions(masterData.cargoCategoryOptions);
       setLocationOptions(
-        config.category === 'sea' ? masterData.seaLocationOptions : masterData.airLocationOptions,
+        config.category === 'sea'
+          ? masterData.seaLocationOptions
+          : masterData.airLocationOptions,
       );
       setCurrencyOptions(masterData.currencyOptions);
       setContainerSpecOptions(
@@ -159,7 +186,6 @@ export default function OrderDetailPage() {
           }))
           .filter((item) => item.value !== ''),
       );
-      setStatusTemplateOptions(templates);
       setPersonnelOptions(personnelOptRes.data ?? []);
 
       setOrder(orderRes.data);
@@ -196,10 +222,16 @@ export default function OrderDetailPage() {
   const initialValues = useMemo(() => {
     if (!order) return {};
 
-    const personnelRoleMap: Record<number, { userId?: string; organizationId?: string }> = {};
+    const personnelRoleMap: Record<
+      number,
+      { userId?: string; organizationId?: string }
+    > = {};
     for (const p of personnel) {
       if (p.role !== undefined) {
-        personnelRoleMap[p.role] = { userId: p.userId, organizationId: p.organizationId };
+        personnelRoleMap[p.role] = {
+          userId: p.userId,
+          organizationId: p.organizationId,
+        };
       }
     }
 
@@ -234,19 +266,24 @@ export default function OrderDetailPage() {
       eta: order.eta ? dayjs(order.eta) : undefined,
       siCutoff: order.siCutoff ? dayjs(order.siCutoff) : undefined,
       docCutoff: order.docCutoff ? dayjs(order.docCutoff) : undefined,
-      customsCutoff: order.customsCutoff ? dayjs(order.customsCutoff) : undefined,
+      customsCutoff: order.customsCutoff
+        ? dayjs(order.customsCutoff)
+        : undefined,
       vgmCutoff: order.vgmCutoff ? dayjs(order.vgmCutoff) : undefined,
       goodsDescription: order.goodsDescription,
       totalPackages: order.totalPackages,
       totalGrossWeightKg: order.totalGrossWeightKg,
       totalVolumeCbm: order.totalVolumeCbm,
       totalPackageUnit: order.totalPackageUnit || 'CTNS',
-      orderDate: order.orderDate ? dayjs(order.orderDate) : dayjs(order.createdAt),
+      orderDate: order.orderDate
+        ? dayjs(order.orderDate)
+        : dayjs(order.createdAt),
       notes: order.notes,
       bookingNotes: order.bookingNotes,
       allocationNotes: order.allocationNotes,
       operationNotes: order.operationNotes,
-      shippingDocuments: shippingDocs.length > 0 ? shippingDocs : order.shippingDocuments,
+      shippingDocuments:
+        shippingDocs.length > 0 ? shippingDocs : order.shippingDocuments,
       containerRequests: order.containerRequests,
       creatorUserId: personnelRoleMap[0]?.userId,
       creatorOrganizationId: personnelRoleMap[0]?.organizationId,
@@ -282,12 +319,18 @@ export default function OrderDetailPage() {
       currencyOptions,
       containerSpecOptions,
       isDetail: true,
-      searchCustomers: (keyword?: string) => searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
-      searchCarriers: (keyword?: string) => searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
-      searchBookingAgents: (keyword?: string) => searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
-      searchForeignAgents: (keyword?: string) => searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
-      searchShippingAgents: (keyword?: string) => searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      setCustomerCode: (code?: string) => formRef.current?.setFieldValue('customerCode', code ?? ''),
+      searchCustomers: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
+      searchCarriers: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
+      searchBookingAgents: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
+      searchForeignAgents: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
+      searchShippingAgents: (keyword?: string) =>
+        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      setCustomerCode: (code?: string) =>
+        formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: async () => {},
       checkInternalReferenceNo: async () => {},
       personnelOptions,
@@ -311,16 +354,16 @@ export default function OrderDetailPage() {
 
   // 4. 海管家风格「订单状态」卡片（作为前置区块）
   const prependSections: OrderFormTemplateSection[] = useMemo(() => {
-    const isUnreturned = order?.status !== 'CANCELLED';
-    const isUncompleted = order?.status !== 'COMPLETED';
+    const isUnreturned = order?.terminationStatus !== 3;
+    const isUncompleted = order?.closureStatus !== 2;
 
     const steps = [
-      { key: 'booked', label: '已订舱' },
-      { key: 'allocated', label: '已配舱' },
-      { key: 'trucked', label: '拖车已安排' },
-      { key: 'si_cutoff', label: '已截单' },
-      { key: 'customs', label: '报关已安排' },
-      { key: 'issued', label: '已签单' },
+      { value: 2, key: 'booked', label: '已订舱' },
+      { value: 3, key: 'allocated', label: '已配舱' },
+      { value: 4, key: 'trucked', label: '拖车已安排' },
+      { value: 5, key: 'si_cutoff', label: '已截单' },
+      { value: 6, key: 'customs', label: '报关已安排' },
+      { value: 7, key: 'released', label: '已放单' },
     ];
 
     return [
@@ -330,16 +373,7 @@ export default function OrderDetailPage() {
         collapsible: true,
         extra: (
           <Space size={12} align="center">
-            <Select
-              size="small"
-              defaultValue={statusTemplateOptions[0]?.value || 'default'}
-              options={
-                statusTemplateOptions.length > 0
-                  ? statusTemplateOptions
-                  : [{ label: '系统默认订单状态流程', value: 'default' }]
-              }
-              style={{ width: 190 }}
-            />
+            <Tag color="blue">海运出口固定流程</Tag>
             <div
               style={{
                 display: 'inline-flex',
@@ -369,7 +403,9 @@ export default function OrderDetailPage() {
                 userSelect: 'none',
               }}
             >
-              <span style={{ fontSize: 10 }}>{isUncompleted ? '⚪' : '🟢'}</span>
+              <span style={{ fontSize: 10 }}>
+                {isUncompleted ? '⚪' : '🟢'}
+              </span>
               <span>{isUncompleted ? '未完结' : '已完结'}</span>
             </div>
           </Space>
@@ -399,8 +435,8 @@ export default function OrderDetailPage() {
                 }}
               />
 
-              {steps.map((st, idx) => {
-                const isPassed = idx <= 1; // 示例点亮前两个
+              {steps.map((st) => {
+                const isPassed = Number(order?.flowStatus ?? 0) >= st.value;
                 return (
                   <div
                     key={st.key}
@@ -440,7 +476,7 @@ export default function OrderDetailPage() {
         ),
       },
     ];
-  }, [order, statusTemplateOptions]);
+  }, [order]);
 
   // 5. 后置区块：操作记录日志
   const appendSections: OrderFormTemplateSection[] = useMemo(() => {
@@ -462,8 +498,18 @@ export default function OrderDetailPage() {
                           <Text strong>初始建单成功</Text>
                           <Tag color="default">系统录入</Tag>
                         </Space>
-                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
-                          {order?.createdAt ? dayjs(order.createdAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: '#94a3b8',
+                            marginTop: 2,
+                          }}
+                        >
+                          {order?.createdAt
+                            ? dayjs(order.createdAt).format(
+                                'YYYY-MM-DD HH:mm:ss',
+                              )
+                            : '-'}
                         </div>
                       </div>
                     ),
@@ -476,8 +522,18 @@ export default function OrderDetailPage() {
                           <Text strong>业务信息与配舱已录入</Text>
                           <Tag color="processing">主操作员</Tag>
                         </Space>
-                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
-                          {order?.updatedAt ? dayjs(order.updatedAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: '#94a3b8',
+                            marginTop: 2,
+                          }}
+                        >
+                          {order?.updatedAt
+                            ? dayjs(order.updatedAt).format(
+                                'YYYY-MM-DD HH:mm:ss',
+                              )
+                            : '-'}
                         </div>
                       </div>
                     ),
@@ -498,12 +554,16 @@ export default function OrderDetailPage() {
     try {
       const payload: API.UpdateOrderRequest = {
         id: orderId,
-        expectedStatus: order?.status || 'DRAFT',
+        expectedVersion: order?.version || '0',
         customerId: values.customerId,
         customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
         internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
-        tradeTerm: values.tradeTerm !== undefined ? Number(values.tradeTerm) : undefined,
-        paymentTerm: values.paymentTerm !== undefined ? Number(values.paymentTerm) : undefined,
+        tradeTerm:
+          values.tradeTerm !== undefined ? Number(values.tradeTerm) : undefined,
+        paymentTerm:
+          values.paymentTerm !== undefined
+            ? Number(values.paymentTerm)
+            : undefined,
         carrierId: values.carrierId || undefined,
         bookingAgentId: values.bookingAgentId || undefined,
         foreignAgentId: values.foreignAgentId || undefined,
@@ -514,9 +574,18 @@ export default function OrderDetailPage() {
         insurancePremium: values.insurancePremium?.trim() || undefined,
         insuranceCurrency: values.insuranceCurrency || undefined,
         loadingTerms: values.loadingTerms?.trim() || undefined,
-        shipmentType: values.shipmentType !== undefined ? Number(values.shipmentType) : undefined,
-        containerOwnership: values.containerOwnership !== undefined ? Number(values.containerOwnership) : undefined,
-        shipmentMode: values.shipmentMode !== undefined ? Number(values.shipmentMode) : undefined,
+        shipmentType:
+          values.shipmentType !== undefined
+            ? Number(values.shipmentType)
+            : undefined,
+        containerOwnership:
+          values.containerOwnership !== undefined
+            ? Number(values.containerOwnership)
+            : undefined,
+        shipmentMode:
+          values.shipmentMode !== undefined
+            ? Number(values.shipmentMode)
+            : undefined,
         serviceTypeIds: values.serviceTypeIds,
         cargoCategoryIds: values.cargoCategoryIds,
         originLocationId: values.originLocationId || undefined,
@@ -526,14 +595,31 @@ export default function OrderDetailPage() {
         vesselVoyage: values.vesselVoyage?.trim() || undefined,
         etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
         eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
-        siCutoff: values.siCutoff ? dayjs(values.siCutoff).toISOString() : undefined,
-        docCutoff: values.docCutoff ? dayjs(values.docCutoff).toISOString() : undefined,
-        customsCutoff: values.customsCutoff ? dayjs(values.customsCutoff).toISOString() : undefined,
-        vgmCutoff: values.vgmCutoff ? dayjs(values.vgmCutoff).toISOString() : undefined,
+        siCutoff: values.siCutoff
+          ? dayjs(values.siCutoff).toISOString()
+          : undefined,
+        docCutoff: values.docCutoff
+          ? dayjs(values.docCutoff).toISOString()
+          : undefined,
+        customsCutoff: values.customsCutoff
+          ? dayjs(values.customsCutoff).toISOString()
+          : undefined,
+        vgmCutoff: values.vgmCutoff
+          ? dayjs(values.vgmCutoff).toISOString()
+          : undefined,
         goodsDescription: values.goodsDescription?.trim() || undefined,
-        totalPackages: values.totalPackages !== undefined ? Number(values.totalPackages) : undefined,
-        totalGrossWeightKg: values.totalGrossWeightKg !== undefined ? Number(values.totalGrossWeightKg) : undefined,
-        totalVolumeCbm: values.totalVolumeCbm !== undefined ? Number(values.totalVolumeCbm) : undefined,
+        totalPackages:
+          values.totalPackages !== undefined
+            ? Number(values.totalPackages)
+            : undefined,
+        totalGrossWeightKg:
+          values.totalGrossWeightKg !== undefined
+            ? Number(values.totalGrossWeightKg)
+            : undefined,
+        totalVolumeCbm:
+          values.totalVolumeCbm !== undefined
+            ? Number(values.totalVolumeCbm)
+            : undefined,
         totalPackageUnit: values.totalPackageUnit?.trim() || undefined,
         notes: values.notes?.trim() || undefined,
         bookingNotes: values.bookingNotes?.trim() || undefined,
@@ -563,7 +649,14 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '120px 0', background: '#f5f7fa', minHeight: '100vh' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '120px 0',
+          background: '#f5f7fa',
+          minHeight: '100vh',
+        }}
+      >
         <Spin size="large" tip="正在加载订单详情..." />
       </div>
     );
@@ -572,9 +665,16 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
-        <Card bordered={false} style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}>
+        <Card
+          bordered={false}
+          style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
+        >
           <Empty description="未找到对应的订单档案" />
-          <Button type="primary" onClick={() => history.push(`/orders/${kind}`)} style={{ marginTop: 16 }}>
+          <Button
+            type="primary"
+            onClick={() => history.push(`/orders/${kind}`)}
+            style={{ marginTop: 16 }}
+          >
             返回订单列表
           </Button>
         </Card>
@@ -583,7 +683,115 @@ export default function OrderDetailPage() {
   }
 
   const progressStage =
-    order.status === 'COMPLETED' ? '已完结' : order.status === 'CANCELLED' ? '已退关' : '未退关';
+    order.closureStatus === 2
+      ? '已完结'
+      : order.terminationStatus === 3
+        ? '已退关'
+        : '进行中';
+
+  const hasAction = (action: number) =>
+    order.allowedActions?.includes(action) === true;
+
+  const confirmTermination = (targetStatus: number) => {
+    const orderID = order.id;
+    const expectedVersion = order.version;
+    if (!orderID || expectedVersion === undefined) {
+      message.error('订单数据不完整，请刷新后重试');
+      return;
+    }
+    let reason = '';
+    let terminationType = 3;
+    modal.confirm({
+      title:
+        targetStatus === 1
+          ? '取消退关/终止'
+          : targetStatus === 2
+            ? '发起退关/终止'
+            : '完成退关/终止',
+      content: (
+        <Space direction="vertical" style={{ width: '100%', marginTop: 12 }}>
+          {targetStatus !== 1 && (
+            <Select
+              defaultValue={3}
+              style={{ width: '100%' }}
+              options={[
+                { label: '客户撤单', value: 1 },
+                { label: '承运人取消', value: 2 },
+                { label: '海关退关', value: 3 },
+                { label: '操作取消', value: 4 },
+                { label: '其他', value: 5 },
+              ]}
+              onChange={(value) => {
+                terminationType = value;
+              }}
+            />
+          )}
+          <Input.TextArea
+            placeholder="请输入原因（必填）"
+            maxLength={500}
+            showCount
+            onChange={(event) => {
+              reason = event.target.value;
+            }}
+          />
+        </Space>
+      ),
+      async onOk() {
+        if (!reason.trim()) {
+          message.error('请输入原因');
+          return Promise.reject();
+        }
+        const response = await orderServiceTransitionOrderTermination(
+          { id: orderID },
+          {
+            id: orderID,
+            expectedVersion,
+            targetStatus,
+            terminationType: targetStatus === 1 ? undefined : terminationType,
+            reason: reason.trim(),
+          },
+        );
+        setOrder(response.data);
+        message.success('订单终止状态已更新');
+      },
+    });
+  };
+
+  const confirmClosure = (targetStatus: number) => {
+    const orderID = order.id;
+    const expectedVersion = order.version;
+    if (!orderID || expectedVersion === undefined) {
+      message.error('订单数据不完整，请刷新后重试');
+      return;
+    }
+    let reason = '';
+    modal.confirm({
+      title: targetStatus === 2 ? '确认完结订单' : '确认反结案',
+      content: (
+        <Input.TextArea
+          style={{ marginTop: 12 }}
+          placeholder="请输入原因（必填）"
+          maxLength={500}
+          showCount
+          onChange={(event) => {
+            reason = event.target.value;
+          }}
+        />
+      ),
+      async onOk() {
+        if (!reason.trim()) {
+          message.error('请输入原因');
+          return Promise.reject();
+        }
+        const response = await orderServiceTransitionOrderClosure(
+          { id: orderID },
+          { id: orderID, expectedVersion, targetStatus, reason: reason.trim() },
+        );
+        setOrder(response.data);
+        message.success(targetStatus === 2 ? '订单已完结' : '订单已反结案');
+      },
+    });
+  };
 
   const moreMenuItems: MenuProps['items'] = [
     {
@@ -611,13 +819,25 @@ export default function OrderDetailPage() {
       {/* 顶部第 1 行：面包屑 */}
       <div style={{ padding: '8px 16px', fontSize: 13, color: '#64748b' }}>
         <Space size={6}>
-          <a style={{ color: '#64748b' }} onClick={() => history.push(`/orders/${kind}`)}>
+          <a
+            style={{ color: '#64748b' }}
+            onClick={() => history.push(`/orders/${kind}`)}
+          >
             {config.title}
           </a>
           <span>&gt;</span>
-          <span style={{ color: '#1677ff', fontWeight: 500 }}>{config.title}详情</span>
+          <span style={{ color: '#1677ff', fontWeight: 500 }}>
+            {config.title}详情
+          </span>
           {order.orderNo && (
-            <span style={{ color: '#0f172a', fontWeight: 600, marginLeft: 8, fontFamily: 'monospace' }}>
+            <span
+              style={{
+                color: '#0f172a',
+                fontWeight: 600,
+                marginLeft: 8,
+                fontFamily: 'monospace',
+              }}
+            >
               ({order.orderNo})
             </span>
           )}
@@ -641,15 +861,39 @@ export default function OrderDetailPage() {
       >
         <Space size={8} wrap={false}>
           {/* 实心蓝底主保存按钮 */}
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            loading={saving}
-            onClick={() => formRef.current?.submit()}
-            style={{ fontWeight: 500 }}
-          >
-            保存
-          </Button>
+          {hasAction(1) && (
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={saving}
+              onClick={() => formRef.current?.submit()}
+              style={{ fontWeight: 500 }}
+            >
+              保存
+            </Button>
+          )}
+
+          {hasAction(3) && (
+            <Button danger onClick={() => confirmTermination(2)}>
+              发起退关
+            </Button>
+          )}
+          {hasAction(4) && (
+            <Button danger type="primary" onClick={() => confirmTermination(3)}>
+              完成退关
+            </Button>
+          )}
+          {hasAction(5) && (
+            <Button onClick={() => confirmTermination(1)}>取消退关</Button>
+          )}
+          {hasAction(6) && (
+            <Button type="primary" onClick={() => confirmClosure(2)}>
+              完结订单
+            </Button>
+          )}
+          {hasAction(7) && (
+            <Button onClick={() => confirmClosure(1)}>反结案</Button>
+          )}
 
           {/* 费用录入（直达独立全屏费用工作台页面） */}
           {access.canOrder(config.businessType, 'fee.read') && (
@@ -700,7 +944,7 @@ export default function OrderDetailPage() {
     <>
       <OrderFormTemplate<any>
         loading={false}
-        readonly={false}
+        readonly={!hasAction(1)}
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
@@ -717,20 +961,24 @@ export default function OrderDetailPage() {
               </Space>
             }
           >
-            <Button
-              icon={<UndoOutlined />}
-              onClick={() => formRef.current?.setFieldsValue(initialValues)}
-            >
-              重置修改
-            </Button>
-            <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              loading={saving}
-              onClick={() => formRef.current?.submit()}
-            >
-              保存修改
-            </Button>
+            {hasAction(1) && (
+              <Button
+                icon={<UndoOutlined />}
+                onClick={() => formRef.current?.setFieldsValue(initialValues)}
+              >
+                重置修改
+              </Button>
+            )}
+            {hasAction(1) && (
+              <Button
+                type="primary"
+                icon={<CheckOutlined />}
+                loading={saving}
+                onClick={() => formRef.current?.submit()}
+              >
+                保存修改
+              </Button>
+            )}
           </StickyFooterBar>
         }
       />

@@ -11,16 +11,18 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 )
 
-// OrderStatusLog is the model entity for the OrderStatusLog schema.
-type OrderStatusLog struct {
+// OrderLifecycleEvent is the model entity for the OrderLifecycleEvent schema.
+type OrderLifecycleEvent struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
+	// Dimension holds the value of the "dimension" field.
+	Dimension orderlifecycleevent.Dimension `json:"dimension,omitempty"`
 	// FromStatus holds the value of the "from_status" field.
 	FromStatus *string `json:"from_status,omitempty"`
 	// ToStatus holds the value of the "to_status" field.
@@ -28,19 +30,19 @@ type OrderStatusLog struct {
 	// Action holds the value of the "action" field.
 	Action string `json:"action,omitempty"`
 	// Reason holds the value of the "reason" field.
-	Reason string `json:"reason,omitempty"`
+	Reason *string `json:"reason,omitempty"`
 	// OperatorID holds the value of the "operator_id" field.
 	OperatorID *uuid.UUID `json:"operator_id,omitempty"`
 	// ChangedAt holds the value of the "changed_at" field.
 	ChangedAt time.Time `json:"changed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the OrderStatusLogQuery when eager-loading is set.
-	Edges        OrderStatusLogEdges `json:"edges"`
+	// The values are being populated by the OrderLifecycleEventQuery when eager-loading is set.
+	Edges        OrderLifecycleEventEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// OrderStatusLogEdges holds the relations/edges for other nodes in the graph.
-type OrderStatusLogEdges struct {
+// OrderLifecycleEventEdges holds the relations/edges for other nodes in the graph.
+type OrderLifecycleEventEdges struct {
 	// Order holds the value of the order edge.
 	Order *Order `json:"order,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -50,7 +52,7 @@ type OrderStatusLogEdges struct {
 
 // OrderOrErr returns the Order value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e OrderStatusLogEdges) OrderOrErr() (*Order, error) {
+func (e OrderLifecycleEventEdges) OrderOrErr() (*Order, error) {
 	if e.Order != nil {
 		return e.Order, nil
 	} else if e.loadedTypes[0] {
@@ -60,17 +62,17 @@ func (e OrderStatusLogEdges) OrderOrErr() (*Order, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*OrderStatusLog) scanValues(columns []string) ([]any, error) {
+func (*OrderLifecycleEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderstatuslog.FieldOperatorID:
+		case orderlifecycleevent.FieldOperatorID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderstatuslog.FieldFromStatus, orderstatuslog.FieldToStatus, orderstatuslog.FieldAction, orderstatuslog.FieldReason:
+		case orderlifecycleevent.FieldDimension, orderlifecycleevent.FieldFromStatus, orderlifecycleevent.FieldToStatus, orderlifecycleevent.FieldAction, orderlifecycleevent.FieldReason:
 			values[i] = new(sql.NullString)
-		case orderstatuslog.FieldChangedAt:
+		case orderlifecycleevent.FieldChangedAt:
 			values[i] = new(sql.NullTime)
-		case orderstatuslog.FieldID, orderstatuslog.FieldOrderID:
+		case orderlifecycleevent.FieldID, orderlifecycleevent.FieldOrderID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -80,58 +82,65 @@ func (*OrderStatusLog) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the OrderStatusLog fields.
-func (_m *OrderStatusLog) assignValues(columns []string, values []any) error {
+// to the OrderLifecycleEvent fields.
+func (_m *OrderLifecycleEvent) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case orderstatuslog.FieldID:
+		case orderlifecycleevent.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case orderstatuslog.FieldOrderID:
+		case orderlifecycleevent.FieldOrderID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value != nil {
 				_m.OrderID = *value
 			}
-		case orderstatuslog.FieldFromStatus:
+		case orderlifecycleevent.FieldDimension:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dimension", values[i])
+			} else if value.Valid {
+				_m.Dimension = orderlifecycleevent.Dimension(value.String)
+			}
+		case orderlifecycleevent.FieldFromStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_status", values[i])
 			} else if value.Valid {
 				_m.FromStatus = new(string)
 				*_m.FromStatus = value.String
 			}
-		case orderstatuslog.FieldToStatus:
+		case orderlifecycleevent.FieldToStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field to_status", values[i])
 			} else if value.Valid {
 				_m.ToStatus = value.String
 			}
-		case orderstatuslog.FieldAction:
+		case orderlifecycleevent.FieldAction:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field action", values[i])
 			} else if value.Valid {
 				_m.Action = value.String
 			}
-		case orderstatuslog.FieldReason:
+		case orderlifecycleevent.FieldReason:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field reason", values[i])
 			} else if value.Valid {
-				_m.Reason = value.String
+				_m.Reason = new(string)
+				*_m.Reason = value.String
 			}
-		case orderstatuslog.FieldOperatorID:
+		case orderlifecycleevent.FieldOperatorID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field operator_id", values[i])
 			} else if value.Valid {
 				_m.OperatorID = new(uuid.UUID)
 				*_m.OperatorID = *value.S.(*uuid.UUID)
 			}
-		case orderstatuslog.FieldChangedAt:
+		case orderlifecycleevent.FieldChangedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field changed_at", values[i])
 			} else if value.Valid {
@@ -144,42 +153,45 @@ func (_m *OrderStatusLog) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the OrderStatusLog.
+// Value returns the ent.Value that was dynamically selected and assigned to the OrderLifecycleEvent.
 // This includes values selected through modifiers, order, etc.
-func (_m *OrderStatusLog) Value(name string) (ent.Value, error) {
+func (_m *OrderLifecycleEvent) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryOrder queries the "order" edge of the OrderStatusLog entity.
-func (_m *OrderStatusLog) QueryOrder() *OrderQuery {
-	return NewOrderStatusLogClient(_m.config).QueryOrder(_m)
+// QueryOrder queries the "order" edge of the OrderLifecycleEvent entity.
+func (_m *OrderLifecycleEvent) QueryOrder() *OrderQuery {
+	return NewOrderLifecycleEventClient(_m.config).QueryOrder(_m)
 }
 
-// Update returns a builder for updating this OrderStatusLog.
-// Note that you need to call OrderStatusLog.Unwrap() before calling this method if this OrderStatusLog
+// Update returns a builder for updating this OrderLifecycleEvent.
+// Note that you need to call OrderLifecycleEvent.Unwrap() before calling this method if this OrderLifecycleEvent
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *OrderStatusLog) Update() *OrderStatusLogUpdateOne {
-	return NewOrderStatusLogClient(_m.config).UpdateOne(_m)
+func (_m *OrderLifecycleEvent) Update() *OrderLifecycleEventUpdateOne {
+	return NewOrderLifecycleEventClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the OrderStatusLog entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the OrderLifecycleEvent entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *OrderStatusLog) Unwrap() *OrderStatusLog {
+func (_m *OrderLifecycleEvent) Unwrap() *OrderLifecycleEvent {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: OrderStatusLog is not a transactional entity")
+		panic("ent: OrderLifecycleEvent is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *OrderStatusLog) String() string {
+func (_m *OrderLifecycleEvent) String() string {
 	var builder strings.Builder
-	builder.WriteString("OrderStatusLog(")
+	builder.WriteString("OrderLifecycleEvent(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
+	builder.WriteString(", ")
+	builder.WriteString("dimension=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Dimension))
 	builder.WriteString(", ")
 	if v := _m.FromStatus; v != nil {
 		builder.WriteString("from_status=")
@@ -192,8 +204,10 @@ func (_m *OrderStatusLog) String() string {
 	builder.WriteString("action=")
 	builder.WriteString(_m.Action)
 	builder.WriteString(", ")
-	builder.WriteString("reason=")
-	builder.WriteString(_m.Reason)
+	if v := _m.Reason; v != nil {
+		builder.WriteString("reason=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := _m.OperatorID; v != nil {
 		builder.WriteString("operator_id=")
@@ -206,5 +220,5 @@ func (_m *OrderStatusLog) String() string {
 	return builder.String()
 }
 
-// OrderStatusLogs is a parsable slice of OrderStatusLog.
-type OrderStatusLogs []*OrderStatusLog
+// OrderLifecycleEvents is a parsable slice of OrderLifecycleEvent.
+type OrderLifecycleEvents []*OrderLifecycleEvent

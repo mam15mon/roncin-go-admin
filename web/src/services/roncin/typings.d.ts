@@ -846,7 +846,6 @@ declare namespace API {
     tradeDirection: number;
     tradeTerm: number;
     paymentTerm: number;
-    statusTemplateId: string;
     carrierId?: string;
     bookingAgentId?: string;
     shipmentType?: number;
@@ -1075,22 +1074,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ShippingLine;
-    traceId?: string;
-  };
-
-  type CreateStatusTemplateRequest = {
-    code: string;
-    name: string;
-    businessType: number;
-    version: number;
-    items: StatusTemplateItemInput[];
-  };
-
-  type CreateStatusTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate;
     traceId?: string;
   };
 
@@ -2303,14 +2286,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListStatusTemplatesResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate[];
-    traceId?: string;
-  };
-
   type ListTaxableServicesResponse = {
     success?: boolean;
     code?: number;
@@ -2461,16 +2436,7 @@ declare namespace API {
     enabled?: boolean;
   };
 
-  type MasterDataServiceListStatusTemplatesParams = {
-    businessType?: number;
-    published?: boolean;
-  };
-
   type MasterDataServicePublishMilestoneTemplateParams = {
-    id: string;
-  };
-
-  type MasterDataServicePublishStatusTemplateParams = {
     id: string;
   };
 
@@ -2481,10 +2447,6 @@ declare namespace API {
   };
 
   type MasterDataServiceSetDefaultMilestoneTemplateParams = {
-    id: string;
-  };
-
-  type MasterDataServiceSetDefaultStatusTemplateParams = {
     id: string;
   };
 
@@ -2584,8 +2546,7 @@ declare namespace API {
     shipmentType?: number;
     containerOwnership?: number;
     shipmentMode?: number;
-    status?: string;
-    statusTemplateId?: string;
+    flowStatus?: number;
     serviceTypeIds?: string[];
     cargoCategoryIds?: string[];
     originLocationId?: string;
@@ -2632,6 +2593,19 @@ declare namespace API {
     declarationCutoffAt?: string;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
+    terminationStatus?: number;
+    terminationType?: number;
+    terminationReason?: string;
+    terminatedAt?: string;
+    terminatedBy?: string;
+    closureStatus?: number;
+    closureReason?: string;
+    closedAt?: string;
+    closedBy?: string;
+    version?: string;
+    hasActiveException?: boolean;
+    activeExceptionCount?: number;
+    allowedActions?: number[];
   };
 
   type OrderAbnormalCase = {
@@ -3026,9 +3000,12 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
-    status?: string;
+    flowStatus?: number;
     businessType?: number;
     customerId?: string;
+    terminationStatus?: number;
+    closureStatus?: number;
+    hasActiveException?: boolean;
   };
 
   type OrderServiceListPersonnelOptionsParams = {
@@ -3038,7 +3015,15 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type OrderServiceTransitionOrderClosureParams = {
+    id: string;
+  };
+
   type OrderServiceTransitionOrderStatusParams = {
+    id: string;
+  };
+
+  type OrderServiceTransitionOrderTerminationParams = {
     id: string;
   };
 
@@ -3569,19 +3554,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type PublishStatusTemplateRequest = {
-    id: string;
-    isDefault?: boolean;
-  };
-
-  type PublishStatusTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate;
-    traceId?: string;
-  };
-
   type RedFlushInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -3786,22 +3758,10 @@ declare namespace API {
     traceId?: string;
   };
 
-  type SetDefaultStatusTemplateRequest = {
-    id: string;
-  };
-
-  type SetDefaultStatusTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: StatusTemplate;
-    traceId?: string;
-  };
-
   type SetMilestoneRequest = {
     orderId: string;
     type: string;
-    expectedOrderStatus: string;
+    expectedOrderVersion: string;
     occurredAt?: string;
     note?: string;
     clearOccurredAt?: boolean;
@@ -4005,40 +3965,6 @@ declare namespace API {
     updatedAt?: string;
   };
 
-  type StatusTemplate = {
-    id?: string;
-    organizationId?: string;
-    code?: string;
-    name?: string;
-    businessType?: number;
-    version?: number;
-    isDefault?: boolean;
-    publishedAt?: string;
-    enabled?: boolean;
-    items?: StatusTemplateItem[];
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type StatusTemplateItem = {
-    id?: string;
-    code?: string;
-    label?: string;
-    sortOrder?: number;
-    enabled?: boolean;
-    colorToken?: string;
-    system?: boolean;
-  };
-
-  type StatusTemplateItemInput = {
-    code: string;
-    label: string;
-    sortOrder?: number;
-    enabled?: boolean;
-    colorToken?: string;
-    system?: boolean;
-  };
-
   type SwitchOrganizationRequest = {
     organizationId: string;
   };
@@ -4063,14 +3989,45 @@ declare namespace API {
     updatedAt?: string;
   };
 
+  type TransitionOrderClosureRequest = {
+    id: string;
+    expectedVersion: string;
+    targetStatus: number;
+    reason: string;
+  };
+
+  type TransitionOrderClosureResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
   type TransitionOrderStatusRequest = {
     id: string;
-    expectedStatus: string;
-    targetStatus: string;
+    expectedVersion: string;
+    targetFlowStatus: number;
     reason?: string;
   };
 
   type TransitionOrderStatusResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order;
+    traceId?: string;
+  };
+
+  type TransitionOrderTerminationRequest = {
+    id: string;
+    expectedVersion: string;
+    targetStatus: number;
+    terminationType?: number;
+    reason: string;
+  };
+
+  type TransitionOrderTerminationResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -4398,7 +4355,7 @@ declare namespace API {
 
   type UpdateOrderRequest = {
     id: string;
-    expectedStatus: string;
+    expectedVersion: string;
     customerId?: string;
     businessType?: number;
     tradeDirection?: number;

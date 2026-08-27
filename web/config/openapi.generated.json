@@ -4294,151 +4294,6 @@
         }
       }
     },
-    "/api/v1/master-data/status-templates": {
-      "get": {
-        "tags": [
-          "MasterDataService"
-        ],
-        "operationId": "MasterDataService_ListStatusTemplates",
-        "parameters": [
-          {
-            "name": "businessType",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "enum"
-            }
-          },
-          {
-            "name": "published",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.ListStatusTemplatesResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "MasterDataService"
-        ],
-        "operationId": "MasterDataService_CreateStatusTemplate",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.CreateStatusTemplateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.CreateStatusTemplateResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/master-data/status-templates/{id}/publish": {
-      "post": {
-        "tags": [
-          "MasterDataService"
-        ],
-        "operationId": "MasterDataService_PublishStatusTemplate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.PublishStatusTemplateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.PublishStatusTemplateResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/master-data/status-templates/{id}/set-default": {
-      "post": {
-        "tags": [
-          "MasterDataService"
-        ],
-        "operationId": "MasterDataService_SetDefaultStatusTemplate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/masterdata.v1.SetDefaultStatusTemplateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.SetDefaultStatusTemplateResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/order-personnel-options": {
       "get": {
         "tags": [
@@ -4574,10 +4429,11 @@
             }
           },
           {
-            "name": "status",
+            "name": "flowStatus",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           },
           {
@@ -4593,6 +4449,29 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "terminationStatus",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "closureStatus",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "hasActiveException",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -4706,6 +4585,46 @@
         }
       }
     },
+    "/api/v1/orders/{id}/closure": {
+      "post": {
+        "tags": [
+          "OrderService"
+        ],
+        "operationId": "OrderService_TransitionOrderClosure",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.TransitionOrderClosureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.TransitionOrderClosureResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{id}/consolidations": {
       "get": {
         "tags": [
@@ -4769,6 +4688,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.TransitionOrderStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/termination": {
+      "post": {
+        "tags": [
+          "OrderService"
+        ],
+        "operationId": "OrderService_TransitionOrderTermination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.TransitionOrderTerminationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.TransitionOrderTerminationResponse"
                 }
               }
             }
@@ -13082,59 +13041,6 @@
           }
         }
       },
-      "masterdata.v1.CreateStatusTemplateRequest": {
-        "required": [
-          "code",
-          "name",
-          "businessType",
-          "version",
-          "items"
-        ],
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "businessType": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.StatusTemplateItemInput"
-            }
-          }
-        }
-      },
-      "masterdata.v1.CreateStatusTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.Currency": {
         "type": "object",
         "properties": {
@@ -13549,30 +13455,6 @@
           }
         }
       },
-      "masterdata.v1.ListStatusTemplatesResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
-            }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.MasterDataAttributes": {
         "type": "object",
         "properties": {
@@ -13913,41 +13795,6 @@
           }
         }
       },
-      "masterdata.v1.PublishStatusTemplateRequest": {
-        "required": [
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "isDefault": {
-            "type": "boolean"
-          }
-        }
-      },
-      "masterdata.v1.PublishStatusTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "masterdata.v1.SetDefaultMilestoneTemplateRequest": {
         "required": [
           "id"
@@ -13974,38 +13821,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/masterdata.v1.MilestoneTemplate"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.SetDefaultStatusTemplateRequest": {
-        "required": [
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.SetDefaultStatusTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/masterdata.v1.StatusTemplate"
           },
           "traceId": {
             "type": "string"
@@ -14060,107 +13875,6 @@
           },
           "updatedAt": {
             "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.StatusTemplate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "businessType": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "publishedAt": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/masterdata.v1.StatusTemplateItem"
-            }
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "masterdata.v1.StatusTemplateItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "colorToken": {
-            "type": "string"
-          },
-          "system": {
-            "type": "boolean"
-          }
-        }
-      },
-      "masterdata.v1.StatusTemplateItemInput": {
-        "required": [
-          "code",
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "colorToken": {
-            "type": "string"
-          },
-          "system": {
-            "type": "boolean"
           }
         }
       },
@@ -14942,8 +14656,7 @@
           "businessType",
           "tradeDirection",
           "tradeTerm",
-          "paymentTerm",
-          "statusTemplateId"
+          "paymentTerm"
         ],
         "type": "object",
         "properties": {
@@ -14965,9 +14678,6 @@
           "paymentTerm": {
             "type": "integer",
             "format": "enum"
-          },
-          "statusTemplateId": {
-            "type": "string"
           },
           "carrierId": {
             "type": "string"
@@ -15651,11 +15361,9 @@
             "type": "integer",
             "format": "enum"
           },
-          "status": {
-            "type": "string"
-          },
-          "statusTemplateId": {
-            "type": "string"
+          "flowStatus": {
+            "type": "integer",
+            "format": "enum"
           },
           "serviceTypeIds": {
             "type": "array",
@@ -15809,6 +15517,53 @@
           "totalVolumeCbm": {
             "type": "number",
             "format": "double"
+          },
+          "terminationStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "terminationType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "terminationReason": {
+            "type": "string"
+          },
+          "terminatedAt": {
+            "type": "string"
+          },
+          "terminatedBy": {
+            "type": "string"
+          },
+          "closureStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "closureReason": {
+            "type": "string"
+          },
+          "closedAt": {
+            "type": "string"
+          },
+          "closedBy": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "hasActiveException": {
+            "type": "boolean"
+          },
+          "activeExceptionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
           }
         },
         "description": "Order 订单核心信息。"
@@ -16824,7 +16579,7 @@
         "required": [
           "orderId",
           "type",
-          "expectedOrderStatus"
+          "expectedOrderVersion"
         ],
         "type": "object",
         "properties": {
@@ -16834,7 +16589,7 @@
           "type": {
             "type": "string"
           },
-          "expectedOrderStatus": {
+          "expectedOrderVersion": {
             "type": "string"
           },
           "occurredAt": {
@@ -16871,22 +16626,68 @@
         },
         "description": "SetMilestoneResponse 单条订单里程碑响应。"
       },
-      "order.v1.TransitionOrderStatusRequest": {
+      "order.v1.TransitionOrderClosureRequest": {
         "required": [
           "id",
-          "expectedStatus",
-          "targetStatus"
+          "expectedVersion",
+          "targetStatus",
+          "reason"
         ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
-          "expectedStatus": {
+          "expectedVersion": {
             "type": "string"
           },
           "targetStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "reason": {
             "type": "string"
+          }
+        }
+      },
+      "order.v1.TransitionOrderClosureResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.TransitionOrderStatusRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "targetFlowStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "targetFlowStatus": {
+            "type": "integer",
+            "format": "enum"
           },
           "reason": {
             "type": "string"
@@ -16895,6 +16696,55 @@
         "description": "TransitionOrderStatusRequest 流转订单状态请求。"
       },
       "order.v1.TransitionOrderStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.Order"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.TransitionOrderTerminationRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "targetStatus",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "targetStatus": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "terminationType": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.TransitionOrderTerminationResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -17229,14 +17079,14 @@
       "order.v1.UpdateOrderRequest": {
         "required": [
           "id",
-          "expectedStatus"
+          "expectedVersion"
         ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
-          "expectedStatus": {
+          "expectedVersion": {
             "type": "string"
           },
           "customerId": {
@@ -17418,7 +17268,7 @@
             "format": "double"
           }
         },
-        "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和 status）。"
+        "description": "UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。"
       },
       "order.v1.UpdateOrderResponse": {
         "type": "object",

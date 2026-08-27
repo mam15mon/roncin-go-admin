@@ -76,10 +76,28 @@ const (
 	FieldContainerOwnership = "container_ownership"
 	// FieldShipmentMode holds the string denoting the shipment_mode field in the database.
 	FieldShipmentMode = "shipment_mode"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
-	// FieldStatusTemplateID holds the string denoting the status_template_id field in the database.
-	FieldStatusTemplateID = "status_template_id"
+	// FieldFlowStatus holds the string denoting the flow_status field in the database.
+	FieldFlowStatus = "flow_status"
+	// FieldTerminationStatus holds the string denoting the termination_status field in the database.
+	FieldTerminationStatus = "termination_status"
+	// FieldTerminationType holds the string denoting the termination_type field in the database.
+	FieldTerminationType = "termination_type"
+	// FieldTerminationReason holds the string denoting the termination_reason field in the database.
+	FieldTerminationReason = "termination_reason"
+	// FieldTerminatedAt holds the string denoting the terminated_at field in the database.
+	FieldTerminatedAt = "terminated_at"
+	// FieldTerminatedBy holds the string denoting the terminated_by field in the database.
+	FieldTerminatedBy = "terminated_by"
+	// FieldClosureStatus holds the string denoting the closure_status field in the database.
+	FieldClosureStatus = "closure_status"
+	// FieldClosureReason holds the string denoting the closure_reason field in the database.
+	FieldClosureReason = "closure_reason"
+	// FieldClosedAt holds the string denoting the closed_at field in the database.
+	FieldClosedAt = "closed_at"
+	// FieldClosedBy holds the string denoting the closed_by field in the database.
+	FieldClosedBy = "closed_by"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
 	FieldOriginLocationID = "origin_location_id"
 	// FieldDestinationLocationID holds the string denoting the destination_location_id field in the database.
@@ -128,10 +146,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeCustomer holds the string denoting the customer edge name in mutations.
 	EdgeCustomer = "customer"
-	// EdgeStatusTemplate holds the string denoting the status_template edge name in mutations.
-	EdgeStatusTemplate = "status_template"
-	// EdgeStatusLogs holds the string denoting the status_logs edge name in mutations.
-	EdgeStatusLogs = "status_logs"
+	// EdgeLifecycleEvents holds the string denoting the lifecycle_events edge name in mutations.
+	EdgeLifecycleEvents = "lifecycle_events"
 	// EdgeServiceTypes holds the string denoting the service_types edge name in mutations.
 	EdgeServiceTypes = "service_types"
 	// EdgeCargoCategories holds the string denoting the cargo_categories edge name in mutations.
@@ -178,20 +194,13 @@ const (
 	CustomerInverseTable = "partners"
 	// CustomerColumn is the table column denoting the customer relation/edge.
 	CustomerColumn = "customer_id"
-	// StatusTemplateTable is the table that holds the status_template relation/edge.
-	StatusTemplateTable = "orders"
-	// StatusTemplateInverseTable is the table name for the StatusTemplate entity.
-	// It exists in this package in order to avoid circular dependency with the "statustemplate" package.
-	StatusTemplateInverseTable = "status_templates"
-	// StatusTemplateColumn is the table column denoting the status_template relation/edge.
-	StatusTemplateColumn = "status_template_id"
-	// StatusLogsTable is the table that holds the status_logs relation/edge.
-	StatusLogsTable = "order_status_logs"
-	// StatusLogsInverseTable is the table name for the OrderStatusLog entity.
-	// It exists in this package in order to avoid circular dependency with the "orderstatuslog" package.
-	StatusLogsInverseTable = "order_status_logs"
-	// StatusLogsColumn is the table column denoting the status_logs relation/edge.
-	StatusLogsColumn = "order_id"
+	// LifecycleEventsTable is the table that holds the lifecycle_events relation/edge.
+	LifecycleEventsTable = "order_lifecycle_events"
+	// LifecycleEventsInverseTable is the table name for the OrderLifecycleEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlifecycleevent" package.
+	LifecycleEventsInverseTable = "order_lifecycle_events"
+	// LifecycleEventsColumn is the table column denoting the lifecycle_events relation/edge.
+	LifecycleEventsColumn = "order_id"
 	// ServiceTypesTable is the table that holds the service_types relation/edge.
 	ServiceTypesTable = "order_service_types"
 	// ServiceTypesInverseTable is the table name for the OrderServiceType entity.
@@ -332,8 +341,17 @@ var Columns = []string{
 	FieldShipmentType,
 	FieldContainerOwnership,
 	FieldShipmentMode,
-	FieldStatus,
-	FieldStatusTemplateID,
+	FieldFlowStatus,
+	FieldTerminationStatus,
+	FieldTerminationType,
+	FieldTerminationReason,
+	FieldTerminatedAt,
+	FieldTerminatedBy,
+	FieldClosureStatus,
+	FieldClosureReason,
+	FieldClosedAt,
+	FieldClosedBy,
+	FieldVersion,
 	FieldOriginLocationID,
 	FieldDestinationLocationID,
 	FieldDischargeLocationID,
@@ -405,10 +423,12 @@ var (
 	DeclarationCutoffAtValidator func(string) error
 	// ReceivedAtValidator is a validator for the "received_at" field. It is called by the builders before save.
 	ReceivedAtValidator func(string) error
-	// DefaultStatus holds the default value on creation for the "status" field.
-	DefaultStatus string
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator func(string) error
+	// TerminationReasonValidator is a validator for the "termination_reason" field. It is called by the builders before save.
+	TerminationReasonValidator func(string) error
+	// ClosureReasonValidator is a validator for the "closure_reason" field. It is called by the builders before save.
+	ClosureReasonValidator func(string) error
+	// DefaultVersion holds the default value on creation for the "version" field.
+	DefaultVersion uint64
 	// VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	VesselVoyageValidator func(string) error
 	// EtdValidator is a validator for the "etd" field. It is called by the builders before save.
@@ -623,6 +643,116 @@ func ShipmentModeValidator(sm ShipmentMode) error {
 	}
 }
 
+// FlowStatus defines the type for the "flow_status" enum field.
+type FlowStatus string
+
+// FlowStatusDRAFT is the default value of the FlowStatus enum.
+const DefaultFlowStatus = FlowStatusDRAFT
+
+// FlowStatus values.
+const (
+	FlowStatusDRAFT                        FlowStatus = "DRAFT"
+	FlowStatusBOOKED                       FlowStatus = "BOOKED"
+	FlowStatusSPACE_ALLOCATED              FlowStatus = "SPACE_ALLOCATED"
+	FlowStatusTRUCKING_ARRANGED            FlowStatus = "TRUCKING_ARRANGED"
+	FlowStatusDOCUMENT_CUTOFF              FlowStatus = "DOCUMENT_CUTOFF"
+	FlowStatusCUSTOMS_DECLARATION_ARRANGED FlowStatus = "CUSTOMS_DECLARATION_ARRANGED"
+	FlowStatusDOCUMENT_RELEASED            FlowStatus = "DOCUMENT_RELEASED"
+)
+
+func (fs FlowStatus) String() string {
+	return string(fs)
+}
+
+// FlowStatusValidator is a validator for the "flow_status" field enum values. It is called by the builders before save.
+func FlowStatusValidator(fs FlowStatus) error {
+	switch fs {
+	case FlowStatusDRAFT, FlowStatusBOOKED, FlowStatusSPACE_ALLOCATED, FlowStatusTRUCKING_ARRANGED, FlowStatusDOCUMENT_CUTOFF, FlowStatusCUSTOMS_DECLARATION_ARRANGED, FlowStatusDOCUMENT_RELEASED:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for flow_status field: %q", fs)
+	}
+}
+
+// TerminationStatus defines the type for the "termination_status" enum field.
+type TerminationStatus string
+
+// TerminationStatusACTIVE is the default value of the TerminationStatus enum.
+const DefaultTerminationStatus = TerminationStatusACTIVE
+
+// TerminationStatus values.
+const (
+	TerminationStatusACTIVE      TerminationStatus = "ACTIVE"
+	TerminationStatusTERMINATING TerminationStatus = "TERMINATING"
+	TerminationStatusTERMINATED  TerminationStatus = "TERMINATED"
+)
+
+func (ts TerminationStatus) String() string {
+	return string(ts)
+}
+
+// TerminationStatusValidator is a validator for the "termination_status" field enum values. It is called by the builders before save.
+func TerminationStatusValidator(ts TerminationStatus) error {
+	switch ts {
+	case TerminationStatusACTIVE, TerminationStatusTERMINATING, TerminationStatusTERMINATED:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for termination_status field: %q", ts)
+	}
+}
+
+// TerminationType defines the type for the "termination_type" enum field.
+type TerminationType string
+
+// TerminationType values.
+const (
+	TerminationTypeCUSTOMER_CANCEL  TerminationType = "CUSTOMER_CANCEL"
+	TerminationTypeCARRIER_CANCEL   TerminationType = "CARRIER_CANCEL"
+	TerminationTypeCUSTOMS_RETURN   TerminationType = "CUSTOMS_RETURN"
+	TerminationTypeOPERATION_CANCEL TerminationType = "OPERATION_CANCEL"
+	TerminationTypeOTHER            TerminationType = "OTHER"
+)
+
+func (tt TerminationType) String() string {
+	return string(tt)
+}
+
+// TerminationTypeValidator is a validator for the "termination_type" field enum values. It is called by the builders before save.
+func TerminationTypeValidator(tt TerminationType) error {
+	switch tt {
+	case TerminationTypeCUSTOMER_CANCEL, TerminationTypeCARRIER_CANCEL, TerminationTypeCUSTOMS_RETURN, TerminationTypeOPERATION_CANCEL, TerminationTypeOTHER:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for termination_type field: %q", tt)
+	}
+}
+
+// ClosureStatus defines the type for the "closure_status" enum field.
+type ClosureStatus string
+
+// ClosureStatusOPEN is the default value of the ClosureStatus enum.
+const DefaultClosureStatus = ClosureStatusOPEN
+
+// ClosureStatus values.
+const (
+	ClosureStatusOPEN   ClosureStatus = "OPEN"
+	ClosureStatusCLOSED ClosureStatus = "CLOSED"
+)
+
+func (cs ClosureStatus) String() string {
+	return string(cs)
+}
+
+// ClosureStatusValidator is a validator for the "closure_status" field enum values. It is called by the builders before save.
+func ClosureStatusValidator(cs ClosureStatus) error {
+	switch cs {
+	case ClosureStatusOPEN, ClosureStatusCLOSED:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for closure_status field: %q", cs)
+	}
+}
+
 // OrderOption defines the ordering options for the Order queries.
 type OrderOption func(*sql.Selector)
 
@@ -781,14 +911,59 @@ func ByShipmentMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShipmentMode, opts...).ToFunc()
 }
 
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+// ByFlowStatus orders the results by the flow_status field.
+func ByFlowStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFlowStatus, opts...).ToFunc()
 }
 
-// ByStatusTemplateID orders the results by the status_template_id field.
-func ByStatusTemplateID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatusTemplateID, opts...).ToFunc()
+// ByTerminationStatus orders the results by the termination_status field.
+func ByTerminationStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTerminationStatus, opts...).ToFunc()
+}
+
+// ByTerminationType orders the results by the termination_type field.
+func ByTerminationType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTerminationType, opts...).ToFunc()
+}
+
+// ByTerminationReason orders the results by the termination_reason field.
+func ByTerminationReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTerminationReason, opts...).ToFunc()
+}
+
+// ByTerminatedAt orders the results by the terminated_at field.
+func ByTerminatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTerminatedAt, opts...).ToFunc()
+}
+
+// ByTerminatedBy orders the results by the terminated_by field.
+func ByTerminatedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTerminatedBy, opts...).ToFunc()
+}
+
+// ByClosureStatus orders the results by the closure_status field.
+func ByClosureStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosureStatus, opts...).ToFunc()
+}
+
+// ByClosureReason orders the results by the closure_reason field.
+func ByClosureReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosureReason, opts...).ToFunc()
+}
+
+// ByClosedAt orders the results by the closed_at field.
+func ByClosedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosedAt, opts...).ToFunc()
+}
+
+// ByClosedBy orders the results by the closed_by field.
+func ByClosedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosedBy, opts...).ToFunc()
+}
+
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
 // ByOriginLocationID orders the results by the origin_location_id field.
@@ -915,24 +1090,17 @@ func ByCustomerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByStatusTemplateField orders the results by status_template field.
-func ByStatusTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByLifecycleEventsCount orders the results by lifecycle_events count.
+func ByLifecycleEventsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newStatusTemplateStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newLifecycleEventsStep(), opts...)
 	}
 }
 
-// ByStatusLogsCount orders the results by status_logs count.
-func ByStatusLogsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByLifecycleEvents orders the results by lifecycle_events terms.
+func ByLifecycleEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newStatusLogsStep(), opts...)
-	}
-}
-
-// ByStatusLogs orders the results by status_logs terms.
-func ByStatusLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newStatusLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newLifecycleEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1159,18 +1327,11 @@ func newCustomerStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, CustomerTable, CustomerColumn),
 	)
 }
-func newStatusTemplateStep() *sqlgraph.Step {
+func newLifecycleEventsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(StatusTemplateInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, StatusTemplateTable, StatusTemplateColumn),
-	)
-}
-func newStatusLogsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(StatusLogsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, StatusLogsTable, StatusLogsColumn),
+		sqlgraph.To(LifecycleEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LifecycleEventsTable, LifecycleEventsColumn),
 	)
 }
 func newServiceTypesStep() *sqlgraph.Step {

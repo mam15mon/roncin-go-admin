@@ -10,25 +10,15 @@ import (
 )
 
 type orderConfigRepoStub struct {
-	numberRules          []*NumberRule
-	createdNumberRule    *NumberRule
-	updatedNumberRule    *NumberRule
-	statusTemplates      []*StatusTemplate
-	createdTemplate      *StatusTemplate
-	publishedTemplate    *StatusTemplate
-	defaultTemplate      *StatusTemplate
-	allocatedRule        *NumberRule
-	allocatedSequence    int64
-	allocateErr          error
-	lastAllocOrgID       uuid.UUID
-	lastAllocDocType     DocumentType
-	lastAllocTime        time.Time
-	lastPublishOrgID     uuid.UUID
-	lastPublishID        uuid.UUID
-	lastPublishIsDefault bool
-	lastPublishTime      time.Time
-	lastSetDefaultOrgID  uuid.UUID
-	lastSetDefaultID     uuid.UUID
+	numberRules       []*NumberRule
+	createdNumberRule *NumberRule
+	updatedNumberRule *NumberRule
+	allocatedRule     *NumberRule
+	allocatedSequence int64
+	allocateErr       error
+	lastAllocOrgID    uuid.UUID
+	lastAllocDocType  DocumentType
+	lastAllocTime     time.Time
 }
 
 func (s *orderConfigRepoStub) ListNumberRules(_ context.Context, _ uuid.UUID) ([]*NumberRule, error) {
@@ -61,52 +51,6 @@ func (s *orderConfigRepoStub) AllocateNumber(_ context.Context, organizationID u
 	return s.allocatedRule, s.allocatedSequence, nil
 }
 
-func (s *orderConfigRepoStub) ListStatusTemplates(_ context.Context, _ uuid.UUID, _ BusinessType, _ *bool) ([]*StatusTemplate, error) {
-	return s.statusTemplates, nil
-}
-
-func (s *orderConfigRepoStub) CreateStatusTemplate(_ context.Context, organizationID uuid.UUID, input *StatusTemplate) (*StatusTemplate, error) {
-	s.createdTemplate = input
-	input.OrganizationID = organizationID
-	if input.ID == uuid.Nil {
-		input.ID = uuid.New()
-	}
-	return input, nil
-}
-
-func (s *orderConfigRepoStub) PublishStatusTemplate(_ context.Context, organizationID, id uuid.UUID, isDefault bool, now time.Time) (*StatusTemplate, error) {
-	s.lastPublishOrgID = organizationID
-	s.lastPublishID = id
-	s.lastPublishIsDefault = isDefault
-	s.lastPublishTime = now
-	if s.publishedTemplate != nil {
-		return s.publishedTemplate, nil
-	}
-	return &StatusTemplate{
-		ID:             id,
-		OrganizationID: organizationID,
-		Code:           "OCEAN_EXPORT",
-		Version:        1,
-		IsDefault:      isDefault,
-		PublishedAt:    &now,
-	}, nil
-}
-
-func (s *orderConfigRepoStub) SetDefaultStatusTemplate(_ context.Context, organizationID, id uuid.UUID) (*StatusTemplate, error) {
-	s.lastSetDefaultOrgID = organizationID
-	s.lastSetDefaultID = id
-	if s.defaultTemplate != nil {
-		return s.defaultTemplate, nil
-	}
-	return &StatusTemplate{
-		ID:             id,
-		OrganizationID: organizationID,
-		Code:           "OCEAN_EXPORT",
-		Version:        1,
-		IsDefault:      true,
-	}, nil
-}
-
 var _ OrderConfigRepo = (*orderConfigRepoStub)(nil)
 
 func TestDefaultNumberRules(t *testing.T) {
@@ -128,55 +72,6 @@ func TestDefaultNumberRules(t *testing.T) {
 
 	if got := DefaultNumberRules(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("DefaultNumberRules() = %#v, want %#v", got, want)
-	}
-}
-
-func TestDefaultStatusTemplates(t *testing.T) {
-	templates := DefaultStatusTemplates()
-	wantBusinessTypes := map[BusinessType]bool{
-		BusinessTypeSE: false, BusinessTypeSI: false,
-		BusinessTypeAE: false, BusinessTypeAI: false,
-		BusinessTypeLand: false, BusinessTypeRail: false,
-	}
-	if len(templates) != len(wantBusinessTypes) {
-		t.Fatalf("DefaultStatusTemplates() count = %d, want %d", len(templates), len(wantBusinessTypes))
-	}
-
-	for _, template := range templates {
-		if _, exists := wantBusinessTypes[template.BusinessType]; !exists {
-			t.Fatalf("unexpected business type %q", template.BusinessType)
-		}
-		if wantBusinessTypes[template.BusinessType] {
-			t.Fatalf("duplicate business type %q", template.BusinessType)
-		}
-		wantBusinessTypes[template.BusinessType] = true
-		if template.Code == "" || template.Name == "" || template.Version != 1 {
-			t.Fatalf("invalid template metadata: %#v", template)
-		}
-		if !template.IsDefault || !template.Enabled {
-			t.Fatalf("template %q must be default and enabled", template.Code)
-		}
-
-		seenCodes := make(map[string]struct{}, len(template.Items))
-		draftCount := 0
-		for _, item := range template.Items {
-			if item == nil || item.Code == "" || item.Label == "" {
-				t.Fatalf("template %q contains invalid item: %#v", template.Code, item)
-			}
-			if _, exists := seenCodes[item.Code]; exists {
-				t.Fatalf("template %q contains duplicate status %q", template.Code, item.Code)
-			}
-			seenCodes[item.Code] = struct{}{}
-			if item.Code == "DRAFT" {
-				draftCount++
-			}
-			if !item.Enabled || !item.System {
-				t.Fatalf("template %q item %q must be enabled and system-owned", template.Code, item.Code)
-			}
-		}
-		if draftCount != 1 {
-			t.Fatalf("template %q DRAFT count = %d, want 1", template.Code, draftCount)
-		}
 	}
 }
 
@@ -336,7 +231,7 @@ func TestOrderConfigNextNumberSequenceExhausted(t *testing.T) {
 }
 
 func TestOrderConfigNextOrderNumberUsesSupportedBusinessType(t *testing.T) {
-	for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessSI, OrderBusinessAE, OrderBusinessAI} {
+	for _, businessType := range []OrderBusinessType{OrderBusinessSE} {
 		t.Run(string(businessType), func(t *testing.T) {
 			repo := &orderConfigRepoStub{
 				allocatedRule:     &NumberRule{DateFormat: DateFormatNone, SequenceLength: 5},
@@ -361,204 +256,10 @@ func TestOrderConfigNextOrderNumberUsesSupportedBusinessType(t *testing.T) {
 func TestOrderConfigNextOrderNumberRejectsUnimplementedBusinessType(t *testing.T) {
 	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{}, &auditRepoStub{})
 
-	for _, businessType := range []OrderBusinessType{OrderBusinessLand, OrderBusinessRail} {
+	for _, businessType := range []OrderBusinessType{OrderBusinessSI, OrderBusinessAE, OrderBusinessAI, OrderBusinessLand, OrderBusinessRail} {
 		if _, err := usecase.NextOrderNumber(context.Background(), uuid.New(), businessType); err != ErrMasterDataInvalidArgument {
 			t.Fatalf("NextOrderNumber(%q) error = %v, want %v", businessType, err, ErrMasterDataInvalidArgument)
 		}
-	}
-}
-
-func TestOrderConfigCreateStatusTemplateRejections(t *testing.T) {
-	organizationID := uuid.New()
-	actorID := uuid.New()
-
-	tests := []struct {
-		name     string
-		template *StatusTemplate
-	}{
-		{
-			name: "missing DRAFT item",
-			template: &StatusTemplate{
-				Code:         "SE_DEFAULT",
-				Name:         "海运出口默认模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "BOOKED", Label: "已订舱", SortOrder: 1, Enabled: true},
-					{Code: "COMPLETED", Label: "已完成", SortOrder: 2, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "DRAFT item is disabled",
-			template: &StatusTemplate{
-				Code:         "SE_DEFAULT",
-				Name:         "海运出口默认模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: false},
-					{Code: "BOOKED", Label: "已订舱", SortOrder: 1, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "duplicate status code (case insensitive/trimmed)",
-			template: &StatusTemplate{
-				Code:         "SE_DEFAULT",
-				Name:         "海运出口默认模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-					{Code: "BOOKED", Label: "已订舱", SortOrder: 1, Enabled: true},
-					{Code: "  booked ", Label: "已订舱重复", SortOrder: 2, Enabled: true},
-				},
-			},
-		},
-		{
-			name:     "nil template",
-			template: nil,
-		},
-		{
-			name: "empty code",
-			template: &StatusTemplate{
-				Code:         "   ",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "invalid business type",
-			template: &StatusTemplate{
-				Code:         "TEMPLATE",
-				Name:         "模板",
-				BusinessType: BusinessType("INVALID"),
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "version less than 1",
-			template: &StatusTemplate{
-				Code:         "TEMPLATE",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      0,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "empty items",
-			template: &StatusTemplate{
-				Code:         "TEMPLATE",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items:        []*StatusTemplateItem{},
-			},
-		},
-		{
-			name: "nil item inside items list",
-			template: &StatusTemplate{
-				Code:         "TEMPLATE",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-					nil,
-				},
-			},
-		},
-		{
-			name: "item with negative sort order",
-			template: &StatusTemplate{
-				Code:         "TEMPLATE",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: -1, Enabled: true},
-				},
-			},
-		},
-		{
-			name: "template code longer than 64 characters",
-			template: &StatusTemplate{
-				Code:         "12345678901234567890123456789012345678901234567890123456789012345",
-				Name:         "模板",
-				BusinessType: BusinessTypeSE,
-				Version:      1,
-				Items: []*StatusTemplateItem{
-					{Code: "DRAFT", Label: "草稿", SortOrder: 0, Enabled: true},
-				},
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			usecase := NewOrderConfigUsecase(&orderConfigRepoStub{}, &auditRepoStub{})
-			_, err := usecase.CreateStatusTemplate(context.Background(), organizationID, actorID, tc.template)
-			if err != ErrStatusTemplateInvalid {
-				t.Fatalf("CreateStatusTemplate() error = %v, want %v", err, ErrStatusTemplateInvalid)
-			}
-		})
-	}
-}
-
-func TestOrderConfigStatusTemplateWritesAreReadOnly(t *testing.T) {
-	repo := &orderConfigRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderConfigUsecase(repo, audit)
-	organizationID := uuid.New()
-	actorID := uuid.New()
-	templateID := uuid.New()
-	input := &StatusTemplate{
-		Code:         "SE_SYSTEM",
-		Name:         "海运出口内置状态流转",
-		BusinessType: BusinessTypeSE,
-		Version:      1,
-		Items: []*StatusTemplateItem{
-			{Code: "DRAFT", Label: "新建", SortOrder: 0, Enabled: true},
-		},
-	}
-
-	if _, err := usecase.CreateStatusTemplate(context.Background(), organizationID, actorID, input); err != ErrStatusTemplateReadOnly {
-		t.Fatalf("CreateStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
-	}
-	if _, err := usecase.PublishStatusTemplate(context.Background(), organizationID, actorID, templateID, true); err != ErrStatusTemplateReadOnly {
-		t.Fatalf("PublishStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
-	}
-
-	if _, err := usecase.SetDefaultStatusTemplate(context.Background(), organizationID, actorID, templateID); err != ErrStatusTemplateReadOnly {
-		t.Fatalf("SetDefaultStatusTemplate() error = %v, want %v", err, ErrStatusTemplateReadOnly)
-	}
-	if repo.createdTemplate != nil || repo.lastPublishID != uuid.Nil {
-		t.Fatalf("repository was called for read-only status template")
-	}
-	if repo.lastSetDefaultOrgID != uuid.Nil || repo.lastSetDefaultID != uuid.Nil {
-		t.Fatalf("repository was called for read-only status template")
-	}
-	if len(audit.events) != 0 {
-		t.Fatalf("audit events count = %d, want 0", len(audit.events))
-	}
-
-	// Validate invalid arguments
-	if _, err := usecase.SetDefaultStatusTemplate(context.Background(), uuid.Nil, actorID, templateID); err != ErrStatusTemplateInvalid {
-		t.Fatalf("nil orgID error = %v, want %v", err, ErrStatusTemplateInvalid)
-	}
-	if _, err := usecase.SetDefaultStatusTemplate(context.Background(), organizationID, actorID, uuid.Nil); err != ErrStatusTemplateInvalid {
-		t.Fatalf("nil templateID error = %v, want %v", err, ErrStatusTemplateInvalid)
 	}
 }
 

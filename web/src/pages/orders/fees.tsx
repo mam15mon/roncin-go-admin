@@ -862,7 +862,7 @@ export default function OrderFeesPage() {
           </a>
           <span>&gt;</span>
           <span style={{ fontWeight: 600, color: '#0f172a' }}>费用录入</span>
-          {order.canModify === false && order.status !== 'DRAFT' && (
+          {order.canModify === false && order.flowStatus !== 1 && (
             <Tag color="warning" icon={<LockOutlined />}>
               已锁单
             </Tag>

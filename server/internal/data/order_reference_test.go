@@ -77,10 +77,14 @@ func orderReferenceRows(id, organizationID, customerID uuid.UUID, orderNo string
 			values[index] = "FOB"
 		case orderent.FieldPaymentTerm:
 			values[index] = "PREPAID"
-		case orderent.FieldStatus:
+		case orderent.FieldFlowStatus:
 			values[index] = "DRAFT"
-		case orderent.FieldStatusTemplateID:
-			values[index] = uuid.New()
+		case orderent.FieldTerminationStatus:
+			values[index] = "ACTIVE"
+		case orderent.FieldClosureStatus:
+			values[index] = "OPEN"
+		case orderent.FieldVersion:
+			values[index] = 1
 		default:
 			values[index] = nil
 		}

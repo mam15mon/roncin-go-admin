@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strings"
+	"time"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -44,7 +45,20 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if err != nil {
 		return nil, err
 	}
-	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), Status: request.GetStatus()}
+	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword()}
+	if request.FlowStatus != nil {
+		options.FlowStatus = orderFlowStatusFromAPI(request.GetFlowStatus())
+	}
+	if request.TerminationStatus != nil {
+		options.TerminationStatus = orderTerminationStatusFromAPI(request.GetTerminationStatus())
+	}
+	if request.ClosureStatus != nil {
+		options.ClosureStatus = orderClosureStatusFromAPI(request.GetClosureStatus())
+	}
+	if request.HasActiveException != nil {
+		value := request.GetHasActiveException()
+		options.HasActiveException = &value
+	}
 	if request.BusinessType != nil {
 		options.BusinessType = orderBusinessTypeFromAPI(request.GetBusinessType())
 	} else {
@@ -76,9 +90,6 @@ func readableOrderBusinessTypes(principal *biz.Principal) []biz.OrderBusinessTyp
 		biz    biz.OrderBusinessType
 	}{
 		{access: access.OrderBusinessSE, biz: biz.OrderBusinessSE},
-		{access: access.OrderBusinessSI, biz: biz.OrderBusinessSI},
-		{access: access.OrderBusinessAE, biz: biz.OrderBusinessAE},
-		{access: access.OrderBusinessAI, biz: biz.OrderBusinessAI},
 	}
 	result := make([]biz.OrderBusinessType, 0, len(types))
 	for _, businessType := range types {
@@ -215,7 +226,7 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderR
 	if err != nil {
 		return nil, err
 	}
-	updated, err := s.usecase.UpdateDraft(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedStatus(), input)
+	updated, err := s.usecase.UpdateDraft(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), input)
 	if err != nil {
 		return nil, err
 	}
@@ -231,21 +242,50 @@ func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.Tr
 	if err != nil {
 		return nil, biz.ErrOrderNotFound
 	}
-	updated, err := s.usecase.TransitionStatus(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedStatus(), request.GetTargetStatus(), request.GetReason())
+	updated, err := s.usecase.TransitionStatus(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), orderFlowStatusFromAPI(request.GetTargetFlowStatus()), request.GetReason())
 	if err != nil {
 		return nil, err
 	}
 	return &v1.TransitionOrderStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *OrderService) TransitionOrderTermination(ctx context.Context, request *v1.TransitionOrderTerminationRequest) (*v1.TransitionOrderTerminationResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderNotFound
+	}
+	terminationType := orderTerminationTypeFromAPI(request.TerminationType)
+	updated, err := s.usecase.TransitionTermination(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), orderTerminationStatusFromAPI(request.GetTargetStatus()), terminationType, request.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TransitionOrderTerminationResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderService) TransitionOrderClosure(ctx context.Context, request *v1.TransitionOrderClosureRequest) (*v1.TransitionOrderClosureResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderNotFound
+	}
+	updated, err := s.usecase.TransitionClosure(ctx, principal.Organization.ID, principal.UserID, id, request.GetExpectedVersion(), orderClosureStatusFromAPI(request.GetTargetStatus()), request.GetReason())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.TransitionOrderClosureResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) {
 	customerID, err := uuid.Parse(request.GetCustomerId())
 	if err != nil {
 		return nil, biz.ErrOrderCustomerInvalid
-	}
-	statusTemplateID, err := uuid.Parse(request.GetStatusTemplateId())
-	if err != nil {
-		return nil, biz.ErrOrderStatusTemplate
 	}
 	serviceTypeIDs, err := parseUUIDStrings(request.GetServiceTypeIds())
 	if err != nil {
@@ -300,8 +340,8 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		return nil, err
 	}
 	return &biz.Order{
-		CustomerID: customerID, StatusTemplateID: statusTemplateID,
-		CarrierID: carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
+		CustomerID: customerID,
+		CarrierID:  carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
@@ -518,7 +558,11 @@ func orderToAPI(item *biz.Order) *v1.Order {
 	result := &v1.Order{
 		Id: item.ID.String(), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, OrderNo: item.OrderNo, CustomerId: item.CustomerID.String(),
 		BusinessType: orderBusinessTypeToAPI(item.BusinessType), TradeDirection: orderTradeDirectionToAPI(item.TradeDirection), TradeTerm: orderTradeTermToAPI(item.TradeTerm), PaymentTerm: orderPaymentTermToAPI(item.PaymentTerm),
-		Status: item.Status, StatusTemplateId: item.StatusTemplateID.String(), ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
+		FlowStatus: orderFlowStatusToAPI(item.FlowStatus), TerminationStatus: orderTerminationStatusToAPI(item.TerminationStatus), TerminationType: orderTerminationTypeToAPI(item.TerminationType),
+		TerminationReason: stringPtrIfNotEmpty(item.TerminationReason), TerminatedAt: timePtrToString(item.TerminatedAt), TerminatedBy: uuidStringPtr(item.TerminatedBy),
+		ClosureStatus: orderClosureStatusToAPI(item.ClosureStatus), ClosureReason: stringPtrIfNotEmpty(item.ClosureReason), ClosedAt: timePtrToString(item.ClosedAt), ClosedBy: uuidStringPtr(item.ClosedBy),
+		Version: item.Version, HasActiveException: item.HasActiveException, ActiveExceptionCount: int32(item.ActiveExceptionCount), AllowedActions: orderAllowedActionsToAPI(item.AllowedActions),
+		ServiceTypeIds: uuidStrings(item.ServiceTypeIDs), CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
 		CarrierId: uuidStringPtr(item.CarrierID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode),
 		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
 		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt), LoadingTerms: stringPtrIfNotEmpty(item.LoadingTerms),
@@ -681,6 +725,107 @@ func intToInt32Ptr(value *int) *int32 {
 	}
 	result := int32(*value)
 	return &result
+}
+
+func timePtrToString(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.UTC().Format(timeFormatRFC3339)
+	return &formatted
+}
+
+func orderFlowStatusFromAPI(value v1.OrderFlowStatus) biz.OrderFlowStatus {
+	switch value {
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_DRAFT:
+		return biz.OrderFlowDraft
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_BOOKED:
+		return biz.OrderFlowBooked
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_SPACE_ALLOCATED:
+		return biz.OrderFlowSpaceAllocated
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_TRUCKING_ARRANGED:
+		return biz.OrderFlowTruckingArranged
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_CUTOFF:
+		return biz.OrderFlowDocumentCutoff
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED:
+		return biz.OrderFlowCustomsDeclarationArranged
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_RELEASED:
+		return biz.OrderFlowDocumentReleased
+	default:
+		return ""
+	}
+}
+
+func orderFlowStatusToAPI(value biz.OrderFlowStatus) v1.OrderFlowStatus {
+	return map[biz.OrderFlowStatus]v1.OrderFlowStatus{
+		biz.OrderFlowDraft: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DRAFT, biz.OrderFlowBooked: v1.OrderFlowStatus_ORDER_FLOW_STATUS_BOOKED,
+		biz.OrderFlowSpaceAllocated: v1.OrderFlowStatus_ORDER_FLOW_STATUS_SPACE_ALLOCATED, biz.OrderFlowTruckingArranged: v1.OrderFlowStatus_ORDER_FLOW_STATUS_TRUCKING_ARRANGED,
+		biz.OrderFlowDocumentCutoff: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_CUTOFF, biz.OrderFlowCustomsDeclarationArranged: v1.OrderFlowStatus_ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED,
+		biz.OrderFlowDocumentReleased: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_RELEASED,
+	}[value]
+}
+
+func orderTerminationStatusFromAPI(value v1.OrderTerminationStatus) biz.OrderTerminationStatus {
+	return map[v1.OrderTerminationStatus]biz.OrderTerminationStatus{
+		v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_ACTIVE: biz.OrderTerminationActive, v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_TERMINATING: biz.OrderTerminationTerminating,
+		v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_TERMINATED: biz.OrderTerminationTerminated,
+	}[value]
+}
+
+func orderTerminationStatusToAPI(value biz.OrderTerminationStatus) v1.OrderTerminationStatus {
+	return map[biz.OrderTerminationStatus]v1.OrderTerminationStatus{
+		biz.OrderTerminationActive: v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_ACTIVE, biz.OrderTerminationTerminating: v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_TERMINATING,
+		biz.OrderTerminationTerminated: v1.OrderTerminationStatus_ORDER_TERMINATION_STATUS_TERMINATED,
+	}[value]
+}
+
+func orderTerminationTypeFromAPI(value *v1.OrderTerminationType) *biz.OrderTerminationType {
+	if value == nil {
+		return nil
+	}
+	mapped := map[v1.OrderTerminationType]biz.OrderTerminationType{
+		v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CUSTOMER_CANCEL: biz.OrderTerminationCustomerCancel, v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CARRIER_CANCEL: biz.OrderTerminationCarrierCancel,
+		v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CUSTOMS_RETURN: biz.OrderTerminationCustomsReturn, v1.OrderTerminationType_ORDER_TERMINATION_TYPE_OPERATION_CANCEL: biz.OrderTerminationOperationCancel,
+		v1.OrderTerminationType_ORDER_TERMINATION_TYPE_OTHER: biz.OrderTerminationOther,
+	}[*value]
+	if mapped == "" {
+		return nil
+	}
+	return &mapped
+}
+
+func orderTerminationTypeToAPI(value *biz.OrderTerminationType) *v1.OrderTerminationType {
+	if value == nil {
+		return nil
+	}
+	mapped := map[biz.OrderTerminationType]v1.OrderTerminationType{
+		biz.OrderTerminationCustomerCancel: v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CUSTOMER_CANCEL, biz.OrderTerminationCarrierCancel: v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CARRIER_CANCEL,
+		biz.OrderTerminationCustomsReturn: v1.OrderTerminationType_ORDER_TERMINATION_TYPE_CUSTOMS_RETURN, biz.OrderTerminationOperationCancel: v1.OrderTerminationType_ORDER_TERMINATION_TYPE_OPERATION_CANCEL,
+		biz.OrderTerminationOther: v1.OrderTerminationType_ORDER_TERMINATION_TYPE_OTHER,
+	}[*value]
+	return &mapped
+}
+
+func orderClosureStatusFromAPI(value v1.OrderClosureStatus) biz.OrderClosureStatus {
+	return map[v1.OrderClosureStatus]biz.OrderClosureStatus{v1.OrderClosureStatus_ORDER_CLOSURE_STATUS_OPEN: biz.OrderClosureOpen, v1.OrderClosureStatus_ORDER_CLOSURE_STATUS_CLOSED: biz.OrderClosureClosed}[value]
+}
+
+func orderClosureStatusToAPI(value biz.OrderClosureStatus) v1.OrderClosureStatus {
+	return map[biz.OrderClosureStatus]v1.OrderClosureStatus{biz.OrderClosureOpen: v1.OrderClosureStatus_ORDER_CLOSURE_STATUS_OPEN, biz.OrderClosureClosed: v1.OrderClosureStatus_ORDER_CLOSURE_STATUS_CLOSED}[value]
+}
+
+func orderAllowedActionsToAPI(values []biz.OrderAllowedAction) []v1.OrderAllowedAction {
+	mapping := map[biz.OrderAllowedAction]v1.OrderAllowedAction{
+		biz.OrderActionEdit: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_EDIT, biz.OrderActionTransitionFlow: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
+		biz.OrderActionStartTermination: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_START_TERMINATION, biz.OrderActionCompleteTermination: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION,
+		biz.OrderActionCancelTermination: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_CANCEL_TERMINATION, biz.OrderActionClose: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_CLOSE,
+		biz.OrderActionReopen: v1.OrderAllowedAction_ORDER_ALLOWED_ACTION_REOPEN,
+	}
+	result := make([]v1.OrderAllowedAction, 0, len(values))
+	for _, value := range values {
+		result = append(result, mapping[value])
+	}
+	return result
 }
 
 func orderBusinessTypeFromAPI(value v1.BusinessType) biz.OrderBusinessType {

@@ -45,7 +45,6 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("airlines", Airline.Type),
 		edge.To("shipping_lines", ShippingLine.Type),
 		edge.To("number_rules", NumberRule.Type),
-		edge.To("status_templates", StatusTemplate.Type),
 		edge.To("milestone_templates", MilestoneTemplate.Type),
 		edge.To("orders", Order.Type),
 		edge.To("order_consolidations", OrderConsolidation.Type),

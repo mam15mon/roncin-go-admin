@@ -14,17 +14,17 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
-// OrderStatusLogQuery is the builder for querying OrderStatusLog entities.
-type OrderStatusLogQuery struct {
+// OrderLifecycleEventQuery is the builder for querying OrderLifecycleEvent entities.
+type OrderLifecycleEventQuery struct {
 	config
 	ctx        *QueryContext
-	order      []orderstatuslog.OrderOption
+	order      []orderlifecycleevent.OrderOption
 	inters     []Interceptor
-	predicates []predicate.OrderStatusLog
+	predicates []predicate.OrderLifecycleEvent
 	withOrder  *OrderQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -32,39 +32,39 @@ type OrderStatusLogQuery struct {
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the OrderStatusLogQuery builder.
-func (_q *OrderStatusLogQuery) Where(ps ...predicate.OrderStatusLog) *OrderStatusLogQuery {
+// Where adds a new predicate for the OrderLifecycleEventQuery builder.
+func (_q *OrderLifecycleEventQuery) Where(ps ...predicate.OrderLifecycleEvent) *OrderLifecycleEventQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *OrderStatusLogQuery) Limit(limit int) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) Limit(limit int) *OrderLifecycleEventQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *OrderStatusLogQuery) Offset(offset int) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) Offset(offset int) *OrderLifecycleEventQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *OrderStatusLogQuery) Unique(unique bool) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) Unique(unique bool) *OrderLifecycleEventQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *OrderStatusLogQuery) Order(o ...orderstatuslog.OrderOption) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) Order(o ...orderlifecycleevent.OrderOption) *OrderLifecycleEventQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryOrder chains the current query on the "order" edge.
-func (_q *OrderStatusLogQuery) QueryOrder() *OrderQuery {
+func (_q *OrderLifecycleEventQuery) QueryOrder() *OrderQuery {
 	query := (&OrderClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -75,9 +75,9 @@ func (_q *OrderStatusLogQuery) QueryOrder() *OrderQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(orderstatuslog.Table, orderstatuslog.FieldID, selector),
+			sqlgraph.From(orderlifecycleevent.Table, orderlifecycleevent.FieldID, selector),
 			sqlgraph.To(order.Table, order.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, orderstatuslog.OrderTable, orderstatuslog.OrderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlifecycleevent.OrderTable, orderlifecycleevent.OrderColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -85,21 +85,21 @@ func (_q *OrderStatusLogQuery) QueryOrder() *OrderQuery {
 	return query
 }
 
-// First returns the first OrderStatusLog entity from the query.
-// Returns a *NotFoundError when no OrderStatusLog was found.
-func (_q *OrderStatusLogQuery) First(ctx context.Context) (*OrderStatusLog, error) {
+// First returns the first OrderLifecycleEvent entity from the query.
+// Returns a *NotFoundError when no OrderLifecycleEvent was found.
+func (_q *OrderLifecycleEventQuery) First(ctx context.Context) (*OrderLifecycleEvent, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{orderstatuslog.Label}
+		return nil, &NotFoundError{orderlifecycleevent.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) FirstX(ctx context.Context) *OrderStatusLog {
+func (_q *OrderLifecycleEventQuery) FirstX(ctx context.Context) *OrderLifecycleEvent {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -107,22 +107,22 @@ func (_q *OrderStatusLogQuery) FirstX(ctx context.Context) *OrderStatusLog {
 	return node
 }
 
-// FirstID returns the first OrderStatusLog ID from the query.
-// Returns a *NotFoundError when no OrderStatusLog ID was found.
-func (_q *OrderStatusLogQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first OrderLifecycleEvent ID from the query.
+// Returns a *NotFoundError when no OrderLifecycleEvent ID was found.
+func (_q *OrderLifecycleEventQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{orderstatuslog.Label}
+		err = &NotFoundError{orderlifecycleevent.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *OrderLifecycleEventQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -130,10 +130,10 @@ func (_q *OrderStatusLogQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single OrderStatusLog entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one OrderStatusLog entity is found.
-// Returns a *NotFoundError when no OrderStatusLog entities are found.
-func (_q *OrderStatusLogQuery) Only(ctx context.Context) (*OrderStatusLog, error) {
+// Only returns a single OrderLifecycleEvent entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one OrderLifecycleEvent entity is found.
+// Returns a *NotFoundError when no OrderLifecycleEvent entities are found.
+func (_q *OrderLifecycleEventQuery) Only(ctx context.Context) (*OrderLifecycleEvent, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -142,14 +142,14 @@ func (_q *OrderStatusLogQuery) Only(ctx context.Context) (*OrderStatusLog, error
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{orderstatuslog.Label}
+		return nil, &NotFoundError{orderlifecycleevent.Label}
 	default:
-		return nil, &NotSingularError{orderstatuslog.Label}
+		return nil, &NotSingularError{orderlifecycleevent.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) OnlyX(ctx context.Context) *OrderStatusLog {
+func (_q *OrderLifecycleEventQuery) OnlyX(ctx context.Context) *OrderLifecycleEvent {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -157,10 +157,10 @@ func (_q *OrderStatusLogQuery) OnlyX(ctx context.Context) *OrderStatusLog {
 	return node
 }
 
-// OnlyID is like Only, but returns the only OrderStatusLog ID in the query.
-// Returns a *NotSingularError when more than one OrderStatusLog ID is found.
+// OnlyID is like Only, but returns the only OrderLifecycleEvent ID in the query.
+// Returns a *NotSingularError when more than one OrderLifecycleEvent ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *OrderStatusLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *OrderLifecycleEventQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -169,15 +169,15 @@ func (_q *OrderStatusLogQuery) OnlyID(ctx context.Context) (id uuid.UUID, err er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{orderstatuslog.Label}
+		err = &NotFoundError{orderlifecycleevent.Label}
 	default:
-		err = &NotSingularError{orderstatuslog.Label}
+		err = &NotSingularError{orderlifecycleevent.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *OrderLifecycleEventQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -185,18 +185,18 @@ func (_q *OrderStatusLogQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of OrderStatusLogs.
-func (_q *OrderStatusLogQuery) All(ctx context.Context) ([]*OrderStatusLog, error) {
+// All executes the query and returns a list of OrderLifecycleEvents.
+func (_q *OrderLifecycleEventQuery) All(ctx context.Context) ([]*OrderLifecycleEvent, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*OrderStatusLog, *OrderStatusLogQuery]()
-	return withInterceptors[[]*OrderStatusLog](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*OrderLifecycleEvent, *OrderLifecycleEventQuery]()
+	return withInterceptors[[]*OrderLifecycleEvent](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) AllX(ctx context.Context) []*OrderStatusLog {
+func (_q *OrderLifecycleEventQuery) AllX(ctx context.Context) []*OrderLifecycleEvent {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -204,20 +204,20 @@ func (_q *OrderStatusLogQuery) AllX(ctx context.Context) []*OrderStatusLog {
 	return nodes
 }
 
-// IDs executes the query and returns a list of OrderStatusLog IDs.
-func (_q *OrderStatusLogQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of OrderLifecycleEvent IDs.
+func (_q *OrderLifecycleEventQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(orderstatuslog.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(orderlifecycleevent.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *OrderLifecycleEventQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -226,16 +226,16 @@ func (_q *OrderStatusLogQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *OrderStatusLogQuery) Count(ctx context.Context) (int, error) {
+func (_q *OrderLifecycleEventQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*OrderStatusLogQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*OrderLifecycleEventQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) CountX(ctx context.Context) int {
+func (_q *OrderLifecycleEventQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -244,7 +244,7 @@ func (_q *OrderStatusLogQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *OrderStatusLogQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *OrderLifecycleEventQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -257,7 +257,7 @@ func (_q *OrderStatusLogQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *OrderStatusLogQuery) ExistX(ctx context.Context) bool {
+func (_q *OrderLifecycleEventQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -265,18 +265,18 @@ func (_q *OrderStatusLogQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the OrderStatusLogQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the OrderLifecycleEventQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *OrderStatusLogQuery) Clone() *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) Clone() *OrderLifecycleEventQuery {
 	if _q == nil {
 		return nil
 	}
-	return &OrderStatusLogQuery{
+	return &OrderLifecycleEventQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]orderstatuslog.OrderOption{}, _q.order...),
+		order:      append([]orderlifecycleevent.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.OrderStatusLog{}, _q.predicates...),
+		predicates: append([]predicate.OrderLifecycleEvent{}, _q.predicates...),
 		withOrder:  _q.withOrder.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -286,7 +286,7 @@ func (_q *OrderStatusLogQuery) Clone() *OrderStatusLogQuery {
 
 // WithOrder tells the query-builder to eager-load the nodes that are connected to
 // the "order" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderStatusLogQuery) WithOrder(opts ...func(*OrderQuery)) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) WithOrder(opts ...func(*OrderQuery)) *OrderLifecycleEventQuery {
 	query := (&OrderClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -305,15 +305,15 @@ func (_q *OrderStatusLogQuery) WithOrder(opts ...func(*OrderQuery)) *OrderStatus
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.OrderStatusLog.Query().
-//		GroupBy(orderstatuslog.FieldOrderID).
+//	client.OrderLifecycleEvent.Query().
+//		GroupBy(orderlifecycleevent.FieldOrderID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *OrderStatusLogQuery) GroupBy(field string, fields ...string) *OrderStatusLogGroupBy {
+func (_q *OrderLifecycleEventQuery) GroupBy(field string, fields ...string) *OrderLifecycleEventGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &OrderStatusLogGroupBy{build: _q}
+	grbuild := &OrderLifecycleEventGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = orderstatuslog.Label
+	grbuild.label = orderlifecycleevent.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -327,23 +327,23 @@ func (_q *OrderStatusLogQuery) GroupBy(field string, fields ...string) *OrderSta
 //		OrderID uuid.UUID `json:"order_id,omitempty"`
 //	}
 //
-//	client.OrderStatusLog.Query().
-//		Select(orderstatuslog.FieldOrderID).
+//	client.OrderLifecycleEvent.Query().
+//		Select(orderlifecycleevent.FieldOrderID).
 //		Scan(ctx, &v)
-func (_q *OrderStatusLogQuery) Select(fields ...string) *OrderStatusLogSelect {
+func (_q *OrderLifecycleEventQuery) Select(fields ...string) *OrderLifecycleEventSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &OrderStatusLogSelect{OrderStatusLogQuery: _q}
-	sbuild.label = orderstatuslog.Label
+	sbuild := &OrderLifecycleEventSelect{OrderLifecycleEventQuery: _q}
+	sbuild.label = orderlifecycleevent.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a OrderStatusLogSelect configured with the given aggregations.
-func (_q *OrderStatusLogQuery) Aggregate(fns ...AggregateFunc) *OrderStatusLogSelect {
+// Aggregate returns a OrderLifecycleEventSelect configured with the given aggregations.
+func (_q *OrderLifecycleEventQuery) Aggregate(fns ...AggregateFunc) *OrderLifecycleEventSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *OrderStatusLogQuery) prepareQuery(ctx context.Context) error {
+func (_q *OrderLifecycleEventQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -355,7 +355,7 @@ func (_q *OrderStatusLogQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !orderstatuslog.ValidColumn(f) {
+		if !orderlifecycleevent.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -369,19 +369,19 @@ func (_q *OrderStatusLogQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *OrderStatusLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderStatusLog, error) {
+func (_q *OrderLifecycleEventQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderLifecycleEvent, error) {
 	var (
-		nodes       = []*OrderStatusLog{}
+		nodes       = []*OrderLifecycleEvent{}
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withOrder != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*OrderStatusLog).scanValues(nil, columns)
+		return (*OrderLifecycleEvent).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &OrderStatusLog{config: _q.config}
+		node := &OrderLifecycleEvent{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -400,16 +400,16 @@ func (_q *OrderStatusLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	}
 	if query := _q.withOrder; query != nil {
 		if err := _q.loadOrder(ctx, query, nodes, nil,
-			func(n *OrderStatusLog, e *Order) { n.Edges.Order = e }); err != nil {
+			func(n *OrderLifecycleEvent, e *Order) { n.Edges.Order = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *OrderStatusLogQuery) loadOrder(ctx context.Context, query *OrderQuery, nodes []*OrderStatusLog, init func(*OrderStatusLog), assign func(*OrderStatusLog, *Order)) error {
+func (_q *OrderLifecycleEventQuery) loadOrder(ctx context.Context, query *OrderQuery, nodes []*OrderLifecycleEvent, init func(*OrderLifecycleEvent), assign func(*OrderLifecycleEvent, *Order)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*OrderStatusLog)
+	nodeids := make(map[uuid.UUID][]*OrderLifecycleEvent)
 	for i := range nodes {
 		fk := nodes[i].OrderID
 		if _, ok := nodeids[fk]; !ok {
@@ -437,7 +437,7 @@ func (_q *OrderStatusLogQuery) loadOrder(ctx context.Context, query *OrderQuery,
 	return nil
 }
 
-func (_q *OrderStatusLogQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *OrderLifecycleEventQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	if len(_q.modifiers) > 0 {
 		_spec.Modifiers = _q.modifiers
@@ -449,8 +449,8 @@ func (_q *OrderStatusLogQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *OrderStatusLogQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(orderstatuslog.Table, orderstatuslog.Columns, sqlgraph.NewFieldSpec(orderstatuslog.FieldID, field.TypeUUID))
+func (_q *OrderLifecycleEventQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(orderlifecycleevent.Table, orderlifecycleevent.Columns, sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -459,14 +459,14 @@ func (_q *OrderStatusLogQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, orderstatuslog.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, orderlifecycleevent.FieldID)
 		for i := range fields {
-			if fields[i] != orderstatuslog.FieldID {
+			if fields[i] != orderlifecycleevent.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withOrder != nil {
-			_spec.Node.AddColumnOnce(orderstatuslog.FieldOrderID)
+			_spec.Node.AddColumnOnce(orderlifecycleevent.FieldOrderID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -492,12 +492,12 @@ func (_q *OrderStatusLogQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *OrderStatusLogQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *OrderLifecycleEventQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(orderstatuslog.Table)
+	t1 := builder.Table(orderlifecycleevent.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = orderstatuslog.Columns
+		columns = orderlifecycleevent.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -530,7 +530,7 @@ func (_q *OrderStatusLogQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (_q *OrderStatusLogQuery) ForUpdate(opts ...sql.LockOption) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) ForUpdate(opts ...sql.LockOption) *OrderLifecycleEventQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -543,7 +543,7 @@ func (_q *OrderStatusLogQuery) ForUpdate(opts ...sql.LockOption) *OrderStatusLog
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (_q *OrderStatusLogQuery) ForShare(opts ...sql.LockOption) *OrderStatusLogQuery {
+func (_q *OrderLifecycleEventQuery) ForShare(opts ...sql.LockOption) *OrderLifecycleEventQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -553,28 +553,28 @@ func (_q *OrderStatusLogQuery) ForShare(opts ...sql.LockOption) *OrderStatusLogQ
 	return _q
 }
 
-// OrderStatusLogGroupBy is the group-by builder for OrderStatusLog entities.
-type OrderStatusLogGroupBy struct {
+// OrderLifecycleEventGroupBy is the group-by builder for OrderLifecycleEvent entities.
+type OrderLifecycleEventGroupBy struct {
 	selector
-	build *OrderStatusLogQuery
+	build *OrderLifecycleEventQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *OrderStatusLogGroupBy) Aggregate(fns ...AggregateFunc) *OrderStatusLogGroupBy {
+func (_g *OrderLifecycleEventGroupBy) Aggregate(fns ...AggregateFunc) *OrderLifecycleEventGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *OrderStatusLogGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *OrderLifecycleEventGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*OrderStatusLogQuery, *OrderStatusLogGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*OrderLifecycleEventQuery, *OrderLifecycleEventGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *OrderStatusLogGroupBy) sqlScan(ctx context.Context, root *OrderStatusLogQuery, v any) error {
+func (_g *OrderLifecycleEventGroupBy) sqlScan(ctx context.Context, root *OrderLifecycleEventQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -601,28 +601,28 @@ func (_g *OrderStatusLogGroupBy) sqlScan(ctx context.Context, root *OrderStatusL
 	return sql.ScanSlice(rows, v)
 }
 
-// OrderStatusLogSelect is the builder for selecting fields of OrderStatusLog entities.
-type OrderStatusLogSelect struct {
-	*OrderStatusLogQuery
+// OrderLifecycleEventSelect is the builder for selecting fields of OrderLifecycleEvent entities.
+type OrderLifecycleEventSelect struct {
+	*OrderLifecycleEventQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *OrderStatusLogSelect) Aggregate(fns ...AggregateFunc) *OrderStatusLogSelect {
+func (_s *OrderLifecycleEventSelect) Aggregate(fns ...AggregateFunc) *OrderLifecycleEventSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *OrderStatusLogSelect) Scan(ctx context.Context, v any) error {
+func (_s *OrderLifecycleEventSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*OrderStatusLogQuery, *OrderStatusLogSelect](ctx, _s.OrderStatusLogQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*OrderLifecycleEventQuery, *OrderLifecycleEventSelect](ctx, _s.OrderLifecycleEventQuery, _s, _s.inters, v)
 }
 
-func (_s *OrderStatusLogSelect) sqlScan(ctx context.Context, root *OrderStatusLogQuery, v any) error {
+func (_s *OrderLifecycleEventSelect) sqlScan(ctx context.Context, root *OrderLifecycleEventQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

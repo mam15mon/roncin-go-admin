@@ -36,7 +36,6 @@ func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
 
 func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	customerID := uuid.New()
-	templateID := uuid.New()
 	foreignAgentID := uuid.New()
 	shippingAgentID := uuid.New()
 	referenceNo := "CUST-001"
@@ -57,7 +56,7 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	declarationCutoffAt := "2026-08-22T16:00:00+08:00"
 
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
-		CustomerId: customerID.String(), StatusTemplateId: templateID.String(),
+		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
 		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		CustomerReferenceNo: &referenceNo, ForeignAgentId: &foreignAgentIDString,
@@ -83,10 +82,9 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 
 func TestOrderPlanFieldsRoundTrip(t *testing.T) {
 	customerID := uuid.New()
-	templateID := uuid.New()
 	containerSpecID := uuid.New()
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
-		CustomerId: customerID.String(), StatusTemplateId: templateID.String(),
+		CustomerId:   customerID.String(),
 		BusinessType: v1.BusinessType_BUSINESS_TYPE_SE, TradeDirection: v1.TradeDirection_TRADE_DIRECTION_EXPORT,
 		TradeTerm: v1.TradeTerm_TRADE_TERM_FOB, PaymentTerm: v1.PaymentTerm_PAYMENT_TERM_PREPAID,
 		ShippingDocuments: []*v1.OrderShippingDocumentInput{

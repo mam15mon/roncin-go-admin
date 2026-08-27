@@ -33,7 +33,7 @@ func (r *orderMilestoneRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uuid.UUID, milestoneType, expectedStatus string, occurredAt *time.Time, note *string, clearOccurredAt bool, actorID uuid.UUID) (*biz.OrderMilestone, error) {
+func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uuid.UUID, milestoneType string, expectedVersion uint64, occurredAt *time.Time, note *string, clearOccurredAt bool, actorID uuid.UUID) (*biz.OrderMilestone, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uu
 		}
 		return nil, err
 	}
-	if order.Status != expectedStatus {
+	if order.Version != expectedVersion {
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderStatusConflict
 	}

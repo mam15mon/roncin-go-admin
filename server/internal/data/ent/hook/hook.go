@@ -525,6 +525,18 @@ func (f OrderFeeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeMutation", m)
 }
 
+// The OrderLifecycleEventFunc type is an adapter to allow the use of ordinary
+// function as OrderLifecycleEvent mutator.
+type OrderLifecycleEventFunc func(context.Context, *ent.OrderLifecycleEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderLifecycleEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderLifecycleEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderLifecycleEventMutation", m)
+}
+
 // The OrderMilestoneFunc type is an adapter to allow the use of ordinary
 // function as OrderMilestone mutator.
 type OrderMilestoneFunc func(context.Context, *ent.OrderMilestoneMutation) (ent.Value, error)
@@ -583,18 +595,6 @@ func (f OrderShippingDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderShippingDocumentMutation", m)
-}
-
-// The OrderStatusLogFunc type is an adapter to allow the use of ordinary
-// function as OrderStatusLog mutator.
-type OrderStatusLogFunc func(context.Context, *ent.OrderStatusLogMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderStatusLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderStatusLogMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderStatusLogMutation", m)
 }
 
 // The OrganizationFunc type is an adapter to allow the use of ordinary
@@ -847,30 +847,6 @@ func (f ShippingLineContainerPrefixFunc) Mutate(ctx context.Context, m ent.Mutat
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ShippingLineContainerPrefixMutation", m)
-}
-
-// The StatusTemplateFunc type is an adapter to allow the use of ordinary
-// function as StatusTemplate mutator.
-type StatusTemplateFunc func(context.Context, *ent.StatusTemplateMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f StatusTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.StatusTemplateMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusTemplateMutation", m)
-}
-
-// The StatusTemplateItemFunc type is an adapter to allow the use of ordinary
-// function as StatusTemplateItem mutator.
-type StatusTemplateItemFunc func(context.Context, *ent.StatusTemplateItemMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f StatusTemplateItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.StatusTemplateItemMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StatusTemplateItemMutation", m)
 }
 
 // The TaxableServiceFunc type is an adapter to allow the use of ordinary

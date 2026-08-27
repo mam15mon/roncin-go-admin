@@ -897,29 +897,6 @@ func HasNumberRulesWith(preds ...predicate.NumberRule) predicate.Organization {
 	})
 }
 
-// HasStatusTemplates applies the HasEdge predicate on the "status_templates" edge.
-func HasStatusTemplates() predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, StatusTemplatesTable, StatusTemplatesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasStatusTemplatesWith applies the HasEdge predicate on the "status_templates" edge with a given conditions (other predicates).
-func HasStatusTemplatesWith(preds ...predicate.StatusTemplate) predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := newStatusTemplatesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasMilestoneTemplates applies the HasEdge predicate on the "milestone_templates" edge.
 func HasMilestoneTemplates() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

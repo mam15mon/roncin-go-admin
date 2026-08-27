@@ -13,9 +13,12 @@ import (
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -23,8 +26,6 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
-	statustemplateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
-	statustemplateitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -59,8 +60,22 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
-	if options.Status != "" {
-		query.Where(orderent.StatusEQ(options.Status))
+	if options.FlowStatus != "" {
+		query.Where(orderent.FlowStatusEQ(orderent.FlowStatus(options.FlowStatus)))
+	}
+	if options.TerminationStatus != "" {
+		query.Where(orderent.TerminationStatusEQ(orderent.TerminationStatus(options.TerminationStatus)))
+	}
+	if options.ClosureStatus != "" {
+		query.Where(orderent.ClosureStatusEQ(orderent.ClosureStatus(options.ClosureStatus)))
+	}
+	if options.HasActiveException != nil {
+		activeException := orderent.HasAbnormalCasesWith(orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE))
+		if *options.HasActiveException {
+			query.Where(activeException)
+		} else {
+			query.Where(orderent.Not(activeException))
+		}
 	}
 	if options.BusinessType != "" {
 		query.Where(orderent.BusinessTypeEQ(orderent.BusinessType(options.BusinessType)))
@@ -287,8 +302,10 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
 		SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
 		SetNillableShipmentMode(orderShipmentModeToEnt(input.ShipmentMode)).
-		SetStatus("DRAFT").
-		SetStatusTemplateID(input.StatusTemplateID).
+		SetFlowStatus(orderent.FlowStatusDRAFT).
+		SetTerminationStatus(orderent.TerminationStatusACTIVE).
+		SetClosureStatus(orderent.ClosureStatusOPEN).
+		SetVersion(1).
 		SetNillableOriginLocationID(input.OriginLocationID).
 		SetNillableDestinationLocationID(input.DestinationLocationID).
 		SetNillableDischargeLocationID(input.DischargeLocationID).
@@ -330,7 +347,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		_ = tx.Rollback()
 		return nil, err
 	}
-	if _, err := tx.OrderStatusLog.Create().SetOrderID(created.ID).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
+	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -347,10 +364,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 	return r.Get(ctx, organizationID, created.ID)
 }
 
-func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedStatus string, input *biz.Order) (*biz.Order, error) {
-	if expectedStatus != "DRAFT" {
-		return nil, biz.ErrOrderStatusConflict
-	}
+func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -363,19 +377,24 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		}
 		return nil, err
 	}
-	if existing.Status != expectedStatus {
+	if existing.Version != expectedVersion {
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderStatusConflict
 	}
-	if existing.BusinessType != orderent.BusinessType(input.BusinessType) || existing.StatusTemplateID != input.StatusTemplateID {
+	if existing.FlowStatus != orderent.FlowStatusDRAFT || existing.TerminationStatus != orderent.TerminationStatusACTIVE || existing.ClosureStatus != orderent.ClosureStatusOPEN {
 		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusTemplate
+		return nil, biz.ErrOrderStatusConflict
+	}
+	if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderBusinessUnsupported
 	}
 	if err := validateOrderReferences(ctx, tx, organizationID, input); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
 	update := existing.Update().
+		SetVersion(existing.Version + 1).
 		SetCustomerID(input.CustomerID).
 		SetCustomerReferenceNo(input.CustomerReferenceNo).
 		SetInternalReferenceNo(input.InternalReferenceNo).
@@ -446,7 +465,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	return r.Get(ctx, organizationID, id)
 }
 
-func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedStatus, targetStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
+func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, targetStatus biz.OrderFlowStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -459,24 +478,143 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		}
 		return nil, err
 	}
-	if existing.Status != expectedStatus {
+	if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderStatusConflict
 	}
-	valid, err := tx.StatusTemplateItem.Query().Where(statustemplateitement.TemplateIDEQ(existing.StatusTemplateID), statustemplateitement.CodeEQ(targetStatus), statustemplateitement.EnabledEQ(true)).Exist(ctx)
+	if _, err := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionFLOW).SetFromStatus(string(event.FromStatus)).SetToStatus(string(targetStatus)).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.Get(ctx, organizationID, id)
+}
+
+func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderTerminationStatus, terminationType *biz.OrderTerminationType, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderNotFound
+		}
 		return nil, err
 	}
-	if !valid {
+	if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
 		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusInvalid
+		return nil, biz.ErrOrderStatusConflict
 	}
-	if _, err := existing.Update().SetStatus(targetStatus).Save(ctx); err != nil {
+	update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
+	if target == biz.OrderTerminationActive {
+		update.ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy()
+	} else {
+		update.SetTerminationType(orderent.TerminationType(*terminationType)).SetTerminationReason(reason)
+		if target == biz.OrderTerminationTerminated {
+			update.SetTerminatedAt(event.OccurredAt).SetTerminatedBy(actorID)
+		} else {
+			update.ClearTerminatedAt().ClearTerminatedBy()
+		}
+	}
+	if _, err := update.Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
-	if _, err := tx.OrderStatusLog.Create().SetOrderID(id).SetFromStatus(expectedStatus).SetToStatus(targetStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).Save(ctx); err != nil {
+	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return r.Get(ctx, organizationID, id)
+}
+
+func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uuid.UUID) (*biz.OrderClosureReadiness, error) {
+	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderNotFound
+		}
+		return nil, err
+	}
+	hasActiveException, err := r.data.db.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	hasUnbilledFees, err := r.data.db.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.StatusNotIn(orderfeeent.StatusBILLED, orderfeeent.StatusCANCELLED)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &biz.OrderClosureReadiness{FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), HasActiveException: hasActiveException, HasUnbilledOrderFees: hasUnbilledFees}, nil
+}
+
+func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderClosureStatus, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderNotFound
+		}
+		return nil, err
+	}
+	if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderStatusConflict
+	}
+	if target == biz.OrderClosureClosed {
+		flowFinished := biz.OrderFlowStatus(existing.FlowStatus) == biz.OrderFlowDocumentReleased
+		terminated := biz.OrderTerminationStatus(existing.TerminationStatus) == biz.OrderTerminationTerminated
+		if !flowFinished && !terminated {
+			_ = tx.Rollback()
+			return nil, biz.ErrOrderClosureBlocked
+		}
+		hasActiveException, err := tx.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		hasUnbilledFees, err := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.StatusNotIn(orderfeeent.StatusBILLED, orderfeeent.StatusCANCELLED)).Exist(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		if hasActiveException || hasUnbilledFees {
+			_ = tx.Rollback()
+			return nil, biz.ErrOrderClosureBlocked
+		}
+	}
+	update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)
+	if target == biz.OrderClosureClosed {
+		update.SetClosureReason(reason).SetClosedAt(event.OccurredAt).SetClosedBy(actorID)
+	} else {
+		update.ClearClosureReason().ClearClosedAt().ClearClosedBy()
+	}
+	if _, err := update.Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionCLOSURE).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -537,21 +675,6 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		if !validCurrency {
 			return biz.ErrOrderInvalidArgument
 		}
-	}
-	validTemplate, err := tx.StatusTemplate.Query().Where(
-		statustemplateent.IDEQ(input.StatusTemplateID),
-		statustemplateent.OrganizationIDEQ(organizationID),
-		statustemplateent.BusinessTypeEQ(statustemplateent.BusinessType(input.BusinessType)),
-		statustemplateent.IsDefaultEQ(true),
-		statustemplateent.PublishedAtNotNil(),
-		statustemplateent.EnabledEQ(true),
-		statustemplateent.HasItemsWith(statustemplateitement.CodeEQ("DRAFT"), statustemplateitement.EnabledEQ(true)),
-	).Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if !validTemplate {
-		return biz.ErrOrderStatusTemplate
 	}
 	if err := validateMasterDataIDs(ctx, tx, organizationID, input.ServiceTypeIDs, masterdataent.KindServiceType); err != nil {
 		return err
@@ -855,7 +978,10 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) {
 			q.WithConsolidation().Order(ordershippingdocumentent.ByCreatedAt())
 		}).
-		WithContainerRequests(func(q *ent.OrderContainerRequestQuery) { q.Order(ordercontainerrequestent.ByCreatedAt()) })
+		WithContainerRequests(func(q *ent.OrderContainerRequestQuery) { q.Order(ordercontainerrequestent.ByCreatedAt()) }).
+		WithAbnormalCases(func(q *ent.OrderAbnormalCaseQuery) {
+			q.Where(orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE))
+		})
 }
 
 func orderToBiz(item *ent.Order) *biz.Order {
@@ -866,7 +992,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
 		DeclarationCutoffAt: item.DeclarationCutoffAt, ReceivedAt: item.ReceivedAt,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),
-		Status: item.Status, StatusTemplateID: item.StatusTemplateID, OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
+		FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), TerminationReason: orderOptionalStringValue(item.TerminationReason),
+		TerminatedAt: item.TerminatedAt, TerminatedBy: item.TerminatedBy, ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), ClosureReason: orderOptionalStringValue(item.ClosureReason),
+		ClosedAt: item.ClosedAt, ClosedBy: item.ClosedBy, Version: item.Version, HasActiveException: len(item.Edges.AbnormalCases) > 0, ActiveExceptionCount: len(item.Edges.AbnormalCases),
+		OriginLocationID: item.OriginLocationID, DestinationLocationID: item.DestinationLocationID,
 		DischargeLocationID: item.DischargeLocationID, TransitLocationID: item.TransitLocationID, VesselVoyage: item.VesselVoyage, ETD: item.Etd, ETA: item.Eta,
 		SICutoff: item.SiCutoff, DocCutoff: item.DocCutoff, CustomsCutoff: item.CustomsCutoff, VGMCutoff: item.VgmCutoff,
 		GoodsDescription: item.GoodsDescription, TotalPackages: item.TotalPackages, TotalGrossWeightKg: item.TotalGrossWeightKg, TotalVolumeCbm: item.TotalVolumeCbm, TotalPackageUnit: item.TotalPackageUnit,
@@ -877,6 +1006,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	if item.ShipmentType != nil {
 		value := biz.OrderShipmentType(*item.ShipmentType)
 		result.ShipmentType = &value
+	}
+	if item.TerminationType != nil {
+		value := biz.OrderTerminationType(*item.TerminationType)
+		result.TerminationType = &value
 	}
 	if item.ContainerOwnership != nil {
 		value := biz.OrderContainerOwnership(*item.ContainerOwnership)
@@ -904,6 +1037,31 @@ func orderToBiz(item *ent.Order) *biz.Order {
 			ID: request.ID, OrderID: request.OrderID, ContainerSpecID: request.ContainerSpecID,
 			Quantity: request.Quantity, CreatedAt: request.CreatedAt, UpdatedAt: request.UpdatedAt,
 		})
+	}
+	result.AllowedActions = orderAllowedActions(result)
+	return result
+}
+
+func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
+	if order.ClosureStatus == biz.OrderClosureClosed {
+		return []biz.OrderAllowedAction{biz.OrderActionReopen}
+	}
+	result := make([]biz.OrderAllowedAction, 0, 4)
+	if order.TerminationStatus == biz.OrderTerminationActive {
+		if order.FlowStatus == biz.OrderFlowDraft {
+			result = append(result, biz.OrderActionEdit)
+		}
+		if order.FlowStatus != biz.OrderFlowDocumentReleased {
+			result = append(result, biz.OrderActionTransitionFlow)
+		}
+		result = append(result, biz.OrderActionStartTermination)
+	} else if order.TerminationStatus == biz.OrderTerminationTerminating {
+		result = append(result, biz.OrderActionCompleteTermination, biz.OrderActionCancelTermination)
+	} else {
+		result = append(result, biz.OrderActionCancelTermination)
+	}
+	if !order.HasActiveException && (order.FlowStatus == biz.OrderFlowDocumentReleased || order.TerminationStatus == biz.OrderTerminationTerminated) {
+		result = append(result, biz.OrderActionClose)
 	}
 	return result
 }
@@ -984,6 +1142,13 @@ func nonEmptyStringPointer(value string) *string {
 		return nil
 	}
 	return &value
+}
+
+func orderOptionalStringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 func orderShipmentTypeToEnt(value *biz.OrderShipmentType) *orderent.ShipmentType {

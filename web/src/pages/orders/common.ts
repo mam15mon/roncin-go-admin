@@ -3,17 +3,11 @@ import {
   masterDataServiceListCurrencies,
   masterDataServiceListOptions,
   masterDataServiceListPorts,
-  masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 
 export const businessTypeOptions = [
   { label: '海运出口', value: 1, color: 'blue' },
-  { label: '海运进口', value: 2, color: 'cyan' },
-  { label: '空运出口', value: 3, color: 'geekblue' },
-  { label: '空运进口', value: 4, color: 'purple' },
-  { label: '陆运', value: 5, color: 'green' },
-  { label: '铁路', value: 6, color: 'volcano' },
 ];
 
 export const businessTypeMap = new Map(
@@ -151,11 +145,7 @@ export const PARTNER_ROLES = {
   CARRIER: 4,
 } as const;
 
-export type OrderKind =
-  | 'sea-export'
-  | 'sea-import'
-  | 'air-export'
-  | 'air-import';
+export type OrderKind = 'sea-export';
 
 export interface OrderKindConfig {
   kind: OrderKind;
@@ -172,27 +162,6 @@ export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
     tradeDirection: 1,
     title: '海运出口订单',
     category: 'sea',
-  },
-  'sea-import': {
-    kind: 'sea-import',
-    businessType: 2,
-    tradeDirection: 2,
-    title: '海运进口订单',
-    category: 'sea',
-  },
-  'air-export': {
-    kind: 'air-export',
-    businessType: 3,
-    tradeDirection: 1,
-    title: '空运出口订单',
-    category: 'air',
-  },
-  'air-import': {
-    kind: 'air-import',
-    businessType: 4,
-    tradeDirection: 2,
-    title: '空运进口订单',
-    category: 'air',
   },
 };
 
@@ -226,37 +195,6 @@ export async function searchPartnersByRole(
     value: p.id ?? '',
     code: p.code,
   }));
-}
-
-export async function loadStatusTemplatesByBusinessType(
-  businessType?: number,
-): Promise<{ label: string; value: string }[]> {
-  if (!businessType) {
-    return [];
-  }
-  const res = await masterDataServiceListStatusTemplates({
-    businessType,
-    published: true,
-  });
-  const options = (res.data ?? [])
-    .filter(
-      (tpl) =>
-        tpl.enabled !== false &&
-        tpl.isDefault === true &&
-        (tpl.items ?? []).some(
-          (item) => item.code === 'DRAFT' && item.enabled !== false,
-        ),
-    )
-    .map((tpl) => ({
-      label: `${tpl.name} (v${tpl.version})`,
-      value: tpl.id ?? '',
-    }))
-    .filter((option) => option.value !== '');
-
-  if (options.length !== 1) {
-    throw new Error('当前业务类型必须配置且只能配置一个默认状态流转模板');
-  }
-  return options;
 }
 
 export async function fetchOrderMasterData() {

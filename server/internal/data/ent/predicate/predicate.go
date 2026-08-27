@@ -135,6 +135,9 @@ type OrderContainerRequest func(*sql.Selector)
 // OrderFee is the predicate function for orderfee builders.
 type OrderFee func(*sql.Selector)
 
+// OrderLifecycleEvent is the predicate function for orderlifecycleevent builders.
+type OrderLifecycleEvent func(*sql.Selector)
+
 // OrderMilestone is the predicate function for ordermilestone builders.
 type OrderMilestone func(*sql.Selector)
 
@@ -149,9 +152,6 @@ type OrderServiceType func(*sql.Selector)
 
 // OrderShippingDocument is the predicate function for ordershippingdocument builders.
 type OrderShippingDocument func(*sql.Selector)
-
-// OrderStatusLog is the predicate function for orderstatuslog builders.
-type OrderStatusLog func(*sql.Selector)
 
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
@@ -215,12 +215,6 @@ type ShippingLine func(*sql.Selector)
 
 // ShippingLineContainerPrefix is the predicate function for shippinglinecontainerprefix builders.
 type ShippingLineContainerPrefix func(*sql.Selector)
-
-// StatusTemplate is the predicate function for statustemplate builders.
-type StatusTemplate func(*sql.Selector)
-
-// StatusTemplateItem is the predicate function for statustemplateitem builders.
-type StatusTemplateItem func(*sql.Selector)
 
 // TaxableService is the predicate function for taxableservice builders.
 type TaxableService func(*sql.Selector)

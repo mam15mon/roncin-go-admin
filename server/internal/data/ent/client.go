@@ -59,12 +59,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -86,8 +86,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -183,6 +181,8 @@ type Client struct {
 	OrderContainerRequest *OrderContainerRequestClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
+	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
@@ -193,8 +193,6 @@ type Client struct {
 	OrderServiceType *OrderServiceTypeClient
 	// OrderShippingDocument is the client for interacting with the OrderShippingDocument builders.
 	OrderShippingDocument *OrderShippingDocumentClient
-	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
-	OrderStatusLog *OrderStatusLogClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -237,10 +235,6 @@ type Client struct {
 	ShippingLine *ShippingLineClient
 	// ShippingLineContainerPrefix is the client for interacting with the ShippingLineContainerPrefix builders.
 	ShippingLineContainerPrefix *ShippingLineContainerPrefixClient
-	// StatusTemplate is the client for interacting with the StatusTemplate builders.
-	StatusTemplate *StatusTemplateClient
-	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
-	StatusTemplateItem *StatusTemplateItemClient
 	// TaxableService is the client for interacting with the TaxableService builders.
 	TaxableService *TaxableServiceClient
 	// User is the client for interacting with the User builders.
@@ -299,12 +293,12 @@ func (c *Client) init() {
 	c.OrderContainer = NewOrderContainerClient(c.config)
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
 	c.OrderFee = NewOrderFeeClient(c.config)
+	c.OrderLifecycleEvent = NewOrderLifecycleEventClient(c.config)
 	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderPersonnel = NewOrderPersonnelClient(c.config)
 	c.OrderReleasePod = NewOrderReleasePodClient(c.config)
 	c.OrderServiceType = NewOrderServiceTypeClient(c.config)
 	c.OrderShippingDocument = NewOrderShippingDocumentClient(c.config)
-	c.OrderStatusLog = NewOrderStatusLogClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Partner = NewPartnerClient(c.config)
 	c.PartnerAccount = NewPartnerAccountClient(c.config)
@@ -326,8 +320,6 @@ func (c *Client) init() {
 	c.Session = NewSessionClient(c.config)
 	c.ShippingLine = NewShippingLineClient(c.config)
 	c.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(c.config)
-	c.StatusTemplate = NewStatusTemplateClient(c.config)
-	c.StatusTemplateItem = NewStatusTemplateItemClient(c.config)
 	c.TaxableService = NewTaxableServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -465,12 +457,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderContainer:                NewOrderContainerClient(cfg),
 		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
 		OrderFee:                      NewOrderFeeClient(cfg),
+		OrderLifecycleEvent:           NewOrderLifecycleEventClient(cfg),
 		OrderMilestone:                NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                NewOrderPersonnelClient(cfg),
 		OrderReleasePod:               NewOrderReleasePodClient(cfg),
 		OrderServiceType:              NewOrderServiceTypeClient(cfg),
 		OrderShippingDocument:         NewOrderShippingDocumentClient(cfg),
-		OrderStatusLog:                NewOrderStatusLogClient(cfg),
 		Organization:                  NewOrganizationClient(cfg),
 		Partner:                       NewPartnerClient(cfg),
 		PartnerAccount:                NewPartnerAccountClient(cfg),
@@ -492,8 +484,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Session:                       NewSessionClient(cfg),
 		ShippingLine:                  NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:   NewShippingLineContainerPrefixClient(cfg),
-		StatusTemplate:                NewStatusTemplateClient(cfg),
-		StatusTemplateItem:            NewStatusTemplateItemClient(cfg),
 		TaxableService:                NewTaxableServiceClient(cfg),
 		User:                          NewUserClient(cfg),
 	}, nil
@@ -558,12 +548,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderContainer:                NewOrderContainerClient(cfg),
 		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
 		OrderFee:                      NewOrderFeeClient(cfg),
+		OrderLifecycleEvent:           NewOrderLifecycleEventClient(cfg),
 		OrderMilestone:                NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                NewOrderPersonnelClient(cfg),
 		OrderReleasePod:               NewOrderReleasePodClient(cfg),
 		OrderServiceType:              NewOrderServiceTypeClient(cfg),
 		OrderShippingDocument:         NewOrderShippingDocumentClient(cfg),
-		OrderStatusLog:                NewOrderStatusLogClient(cfg),
 		Organization:                  NewOrganizationClient(cfg),
 		Partner:                       NewPartnerClient(cfg),
 		PartnerAccount:                NewPartnerAccountClient(cfg),
@@ -585,8 +575,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Session:                       NewSessionClient(cfg),
 		ShippingLine:                  NewShippingLineClient(cfg),
 		ShippingLineContainerPrefix:   NewShippingLineContainerPrefixClient(cfg),
-		StatusTemplate:                NewStatusTemplateClient(cfg),
-		StatusTemplateItem:            NewStatusTemplateItemClient(cfg),
 		TaxableService:                NewTaxableServiceClient(cfg),
 		User:                          NewUserClient(cfg),
 	}, nil
@@ -630,14 +618,13 @@ func (c *Client) Use(hooks ...Hook) {
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
 		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -659,14 +646,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
 		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
 		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -761,6 +747,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderContainerRequest.mutate(ctx, m)
 	case *OrderFeeMutation:
 		return c.OrderFee.mutate(ctx, m)
+	case *OrderLifecycleEventMutation:
+		return c.OrderLifecycleEvent.mutate(ctx, m)
 	case *OrderMilestoneMutation:
 		return c.OrderMilestone.mutate(ctx, m)
 	case *OrderPersonnelMutation:
@@ -771,8 +759,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderServiceType.mutate(ctx, m)
 	case *OrderShippingDocumentMutation:
 		return c.OrderShippingDocument.mutate(ctx, m)
-	case *OrderStatusLogMutation:
-		return c.OrderStatusLog.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
 	case *PartnerMutation:
@@ -815,10 +801,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ShippingLine.mutate(ctx, m)
 	case *ShippingLineContainerPrefixMutation:
 		return c.ShippingLineContainerPrefix.mutate(ctx, m)
-	case *StatusTemplateMutation:
-		return c.StatusTemplate.mutate(ctx, m)
-	case *StatusTemplateItemMutation:
-		return c.StatusTemplateItem.mutate(ctx, m)
 	case *TaxableServiceMutation:
 		return c.TaxableService.mutate(ctx, m)
 	case *UserMutation:
@@ -6921,31 +6903,15 @@ func (c *OrderClient) QueryCustomer(_m *Order) *PartnerQuery {
 	return query
 }
 
-// QueryStatusTemplate queries the status_template edge of a Order.
-func (c *OrderClient) QueryStatusTemplate(_m *Order) *StatusTemplateQuery {
-	query := (&StatusTemplateClient{config: c.config}).Query()
+// QueryLifecycleEvents queries the lifecycle_events edge of a Order.
+func (c *OrderClient) QueryLifecycleEvents(_m *Order) *OrderLifecycleEventQuery {
+	query := (&OrderLifecycleEventClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, id),
-			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, order.StatusTemplateTable, order.StatusTemplateColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryStatusLogs queries the status_logs edge of a Order.
-func (c *OrderClient) QueryStatusLogs(_m *Order) *OrderStatusLogQuery {
-	query := (&OrderStatusLogClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, id),
-			sqlgraph.To(orderstatuslog.Table, orderstatuslog.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.StatusLogsTable, order.StatusLogsColumn),
+			sqlgraph.To(orderlifecycleevent.Table, orderlifecycleevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.LifecycleEventsTable, order.LifecycleEventsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8522,6 +8488,155 @@ func (c *OrderFeeClient) mutate(ctx context.Context, m *OrderFeeMutation) (Value
 	}
 }
 
+// OrderLifecycleEventClient is a client for the OrderLifecycleEvent schema.
+type OrderLifecycleEventClient struct {
+	config
+}
+
+// NewOrderLifecycleEventClient returns a client for the OrderLifecycleEvent from the given config.
+func NewOrderLifecycleEventClient(c config) *OrderLifecycleEventClient {
+	return &OrderLifecycleEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderlifecycleevent.Hooks(f(g(h())))`.
+func (c *OrderLifecycleEventClient) Use(hooks ...Hook) {
+	c.hooks.OrderLifecycleEvent = append(c.hooks.OrderLifecycleEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderlifecycleevent.Intercept(f(g(h())))`.
+func (c *OrderLifecycleEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderLifecycleEvent = append(c.inters.OrderLifecycleEvent, interceptors...)
+}
+
+// Create returns a builder for creating a OrderLifecycleEvent entity.
+func (c *OrderLifecycleEventClient) Create() *OrderLifecycleEventCreate {
+	mutation := newOrderLifecycleEventMutation(c.config, OpCreate)
+	return &OrderLifecycleEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderLifecycleEvent entities.
+func (c *OrderLifecycleEventClient) CreateBulk(builders ...*OrderLifecycleEventCreate) *OrderLifecycleEventCreateBulk {
+	return &OrderLifecycleEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderLifecycleEventClient) MapCreateBulk(slice any, setFunc func(*OrderLifecycleEventCreate, int)) *OrderLifecycleEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderLifecycleEventCreateBulk{err: fmt.Errorf("calling to OrderLifecycleEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderLifecycleEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderLifecycleEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderLifecycleEvent.
+func (c *OrderLifecycleEventClient) Update() *OrderLifecycleEventUpdate {
+	mutation := newOrderLifecycleEventMutation(c.config, OpUpdate)
+	return &OrderLifecycleEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderLifecycleEventClient) UpdateOne(_m *OrderLifecycleEvent) *OrderLifecycleEventUpdateOne {
+	mutation := newOrderLifecycleEventMutation(c.config, OpUpdateOne, withOrderLifecycleEvent(_m))
+	return &OrderLifecycleEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderLifecycleEventClient) UpdateOneID(id uuid.UUID) *OrderLifecycleEventUpdateOne {
+	mutation := newOrderLifecycleEventMutation(c.config, OpUpdateOne, withOrderLifecycleEventID(id))
+	return &OrderLifecycleEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderLifecycleEvent.
+func (c *OrderLifecycleEventClient) Delete() *OrderLifecycleEventDelete {
+	mutation := newOrderLifecycleEventMutation(c.config, OpDelete)
+	return &OrderLifecycleEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderLifecycleEventClient) DeleteOne(_m *OrderLifecycleEvent) *OrderLifecycleEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderLifecycleEventClient) DeleteOneID(id uuid.UUID) *OrderLifecycleEventDeleteOne {
+	builder := c.Delete().Where(orderlifecycleevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderLifecycleEventDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderLifecycleEvent.
+func (c *OrderLifecycleEventClient) Query() *OrderLifecycleEventQuery {
+	return &OrderLifecycleEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderLifecycleEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderLifecycleEvent entity by its id.
+func (c *OrderLifecycleEventClient) Get(ctx context.Context, id uuid.UUID) (*OrderLifecycleEvent, error) {
+	return c.Query().Where(orderlifecycleevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderLifecycleEventClient) GetX(ctx context.Context, id uuid.UUID) *OrderLifecycleEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderLifecycleEvent.
+func (c *OrderLifecycleEventClient) QueryOrder(_m *OrderLifecycleEvent) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlifecycleevent.Table, orderlifecycleevent.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderlifecycleevent.OrderTable, orderlifecycleevent.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderLifecycleEventClient) Hooks() []Hook {
+	return c.hooks.OrderLifecycleEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderLifecycleEventClient) Interceptors() []Interceptor {
+	return c.inters.OrderLifecycleEvent
+}
+
+func (c *OrderLifecycleEventClient) mutate(ctx context.Context, m *OrderLifecycleEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderLifecycleEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderLifecycleEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderLifecycleEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderLifecycleEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderLifecycleEvent mutation op: %q", m.Op())
+	}
+}
+
 // OrderMilestoneClient is a client for the OrderMilestone schema.
 type OrderMilestoneClient struct {
 	config
@@ -9363,155 +9478,6 @@ func (c *OrderShippingDocumentClient) mutate(ctx context.Context, m *OrderShippi
 	}
 }
 
-// OrderStatusLogClient is a client for the OrderStatusLog schema.
-type OrderStatusLogClient struct {
-	config
-}
-
-// NewOrderStatusLogClient returns a client for the OrderStatusLog from the given config.
-func NewOrderStatusLogClient(c config) *OrderStatusLogClient {
-	return &OrderStatusLogClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `orderstatuslog.Hooks(f(g(h())))`.
-func (c *OrderStatusLogClient) Use(hooks ...Hook) {
-	c.hooks.OrderStatusLog = append(c.hooks.OrderStatusLog, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `orderstatuslog.Intercept(f(g(h())))`.
-func (c *OrderStatusLogClient) Intercept(interceptors ...Interceptor) {
-	c.inters.OrderStatusLog = append(c.inters.OrderStatusLog, interceptors...)
-}
-
-// Create returns a builder for creating a OrderStatusLog entity.
-func (c *OrderStatusLogClient) Create() *OrderStatusLogCreate {
-	mutation := newOrderStatusLogMutation(c.config, OpCreate)
-	return &OrderStatusLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of OrderStatusLog entities.
-func (c *OrderStatusLogClient) CreateBulk(builders ...*OrderStatusLogCreate) *OrderStatusLogCreateBulk {
-	return &OrderStatusLogCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *OrderStatusLogClient) MapCreateBulk(slice any, setFunc func(*OrderStatusLogCreate, int)) *OrderStatusLogCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &OrderStatusLogCreateBulk{err: fmt.Errorf("calling to OrderStatusLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*OrderStatusLogCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &OrderStatusLogCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for OrderStatusLog.
-func (c *OrderStatusLogClient) Update() *OrderStatusLogUpdate {
-	mutation := newOrderStatusLogMutation(c.config, OpUpdate)
-	return &OrderStatusLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *OrderStatusLogClient) UpdateOne(_m *OrderStatusLog) *OrderStatusLogUpdateOne {
-	mutation := newOrderStatusLogMutation(c.config, OpUpdateOne, withOrderStatusLog(_m))
-	return &OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *OrderStatusLogClient) UpdateOneID(id uuid.UUID) *OrderStatusLogUpdateOne {
-	mutation := newOrderStatusLogMutation(c.config, OpUpdateOne, withOrderStatusLogID(id))
-	return &OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for OrderStatusLog.
-func (c *OrderStatusLogClient) Delete() *OrderStatusLogDelete {
-	mutation := newOrderStatusLogMutation(c.config, OpDelete)
-	return &OrderStatusLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *OrderStatusLogClient) DeleteOne(_m *OrderStatusLog) *OrderStatusLogDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *OrderStatusLogClient) DeleteOneID(id uuid.UUID) *OrderStatusLogDeleteOne {
-	builder := c.Delete().Where(orderstatuslog.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &OrderStatusLogDeleteOne{builder}
-}
-
-// Query returns a query builder for OrderStatusLog.
-func (c *OrderStatusLogClient) Query() *OrderStatusLogQuery {
-	return &OrderStatusLogQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeOrderStatusLog},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a OrderStatusLog entity by its id.
-func (c *OrderStatusLogClient) Get(ctx context.Context, id uuid.UUID) (*OrderStatusLog, error) {
-	return c.Query().Where(orderstatuslog.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *OrderStatusLogClient) GetX(ctx context.Context, id uuid.UUID) *OrderStatusLog {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOrder queries the order edge of a OrderStatusLog.
-func (c *OrderStatusLogClient) QueryOrder(_m *OrderStatusLog) *OrderQuery {
-	query := (&OrderClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(orderstatuslog.Table, orderstatuslog.FieldID, id),
-			sqlgraph.To(order.Table, order.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, orderstatuslog.OrderTable, orderstatuslog.OrderColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *OrderStatusLogClient) Hooks() []Hook {
-	return c.hooks.OrderStatusLog
-}
-
-// Interceptors returns the client interceptors.
-func (c *OrderStatusLogClient) Interceptors() []Interceptor {
-	return c.inters.OrderStatusLog
-}
-
-func (c *OrderStatusLogClient) mutate(ctx context.Context, m *OrderStatusLogMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&OrderStatusLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&OrderStatusLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&OrderStatusLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&OrderStatusLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown OrderStatusLog mutation op: %q", m.Op())
-	}
-}
-
 // OrganizationClient is a client for the Organization schema.
 type OrganizationClient struct {
 	config
@@ -9885,22 +9851,6 @@ func (c *OrganizationClient) QueryNumberRules(_m *Organization) *NumberRuleQuery
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(numberrule.Table, numberrule.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.NumberRulesTable, organization.NumberRulesColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryStatusTemplates queries the status_templates edge of a Organization.
-func (c *OrganizationClient) QueryStatusTemplates(_m *Organization) *StatusTemplateQuery {
-	query := (&StatusTemplateClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.StatusTemplatesTable, organization.StatusTemplatesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -13654,336 +13604,6 @@ func (c *ShippingLineContainerPrefixClient) mutate(ctx context.Context, m *Shipp
 	}
 }
 
-// StatusTemplateClient is a client for the StatusTemplate schema.
-type StatusTemplateClient struct {
-	config
-}
-
-// NewStatusTemplateClient returns a client for the StatusTemplate from the given config.
-func NewStatusTemplateClient(c config) *StatusTemplateClient {
-	return &StatusTemplateClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `statustemplate.Hooks(f(g(h())))`.
-func (c *StatusTemplateClient) Use(hooks ...Hook) {
-	c.hooks.StatusTemplate = append(c.hooks.StatusTemplate, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `statustemplate.Intercept(f(g(h())))`.
-func (c *StatusTemplateClient) Intercept(interceptors ...Interceptor) {
-	c.inters.StatusTemplate = append(c.inters.StatusTemplate, interceptors...)
-}
-
-// Create returns a builder for creating a StatusTemplate entity.
-func (c *StatusTemplateClient) Create() *StatusTemplateCreate {
-	mutation := newStatusTemplateMutation(c.config, OpCreate)
-	return &StatusTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of StatusTemplate entities.
-func (c *StatusTemplateClient) CreateBulk(builders ...*StatusTemplateCreate) *StatusTemplateCreateBulk {
-	return &StatusTemplateCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *StatusTemplateClient) MapCreateBulk(slice any, setFunc func(*StatusTemplateCreate, int)) *StatusTemplateCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &StatusTemplateCreateBulk{err: fmt.Errorf("calling to StatusTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*StatusTemplateCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &StatusTemplateCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for StatusTemplate.
-func (c *StatusTemplateClient) Update() *StatusTemplateUpdate {
-	mutation := newStatusTemplateMutation(c.config, OpUpdate)
-	return &StatusTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *StatusTemplateClient) UpdateOne(_m *StatusTemplate) *StatusTemplateUpdateOne {
-	mutation := newStatusTemplateMutation(c.config, OpUpdateOne, withStatusTemplate(_m))
-	return &StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *StatusTemplateClient) UpdateOneID(id uuid.UUID) *StatusTemplateUpdateOne {
-	mutation := newStatusTemplateMutation(c.config, OpUpdateOne, withStatusTemplateID(id))
-	return &StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for StatusTemplate.
-func (c *StatusTemplateClient) Delete() *StatusTemplateDelete {
-	mutation := newStatusTemplateMutation(c.config, OpDelete)
-	return &StatusTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *StatusTemplateClient) DeleteOne(_m *StatusTemplate) *StatusTemplateDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *StatusTemplateClient) DeleteOneID(id uuid.UUID) *StatusTemplateDeleteOne {
-	builder := c.Delete().Where(statustemplate.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &StatusTemplateDeleteOne{builder}
-}
-
-// Query returns a query builder for StatusTemplate.
-func (c *StatusTemplateClient) Query() *StatusTemplateQuery {
-	return &StatusTemplateQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeStatusTemplate},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a StatusTemplate entity by its id.
-func (c *StatusTemplateClient) Get(ctx context.Context, id uuid.UUID) (*StatusTemplate, error) {
-	return c.Query().Where(statustemplate.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *StatusTemplateClient) GetX(ctx context.Context, id uuid.UUID) *StatusTemplate {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryOrganization queries the organization edge of a StatusTemplate.
-func (c *StatusTemplateClient) QueryOrganization(_m *StatusTemplate) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, statustemplate.OrganizationTable, statustemplate.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryItems queries the items edge of a StatusTemplate.
-func (c *StatusTemplateClient) QueryItems(_m *StatusTemplate) *StatusTemplateItemQuery {
-	query := (&StatusTemplateItemClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
-			sqlgraph.To(statustemplateitem.Table, statustemplateitem.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.ItemsTable, statustemplate.ItemsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryOrders queries the orders edge of a StatusTemplate.
-func (c *StatusTemplateClient) QueryOrders(_m *StatusTemplate) *OrderQuery {
-	query := (&OrderClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(statustemplate.Table, statustemplate.FieldID, id),
-			sqlgraph.To(order.Table, order.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, statustemplate.OrdersTable, statustemplate.OrdersColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *StatusTemplateClient) Hooks() []Hook {
-	return c.hooks.StatusTemplate
-}
-
-// Interceptors returns the client interceptors.
-func (c *StatusTemplateClient) Interceptors() []Interceptor {
-	return c.inters.StatusTemplate
-}
-
-func (c *StatusTemplateClient) mutate(ctx context.Context, m *StatusTemplateMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&StatusTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&StatusTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&StatusTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&StatusTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown StatusTemplate mutation op: %q", m.Op())
-	}
-}
-
-// StatusTemplateItemClient is a client for the StatusTemplateItem schema.
-type StatusTemplateItemClient struct {
-	config
-}
-
-// NewStatusTemplateItemClient returns a client for the StatusTemplateItem from the given config.
-func NewStatusTemplateItemClient(c config) *StatusTemplateItemClient {
-	return &StatusTemplateItemClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `statustemplateitem.Hooks(f(g(h())))`.
-func (c *StatusTemplateItemClient) Use(hooks ...Hook) {
-	c.hooks.StatusTemplateItem = append(c.hooks.StatusTemplateItem, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `statustemplateitem.Intercept(f(g(h())))`.
-func (c *StatusTemplateItemClient) Intercept(interceptors ...Interceptor) {
-	c.inters.StatusTemplateItem = append(c.inters.StatusTemplateItem, interceptors...)
-}
-
-// Create returns a builder for creating a StatusTemplateItem entity.
-func (c *StatusTemplateItemClient) Create() *StatusTemplateItemCreate {
-	mutation := newStatusTemplateItemMutation(c.config, OpCreate)
-	return &StatusTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of StatusTemplateItem entities.
-func (c *StatusTemplateItemClient) CreateBulk(builders ...*StatusTemplateItemCreate) *StatusTemplateItemCreateBulk {
-	return &StatusTemplateItemCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *StatusTemplateItemClient) MapCreateBulk(slice any, setFunc func(*StatusTemplateItemCreate, int)) *StatusTemplateItemCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &StatusTemplateItemCreateBulk{err: fmt.Errorf("calling to StatusTemplateItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*StatusTemplateItemCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &StatusTemplateItemCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for StatusTemplateItem.
-func (c *StatusTemplateItemClient) Update() *StatusTemplateItemUpdate {
-	mutation := newStatusTemplateItemMutation(c.config, OpUpdate)
-	return &StatusTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *StatusTemplateItemClient) UpdateOne(_m *StatusTemplateItem) *StatusTemplateItemUpdateOne {
-	mutation := newStatusTemplateItemMutation(c.config, OpUpdateOne, withStatusTemplateItem(_m))
-	return &StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *StatusTemplateItemClient) UpdateOneID(id uuid.UUID) *StatusTemplateItemUpdateOne {
-	mutation := newStatusTemplateItemMutation(c.config, OpUpdateOne, withStatusTemplateItemID(id))
-	return &StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for StatusTemplateItem.
-func (c *StatusTemplateItemClient) Delete() *StatusTemplateItemDelete {
-	mutation := newStatusTemplateItemMutation(c.config, OpDelete)
-	return &StatusTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *StatusTemplateItemClient) DeleteOne(_m *StatusTemplateItem) *StatusTemplateItemDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *StatusTemplateItemClient) DeleteOneID(id uuid.UUID) *StatusTemplateItemDeleteOne {
-	builder := c.Delete().Where(statustemplateitem.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &StatusTemplateItemDeleteOne{builder}
-}
-
-// Query returns a query builder for StatusTemplateItem.
-func (c *StatusTemplateItemClient) Query() *StatusTemplateItemQuery {
-	return &StatusTemplateItemQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeStatusTemplateItem},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a StatusTemplateItem entity by its id.
-func (c *StatusTemplateItemClient) Get(ctx context.Context, id uuid.UUID) (*StatusTemplateItem, error) {
-	return c.Query().Where(statustemplateitem.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *StatusTemplateItemClient) GetX(ctx context.Context, id uuid.UUID) *StatusTemplateItem {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryTemplate queries the template edge of a StatusTemplateItem.
-func (c *StatusTemplateItemClient) QueryTemplate(_m *StatusTemplateItem) *StatusTemplateQuery {
-	query := (&StatusTemplateClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(statustemplateitem.Table, statustemplateitem.FieldID, id),
-			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, statustemplateitem.TemplateTable, statustemplateitem.TemplateColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *StatusTemplateItemClient) Hooks() []Hook {
-	return c.hooks.StatusTemplateItem
-}
-
-// Interceptors returns the client interceptors.
-func (c *StatusTemplateItemClient) Interceptors() []Interceptor {
-	return c.inters.StatusTemplateItem
-}
-
-func (c *StatusTemplateItemClient) mutate(ctx context.Context, m *StatusTemplateItemMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&StatusTemplateItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&StatusTemplateItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&StatusTemplateItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&StatusTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown StatusTemplateItem mutation op: %q", m.Op())
-	}
-}
-
 // TaxableServiceClient is a client for the TaxableService schema.
 type TaxableServiceClient struct {
 	config
@@ -14698,14 +14318,13 @@ type (
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
 		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
+		OrderFee, OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
 		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
 		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
 		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
 		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
-		TaxableService, User []ent.Hook
+		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -14719,13 +14338,12 @@ type (
 		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
 		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
 		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
+		OrderFee, OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
 		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
 		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
 		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
 		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
-		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
-		TaxableService, User []ent.Interceptor
+		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

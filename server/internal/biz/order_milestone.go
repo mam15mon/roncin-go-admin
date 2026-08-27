@@ -25,7 +25,7 @@ type OrderMilestone struct {
 
 type OrderMilestoneRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderMilestone, error)
-	Set(context.Context, uuid.UUID, uuid.UUID, string, string, *time.Time, *string, bool, uuid.UUID) (*OrderMilestone, error)
+	Set(context.Context, uuid.UUID, uuid.UUID, string, uint64, *time.Time, *string, bool, uuid.UUID) (*OrderMilestone, error)
 }
 
 type OrderMilestoneUsecase struct {
@@ -44,20 +44,19 @@ func (uc *OrderMilestoneUsecase) List(ctx context.Context, organizationID, order
 	return uc.repo.List(ctx, organizationID, orderID)
 }
 
-func (uc *OrderMilestoneUsecase) Set(ctx context.Context, organizationID, actorID, orderID uuid.UUID, milestoneType, expectedStatus string, occurredAt *time.Time, note *string, clearOccurredAt bool) (*OrderMilestone, error) {
+func (uc *OrderMilestoneUsecase) Set(ctx context.Context, organizationID, actorID, orderID uuid.UUID, milestoneType string, expectedVersion uint64, occurredAt *time.Time, note *string, clearOccurredAt bool) (*OrderMilestone, error) {
 	milestoneType = strings.ToUpper(strings.TrimSpace(milestoneType))
-	expectedStatus = strings.ToUpper(strings.TrimSpace(expectedStatus))
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || milestoneType == "" || utf8.RuneCountInString(milestoneType) > 64 || utf8.RuneCountInString(derefString(note)) > 500 {
 		return nil, ErrOrderInvalidArgument
 	}
-	if expectedStatus == "" {
+	if expectedVersion == 0 {
 		return nil, ErrOrderStatusConflict
 	}
 	if note != nil {
 		value := strings.TrimSpace(*note)
 		note = &value
 	}
-	updated, err := uc.repo.Set(ctx, organizationID, orderID, milestoneType, expectedStatus, occurredAt, note, clearOccurredAt, actorID)
+	updated, err := uc.repo.Set(ctx, organizationID, orderID, milestoneType, expectedVersion, occurredAt, note, clearOccurredAt, actorID)
 	if err != nil {
 		return nil, err
 	}

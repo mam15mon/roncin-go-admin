@@ -109,10 +109,6 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return err
 	}
-	if err := data.CreateDefaultStatusTemplates(ctx, tx, organization.ID); err != nil {
-		tx.Rollback()
-		return err
-	}
 	if err := data.CreateDefaultOrderOptions(ctx, tx, organization.ID); err != nil {
 		tx.Rollback()
 		return err

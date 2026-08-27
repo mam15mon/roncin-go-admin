@@ -44,7 +44,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
 
@@ -414,21 +413,6 @@ func (_c *OrganizationCreate) AddNumberRules(v ...*NumberRule) *OrganizationCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddNumberRuleIDs(ids...)
-}
-
-// AddStatusTemplateIDs adds the "status_templates" edge to the StatusTemplate entity by IDs.
-func (_c *OrganizationCreate) AddStatusTemplateIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddStatusTemplateIDs(ids...)
-	return _c
-}
-
-// AddStatusTemplates adds the "status_templates" edges to the StatusTemplate entity.
-func (_c *OrganizationCreate) AddStatusTemplates(v ...*StatusTemplate) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddStatusTemplateIDs(ids...)
 }
 
 // AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by IDs.
@@ -1146,22 +1130,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.StatusTemplatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.StatusTemplatesTable,
-			Columns: []string{organization.StatusTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(statustemplate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

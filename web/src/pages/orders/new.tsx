@@ -20,7 +20,6 @@ import {
 import {
   fetchOrderMasterData,
   isMasterDataKind,
-  loadStatusTemplatesByBusinessType,
   MASTER_DATA_KINDS,
   PARTNER_ROLES,
   parseOrderKind,
@@ -114,9 +113,6 @@ export default function NewOrderPage() {
   const config = parseOrderKind(params.kind);
 
   const [loading, setLoading] = useState(true);
-  const [statusTemplateOptions, setStatusTemplateOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
     [],
   );
@@ -141,7 +137,6 @@ export default function NewOrderPage() {
     setLoading(true);
     Promise.all([
       fetchOrderMasterData(),
-      loadStatusTemplatesByBusinessType(config.businessType),
       config.category === 'sea'
         ? orderServiceListPersonnelOptions({
             businessType: config.businessType,
@@ -150,7 +145,7 @@ export default function NewOrderPage() {
           })
         : Promise.resolve({ data: [] }),
     ])
-      .then(([masterData, templates, personnelResponse]) => {
+      .then(([masterData, personnelResponse]) => {
         const nextServiceTypeOptions =
           config.category === 'sea'
             ? seaServiceTypeNames.map((name) => {
@@ -187,11 +182,10 @@ export default function NewOrderPage() {
             }))
             .filter((item) => item.value !== ''),
         );
-        setStatusTemplateOptions(templates);
         setPersonnelOptions(personnelResponse.data ?? []);
       })
       .catch((error: Error) => {
-        message.error(error.message || '加载主数据或状态模板失败');
+        message.error(error.message || '加载订单主数据失败');
       })
       .finally(() => {
         setLoading(false);
@@ -324,12 +318,6 @@ export default function NewOrderPage() {
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
-    const defaultStatusTemplateId = statusTemplateOptions[0]?.value;
-    if (typeof defaultStatusTemplateId !== 'string') {
-      message.error('当前业务类型未配置默认状态流转模板');
-      return false;
-    }
-
     try {
       const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
       const addPersonnel = (
@@ -361,7 +349,6 @@ export default function NewOrderPage() {
         tradeDirection: config.tradeDirection,
         tradeTerm: Number(values.tradeTerm),
         paymentTerm: Number(values.paymentTerm),
-        statusTemplateId: defaultStatusTemplateId,
         carrierId: values.carrierId || undefined,
         bookingAgentId: values.bookingAgentId || undefined,
         foreignAgentId: values.foreignAgentId || undefined,

@@ -48,7 +48,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 )
 
@@ -76,7 +75,6 @@ type OrganizationQuery struct {
 	withAirlines                      *AirlineQuery
 	withShippingLines                 *ShippingLineQuery
 	withNumberRules                   *NumberRuleQuery
-	withStatusTemplates               *StatusTemplateQuery
 	withMilestoneTemplates            *MilestoneTemplateQuery
 	withOrders                        *OrderQuery
 	withOrderConsolidations           *OrderConsolidationQuery
@@ -499,28 +497,6 @@ func (_q *OrganizationQuery) QueryNumberRules() *NumberRuleQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(numberrule.Table, numberrule.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.NumberRulesTable, organization.NumberRulesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryStatusTemplates chains the current query on the "status_templates" edge.
-func (_q *OrganizationQuery) QueryStatusTemplates() *StatusTemplateQuery {
-	query := (&StatusTemplateClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(statustemplate.Table, statustemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.StatusTemplatesTable, organization.StatusTemplatesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1133,7 +1109,6 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withAirlines:                      _q.withAirlines.Clone(),
 		withShippingLines:                 _q.withShippingLines.Clone(),
 		withNumberRules:                   _q.withNumberRules.Clone(),
-		withStatusTemplates:               _q.withStatusTemplates.Clone(),
 		withMilestoneTemplates:            _q.withMilestoneTemplates.Clone(),
 		withOrders:                        _q.withOrders.Clone(),
 		withOrderConsolidations:           _q.withOrderConsolidations.Clone(),
@@ -1342,17 +1317,6 @@ func (_q *OrganizationQuery) WithNumberRules(opts ...func(*NumberRuleQuery)) *Or
 		opt(query)
 	}
 	_q.withNumberRules = query
-	return _q
-}
-
-// WithStatusTemplates tells the query-builder to eager-load the nodes that are connected to
-// the "status_templates" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithStatusTemplates(opts ...func(*StatusTemplateQuery)) *OrganizationQuery {
-	query := (&StatusTemplateClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withStatusTemplates = query
 	return _q
 }
 
@@ -1632,7 +1596,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [36]bool{
+		loadedTypes = [35]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1650,7 +1614,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withAirlines != nil,
 			_q.withShippingLines != nil,
 			_q.withNumberRules != nil,
-			_q.withStatusTemplates != nil,
 			_q.withMilestoneTemplates != nil,
 			_q.withOrders != nil,
 			_q.withOrderConsolidations != nil,
@@ -1811,13 +1774,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := _q.loadNumberRules(ctx, query, nodes,
 			func(n *Organization) { n.Edges.NumberRules = []*NumberRule{} },
 			func(n *Organization, e *NumberRule) { n.Edges.NumberRules = append(n.Edges.NumberRules, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withStatusTemplates; query != nil {
-		if err := _q.loadStatusTemplates(ctx, query, nodes,
-			func(n *Organization) { n.Edges.StatusTemplates = []*StatusTemplate{} },
-			func(n *Organization, e *StatusTemplate) { n.Edges.StatusTemplates = append(n.Edges.StatusTemplates, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -2476,36 +2432,6 @@ func (_q *OrganizationQuery) loadNumberRules(ctx context.Context, query *NumberR
 	}
 	query.Where(predicate.NumberRule(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.NumberRulesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrganizationID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrganizationQuery) loadStatusTemplates(ctx context.Context, query *StatusTemplateQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *StatusTemplate)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Organization)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(statustemplate.FieldOrganizationID)
-	}
-	query.Where(predicate.StatusTemplate(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.StatusTemplatesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -35,7 +35,6 @@ import {
   masterDataServiceListAirports,
   masterDataServiceListOptions,
   masterDataServiceListPorts,
-  masterDataServiceListStatusTemplates,
 } from '@/services/roncin/masterDataService';
 import {
   orderAttachmentServiceListAttachments,
@@ -134,7 +133,7 @@ type EditOrderFormValues = {
 };
 
 type TransitionFormValues = {
-  targetStatus: string;
+  targetStatus: number;
   reason?: string;
 };
 
@@ -187,6 +186,53 @@ type ShippingDocumentFormValues = {
   houseNo: string;
   releaseType?: string;
   note?: string;
+};
+
+const seFlowStatusLabels: Record<number, string> = {
+  1: '草稿',
+  2: '已订舱',
+  3: '已配舱',
+  4: '拖车已安排',
+  5: '已截单',
+  6: '报关已安排',
+  7: '已放单',
+};
+
+const seStatusTabs = [
+  { key: 'all', label: '全部订单' },
+  { key: 'draft', label: '草稿' },
+  { key: 'booked', label: '已订舱' },
+  { key: 'allocated', label: '已配舱' },
+  { key: 'trucking', label: '拖车已安排' },
+  { key: 'cutoff', label: '已截单' },
+  { key: 'customs', label: '报关已安排' },
+  { key: 'released', label: '已放单' },
+  { key: 'terminating', label: '退关中', badgeColor: '#fa8c16' },
+  { key: 'terminated', label: '已退关', badgeColor: '#ff4d4f' },
+  { key: 'completed', label: '已完结', badgeColor: '#52c41a' },
+  { key: 'abnormal', label: '异常挂起', badgeColor: '#ff4d4f' },
+];
+
+const lifecycleFiltersByStage: Record<
+  string,
+  {
+    flowStatus?: number;
+    terminationStatus?: number;
+    closureStatus?: number;
+    hasActiveException?: boolean;
+  }
+> = {
+  draft: { flowStatus: 1 },
+  booked: { flowStatus: 2 },
+  allocated: { flowStatus: 3 },
+  trucking: { flowStatus: 4 },
+  cutoff: { flowStatus: 5 },
+  customs: { flowStatus: 6 },
+  released: { flowStatus: 7 },
+  terminating: { terminationStatus: 2 },
+  terminated: { terminationStatus: 3 },
+  completed: { closureStatus: 2 },
+  abnormal: { hasActiveException: true },
 };
 
 export default function OrderListPage() {
@@ -256,7 +302,7 @@ export default function OrderListPage() {
   const [editingShippingDocument, setEditingShippingDocument] =
     useState<API.OrderShippingDocument>();
   const [targetStatusOptions, setTargetStatusOptions] = useState<
-    { label: string; value: string }[]
+    { label: string; value: number }[]
   >([]);
 
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
@@ -272,24 +318,31 @@ export default function OrderListPage() {
       masterDataServiceListAirports({ page: 1, pageSize: 200 }),
       partnerServiceListPartners({ role: 1, page: 1, pageSize: 200 }),
     ])
-      .then(([optionsResponse, portsResponse, airportsResponse, partnersResponse]) => {
-        setMasterOptions(optionsResponse.data ?? []);
-        setPorts(portsResponse.data ?? []);
-        setAirports(airportsResponse.data ?? []);
-        const partnerList = partnersResponse.data ?? [];
-        setPartners(partnerList);
-        setCustomerMap((prev) => {
-          const next = { ...prev };
-          for (const p of partnerList) {
-            if (p.id) {
-              next[p.id] = p.legalName
-                ? `${p.legalName} (${p.code})`
-                : p.code || p.id;
+      .then(
+        ([
+          optionsResponse,
+          portsResponse,
+          airportsResponse,
+          partnersResponse,
+        ]) => {
+          setMasterOptions(optionsResponse.data ?? []);
+          setPorts(portsResponse.data ?? []);
+          setAirports(airportsResponse.data ?? []);
+          const partnerList = partnersResponse.data ?? [];
+          setPartners(partnerList);
+          setCustomerMap((prev) => {
+            const next = { ...prev };
+            for (const p of partnerList) {
+              if (p.id) {
+                next[p.id] = p.legalName
+                  ? `${p.legalName} (${p.code})`
+                  : p.code || p.id;
+              }
             }
-          }
-          return next;
-        });
-      })
+            return next;
+          });
+        },
+      )
       .catch((error: Error) =>
         message.error(error.message || '订单主数据加载失败'),
       );
@@ -422,29 +475,22 @@ export default function OrderListPage() {
   const openTransition = async (record: API.Order) => {
     setTransitionRecord(record);
     transitionFormRef.current?.setFieldsValue({
-      currentStatus: record.status,
+      currentStatus: seFlowStatusLabels[record.flowStatus ?? 0] ?? '未知状态',
       targetStatus: undefined,
       reason: undefined,
     });
-    const res = await masterDataServiceListStatusTemplates({
-      businessType: record.businessType,
-      published: true,
-    });
-    const template = (res.data ?? []).find(
-      (tpl) => tpl.id === record.statusTemplateId,
-    );
-    const validTargets = (template?.items ?? [])
-      .filter(
-        (item) =>
-          item.enabled !== false &&
-          item.code !== record.status &&
-          item.code !== 'DRAFT',
-      )
-      .map((item) => ({
-        label: item.code ? `${item.label} (${item.code})` : (item.label ?? ''),
-        value: item.code ?? '',
-      }));
-    setTargetStatusOptions(validTargets);
+    const transitions: Record<number, { label: string; value: number }[]> = {
+      1: [{ label: '已订舱', value: 2 }],
+      2: [{ label: '已配舱', value: 3 }],
+      3: [
+        { label: '拖车已安排', value: 4 },
+        { label: '已截单（无拖车）', value: 5 },
+      ],
+      4: [{ label: '已截单', value: 5 }],
+      5: [{ label: '报关已安排', value: 6 }],
+      6: [{ label: '已放单', value: 7 }],
+    };
+    setTargetStatusOptions(transitions[record.flowStatus ?? 0] ?? []);
     setTransitionModalOpen(true);
   };
 
@@ -1152,6 +1198,7 @@ export default function OrderListPage() {
         orderKind={config.kind as any}
         title={config.title}
         subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
+        statusTabs={seStatusTabs}
         options={{
           ports: ports.map((p) => ({
             label: `${p.nameZh ? `${p.nameZh} / ` : ''}${p.nameEn} (${p.unLocode})`,
@@ -1162,29 +1209,47 @@ export default function OrderListPage() {
             value: a.id ?? '',
           })),
           partners: partners.map((p) => ({
-            label: p.legalName ? `${p.legalName} (${p.code})` : p.code || (p.id ?? ''),
+            label: p.legalName
+              ? `${p.legalName} (${p.code})`
+              : p.code || (p.id ?? ''),
             value: p.id ?? '',
           })),
         }}
         queryOrders={async (params) => {
+          const lifecycleFilters =
+            lifecycleFiltersByStage[params.stage ?? ''] ?? {};
           const response = await orderServiceListOrders({
             page: params.page,
             pageSize: params.pageSize,
             keyword: params.keyword,
-            status: params.stage && params.stage !== 'all' ? params.stage : undefined,
+            ...lifecycleFilters,
             businessType: config.businessType,
             customerId: params.customerId,
           });
 
           const items: OrderListItem[] = (response.data ?? []).map((order) => {
-            const originPort = ports.find((p) => p.id === order.originLocationId);
-            const destPort = ports.find((p) => p.id === order.destinationLocationId);
-            const originAirport = airports.find((a) => a.id === order.originLocationId);
-            const destAirport = airports.find((a) => a.id === order.destinationLocationId);
+            const originPort = ports.find(
+              (p) => p.id === order.originLocationId,
+            );
+            const destPort = ports.find(
+              (p) => p.id === order.destinationLocationId,
+            );
+            const originAirport = airports.find(
+              (a) => a.id === order.originLocationId,
+            );
+            const destAirport = airports.find(
+              (a) => a.id === order.destinationLocationId,
+            );
 
-            const originName = originPort?.nameZh || originAirport?.nameZh || order.originLocationId;
+            const originName =
+              originPort?.nameZh ||
+              originAirport?.nameZh ||
+              order.originLocationId;
             const originCode = originPort?.unLocode || originAirport?.iataCode;
-            const destName = destPort?.nameZh || destAirport?.nameZh || order.destinationLocationId;
+            const destName =
+              destPort?.nameZh ||
+              destAirport?.nameZh ||
+              order.destinationLocationId;
             const destCode = destPort?.unLocode || destAirport?.iataCode;
 
             const containerSummary = (order.containerRequests ?? [])
@@ -1199,8 +1264,18 @@ export default function OrderListPage() {
               orderNo: order.orderNo || '',
               orderKind: config.kind as any,
               businessType: config.title,
-              stage: order.status === 'COMPLETED' ? '已完结' : '正常运作',
-              customerName: customerMap[order.customerId ?? ''] || order.customerId,
+              stage:
+                order.closureStatus === 2
+                  ? '已完结'
+                  : order.terminationStatus === 3
+                    ? '已退关'
+                    : order.terminationStatus === 2
+                      ? '退关中'
+                      : order.hasActiveException
+                        ? '异常挂起'
+                        : '正常运作',
+              customerName:
+                customerMap[order.customerId ?? ''] || order.customerId,
               customerReferenceNo: order.customerReferenceNo,
               createdAt: order.createdAt,
               vesselVoyage: order.vesselVoyage,
@@ -1213,12 +1288,17 @@ export default function OrderListPage() {
               packageUnit: order.totalPackageUnit,
               grossWeightKg: order.totalGrossWeightKg,
               volumeCbm: order.totalVolumeCbm,
-              paymentTerm: paymentTermOptions.find((o) => o.value === order.paymentTerm)?.label,
-              tradeTerm: tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label,
+              paymentTerm: paymentTermOptions.find(
+                (o) => o.value === order.paymentTerm,
+              )?.label,
+              tradeTerm: tradeTermOptions.find(
+                (o) => o.value === order.tradeTerm,
+              )?.label,
               contractNo: order.contractNo,
               notes: order.notes,
-              statusName: order.status,
-              abnormalLevel: 'normal',
+              statusName:
+                seFlowStatusLabels[order.flowStatus ?? 0] ?? '未知状态',
+              abnormalLevel: order.hasActiveException ? 'high' : 'normal',
               rawRecord: order,
             };
           });
@@ -1230,18 +1310,38 @@ export default function OrderListPage() {
           };
         }}
         onCreateOrder={() => history.push(`/orders/${config.kind}/new`)}
-        onViewDetail={(item) => history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)}
+        onViewDetail={(item) =>
+          history.push(`/orders/${item.orderKind || config.kind}/${item.id}`)
+        }
         onEditOrder={(item) => item.rawRecord && openEdit(item.rawRecord)}
-        onOpenFees={(item) => item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)}
-        onOpenMilestones={(item) => item.rawRecord && openMilestones(item.rawRecord)}
-        onOpenDocuments={(item) => item.rawRecord && openShippingDocuments(item.rawRecord)}
-        onOpenContainers={(item) => item.rawRecord && openContainers(item.rawRecord)}
+        onOpenFees={(item) =>
+          item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
+        }
+        onOpenMilestones={(item) =>
+          item.rawRecord && openMilestones(item.rawRecord)
+        }
+        onOpenDocuments={(item) =>
+          item.rawRecord && openShippingDocuments(item.rawRecord)
+        }
+        onOpenContainers={(item) =>
+          item.rawRecord && openContainers(item.rawRecord)
+        }
         onOpenCargo={(item) => item.rawRecord && openCargoItems(item.rawRecord)}
-        onOpenAttachments={(item) => item.rawRecord && openAttachments(item.rawRecord)}
-        onOpenPersonnel={(item) => item.rawRecord && openPersonnel(item.rawRecord)}
-        onOpenConsolidations={(item) => item.rawRecord && openConsolidations(item.rawRecord)}
-        onOpenAbnormal={(item) => item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)}
-        onTransitionStatus={(item) => item.rawRecord && openTransition(item.rawRecord)}
+        onOpenAttachments={(item) =>
+          item.rawRecord && openAttachments(item.rawRecord)
+        }
+        onOpenPersonnel={(item) =>
+          item.rawRecord && openPersonnel(item.rawRecord)
+        }
+        onOpenConsolidations={(item) =>
+          item.rawRecord && openConsolidations(item.rawRecord)
+        }
+        onOpenAbnormal={(item) =>
+          item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)
+        }
+        onTransitionStatus={(item) =>
+          item.rawRecord && openTransition(item.rawRecord)
+        }
       />
 
       <ModalForm<EditOrderFormValues>
@@ -1282,12 +1382,12 @@ export default function OrderListPage() {
         }}
         onOpenChange={setEditModalOpen}
         onFinish={async (values) => {
-          if (!editingRecord?.id || !editingRecord?.status) return false;
+          if (!editingRecord?.id || !editingRecord?.version) return false;
           await orderServiceUpdateOrder(
             { id: editingRecord.id },
             {
               id: editingRecord.id,
-              expectedStatus: editingRecord.status,
+              expectedVersion: editingRecord.version,
               customerId: values.customerId,
               tradeDirection: values.tradeDirection,
               tradeTerm: values.tradeTerm,
@@ -1465,7 +1565,11 @@ export default function OrderListPage() {
         formRef={transitionFormRef}
         initialValues={
           transitionRecord
-            ? { currentStatus: transitionRecord.status }
+            ? {
+                currentStatus:
+                  seFlowStatusLabels[transitionRecord.flowStatus ?? 0] ??
+                  '未知状态',
+              }
             : undefined
         }
         modalProps={{
@@ -1475,13 +1579,13 @@ export default function OrderListPage() {
         }}
         onOpenChange={setTransitionModalOpen}
         onFinish={async (values) => {
-          if (!transitionRecord?.id || !transitionRecord?.status) return false;
+          if (!transitionRecord?.id || !transitionRecord?.version) return false;
           await orderServiceTransitionOrderStatus(
             { id: transitionRecord.id },
             {
               id: transitionRecord.id,
-              expectedStatus: transitionRecord.status,
-              targetStatus: values.targetStatus,
+              expectedVersion: transitionRecord.version,
+              targetFlowStatus: values.targetStatus,
               reason: values.reason,
             },
           );
@@ -1495,7 +1599,9 @@ export default function OrderListPage() {
           name="currentStatus"
           label="当前状态"
           readonly
-          initialValue={transitionRecord?.status}
+          initialValue={
+            seFlowStatusLabels[transitionRecord?.flowStatus ?? 0] ?? '未知状态'
+          }
         />
         <ProFormSelect
           name="targetStatus"
@@ -1570,7 +1676,7 @@ export default function OrderListPage() {
         }}
         onOpenChange={setMilestoneModalOpen}
         onFinish={async (values) => {
-          if (!milestoneOrder?.id || !milestoneOrder?.status) return false;
+          if (!milestoneOrder?.id || !milestoneOrder?.version) return false;
           const milestoneType = (
             editingMilestone?.type ||
             values.type ||
@@ -1586,7 +1692,7 @@ export default function OrderListPage() {
             {
               orderId: milestoneOrder.id,
               type: milestoneType,
-              expectedOrderStatus: milestoneOrder.status,
+              expectedOrderVersion: milestoneOrder.version,
               occurredAt: values.clearOccurredAt
                 ? undefined
                 : values.occurredAt

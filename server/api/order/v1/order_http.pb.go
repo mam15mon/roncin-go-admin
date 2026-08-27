@@ -23,7 +23,9 @@ const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListOrderConsolidations = "/order.v1.OrderService/ListOrderConsolidations"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
 const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
+const OperationOrderServiceTransitionOrderClosure = "/order.v1.OrderService/TransitionOrderClosure"
 const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/TransitionOrderStatus"
+const OperationOrderServiceTransitionOrderTermination = "/order.v1.OrderService/TransitionOrderTermination"
 const OperationOrderServiceUpdateOrder = "/order.v1.OrderService/UpdateOrder"
 
 type OrderServiceHTTPServer interface {
@@ -33,7 +35,9 @@ type OrderServiceHTTPServer interface {
 	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
+	TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
+	TransitionOrderTermination(context.Context, *TransitionOrderTerminationRequest) (*TransitionOrderTerminationResponse, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*UpdateOrderResponse, error)
 }
 
@@ -47,6 +51,8 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/orders", _OrderService_CreateOrder0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{id}", _OrderService_UpdateOrder0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{id}/termination", _OrderService_TransitionOrderTermination0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{id}/closure", _OrderService_TransitionOrderClosure0_HTTP_Handler(srv))
 }
 
 func _OrderService_GetOrder0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
@@ -213,6 +219,50 @@ func _OrderService_TransitionOrderStatus0_HTTP_Handler(srv OrderServiceHTTPServe
 	}
 }
 
+func _OrderService_TransitionOrderTermination0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TransitionOrderTerminationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceTransitionOrderTermination)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TransitionOrderTermination(ctx, req.(*TransitionOrderTerminationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TransitionOrderTerminationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderService_TransitionOrderClosure0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TransitionOrderClosureRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceTransitionOrderClosure)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TransitionOrderClosure(ctx, req.(*TransitionOrderClosureRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TransitionOrderClosureResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type OrderServiceHTTPClient interface {
 	CheckOrderReference(ctx context.Context, req *CheckOrderReferenceRequest, opts ...http.CallOption) (rsp *CheckOrderReferenceResponse, err error)
 	CreateOrder(ctx context.Context, req *CreateOrderRequest, opts ...http.CallOption) (rsp *CreateOrderResponse, err error)
@@ -220,7 +270,9 @@ type OrderServiceHTTPClient interface {
 	ListOrderConsolidations(ctx context.Context, req *ListOrderConsolidationsRequest, opts ...http.CallOption) (rsp *ListOrderConsolidationsResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
 	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
+	TransitionOrderClosure(ctx context.Context, req *TransitionOrderClosureRequest, opts ...http.CallOption) (rsp *TransitionOrderClosureResponse, err error)
 	TransitionOrderStatus(ctx context.Context, req *TransitionOrderStatusRequest, opts ...http.CallOption) (rsp *TransitionOrderStatusResponse, err error)
+	TransitionOrderTermination(ctx context.Context, req *TransitionOrderTerminationRequest, opts ...http.CallOption) (rsp *TransitionOrderTerminationResponse, err error)
 	UpdateOrder(ctx context.Context, req *UpdateOrderRequest, opts ...http.CallOption) (rsp *UpdateOrderResponse, err error)
 }
 
@@ -329,6 +381,23 @@ func (c *OrderServiceHTTPClientImpl) ListPersonnelOptions(ctx context.Context, i
 	return &out, nil
 }
 
+func (c *OrderServiceHTTPClientImpl) TransitionOrderClosure(ctx context.Context, in *TransitionOrderClosureRequest, opts ...http.CallOption) (*TransitionOrderClosureResponse, error) {
+	var out TransitionOrderClosureResponse
+	pattern := "/api/v1/orders/{id}/closure"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderServiceTransitionOrderClosure),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *OrderServiceHTTPClientImpl) TransitionOrderStatus(ctx context.Context, in *TransitionOrderStatusRequest, opts ...http.CallOption) (*TransitionOrderStatusResponse, error) {
 	var out TransitionOrderStatusResponse
 	pattern := "/api/v1/orders/{id}/status"
@@ -337,6 +406,23 @@ func (c *OrderServiceHTTPClientImpl) TransitionOrderStatus(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationOrderServiceTransitionOrderStatus),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) TransitionOrderTermination(ctx context.Context, in *TransitionOrderTerminationRequest, opts ...http.CallOption) (*TransitionOrderTerminationResponse, error) {
+	var out TransitionOrderTerminationResponse
+	pattern := "/api/v1/orders/{id}/termination"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderServiceTransitionOrderTermination),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

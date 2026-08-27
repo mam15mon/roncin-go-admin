@@ -187,15 +187,15 @@ func (x *ListMilestonesRequest) GetOrderId() string {
 
 // SetMilestoneRequest 设置订单里程碑请求。
 type SetMilestoneRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	OrderId             string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Type                string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	ExpectedOrderStatus string                 `protobuf:"bytes,3,opt,name=expected_order_status,json=expectedOrderStatus,proto3" json:"expected_order_status,omitempty"`
-	OccurredAt          *string                `protobuf:"bytes,4,opt,name=occurred_at,json=occurredAt,proto3,oneof" json:"occurred_at,omitempty"`
-	Note                *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	ClearOccurredAt     *bool                  `protobuf:"varint,6,opt,name=clear_occurred_at,json=clearOccurredAt,proto3,oneof" json:"clear_occurred_at,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	OrderId              string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Type                 string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	ExpectedOrderVersion uint64                 `protobuf:"varint,3,opt,name=expected_order_version,json=expectedOrderVersion,proto3" json:"expected_order_version,omitempty"`
+	OccurredAt           *string                `protobuf:"bytes,4,opt,name=occurred_at,json=occurredAt,proto3,oneof" json:"occurred_at,omitempty"`
+	Note                 *string                `protobuf:"bytes,5,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ClearOccurredAt      *bool                  `protobuf:"varint,6,opt,name=clear_occurred_at,json=clearOccurredAt,proto3,oneof" json:"clear_occurred_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *SetMilestoneRequest) Reset() {
@@ -242,11 +242,11 @@ func (x *SetMilestoneRequest) GetType() string {
 	return ""
 }
 
-func (x *SetMilestoneRequest) GetExpectedOrderStatus() string {
+func (x *SetMilestoneRequest) GetExpectedOrderVersion() uint64 {
 	if x != nil {
-		return x.ExpectedOrderStatus
+		return x.ExpectedOrderVersion
 	}
-	return ""
+	return 0
 }
 
 func (x *SetMilestoneRequest) GetOccurredAt() string {
@@ -451,11 +451,11 @@ const file_order_v1_milestone_proto_rawDesc = "" +
 	"\x05_noteB\r\n" +
 	"\v_updated_by\"7\n" +
 	"\x15ListMilestonesRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xa6\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xa8\x02\n" +
 	"\x13SetMilestoneRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x17\n" +
-	"\x04type\x18\x02 \x01(\tB\x03\xe0A\x02R\x04type\x127\n" +
-	"\x15expected_order_status\x18\x03 \x01(\tB\x03\xe0A\x02R\x13expectedOrderStatus\x12$\n" +
+	"\x04type\x18\x02 \x01(\tB\x03\xe0A\x02R\x04type\x129\n" +
+	"\x16expected_order_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x14expectedOrderVersion\x12$\n" +
 	"\voccurred_at\x18\x04 \x01(\tH\x00R\n" +
 	"occurredAt\x88\x01\x01\x12\x17\n" +
 	"\x04note\x18\x05 \x01(\tH\x01R\x04note\x88\x01\x01\x12/\n" +

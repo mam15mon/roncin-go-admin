@@ -13,6 +13,7 @@ import (
 
 var (
 	createTablePattern = regexp.MustCompile(`(?i)CREATE\s+TABLE\s+"([^"]+)"`)
+	dropTablePattern   = regexp.MustCompile(`(?i)DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?"([^"]+)"`)
 	referencePattern   = regexp.MustCompile(`(?i)REFERENCES\s+"([^"]+)"`)
 )
 
@@ -31,6 +32,11 @@ func TestMigrationManifestCoversEntSchema(t *testing.T) {
 			t.Fatalf("读取迁移文件 %s 失败: %v", file, err)
 		}
 		for _, statement := range strings.Split(string(content), ";") {
+			if match := dropTablePattern.FindStringSubmatch(statement); match != nil {
+				delete(created, match[1])
+				delete(seen, match[1])
+				continue
+			}
 			if match := createTablePattern.FindStringSubmatch(statement); match != nil {
 				created[match[1]]++
 				seen[match[1]] = true

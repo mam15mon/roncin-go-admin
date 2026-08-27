@@ -98,6 +98,8 @@ type Tx struct {
 	OrderContainerRequest *OrderContainerRequestClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
+	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
 	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
@@ -108,8 +110,6 @@ type Tx struct {
 	OrderServiceType *OrderServiceTypeClient
 	// OrderShippingDocument is the client for interacting with the OrderShippingDocument builders.
 	OrderShippingDocument *OrderShippingDocumentClient
-	// OrderStatusLog is the client for interacting with the OrderStatusLog builders.
-	OrderStatusLog *OrderStatusLogClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Partner is the client for interacting with the Partner builders.
@@ -152,10 +152,6 @@ type Tx struct {
 	ShippingLine *ShippingLineClient
 	// ShippingLineContainerPrefix is the client for interacting with the ShippingLineContainerPrefix builders.
 	ShippingLineContainerPrefix *ShippingLineContainerPrefixClient
-	// StatusTemplate is the client for interacting with the StatusTemplate builders.
-	StatusTemplate *StatusTemplateClient
-	// StatusTemplateItem is the client for interacting with the StatusTemplateItem builders.
-	StatusTemplateItem *StatusTemplateItemClient
 	// TaxableService is the client for interacting with the TaxableService builders.
 	TaxableService *TaxableServiceClient
 	// User is the client for interacting with the User builders.
@@ -334,12 +330,12 @@ func (tx *Tx) init() {
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
 	tx.OrderFee = NewOrderFeeClient(tx.config)
+	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)
 	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
 	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)
 	tx.OrderReleasePod = NewOrderReleasePodClient(tx.config)
 	tx.OrderServiceType = NewOrderServiceTypeClient(tx.config)
 	tx.OrderShippingDocument = NewOrderShippingDocumentClient(tx.config)
-	tx.OrderStatusLog = NewOrderStatusLogClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
 	tx.Partner = NewPartnerClient(tx.config)
 	tx.PartnerAccount = NewPartnerAccountClient(tx.config)
@@ -361,8 +357,6 @@ func (tx *Tx) init() {
 	tx.Session = NewSessionClient(tx.config)
 	tx.ShippingLine = NewShippingLineClient(tx.config)
 	tx.ShippingLineContainerPrefix = NewShippingLineContainerPrefixClient(tx.config)
-	tx.StatusTemplate = NewStatusTemplateClient(tx.config)
-	tx.StatusTemplateItem = NewStatusTemplateItemClient(tx.config)
 	tx.TaxableService = NewTaxableServiceClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

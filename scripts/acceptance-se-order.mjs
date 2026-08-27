@@ -70,6 +70,10 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function isEnumValue(value, code, name) {
+  return value === code || value === name;
+}
+
 function compactPrerequisite(item) {
   return item
     ? { id: item.id, code: item.code, name: item.name || item.legalName }
@@ -78,17 +82,13 @@ function compactPrerequisite(item) {
 
 const cookie = await login();
 const request = createClient(cookie);
-const [me, customers, templates, rules] = await Promise.all([
+const [me, customers, rules] = await Promise.all([
   request('/api/v1/auth/me'),
   request('/api/v1/partners?page=1&pageSize=100&role=1&enabled=true'),
-  request('/api/v1/master-data/status-templates?businessType=1&published=true'),
   request('/api/v1/master-data/number-rules'),
 ]);
 
 const customer = customers.data?.[0];
-const statusTemplate = templates.data?.find(
-  (item) => item.isDefault && item.enabled,
-);
 const orderRule = rules.data?.find(
   (item) =>
     item.documentType === 1 || item.documentType === 'DOCUMENT_TYPE_ORDER',
@@ -96,21 +96,11 @@ const orderRule = rules.data?.find(
 
 assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 assert(customer?.id, '当前组织没有启用的客户，请先在往来单位中创建客户');
-assert(statusTemplate?.id, '当前组织没有已发布且默认的海运出口状态模板');
-assert(
-  statusTemplate.items?.some((item) => item.code === 'DRAFT' && item.enabled),
-  '海运出口状态模板缺少启用的 DRAFT 状态',
-);
-assert(
-  statusTemplate.items?.some((item) => item.code === 'BOOKED' && item.enabled),
-  '海运出口状态模板缺少启用的 BOOKED 状态',
-);
 assert(orderRule?.enabled, '当前组织没有启用的订单编号规则');
 
 const prerequisiteSummary = {
   organization: compactPrerequisite(me.data.currentOrganization),
   customer: compactPrerequisite(customer),
-  statusTemplate: compactPrerequisite(statusTemplate),
   orderRule: {
     prefix: orderRule.prefix || '',
     dateFormat: orderRule.dateFormat,
@@ -145,7 +135,6 @@ const createdResponse = await request('/api/v1/orders', {
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
-    statusTemplateId: statusTemplate.id,
     shipmentType: 2,
     shipmentMode: 1,
     loadingTerms: 'CFS-CFS',
@@ -179,9 +168,10 @@ assert(
   '订单编号未使用订单规则和 SE 业务代码',
 );
 assert(
-  created.status === 'DRAFT',
-  `新建订单状态应为 DRAFT，实际为 ${created.status}`,
+  isEnumValue(created.flowStatus, 1, 'ORDER_FLOW_STATUS_DRAFT'),
+  `新建订单主流程应为 DRAFT，实际为 ${created.flowStatus}`,
 );
+assert(created.version === '1' || created.version === 1, '新建订单版本号应为 1');
 
 const detailResponse = await request(`/api/v1/orders/${created.id}`);
 const detail = detailResponse.data;
@@ -208,7 +198,7 @@ const updatedResponse = await request(`/api/v1/orders/${created.id}`, {
   method: 'PUT',
   body: JSON.stringify({
     id: created.id,
-    expectedStatus: 'DRAFT',
+    expectedVersion: detail.version,
     notes: '海运出口闭环验收草稿已更新',
     shippingDocuments: detail.shippingDocuments.map((document) => ({
       id: document.id,
@@ -268,7 +258,6 @@ const siblingResponse = await request('/api/v1/orders', {
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
-    statusTemplateId: statusTemplate.id,
     shipmentType: 2,
     shipmentMode: 1,
     goodsDescription: '海运出口自拼汇总验收货物',
@@ -337,20 +326,28 @@ const transitionedResponse = await request(
     method: 'POST',
     body: JSON.stringify({
       id: created.id,
-      expectedStatus: 'DRAFT',
-      targetStatus: 'BOOKED',
+      expectedVersion: updatedResponse.data.version,
+      targetFlowStatus: 2,
       reason: '海运出口闭环验收：完成订舱',
     }),
   },
 );
 assert(
-  transitionedResponse.data?.status === 'BOOKED',
+  isEnumValue(
+    transitionedResponse.data?.flowStatus,
+    2,
+    'ORDER_FLOW_STATUS_BOOKED',
+  ),
   '订单未成功流转到 BOOKED',
 );
 
 const finalDetail = await request(`/api/v1/orders/${created.id}`);
 assert(
-  finalDetail.data?.status === 'BOOKED',
+  isEnumValue(
+    finalDetail.data?.flowStatus,
+    2,
+    'ORDER_FLOW_STATUS_BOOKED',
+  ),
   '状态流转后订单详情未回显 BOOKED',
 );
 assert(
@@ -371,6 +368,68 @@ assert(
   '订单列表无法按订单编号检索验收订单',
 );
 
+const terminatingResponse = await request(
+  `/api/v1/orders/${created.id}/termination`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: created.id,
+      expectedVersion: finalDetail.data.version,
+      targetStatus: 2,
+      terminationType: 3,
+      reason: '海运出口闭环验收：发起退关',
+    }),
+  },
+);
+assert(
+  isEnumValue(
+    terminatingResponse.data?.terminationStatus,
+    2,
+    'ORDER_TERMINATION_STATUS_TERMINATING',
+  ),
+  '订单未成功进入退关中状态',
+);
+
+const terminatedResponse = await request(
+  `/api/v1/orders/${created.id}/termination`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      id: created.id,
+      expectedVersion: terminatingResponse.data.version,
+      targetStatus: 3,
+      terminationType: 3,
+      reason: '海运出口闭环验收：退关完成',
+    }),
+  },
+);
+assert(
+  isEnumValue(
+    terminatedResponse.data?.terminationStatus,
+    3,
+    'ORDER_TERMINATION_STATUS_TERMINATED',
+  ),
+  '订单未成功进入已退关状态',
+);
+
+const closedResponse = await request(`/api/v1/orders/${created.id}/closure`, {
+  method: 'POST',
+  body: JSON.stringify({
+    id: created.id,
+    expectedVersion: terminatedResponse.data.version,
+    targetStatus: 2,
+    reason: '海运出口闭环验收：费用已处理并结案',
+  }),
+});
+assert(
+  isEnumValue(
+    closedResponse.data?.closureStatus,
+    2,
+    'ORDER_CLOSURE_STATUS_CLOSED',
+  ),
+  '终止订单未成功完结',
+);
+
 console.log('海运出口订单闭环验收通过。');
 console.log(
   JSON.stringify(
@@ -379,7 +438,10 @@ console.log(
       order: {
         id: finalDetail.data.id,
         orderNo: finalDetail.data.orderNo,
-        status: finalDetail.data.status,
+        flowStatus: finalDetail.data.flowStatus,
+        terminationStatus: closedResponse.data.terminationStatus,
+        closureStatus: closedResponse.data.closureStatus,
+        version: closedResponse.data.version,
         customerReferenceNo: finalDetail.data.customerReferenceNo,
         shippingDocumentCount: finalDetail.data.shippingDocuments?.length || 0,
         cargoItemCount: cargoList.data?.length || 0,

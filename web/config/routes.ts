@@ -114,24 +114,6 @@ export default [
         component: './orders/list',
       },
       {
-        path: '/orders/sea-import',
-        name: '海运进口',
-        access: 'canReadSIOrders',
-        component: './orders/list',
-      },
-      {
-        path: '/orders/air-export',
-        name: '空运出口',
-        access: 'canReadAEOrders',
-        component: './orders/list',
-      },
-      {
-        path: '/orders/air-import',
-        name: '空运进口',
-        access: 'canReadAIOrders',
-        component: './orders/list',
-      },
-      {
         path: '/orders/:kind/new',
         name: '新建订单',
         hideInMenu: true,

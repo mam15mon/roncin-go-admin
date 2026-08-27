@@ -48,7 +48,7 @@ func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.Se
 	if err != nil {
 		return nil, biz.ErrOrderNotFound
 	}
-	expected := request.GetExpectedOrderStatus()
+	expected := request.GetExpectedOrderVersion()
 	occurredAt, err := parseOptionalRFC3339(request.GetOccurredAt())
 	if err != nil {
 		return nil, biz.ErrOrderInvalidArgument

@@ -75,16 +75,12 @@ function assert(condition, message) {
 const cookie = await login();
 const client = createClient(cookie);
 const { request, raw } = client;
-const [me, customers, templates, rules] = await Promise.all([
+const [me, customers, rules] = await Promise.all([
   request('/api/v1/auth/me'),
   request('/api/v1/partners?page=1&pageSize=100&role=1&enabled=true'),
-  request('/api/v1/master-data/status-templates?businessType=1&published=true'),
   request('/api/v1/master-data/number-rules'),
 ]);
 const customer = customers.data?.[0];
-const statusTemplate = templates.data?.find(
-  (item) => item.isDefault && item.enabled,
-);
 const billRule = rules.data?.find(
   (item) =>
     item.documentType === 2 || item.documentType === 'DOCUMENT_TYPE_BILL',
@@ -111,7 +107,6 @@ const commissionNumberRule = rules.data?.find(
 assert(me.data?.id, '当前登录用户缺少用户编号');
 assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 assert(customer?.id, '当前组织没有启用的客户');
-assert(statusTemplate?.id, '当前组织没有海运出口默认状态模板');
 assert(billRule?.enabled, '当前组织没有启用的账单编号规则');
 assert(batchRule?.enabled, '当前组织没有启用的账单批次编号规则');
 assert(writeOffRule?.enabled, '当前组织没有启用的核销编号规则');
@@ -138,7 +133,6 @@ const orderResponse = await request('/api/v1/orders', {
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
-    statusTemplateId: statusTemplate.id,
     shipmentType: 2,
     shipmentMode: 1,
     loadingTerms: 'CFS-CFS',

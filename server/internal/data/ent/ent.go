@@ -55,12 +55,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderstatuslog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
@@ -82,8 +82,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/statustemplateitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -189,12 +187,12 @@ func checkColumn(t, c string) error {
 			ordercontainer.Table:                ordercontainer.ValidColumn,
 			ordercontainerrequest.Table:         ordercontainerrequest.ValidColumn,
 			orderfee.Table:                      orderfee.ValidColumn,
+			orderlifecycleevent.Table:           orderlifecycleevent.ValidColumn,
 			ordermilestone.Table:                ordermilestone.ValidColumn,
 			orderpersonnel.Table:                orderpersonnel.ValidColumn,
 			orderreleasepod.Table:               orderreleasepod.ValidColumn,
 			orderservicetype.Table:              orderservicetype.ValidColumn,
 			ordershippingdocument.Table:         ordershippingdocument.ValidColumn,
-			orderstatuslog.Table:                orderstatuslog.ValidColumn,
 			organization.Table:                  organization.ValidColumn,
 			partner.Table:                       partner.ValidColumn,
 			partneraccount.Table:                partneraccount.ValidColumn,
@@ -216,8 +214,6 @@ func checkColumn(t, c string) error {
 			session.Table:                       session.ValidColumn,
 			shippingline.Table:                  shippingline.ValidColumn,
 			shippinglinecontainerprefix.Table:   shippinglinecontainerprefix.ValidColumn,
-			statustemplate.Table:                statustemplate.ValidColumn,
-			statustemplateitem.Table:            statustemplateitem.ValidColumn,
 			taxableservice.Table:                taxableservice.ValidColumn,
 			user.Table:                          user.ValidColumn,
 		})

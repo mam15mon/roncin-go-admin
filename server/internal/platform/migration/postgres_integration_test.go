@@ -51,7 +51,8 @@ func TestPostgresColdStartMigration(t *testing.T) {
 			t.Errorf("删除临时 Schema 失败: %v", err)
 		}
 	})
-	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema); err != nil {
+	// pg_trgm 扩展安装在 public，隔离业务表的同时保留扩展运算符类可见性。
+	if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
 		t.Fatalf("切换临时 Schema 失败: %v", err)
 	}
 

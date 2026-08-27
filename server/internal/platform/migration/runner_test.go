@@ -13,6 +13,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
+const revisionTableExistsQuery = "SELECT to_regclass(current_schema() || '.schema_migrations') IS NOT NULL"
+
 func TestReadFilesSortsAndChecksums(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "20260821150000_second.sql"), []byte("SELECT 2;"), 0o600); err != nil {
@@ -49,7 +51,7 @@ func TestApplyExecutesNewMigrationInTransaction(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}))
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(statement)).WillReturnResult(sqlmock.NewResult(0, 0))
@@ -80,7 +82,7 @@ func TestApplyCreatesRevisionTableIfNotExists(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 	mock.ExpectExec(`CREATE TABLE "schema_migrations"`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}))
 	mock.ExpectBegin()
@@ -108,7 +110,7 @@ func TestApplyRejectsChangedMigration(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821140000_create_test", "different"))
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -149,7 +151,7 @@ func TestApplyRollsBackFailedMigration(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}))
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(statement)).WillReturnError(errors.New("invalid SQL"))
@@ -175,7 +177,7 @@ func TestApplyValidatesCompleteHistoryBeforeWriting(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821140000_missing", "checksum"))
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -204,7 +206,7 @@ func TestApplyRejectsNonLinearMigration(t *testing.T) {
 	}
 	defer db.Close()
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT to_regclass('schema_migrations') IS NOT NULL")).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}).AddRow("20260821150000_applied", hex.EncodeToString(hash[:])))
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
 

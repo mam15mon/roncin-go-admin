@@ -19,7 +19,10 @@ var (
 	ErrOrderCustomerInvalid           = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
 	ErrOrderStatusInvalid             = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
 	ErrOrderStatusConflict            = errors.Conflict("ORDER_STATUS_CONFLICT", "订单状态已被其他操作修改")
-	ErrOrderStatusTemplate            = errors.BadRequest("ORDER_STATUS_TEMPLATE_REQUIRED", "订单必须使用已发布状态模板")
+	ErrOrderBusinessUnsupported       = errors.BadRequest("ORDER_BUSINESS_UNSUPPORTED", "当前仅支持海运出口订单")
+	ErrOrderTerminationInvalid        = errors.BadRequest("ORDER_TERMINATION_INVALID", "订单终止状态流转不合法")
+	ErrOrderClosureInvalid            = errors.BadRequest("ORDER_CLOSURE_INVALID", "订单结案状态流转不合法")
+	ErrOrderClosureBlocked            = errors.Conflict("ORDER_CLOSURE_BLOCKED", "订单尚未满足结案条件")
 	ErrOrderConsolidationShipmentType = errors.BadRequest("ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID", "仅拼箱订单可查看自拼汇总")
 )
 
@@ -37,6 +40,74 @@ const (
 func (v OrderBusinessType) Valid() bool {
 	return v == OrderBusinessSE || v == OrderBusinessSI || v == OrderBusinessAE || v == OrderBusinessAI || v == OrderBusinessLand || v == OrderBusinessRail
 }
+
+type OrderFlowStatus string
+
+const (
+	OrderFlowDraft                      OrderFlowStatus = "DRAFT"
+	OrderFlowBooked                     OrderFlowStatus = "BOOKED"
+	OrderFlowSpaceAllocated             OrderFlowStatus = "SPACE_ALLOCATED"
+	OrderFlowTruckingArranged           OrderFlowStatus = "TRUCKING_ARRANGED"
+	OrderFlowDocumentCutoff             OrderFlowStatus = "DOCUMENT_CUTOFF"
+	OrderFlowCustomsDeclarationArranged OrderFlowStatus = "CUSTOMS_DECLARATION_ARRANGED"
+	OrderFlowDocumentReleased           OrderFlowStatus = "DOCUMENT_RELEASED"
+)
+
+func (v OrderFlowStatus) Valid() bool {
+	switch v {
+	case OrderFlowDraft, OrderFlowBooked, OrderFlowSpaceAllocated, OrderFlowTruckingArranged, OrderFlowDocumentCutoff, OrderFlowCustomsDeclarationArranged, OrderFlowDocumentReleased:
+		return true
+	default:
+		return false
+	}
+}
+
+type OrderTerminationStatus string
+
+const (
+	OrderTerminationActive      OrderTerminationStatus = "ACTIVE"
+	OrderTerminationTerminating OrderTerminationStatus = "TERMINATING"
+	OrderTerminationTerminated  OrderTerminationStatus = "TERMINATED"
+)
+
+func (v OrderTerminationStatus) Valid() bool {
+	return v == OrderTerminationActive || v == OrderTerminationTerminating || v == OrderTerminationTerminated
+}
+
+type OrderTerminationType string
+
+const (
+	OrderTerminationCustomerCancel  OrderTerminationType = "CUSTOMER_CANCEL"
+	OrderTerminationCarrierCancel   OrderTerminationType = "CARRIER_CANCEL"
+	OrderTerminationCustomsReturn   OrderTerminationType = "CUSTOMS_RETURN"
+	OrderTerminationOperationCancel OrderTerminationType = "OPERATION_CANCEL"
+	OrderTerminationOther           OrderTerminationType = "OTHER"
+)
+
+func (v OrderTerminationType) Valid() bool {
+	return v == OrderTerminationCustomerCancel || v == OrderTerminationCarrierCancel || v == OrderTerminationCustomsReturn || v == OrderTerminationOperationCancel || v == OrderTerminationOther
+}
+
+type OrderClosureStatus string
+
+const (
+	OrderClosureOpen   OrderClosureStatus = "OPEN"
+	OrderClosureClosed OrderClosureStatus = "CLOSED"
+)
+
+func (v OrderClosureStatus) Valid() bool { return v == OrderClosureOpen || v == OrderClosureClosed }
+
+type OrderAllowedAction string
+
+const (
+	OrderActionEdit                OrderAllowedAction = "EDIT"
+	OrderActionTransitionFlow      OrderAllowedAction = "TRANSITION_FLOW"
+	OrderActionStartTermination    OrderAllowedAction = "START_TERMINATION"
+	OrderActionCompleteTermination OrderAllowedAction = "COMPLETE_TERMINATION"
+	OrderActionCancelTermination   OrderAllowedAction = "CANCEL_TERMINATION"
+	OrderActionClose               OrderAllowedAction = "CLOSE"
+	OrderActionReopen              OrderAllowedAction = "REOPEN"
+)
 
 type OrderTradeDirection string
 
@@ -158,8 +229,20 @@ type Order struct {
 	ShipmentType          *OrderShipmentType
 	ContainerOwnership    *OrderContainerOwnership
 	ShipmentMode          *OrderShipmentMode
-	Status                string
-	StatusTemplateID      uuid.UUID
+	FlowStatus            OrderFlowStatus
+	TerminationStatus     OrderTerminationStatus
+	TerminationType       *OrderTerminationType
+	TerminationReason     string
+	TerminatedAt          *time.Time
+	TerminatedBy          *uuid.UUID
+	ClosureStatus         OrderClosureStatus
+	ClosureReason         string
+	ClosedAt              *time.Time
+	ClosedBy              *uuid.UUID
+	Version               uint64
+	HasActiveException    bool
+	ActiveExceptionCount  int
+	AllowedActions        []OrderAllowedAction
 	ServiceTypeIDs        []uuid.UUID
 	CargoCategoryIDs      []uuid.UUID
 	OriginLocationID      *uuid.UUID
@@ -202,13 +285,16 @@ type OrderContainerRequest struct {
 }
 
 type OrderListOptions struct {
-	Page          int
-	PageSize      int
-	Keyword       string
-	Status        string
-	BusinessType  OrderBusinessType
-	BusinessTypes []OrderBusinessType
-	CustomerID    *uuid.UUID
+	Page               int
+	PageSize           int
+	Keyword            string
+	FlowStatus         OrderFlowStatus
+	TerminationStatus  OrderTerminationStatus
+	ClosureStatus      OrderClosureStatus
+	HasActiveException *bool
+	BusinessType       OrderBusinessType
+	BusinessTypes      []OrderBusinessType
+	CustomerID         *uuid.UUID
 }
 
 type OrderList struct {
@@ -269,8 +355,11 @@ type OrderRepo interface {
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
-	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
-	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, string, string, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
+	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, uint64, *Order) (*Order, error)
+	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, uint64, OrderFlowStatus, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
+	TransitionTermination(context.Context, uuid.UUID, uuid.UUID, uint64, OrderTerminationStatus, *OrderTerminationType, string, uuid.UUID, *OrderLifecycleChangedEvent) (*Order, error)
+	ClosureReadiness(context.Context, uuid.UUID, uuid.UUID) (*OrderClosureReadiness, error)
+	TransitionClosure(context.Context, uuid.UUID, uuid.UUID, uint64, OrderClosureStatus, string, uuid.UUID, *OrderLifecycleChangedEvent) (*Order, error)
 }
 
 type OrderUsecase struct {
@@ -312,7 +401,12 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 		}
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
-	options.Status = strings.ToUpper(strings.TrimSpace(options.Status))
+	if options.FlowStatus != "" && !options.FlowStatus.Valid() {
+		return nil, ErrOrderInvalidArgument
+	}
+	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
+		return nil, ErrOrderInvalidArgument
+	}
 	return uc.repo.List(ctx, organizationIDs, options)
 }
 
@@ -364,8 +458,8 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	return created, nil
 }
 
-func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedStatus string, input *Order) (*Order, error) {
-	if id == uuid.Nil || strings.TrimSpace(expectedStatus) == "" {
+func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, input *Order) (*Order, error) {
+	if id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrOrderInvalidArgument
 	}
 	normalized, err := normalizeOrder(input, false)
@@ -381,7 +475,7 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 			return nil, ErrOrderContainerShipmentType
 		}
 	}
-	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, strings.ToUpper(strings.TrimSpace(expectedStatus)), normalized)
+	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, expectedVersion, normalized)
 	if err != nil {
 		return nil, err
 	}
@@ -392,8 +486,11 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 }
 
 func normalizeOrder(input *Order, creating bool) (*Order, error) {
-	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || !input.TradeTerm.Valid() || !input.PaymentTerm.Valid() || input.StatusTemplateID == uuid.Nil {
+	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || !input.TradeTerm.Valid() || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
+	}
+	if input.BusinessType != OrderBusinessSE || input.TradeDirection != OrderTradeExport {
+		return nil, ErrOrderBusinessUnsupported
 	}
 	output := *input
 	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)

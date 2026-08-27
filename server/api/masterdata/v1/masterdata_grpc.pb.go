@@ -42,10 +42,6 @@ const (
 	MasterDataService_ListNumberRules_FullMethodName             = "/masterdata.v1.MasterDataService/ListNumberRules"
 	MasterDataService_CreateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/CreateNumberRule"
 	MasterDataService_UpdateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/UpdateNumberRule"
-	MasterDataService_ListStatusTemplates_FullMethodName         = "/masterdata.v1.MasterDataService/ListStatusTemplates"
-	MasterDataService_CreateStatusTemplate_FullMethodName        = "/masterdata.v1.MasterDataService/CreateStatusTemplate"
-	MasterDataService_PublishStatusTemplate_FullMethodName       = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
-	MasterDataService_SetDefaultStatusTemplate_FullMethodName    = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
 	MasterDataService_ListMilestoneTemplates_FullMethodName      = "/masterdata.v1.MasterDataService/ListMilestoneTemplates"
 	MasterDataService_CreateMilestoneTemplate_FullMethodName     = "/masterdata.v1.MasterDataService/CreateMilestoneTemplate"
 	MasterDataService_PublishMilestoneTemplate_FullMethodName    = "/masterdata.v1.MasterDataService/PublishMilestoneTemplate"
@@ -79,10 +75,6 @@ type MasterDataServiceClient interface {
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error)
 	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error)
 	UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*UpdateNumberRuleResponse, error)
-	ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*ListStatusTemplatesResponse, error)
-	CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*CreateStatusTemplateResponse, error)
-	PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*PublishStatusTemplateResponse, error)
-	SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*SetDefaultStatusTemplateResponse, error)
 	ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error)
 	CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*CreateMilestoneTemplateResponse, error)
 	PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*PublishMilestoneTemplateResponse, error)
@@ -327,46 +319,6 @@ func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *Upda
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListStatusTemplates(ctx context.Context, in *ListStatusTemplatesRequest, opts ...grpc.CallOption) (*ListStatusTemplatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListStatusTemplatesResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_ListStatusTemplates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) CreateStatusTemplate(ctx context.Context, in *CreateStatusTemplateRequest, opts ...grpc.CallOption) (*CreateStatusTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateStatusTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_CreateStatusTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) PublishStatusTemplate(ctx context.Context, in *PublishStatusTemplateRequest, opts ...grpc.CallOption) (*PublishStatusTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PublishStatusTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_PublishStatusTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) SetDefaultStatusTemplate(ctx context.Context, in *SetDefaultStatusTemplateRequest, opts ...grpc.CallOption) (*SetDefaultStatusTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetDefaultStatusTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_SetDefaultStatusTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *masterDataServiceClient) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListMilestoneTemplatesResponse)
@@ -434,10 +386,6 @@ type MasterDataServiceServer interface {
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
 	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error)
-	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error)
-	CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error)
-	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error)
-	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error)
 	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error)
 	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error)
 	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
@@ -520,18 +468,6 @@ func (UnimplementedMasterDataServiceServer) CreateNumberRule(context.Context, *C
 }
 func (UnimplementedMasterDataServiceServer) UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateNumberRule not implemented")
-}
-func (UnimplementedMasterDataServiceServer) ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListStatusTemplates not implemented")
-}
-func (UnimplementedMasterDataServiceServer) CreateStatusTemplate(context.Context, *CreateStatusTemplateRequest) (*CreateStatusTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateStatusTemplate not implemented")
-}
-func (UnimplementedMasterDataServiceServer) PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PublishStatusTemplate not implemented")
-}
-func (UnimplementedMasterDataServiceServer) SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetDefaultStatusTemplate not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMilestoneTemplates not implemented")
@@ -980,78 +916,6 @@ func _MasterDataService_UpdateNumberRule_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterDataService_ListStatusTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListStatusTemplatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).ListStatusTemplates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_ListStatusTemplates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListStatusTemplates(ctx, req.(*ListStatusTemplatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_CreateStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateStatusTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).CreateStatusTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_CreateStatusTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).CreateStatusTemplate(ctx, req.(*CreateStatusTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_PublishStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishStatusTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).PublishStatusTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_PublishStatusTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).PublishStatusTemplate(ctx, req.(*PublishStatusTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_SetDefaultStatusTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetDefaultStatusTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).SetDefaultStatusTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_SetDefaultStatusTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).SetDefaultStatusTemplate(ctx, req.(*SetDefaultStatusTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MasterDataService_ListMilestoneTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListMilestoneTemplatesRequest)
 	if err := dec(in); err != nil {
@@ -1222,22 +1086,6 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateNumberRule",
 			Handler:    _MasterDataService_UpdateNumberRule_Handler,
-		},
-		{
-			MethodName: "ListStatusTemplates",
-			Handler:    _MasterDataService_ListStatusTemplates_Handler,
-		},
-		{
-			MethodName: "CreateStatusTemplate",
-			Handler:    _MasterDataService_CreateStatusTemplate_Handler,
-		},
-		{
-			MethodName: "PublishStatusTemplate",
-			Handler:    _MasterDataService_PublishStatusTemplate_Handler,
-		},
-		{
-			MethodName: "SetDefaultStatusTemplate",
-			Handler:    _MasterDataService_SetDefaultStatusTemplate_Handler,
 		},
 		{
 			MethodName: "ListMilestoneTemplates",

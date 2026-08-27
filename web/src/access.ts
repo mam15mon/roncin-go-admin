@@ -84,11 +84,6 @@ const permissions = {
   masterDataNumberRuleRead: 'system.master_data.number_rule.read',
   masterDataNumberRuleCreate: 'system.master_data.number_rule.create',
   masterDataNumberRuleUpdate: 'system.master_data.number_rule.update',
-  masterDataStatusTemplateRead: 'system.master_data.status_template.read',
-  masterDataStatusTemplateCreate: 'system.master_data.status_template.create',
-  masterDataStatusTemplatePublish: 'system.master_data.status_template.publish',
-  masterDataStatusTemplateSetDefault:
-    'system.master_data.status_template.set_default',
   masterDataMilestoneTemplateRead: 'system.master_data.milestone_template.read',
   masterDataMilestoneTemplateCreate:
     'system.master_data.milestone_template.create',
@@ -294,14 +289,6 @@ export default function access(
       has(permissions.masterDataNumberRuleCreate) && inOrganization,
     canUpdateMasterDataNumberRules:
       has(permissions.masterDataNumberRuleUpdate) && inOrganization,
-    canReadMasterDataStatusTemplates:
-      has(permissions.masterDataStatusTemplateRead) && inOrganization,
-    canCreateMasterDataStatusTemplates:
-      has(permissions.masterDataStatusTemplateCreate) && inOrganization,
-    canPublishMasterDataStatusTemplates:
-      has(permissions.masterDataStatusTemplatePublish) && inOrganization,
-    canSetDefaultMasterDataStatusTemplates:
-      has(permissions.masterDataStatusTemplateSetDefault) && inOrganization,
     canReadMasterDataMilestoneTemplates:
       has(permissions.masterDataMilestoneTemplateRead) && inOrganization,
     canCreateMasterDataMilestoneTemplates:

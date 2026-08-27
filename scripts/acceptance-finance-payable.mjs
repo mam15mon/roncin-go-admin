@@ -78,15 +78,11 @@ function isEnumValue(value, code, name) {
 
 const cookie = await login();
 const { request, raw } = createClient(cookie);
-const [customers, templates, rules] = await Promise.all([
+const [customers, rules] = await Promise.all([
   request('/api/v1/partners?page=1&pageSize=200&role=1&enabled=true'),
-  request('/api/v1/master-data/status-templates?businessType=1&published=true'),
   request('/api/v1/master-data/number-rules'),
 ]);
 const customer = customers.data?.[0];
-const statusTemplate = templates.data?.find(
-  (item) => item.isDefault && item.enabled,
-);
 const requiredDocumentTypes = [
   [2, 'DOCUMENT_TYPE_BILL'],
   [4, 'DOCUMENT_TYPE_WRITE_OFF'],
@@ -94,7 +90,6 @@ const requiredDocumentTypes = [
   [14, 'DOCUMENT_TYPE_BILL_BATCH'],
 ];
 assert(customer?.id, '当前组织没有启用的客户，无法创建应付验收订单');
-assert(statusTemplate?.id, '当前组织没有海运出口默认状态模板');
 for (const [code, name] of requiredDocumentTypes) {
   assert(
     rules.data?.some(
@@ -156,7 +151,6 @@ const orderResponse = await request('/api/v1/orders', {
     tradeDirection: 1,
     tradeTerm: 3,
     paymentTerm: 1,
-    statusTemplateId: statusTemplate.id,
     shipmentType: 2,
     shipmentMode: 1,
     loadingTerms: 'CFS-CFS',
