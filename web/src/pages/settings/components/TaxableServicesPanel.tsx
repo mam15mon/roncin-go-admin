@@ -68,6 +68,8 @@ export function TaxableServicesPanel() {
     <SettingTableTemplate<API.TaxableService, TaxableServiceFormValues>
       entityName="货物或应税劳务"
       columns={columns}
+      modalWidth={580}
+      labelWidth={150}
       query={feeCatalogServiceListTaxableServices}
       canCreate={access.canCreateFeeSettings}
       canUpdate={access.canUpdateFeeSettings}

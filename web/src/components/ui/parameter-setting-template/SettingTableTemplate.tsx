@@ -22,6 +22,12 @@ export function SettingTableTemplate<
   beforeSubmit,
   modalWidth = 520,
   grid = false,
+  layout = 'horizontal',
+  labelWidth,
+  labelCol,
+  wrapperCol,
+  rowProps,
+  modalProps,
   search = false,
   pagination = false,
   rowSelection,
@@ -75,7 +81,26 @@ export function SettingTableTemplate<
     return {} as Partial<TFormValues>;
   }, [initialValues, editingRecord]);
 
-  // 3. 提交处理
+  // 3. 计算对齐的 Label 宽度（确保 '货物或应税劳务名称' 等长文本不会被截断或挤压）
+  const defaultLabelWidth = labelWidth ?? (grid ? 145 : 140);
+  const resolvedLabelCol = useMemo(() => {
+    if (layout === 'vertical') return undefined;
+    if (labelCol) return labelCol;
+    return {
+      flex:
+        typeof defaultLabelWidth === 'number'
+          ? `0 0 ${defaultLabelWidth}px`
+          : defaultLabelWidth,
+    };
+  }, [layout, labelCol, defaultLabelWidth]);
+
+  const resolvedWrapperCol = useMemo(() => {
+    if (layout === 'vertical') return undefined;
+    if (wrapperCol) return wrapperCol;
+    return { flex: '1' };
+  }, [layout, wrapperCol]);
+
+  // 4. 提交处理
   const handleFinish = async (values: TFormValues) => {
     try {
       const submitData = beforeSubmit ? beforeSubmit(values, editingRecord) : values;
@@ -161,15 +186,17 @@ export function SettingTableTemplate<
         title={editingRecord ? `编辑${entityName}` : `新建${entityName}`}
         open={modalOpen}
         initialValues={currentInitialValues}
-        layout="horizontal"
+        layout={layout}
         labelAlign="right"
-        labelCol={{ flex: '96px' }}
-        wrapperCol={{ flex: 'auto' }}
+        labelCol={resolvedLabelCol}
+        wrapperCol={resolvedWrapperCol}
         grid={grid}
+        rowProps={{ gutter: [24, 0], ...rowProps }}
         modalProps={{
           destroyOnHidden: true,
           width: modalWidth,
           onCancel: () => setModalOpen(false),
+          ...modalProps,
         }}
         onOpenChange={setModalOpen}
         onFinish={handleFinish}

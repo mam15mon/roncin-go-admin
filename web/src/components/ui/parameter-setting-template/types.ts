@@ -1,4 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type { ModalProps } from 'antd';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 
@@ -44,7 +45,7 @@ export interface ParameterSettingTemplateProps {
   style?: React.CSSProperties;
   /** 容器外层类名 */
   className?: string;
-  /** Tab 栏类型，默认 'card' */
+  /** Tab 栏类型，默认 'line' */
   tabType?: 'line' | 'card';
 }
 
@@ -82,6 +83,18 @@ export interface SettingTableTemplateProps<
   modalWidth?: number;
   /** 是否开启 ModalForm Grid 栅格布局，默认 false */
   grid?: boolean;
+  /** 弹窗表单布局方式，默认 'horizontal' */
+  layout?: 'horizontal' | 'vertical';
+  /** 标签宽度（如 145 或 '145px'），在 horizontal 下有效，默认自动计算（两列时 145px，单列时 140px） */
+  labelWidth?: number | string;
+  /** 自定义 labelCol 配置 */
+  labelCol?: any;
+  /** 自定义 wrapperCol 配置 */
+  wrapperCol?: any;
+  /** ModalForm 的 rowProps（如栅格间距） */
+  rowProps?: any;
+  /** 自定义 Modal 属性 */
+  modalProps?: Partial<ModalProps>;
   /** 是否开启搜索表单，默认 false */
   search?: boolean;
   /** 是否开启分页，默认 false */

@@ -56,6 +56,8 @@ export function BillingUnitsPanel() {
     <SettingTableTemplate<API.BillingUnit, BillingUnitFormValues>
       entityName="计费单位"
       columns={columns}
+      modalWidth={560}
+      labelWidth={145}
       query={feeCatalogServiceListBillingUnits}
       canCreate={access.canCreateFeeSettings}
       canUpdate={access.canUpdateFeeSettings}

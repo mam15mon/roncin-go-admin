@@ -115,8 +115,9 @@ export function FeeItemsPanel() {
       entityName="费用设置"
       columns={columns}
       scroll={{ x: 1350 }}
-      modalWidth={820}
+      modalWidth={840}
       grid
+      labelWidth={145}
       canCreate={access.canCreateFeeSettings}
       canUpdate={access.canUpdateFeeSettings}
       query={async () => {

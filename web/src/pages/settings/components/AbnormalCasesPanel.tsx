@@ -46,6 +46,8 @@ export function AbnormalCasesPanel() {
     <SettingTableTemplate<API.MasterDataItem, AbnormalCaseFormValues>
       entityName="异常情况"
       columns={columns}
+      modalWidth={540}
+      labelWidth={130}
       rowSelection={{
         selectedRowKeys,
         onChange: (keys) => setSelectedRowKeys(keys),
