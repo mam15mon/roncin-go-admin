@@ -162,18 +162,21 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '主单号',
       dataIndex: 'masterNo',
+      width: 140,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '分单号',
       dataIndex: 'houseNo',
+      width: 130,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '订单编号',
       dataIndex: 'orderNo',
+      width: 160,
       copyable: true,
       render: (_, row) => (
         <a
@@ -187,24 +190,28 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '账单编号',
       dataIndex: 'billNo',
+      width: 155,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: 'SO号',
       dataIndex: 'soNo',
+      width: 130,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '发票号',
       dataIndex: 'invoiceNo',
+      width: 130,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '业务类型',
       dataIndex: 'businessType',
+      width: 95,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
@@ -215,6 +222,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '委托单位',
       dataIndex: 'customerId',
+      width: 180,
       valueType: 'select',
       request: async () => {
         const response = await partnerServiceListPartners({
@@ -233,6 +241,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '结算单位',
       dataIndex: 'settlementPartyName',
+      width: 180,
       ellipsis: true,
       search: false,
       render: (val) => val || '-',
@@ -240,18 +249,24 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '收货人简称',
       dataIndex: 'consignee',
+      width: 110,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '发货人简称',
       dataIndex: 'shipper',
+      width: 110,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '通知人简称',
       dataIndex: 'notifyParty',
+      width: 110,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
@@ -260,13 +275,15 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '费用名称',
       dataIndex: 'feeName',
+      width: 120,
+      ellipsis: true,
       search: false,
       render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
     },
     {
       title: '币种',
       dataIndex: 'currency',
-      width: 60,
+      width: 65,
       align: 'center',
       search: false,
       render: (val) => <Tag style={{ margin: 0 }}>{val}</Tag>,
@@ -274,6 +291,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '金额',
       dataIndex: 'totalAmount',
+      width: 110,
       align: 'right',
       search: false,
       render: (_, row) => (
@@ -292,6 +310,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '汇率',
       dataIndex: 'exchangeRate',
+      width: 80,
       align: 'right',
       search: false,
       render: (val) => (
@@ -303,6 +322,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '折本币总价',
       dataIndex: 'baseCurrencyAmount',
+      width: 120,
       align: 'right',
       search: false,
       render: (_, row) => (
@@ -321,7 +341,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '税率(%)',
       dataIndex: 'taxRate',
-      width: 70,
+      width: 75,
       align: 'right',
       search: false,
       render: (val) => (
@@ -333,6 +353,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '税金',
       dataIndex: 'taxAmount',
+      width: 90,
       align: 'right',
       search: false,
       render: (val) => (
@@ -344,6 +365,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '不含税总价',
       dataIndex: 'netAmount',
+      width: 100,
       align: 'right',
       search: false,
       render: (val) => (
@@ -355,7 +377,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '费用状态',
       dataIndex: 'financialProgress',
-      width: 110,
+      width: 120,
       valueType: 'select',
       valueEnum: Object.fromEntries(
         Object.entries(financialProgressLabels).map(([key, value]) => [
@@ -379,6 +401,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '已核销金额',
       dataIndex: 'verifiedAmount',
+      width: 100,
       align: 'right',
       search: false,
       render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
@@ -386,6 +409,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '未核销金额',
       dataIndex: 'unverifiedAmount',
+      width: 100,
       align: 'right',
       search: false,
       render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
@@ -393,6 +417,7 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '费用时间',
       dataIndex: 'expenseDate',
+      width: 110,
       valueType: 'dateRange',
       search: {
         transform: (value) => ({
@@ -406,48 +431,61 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '操作人员',
       dataIndex: 'operatorName',
+      width: 100,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '业务人员',
       dataIndex: 'salesName',
+      width: 100,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '客服人员',
       dataIndex: 'csName',
+      width: 100,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '关联人员',
       dataIndex: 'relatedPersonnel',
+      width: 100,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '实际总毛重(KGS)',
       dataIndex: 'grossWeightKg',
+      width: 115,
       align: 'right',
       search: false,
     },
     {
       title: '实际总体积',
       dataIndex: 'volumeCbm',
+      width: 100,
       align: 'right',
       search: false,
     },
     {
       title: '关联信息',
       dataIndex: 'relatedInfo',
+      width: 120,
+      ellipsis: true,
       search: false,
       render: (val) => val || '-',
     },
     {
       title: '备注',
       dataIndex: 'note',
+      width: 120,
       ellipsis: true,
       search: false,
       render: (val) => val || '-',
