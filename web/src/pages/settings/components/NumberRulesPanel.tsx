@@ -811,6 +811,9 @@ export function NumberRulesPanel() {
           width: 520,
         }}
         layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '96px' }}
+        wrapperCol={{ flex: 'auto' }}
         grid
       >
         <Col span={24}>

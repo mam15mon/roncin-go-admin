@@ -158,6 +158,10 @@ export function SettingTableTemplate<
         title={editingRecord ? `编辑${entityName}` : `新建${entityName}`}
         open={modalOpen}
         initialValues={currentInitialValues}
+        layout="horizontal"
+        labelAlign="right"
+        labelCol={{ flex: '96px' }}
+        wrapperCol={{ flex: 'auto' }}
         grid={grid}
         modalProps={{
           destroyOnHidden: true,
