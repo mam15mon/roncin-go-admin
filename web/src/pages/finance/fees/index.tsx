@@ -1,10 +1,10 @@
 import { history } from '@umijs/max';
-import { App, Tag } from 'antd';
+import { App, Badge, Button, Tag } from 'antd';
+import { FilterOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionType } from '@ant-design/pro-components';
 import {
-  EllipsisTooltip,
   FinanceLedgerTemplate,
   TableColumnConfigModal,
   type FinanceLedgerMetricCard,
@@ -15,6 +15,11 @@ import {
 } from '@/services/roncin/settlementService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
+import {
+  AdvancedFilterDrawer,
+  DEFAULT_FEE_FILTER_VALUES,
+  type AdvancedFeeFilterValues,
+} from './components/AdvancedFilterDrawer';
 
 const businessLabels: Record<string, string> = {
   SE: '海运出口',
@@ -87,6 +92,40 @@ export default function FinanceFeeLedgerPage() {
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [columnConfigOpen, setColumnConfigOpen] = useState(false);
   const [preference, setPreference] = useState<API.FeeLedgerPreference>();
+  const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] =
+    useState<AdvancedFeeFilterValues>(DEFAULT_FEE_FILTER_VALUES);
+
+  // 计算当前生效的高级筛选条件数量
+  const activeAdvancedFilterCount = useMemo(() => {
+    let count = 0;
+    if (advancedFilters.direction) count++;
+    if (advancedFilters.financialProgress) count++;
+    if (advancedFilters.settlementPartyId) count++;
+    if (advancedFilters.customerId) count++;
+    if (advancedFilters.businessType) count++;
+    if (advancedFilters.currency) count++;
+    if (advancedFilters.orderOrMasterNo) count++;
+    if (advancedFilters.feeName) count++;
+    if (advancedFilters.invoiceNo) count++;
+    if (advancedFilters.salesName) count++;
+    if (advancedFilters.csName) count++;
+    if (advancedFilters.operatorName) count++;
+    if (advancedFilters.isReconciled) count++;
+    if (advancedFilters.isLocked) count++;
+    if (advancedFilters.vesselName) count++;
+    if (advancedFilters.voyageNo) count++;
+    if (advancedFilters.contractNo) count++;
+    if (advancedFilters.feeCategory && advancedFilters.feeCategory !== 'ALL') count++;
+    if (advancedFilters.serviceType) count++;
+    if (advancedFilters.invoiceDateRange) count++;
+    if (advancedFilters.verificationDateRange) count++;
+    if (advancedFilters.orderCreatedAtRange) count++;
+    if (advancedFilters.billCreatedAtRange) count++;
+    if (advancedFilters.etdRange) count++;
+    if (advancedFilters.etaRange) count++;
+    return count;
+  }, [advancedFilters]);
 
   // 加载当前用户云端表头偏好配置
   useEffect(() => {
@@ -661,19 +700,57 @@ export default function FinanceFeeLedgerPage() {
             history.push(`/finance/fees/detail/${row.orderId}`);
           }
         }}
+        extraToolBarActions={[
+          <Button
+            key="advanced-filter-btn"
+            icon={<FilterOutlined />}
+            onClick={() => setAdvancedFilterOpen(true)}
+          >
+            高级筛选 (33项)
+            {activeAdvancedFilterCount > 0 && (
+              <Badge
+                count={activeAdvancedFilterCount}
+                size="small"
+                style={{ marginLeft: 6, backgroundColor: '#1677ff' }}
+              />
+            )}
+          </Button>,
+        ]}
         request={async (params) => {
+          const expenseDateFrom = advancedFilters.expenseDateRange?.[0]
+            ? advancedFilters.expenseDateRange[0].format('YYYY-MM-DD')
+            : params.expenseDateFrom;
+          const expenseDateTo = advancedFilters.expenseDateRange?.[1]
+            ? advancedFilters.expenseDateRange[1].format('YYYY-MM-DD')
+            : params.expenseDateTo;
+
           const response = await settlementServiceListFeeLedger({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: params.keyword || params.orderNo || undefined,
-            businessType: params.businessType,
-            direction: params.direction,
-            status: params.financialProgress || params.status || undefined,
-            customerId: params.customerId,
-            settlementPartyId: params.settlementPartyId,
-            currency: params.currency,
-            expenseDateFrom: params.expenseDateFrom,
-            expenseDateTo: params.expenseDateTo,
+            keyword:
+              advancedFilters.orderOrMasterNo ||
+              advancedFilters.feeName ||
+              params.keyword ||
+              params.orderNo ||
+              undefined,
+            businessType:
+              advancedFilters.businessType || params.businessType || undefined,
+            direction:
+              advancedFilters.direction || params.direction || undefined,
+            status:
+              advancedFilters.financialProgress ||
+              params.financialProgress ||
+              params.status ||
+              undefined,
+            customerId:
+              advancedFilters.customerId || params.customerId || undefined,
+            settlementPartyId:
+              advancedFilters.settlementPartyId ||
+              params.settlementPartyId ||
+              undefined,
+            currency: advancedFilters.currency || params.currency || undefined,
+            expenseDateFrom,
+            expenseDateTo,
           });
           setSummary(response.summary);
           return {
@@ -682,6 +759,17 @@ export default function FinanceFeeLedgerPage() {
             success: response.success ?? true,
             summary: response.summary,
           };
+        }}
+      />
+
+      {/* 高级 33 项 6 组全维业务筛选抽屉 */}
+      <AdvancedFilterDrawer
+        open={advancedFilterOpen}
+        onClose={() => setAdvancedFilterOpen(false)}
+        initialValues={advancedFilters}
+        onApply={(values) => {
+          setAdvancedFilters(values);
+          actionRef.current?.reload();
         }}
       />
 
