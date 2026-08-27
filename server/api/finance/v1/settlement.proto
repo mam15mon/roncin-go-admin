@@ -34,6 +34,18 @@ service SettlementService {
     option (google.api.http) = {delete: "/api/v1/finance/fees/preference"};
   }
 
+  // GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
+  rpc GetBilledFeeEditPolicy(GetBilledFeeEditPolicyRequest) returns (GetBilledFeeEditPolicyResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/custom-settings/billed-fee-edit-policy"};
+  }
+
+  // UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
+  rpc UpdateBilledFeeEditPolicy(UpdateBilledFeeEditPolicyRequest) returns (UpdateBilledFeeEditPolicyResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/custom-settings/billed-fee-edit-policy" body: "*"};
+  }
+
   rpc ListBills(ListBillsRequest) returns (ListBillsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/bills"};
@@ -240,6 +252,50 @@ message ResetFeeLedgerPreferenceResponse {
   string trace_id = 5;
 }
 
+enum BilledFeeEditableField {
+  BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED = 0;
+  BILLED_FEE_EDITABLE_FIELD_FEE_NAME = 1;
+  BILLED_FEE_EDITABLE_FIELD_CURRENCY = 2;
+  BILLED_FEE_EDITABLE_FIELD_EXCHANGE_RATE = 3;
+  BILLED_FEE_EDITABLE_FIELD_QUANTITY = 4;
+  BILLED_FEE_EDITABLE_FIELD_UNIT_PRICE = 5;
+  BILLED_FEE_EDITABLE_FIELD_TAX_RATE = 6;
+}
+
+message BilledFeeEditPolicy {
+  string organization_id = 1;
+  bool enabled = 2;
+  repeated BilledFeeEditableField editable_fields = 3;
+  // 未保存过策略时为 0；首次保存需携带 expected_version=0。
+  uint64 version = 4;
+  optional string updated_at = 5;
+  optional string updated_by = 6;
+}
+
+message GetBilledFeeEditPolicyRequest {}
+
+message GetBilledFeeEditPolicyResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  BilledFeeEditPolicy data = 4;
+  string trace_id = 5;
+}
+
+message UpdateBilledFeeEditPolicyRequest {
+  bool enabled = 1;
+  repeated BilledFeeEditableField editable_fields = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateBilledFeeEditPolicyResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  BilledFeeEditPolicy data = 4;
+  string trace_id = 5;
+}
+
 message ListBillsRequest {
   int32 page = 1;
   int32 page_size = 2;
@@ -304,6 +360,8 @@ message FinanceBillLine {
   string base_currency_amount = 14;
   bool active = 15;
   optional string tax_rate = 16;
+  string quantity = 17;
+  string unit_price = 18;
 }
 
 message FinanceBill {

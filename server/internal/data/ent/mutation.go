@@ -33,6 +33,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
@@ -119,6 +120,7 @@ const (
 	TypeFinanceCommissionAdjustment   = "FinanceCommissionAdjustment"
 	TypeFinanceCommissionLine         = "FinanceCommissionLine"
 	TypeFinanceCommissionRule         = "FinanceCommissionRule"
+	TypeFinanceCustomSetting          = "FinanceCustomSetting"
 	TypeFinanceFeeLedgerPreference    = "FinanceFeeLedgerPreference"
 	TypeFinanceInvoice                = "FinanceInvoice"
 	TypeFinanceInvoiceBill            = "FinanceInvoiceBill"
@@ -17139,6 +17141,8 @@ type FinanceBillLineMutation struct {
 	order_no             *string
 	fee_code             *string
 	fee_name             *string
+	quantity             *string
+	unit_price           *string
 	total_amount         *string
 	net_amount           *string
 	tax_amount           *string
@@ -17550,6 +17554,78 @@ func (m *FinanceBillLineMutation) OldFeeName(ctx context.Context) (v string, err
 // ResetFeeName resets all changes to the "fee_name" field.
 func (m *FinanceBillLineMutation) ResetFeeName() {
 	m.fee_name = nil
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *FinanceBillLineMutation) SetQuantity(s string) {
+	m.quantity = &s
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *FinanceBillLineMutation) Quantity() (r string, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the FinanceBillLine entity.
+// If the FinanceBillLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillLineMutation) OldQuantity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *FinanceBillLineMutation) ResetQuantity() {
+	m.quantity = nil
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (m *FinanceBillLineMutation) SetUnitPrice(s string) {
+	m.unit_price = &s
+}
+
+// UnitPrice returns the value of the "unit_price" field in the mutation.
+func (m *FinanceBillLineMutation) UnitPrice() (r string, exists bool) {
+	v := m.unit_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnitPrice returns the old "unit_price" field's value of the FinanceBillLine entity.
+// If the FinanceBillLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillLineMutation) OldUnitPrice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnitPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnitPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnitPrice: %w", err)
+	}
+	return oldValue.UnitPrice, nil
+}
+
+// ResetUnitPrice resets all changes to the "unit_price" field.
+func (m *FinanceBillLineMutation) ResetUnitPrice() {
+	m.unit_price = nil
 }
 
 // SetTotalAmount sets the "total_amount" field.
@@ -18004,7 +18080,7 @@ func (m *FinanceBillLineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillLineMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, financebillline.FieldCreatedAt)
 	}
@@ -18028,6 +18104,12 @@ func (m *FinanceBillLineMutation) Fields() []string {
 	}
 	if m.fee_name != nil {
 		fields = append(fields, financebillline.FieldFeeName)
+	}
+	if m.quantity != nil {
+		fields = append(fields, financebillline.FieldQuantity)
+	}
+	if m.unit_price != nil {
+		fields = append(fields, financebillline.FieldUnitPrice)
 	}
 	if m.total_amount != nil {
 		fields = append(fields, financebillline.FieldTotalAmount)
@@ -18080,6 +18162,10 @@ func (m *FinanceBillLineMutation) Field(name string) (ent.Value, bool) {
 		return m.FeeCode()
 	case financebillline.FieldFeeName:
 		return m.FeeName()
+	case financebillline.FieldQuantity:
+		return m.Quantity()
+	case financebillline.FieldUnitPrice:
+		return m.UnitPrice()
 	case financebillline.FieldTotalAmount:
 		return m.TotalAmount()
 	case financebillline.FieldNetAmount:
@@ -18123,6 +18209,10 @@ func (m *FinanceBillLineMutation) OldField(ctx context.Context, name string) (en
 		return m.OldFeeCode(ctx)
 	case financebillline.FieldFeeName:
 		return m.OldFeeName(ctx)
+	case financebillline.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case financebillline.FieldUnitPrice:
+		return m.OldUnitPrice(ctx)
 	case financebillline.FieldTotalAmount:
 		return m.OldTotalAmount(ctx)
 	case financebillline.FieldNetAmount:
@@ -18205,6 +18295,20 @@ func (m *FinanceBillLineMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFeeName(v)
+		return nil
+	case financebillline.FieldQuantity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case financebillline.FieldUnitPrice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnitPrice(v)
 		return nil
 	case financebillline.FieldTotalAmount:
 		v, ok := value.(string)
@@ -18350,6 +18454,12 @@ func (m *FinanceBillLineMutation) ResetField(name string) error {
 		return nil
 	case financebillline.FieldFeeName:
 		m.ResetFeeName()
+		return nil
+	case financebillline.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case financebillline.FieldUnitPrice:
+		m.ResetUnitPrice()
 		return nil
 	case financebillline.FieldTotalAmount:
 		m.ResetTotalAmount()
@@ -28576,6 +28686,1081 @@ func (m *FinanceCommissionRuleMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceCommissionRule edge %s", name)
+}
+
+// FinanceCustomSettingMutation represents an operation that mutates the FinanceCustomSetting nodes in the graph.
+type FinanceCustomSettingMutation struct {
+	config
+	op                                Op
+	typ                               string
+	id                                *uuid.UUID
+	created_at                        *time.Time
+	updated_at                        *time.Time
+	billed_fee_edit_enabled           *bool
+	billed_fee_name_editable          *bool
+	billed_fee_currency_editable      *bool
+	billed_fee_exchange_rate_editable *bool
+	billed_fee_quantity_editable      *bool
+	billed_fee_unit_price_editable    *bool
+	billed_fee_tax_rate_editable      *bool
+	version                           *uint64
+	addversion                        *int64
+	clearedFields                     map[string]struct{}
+	organization                      *uuid.UUID
+	clearedorganization               bool
+	updated_by_user                   *uuid.UUID
+	clearedupdated_by_user            bool
+	done                              bool
+	oldValue                          func(context.Context) (*FinanceCustomSetting, error)
+	predicates                        []predicate.FinanceCustomSetting
+}
+
+var _ ent.Mutation = (*FinanceCustomSettingMutation)(nil)
+
+// financecustomsettingOption allows management of the mutation configuration using functional options.
+type financecustomsettingOption func(*FinanceCustomSettingMutation)
+
+// newFinanceCustomSettingMutation creates new mutation for the FinanceCustomSetting entity.
+func newFinanceCustomSettingMutation(c config, op Op, opts ...financecustomsettingOption) *FinanceCustomSettingMutation {
+	m := &FinanceCustomSettingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceCustomSetting,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceCustomSettingID sets the ID field of the mutation.
+func withFinanceCustomSettingID(id uuid.UUID) financecustomsettingOption {
+	return func(m *FinanceCustomSettingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceCustomSetting
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceCustomSetting, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceCustomSetting.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceCustomSetting sets the old FinanceCustomSetting of the mutation.
+func withFinanceCustomSetting(node *FinanceCustomSetting) financecustomsettingOption {
+	return func(m *FinanceCustomSettingMutation) {
+		m.oldValue = func(context.Context) (*FinanceCustomSetting, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceCustomSettingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceCustomSettingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceCustomSetting entities.
+func (m *FinanceCustomSettingMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceCustomSettingMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceCustomSettingMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceCustomSetting.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceCustomSettingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceCustomSettingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceCustomSettingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceCustomSettingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceCustomSettingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceCustomSettingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *FinanceCustomSettingMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *FinanceCustomSettingMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *FinanceCustomSettingMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetBilledFeeEditEnabled sets the "billed_fee_edit_enabled" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeEditEnabled(b bool) {
+	m.billed_fee_edit_enabled = &b
+}
+
+// BilledFeeEditEnabled returns the value of the "billed_fee_edit_enabled" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeEditEnabled() (r bool, exists bool) {
+	v := m.billed_fee_edit_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeEditEnabled returns the old "billed_fee_edit_enabled" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeEditEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeEditEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeEditEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeEditEnabled: %w", err)
+	}
+	return oldValue.BilledFeeEditEnabled, nil
+}
+
+// ResetBilledFeeEditEnabled resets all changes to the "billed_fee_edit_enabled" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeEditEnabled() {
+	m.billed_fee_edit_enabled = nil
+}
+
+// SetBilledFeeNameEditable sets the "billed_fee_name_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeNameEditable(b bool) {
+	m.billed_fee_name_editable = &b
+}
+
+// BilledFeeNameEditable returns the value of the "billed_fee_name_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeNameEditable() (r bool, exists bool) {
+	v := m.billed_fee_name_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeNameEditable returns the old "billed_fee_name_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeNameEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeNameEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeNameEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeNameEditable: %w", err)
+	}
+	return oldValue.BilledFeeNameEditable, nil
+}
+
+// ResetBilledFeeNameEditable resets all changes to the "billed_fee_name_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeNameEditable() {
+	m.billed_fee_name_editable = nil
+}
+
+// SetBilledFeeCurrencyEditable sets the "billed_fee_currency_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeCurrencyEditable(b bool) {
+	m.billed_fee_currency_editable = &b
+}
+
+// BilledFeeCurrencyEditable returns the value of the "billed_fee_currency_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeCurrencyEditable() (r bool, exists bool) {
+	v := m.billed_fee_currency_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeCurrencyEditable returns the old "billed_fee_currency_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeCurrencyEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeCurrencyEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeCurrencyEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeCurrencyEditable: %w", err)
+	}
+	return oldValue.BilledFeeCurrencyEditable, nil
+}
+
+// ResetBilledFeeCurrencyEditable resets all changes to the "billed_fee_currency_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeCurrencyEditable() {
+	m.billed_fee_currency_editable = nil
+}
+
+// SetBilledFeeExchangeRateEditable sets the "billed_fee_exchange_rate_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeExchangeRateEditable(b bool) {
+	m.billed_fee_exchange_rate_editable = &b
+}
+
+// BilledFeeExchangeRateEditable returns the value of the "billed_fee_exchange_rate_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeExchangeRateEditable() (r bool, exists bool) {
+	v := m.billed_fee_exchange_rate_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeExchangeRateEditable returns the old "billed_fee_exchange_rate_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeExchangeRateEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeExchangeRateEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeExchangeRateEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeExchangeRateEditable: %w", err)
+	}
+	return oldValue.BilledFeeExchangeRateEditable, nil
+}
+
+// ResetBilledFeeExchangeRateEditable resets all changes to the "billed_fee_exchange_rate_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeExchangeRateEditable() {
+	m.billed_fee_exchange_rate_editable = nil
+}
+
+// SetBilledFeeQuantityEditable sets the "billed_fee_quantity_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeQuantityEditable(b bool) {
+	m.billed_fee_quantity_editable = &b
+}
+
+// BilledFeeQuantityEditable returns the value of the "billed_fee_quantity_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeQuantityEditable() (r bool, exists bool) {
+	v := m.billed_fee_quantity_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeQuantityEditable returns the old "billed_fee_quantity_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeQuantityEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeQuantityEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeQuantityEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeQuantityEditable: %w", err)
+	}
+	return oldValue.BilledFeeQuantityEditable, nil
+}
+
+// ResetBilledFeeQuantityEditable resets all changes to the "billed_fee_quantity_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeQuantityEditable() {
+	m.billed_fee_quantity_editable = nil
+}
+
+// SetBilledFeeUnitPriceEditable sets the "billed_fee_unit_price_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeUnitPriceEditable(b bool) {
+	m.billed_fee_unit_price_editable = &b
+}
+
+// BilledFeeUnitPriceEditable returns the value of the "billed_fee_unit_price_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeUnitPriceEditable() (r bool, exists bool) {
+	v := m.billed_fee_unit_price_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeUnitPriceEditable returns the old "billed_fee_unit_price_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeUnitPriceEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeUnitPriceEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeUnitPriceEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeUnitPriceEditable: %w", err)
+	}
+	return oldValue.BilledFeeUnitPriceEditable, nil
+}
+
+// ResetBilledFeeUnitPriceEditable resets all changes to the "billed_fee_unit_price_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeUnitPriceEditable() {
+	m.billed_fee_unit_price_editable = nil
+}
+
+// SetBilledFeeTaxRateEditable sets the "billed_fee_tax_rate_editable" field.
+func (m *FinanceCustomSettingMutation) SetBilledFeeTaxRateEditable(b bool) {
+	m.billed_fee_tax_rate_editable = &b
+}
+
+// BilledFeeTaxRateEditable returns the value of the "billed_fee_tax_rate_editable" field in the mutation.
+func (m *FinanceCustomSettingMutation) BilledFeeTaxRateEditable() (r bool, exists bool) {
+	v := m.billed_fee_tax_rate_editable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilledFeeTaxRateEditable returns the old "billed_fee_tax_rate_editable" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldBilledFeeTaxRateEditable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilledFeeTaxRateEditable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilledFeeTaxRateEditable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilledFeeTaxRateEditable: %w", err)
+	}
+	return oldValue.BilledFeeTaxRateEditable, nil
+}
+
+// ResetBilledFeeTaxRateEditable resets all changes to the "billed_fee_tax_rate_editable" field.
+func (m *FinanceCustomSettingMutation) ResetBilledFeeTaxRateEditable() {
+	m.billed_fee_tax_rate_editable = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *FinanceCustomSettingMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FinanceCustomSettingMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *FinanceCustomSettingMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FinanceCustomSettingMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FinanceCustomSettingMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *FinanceCustomSettingMutation) SetUpdatedBy(u uuid.UUID) {
+	m.updated_by_user = &u
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *FinanceCustomSettingMutation) UpdatedBy() (r uuid.UUID, exists bool) {
+	v := m.updated_by_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the FinanceCustomSetting entity.
+// If the FinanceCustomSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCustomSettingMutation) OldUpdatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *FinanceCustomSettingMutation) ResetUpdatedBy() {
+	m.updated_by_user = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *FinanceCustomSettingMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[financecustomsetting.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *FinanceCustomSettingMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *FinanceCustomSettingMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *FinanceCustomSettingMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// SetUpdatedByUserID sets the "updated_by_user" edge to the User entity by id.
+func (m *FinanceCustomSettingMutation) SetUpdatedByUserID(id uuid.UUID) {
+	m.updated_by_user = &id
+}
+
+// ClearUpdatedByUser clears the "updated_by_user" edge to the User entity.
+func (m *FinanceCustomSettingMutation) ClearUpdatedByUser() {
+	m.clearedupdated_by_user = true
+	m.clearedFields[financecustomsetting.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdatedByUserCleared reports if the "updated_by_user" edge to the User entity was cleared.
+func (m *FinanceCustomSettingMutation) UpdatedByUserCleared() bool {
+	return m.clearedupdated_by_user
+}
+
+// UpdatedByUserID returns the "updated_by_user" edge ID in the mutation.
+func (m *FinanceCustomSettingMutation) UpdatedByUserID() (id uuid.UUID, exists bool) {
+	if m.updated_by_user != nil {
+		return *m.updated_by_user, true
+	}
+	return
+}
+
+// UpdatedByUserIDs returns the "updated_by_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdatedByUserID instead. It exists only for internal usage by the builders.
+func (m *FinanceCustomSettingMutation) UpdatedByUserIDs() (ids []uuid.UUID) {
+	if id := m.updated_by_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdatedByUser resets all changes to the "updated_by_user" edge.
+func (m *FinanceCustomSettingMutation) ResetUpdatedByUser() {
+	m.updated_by_user = nil
+	m.clearedupdated_by_user = false
+}
+
+// Where appends a list predicates to the FinanceCustomSettingMutation builder.
+func (m *FinanceCustomSettingMutation) Where(ps ...predicate.FinanceCustomSetting) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceCustomSettingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceCustomSettingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceCustomSetting, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceCustomSettingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceCustomSettingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceCustomSetting).
+func (m *FinanceCustomSettingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceCustomSettingMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, financecustomsetting.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financecustomsetting.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, financecustomsetting.FieldOrganizationID)
+	}
+	if m.billed_fee_edit_enabled != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeEditEnabled)
+	}
+	if m.billed_fee_name_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeNameEditable)
+	}
+	if m.billed_fee_currency_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeCurrencyEditable)
+	}
+	if m.billed_fee_exchange_rate_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeExchangeRateEditable)
+	}
+	if m.billed_fee_quantity_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeQuantityEditable)
+	}
+	if m.billed_fee_unit_price_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeUnitPriceEditable)
+	}
+	if m.billed_fee_tax_rate_editable != nil {
+		fields = append(fields, financecustomsetting.FieldBilledFeeTaxRateEditable)
+	}
+	if m.version != nil {
+		fields = append(fields, financecustomsetting.FieldVersion)
+	}
+	if m.updated_by_user != nil {
+		fields = append(fields, financecustomsetting.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceCustomSettingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financecustomsetting.FieldCreatedAt:
+		return m.CreatedAt()
+	case financecustomsetting.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financecustomsetting.FieldOrganizationID:
+		return m.OrganizationID()
+	case financecustomsetting.FieldBilledFeeEditEnabled:
+		return m.BilledFeeEditEnabled()
+	case financecustomsetting.FieldBilledFeeNameEditable:
+		return m.BilledFeeNameEditable()
+	case financecustomsetting.FieldBilledFeeCurrencyEditable:
+		return m.BilledFeeCurrencyEditable()
+	case financecustomsetting.FieldBilledFeeExchangeRateEditable:
+		return m.BilledFeeExchangeRateEditable()
+	case financecustomsetting.FieldBilledFeeQuantityEditable:
+		return m.BilledFeeQuantityEditable()
+	case financecustomsetting.FieldBilledFeeUnitPriceEditable:
+		return m.BilledFeeUnitPriceEditable()
+	case financecustomsetting.FieldBilledFeeTaxRateEditable:
+		return m.BilledFeeTaxRateEditable()
+	case financecustomsetting.FieldVersion:
+		return m.Version()
+	case financecustomsetting.FieldUpdatedBy:
+		return m.UpdatedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceCustomSettingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financecustomsetting.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financecustomsetting.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financecustomsetting.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case financecustomsetting.FieldBilledFeeEditEnabled:
+		return m.OldBilledFeeEditEnabled(ctx)
+	case financecustomsetting.FieldBilledFeeNameEditable:
+		return m.OldBilledFeeNameEditable(ctx)
+	case financecustomsetting.FieldBilledFeeCurrencyEditable:
+		return m.OldBilledFeeCurrencyEditable(ctx)
+	case financecustomsetting.FieldBilledFeeExchangeRateEditable:
+		return m.OldBilledFeeExchangeRateEditable(ctx)
+	case financecustomsetting.FieldBilledFeeQuantityEditable:
+		return m.OldBilledFeeQuantityEditable(ctx)
+	case financecustomsetting.FieldBilledFeeUnitPriceEditable:
+		return m.OldBilledFeeUnitPriceEditable(ctx)
+	case financecustomsetting.FieldBilledFeeTaxRateEditable:
+		return m.OldBilledFeeTaxRateEditable(ctx)
+	case financecustomsetting.FieldVersion:
+		return m.OldVersion(ctx)
+	case financecustomsetting.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceCustomSetting field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceCustomSettingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financecustomsetting.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financecustomsetting.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financecustomsetting.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeEditEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeEditEnabled(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeNameEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeNameEditable(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeCurrencyEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeCurrencyEditable(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeExchangeRateEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeExchangeRateEditable(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeQuantityEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeQuantityEditable(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeUnitPriceEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeUnitPriceEditable(v)
+		return nil
+	case financecustomsetting.FieldBilledFeeTaxRateEditable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilledFeeTaxRateEditable(v)
+		return nil
+	case financecustomsetting.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case financecustomsetting.FieldUpdatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCustomSetting field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceCustomSettingMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, financecustomsetting.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceCustomSettingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case financecustomsetting.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceCustomSettingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case financecustomsetting.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCustomSetting numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceCustomSettingMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceCustomSettingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceCustomSettingMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FinanceCustomSetting nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceCustomSettingMutation) ResetField(name string) error {
+	switch name {
+	case financecustomsetting.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financecustomsetting.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financecustomsetting.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case financecustomsetting.FieldBilledFeeEditEnabled:
+		m.ResetBilledFeeEditEnabled()
+		return nil
+	case financecustomsetting.FieldBilledFeeNameEditable:
+		m.ResetBilledFeeNameEditable()
+		return nil
+	case financecustomsetting.FieldBilledFeeCurrencyEditable:
+		m.ResetBilledFeeCurrencyEditable()
+		return nil
+	case financecustomsetting.FieldBilledFeeExchangeRateEditable:
+		m.ResetBilledFeeExchangeRateEditable()
+		return nil
+	case financecustomsetting.FieldBilledFeeQuantityEditable:
+		m.ResetBilledFeeQuantityEditable()
+		return nil
+	case financecustomsetting.FieldBilledFeeUnitPriceEditable:
+		m.ResetBilledFeeUnitPriceEditable()
+		return nil
+	case financecustomsetting.FieldBilledFeeTaxRateEditable:
+		m.ResetBilledFeeTaxRateEditable()
+		return nil
+	case financecustomsetting.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case financecustomsetting.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCustomSetting field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceCustomSettingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, financecustomsetting.EdgeOrganization)
+	}
+	if m.updated_by_user != nil {
+		edges = append(edges, financecustomsetting.EdgeUpdatedByUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceCustomSettingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financecustomsetting.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case financecustomsetting.EdgeUpdatedByUser:
+		if id := m.updated_by_user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceCustomSettingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceCustomSettingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceCustomSettingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, financecustomsetting.EdgeOrganization)
+	}
+	if m.clearedupdated_by_user {
+		edges = append(edges, financecustomsetting.EdgeUpdatedByUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceCustomSettingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financecustomsetting.EdgeOrganization:
+		return m.clearedorganization
+	case financecustomsetting.EdgeUpdatedByUser:
+		return m.clearedupdated_by_user
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceCustomSettingMutation) ClearEdge(name string) error {
+	switch name {
+	case financecustomsetting.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case financecustomsetting.EdgeUpdatedByUser:
+		m.ClearUpdatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCustomSetting unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceCustomSettingMutation) ResetEdge(name string) error {
+	switch name {
+	case financecustomsetting.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case financecustomsetting.EdgeUpdatedByUser:
+		m.ResetUpdatedByUser()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceCustomSetting edge %s", name)
 }
 
 // FinanceFeeLedgerPreferenceMutation represents an operation that mutates the FinanceFeeLedgerPreference nodes in the graph.
@@ -64199,6 +65384,9 @@ type OrganizationMutation struct {
 	exchange_rate_custom_setting            map[uuid.UUID]struct{}
 	removedexchange_rate_custom_setting     map[uuid.UUID]struct{}
 	clearedexchange_rate_custom_setting     bool
+	finance_custom_setting                  map[uuid.UUID]struct{}
+	removedfinance_custom_setting           map[uuid.UUID]struct{}
+	clearedfinance_custom_setting           bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -66521,6 +67709,60 @@ func (m *OrganizationMutation) ResetExchangeRateCustomSetting() {
 	m.removedexchange_rate_custom_setting = nil
 }
 
+// AddFinanceCustomSettingIDs adds the "finance_custom_setting" edge to the FinanceCustomSetting entity by ids.
+func (m *OrganizationMutation) AddFinanceCustomSettingIDs(ids ...uuid.UUID) {
+	if m.finance_custom_setting == nil {
+		m.finance_custom_setting = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_custom_setting[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceCustomSetting clears the "finance_custom_setting" edge to the FinanceCustomSetting entity.
+func (m *OrganizationMutation) ClearFinanceCustomSetting() {
+	m.clearedfinance_custom_setting = true
+}
+
+// FinanceCustomSettingCleared reports if the "finance_custom_setting" edge to the FinanceCustomSetting entity was cleared.
+func (m *OrganizationMutation) FinanceCustomSettingCleared() bool {
+	return m.clearedfinance_custom_setting
+}
+
+// RemoveFinanceCustomSettingIDs removes the "finance_custom_setting" edge to the FinanceCustomSetting entity by IDs.
+func (m *OrganizationMutation) RemoveFinanceCustomSettingIDs(ids ...uuid.UUID) {
+	if m.removedfinance_custom_setting == nil {
+		m.removedfinance_custom_setting = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_custom_setting, ids[i])
+		m.removedfinance_custom_setting[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceCustomSetting returns the removed IDs of the "finance_custom_setting" edge to the FinanceCustomSetting entity.
+func (m *OrganizationMutation) RemovedFinanceCustomSettingIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_custom_setting {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceCustomSettingIDs returns the "finance_custom_setting" edge IDs in the mutation.
+func (m *OrganizationMutation) FinanceCustomSettingIDs() (ids []uuid.UUID) {
+	for id := range m.finance_custom_setting {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceCustomSetting resets all changes to the "finance_custom_setting" edge.
+func (m *OrganizationMutation) ResetFinanceCustomSetting() {
+	m.finance_custom_setting = nil
+	m.clearedfinance_custom_setting = false
+	m.removedfinance_custom_setting = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -66805,7 +68047,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 36)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -66910,6 +68152,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.exchange_rate_custom_setting != nil {
 		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
+	}
+	if m.finance_custom_setting != nil {
+		edges = append(edges, organization.EdgeFinanceCustomSetting)
 	}
 	return edges
 }
@@ -67126,13 +68371,19 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceCustomSetting:
+		ids := make([]ent.Value, 0, len(m.finance_custom_setting))
+		for id := range m.finance_custom_setting {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 36)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -67234,6 +68485,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedexchange_rate_custom_setting != nil {
 		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
+	}
+	if m.removedfinance_custom_setting != nil {
+		edges = append(edges, organization.EdgeFinanceCustomSetting)
 	}
 	return edges
 }
@@ -67446,13 +68700,19 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceCustomSetting:
+		ids := make([]ent.Value, 0, len(m.removedfinance_custom_setting))
+		for id := range m.removedfinance_custom_setting {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 36)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -67558,6 +68818,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedexchange_rate_custom_setting {
 		edges = append(edges, organization.EdgeExchangeRateCustomSetting)
 	}
+	if m.clearedfinance_custom_setting {
+		edges = append(edges, organization.EdgeFinanceCustomSetting)
+	}
 	return edges
 }
 
@@ -67635,6 +68898,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_fee_ledger_preferences
 	case organization.EdgeExchangeRateCustomSetting:
 		return m.clearedexchange_rate_custom_setting
+	case organization.EdgeFinanceCustomSetting:
+		return m.clearedfinance_custom_setting
 	}
 	return false
 }
@@ -67758,6 +69023,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeExchangeRateCustomSetting:
 		m.ResetExchangeRateCustomSetting()
+		return nil
+	case organization.EdgeFinanceCustomSetting:
+		m.ResetFinanceCustomSetting()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
@@ -91637,6 +92905,9 @@ type UserMutation struct {
 	updated_exchange_rate_custom_settings           map[uuid.UUID]struct{}
 	removedupdated_exchange_rate_custom_settings    map[uuid.UUID]struct{}
 	clearedupdated_exchange_rate_custom_settings    bool
+	updated_finance_custom_settings                 map[uuid.UUID]struct{}
+	removedupdated_finance_custom_settings          map[uuid.UUID]struct{}
+	clearedupdated_finance_custom_settings          bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -93601,6 +94872,60 @@ func (m *UserMutation) ResetUpdatedExchangeRateCustomSettings() {
 	m.removedupdated_exchange_rate_custom_settings = nil
 }
 
+// AddUpdatedFinanceCustomSettingIDs adds the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by ids.
+func (m *UserMutation) AddUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) {
+	if m.updated_finance_custom_settings == nil {
+		m.updated_finance_custom_settings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.updated_finance_custom_settings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpdatedFinanceCustomSettings clears the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity.
+func (m *UserMutation) ClearUpdatedFinanceCustomSettings() {
+	m.clearedupdated_finance_custom_settings = true
+}
+
+// UpdatedFinanceCustomSettingsCleared reports if the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity was cleared.
+func (m *UserMutation) UpdatedFinanceCustomSettingsCleared() bool {
+	return m.clearedupdated_finance_custom_settings
+}
+
+// RemoveUpdatedFinanceCustomSettingIDs removes the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by IDs.
+func (m *UserMutation) RemoveUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) {
+	if m.removedupdated_finance_custom_settings == nil {
+		m.removedupdated_finance_custom_settings = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.updated_finance_custom_settings, ids[i])
+		m.removedupdated_finance_custom_settings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpdatedFinanceCustomSettings returns the removed IDs of the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity.
+func (m *UserMutation) RemovedUpdatedFinanceCustomSettingsIDs() (ids []uuid.UUID) {
+	for id := range m.removedupdated_finance_custom_settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpdatedFinanceCustomSettingsIDs returns the "updated_finance_custom_settings" edge IDs in the mutation.
+func (m *UserMutation) UpdatedFinanceCustomSettingsIDs() (ids []uuid.UUID) {
+	for id := range m.updated_finance_custom_settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpdatedFinanceCustomSettings resets all changes to the "updated_finance_custom_settings" edge.
+func (m *UserMutation) ResetUpdatedFinanceCustomSettings() {
+	m.updated_finance_custom_settings = nil
+	m.clearedupdated_finance_custom_settings = false
+	m.removedupdated_finance_custom_settings = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -93983,7 +95308,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 25)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -94055,6 +95380,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.updated_exchange_rate_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
+	}
+	if m.updated_finance_custom_settings != nil {
+		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
 	}
 	return edges
 }
@@ -94207,13 +95535,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUpdatedFinanceCustomSettings:
+		ids := make([]ent.Value, 0, len(m.updated_finance_custom_settings))
+		for id := range m.updated_finance_custom_settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 25)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -94285,6 +95619,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedupdated_exchange_rate_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
+	}
+	if m.removedupdated_finance_custom_settings != nil {
+		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
 	}
 	return edges
 }
@@ -94437,13 +95774,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUpdatedFinanceCustomSettings:
+		ids := make([]ent.Value, 0, len(m.removedupdated_finance_custom_settings))
+		for id := range m.removedupdated_finance_custom_settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 25)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -94516,6 +95859,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedupdated_exchange_rate_custom_settings {
 		edges = append(edges, user.EdgeUpdatedExchangeRateCustomSettings)
 	}
+	if m.clearedupdated_finance_custom_settings {
+		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
+	}
 	return edges
 }
 
@@ -94571,6 +95917,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_fee_ledger_preferences
 	case user.EdgeUpdatedExchangeRateCustomSettings:
 		return m.clearedupdated_exchange_rate_custom_settings
+	case user.EdgeUpdatedFinanceCustomSettings:
+		return m.clearedupdated_finance_custom_settings
 	}
 	return false
 }
@@ -94658,6 +96006,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeUpdatedExchangeRateCustomSettings:
 		m.ResetUpdatedExchangeRateCustomSettings()
+		return nil
+	case user.EdgeUpdatedFinanceCustomSettings:
+		m.ResetUpdatedFinanceCustomSettings()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

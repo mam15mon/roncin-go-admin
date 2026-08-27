@@ -140,6 +140,16 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 		return nil, err
 	}
 	input.Version = request.GetExpectedVersion()
+	if request.TaxRate != nil {
+		taxRate, parseErr := parsePlainDecimal(*request.TaxRate)
+		if parseErr != nil {
+			return nil, biz.ErrOrderFeeInvalidArgument
+		}
+		input.TaxRateOverride = &taxRate
+	}
+	if request.FeeName != nil {
+		input.FeeNameOverride = request.FeeName
+	}
 	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermission(access.FinanceExchangeRateOverride))
 	if err != nil {
 		return nil, err

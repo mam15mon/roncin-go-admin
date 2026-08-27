@@ -52,6 +52,8 @@ type Tx struct {
 	FinanceCommissionLine *FinanceCommissionLineClient
 	// FinanceCommissionRule is the client for interacting with the FinanceCommissionRule builders.
 	FinanceCommissionRule *FinanceCommissionRuleClient
+	// FinanceCustomSetting is the client for interacting with the FinanceCustomSetting builders.
+	FinanceCustomSetting *FinanceCustomSettingClient
 	// FinanceFeeLedgerPreference is the client for interacting with the FinanceFeeLedgerPreference builders.
 	FinanceFeeLedgerPreference *FinanceFeeLedgerPreferenceClient
 	// FinanceInvoice is the client for interacting with the FinanceInvoice builders.
@@ -309,6 +311,7 @@ func (tx *Tx) init() {
 	tx.FinanceCommissionAdjustment = NewFinanceCommissionAdjustmentClient(tx.config)
 	tx.FinanceCommissionLine = NewFinanceCommissionLineClient(tx.config)
 	tx.FinanceCommissionRule = NewFinanceCommissionRuleClient(tx.config)
+	tx.FinanceCustomSetting = NewFinanceCustomSettingClient(tx.config)
 	tx.FinanceFeeLedgerPreference = NewFinanceFeeLedgerPreferenceClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)

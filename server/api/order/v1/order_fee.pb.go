@@ -1133,8 +1133,12 @@ type UpdateFeeRequest struct {
 	BillingUnitId        string                 `protobuf:"bytes,16,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
 	ExpectedVersion      uint64                 `protobuf:"varint,17,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	TaxInclusive         *bool                  `protobuf:"varint,18,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。
+	TaxRate *string `protobuf:"bytes,19,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	// fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。
+	FeeName       *string `protobuf:"bytes,20,opt,name=fee_name,json=feeName,proto3,oneof" json:"fee_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateFeeRequest) Reset() {
@@ -1263,6 +1267,20 @@ func (x *UpdateFeeRequest) GetTaxInclusive() bool {
 		return *x.TaxInclusive
 	}
 	return false
+}
+
+func (x *UpdateFeeRequest) GetTaxRate() string {
+	if x != nil && x.TaxRate != nil {
+		return *x.TaxRate
+	}
+	return ""
+}
+
+func (x *UpdateFeeRequest) GetFeeName() string {
+	if x != nil && x.FeeName != nil {
+		return *x.FeeName
+	}
+	return ""
 }
 
 type RemoveFeeRequest struct {
@@ -2205,7 +2223,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x05_noteB\x19\n" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x06\x10\aJ\x04\b\n" +
-	"\x10\vR\bfee_codeR\bfee_nameR\fbilling_unit\"\xc0\x05\n" +
+	"\x10\vR\bfee_codeR\bfee_nameR\fbilling_unit\"\x90\x06\n" +
 	"\x10UpdateFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12>\n" +
@@ -2222,10 +2240,14 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x0efee_setting_id\x18\x0f \x01(\tB\x03\xe0A\x02R\ffeeSettingId\x12+\n" +
 	"\x0fbilling_unit_id\x18\x10 \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12.\n" +
 	"\x10expected_version\x18\x11 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12(\n" +
-	"\rtax_inclusive\x18\x12 \x01(\bH\x02R\ftaxInclusive\x88\x01\x01B\a\n" +
+	"\rtax_inclusive\x18\x12 \x01(\bH\x02R\ftaxInclusive\x88\x01\x01\x12\x1e\n" +
+	"\btax_rate\x18\x13 \x01(\tH\x03R\ataxRate\x88\x01\x01\x12\x1e\n" +
+	"\bfee_name\x18\x14 \x01(\tH\x04R\afeeName\x88\x01\x01B\a\n" +
 	"\x05_noteB\x19\n" +
 	"\x17_exchange_rate_overrideB\x10\n" +
-	"\x0e_tax_inclusiveJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fR\bfee_codeR\bfee_nameR\fbilling_unit\"\x94\x01\n" +
+	"\x0e_tax_inclusiveB\v\n" +
+	"\t_tax_rateB\v\n" +
+	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fR\bfee_codeR\fbilling_unit\"\x94\x01\n" +
 	"\x10RemoveFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +

@@ -349,6 +349,16 @@ declare namespace API {
     baseCurrencyAmount?: string;
   };
 
+  type BilledFeeEditPolicy = {
+    organizationId?: string;
+    enabled?: boolean;
+    editableFields?: number[];
+    /** 未保存过策略时为 0；首次保存需携带 expected_version=0。 */
+    version?: string;
+    updatedAt?: string;
+    updatedBy?: string;
+  };
+
   type BillExpectedVersion = {
     billId: string;
     expectedVersion: string;
@@ -1469,6 +1479,8 @@ declare namespace API {
     baseCurrencyAmount?: string;
     active?: boolean;
     taxRate?: string;
+    quantity?: string;
+    unitPrice?: string;
   };
 
   type FinanceCashflow = {
@@ -1704,6 +1716,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BackgroundTask;
+    traceId?: string;
+  };
+
+  type GetBilledFeeEditPolicyResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BilledFeeEditPolicy;
     traceId?: string;
   };
 
@@ -4129,6 +4149,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type UpdateBilledFeeEditPolicyRequest = {
+    enabled?: boolean;
+    editableFields: number[];
+    expectedVersion: string;
+  };
+
+  type UpdateBilledFeeEditPolicyResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BilledFeeEditPolicy;
+    traceId?: string;
+  };
+
   type UpdateBillingUnitRequest = {
     id: string;
     code: string;
@@ -4286,6 +4320,10 @@ declare namespace API {
     billingUnitId: string;
     expectedVersion: string;
     taxInclusive?: boolean;
+    /** tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。 */
+    taxRate?: string;
+    /** fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。 */
+    feeName?: string;
   };
 
   type UpdateFeeResponse = {

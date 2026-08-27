@@ -546,6 +546,37 @@ export async function settlementServicePreviewCommission(
   );
 }
 
+/** GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。 GET /api/v1/finance/custom-settings/billed-fee-edit-policy */
+export async function settlementServiceGetBilledFeeEditPolicy(options?: {
+  [key: string]: any;
+}) {
+  return request<API.GetBilledFeeEditPolicyResponse>(
+    "/api/v1/finance/custom-settings/billed-fee-edit-policy",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。 PUT /api/v1/finance/custom-settings/billed-fee-edit-policy */
+export async function settlementServiceUpdateBilledFeeEditPolicy(
+  body: API.UpdateBilledFeeEditPolicyRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.UpdateBilledFeeEditPolicyResponse>(
+    "/api/v1/finance/custom-settings/billed-fee-edit-policy",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。 GET /api/v1/finance/fees */
 export async function settlementServiceListFeeLedger(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

@@ -88,6 +88,8 @@ type FinanceBillLine struct {
 	BusinessType       string
 	FeeCode            string
 	FeeName            string
+	Quantity           decimal.Decimal
+	UnitPrice          decimal.Decimal
 	TotalAmount        decimal.Decimal
 	NetAmount          decimal.Decimal
 	TaxAmount          decimal.Decimal
@@ -531,7 +533,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		bill.Lines = append(bill.Lines, &FinanceBillLine{
 			ID: uuid.Must(uuid.NewV7()), BillID: billID, OrderFeeID: fee.ID, OrderID: fee.OrderID,
 			OrderNo: item.OrderNo, BusinessType: item.BusinessType, FeeCode: fee.FeeCode, FeeName: fee.FeeName,
-			TotalAmount: fee.TotalAmount, NetAmount: fee.NetAmount, TaxAmount: fee.TaxAmount, Currency: fee.Currency,
+			Quantity: fee.Quantity, UnitPrice: fee.UnitPrice, TotalAmount: fee.TotalAmount, NetAmount: fee.NetAmount, TaxAmount: fee.TaxAmount, Currency: fee.Currency,
 			TaxRate:      fee.TaxRate,
 			ExchangeRate: fee.ExchangeRate, BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount, Active: true,
 		})

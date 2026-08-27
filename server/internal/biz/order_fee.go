@@ -31,6 +31,7 @@ var (
 	quantityOrPricePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$`)
 	totalAmountPattern     = regexp.MustCompile(`^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$`)
 	currencyPattern        = regexp.MustCompile(`^[A-Za-z]{3}$`)
+	taxRatePattern         = regexp.MustCompile(`^(0|[1-9][0-9]{0,2})(\.[0-9]{1,2})?$`)
 )
 
 type OrderFeeDirection string
@@ -60,6 +61,8 @@ type OrderFee struct {
 	BillingUnitID         *uuid.UUID
 	BillingUnit           string
 	TaxRate               *decimal.Decimal
+	TaxRateOverride       *decimal.Decimal
+	FeeNameOverride       *string
 	TaxableServiceName    *string
 	Quantity              decimal.Decimal
 	UnitPrice             decimal.Decimal
@@ -83,6 +86,14 @@ type OrderFee struct {
 	CancellationReason    *string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+}
+
+type BilledFeeBillContext struct {
+	BillID   uuid.UUID
+	Status   FinanceBillStatus
+	BillDate string
+	Currency string
+	FeeCount int
 }
 
 type OrderFeeSettlementPartyOption struct {
@@ -151,20 +162,23 @@ type OrderFeeRepo interface {
 	ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeExchangeRateContext, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
+	Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*OrderFee, error)
+	BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*BilledFeeBillContext, error)
 	GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
+	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *ResolvedExchangeRate, audit *AuditEvent) (*OrderFee, error)
 	Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to OrderFeeStatus, reason *string, audit *AuditEvent) (*OrderFee, error)
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 }
 
 type OrderFeeUsecase struct {
-	repo         OrderFeeRepo
-	exchangeRate *ExchangeRateUsecase
+	repo          OrderFeeRepo
+	exchangeRate  *ExchangeRateUsecase
+	customSetting *FinanceCustomSettingUsecase
 }
 
-func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase) *OrderFeeUsecase {
-	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate}
+func NewOrderFeeUsecase(repo OrderFeeRepo, exchangeRate *ExchangeRateUsecase, customSetting *FinanceCustomSettingUsecase) *OrderFeeUsecase {
+	return &OrderFeeUsecase{repo: repo, exchangeRate: exchangeRate, customSetting: customSetting}
 }
 
 func (uc *OrderFeeUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error) {
@@ -261,23 +275,132 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || input == nil || input.Version == 0 {
 		return nil, ErrOrderFeeInvalidArgument
 	}
+	current, err := uc.repo.Get(ctx, organizationID, orderID, id)
+	if err != nil {
+		return nil, err
+	}
+	requestedTaxRate := input.TaxRateOverride
 	input.ID = id
 	normalized, err := normalizeOrderFee(input)
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
-		return nil, err
+	switch current.Status {
+	case OrderFeeDraft:
+		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
+			return nil, err
+		}
+	case OrderFeeBilled:
+		if !uuidPointersEqual(current.FeeSettingID, normalized.FeeSettingID) || !uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID) {
+			return nil, ErrBilledFeeFieldForbidden
+		}
+		normalized.FeeCode, normalized.FeeName, normalized.FeeNameEN = current.FeeCode, current.FeeName, current.FeeNameEN
+		normalized.BillingUnit, normalized.TaxableServiceName = current.BillingUnit, current.TaxableServiceName
+		normalized.TaxRate = current.TaxRate
+		if input.FeeNameOverride != nil {
+			normalized.FeeName = *input.FeeNameOverride
+			normalized.FeeNameOverride = input.FeeNameOverride
+		}
+		if requestedTaxRate != nil {
+			normalized.TaxRate = requestedTaxRate
+			normalized.TaxRateOverride = requestedTaxRate
+		}
+	default:
+		return nil, ErrOrderFeeInvalidTransition
 	}
-	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
-		return nil, err
+	if current.Status == OrderFeeBilled && normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency {
+		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
+	} else {
+		if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
+			return nil, err
+		}
 	}
 	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
 		return nil, err
 	}
-	normalized.Status = OrderFeeDraft
-	normalized.Version = input.Version + 1
-	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", normalized))
+	var billExchangeRate *ResolvedExchangeRate
+	switch current.Status {
+	case OrderFeeDraft:
+		if requestedTaxRate != nil || input.FeeNameOverride != nil {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+	case OrderFeeBilled:
+		if uc.customSetting == nil {
+			return nil, ErrBilledFeeEditDisabled
+		}
+		policy, policyErr := uc.customSetting.GetBilledFeeEditPolicy(ctx, organizationID)
+		if policyErr != nil {
+			return nil, policyErr
+		}
+		if validateErr := ValidateBilledFeeUpdate(current, normalized, policy); validateErr != nil {
+			return nil, validateErr
+		}
+		if current.Currency != normalized.Currency {
+			billContext, contextErr := uc.repo.BilledBillContext(ctx, organizationID, orderID, id)
+			if contextErr != nil {
+				return nil, contextErr
+			}
+			if billContext.Status != FinanceBillDraft {
+				return nil, ErrBilledFeeBillLocked
+			}
+			if billContext.FeeCount != 1 {
+				return nil, ErrBilledFeeCurrencyConflict
+			}
+			billExchangeRate, contextErr = uc.exchangeRate.Resolve(ctx, organizationID, BillRateType, normalized.Direction, normalized.Currency, map[string]string{BillDateStandard: billContext.BillDate})
+			if contextErr != nil {
+				return nil, contextErr
+			}
+		}
+	default:
+		return nil, ErrOrderFeeInvalidTransition
+	}
+	normalized.Status = current.Status
+	normalized.Version = input.Version
+	auditFee := *normalized
+	auditFee.Version = input.Version + 1
+	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, billExchangeRate, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", &auditFee))
+}
+
+// ValidateBilledFeeUpdate 校验已建账单费用的字段级修改范围；数据层会在事务锁内再次调用。
+func ValidateBilledFeeUpdate(current, requested *OrderFee, policy *BilledFeeEditPolicy) error {
+	if current == nil || requested == nil {
+		return ErrOrderFeeInvalidArgument
+	}
+	if policy == nil || !policy.Enabled {
+		return ErrBilledFeeEditDisabled
+	}
+	if current.Direction != requested.Direction || current.SettlementPartyID != requested.SettlementPartyID || current.ExpenseDate != requested.ExpenseDate || !stringPointersEqual(current.Note, requested.Note) || current.TaxInclusive != requested.TaxInclusive {
+		return ErrBilledFeeFieldForbidden
+	}
+	if !uuidPointersEqual(current.FeeSettingID, requested.FeeSettingID) || current.FeeCode != requested.FeeCode || !stringPointersEqual(current.FeeNameEN, requested.FeeNameEN) || !uuidPointersEqual(current.BillingUnitID, requested.BillingUnitID) || current.BillingUnit != requested.BillingUnit || !stringPointersEqual(current.TaxableServiceName, requested.TaxableServiceName) {
+		return ErrBilledFeeFieldForbidden
+	}
+	nameChanged := current.FeeName != requested.FeeName
+	if nameChanged && !policy.Allows(BilledFeeFieldFeeName) {
+		return ErrBilledFeeFieldForbidden
+	}
+	currencyChanged := current.Currency != requested.Currency
+	if currencyChanged && !policy.Allows(BilledFeeFieldCurrency) {
+		return ErrBilledFeeFieldForbidden
+	}
+	// 修改币种时系统必然会重新解析汇率；仅手工覆盖汇率时才额外要求“汇率”权限。
+	if (!currencyChanged && !current.ExchangeRate.Equal(requested.ExchangeRate) || currencyChanged && requested.ExchangeRateOverride != nil) && !policy.Allows(BilledFeeFieldExchangeRate) {
+		return ErrBilledFeeFieldForbidden
+	}
+	if !current.Quantity.Equal(requested.Quantity) && !policy.Allows(BilledFeeFieldQuantity) {
+		return ErrBilledFeeFieldForbidden
+	}
+	if !current.UnitPrice.Equal(requested.UnitPrice) && !policy.Allows(BilledFeeFieldUnitPrice) {
+		return ErrBilledFeeFieldForbidden
+	}
+	if !decimalPointersEqual(current.TaxRate, requested.TaxRate) && !policy.Allows(BilledFeeFieldTaxRate) {
+		return ErrBilledFeeFieldForbidden
+	}
+	return nil
+}
+
+func decimalPointersEqual(left, right *decimal.Decimal) bool {
+	return (left == nil && right == nil) || (left != nil && right != nil && left.Equal(*right))
 }
 
 func (uc *OrderFeeUsecase) calculateAmounts(ctx context.Context, organizationID uuid.UUID, fee *OrderFee) error {
@@ -470,6 +593,17 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 	}
 	if input.ExchangeRateOverride != nil && !validExchangeRate(*input.ExchangeRateOverride) {
 		return nil, ErrOrderFeeInvalidArgument
+	}
+	if input.TaxRateOverride != nil && (input.TaxRateOverride.IsNegative() || input.TaxRateOverride.GreaterThan(decimal.NewFromInt(100)) || !taxRatePattern.MatchString(input.TaxRateOverride.String())) {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	if input.FeeNameOverride != nil {
+		value := strings.TrimSpace(*input.FeeNameOverride)
+		if value == "" || utf8.RuneCountInString(value) > 80 {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+		outputName := value
+		input.FeeNameOverride = &outputName
 	}
 	expenseDate := strings.TrimSpace(input.ExpenseDate)
 	parsedDate, err := time.Parse("2006-01-02", expenseDate)

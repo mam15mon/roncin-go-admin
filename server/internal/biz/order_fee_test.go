@@ -118,7 +118,7 @@ func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
 	override := decimal.RequireFromString("7.12345678")
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
@@ -134,7 +134,7 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
@@ -163,7 +163,7 @@ func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) 
 		RateDate:  "2026-08-24",
 		SettingID: &settingID,
 	}}
-	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{rateContext: &OrderFeeExchangeRateContext{OrderCreatedAt: time.Date(2026, 8, 24, 0, 0, 0, 0, time.UTC)}}, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{rateContext: &OrderFeeExchangeRateContext{OrderCreatedAt: time.Date(2026, 8, 24, 0, 0, 0, 0, time.UTC)}}, NewExchangeRateUsecase(rateRepo), nil)
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
@@ -209,7 +209,7 @@ func TestSameOrderFeeCreateIntentAcceptsRetryAndRejectsKeyReuse(t *testing.T) {
 
 func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -230,7 +230,7 @@ func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *tes
 
 func TestCalculateOrderFeeAmountsAddsTaxForExclusivePrice(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo))
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo), nil)
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -252,6 +252,79 @@ func TestNormalizeOrderFeeRequiresIdempotencyKeyForCreation(t *testing.T) {
 	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
 		t.Fatalf("新建费用缺少幂等键应被拒绝，实际错误为 %v", err)
 	}
+}
+
+func TestValidateBilledFeeUpdateEnforcesSwitchAndFieldAllowlist(t *testing.T) {
+	current := billedOrderFeeForTest()
+	requested := *current
+	requested.Quantity = decimal.RequireFromString("2")
+
+	if err := ValidateBilledFeeUpdate(current, &requested, &BilledFeeEditPolicy{}); err != ErrBilledFeeEditDisabled {
+		t.Fatalf("总开关关闭时应拒绝修改，实际错误为 %v", err)
+	}
+	if err := ValidateBilledFeeUpdate(current, &requested, &BilledFeeEditPolicy{Enabled: true}); err != ErrBilledFeeFieldForbidden {
+		t.Fatalf("数量未授权时应拒绝修改，实际错误为 %v", err)
+	}
+	if err := ValidateBilledFeeUpdate(current, &requested, &BilledFeeEditPolicy{Enabled: true, EditableFields: []BilledFeeEditableField{BilledFeeFieldQuantity}}); err != nil {
+		t.Fatalf("数量已授权时应允许修改，实际错误为 %v", err)
+	}
+}
+
+func TestValidateBilledFeeUpdateAllowsSystemRateChangeWithCurrencyPermission(t *testing.T) {
+	current := billedOrderFeeForTest()
+	requested := *current
+	requested.Currency = "USD"
+	requested.ExchangeRate = decimal.RequireFromString("7.2")
+
+	policy := &BilledFeeEditPolicy{Enabled: true, EditableFields: []BilledFeeEditableField{BilledFeeFieldCurrency}}
+	if err := ValidateBilledFeeUpdate(current, &requested, policy); err != nil {
+		t.Fatalf("币种授权应包含系统重新解析出的汇率，实际错误为 %v", err)
+	}
+
+	manualRate := decimal.RequireFromString("7.3")
+	requested.ExchangeRate = manualRate
+	requested.ExchangeRateOverride = &manualRate
+	if err := ValidateBilledFeeUpdate(current, &requested, policy); err != ErrBilledFeeFieldForbidden {
+		t.Fatalf("币种授权不应隐含手工汇率权限，实际错误为 %v", err)
+	}
+	policy.EditableFields = append(policy.EditableFields, BilledFeeFieldExchangeRate)
+	if err := ValidateBilledFeeUpdate(current, &requested, policy); err != nil {
+		t.Fatalf("币种与汇率均授权时应允许手工汇率，实际错误为 %v", err)
+	}
+}
+
+func TestValidateBilledFeeUpdateRejectsUnlistedBusinessFields(t *testing.T) {
+	current := billedOrderFeeForTest()
+	requested := *current
+	requested.SettlementPartyID = uuid.Must(uuid.NewV7())
+	policy := &BilledFeeEditPolicy{Enabled: true, EditableFields: []BilledFeeEditableField{
+		BilledFeeFieldFeeName, BilledFeeFieldCurrency, BilledFeeFieldExchangeRate,
+		BilledFeeFieldQuantity, BilledFeeFieldUnitPrice, BilledFeeFieldTaxRate,
+	}}
+	if err := ValidateBilledFeeUpdate(current, &requested, policy); err != ErrBilledFeeFieldForbidden {
+		t.Fatalf("结算单位不在允许字段中，必须拒绝修改，实际错误为 %v", err)
+	}
+}
+
+func billedOrderFeeForTest() *OrderFee {
+	fee := validOrderFeeForTest()
+	taxRate := decimal.RequireFromString("6")
+	fee.Status = OrderFeeBilled
+	fee.FeeCode = "OCEAN_FREIGHT"
+	fee.FeeName = "海运费"
+	fee.BillingUnit = "票"
+	fee.TaxRate = &taxRate
+	fee.TaxableServiceName = stringPointer("国际货物运输代理服务")
+	fee.ExchangeRate = decimal.NewFromInt(1)
+	fee.ExchangeRateSource = "BASE_CURRENCY"
+	fee.ExchangeRateDate = fee.ExpenseDate
+	fee.BaseCurrency = "CNY"
+	fee.TotalAmount = decimal.RequireFromString("106")
+	fee.NetAmount = decimal.RequireFromString("100")
+	fee.TaxAmount = decimal.RequireFromString("6")
+	fee.BaseCurrencyAmount = decimal.RequireFromString("106")
+	fee.Version = 3
+	return fee
 }
 
 func validOrderFeeForTest() *OrderFee {

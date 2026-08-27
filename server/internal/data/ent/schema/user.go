@@ -58,6 +58,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("cancelled_finance_commission_adjustments", FinanceCommissionAdjustment.Type),
 		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("updated_exchange_rate_custom_settings", ExchangeRateCustomSetting.Type),
+		edge.To("updated_finance_custom_settings", FinanceCustomSetting.Type),
 	}
 }
 

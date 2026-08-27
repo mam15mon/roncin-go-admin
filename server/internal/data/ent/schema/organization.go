@@ -63,6 +63,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_commission_rules", FinanceCommissionRule.Type),
 		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("exchange_rate_custom_setting", ExchangeRateCustomSetting.Type),
+		edge.To("finance_custom_setting", FinanceCustomSetting.Type),
 	}
 }
 

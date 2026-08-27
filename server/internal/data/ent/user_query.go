@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -63,6 +64,7 @@ type UserQuery struct {
 	withCancelledFinanceCommissionAdjustments *FinanceCommissionAdjustmentQuery
 	withFinanceFeeLedgerPreferences           *FinanceFeeLedgerPreferenceQuery
 	withUpdatedExchangeRateCustomSettings     *ExchangeRateCustomSettingQuery
+	withUpdatedFinanceCustomSettings          *FinanceCustomSettingQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -628,6 +630,28 @@ func (_q *UserQuery) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCusto
 	return query
 }
 
+// QueryUpdatedFinanceCustomSettings chains the current query on the "updated_finance_custom_settings" edge.
+func (_q *UserQuery) QueryUpdatedFinanceCustomSettings() *FinanceCustomSettingQuery {
+	query := (&FinanceCustomSettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecustomsetting.Table, financecustomsetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedFinanceCustomSettingsTable, user.UpdatedFinanceCustomSettingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -844,6 +868,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCancelledFinanceCommissionAdjustments: _q.withCancelledFinanceCommissionAdjustments.Clone(),
 		withFinanceFeeLedgerPreferences:           _q.withFinanceFeeLedgerPreferences.Clone(),
 		withUpdatedExchangeRateCustomSettings:     _q.withUpdatedExchangeRateCustomSettings.Clone(),
+		withUpdatedFinanceCustomSettings:          _q.withUpdatedFinanceCustomSettings.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1114,6 +1139,17 @@ func (_q *UserQuery) WithUpdatedExchangeRateCustomSettings(opts ...func(*Exchang
 	return _q
 }
 
+// WithUpdatedFinanceCustomSettings tells the query-builder to eager-load the nodes that are connected to
+// the "updated_finance_custom_settings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithUpdatedFinanceCustomSettings(opts ...func(*FinanceCustomSettingQuery)) *UserQuery {
+	query := (&FinanceCustomSettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUpdatedFinanceCustomSettings = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1192,7 +1228,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [24]bool{
+		loadedTypes = [25]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1217,6 +1253,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCancelledFinanceCommissionAdjustments != nil,
 			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withUpdatedExchangeRateCustomSettings != nil,
+			_q.withUpdatedFinanceCustomSettings != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1444,6 +1481,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.UpdatedExchangeRateCustomSettings = []*ExchangeRateCustomSetting{} },
 			func(n *User, e *ExchangeRateCustomSetting) {
 				n.Edges.UpdatedExchangeRateCustomSettings = append(n.Edges.UpdatedExchangeRateCustomSettings, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUpdatedFinanceCustomSettings; query != nil {
+		if err := _q.loadUpdatedFinanceCustomSettings(ctx, query, nodes,
+			func(n *User) { n.Edges.UpdatedFinanceCustomSettings = []*FinanceCustomSetting{} },
+			func(n *User, e *FinanceCustomSetting) {
+				n.Edges.UpdatedFinanceCustomSettings = append(n.Edges.UpdatedFinanceCustomSettings, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2201,6 +2247,36 @@ func (_q *UserQuery) loadUpdatedExchangeRateCustomSettings(ctx context.Context, 
 	}
 	query.Where(predicate.ExchangeRateCustomSetting(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.UpdatedExchangeRateCustomSettingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UpdatedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "updated_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadUpdatedFinanceCustomSettings(ctx context.Context, query *FinanceCustomSettingQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCustomSetting)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecustomsetting.FieldUpdatedBy)
+	}
+	query.Where(predicate.FinanceCustomSetting(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UpdatedFinanceCustomSettingsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

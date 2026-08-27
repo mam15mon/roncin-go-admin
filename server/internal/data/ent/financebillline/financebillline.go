@@ -31,6 +31,10 @@ const (
 	FieldFeeCode = "fee_code"
 	// FieldFeeName holds the string denoting the fee_name field in the database.
 	FieldFeeName = "fee_name"
+	// FieldQuantity holds the string denoting the quantity field in the database.
+	FieldQuantity = "quantity"
+	// FieldUnitPrice holds the string denoting the unit_price field in the database.
+	FieldUnitPrice = "unit_price"
 	// FieldTotalAmount holds the string denoting the total_amount field in the database.
 	FieldTotalAmount = "total_amount"
 	// FieldNetAmount holds the string denoting the net_amount field in the database.
@@ -91,6 +95,8 @@ var Columns = []string{
 	FieldOrderNo,
 	FieldFeeCode,
 	FieldFeeName,
+	FieldQuantity,
+	FieldUnitPrice,
 	FieldTotalAmount,
 	FieldNetAmount,
 	FieldTaxAmount,
@@ -181,6 +187,16 @@ func ByFeeCode(opts ...sql.OrderTermOption) OrderOption {
 // ByFeeName orders the results by the fee_name field.
 func ByFeeName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeeName, opts...).ToFunc()
+}
+
+// ByQuantity orders the results by the quantity field.
+func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+}
+
+// ByUnitPrice orders the results by the unit_price field.
+func ByUnitPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnitPrice, opts...).ToFunc()
 }
 
 // ByTotalAmount orders the results by the total_amount field.

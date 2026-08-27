@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
@@ -165,6 +166,7 @@ func checkColumn(t, c string) error {
 			financecommissionadjustment.Table:   financecommissionadjustment.ValidColumn,
 			financecommissionline.Table:         financecommissionline.ValidColumn,
 			financecommissionrule.Table:         financecommissionrule.ValidColumn,
+			financecustomsetting.Table:          financecustomsetting.ValidColumn,
 			financefeeledgerpreference.Table:    financefeeledgerpreference.ValidColumn,
 			financeinvoice.Table:                financeinvoice.ValidColumn,
 			financeinvoicebill.Table:            financeinvoicebill.ValidColumn,

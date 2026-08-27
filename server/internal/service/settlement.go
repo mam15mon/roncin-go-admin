@@ -15,17 +15,18 @@ import (
 
 type SettlementService struct {
 	v1.UnimplementedSettlementServiceServer
-	usecase             *biz.SettlementUsecase
-	billUsecase         *biz.FinanceBillUsecase
-	invoiceUsecase      *biz.FinanceInvoiceUsecase
-	cashflowUsecase     *biz.FinanceCashflowUsecase
-	verificationUsecase *biz.VerificationUsecase
-	commissionUsecase   *biz.CommissionUsecase
-	preferenceUsecase   *biz.FeeLedgerPreferenceUsecase
+	usecase              *biz.SettlementUsecase
+	billUsecase          *biz.FinanceBillUsecase
+	invoiceUsecase       *biz.FinanceInvoiceUsecase
+	cashflowUsecase      *biz.FinanceCashflowUsecase
+	verificationUsecase  *biz.VerificationUsecase
+	commissionUsecase    *biz.CommissionUsecase
+	preferenceUsecase    *biz.FeeLedgerPreferenceUsecase
+	customSettingUsecase *biz.FinanceCustomSettingUsecase
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase}
 }
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
@@ -168,6 +169,96 @@ func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, reques
 		Data:    feeLedgerPreferenceToAPI(preference),
 		TraceId: requestmeta.TraceID(ctx),
 	}, nil
+}
+
+func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.GetBilledFeeEditPolicyRequest) (*v1.GetBilledFeeEditPolicyResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	policy, err := s.customSettingUsecase.GetBilledFeeEditPolicy(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetBilledFeeEditPolicyResponse{Success: true, Code: 0, Message: "OK", Data: billedFeeEditPolicyToAPI(policy), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, request *v1.UpdateBilledFeeEditPolicyRequest) (*v1.UpdateBilledFeeEditPolicyResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	fields := make([]biz.BilledFeeEditableField, 0, len(request.GetEditableFields()))
+	for _, field := range request.GetEditableFields() {
+		converted, valid := billedFeeEditableFieldFromAPI(field)
+		if !valid {
+			return nil, biz.ErrFinanceCustomSettingInvalidArgument
+		}
+		fields = append(fields, converted)
+	}
+	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateBilledFeeEditPolicyResponse{Success: true, Code: 0, Message: "OK", Data: billedFeeEditPolicyToAPI(policy), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func billedFeeEditableFieldFromAPI(field v1.BilledFeeEditableField) (biz.BilledFeeEditableField, bool) {
+	switch field {
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_FEE_NAME:
+		return biz.BilledFeeFieldFeeName, true
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_CURRENCY:
+		return biz.BilledFeeFieldCurrency, true
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_EXCHANGE_RATE:
+		return biz.BilledFeeFieldExchangeRate, true
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_QUANTITY:
+		return biz.BilledFeeFieldQuantity, true
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_UNIT_PRICE:
+		return biz.BilledFeeFieldUnitPrice, true
+	case v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_TAX_RATE:
+		return biz.BilledFeeFieldTaxRate, true
+	default:
+		return "", false
+	}
+}
+
+func billedFeeEditableFieldToAPI(field biz.BilledFeeEditableField) v1.BilledFeeEditableField {
+	switch field {
+	case biz.BilledFeeFieldFeeName:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_FEE_NAME
+	case biz.BilledFeeFieldCurrency:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_CURRENCY
+	case biz.BilledFeeFieldExchangeRate:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_EXCHANGE_RATE
+	case biz.BilledFeeFieldQuantity:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_QUANTITY
+	case biz.BilledFeeFieldUnitPrice:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_UNIT_PRICE
+	case biz.BilledFeeFieldTaxRate:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_TAX_RATE
+	default:
+		return v1.BilledFeeEditableField_BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED
+	}
+}
+
+func billedFeeEditPolicyToAPI(policy *biz.BilledFeeEditPolicy) *v1.BilledFeeEditPolicy {
+	if policy == nil {
+		return nil
+	}
+	fields := make([]v1.BilledFeeEditableField, 0, len(policy.EditableFields))
+	for _, field := range policy.EditableFields {
+		fields = append(fields, billedFeeEditableFieldToAPI(field))
+	}
+	result := &v1.BilledFeeEditPolicy{OrganizationId: policy.OrganizationID.String(), Enabled: policy.Enabled, EditableFields: fields, Version: policy.Version}
+	if policy.UpdatedAt != nil {
+		value := policy.UpdatedAt.UTC().Format(time.RFC3339)
+		result.UpdatedAt = &value
+	}
+	if policy.UpdatedBy != nil {
+		value := policy.UpdatedBy.String()
+		result.UpdatedBy = &value
+	}
+	return result
 }
 
 func feeLedgerPreferenceToAPI(preference *biz.FeeLedgerPreference) *v1.FeeLedgerPreference {
@@ -398,6 +489,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		lines = append(lines, &v1.FinanceBillLine{
 			Id: line.ID.String(), OrderFeeId: line.OrderFeeID.String(), OrderId: line.OrderID.String(), OrderNo: line.OrderNo,
 			BusinessType: line.BusinessType, FeeCode: line.FeeCode, FeeName: line.FeeName,
+			Quantity: line.Quantity.StringFixed(4), UnitPrice: line.UnitPrice.StringFixed(4),
 			TotalAmount: line.TotalAmount.StringFixed(8), NetAmount: line.NetAmount.StringFixed(8), TaxAmount: line.TaxAmount.StringFixed(8), Currency: line.Currency,
 			ExchangeRate: line.ExchangeRate.StringFixed(8), BaseCurrency: line.BaseCurrency, BaseCurrencyAmount: line.BaseCurrencyAmount.StringFixed(8), Active: line.Active,
 			TaxRate: financeDecimalPointer(line.TaxRate, 4),

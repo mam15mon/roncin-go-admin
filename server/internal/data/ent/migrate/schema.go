@@ -784,6 +784,8 @@ var (
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "fee_code", Type: field.TypeString, Size: 30},
 		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -805,19 +807,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bill_lines_finance_bills_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[15]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[17]},
 				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bill_lines_orders_finance_bill_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[16]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[18]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bill_lines_order_fees_finance_bill_lines",
-				Columns:    []*schema.Column{FinanceBillLinesColumns[17]},
+				Columns:    []*schema.Column{FinanceBillLinesColumns[19]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -831,17 +833,17 @@ var (
 			{
 				Name:    "financebillline_bill_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[15], FinanceBillLinesColumns[14]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[17], FinanceBillLinesColumns[16]},
 			},
 			{
 				Name:    "financebillline_order_fee_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[17], FinanceBillLinesColumns[14]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[19], FinanceBillLinesColumns[16]},
 			},
 			{
 				Name:    "finance_bill_lines_active_fee_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillLinesColumns[17]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[19]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "active = true",
 				},
@@ -849,7 +851,7 @@ var (
 			{
 				Name:    "financebillline_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillLinesColumns[16]},
+				Columns: []*schema.Column{FinanceBillLinesColumns[18]},
 			},
 		},
 	}
@@ -1285,6 +1287,54 @@ var (
 				Name:    "financecommissionrule_organization_id_enabled_personnel_role",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceCommissionRulesColumns[12], FinanceCommissionRulesColumns[9], FinanceCommissionRulesColumns[4]},
+			},
+		},
+	}
+	// FinanceCustomSettingsColumns holds the columns for the "finance_custom_settings" table.
+	FinanceCustomSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "billed_fee_edit_enabled", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_name_editable", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_currency_editable", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_exchange_rate_editable", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_quantity_editable", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_unit_price_editable", Type: field.TypeBool, Default: false},
+		{Name: "billed_fee_tax_rate_editable", Type: field.TypeBool, Default: false},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "updated_by", Type: field.TypeUUID},
+	}
+	// FinanceCustomSettingsTable holds the schema information for the "finance_custom_settings" table.
+	FinanceCustomSettingsTable = &schema.Table{
+		Name:       "finance_custom_settings",
+		Columns:    FinanceCustomSettingsColumns,
+		PrimaryKey: []*schema.Column{FinanceCustomSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_custom_settings_organizations_finance_custom_setting",
+				Columns:    []*schema.Column{FinanceCustomSettingsColumns[11]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_custom_settings_users_updated_finance_custom_settings",
+				Columns:    []*schema.Column{FinanceCustomSettingsColumns[12]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecustomsetting_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCustomSettingsColumns[2]},
+			},
+			{
+				Name:    "finance_custom_setting_organization_unique",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCustomSettingsColumns[11]},
 			},
 		},
 	}
@@ -4087,6 +4137,7 @@ var (
 		FinanceCommissionAdjustmentsTable,
 		FinanceCommissionLinesTable,
 		FinanceCommissionRulesTable,
+		FinanceCustomSettingsTable,
 		FinanceFeeLedgerPreferencesTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
@@ -4188,6 +4239,8 @@ func init() {
 	FinanceCommissionLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceCommissionLinesTable.ForeignKeys[2].RefTable = OrganizationsTable
 	FinanceCommissionRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FinanceFeeLedgerPreferencesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceFeeLedgerPreferencesTable.ForeignKeys[1].RefTable = UsersTable
 	FinanceInvoicesTable.ForeignKeys[0].RefTable = OrganizationsTable

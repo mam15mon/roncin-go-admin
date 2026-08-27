@@ -303,7 +303,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 	for _, line := range bill.Lines {
 		builders = append(builders, tx.FinanceBillLine.Create().
 			SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).
-			SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).
+			SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetQuantity(line.Quantity.StringFixed(4)).SetUnitPrice(line.UnitPrice.StringFixed(4)).
 			SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).
 			SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
 	}
@@ -416,7 +416,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		}
 		lineBuilders := make([]*ent.FinanceBillLineCreate, 0, len(bill.Lines))
 		for _, line := range bill.Lines {
-			lineBuilders = append(lineBuilders, tx.FinanceBillLine.Create().SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
+			lineBuilders = append(lineBuilders, tx.FinanceBillLine.Create().SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetQuantity(line.Quantity.StringFixed(4)).SetUnitPrice(line.UnitPrice.StringFixed(4)).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
 		}
 		if _, saveErr = tx.FinanceBillLine.CreateBulk(lineBuilders...).Save(ctx); saveErr != nil {
 			if ent.IsConstraintError(saveErr) {
@@ -655,6 +655,14 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 }
 
 func financeBillLineToBiz(item *ent.FinanceBillLine) (*biz.FinanceBillLine, error) {
+	quantity, err := decimal.NewFromString(item.Quantity)
+	if err != nil {
+		return nil, err
+	}
+	unitPrice, err := decimal.NewFromString(item.UnitPrice)
+	if err != nil {
+		return nil, err
+	}
 	totalAmount, err := decimal.NewFromString(item.TotalAmount)
 	if err != nil {
 		return nil, err
@@ -689,7 +697,7 @@ func financeBillLineToBiz(item *ent.FinanceBillLine) (*biz.FinanceBillLine, erro
 	}
 	return &biz.FinanceBillLine{
 		ID: item.ID, BillID: item.BillID, OrderFeeID: item.OrderFeeID, OrderID: item.OrderID, OrderNo: item.OrderNo, BusinessType: businessType,
-		FeeCode: item.FeeCode, FeeName: item.FeeName, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount, TaxRate: taxRate,
+		FeeCode: item.FeeCode, FeeName: item.FeeName, Quantity: quantity, UnitPrice: unitPrice, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount, TaxRate: taxRate,
 		Currency: item.Currency, ExchangeRate: exchangeRate, BaseCurrency: item.BaseCurrency, BaseCurrencyAmount: baseAmount,
 		Active: item.Active, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
 	}, nil

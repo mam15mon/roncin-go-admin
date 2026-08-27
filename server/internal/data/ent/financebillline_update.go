@@ -34,6 +34,166 @@ func (_u *FinanceBillLineUpdate) SetUpdatedAt(v time.Time) *FinanceBillLineUpdat
 	return _u
 }
 
+// SetFeeCode sets the "fee_code" field.
+func (_u *FinanceBillLineUpdate) SetFeeCode(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetFeeCode(v)
+	return _u
+}
+
+// SetNillableFeeCode sets the "fee_code" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableFeeCode(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetFeeCode(*v)
+	}
+	return _u
+}
+
+// SetFeeName sets the "fee_name" field.
+func (_u *FinanceBillLineUpdate) SetFeeName(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetFeeName(v)
+	return _u
+}
+
+// SetNillableFeeName sets the "fee_name" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableFeeName(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetFeeName(*v)
+	}
+	return _u
+}
+
+// SetQuantity sets the "quantity" field.
+func (_u *FinanceBillLineUpdate) SetQuantity(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableQuantity(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_u *FinanceBillLineUpdate) SetUnitPrice(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetUnitPrice(v)
+	return _u
+}
+
+// SetNillableUnitPrice sets the "unit_price" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableUnitPrice(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetUnitPrice(*v)
+	}
+	return _u
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (_u *FinanceBillLineUpdate) SetTotalAmount(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetTotalAmount(v)
+	return _u
+}
+
+// SetNillableTotalAmount sets the "total_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableTotalAmount(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetTotalAmount(*v)
+	}
+	return _u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_u *FinanceBillLineUpdate) SetNetAmount(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetNetAmount(v)
+	return _u
+}
+
+// SetNillableNetAmount sets the "net_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableNetAmount(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetNetAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (_u *FinanceBillLineUpdate) SetTaxAmount(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetTaxAmount(v)
+	return _u
+}
+
+// SetNillableTaxAmount sets the "tax_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableTaxAmount(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetTaxAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (_u *FinanceBillLineUpdate) SetTaxRate(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetTaxRate(v)
+	return _u
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableTaxRate(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetTaxRate(*v)
+	}
+	return _u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (_u *FinanceBillLineUpdate) ClearTaxRate() *FinanceBillLineUpdate {
+	_u.mutation.ClearTaxRate()
+	return _u
+}
+
+// SetCurrency sets the "currency" field.
+func (_u *FinanceBillLineUpdate) SetCurrency(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableCurrency(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (_u *FinanceBillLineUpdate) SetExchangeRate(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetExchangeRate(v)
+	return _u
+}
+
+// SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableExchangeRate(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetExchangeRate(*v)
+	}
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceBillLineUpdate) SetBaseCurrencyAmount(v string) *FinanceBillLineUpdate {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdate) SetNillableBaseCurrencyAmount(v *string) *FinanceBillLineUpdate {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
 // SetActive sets the "active" field.
 func (_u *FinanceBillLineUpdate) SetActive(v bool) *FinanceBillLineUpdate {
 	_u.mutation.SetActive(v)
@@ -91,6 +251,21 @@ func (_u *FinanceBillLineUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceBillLineUpdate) check() error {
+	if v, ok := _u.mutation.FeeCode(); ok {
+		if err := financebillline.FeeCodeValidator(v); err != nil {
+			return &ValidationError{Name: "fee_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.fee_code": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FeeName(); ok {
+		if err := financebillline.FeeNameValidator(v); err != nil {
+			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.fee_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := financebillline.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.currency": %w`, err)}
+		}
+	}
 	if _u.mutation.BillCleared() && len(_u.mutation.BillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.bill"`)
 	}
@@ -118,8 +293,41 @@ func (_u *FinanceBillLineUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financebillline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.FeeCode(); ok {
+		_spec.SetField(financebillline.FieldFeeCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FeeName(); ok {
+		_spec.SetField(financebillline.FieldFeeName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(financebillline.FieldQuantity, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UnitPrice(); ok {
+		_spec.SetField(financebillline.FieldUnitPrice, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalAmount(); ok {
+		_spec.SetField(financebillline.FieldTotalAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NetAmount(); ok {
+		_spec.SetField(financebillline.FieldNetAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxAmount(); ok {
+		_spec.SetField(financebillline.FieldTaxAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxRate(); ok {
+		_spec.SetField(financebillline.FieldTaxRate, field.TypeString, value)
+	}
 	if _u.mutation.TaxRateCleared() {
 		_spec.ClearField(financebillline.FieldTaxRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(financebillline.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRate(); ok {
+		_spec.SetField(financebillline.FieldExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financebillline.FieldBaseCurrencyAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financebillline.FieldActive, field.TypeBool, value)
@@ -147,6 +355,166 @@ type FinanceBillLineUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceBillLineUpdateOne) SetUpdatedAt(v time.Time) *FinanceBillLineUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetFeeCode sets the "fee_code" field.
+func (_u *FinanceBillLineUpdateOne) SetFeeCode(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetFeeCode(v)
+	return _u
+}
+
+// SetNillableFeeCode sets the "fee_code" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableFeeCode(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetFeeCode(*v)
+	}
+	return _u
+}
+
+// SetFeeName sets the "fee_name" field.
+func (_u *FinanceBillLineUpdateOne) SetFeeName(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetFeeName(v)
+	return _u
+}
+
+// SetNillableFeeName sets the "fee_name" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableFeeName(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetFeeName(*v)
+	}
+	return _u
+}
+
+// SetQuantity sets the "quantity" field.
+func (_u *FinanceBillLineUpdateOne) SetQuantity(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetQuantity(v)
+	return _u
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableQuantity(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetQuantity(*v)
+	}
+	return _u
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_u *FinanceBillLineUpdateOne) SetUnitPrice(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetUnitPrice(v)
+	return _u
+}
+
+// SetNillableUnitPrice sets the "unit_price" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableUnitPrice(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetUnitPrice(*v)
+	}
+	return _u
+}
+
+// SetTotalAmount sets the "total_amount" field.
+func (_u *FinanceBillLineUpdateOne) SetTotalAmount(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetTotalAmount(v)
+	return _u
+}
+
+// SetNillableTotalAmount sets the "total_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableTotalAmount(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetTotalAmount(*v)
+	}
+	return _u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_u *FinanceBillLineUpdateOne) SetNetAmount(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetNetAmount(v)
+	return _u
+}
+
+// SetNillableNetAmount sets the "net_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableNetAmount(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetNetAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (_u *FinanceBillLineUpdateOne) SetTaxAmount(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetTaxAmount(v)
+	return _u
+}
+
+// SetNillableTaxAmount sets the "tax_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableTaxAmount(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetTaxAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxRate sets the "tax_rate" field.
+func (_u *FinanceBillLineUpdateOne) SetTaxRate(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetTaxRate(v)
+	return _u
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableTaxRate(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetTaxRate(*v)
+	}
+	return _u
+}
+
+// ClearTaxRate clears the value of the "tax_rate" field.
+func (_u *FinanceBillLineUpdateOne) ClearTaxRate() *FinanceBillLineUpdateOne {
+	_u.mutation.ClearTaxRate()
+	return _u
+}
+
+// SetCurrency sets the "currency" field.
+func (_u *FinanceBillLineUpdateOne) SetCurrency(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetCurrency(v)
+	return _u
+}
+
+// SetNillableCurrency sets the "currency" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableCurrency(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetCurrency(*v)
+	}
+	return _u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (_u *FinanceBillLineUpdateOne) SetExchangeRate(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetExchangeRate(v)
+	return _u
+}
+
+// SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableExchangeRate(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetExchangeRate(*v)
+	}
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceBillLineUpdateOne) SetBaseCurrencyAmount(v string) *FinanceBillLineUpdateOne {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceBillLineUpdateOne) SetNillableBaseCurrencyAmount(v *string) *FinanceBillLineUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
 	return _u
 }
 
@@ -220,6 +588,21 @@ func (_u *FinanceBillLineUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceBillLineUpdateOne) check() error {
+	if v, ok := _u.mutation.FeeCode(); ok {
+		if err := financebillline.FeeCodeValidator(v); err != nil {
+			return &ValidationError{Name: "fee_code", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.fee_code": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FeeName(); ok {
+		if err := financebillline.FeeNameValidator(v); err != nil {
+			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.fee_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Currency(); ok {
+		if err := financebillline.CurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.currency": %w`, err)}
+		}
+	}
 	if _u.mutation.BillCleared() && len(_u.mutation.BillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.bill"`)
 	}
@@ -264,8 +647,41 @@ func (_u *FinanceBillLineUpdateOne) sqlSave(ctx context.Context) (_node *Finance
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financebillline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.FeeCode(); ok {
+		_spec.SetField(financebillline.FieldFeeCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FeeName(); ok {
+		_spec.SetField(financebillline.FieldFeeName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Quantity(); ok {
+		_spec.SetField(financebillline.FieldQuantity, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UnitPrice(); ok {
+		_spec.SetField(financebillline.FieldUnitPrice, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalAmount(); ok {
+		_spec.SetField(financebillline.FieldTotalAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NetAmount(); ok {
+		_spec.SetField(financebillline.FieldNetAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxAmount(); ok {
+		_spec.SetField(financebillline.FieldTaxAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxRate(); ok {
+		_spec.SetField(financebillline.FieldTaxRate, field.TypeString, value)
+	}
 	if _u.mutation.TaxRateCleared() {
 		_spec.ClearField(financebillline.FieldTaxRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.Currency(); ok {
+		_spec.SetField(financebillline.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeRate(); ok {
+		_spec.SetField(financebillline.FieldExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financebillline.FieldBaseCurrencyAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financebillline.FieldActive, field.TypeBool, value)

@@ -37,6 +37,10 @@ type FinanceBillLine struct {
 	FeeCode string `json:"fee_code,omitempty"`
 	// FeeName holds the value of the "fee_name" field.
 	FeeName string `json:"fee_name,omitempty"`
+	// Quantity holds the value of the "quantity" field.
+	Quantity string `json:"quantity,omitempty"`
+	// UnitPrice holds the value of the "unit_price" field.
+	UnitPrice string `json:"unit_price,omitempty"`
 	// TotalAmount holds the value of the "total_amount" field.
 	TotalAmount string `json:"total_amount,omitempty"`
 	// NetAmount holds the value of the "net_amount" field.
@@ -114,7 +118,7 @@ func (*FinanceBillLine) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financebillline.FieldActive:
 			values[i] = new(sql.NullBool)
-		case financebillline.FieldOrderNo, financebillline.FieldFeeCode, financebillline.FieldFeeName, financebillline.FieldTotalAmount, financebillline.FieldNetAmount, financebillline.FieldTaxAmount, financebillline.FieldTaxRate, financebillline.FieldCurrency, financebillline.FieldExchangeRate, financebillline.FieldBaseCurrency, financebillline.FieldBaseCurrencyAmount:
+		case financebillline.FieldOrderNo, financebillline.FieldFeeCode, financebillline.FieldFeeName, financebillline.FieldQuantity, financebillline.FieldUnitPrice, financebillline.FieldTotalAmount, financebillline.FieldNetAmount, financebillline.FieldTaxAmount, financebillline.FieldTaxRate, financebillline.FieldCurrency, financebillline.FieldExchangeRate, financebillline.FieldBaseCurrency, financebillline.FieldBaseCurrencyAmount:
 			values[i] = new(sql.NullString)
 		case financebillline.FieldCreatedAt, financebillline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -188,6 +192,18 @@ func (_m *FinanceBillLine) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field fee_name", values[i])
 			} else if value.Valid {
 				_m.FeeName = value.String
+			}
+		case financebillline.FieldQuantity:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+			} else if value.Valid {
+				_m.Quantity = value.String
+			}
+		case financebillline.FieldUnitPrice:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unit_price", values[i])
+			} else if value.Valid {
+				_m.UnitPrice = value.String
 			}
 		case financebillline.FieldTotalAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -318,6 +334,12 @@ func (_m *FinanceBillLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("fee_name=")
 	builder.WriteString(_m.FeeName)
+	builder.WriteString(", ")
+	builder.WriteString("quantity=")
+	builder.WriteString(_m.Quantity)
+	builder.WriteString(", ")
+	builder.WriteString("unit_price=")
+	builder.WriteString(_m.UnitPrice)
 	builder.WriteString(", ")
 	builder.WriteString("total_amount=")
 	builder.WriteString(_m.TotalAmount)

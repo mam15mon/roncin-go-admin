@@ -23,6 +23,8 @@ const (
 	SettlementService_GetFeeLedgerPreference_FullMethodName       = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 	SettlementService_UpdateFeeLedgerPreference_FullMethodName    = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 	SettlementService_ResetFeeLedgerPreference_FullMethodName     = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
+	SettlementService_GetBilledFeeEditPolicy_FullMethodName       = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
+	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName    = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 	SettlementService_ListBills_FullMethodName                    = "/finance.v1.SettlementService/ListBills"
 	SettlementService_GetBill_FullMethodName                      = "/finance.v1.SettlementService/GetBill"
 	SettlementService_CreateBill_FullMethodName                   = "/finance.v1.SettlementService/CreateBill"
@@ -77,6 +79,10 @@ type SettlementServiceClient interface {
 	UpdateFeeLedgerPreference(ctx context.Context, in *UpdateFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*UpdateFeeLedgerPreferenceResponse, error)
 	// ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(ctx context.Context, in *ResetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*ResetFeeLedgerPreferenceResponse, error)
+	// GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
+	GetBilledFeeEditPolicy(ctx context.Context, in *GetBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*GetBilledFeeEditPolicyResponse, error)
+	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
+	UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
 	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
@@ -159,6 +165,26 @@ func (c *settlementServiceClient) ResetFeeLedgerPreference(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ResetFeeLedgerPreferenceResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ResetFeeLedgerPreference_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetBilledFeeEditPolicy(ctx context.Context, in *GetBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*GetBilledFeeEditPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBilledFeeEditPolicyResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetBilledFeeEditPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateBilledFeeEditPolicyResponse)
+	err := c.cc.Invoke(ctx, SettlementService_UpdateBilledFeeEditPolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -559,6 +585,10 @@ type SettlementServiceServer interface {
 	UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error)
 	// ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
+	// GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
+	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
+	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
+	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
@@ -618,6 +648,12 @@ func (UnimplementedSettlementServiceServer) UpdateFeeLedgerPreference(context.Co
 }
 func (UnimplementedSettlementServiceServer) ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetFeeLedgerPreference not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBilledFeeEditPolicy not implemented")
+}
+func (UnimplementedSettlementServiceServer) UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBilledFeeEditPolicy not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBills not implemented")
@@ -822,6 +858,42 @@ func _SettlementService_ResetFeeLedgerPreference_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ResetFeeLedgerPreference(ctx, req.(*ResetFeeLedgerPreferenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetBilledFeeEditPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBilledFeeEditPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetBilledFeeEditPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetBilledFeeEditPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetBilledFeeEditPolicy(ctx, req.(*GetBilledFeeEditPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_UpdateBilledFeeEditPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBilledFeeEditPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).UpdateBilledFeeEditPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_UpdateBilledFeeEditPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).UpdateBilledFeeEditPolicy(ctx, req.(*UpdateBilledFeeEditPolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1532,6 +1604,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetFeeLedgerPreference",
 			Handler:    _SettlementService_ResetFeeLedgerPreference_Handler,
+		},
+		{
+			MethodName: "GetBilledFeeEditPolicy",
+			Handler:    _SettlementService_GetBilledFeeEditPolicy_Handler,
+		},
+		{
+			MethodName: "UpdateBilledFeeEditPolicy",
+			Handler:    _SettlementService_UpdateBilledFeeEditPolicy_Handler,
 		},
 		{
 			MethodName: "ListBills",

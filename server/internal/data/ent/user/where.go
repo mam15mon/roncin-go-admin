@@ -1483,6 +1483,29 @@ func HasUpdatedExchangeRateCustomSettingsWith(preds ...predicate.ExchangeRateCus
 	})
 }
 
+// HasUpdatedFinanceCustomSettings applies the HasEdge predicate on the "updated_finance_custom_settings" edge.
+func HasUpdatedFinanceCustomSettings() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UpdatedFinanceCustomSettingsTable, UpdatedFinanceCustomSettingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUpdatedFinanceCustomSettingsWith applies the HasEdge predicate on the "updated_finance_custom_settings" edge with a given conditions (other predicates).
+func HasUpdatedFinanceCustomSettingsWith(preds ...predicate.FinanceCustomSetting) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUpdatedFinanceCustomSettingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

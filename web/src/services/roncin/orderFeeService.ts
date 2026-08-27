@@ -71,7 +71,7 @@ export async function orderFeeServiceAddFee(
   });
 }
 
-/** UpdateFee 更新订单费用，总金额由服务端重新精确计算。 PUT /api/v1/orders/${param0}/fees/${param1} */
+/** UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。 PUT /api/v1/orders/${param0}/fees/${param1} */
 export async function orderFeeServiceUpdateFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceUpdateFeeParams,
@@ -112,7 +112,7 @@ export async function orderFeeServiceRemoveFee(
   );
 }
 
-/** ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。 POST /api/v1/orders/${param0}/fees/${param1}/confirm */
+/** ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。 POST /api/v1/orders/${param0}/fees/${param1}/confirm */
 export async function orderFeeServiceConfirmFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceConfirmFeeParams,

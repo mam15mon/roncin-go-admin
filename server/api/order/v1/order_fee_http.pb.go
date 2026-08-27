@@ -29,7 +29,7 @@ const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 type OrderFeeServiceHTTPServer interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
-	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
 	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
 	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
@@ -41,7 +41,7 @@ type OrderFeeServiceHTTPServer interface {
 	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
-	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
 }
 
@@ -236,7 +236,7 @@ func _OrderFeeService_RemoveFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 type OrderFeeServiceHTTPClient interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, req *AddFeeRequest, opts ...http.CallOption) (rsp *AddFeeResponse, err error)
-	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
 	ConfirmFee(ctx context.Context, req *ConfirmFeeRequest, opts ...http.CallOption) (rsp *ConfirmFeeResponse, err error)
 	// ListFeeOptions ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, req *ListFeeOptionsRequest, opts ...http.CallOption) (rsp *ListFeeOptionsResponse, err error)
@@ -248,7 +248,7 @@ type OrderFeeServiceHTTPClient interface {
 	ReopenFee(ctx context.Context, req *ReopenFeeRequest, opts ...http.CallOption) (rsp *ReopenFeeResponse, err error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按汇率（折本币）的时间标准、币种和收付方向预览汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
-	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
 }
 
@@ -278,7 +278,7 @@ func (c *OrderFeeServiceHTTPClientImpl) AddFee(ctx context.Context, in *AddFeeRe
 	return &out, nil
 }
 
-// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
 func (c *OrderFeeServiceHTTPClientImpl) ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...http.CallOption) (*ConfirmFeeResponse, error) {
 	var out ConfirmFeeResponse
 	pattern := "/api/v1/orders/{order_id}/fees/{id}/confirm"
@@ -382,7 +382,7 @@ func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Conte
 	return &out, nil
 }
 
-// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 func (c *OrderFeeServiceHTTPClientImpl) UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...http.CallOption) (*UpdateFeeResponse, error) {
 	var out UpdateFeeResponse
 	pattern := "/api/v1/orders/{order_id}/fees/{id}"

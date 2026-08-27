@@ -1325,6 +1325,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CommissionResponse'
+    /api/v1/finance/custom-settings/billed-fee-edit-policy:
+        get:
+            tags:
+                - SettlementService
+            description: GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
+            operationId: SettlementService_GetBilledFeeEditPolicy
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.GetBilledFeeEditPolicyResponse'
+        put:
+            tags:
+                - SettlementService
+            description: UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
+            operationId: SettlementService_UpdateBilledFeeEditPolicy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateBilledFeeEditPolicyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateBilledFeeEditPolicyResponse'
     /api/v1/finance/exchange-rate-custom-setting:
         get:
             tags:
@@ -3271,7 +3302,7 @@ paths:
         put:
             tags:
                 - OrderFeeService
-            description: UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+            description: UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
             operationId: OrderFeeService_UpdateFee
             parameters:
                 - name: orderId
@@ -3332,7 +3363,7 @@ paths:
         post:
             tags:
                 - OrderFeeService
-            description: ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+            description: ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
             operationId: OrderFeeService_ConfirmFee
             parameters:
                 - name: orderId
@@ -5296,6 +5327,25 @@ components:
                     type: boolean
                 splitByTaxRate:
                     type: boolean
+        finance.v1.BilledFeeEditPolicy:
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                enabled:
+                    type: boolean
+                editableFields:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                version:
+                    type: string
+                    description: 未保存过策略时为 0；首次保存需携带 expected_version=0。
+                updatedAt:
+                    type: string
+                updatedBy:
+                    type: string
         finance.v1.BillingUnit:
             type: object
             properties:
@@ -6549,6 +6599,10 @@ components:
                     type: boolean
                 taxRate:
                     type: string
+                quantity:
+                    type: string
+                unitPrice:
+                    type: string
         finance.v1.FinanceCashflow:
             type: object
             properties:
@@ -7000,6 +7054,20 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceBill'
+                traceId:
+                    type: string
+        finance.v1.GetBilledFeeEditPolicyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.BilledFeeEditPolicy'
                 traceId:
                     type: string
         finance.v1.GetExchangeRateCustomSettingResponse:
@@ -7554,6 +7622,35 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceBill'
+                traceId:
+                    type: string
+        finance.v1.UpdateBilledFeeEditPolicyRequest:
+            required:
+                - editableFields
+                - expectedVersion
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                editableFields:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                expectedVersion:
+                    type: string
+        finance.v1.UpdateBilledFeeEditPolicyResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.BilledFeeEditPolicy'
                 traceId:
                     type: string
         finance.v1.UpdateBillingUnitRequest:
@@ -11016,6 +11113,12 @@ components:
                     type: string
                 taxInclusive:
                     type: boolean
+                taxRate:
+                    type: string
+                    description: tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。
+                feeName:
+                    type: string
+                    description: fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。
         order.v1.UpdateFeeResponse:
             type: object
             properties:
@@ -12657,7 +12760,7 @@ tags:
     - name: OrderFeeService
       description: |-
         OrderFeeService 订单费用录入服务。
-         本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
+         管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
     - name: OrderMilestoneService
       description: OrderMilestoneService 订单里程碑服务。
     - name: OrderPersonnelService

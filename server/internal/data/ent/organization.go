@@ -114,9 +114,11 @@ type OrganizationEdges struct {
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
 	// ExchangeRateCustomSetting holds the value of the exchange_rate_custom_setting edge.
 	ExchangeRateCustomSetting []*ExchangeRateCustomSetting `json:"exchange_rate_custom_setting,omitempty"`
+	// FinanceCustomSetting holds the value of the finance_custom_setting edge.
+	FinanceCustomSetting []*FinanceCustomSetting `json:"finance_custom_setting,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [35]bool
+	loadedTypes [36]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -436,6 +438,15 @@ func (e OrganizationEdges) ExchangeRateCustomSettingOrErr() ([]*ExchangeRateCust
 	return nil, &NotLoadedError{edge: "exchange_rate_custom_setting"}
 }
 
+// FinanceCustomSettingOrErr returns the FinanceCustomSetting value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceCustomSettingOrErr() ([]*FinanceCustomSetting, error) {
+	if e.loadedTypes[35] {
+		return e.FinanceCustomSetting, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_custom_setting"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -714,6 +725,11 @@ func (_m *Organization) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPref
 // QueryExchangeRateCustomSetting queries the "exchange_rate_custom_setting" edge of the Organization entity.
 func (_m *Organization) QueryExchangeRateCustomSetting() *ExchangeRateCustomSettingQuery {
 	return NewOrganizationClient(_m.config).QueryExchangeRateCustomSetting(_m)
+}
+
+// QueryFinanceCustomSetting queries the "finance_custom_setting" edge of the Organization entity.
+func (_m *Organization) QueryFinanceCustomSetting() *FinanceCustomSettingQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceCustomSetting(_m)
 }
 
 // Update returns a builder for updating this Organization.

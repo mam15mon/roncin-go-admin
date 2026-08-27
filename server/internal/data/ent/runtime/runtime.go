@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
@@ -1485,7 +1486,7 @@ func init() {
 		}
 	}()
 	// financebilllineDescCurrency is the schema descriptor for currency field.
-	financebilllineDescCurrency := financebilllineFields[10].Descriptor()
+	financebilllineDescCurrency := financebilllineFields[12].Descriptor()
 	// financebillline.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	financebillline.CurrencyValidator = func() func(string) error {
 		validators := financebilllineDescCurrency.Validators
@@ -1504,7 +1505,7 @@ func init() {
 		}
 	}()
 	// financebilllineDescBaseCurrency is the schema descriptor for base_currency field.
-	financebilllineDescBaseCurrency := financebilllineFields[12].Descriptor()
+	financebilllineDescBaseCurrency := financebilllineFields[14].Descriptor()
 	// financebillline.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	financebillline.BaseCurrencyValidator = func() func(string) error {
 		validators := financebilllineDescBaseCurrency.Validators
@@ -1523,7 +1524,7 @@ func init() {
 		}
 	}()
 	// financebilllineDescActive is the schema descriptor for active field.
-	financebilllineDescActive := financebilllineFields[14].Descriptor()
+	financebilllineDescActive := financebilllineFields[16].Descriptor()
 	// financebillline.DefaultActive holds the default value on creation for the active field.
 	financebillline.DefaultActive = financebilllineDescActive.Default.(bool)
 	// financebilllineDescID is the schema descriptor for id field.
@@ -2266,6 +2267,59 @@ func init() {
 	financecommissionruleDescID := financecommissionruleMixinFields0[0].Descriptor()
 	// financecommissionrule.DefaultID holds the default value on creation for the id field.
 	financecommissionrule.DefaultID = financecommissionruleDescID.Default.(func() uuid.UUID)
+	financecustomsettingMixin := schema.FinanceCustomSetting{}.Mixin()
+	financecustomsettingMixinFields0 := financecustomsettingMixin[0].Fields()
+	_ = financecustomsettingMixinFields0
+	financecustomsettingMixinFields1 := financecustomsettingMixin[1].Fields()
+	_ = financecustomsettingMixinFields1
+	financecustomsettingFields := schema.FinanceCustomSetting{}.Fields()
+	_ = financecustomsettingFields
+	// financecustomsettingDescCreatedAt is the schema descriptor for created_at field.
+	financecustomsettingDescCreatedAt := financecustomsettingMixinFields1[0].Descriptor()
+	// financecustomsetting.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financecustomsetting.DefaultCreatedAt = financecustomsettingDescCreatedAt.Default.(func() time.Time)
+	// financecustomsettingDescUpdatedAt is the schema descriptor for updated_at field.
+	financecustomsettingDescUpdatedAt := financecustomsettingMixinFields1[1].Descriptor()
+	// financecustomsetting.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financecustomsetting.DefaultUpdatedAt = financecustomsettingDescUpdatedAt.Default.(func() time.Time)
+	// financecustomsetting.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financecustomsetting.UpdateDefaultUpdatedAt = financecustomsettingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financecustomsettingDescBilledFeeEditEnabled is the schema descriptor for billed_fee_edit_enabled field.
+	financecustomsettingDescBilledFeeEditEnabled := financecustomsettingFields[1].Descriptor()
+	// financecustomsetting.DefaultBilledFeeEditEnabled holds the default value on creation for the billed_fee_edit_enabled field.
+	financecustomsetting.DefaultBilledFeeEditEnabled = financecustomsettingDescBilledFeeEditEnabled.Default.(bool)
+	// financecustomsettingDescBilledFeeNameEditable is the schema descriptor for billed_fee_name_editable field.
+	financecustomsettingDescBilledFeeNameEditable := financecustomsettingFields[2].Descriptor()
+	// financecustomsetting.DefaultBilledFeeNameEditable holds the default value on creation for the billed_fee_name_editable field.
+	financecustomsetting.DefaultBilledFeeNameEditable = financecustomsettingDescBilledFeeNameEditable.Default.(bool)
+	// financecustomsettingDescBilledFeeCurrencyEditable is the schema descriptor for billed_fee_currency_editable field.
+	financecustomsettingDescBilledFeeCurrencyEditable := financecustomsettingFields[3].Descriptor()
+	// financecustomsetting.DefaultBilledFeeCurrencyEditable holds the default value on creation for the billed_fee_currency_editable field.
+	financecustomsetting.DefaultBilledFeeCurrencyEditable = financecustomsettingDescBilledFeeCurrencyEditable.Default.(bool)
+	// financecustomsettingDescBilledFeeExchangeRateEditable is the schema descriptor for billed_fee_exchange_rate_editable field.
+	financecustomsettingDescBilledFeeExchangeRateEditable := financecustomsettingFields[4].Descriptor()
+	// financecustomsetting.DefaultBilledFeeExchangeRateEditable holds the default value on creation for the billed_fee_exchange_rate_editable field.
+	financecustomsetting.DefaultBilledFeeExchangeRateEditable = financecustomsettingDescBilledFeeExchangeRateEditable.Default.(bool)
+	// financecustomsettingDescBilledFeeQuantityEditable is the schema descriptor for billed_fee_quantity_editable field.
+	financecustomsettingDescBilledFeeQuantityEditable := financecustomsettingFields[5].Descriptor()
+	// financecustomsetting.DefaultBilledFeeQuantityEditable holds the default value on creation for the billed_fee_quantity_editable field.
+	financecustomsetting.DefaultBilledFeeQuantityEditable = financecustomsettingDescBilledFeeQuantityEditable.Default.(bool)
+	// financecustomsettingDescBilledFeeUnitPriceEditable is the schema descriptor for billed_fee_unit_price_editable field.
+	financecustomsettingDescBilledFeeUnitPriceEditable := financecustomsettingFields[6].Descriptor()
+	// financecustomsetting.DefaultBilledFeeUnitPriceEditable holds the default value on creation for the billed_fee_unit_price_editable field.
+	financecustomsetting.DefaultBilledFeeUnitPriceEditable = financecustomsettingDescBilledFeeUnitPriceEditable.Default.(bool)
+	// financecustomsettingDescBilledFeeTaxRateEditable is the schema descriptor for billed_fee_tax_rate_editable field.
+	financecustomsettingDescBilledFeeTaxRateEditable := financecustomsettingFields[7].Descriptor()
+	// financecustomsetting.DefaultBilledFeeTaxRateEditable holds the default value on creation for the billed_fee_tax_rate_editable field.
+	financecustomsetting.DefaultBilledFeeTaxRateEditable = financecustomsettingDescBilledFeeTaxRateEditable.Default.(bool)
+	// financecustomsettingDescVersion is the schema descriptor for version field.
+	financecustomsettingDescVersion := financecustomsettingFields[8].Descriptor()
+	// financecustomsetting.DefaultVersion holds the default value on creation for the version field.
+	financecustomsetting.DefaultVersion = financecustomsettingDescVersion.Default.(uint64)
+	// financecustomsettingDescID is the schema descriptor for id field.
+	financecustomsettingDescID := financecustomsettingMixinFields0[0].Descriptor()
+	// financecustomsetting.DefaultID holds the default value on creation for the id field.
+	financecustomsetting.DefaultID = financecustomsettingDescID.Default.(func() uuid.UUID)
 	financefeeledgerpreferenceMixin := schema.FinanceFeeLedgerPreference{}.Mixin()
 	financefeeledgerpreferenceMixinFields0 := financefeeledgerpreferenceMixin[0].Fields()
 	_ = financefeeledgerpreferenceMixinFields0

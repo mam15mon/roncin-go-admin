@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -591,6 +592,21 @@ func (_u *UserUpdate) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCus
 	return _u.AddUpdatedExchangeRateCustomSettingIDs(ids...)
 }
 
+// AddUpdatedFinanceCustomSettingIDs adds the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by IDs.
+func (_u *UserUpdate) AddUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddUpdatedFinanceCustomSettingIDs(ids...)
+	return _u
+}
+
+// AddUpdatedFinanceCustomSettings adds the "updated_finance_custom_settings" edges to the FinanceCustomSetting entity.
+func (_u *UserUpdate) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedFinanceCustomSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -1098,6 +1114,27 @@ func (_u *UserUpdate) RemoveUpdatedExchangeRateCustomSettings(v ...*ExchangeRate
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
+}
+
+// ClearUpdatedFinanceCustomSettings clears all "updated_finance_custom_settings" edges to the FinanceCustomSetting entity.
+func (_u *UserUpdate) ClearUpdatedFinanceCustomSettings() *UserUpdate {
+	_u.mutation.ClearUpdatedFinanceCustomSettings()
+	return _u
+}
+
+// RemoveUpdatedFinanceCustomSettingIDs removes the "updated_finance_custom_settings" edge to FinanceCustomSetting entities by IDs.
+func (_u *UserUpdate) RemoveUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveUpdatedFinanceCustomSettingIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedFinanceCustomSettings removes "updated_finance_custom_settings" edges to FinanceCustomSetting entities.
+func (_u *UserUpdate) RemoveUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedFinanceCustomSettingIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2328,6 +2365,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.UpdatedFinanceCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedFinanceCustomSettingsIDs(); len(nodes) > 0 && !_u.mutation.UpdatedFinanceCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedFinanceCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -2896,6 +2978,21 @@ func (_u *UserUpdateOne) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRate
 	return _u.AddUpdatedExchangeRateCustomSettingIDs(ids...)
 }
 
+// AddUpdatedFinanceCustomSettingIDs adds the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by IDs.
+func (_u *UserUpdateOne) AddUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddUpdatedFinanceCustomSettingIDs(ids...)
+	return _u
+}
+
+// AddUpdatedFinanceCustomSettings adds the "updated_finance_custom_settings" edges to the FinanceCustomSetting entity.
+func (_u *UserUpdateOne) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedFinanceCustomSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -3403,6 +3500,27 @@ func (_u *UserUpdateOne) RemoveUpdatedExchangeRateCustomSettings(v ...*ExchangeR
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUpdatedExchangeRateCustomSettingIDs(ids...)
+}
+
+// ClearUpdatedFinanceCustomSettings clears all "updated_finance_custom_settings" edges to the FinanceCustomSetting entity.
+func (_u *UserUpdateOne) ClearUpdatedFinanceCustomSettings() *UserUpdateOne {
+	_u.mutation.ClearUpdatedFinanceCustomSettings()
+	return _u
+}
+
+// RemoveUpdatedFinanceCustomSettingIDs removes the "updated_finance_custom_settings" edge to FinanceCustomSetting entities by IDs.
+func (_u *UserUpdateOne) RemoveUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveUpdatedFinanceCustomSettingIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedFinanceCustomSettings removes "updated_finance_custom_settings" edges to FinanceCustomSetting entities.
+func (_u *UserUpdateOne) RemoveUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedFinanceCustomSettingIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -4656,6 +4774,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdatedFinanceCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedFinanceCustomSettingsIDs(); len(nodes) > 0 && !_u.mutation.UpdatedFinanceCustomSettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedFinanceCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

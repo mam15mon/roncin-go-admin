@@ -11,8 +11,11 @@ import (
 	billingunitent "github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
+	financecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -88,6 +91,34 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 		result = append(result, converted)
 	}
 	return result, nil
+}
+
+func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.OrderFee, error) {
+	item, err := r.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, biz.ErrOrderFeeNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return orderFeeToBiz(item)
+}
+
+func (r *orderFeeRepo) BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.BilledFeeBillContext, error) {
+	line, err := r.data.db.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true), financebilllineent.OrderIDEQ(orderID)).WithBill(func(query *ent.FinanceBillQuery) {
+		query.Where(financebillent.OrganizationIDEQ(organizationID))
+	}).Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, biz.ErrBilledFeeBillLocked
+	}
+	if err != nil {
+		return nil, err
+	}
+	bill, err := line.Edges.BillOrErr()
+	if err != nil {
+		return nil, err
+	}
+	return &biz.BilledFeeBillContext{BillID: bill.ID, Status: biz.FinanceBillStatus(bill.Status), BillDate: bill.BillDate, Currency: bill.Currency, FeeCount: bill.FeeCount}, nil
 }
 
 func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*biz.OrderFee, error) {
@@ -419,15 +450,8 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	return input, nil
 }
 
-func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, audit *biz.AuditEvent) (*biz.OrderFee, error) {
+func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedExchangeRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return nil, err
-	}
-	party, err := r.settlementParty(ctx, organizationID, input.SettlementPartyID)
-	if err != nil {
-		return nil, err
-	}
-	if err := r.validateCurrency(ctx, input.Currency); err != nil {
 		return nil, err
 	}
 	tx, err := r.data.db.Tx(ctx)
@@ -438,7 +462,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		_ = tx.Rollback()
 		return nil, err
 	}
-	item, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
+	itemSnapshot, err := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
@@ -446,11 +470,119 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		}
 		return nil, err
 	}
+	var item *ent.OrderFee
+	var activeLine *ent.FinanceBillLine
+	var activeBill *ent.FinanceBill
+	if itemSnapshot.Status == orderfeeent.StatusBILLED {
+		lineSnapshot, lineErr := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).Only(ctx)
+		if ent.IsNotFound(lineErr) {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeBillLocked
+		}
+		if lineErr != nil {
+			_ = tx.Rollback()
+			return nil, lineErr
+		}
+		// 与账单确认、取消保持“账单 -> 账单行 -> 费用”的锁顺序，避免并发事务互相等待。
+		activeBill, err = tx.FinanceBill.Query().Where(financebillent.IDEQ(lineSnapshot.BillID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		activeLine, err = tx.FinanceBillLine.Query().Where(financebilllineent.IDEQ(lineSnapshot.ID), financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeBillLocked
+		}
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		item, err = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().ForUpdate().Only(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+	} else {
+		item, err = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().ForUpdate().Only(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+	}
 	if item.Version != input.Version {
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderFeeVersionConflict
 	}
-	if item.Status != orderfeeent.StatusDRAFT {
+	party, err := tx.Partner.Query().Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if ent.IsNotFound(err) {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeePartyInvalid
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if (item.Status != orderfeeent.StatusBILLED || item.SettlementPartyID != input.SettlementPartyID) && !party.Enabled {
+		_ = tx.Rollback()
+		return nil, biz.ErrOrderFeePartyInvalid
+	}
+	if item.Status != orderfeeent.StatusBILLED || item.Currency != input.Currency {
+		validCurrency, currencyErr := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx)
+		if currencyErr != nil {
+			_ = tx.Rollback()
+			return nil, currencyErr
+		}
+		if !validCurrency {
+			_ = tx.Rollback()
+			return nil, biz.ErrOrderFeeCurrencyInvalid
+		}
+	}
+	if item.Status == orderfeeent.StatusBILLED {
+		if activeBill == nil || activeLine == nil {
+			_ = tx.Rollback()
+			return nil, biz.ErrOrderFeeVersionConflict
+		}
+		if activeBill.Status != financebillent.StatusDRAFT {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeBillLocked
+		}
+		ownerID, ownerErr := resolveHeadquartersOrganizationID(ctx, tx.Organization, organizationID)
+		if ownerErr != nil {
+			_ = tx.Rollback()
+			return nil, ownerErr
+		}
+		setting, settingErr := tx.FinanceCustomSetting.Query().Where(financecustomsettingent.OrganizationIDEQ(ownerID)).ForShare().Only(ctx)
+		if ent.IsNotFound(settingErr) {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeEditDisabled
+		}
+		if settingErr != nil {
+			_ = tx.Rollback()
+			return nil, settingErr
+		}
+		if !setting.BilledFeeEditEnabled {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeEditDisabled
+		}
+		current, convertErr := orderFeeToBiz(item)
+		if convertErr != nil {
+			_ = tx.Rollback()
+			return nil, convertErr
+		}
+		if validateErr := biz.ValidateBilledFeeUpdate(current, input, financeCustomSettingToPolicy(setting)); validateErr != nil {
+			_ = tx.Rollback()
+			return nil, validateErr
+		}
+		if item.Currency != input.Currency && activeBill.FeeCount != 1 {
+			_ = tx.Rollback()
+			return nil, biz.ErrBilledFeeCurrencyConflict
+		}
+		if item.Currency != input.Currency && (billExchangeRate == nil || billExchangeRate.RateDate != activeBill.BillDate) {
+			_ = tx.Rollback()
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+	} else if item.Status != orderfeeent.StatusDRAFT {
 		_ = tx.Rollback()
 		return nil, biz.ErrOrderFeeInvalidTransition
 	}
@@ -506,6 +638,68 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if activeLine != nil {
+		lineUpdate := tx.FinanceBillLine.UpdateOneID(activeLine.ID).
+			SetFeeCode(input.FeeCode).SetFeeName(input.FeeName).
+			SetQuantity(input.Quantity.StringFixed(4)).SetUnitPrice(input.UnitPrice.StringFixed(4)).
+			SetTotalAmount(input.TotalAmount.StringFixed(8)).SetNetAmount(input.NetAmount.StringFixed(8)).SetTaxAmount(input.TaxAmount.StringFixed(8)).
+			SetCurrency(input.Currency).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8))
+		if input.TaxRate == nil {
+			lineUpdate.ClearTaxRate()
+		} else {
+			lineUpdate.SetTaxRate(input.TaxRate.StringFixed(4))
+		}
+		if _, err = lineUpdate.Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		lines, lineErr := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(activeBill.ID), financebilllineent.ActiveEQ(true)).All(ctx)
+		if lineErr != nil {
+			_ = tx.Rollback()
+			return nil, lineErr
+		}
+		total, net, tax := decimal.Zero, decimal.Zero, decimal.Zero
+		for _, line := range lines {
+			lineTotal, parseErr := decimal.NewFromString(line.TotalAmount)
+			if parseErr != nil {
+				_ = tx.Rollback()
+				return nil, parseErr
+			}
+			lineNet, parseErr := decimal.NewFromString(line.NetAmount)
+			if parseErr != nil {
+				_ = tx.Rollback()
+				return nil, parseErr
+			}
+			lineTax, parseErr := decimal.NewFromString(line.TaxAmount)
+			if parseErr != nil {
+				_ = tx.Rollback()
+				return nil, parseErr
+			}
+			total, net, tax = total.Add(lineTotal), net.Add(lineNet), tax.Add(lineTax)
+		}
+		billRate, parseErr := decimal.NewFromString(activeBill.ExchangeRate)
+		if parseErr != nil {
+			_ = tx.Rollback()
+			return nil, parseErr
+		}
+		billUpdate := tx.FinanceBill.UpdateOneID(activeBill.ID).SetTotalAmount(total.StringFixed(8)).SetNetAmount(net.StringFixed(8)).SetTaxAmount(tax.StringFixed(8)).SetVersion(activeBill.Version + 1)
+		if item.Currency != input.Currency {
+			billRate = billExchangeRate.Rate
+			billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(billExchangeRate.Source)).SetExchangeRateDate(billExchangeRate.RateDate)
+			if billExchangeRate.SettingID == nil {
+				billUpdate.ClearExchangeRateSettingID()
+			} else {
+				billUpdate.SetExchangeRateSettingID(*billExchangeRate.SettingID)
+			}
+		}
+		billUpdate.SetBaseCurrencyAmount(total.Mul(billRate).RoundBank(8).StringFixed(8))
+		if _, err = billUpdate.Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+		audit.Details["bill.id"] = activeBill.ID.String()
+		audit.Details["bill.previous_version"] = decimal.NewFromInt(int64(activeBill.Version)).String()
+	}
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -516,7 +710,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	input.ID = id
 	input.OrderID = orderID
 	input.IdempotencyKey = item.IdempotencyKey
-	input.Status = biz.OrderFeeDraft
+	input.Status = biz.OrderFeeStatus(item.Status)
 	input.Version = updated.Version
 	input.SettlementPartyName = party.LegalName
 	input.CreatedAt = updated.CreatedAt

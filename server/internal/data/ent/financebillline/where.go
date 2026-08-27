@@ -96,6 +96,16 @@ func FeeName(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldEQ(FieldFeeName, v))
 }
 
+// Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
+func Quantity(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldQuantity, v))
+}
+
+// UnitPrice applies equality check predicate on the "unit_price" field. It's identical to UnitPriceEQ.
+func UnitPrice(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldUnitPrice, v))
+}
+
 // TotalAmount applies equality check predicate on the "total_amount" field. It's identical to TotalAmountEQ.
 func TotalAmount(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldEQ(FieldTotalAmount, v))
@@ -474,6 +484,136 @@ func FeeNameEqualFold(v string) predicate.FinanceBillLine {
 // FeeNameContainsFold applies the ContainsFold predicate on the "fee_name" field.
 func FeeNameContainsFold(v string) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldContainsFold(FieldFeeName, v))
+}
+
+// QuantityEQ applies the EQ predicate on the "quantity" field.
+func QuantityEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldQuantity, v))
+}
+
+// QuantityNEQ applies the NEQ predicate on the "quantity" field.
+func QuantityNEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNEQ(FieldQuantity, v))
+}
+
+// QuantityIn applies the In predicate on the "quantity" field.
+func QuantityIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldIn(FieldQuantity, vs...))
+}
+
+// QuantityNotIn applies the NotIn predicate on the "quantity" field.
+func QuantityNotIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNotIn(FieldQuantity, vs...))
+}
+
+// QuantityGT applies the GT predicate on the "quantity" field.
+func QuantityGT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGT(FieldQuantity, v))
+}
+
+// QuantityGTE applies the GTE predicate on the "quantity" field.
+func QuantityGTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGTE(FieldQuantity, v))
+}
+
+// QuantityLT applies the LT predicate on the "quantity" field.
+func QuantityLT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLT(FieldQuantity, v))
+}
+
+// QuantityLTE applies the LTE predicate on the "quantity" field.
+func QuantityLTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLTE(FieldQuantity, v))
+}
+
+// QuantityContains applies the Contains predicate on the "quantity" field.
+func QuantityContains(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContains(FieldQuantity, v))
+}
+
+// QuantityHasPrefix applies the HasPrefix predicate on the "quantity" field.
+func QuantityHasPrefix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasPrefix(FieldQuantity, v))
+}
+
+// QuantityHasSuffix applies the HasSuffix predicate on the "quantity" field.
+func QuantityHasSuffix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasSuffix(FieldQuantity, v))
+}
+
+// QuantityEqualFold applies the EqualFold predicate on the "quantity" field.
+func QuantityEqualFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEqualFold(FieldQuantity, v))
+}
+
+// QuantityContainsFold applies the ContainsFold predicate on the "quantity" field.
+func QuantityContainsFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContainsFold(FieldQuantity, v))
+}
+
+// UnitPriceEQ applies the EQ predicate on the "unit_price" field.
+func UnitPriceEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEQ(FieldUnitPrice, v))
+}
+
+// UnitPriceNEQ applies the NEQ predicate on the "unit_price" field.
+func UnitPriceNEQ(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNEQ(FieldUnitPrice, v))
+}
+
+// UnitPriceIn applies the In predicate on the "unit_price" field.
+func UnitPriceIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldIn(FieldUnitPrice, vs...))
+}
+
+// UnitPriceNotIn applies the NotIn predicate on the "unit_price" field.
+func UnitPriceNotIn(vs ...string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNotIn(FieldUnitPrice, vs...))
+}
+
+// UnitPriceGT applies the GT predicate on the "unit_price" field.
+func UnitPriceGT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGT(FieldUnitPrice, v))
+}
+
+// UnitPriceGTE applies the GTE predicate on the "unit_price" field.
+func UnitPriceGTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldGTE(FieldUnitPrice, v))
+}
+
+// UnitPriceLT applies the LT predicate on the "unit_price" field.
+func UnitPriceLT(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLT(FieldUnitPrice, v))
+}
+
+// UnitPriceLTE applies the LTE predicate on the "unit_price" field.
+func UnitPriceLTE(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldLTE(FieldUnitPrice, v))
+}
+
+// UnitPriceContains applies the Contains predicate on the "unit_price" field.
+func UnitPriceContains(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContains(FieldUnitPrice, v))
+}
+
+// UnitPriceHasPrefix applies the HasPrefix predicate on the "unit_price" field.
+func UnitPriceHasPrefix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasPrefix(FieldUnitPrice, v))
+}
+
+// UnitPriceHasSuffix applies the HasSuffix predicate on the "unit_price" field.
+func UnitPriceHasSuffix(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldHasSuffix(FieldUnitPrice, v))
+}
+
+// UnitPriceEqualFold applies the EqualFold predicate on the "unit_price" field.
+func UnitPriceEqualFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldEqualFold(FieldUnitPrice, v))
+}
+
+// UnitPriceContainsFold applies the ContainsFold predicate on the "unit_price" field.
+func UnitPriceContainsFold(v string) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldContainsFold(FieldUnitPrice, v))
 }
 
 // TotalAmountEQ applies the EQ predicate on the "total_amount" field.

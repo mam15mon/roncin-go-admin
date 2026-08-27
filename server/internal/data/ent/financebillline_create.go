@@ -88,6 +88,18 @@ func (_c *FinanceBillLineCreate) SetFeeName(v string) *FinanceBillLineCreate {
 	return _c
 }
 
+// SetQuantity sets the "quantity" field.
+func (_c *FinanceBillLineCreate) SetQuantity(v string) *FinanceBillLineCreate {
+	_c.mutation.SetQuantity(v)
+	return _c
+}
+
+// SetUnitPrice sets the "unit_price" field.
+func (_c *FinanceBillLineCreate) SetUnitPrice(v string) *FinanceBillLineCreate {
+	_c.mutation.SetUnitPrice(v)
+	return _c
+}
+
 // SetTotalAmount sets the "total_amount" field.
 func (_c *FinanceBillLineCreate) SetTotalAmount(v string) *FinanceBillLineCreate {
 	_c.mutation.SetTotalAmount(v)
@@ -281,6 +293,12 @@ func (_c *FinanceBillLineCreate) check() error {
 			return &ValidationError{Name: "fee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceBillLine.fee_name": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.Quantity(); !ok {
+		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "FinanceBillLine.quantity"`)}
+	}
+	if _, ok := _c.mutation.UnitPrice(); !ok {
+		return &ValidationError{Name: "unit_price", err: errors.New(`ent: missing required field "FinanceBillLine.unit_price"`)}
+	}
 	if _, ok := _c.mutation.TotalAmount(); !ok {
 		return &ValidationError{Name: "total_amount", err: errors.New(`ent: missing required field "FinanceBillLine.total_amount"`)}
 	}
@@ -378,6 +396,14 @@ func (_c *FinanceBillLineCreate) createSpec() (*FinanceBillLine, *sqlgraph.Creat
 	if value, ok := _c.mutation.FeeName(); ok {
 		_spec.SetField(financebillline.FieldFeeName, field.TypeString, value)
 		_node.FeeName = value
+	}
+	if value, ok := _c.mutation.Quantity(); ok {
+		_spec.SetField(financebillline.FieldQuantity, field.TypeString, value)
+		_node.Quantity = value
+	}
+	if value, ok := _c.mutation.UnitPrice(); ok {
+		_spec.SetField(financebillline.FieldUnitPrice, field.TypeString, value)
+		_node.UnitPrice = value
 	}
 	if value, ok := _c.mutation.TotalAmount(); ok {
 		_spec.SetField(financebillline.FieldTotalAmount, field.TypeString, value)

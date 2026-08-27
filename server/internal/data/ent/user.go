@@ -100,9 +100,11 @@ type UserEdges struct {
 	FinanceFeeLedgerPreferences []*FinanceFeeLedgerPreference `json:"finance_fee_ledger_preferences,omitempty"`
 	// UpdatedExchangeRateCustomSettings holds the value of the updated_exchange_rate_custom_settings edge.
 	UpdatedExchangeRateCustomSettings []*ExchangeRateCustomSetting `json:"updated_exchange_rate_custom_settings,omitempty"`
+	// UpdatedFinanceCustomSettings holds the value of the updated_finance_custom_settings edge.
+	UpdatedFinanceCustomSettings []*FinanceCustomSetting `json:"updated_finance_custom_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [24]bool
+	loadedTypes [25]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -319,6 +321,15 @@ func (e UserEdges) UpdatedExchangeRateCustomSettingsOrErr() ([]*ExchangeRateCust
 		return e.UpdatedExchangeRateCustomSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_exchange_rate_custom_settings"}
+}
+
+// UpdatedFinanceCustomSettingsOrErr returns the UpdatedFinanceCustomSettings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UpdatedFinanceCustomSettingsOrErr() ([]*FinanceCustomSetting, error) {
+	if e.loadedTypes[24] {
+		return e.UpdatedFinanceCustomSettings, nil
+	}
+	return nil, &NotLoadedError{edge: "updated_finance_custom_settings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -571,6 +582,11 @@ func (_m *User) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQu
 // QueryUpdatedExchangeRateCustomSettings queries the "updated_exchange_rate_custom_settings" edge of the User entity.
 func (_m *User) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCustomSettingQuery {
 	return NewUserClient(_m.config).QueryUpdatedExchangeRateCustomSettings(_m)
+}
+
+// QueryUpdatedFinanceCustomSettings queries the "updated_finance_custom_settings" edge of the User entity.
+func (_m *User) QueryUpdatedFinanceCustomSettings() *FinanceCustomSettingQuery {
+	return NewUserClient(_m.config).QueryUpdatedFinanceCustomSettings(_m)
 }
 
 // Update returns a builder for updating this User.

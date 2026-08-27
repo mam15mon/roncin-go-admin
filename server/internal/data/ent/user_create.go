@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -573,6 +574,21 @@ func (_c *UserCreate) AddUpdatedExchangeRateCustomSettings(v ...*ExchangeRateCus
 		ids[i] = v[i].ID
 	}
 	return _c.AddUpdatedExchangeRateCustomSettingIDs(ids...)
+}
+
+// AddUpdatedFinanceCustomSettingIDs adds the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by IDs.
+func (_c *UserCreate) AddUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddUpdatedFinanceCustomSettingIDs(ids...)
+	return _c
+}
+
+// AddUpdatedFinanceCustomSettings adds the "updated_finance_custom_settings" edges to the FinanceCustomSetting entity.
+func (_c *UserCreate) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUpdatedFinanceCustomSettingIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1168,6 +1184,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(exchangeratecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UpdatedFinanceCustomSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedFinanceCustomSettingsTable,
+			Columns: []string{user.UpdatedFinanceCustomSettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -34,7 +34,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrderFeeService 订单费用录入服务。
-// 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
+// 管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
 type OrderFeeServiceClient interface {
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
@@ -44,9 +44,9 @@ type OrderFeeServiceClient interface {
 	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...grpc.CallOption) (*UpdateFeeResponse, error)
-	// ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	// ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
 	ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...grpc.CallOption) (*ConfirmFeeResponse, error)
 	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
 	ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error)
@@ -147,7 +147,7 @@ func (c *orderFeeServiceClient) RemoveFee(ctx context.Context, in *RemoveFeeRequ
 // for forward compatibility.
 //
 // OrderFeeService 订单费用录入服务。
-// 本阶段只管理费用明细，不包含账单、开票、核销等财务生命周期。
+// 管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
 type OrderFeeServiceServer interface {
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
@@ -157,9 +157,9 @@ type OrderFeeServiceServer interface {
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
-	// ConfirmFee 确认费用；确认后方可进入账单，修改前必须先撤回确认。
+	// ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
 	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
 	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
 	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
