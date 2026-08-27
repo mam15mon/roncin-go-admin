@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ParameterSettingTemplate } from './ParameterSettingTemplate';
+import { MultiTabCenterTemplate, ParameterSettingTemplate } from './ParameterSettingTemplate';
 import { SettingTableTemplate } from './SettingTableTemplate';
 
 // Mock umi hooks
@@ -15,7 +15,7 @@ vi.mock('@umijs/max', () => ({
   }),
 }));
 
-describe('ParameterSettingTemplate', () => {
+describe('MultiTabCenterTemplate / ParameterSettingTemplate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -45,7 +45,7 @@ describe('ParameterSettingTemplate', () => {
     ];
 
     render(
-      <ParameterSettingTemplate
+      <MultiTabCenterTemplate
         title="自定义参数设置"
         subTitle="系统参数测试副标题"
         items={items}

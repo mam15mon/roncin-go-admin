@@ -2,13 +2,13 @@ import { PageContainer } from '@ant-design/pro-components';
 import { history, useLocation } from '@umijs/max';
 import { Space, Tabs, Tooltip, Typography } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
-import type { ParameterSettingTemplateProps } from './types';
+import type { MultiTabCenterTemplateProps } from './types';
 
 const { Text } = Typography;
 
-export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> = ({
-  title = '业务参数与规则设置',
-  subTitle = '集中维护单据自动编号、费用科目、汇率时间标准与业务履约里程碑规则',
+export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
+  title = '业务管理中心',
+  subTitle = '集中维护相关业务基础配置与核心数据',
   extra,
   items,
   activeKey: controlledActiveKey,
@@ -126,7 +126,7 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
         ) : undefined,
         extra,
       }}
-      className={`roncin-parameter-setting-template ${className || ''}`}
+      className={`roncin-multi-tab-center-template roncin-parameter-setting-template ${className || ''}`}
       style={{
         minHeight: '100vh',
         backgroundColor: '#f5f7fa',
@@ -155,3 +155,5 @@ export const ParameterSettingTemplate: React.FC<ParameterSettingTemplateProps> =
     </PageContainer>
   );
 };
+
+export const ParameterSettingTemplate = MultiTabCenterTemplate;

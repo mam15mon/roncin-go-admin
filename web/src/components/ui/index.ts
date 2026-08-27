@@ -6,3 +6,4 @@ export * from './order-template';
 export * from './order-list-template';
 export * from './parameter-setting-template';
 export * from './finance-ledger-template';
+export * from './searchable-select';

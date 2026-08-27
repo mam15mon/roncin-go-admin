@@ -649,11 +649,11 @@ export function NumberRulesPanel() {
                           <span
                             style={{
                               fontSize: 12,
-                              color: Boolean(rule.enabled) ? '#52c41a' : '#8c8c8c',
+                              color: rule.enabled ? '#52c41a' : '#8c8c8c',
                               fontWeight: 500,
                             }}
                           >
-                            {Boolean(rule.enabled) ? '启用' : '停用'}
+                            {rule.enabled ? '启用' : '停用'}
                           </span>
                           <Switch
                             size="small"

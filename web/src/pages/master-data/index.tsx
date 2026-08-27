@@ -5,10 +5,9 @@ import {
   RocketOutlined,
   SendOutlined,
 } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { Tabs } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
+import { MultiTabCenterTemplate, type MultiTabCenterTabItem } from '@/components/ui';
 import AirlinesPanel from './components/AirlinesPanel';
 import AirportsPanel from './components/AirportsPanel';
 import CitiesPanel from './components/CitiesPanel';
@@ -19,120 +18,73 @@ import ShippingLinesPanel from './components/ShippingLinesPanel';
 
 export default function MasterDataPage() {
   const access = useAccess();
-  const [activeTab, setActiveTab] = useState('ports');
 
-  const tabItems = [
+  const tabItems: MultiTabCenterTabItem[] = [
     {
       key: 'ports',
+      label: '海运港口 (UN/LOCODE)',
+      icon: <CompassOutlined />,
       visible: access.canReadMasterDataPorts,
-      label: (
-        <span>
-          <CompassOutlined style={{ marginRight: 6 }} />
-          海运港口 (UN/LOCODE)
-        </span>
-      ),
+      tooltip: '维护全球港口五字码 (UN/LOCODE)、所属国家地区及海陆铁多式联运枢纽属性',
       children: <PortsPanel />,
     },
     {
       key: 'airports',
+      label: '空运机场 (IATA)',
+      icon: <SendOutlined />,
       visible: access.canReadMasterDataAirports,
-      label: (
-        <span>
-          <SendOutlined style={{ marginRight: 6 }} />
-          空运机场 (IATA)
-        </span>
-      ),
+      tooltip: '维护国际航空运输协会 (IATA) 机场三字码、ICAO 四字码及城市空港基础资料',
       children: <AirportsPanel />,
     },
     {
       key: 'airlines',
+      label: '航空公司 (Airlines)',
+      icon: <RocketOutlined />,
       visible: access.canReadMasterDataAirlines,
-      label: (
-        <span>
-          <RocketOutlined style={{ marginRight: 6 }} />
-          航空公司 (Airlines)
-        </span>
-      ),
+      tooltip: '维护航司 IATA 二字码、ICAO 三字码、运单三位前缀及主营航线基础资料',
       children: <AirlinesPanel />,
     },
     {
       key: 'shipping-lines',
+      label: '船公司 (Shipping Lines)',
+      icon: <GlobalOutlined />,
       visible: access.canReadMasterDataShippingLines,
-      label: (
-        <span>
-          <GlobalOutlined style={{ marginRight: 6 }} />
-          船公司 (Shipping Lines)
-        </span>
-      ),
+      tooltip: '维护船司标准载体代码 (SCAC)、英文缩写及订舱跟踪信息',
       children: <ShippingLinesPanel />,
     },
     {
       key: 'countries',
+      label: '国家与地区 (Countries)',
+      icon: <GlobalOutlined />,
       visible: access.canReadMasterDataItems,
-      label: (
-        <span>
-          <GlobalOutlined style={{ marginRight: 6 }} />
-          国家与地区 (Countries)
-        </span>
-      ),
+      tooltip: '维护 ISO 3166-1 国家与地区二字码/三字码、中英文标准全称及大洲归属',
       children: <CountriesPanel />,
     },
     {
       key: 'cities',
+      label: '城市与区划 (Cities)',
+      icon: <CompassOutlined />,
       visible: access.canReadMasterDataAdministrativeRegions,
-      label: (
-        <span>
-          <CompassOutlined style={{ marginRight: 6 }} />
-          城市与区划 (Cities)
-        </span>
-      ),
+      tooltip: '维护行政区划代码、城市中英文名称、所属省州与时区基础数据',
       children: <CitiesPanel />,
     },
     {
       key: 'currencies',
+      label: '货币与币种 (Currencies)',
+      icon: <DollarOutlined />,
       visible: access.canReadMasterDataCurrencies,
-      label: (
-        <span>
-          <DollarOutlined style={{ marginRight: 6 }} />
-          货币与币种 (Currencies)
-        </span>
-      ),
+      tooltip: '维护 ISO 4217 货币三字代码、货币符号、中文名称及小数精度位',
       children: <CurrenciesPanel />,
     },
-  ]
-    .filter((item) => item.visible)
-    .map(({ visible: _visible, ...item }) => item);
-
-  const visibleActiveTab = tabItems.some((item) => item.key === activeTab)
-    ? activeTab
-    : tabItems[0]?.key;
+  ];
 
   return (
-    <PageContainer
-      header={{
-        title: '货代主数据管理中心',
-        subTitle:
-          '统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、国家城市及货币币种基础资料',
-      }}
-      style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
-    >
-      <div style={{ marginTop: 8 }}>
-        <Tabs
-          activeKey={visibleActiveTab}
-          onChange={setActiveTab}
-          type="card"
-          items={tabItems}
-          tabBarStyle={{
-            position: 'sticky',
-            top: 84,
-            zIndex: 18,
-            marginBottom: 16,
-            backgroundColor: '#ffffff',
-            padding: '8px 12px 0',
-            borderRadius: '8px 8px 0 0',
-          }}
-        />
-      </div>
-    </PageContainer>
+    <MultiTabCenterTemplate
+      title="货代主数据管理中心"
+      subTitle="统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、国家城市及货币币种基础资料"
+      items={tabItems}
+      defaultActiveKey="ports"
+      syncUrlQuery
+    />
   );
 }

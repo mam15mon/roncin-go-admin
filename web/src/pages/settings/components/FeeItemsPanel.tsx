@@ -1,13 +1,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import {
   ProFormDigit,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import React, { useState } from 'react';
-import { SettingTableTemplate } from '@/components/ui';
+import { ProFormSearchableSelect, SettingTableTemplate } from '@/components/ui';
 import {
   feeCatalogServiceCreateFeeSetting,
   feeCatalogServiceListBillingUnits,
@@ -252,7 +251,7 @@ export function FeeItemsPanel() {
             label="费用别名"
             fieldProps={{ maxLength: 64 }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="serviceTypeId"
             label="对应服务类型"
@@ -260,32 +259,36 @@ export function FeeItemsPanel() {
             options={serviceTypes.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
+              code: item.code,
+              name: item.name,
             }))}
             placeholder="不选择表示通用费用"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="defaultCurrency"
             label="默认币种"
             rules={[{ required: true, message: '请选择默认币种' }]}
-            showSearch
             options={currencies.map((item) => ({
               label: `${item.code} - ${item.name}`,
               value: item.code,
+              code: item.code,
+              name: item.name,
             }))}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="billingUnitId"
             label="默认计费单位"
             rules={[{ required: true, message: '请选择计费单位' }]}
-            showSearch
             options={billingUnits.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
+              code: item.code,
+              name: item.name,
             }))}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="abnormalCaseId"
             label="对应异常情况"
@@ -293,6 +296,8 @@ export function FeeItemsPanel() {
             options={abnormalCases.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
+              code: item.code,
+              name: item.name,
             }))}
             placeholder="不选择表示不限异常情况"
           />
@@ -306,15 +311,16 @@ export function FeeItemsPanel() {
             ]}
             fieldProps={{ inputMode: 'decimal' }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="taxableServiceId"
             label="货物或应税劳务名称"
             rules={[{ required: true, message: '请选择货物或应税劳务名称' }]}
-            showSearch
             options={taxableServices.map((item) => ({
               label: item.name,
               value: item.id,
+              name: item.name,
+              code: item.goodsCode,
             }))}
           />
           <ProFormDigit

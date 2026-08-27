@@ -3,7 +3,7 @@ import type { ModalProps } from 'antd';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 
-export interface ParameterSettingTabItem {
+export interface MultiTabCenterTabItem {
   /** 唯一标识 */
   key: string;
   /** 选项卡标签名 */
@@ -22,7 +22,9 @@ export interface ParameterSettingTabItem {
   tooltip?: string;
 }
 
-export interface ParameterSettingTemplateProps {
+export type ParameterSettingTabItem = MultiTabCenterTabItem;
+
+export interface MultiTabCenterTemplateProps {
   /** 页面/容器主标题 */
   title?: ReactNode;
   /** 页面/容器副标题 */
@@ -30,7 +32,7 @@ export interface ParameterSettingTemplateProps {
   /** 顶部右侧自定义操作区 */
   extra?: ReactNode;
   /** Tab 选项卡列表 */
-  items: ParameterSettingTabItem[];
+  items: MultiTabCenterTabItem[];
   /** 当前激活的 Tab key（受控） */
   activeKey?: string;
   /** 默认激活的 Tab key */
@@ -48,6 +50,8 @@ export interface ParameterSettingTemplateProps {
   /** Tab 栏类型，默认 'line' */
   tabType?: 'line' | 'card';
 }
+
+export type ParameterSettingTemplateProps = MultiTabCenterTemplateProps;
 
 export interface SettingTableTemplateProps<
   TRecord extends Record<string, any> = Record<string, any>,
