@@ -566,14 +566,25 @@ export function ExchangeRatesPanel() {
         />
         <ProFormSelect
           name="toCurrency"
-          label="目标币（机构本币）"
-          disabled
+          label="目标币种"
+          showSearch
           options={
             currencyOptions.length > 0
               ? currencyOptions
               : [{ label: baseCurrency, value: baseCurrency }]
           }
-          rules={[{ required: true, message: '请输入目标币' }]}
+          placeholder="请选择目标币种"
+          rules={[
+            { required: true, message: '请选择目标币种' },
+            () => ({
+              validator(_, value) {
+                if (value && baseCurrency && value !== baseCurrency) {
+                  return Promise.reject(new Error(`当前组织本币为 ${baseCurrency}，目标币必须与组织本币一致`));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
         />
         <ProFormText name="receivableRate" label="应收汇率" rules={[{ validator: rateRule }]} />
         <ProFormText name="payableRate" label="应付汇率" rules={[{ validator: rateRule }]} />
