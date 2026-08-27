@@ -74,19 +74,19 @@ func (_c *ExchangeRateSettingCreate) SetToCurrency(v string) *ExchangeRateSettin
 }
 
 // SetEffectiveFrom sets the "effective_from" field.
-func (_c *ExchangeRateSettingCreate) SetEffectiveFrom(v string) *ExchangeRateSettingCreate {
+func (_c *ExchangeRateSettingCreate) SetEffectiveFrom(v time.Time) *ExchangeRateSettingCreate {
 	_c.mutation.SetEffectiveFrom(v)
 	return _c
 }
 
 // SetEffectiveTo sets the "effective_to" field.
-func (_c *ExchangeRateSettingCreate) SetEffectiveTo(v string) *ExchangeRateSettingCreate {
+func (_c *ExchangeRateSettingCreate) SetEffectiveTo(v time.Time) *ExchangeRateSettingCreate {
 	_c.mutation.SetEffectiveTo(v)
 	return _c
 }
 
 // SetNillableEffectiveTo sets the "effective_to" field if the given value is not nil.
-func (_c *ExchangeRateSettingCreate) SetNillableEffectiveTo(v *string) *ExchangeRateSettingCreate {
+func (_c *ExchangeRateSettingCreate) SetNillableEffectiveTo(v *time.Time) *ExchangeRateSettingCreate {
 	if v != nil {
 		_c.SetEffectiveTo(*v)
 	}
@@ -224,16 +224,6 @@ func (_c *ExchangeRateSettingCreate) check() error {
 	if _, ok := _c.mutation.EffectiveFrom(); !ok {
 		return &ValidationError{Name: "effective_from", err: errors.New(`ent: missing required field "ExchangeRateSetting.effective_from"`)}
 	}
-	if v, ok := _c.mutation.EffectiveFrom(); ok {
-		if err := exchangeratesetting.EffectiveFromValidator(v); err != nil {
-			return &ValidationError{Name: "effective_from", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_from": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.EffectiveTo(); ok {
-		if err := exchangeratesetting.EffectiveToValidator(v); err != nil {
-			return &ValidationError{Name: "effective_to", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_to": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.ReceivableRate(); !ok {
 		return &ValidationError{Name: "receivable_rate", err: errors.New(`ent: missing required field "ExchangeRateSetting.receivable_rate"`)}
 	}
@@ -303,11 +293,11 @@ func (_c *ExchangeRateSettingCreate) createSpec() (*ExchangeRateSetting, *sqlgra
 		_node.ToCurrency = value
 	}
 	if value, ok := _c.mutation.EffectiveFrom(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeTime, value)
 		_node.EffectiveFrom = value
 	}
 	if value, ok := _c.mutation.EffectiveTo(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeTime, value)
 		_node.EffectiveTo = &value
 	}
 	if value, ok := _c.mutation.ReceivableRate(); ok {

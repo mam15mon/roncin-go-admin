@@ -42,6 +42,8 @@ const (
 var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$`)
 var exchangeRateBusinessLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
+func ExchangeRateBusinessLocation() *time.Location { return exchangeRateBusinessLocation }
+
 type ExchangeRateSetting struct {
 	ID             uuid.UUID
 	OrganizationID uuid.UUID
@@ -220,16 +222,18 @@ func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSett
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	effectiveFrom := strings.TrimSpace(input.EffectiveFrom)
-	if !validISODate(effectiveFrom) {
+	normalizedFrom, fromTime, valid := normalizeExchangeRateTimestamp(effectiveFrom)
+	if !valid {
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	var effectiveTo *string
 	if input.EffectiveTo != nil {
 		value := strings.TrimSpace(*input.EffectiveTo)
-		if !validISODate(value) || value <= effectiveFrom {
+		normalizedTo, toTime, validTo := normalizeExchangeRateTimestamp(value)
+		if !validTo || !toTime.After(fromTime) {
 			return nil, ErrExchangeRateInvalidArgument
 		}
-		effectiveTo = &value
+		effectiveTo = &normalizedTo
 	}
 	if !validExchangeRate(input.ReceivableRate) || !validExchangeRate(input.PayableRate) {
 		return nil, ErrExchangeRateInvalidArgument
@@ -237,7 +241,7 @@ func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSett
 	output := *input
 	output.FromCurrency = fromCurrency
 	output.ToCurrency = toCurrency
-	output.EffectiveFrom = effectiveFrom
+	output.EffectiveFrom = normalizedFrom
 	output.EffectiveTo = effectiveTo
 	return &output, nil
 }
@@ -326,6 +330,27 @@ func validExchangeRate(value decimal.Decimal) bool {
 func validISODate(value string) bool {
 	parsed, err := time.Parse("2006-01-02", value)
 	return err == nil && parsed.Format("2006-01-02") == value
+}
+
+// normalizeExchangeRateTimestamp 将外部时间统一为上海时区的秒级 RFC 3339。
+// 汇率有效期不接受无时区时间或小数秒，避免不同客户端产生不一致的区间边界。
+func normalizeExchangeRateTimestamp(value string) (string, time.Time, bool) {
+	parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(value))
+	if err != nil || parsed.Nanosecond() != 0 {
+		return "", time.Time{}, false
+	}
+	parsed = parsed.In(exchangeRateBusinessLocation)
+	return parsed.Format(time.RFC3339), parsed, true
+}
+
+func parseExchangeRateLookupTime(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	if validISODate(value) {
+		parsed, err := time.ParseInLocation("2006-01-02", value, exchangeRateBusinessLocation)
+		return parsed, err == nil
+	}
+	_, parsed, valid := normalizeExchangeRateTimestamp(value)
+	return parsed, valid
 }
 
 func exchangeRateAudit(organizationID, actorID, id uuid.UUID, action string) *AuditEvent {

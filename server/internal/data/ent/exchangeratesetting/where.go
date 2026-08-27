@@ -81,12 +81,12 @@ func ToCurrency(v string) predicate.ExchangeRateSetting {
 }
 
 // EffectiveFrom applies equality check predicate on the "effective_from" field. It's identical to EffectiveFromEQ.
-func EffectiveFrom(v string) predicate.ExchangeRateSetting {
+func EffectiveFrom(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveFrom, v))
 }
 
 // EffectiveTo applies equality check predicate on the "effective_to" field. It's identical to EffectiveToEQ.
-func EffectiveTo(v string) predicate.ExchangeRateSetting {
+func EffectiveTo(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveTo, v))
 }
 
@@ -376,123 +376,83 @@ func ToCurrencyContainsFold(v string) predicate.ExchangeRateSetting {
 }
 
 // EffectiveFromEQ applies the EQ predicate on the "effective_from" field.
-func EffectiveFromEQ(v string) predicate.ExchangeRateSetting {
+func EffectiveFromEQ(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveFrom, v))
 }
 
 // EffectiveFromNEQ applies the NEQ predicate on the "effective_from" field.
-func EffectiveFromNEQ(v string) predicate.ExchangeRateSetting {
+func EffectiveFromNEQ(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldEffectiveFrom, v))
 }
 
 // EffectiveFromIn applies the In predicate on the "effective_from" field.
-func EffectiveFromIn(vs ...string) predicate.ExchangeRateSetting {
+func EffectiveFromIn(vs ...time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldIn(FieldEffectiveFrom, vs...))
 }
 
 // EffectiveFromNotIn applies the NotIn predicate on the "effective_from" field.
-func EffectiveFromNotIn(vs ...string) predicate.ExchangeRateSetting {
+func EffectiveFromNotIn(vs ...time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldEffectiveFrom, vs...))
 }
 
 // EffectiveFromGT applies the GT predicate on the "effective_from" field.
-func EffectiveFromGT(v string) predicate.ExchangeRateSetting {
+func EffectiveFromGT(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldGT(FieldEffectiveFrom, v))
 }
 
 // EffectiveFromGTE applies the GTE predicate on the "effective_from" field.
-func EffectiveFromGTE(v string) predicate.ExchangeRateSetting {
+func EffectiveFromGTE(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldEffectiveFrom, v))
 }
 
 // EffectiveFromLT applies the LT predicate on the "effective_from" field.
-func EffectiveFromLT(v string) predicate.ExchangeRateSetting {
+func EffectiveFromLT(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLT(FieldEffectiveFrom, v))
 }
 
 // EffectiveFromLTE applies the LTE predicate on the "effective_from" field.
-func EffectiveFromLTE(v string) predicate.ExchangeRateSetting {
+func EffectiveFromLTE(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldEffectiveFrom, v))
 }
 
-// EffectiveFromContains applies the Contains predicate on the "effective_from" field.
-func EffectiveFromContains(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContains(FieldEffectiveFrom, v))
-}
-
-// EffectiveFromHasPrefix applies the HasPrefix predicate on the "effective_from" field.
-func EffectiveFromHasPrefix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldEffectiveFrom, v))
-}
-
-// EffectiveFromHasSuffix applies the HasSuffix predicate on the "effective_from" field.
-func EffectiveFromHasSuffix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldEffectiveFrom, v))
-}
-
-// EffectiveFromEqualFold applies the EqualFold predicate on the "effective_from" field.
-func EffectiveFromEqualFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldEffectiveFrom, v))
-}
-
-// EffectiveFromContainsFold applies the ContainsFold predicate on the "effective_from" field.
-func EffectiveFromContainsFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldEffectiveFrom, v))
-}
-
 // EffectiveToEQ applies the EQ predicate on the "effective_to" field.
-func EffectiveToEQ(v string) predicate.ExchangeRateSetting {
+func EffectiveToEQ(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldEQ(FieldEffectiveTo, v))
 }
 
 // EffectiveToNEQ applies the NEQ predicate on the "effective_to" field.
-func EffectiveToNEQ(v string) predicate.ExchangeRateSetting {
+func EffectiveToNEQ(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNEQ(FieldEffectiveTo, v))
 }
 
 // EffectiveToIn applies the In predicate on the "effective_to" field.
-func EffectiveToIn(vs ...string) predicate.ExchangeRateSetting {
+func EffectiveToIn(vs ...time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldIn(FieldEffectiveTo, vs...))
 }
 
 // EffectiveToNotIn applies the NotIn predicate on the "effective_to" field.
-func EffectiveToNotIn(vs ...string) predicate.ExchangeRateSetting {
+func EffectiveToNotIn(vs ...time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNotIn(FieldEffectiveTo, vs...))
 }
 
 // EffectiveToGT applies the GT predicate on the "effective_to" field.
-func EffectiveToGT(v string) predicate.ExchangeRateSetting {
+func EffectiveToGT(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldGT(FieldEffectiveTo, v))
 }
 
 // EffectiveToGTE applies the GTE predicate on the "effective_to" field.
-func EffectiveToGTE(v string) predicate.ExchangeRateSetting {
+func EffectiveToGTE(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldGTE(FieldEffectiveTo, v))
 }
 
 // EffectiveToLT applies the LT predicate on the "effective_to" field.
-func EffectiveToLT(v string) predicate.ExchangeRateSetting {
+func EffectiveToLT(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLT(FieldEffectiveTo, v))
 }
 
 // EffectiveToLTE applies the LTE predicate on the "effective_to" field.
-func EffectiveToLTE(v string) predicate.ExchangeRateSetting {
+func EffectiveToLTE(v time.Time) predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldLTE(FieldEffectiveTo, v))
-}
-
-// EffectiveToContains applies the Contains predicate on the "effective_to" field.
-func EffectiveToContains(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContains(FieldEffectiveTo, v))
-}
-
-// EffectiveToHasPrefix applies the HasPrefix predicate on the "effective_to" field.
-func EffectiveToHasPrefix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasPrefix(FieldEffectiveTo, v))
-}
-
-// EffectiveToHasSuffix applies the HasSuffix predicate on the "effective_to" field.
-func EffectiveToHasSuffix(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldHasSuffix(FieldEffectiveTo, v))
 }
 
 // EffectiveToIsNil applies the IsNil predicate on the "effective_to" field.
@@ -503,16 +463,6 @@ func EffectiveToIsNil() predicate.ExchangeRateSetting {
 // EffectiveToNotNil applies the NotNil predicate on the "effective_to" field.
 func EffectiveToNotNil() predicate.ExchangeRateSetting {
 	return predicate.ExchangeRateSetting(sql.FieldNotNull(FieldEffectiveTo))
-}
-
-// EffectiveToEqualFold applies the EqualFold predicate on the "effective_to" field.
-func EffectiveToEqualFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldEqualFold(FieldEffectiveTo, v))
-}
-
-// EffectiveToContainsFold applies the ContainsFold predicate on the "effective_to" field.
-func EffectiveToContainsFold(v string) predicate.ExchangeRateSetting {
-	return predicate.ExchangeRateSetting(sql.FieldContainsFold(FieldEffectiveTo, v))
 }
 
 // ReceivableRateEQ applies the EQ predicate on the "receivable_rate" field.

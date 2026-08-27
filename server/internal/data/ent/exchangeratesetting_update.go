@@ -92,13 +92,13 @@ func (_u *ExchangeRateSettingUpdate) SetNillableToCurrency(v *string) *ExchangeR
 }
 
 // SetEffectiveFrom sets the "effective_from" field.
-func (_u *ExchangeRateSettingUpdate) SetEffectiveFrom(v string) *ExchangeRateSettingUpdate {
+func (_u *ExchangeRateSettingUpdate) SetEffectiveFrom(v time.Time) *ExchangeRateSettingUpdate {
 	_u.mutation.SetEffectiveFrom(v)
 	return _u
 }
 
 // SetNillableEffectiveFrom sets the "effective_from" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillableEffectiveFrom(v *string) *ExchangeRateSettingUpdate {
+func (_u *ExchangeRateSettingUpdate) SetNillableEffectiveFrom(v *time.Time) *ExchangeRateSettingUpdate {
 	if v != nil {
 		_u.SetEffectiveFrom(*v)
 	}
@@ -106,13 +106,13 @@ func (_u *ExchangeRateSettingUpdate) SetNillableEffectiveFrom(v *string) *Exchan
 }
 
 // SetEffectiveTo sets the "effective_to" field.
-func (_u *ExchangeRateSettingUpdate) SetEffectiveTo(v string) *ExchangeRateSettingUpdate {
+func (_u *ExchangeRateSettingUpdate) SetEffectiveTo(v time.Time) *ExchangeRateSettingUpdate {
 	_u.mutation.SetEffectiveTo(v)
 	return _u
 }
 
 // SetNillableEffectiveTo sets the "effective_to" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdate) SetNillableEffectiveTo(v *string) *ExchangeRateSettingUpdate {
+func (_u *ExchangeRateSettingUpdate) SetNillableEffectiveTo(v *time.Time) *ExchangeRateSettingUpdate {
 	if v != nil {
 		_u.SetEffectiveTo(*v)
 	}
@@ -225,16 +225,6 @@ func (_u *ExchangeRateSettingUpdate) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.EffectiveFrom(); ok {
-		if err := exchangeratesetting.EffectiveFromValidator(v); err != nil {
-			return &ValidationError{Name: "effective_from", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_from": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.EffectiveTo(); ok {
-		if err := exchangeratesetting.EffectiveToValidator(v); err != nil {
-			return &ValidationError{Name: "effective_to", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_to": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -266,13 +256,13 @@ func (_u *ExchangeRateSettingUpdate) sqlSave(ctx context.Context) (_node int, er
 		_spec.SetField(exchangeratesetting.FieldToCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.EffectiveFrom(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.EffectiveTo(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeTime, value)
 	}
 	if _u.mutation.EffectiveToCleared() {
-		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeString)
+		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ReceivableRate(); ok {
 		_spec.SetField(exchangeratesetting.FieldReceivableRate, field.TypeString, value)
@@ -366,13 +356,13 @@ func (_u *ExchangeRateSettingUpdateOne) SetNillableToCurrency(v *string) *Exchan
 }
 
 // SetEffectiveFrom sets the "effective_from" field.
-func (_u *ExchangeRateSettingUpdateOne) SetEffectiveFrom(v string) *ExchangeRateSettingUpdateOne {
+func (_u *ExchangeRateSettingUpdateOne) SetEffectiveFrom(v time.Time) *ExchangeRateSettingUpdateOne {
 	_u.mutation.SetEffectiveFrom(v)
 	return _u
 }
 
 // SetNillableEffectiveFrom sets the "effective_from" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillableEffectiveFrom(v *string) *ExchangeRateSettingUpdateOne {
+func (_u *ExchangeRateSettingUpdateOne) SetNillableEffectiveFrom(v *time.Time) *ExchangeRateSettingUpdateOne {
 	if v != nil {
 		_u.SetEffectiveFrom(*v)
 	}
@@ -380,13 +370,13 @@ func (_u *ExchangeRateSettingUpdateOne) SetNillableEffectiveFrom(v *string) *Exc
 }
 
 // SetEffectiveTo sets the "effective_to" field.
-func (_u *ExchangeRateSettingUpdateOne) SetEffectiveTo(v string) *ExchangeRateSettingUpdateOne {
+func (_u *ExchangeRateSettingUpdateOne) SetEffectiveTo(v time.Time) *ExchangeRateSettingUpdateOne {
 	_u.mutation.SetEffectiveTo(v)
 	return _u
 }
 
 // SetNillableEffectiveTo sets the "effective_to" field if the given value is not nil.
-func (_u *ExchangeRateSettingUpdateOne) SetNillableEffectiveTo(v *string) *ExchangeRateSettingUpdateOne {
+func (_u *ExchangeRateSettingUpdateOne) SetNillableEffectiveTo(v *time.Time) *ExchangeRateSettingUpdateOne {
 	if v != nil {
 		_u.SetEffectiveTo(*v)
 	}
@@ -512,16 +502,6 @@ func (_u *ExchangeRateSettingUpdateOne) check() error {
 			return &ValidationError{Name: "to_currency", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.to_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.EffectiveFrom(); ok {
-		if err := exchangeratesetting.EffectiveFromValidator(v); err != nil {
-			return &ValidationError{Name: "effective_from", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_from": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.EffectiveTo(); ok {
-		if err := exchangeratesetting.EffectiveToValidator(v); err != nil {
-			return &ValidationError{Name: "effective_to", err: fmt.Errorf(`ent: validator failed for field "ExchangeRateSetting.effective_to": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -570,13 +550,13 @@ func (_u *ExchangeRateSettingUpdateOne) sqlSave(ctx context.Context) (_node *Exc
 		_spec.SetField(exchangeratesetting.FieldToCurrency, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.EffectiveFrom(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveFrom, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.EffectiveTo(); ok {
-		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeString, value)
+		_spec.SetField(exchangeratesetting.FieldEffectiveTo, field.TypeTime, value)
 	}
 	if _u.mutation.EffectiveToCleared() {
-		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeString)
+		_spec.ClearField(exchangeratesetting.FieldEffectiveTo, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ReceivableRate(); ok {
 		_spec.SetField(exchangeratesetting.FieldReceivableRate, field.TypeString, value)

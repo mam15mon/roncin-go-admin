@@ -9342,7 +9342,8 @@
             "type": "string"
           },
           "effectiveFrom": {
-            "type": "string"
+            "type": "string",
+            "description": "示例：2026-08-27T09:30:00+08:00。"
           },
           "effectiveTo": {
             "type": "string"
@@ -9630,10 +9631,12 @@
             "type": "string"
           },
           "effectiveFrom": {
-            "type": "string"
+            "type": "string",
+            "description": "effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。"
           },
           "effectiveTo": {
-            "type": "string"
+            "type": "string",
+            "description": "effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。"
           },
           "receivableRate": {
             "type": "string"
@@ -11654,7 +11657,8 @@
             "type": "string"
           },
           "effectiveFrom": {
-            "type": "string"
+            "type": "string",
+            "description": "示例：2026-08-27T09:30:00+08:00。"
           },
           "effectiveTo": {
             "type": "string"

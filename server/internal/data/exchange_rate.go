@@ -3,6 +3,8 @@ package data
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -82,6 +84,18 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 		return nil, err
 	}
 	defer connection.ExecContext(context.Background(), "SELECT pg_advisory_unlock(hashtext($1))", lockKey)
+	effectiveFrom, err := parseExchangeRateStorageTime(input.EffectiveFrom)
+	if err != nil {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
+	var effectiveTo *time.Time
+	if input.EffectiveTo != nil {
+		parsed, parseErr := parseExchangeRateStorageTime(*input.EffectiveTo)
+		if parseErr != nil {
+			return nil, biz.ErrExchangeRateInvalidArgument
+		}
+		effectiveTo = &parsed
+	}
 
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
@@ -106,10 +120,10 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 		exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
 		exchangerateent.IsActiveEQ(true),
 		exchangerateent.IDNEQ(input.ID),
-		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(input.EffectiveFrom)),
+		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
 	)
-	if input.EffectiveTo != nil {
-		conflict.Where(exchangerateent.EffectiveFromLT(*input.EffectiveTo))
+	if effectiveTo != nil {
+		conflict.Where(exchangerateent.EffectiveFromLT(*effectiveTo))
 	}
 	hasConflict, err := conflict.Exist(ctx)
 	if err != nil {
@@ -125,21 +139,21 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 	if updating {
 		builder := tx.ExchangeRateSetting.UpdateOneID(input.ID).
 			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetEffectiveFrom(input.EffectiveFrom).
+			SetEffectiveFrom(effectiveFrom).
 			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8))
 		if input.EffectiveTo == nil {
 			builder.ClearEffectiveTo()
 		} else {
-			builder.SetEffectiveTo(*input.EffectiveTo)
+			builder.SetEffectiveTo(*effectiveTo)
 		}
 		saved, err = builder.Save(ctx)
 	} else {
 		builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
 			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetEffectiveFrom(input.EffectiveFrom).
+			SetEffectiveFrom(effectiveFrom).
 			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8)).SetIsActive(true)
-		if input.EffectiveTo != nil {
-			builder.SetEffectiveTo(*input.EffectiveTo)
+		if effectiveTo != nil {
+			builder.SetEffectiveTo(*effectiveTo)
 		}
 		saved, err = builder.Save(ctx)
 	}
@@ -233,11 +247,15 @@ func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizatio
 }
 
 func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*biz.ResolvedExchangeRate, error) {
+	lookupTime, err := parseExchangeRateStorageTime(rateDate)
+	if err != nil {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
 	items, err := r.data.db.ExchangeRateSetting.Query().Where(
 		exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(rateType)),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
 		exchangerateent.IsActiveEQ(true),
-		exchangerateent.EffectiveFromLTE(rateDate), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(rateDate)),
+		exchangerateent.EffectiveFromLTE(lookupTime), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(lookupTime)),
 	).Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
@@ -280,7 +298,21 @@ func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting,
 	if err != nil {
 		return nil, err
 	}
-	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: item.EffectiveFrom, EffectiveTo: item.EffectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
+	effectiveFrom := item.EffectiveFrom.In(biz.ExchangeRateBusinessLocation()).Format(time.RFC3339)
+	var effectiveTo *string
+	if item.EffectiveTo != nil {
+		value := item.EffectiveTo.In(biz.ExchangeRateBusinessLocation()).Format(time.RFC3339)
+		effectiveTo = &value
+	}
+	return &biz.ExchangeRateSetting{ID: item.ID, OrganizationID: item.OrganizationID, RateType: string(item.RateType), FromCurrency: item.FromCurrency, ToCurrency: item.ToCurrency, EffectiveFrom: effectiveFrom, EffectiveTo: effectiveTo, ReceivableRate: receivable, PayableRate: payable, IsActive: item.IsActive, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}, nil
+}
+
+func parseExchangeRateStorageTime(value string) (time.Time, error) {
+	value = strings.TrimSpace(value)
+	if parsed, err := time.Parse(time.RFC3339, value); err == nil && parsed.Nanosecond() == 0 {
+		return parsed, nil
+	}
+	return time.ParseInLocation("2006-01-02", value, biz.ExchangeRateBusinessLocation())
 }
 
 var _ biz.ExchangeRateRepo = (*exchangeRateRepo)(nil)

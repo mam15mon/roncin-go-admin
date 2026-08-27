@@ -711,6 +711,7 @@ declare namespace API {
     rateType: string;
     fromCurrency: string;
     toCurrency: string;
+    /** 示例：2026-08-27T09:30:00+08:00。 */
     effectiveFrom: string;
     effectiveTo?: string;
     receivableRate: string;
@@ -1189,7 +1190,9 @@ declare namespace API {
     rateType?: string;
     fromCurrency?: string;
     toCurrency?: string;
+    /** effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。 */
     effectiveFrom?: string;
+    /** effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。 */
     effectiveTo?: string;
     receivableRate?: string;
     payableRate?: string;
@@ -4114,6 +4117,7 @@ declare namespace API {
     rateType: string;
     fromCurrency: string;
     toCurrency: string;
+    /** 示例：2026-08-27T09:30:00+08:00。 */
     effectiveFrom: string;
     effectiveTo?: string;
     receivableRate: string;

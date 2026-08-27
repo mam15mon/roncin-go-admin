@@ -48,17 +48,17 @@ func (s *exchangeRateRepoStub) Resolve(context.Context, uuid.UUID, string, Order
 }
 
 func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
-	effectiveTo := "2026-09-01"
+	effectiveTo := "2026-09-01T23:59:59+08:00"
 	input := &ExchangeRateSetting{
 		RateType: SettlementRateType, FromCurrency: "usd", ToCurrency: "cny",
-		EffectiveFrom: "2026-08-01", EffectiveTo: &effectiveTo,
+		EffectiveFrom: "2026-08-01T09:30:00+08:00", EffectiveTo: &effectiveTo,
 		ReceivableRate: decimal.RequireFromString("7.12345678"), PayableRate: decimal.RequireFromString("7.02345678"),
 	}
 	value, err := normalizeExchangeRateSetting(input)
 	if err != nil {
 		t.Fatalf("规范化汇率失败: %v", err)
 	}
-	if value.FromCurrency != "USD" || value.ToCurrency != "CNY" || value.ReceivableRate.StringFixed(8) != "7.12345678" {
+	if value.FromCurrency != "USD" || value.ToCurrency != "CNY" || value.EffectiveFrom != "2026-08-01T09:30:00+08:00" || value.ReceivableRate.StringFixed(8) != "7.12345678" {
 		t.Fatalf("汇率规范化结果不正确: %#v", value)
 	}
 }
@@ -69,7 +69,7 @@ func TestNormalizeExchangeRateSettingAcceptsSupportedRateTypes(t *testing.T) {
 		t.Run(rateType, func(t *testing.T) {
 			input := &ExchangeRateSetting{
 				RateType: rateType, FromCurrency: "USD", ToCurrency: "CNY",
-				EffectiveFrom: "2026-08-01", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+				EffectiveFrom: "2026-08-01T00:00:00+08:00", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
 			}
 			if _, err := normalizeExchangeRateSetting(input); err != nil {
 				t.Fatalf("合法汇率类型 %s 不应被拒绝: %v", rateType, err)
@@ -81,7 +81,7 @@ func TestNormalizeExchangeRateSettingAcceptsSupportedRateTypes(t *testing.T) {
 func TestNormalizeExchangeRateSettingRejectsUnknownRateType(t *testing.T) {
 	input := &ExchangeRateSetting{
 		RateType: "UNKNOWN", FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-01", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+		EffectiveFrom: "2026-08-01T00:00:00+08:00", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
 	}
 	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("未知汇率类型应被拒绝，实际错误为 %v", err)
@@ -151,10 +151,10 @@ func TestResolveBaseCurrencyUsesExactOne(t *testing.T) {
 }
 
 func TestNormalizeExchangeRateSettingRejectsInvalidInterval(t *testing.T) {
-	effectiveTo := "2026-08-01"
+	effectiveTo := "2026-08-01T09:29:59+08:00"
 	input := &ExchangeRateSetting{
 		RateType: SettlementRateType, FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-01", EffectiveTo: &effectiveTo,
+		EffectiveFrom: "2026-08-01T09:30:00+08:00", EffectiveTo: &effectiveTo,
 		ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
 	}
 	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
@@ -165,9 +165,40 @@ func TestNormalizeExchangeRateSettingRejectsInvalidInterval(t *testing.T) {
 func TestNormalizeExchangeRateSettingRejectsExcessPrecision(t *testing.T) {
 	input := &ExchangeRateSetting{
 		RateType: SettlementRateType, FromCurrency: "USD", ToCurrency: "CNY",
-		EffectiveFrom: "2026-08-01", ReceivableRate: decimal.RequireFromString("7.123456789"), PayableRate: decimal.NewFromInt(7),
+		EffectiveFrom: "2026-08-01T00:00:00+08:00", ReceivableRate: decimal.RequireFromString("7.123456789"), PayableRate: decimal.NewFromInt(7),
 	}
 	if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("九位小数汇率应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestNormalizeExchangeRateSettingRequiresZonedSecondTimestamp(t *testing.T) {
+	cases := []string{
+		"2026-08-27",
+		"2026-08-27T09:30:00",
+		"2026-08-27T09:30:00.123+08:00",
+	}
+	for _, effectiveFrom := range cases {
+		input := &ExchangeRateSetting{
+			RateType: BillRateType, FromCurrency: "USD", ToCurrency: "CNY",
+			EffectiveFrom: effectiveFrom, ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+		}
+		if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
+			t.Fatalf("非带时区秒级时间 %q 应被拒绝，实际错误为 %v", effectiveFrom, err)
+		}
+	}
+}
+
+func TestNormalizeExchangeRateSettingConvertsToBusinessTimezone(t *testing.T) {
+	input := &ExchangeRateSetting{
+		RateType: BillRateType, FromCurrency: "USD", ToCurrency: "CNY",
+		EffectiveFrom: "2026-08-27T01:30:00Z", ReceivableRate: decimal.NewFromInt(7), PayableRate: decimal.NewFromInt(7),
+	}
+	normalized, err := normalizeExchangeRateSetting(input)
+	if err != nil {
+		t.Fatalf("规范化带时区时间失败: %v", err)
+	}
+	if normalized.EffectiveFrom != "2026-08-27T09:30:00+08:00" {
+		t.Fatalf("汇率时间未统一到业务时区: %s", normalized.EffectiveFrom)
 	}
 }

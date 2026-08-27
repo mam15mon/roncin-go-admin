@@ -78,10 +78,6 @@ var (
 	FromCurrencyValidator func(string) error
 	// ToCurrencyValidator is a validator for the "to_currency" field. It is called by the builders before save.
 	ToCurrencyValidator func(string) error
-	// EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
-	EffectiveFromValidator func(string) error
-	// EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
-	EffectiveToValidator func(string) error
 	// DefaultIsActive holds the default value on creation for the "is_active" field.
 	DefaultIsActive bool
 	// DefaultID holds the default value on creation for the "id" field.

@@ -7642,8 +7642,8 @@ type ExchangeRateSettingMutation struct {
 	rate_type       *exchangeratesetting.RateType
 	from_currency   *string
 	to_currency     *string
-	effective_from  *string
-	effective_to    *string
+	effective_from  *time.Time
+	effective_to    *time.Time
 	receivable_rate *string
 	payable_rate    *string
 	is_active       *bool
@@ -7974,12 +7974,12 @@ func (m *ExchangeRateSettingMutation) ResetToCurrency() {
 }
 
 // SetEffectiveFrom sets the "effective_from" field.
-func (m *ExchangeRateSettingMutation) SetEffectiveFrom(s string) {
-	m.effective_from = &s
+func (m *ExchangeRateSettingMutation) SetEffectiveFrom(t time.Time) {
+	m.effective_from = &t
 }
 
 // EffectiveFrom returns the value of the "effective_from" field in the mutation.
-func (m *ExchangeRateSettingMutation) EffectiveFrom() (r string, exists bool) {
+func (m *ExchangeRateSettingMutation) EffectiveFrom() (r time.Time, exists bool) {
 	v := m.effective_from
 	if v == nil {
 		return
@@ -7990,7 +7990,7 @@ func (m *ExchangeRateSettingMutation) EffectiveFrom() (r string, exists bool) {
 // OldEffectiveFrom returns the old "effective_from" field's value of the ExchangeRateSetting entity.
 // If the ExchangeRateSetting object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExchangeRateSettingMutation) OldEffectiveFrom(ctx context.Context) (v string, err error) {
+func (m *ExchangeRateSettingMutation) OldEffectiveFrom(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEffectiveFrom is only allowed on UpdateOne operations")
 	}
@@ -8010,12 +8010,12 @@ func (m *ExchangeRateSettingMutation) ResetEffectiveFrom() {
 }
 
 // SetEffectiveTo sets the "effective_to" field.
-func (m *ExchangeRateSettingMutation) SetEffectiveTo(s string) {
-	m.effective_to = &s
+func (m *ExchangeRateSettingMutation) SetEffectiveTo(t time.Time) {
+	m.effective_to = &t
 }
 
 // EffectiveTo returns the value of the "effective_to" field in the mutation.
-func (m *ExchangeRateSettingMutation) EffectiveTo() (r string, exists bool) {
+func (m *ExchangeRateSettingMutation) EffectiveTo() (r time.Time, exists bool) {
 	v := m.effective_to
 	if v == nil {
 		return
@@ -8026,7 +8026,7 @@ func (m *ExchangeRateSettingMutation) EffectiveTo() (r string, exists bool) {
 // OldEffectiveTo returns the old "effective_to" field's value of the ExchangeRateSetting entity.
 // If the ExchangeRateSetting object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExchangeRateSettingMutation) OldEffectiveTo(ctx context.Context) (v *string, err error) {
+func (m *ExchangeRateSettingMutation) OldEffectiveTo(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEffectiveTo is only allowed on UpdateOne operations")
 	}
@@ -8347,14 +8347,14 @@ func (m *ExchangeRateSettingMutation) SetField(name string, value ent.Value) err
 		m.SetToCurrency(v)
 		return nil
 	case exchangeratesetting.FieldEffectiveFrom:
-		v, ok := value.(string)
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEffectiveFrom(v)
 		return nil
 	case exchangeratesetting.FieldEffectiveTo:
-		v, ok := value.(string)
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

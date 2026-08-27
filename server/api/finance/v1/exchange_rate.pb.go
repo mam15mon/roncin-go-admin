@@ -30,13 +30,15 @@ type ExchangeRateSetting struct {
 	RateType       string                 `protobuf:"bytes,3,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
 	FromCurrency   string                 `protobuf:"bytes,4,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
 	ToCurrency     string                 `protobuf:"bytes,5,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	EffectiveFrom  string                 `protobuf:"bytes,7,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo    *string                `protobuf:"bytes,8,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	ReceivableRate string                 `protobuf:"bytes,9,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
-	PayableRate    string                 `protobuf:"bytes,10,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
-	IsActive       bool                   `protobuf:"varint,11,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// effective_from 为带时区且精确到秒的 RFC 3339 时间，区间左边界包含该时刻。
+	EffectiveFrom string `protobuf:"bytes,7,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	// effective_to 为带时区且精确到秒的 RFC 3339 时间，区间右边界不包含该时刻；空表示长期有效。
+	EffectiveTo    *string `protobuf:"bytes,8,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
+	ReceivableRate string  `protobuf:"bytes,9,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
+	PayableRate    string  `protobuf:"bytes,10,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
+	IsActive       bool    `protobuf:"varint,11,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	CreatedAt      string  `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string  `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -276,14 +278,15 @@ func (x *ListExchangeRateSettingsResponse) GetBaseCurrency() string {
 }
 
 type CreateExchangeRateSettingRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	RateType       string                 `protobuf:"bytes,1,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
-	FromCurrency   string                 `protobuf:"bytes,2,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
-	ToCurrency     string                 `protobuf:"bytes,3,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	EffectiveFrom  string                 `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo    *string                `protobuf:"bytes,6,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	ReceivableRate string                 `protobuf:"bytes,7,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
-	PayableRate    string                 `protobuf:"bytes,8,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	RateType     string                 `protobuf:"bytes,1,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
+	FromCurrency string                 `protobuf:"bytes,2,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	ToCurrency   string                 `protobuf:"bytes,3,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
+	// 示例：2026-08-27T09:30:00+08:00。
+	EffectiveFrom  string  `protobuf:"bytes,5,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	EffectiveTo    *string `protobuf:"bytes,6,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
+	ReceivableRate string  `protobuf:"bytes,7,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
+	PayableRate    string  `protobuf:"bytes,8,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -368,15 +371,16 @@ func (x *CreateExchangeRateSettingRequest) GetPayableRate() string {
 }
 
 type UpdateExchangeRateSettingRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RateType       string                 `protobuf:"bytes,2,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
-	FromCurrency   string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
-	ToCurrency     string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
-	EffectiveFrom  string                 `protobuf:"bytes,6,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	EffectiveTo    *string                `protobuf:"bytes,7,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
-	ReceivableRate string                 `protobuf:"bytes,8,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
-	PayableRate    string                 `protobuf:"bytes,9,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RateType     string                 `protobuf:"bytes,2,opt,name=rate_type,json=rateType,proto3" json:"rate_type,omitempty"`
+	FromCurrency string                 `protobuf:"bytes,3,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	ToCurrency   string                 `protobuf:"bytes,4,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
+	// 示例：2026-08-27T09:30:00+08:00。
+	EffectiveFrom  string  `protobuf:"bytes,6,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	EffectiveTo    *string `protobuf:"bytes,7,opt,name=effective_to,json=effectiveTo,proto3,oneof" json:"effective_to,omitempty"`
+	ReceivableRate string  `protobuf:"bytes,8,opt,name=receivable_rate,json=receivableRate,proto3" json:"receivable_rate,omitempty"`
+	PayableRate    string  `protobuf:"bytes,9,opt,name=payable_rate,json=payableRate,proto3" json:"payable_rate,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }

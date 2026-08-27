@@ -832,43 +832,6 @@ func init() {
 			return nil
 		}
 	}()
-	// exchangeratesettingDescEffectiveFrom is the schema descriptor for effective_from field.
-	exchangeratesettingDescEffectiveFrom := exchangeratesettingFields[4].Descriptor()
-	// exchangeratesetting.EffectiveFromValidator is a validator for the "effective_from" field. It is called by the builders before save.
-	exchangeratesetting.EffectiveFromValidator = func() func(string) error {
-		validators := exchangeratesettingDescEffectiveFrom.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(effective_from string) error {
-			for _, fn := range fns {
-				if err := fn(effective_from); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// exchangeratesettingDescEffectiveTo is the schema descriptor for effective_to field.
-	exchangeratesettingDescEffectiveTo := exchangeratesettingFields[5].Descriptor()
-	// exchangeratesetting.EffectiveToValidator is a validator for the "effective_to" field. It is called by the builders before save.
-	exchangeratesetting.EffectiveToValidator = func() func(string) error {
-		validators := exchangeratesettingDescEffectiveTo.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(effective_to string) error {
-			for _, fn := range fns {
-				if err := fn(effective_to); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// exchangeratesettingDescIsActive is the schema descriptor for is_active field.
 	exchangeratesettingDescIsActive := exchangeratesettingFields[8].Descriptor()
 	// exchangeratesetting.DefaultIsActive holds the default value on creation for the is_active field.

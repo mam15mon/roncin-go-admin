@@ -31,9 +31,9 @@ type ExchangeRateSetting struct {
 	// ToCurrency holds the value of the "to_currency" field.
 	ToCurrency string `json:"to_currency,omitempty"`
 	// EffectiveFrom holds the value of the "effective_from" field.
-	EffectiveFrom string `json:"effective_from,omitempty"`
+	EffectiveFrom time.Time `json:"effective_from,omitempty"`
 	// EffectiveTo holds the value of the "effective_to" field.
-	EffectiveTo *string `json:"effective_to,omitempty"`
+	EffectiveTo *time.Time `json:"effective_to,omitempty"`
 	// ReceivableRate holds the value of the "receivable_rate" field.
 	ReceivableRate string `json:"receivable_rate,omitempty"`
 	// PayableRate holds the value of the "payable_rate" field.
@@ -50,9 +50,9 @@ func (*ExchangeRateSetting) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case exchangeratesetting.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case exchangeratesetting.FieldRateType, exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo, exchangeratesetting.FieldReceivableRate, exchangeratesetting.FieldPayableRate:
+		case exchangeratesetting.FieldRateType, exchangeratesetting.FieldFromCurrency, exchangeratesetting.FieldToCurrency, exchangeratesetting.FieldReceivableRate, exchangeratesetting.FieldPayableRate:
 			values[i] = new(sql.NullString)
-		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt:
+		case exchangeratesetting.FieldCreatedAt, exchangeratesetting.FieldUpdatedAt, exchangeratesetting.FieldEffectiveFrom, exchangeratesetting.FieldEffectiveTo:
 			values[i] = new(sql.NullTime)
 		case exchangeratesetting.FieldID, exchangeratesetting.FieldOrganizationID:
 			values[i] = new(uuid.UUID)
@@ -114,17 +114,17 @@ func (_m *ExchangeRateSetting) assignValues(columns []string, values []any) erro
 				_m.ToCurrency = value.String
 			}
 		case exchangeratesetting.FieldEffectiveFrom:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field effective_from", values[i])
 			} else if value.Valid {
-				_m.EffectiveFrom = value.String
+				_m.EffectiveFrom = value.Time
 			}
 		case exchangeratesetting.FieldEffectiveTo:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field effective_to", values[i])
 			} else if value.Valid {
-				_m.EffectiveTo = new(string)
-				*_m.EffectiveTo = value.String
+				_m.EffectiveTo = new(time.Time)
+				*_m.EffectiveTo = value.Time
 			}
 		case exchangeratesetting.FieldReceivableRate:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,11 +199,11 @@ func (_m *ExchangeRateSetting) String() string {
 	builder.WriteString(_m.ToCurrency)
 	builder.WriteString(", ")
 	builder.WriteString("effective_from=")
-	builder.WriteString(_m.EffectiveFrom)
+	builder.WriteString(_m.EffectiveFrom.Format(time.ANSIC))
 	builder.WriteString(", ")
 	if v := _m.EffectiveTo; v != nil {
 		builder.WriteString("effective_to=")
-		builder.WriteString(*v)
+		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("receivable_rate=")
