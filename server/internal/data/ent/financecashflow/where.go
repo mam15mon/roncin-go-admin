@@ -106,6 +106,16 @@ func ExchangeRate(v string) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRate, v))
 }
 
+// ExchangeRateDate applies equality check predicate on the "exchange_rate_date" field. It's identical to ExchangeRateDateEQ.
+func ExchangeRateDate(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateSettingID applies equality check predicate on the "exchange_rate_setting_id" field. It's identical to ExchangeRateSettingIDEQ.
+func ExchangeRateSettingID(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRateSettingID, v))
+}
+
 // BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
 func BaseCurrency(v string) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldEQ(FieldBaseCurrency, v))
@@ -724,6 +734,141 @@ func ExchangeRateEqualFold(v string) predicate.FinanceCashflow {
 // ExchangeRateContainsFold applies the ContainsFold predicate on the "exchange_rate" field.
 func ExchangeRateContainsFold(v string) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldContainsFold(FieldExchangeRate, v))
+}
+
+// ExchangeRateSourceEQ applies the EQ predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceEQ(v ExchangeRateSource) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRateSource, v))
+}
+
+// ExchangeRateSourceNEQ applies the NEQ predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceNEQ(v ExchangeRateSource) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNEQ(FieldExchangeRateSource, v))
+}
+
+// ExchangeRateSourceIn applies the In predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceIn(vs ...ExchangeRateSource) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldIn(FieldExchangeRateSource, vs...))
+}
+
+// ExchangeRateSourceNotIn applies the NotIn predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceNotIn(vs ...ExchangeRateSource) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNotIn(FieldExchangeRateSource, vs...))
+}
+
+// ExchangeRateDateEQ applies the EQ predicate on the "exchange_rate_date" field.
+func ExchangeRateDateEQ(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateNEQ applies the NEQ predicate on the "exchange_rate_date" field.
+func ExchangeRateDateNEQ(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateIn applies the In predicate on the "exchange_rate_date" field.
+func ExchangeRateDateIn(vs ...string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldIn(FieldExchangeRateDate, vs...))
+}
+
+// ExchangeRateDateNotIn applies the NotIn predicate on the "exchange_rate_date" field.
+func ExchangeRateDateNotIn(vs ...string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNotIn(FieldExchangeRateDate, vs...))
+}
+
+// ExchangeRateDateGT applies the GT predicate on the "exchange_rate_date" field.
+func ExchangeRateDateGT(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGT(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateGTE applies the GTE predicate on the "exchange_rate_date" field.
+func ExchangeRateDateGTE(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGTE(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateLT applies the LT predicate on the "exchange_rate_date" field.
+func ExchangeRateDateLT(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLT(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateLTE applies the LTE predicate on the "exchange_rate_date" field.
+func ExchangeRateDateLTE(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLTE(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateContains applies the Contains predicate on the "exchange_rate_date" field.
+func ExchangeRateDateContains(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldContains(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateHasPrefix applies the HasPrefix predicate on the "exchange_rate_date" field.
+func ExchangeRateDateHasPrefix(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldHasPrefix(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateHasSuffix applies the HasSuffix predicate on the "exchange_rate_date" field.
+func ExchangeRateDateHasSuffix(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldHasSuffix(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateEqualFold applies the EqualFold predicate on the "exchange_rate_date" field.
+func ExchangeRateDateEqualFold(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEqualFold(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateContainsFold applies the ContainsFold predicate on the "exchange_rate_date" field.
+func ExchangeRateDateContainsFold(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldContainsFold(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateSettingIDEQ applies the EQ predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDEQ(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDNEQ applies the NEQ predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNEQ(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNEQ(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDIn applies the In predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDIn(vs ...uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldIn(FieldExchangeRateSettingID, vs...))
+}
+
+// ExchangeRateSettingIDNotIn applies the NotIn predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNotIn(vs ...uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNotIn(FieldExchangeRateSettingID, vs...))
+}
+
+// ExchangeRateSettingIDGT applies the GT predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDGT(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGT(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDGTE applies the GTE predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDGTE(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGTE(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDLT applies the LT predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDLT(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLT(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDLTE applies the LTE predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDLTE(v uuid.UUID) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLTE(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDIsNil applies the IsNil predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDIsNil() predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldIsNull(FieldExchangeRateSettingID))
+}
+
+// ExchangeRateSettingIDNotNil applies the NotNil predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNotNil() predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNotNull(FieldExchangeRateSettingID))
 }
 
 // BaseCurrencyEQ applies the EQ predicate on the "base_currency" field.

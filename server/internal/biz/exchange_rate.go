@@ -33,7 +33,9 @@ const (
 	BargeETDStandard          = "BARGE_ETD"
 	ExpenseTimeStandard       = "EXPENSE_TIME"
 	OrderCreatedAtStandard    = "ORDER_CREATED_AT"
-	BillCreatedAtStandard     = "BILL_CREATED_AT"
+	BillDateStandard          = "BILL_DATE"
+	InvoiceDateStandard       = "INVOICE_DATE"
+	TransactionDateStandard   = "TRANSACTION_DATE"
 	WriteOffTimeStandard      = "WRITE_OFF_TIME"
 )
 
@@ -277,10 +279,12 @@ func allowedTimeStandards(rateType string) map[string]struct{} {
 	switch rateType {
 	case BaseCurrencyRateType:
 		values = []string{ETDETAOrTrainDateStandard, BusinessTimeStandard, BargeETDStandard, OrderCreatedAtStandard}
-	case InvoiceRateType, BillRateType:
-		values = []string{BillCreatedAtStandard}
+	case InvoiceRateType:
+		values = []string{InvoiceDateStandard}
+	case BillRateType:
+		values = []string{BillDateStandard}
 	case SettlementRateType:
-		values = []string{ETDETAOrTrainDateStandard, BusinessTimeStandard, BargeETDStandard, ExpenseTimeStandard, OrderCreatedAtStandard}
+		values = []string{TransactionDateStandard}
 	case WriteOffRateType:
 		values = []string{WriteOffTimeStandard}
 	}

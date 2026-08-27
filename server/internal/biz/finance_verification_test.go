@@ -35,3 +35,28 @@ func TestSameVerificationIntentIgnoresAllocationOrder(t *testing.T) {
 		t.Fatal("金额不同的请求不应复用已有核销")
 	}
 }
+
+func TestCalculateVerificationAllocationAmountsRecognizesExchangeGainLoss(t *testing.T) {
+	amount := decimal.RequireFromString("40")
+	billTotal := decimal.RequireFromString("100")
+	billBaseTotal := decimal.RequireFromString("720")
+	cashflowTotal := decimal.RequireFromString("100")
+	cashflowBaseTotal := decimal.RequireFromString("725")
+	writeOffRate := decimal.RequireFromString("7.30")
+
+	billBase, cashBase, writeOffBase, receivableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeeReceivable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate)
+	if err != nil {
+		t.Fatalf("计算应收核销汇兑损益失败: %v", err)
+	}
+	if billBase.StringFixed(8) != "288.00000000" || cashBase.StringFixed(8) != "290.00000000" || writeOffBase.StringFixed(8) != "292.00000000" || receivableGainLoss.StringFixed(8) != "2.00000000" {
+		t.Fatalf("应收核销汇率快照不正确: bill=%s cash=%s writeOff=%s gainLoss=%s", billBase, cashBase, writeOffBase, receivableGainLoss)
+	}
+
+	_, _, _, payableGainLoss, err := CalculateVerificationAllocationAmounts(OrderFeePayable, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate)
+	if err != nil {
+		t.Fatalf("计算应付核销汇兑损益失败: %v", err)
+	}
+	if payableGainLoss.StringFixed(8) != "-2.00000000" {
+		t.Fatalf("应付核销时资金本币金额高于账面金额应形成汇兑损失，实际 %s", payableGainLoss)
+	}
+}

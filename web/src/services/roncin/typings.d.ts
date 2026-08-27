@@ -658,8 +658,8 @@ declare namespace API {
     settlementPartyId: string;
     currency: string;
     amount: string;
-    exchangeRate: string;
-    baseCurrency: string;
+    exchangeRate?: string;
+    baseCurrency?: string;
     transactionDate: string;
     ourAccount: string;
     counterpartyAccount?: string;
@@ -1363,6 +1363,10 @@ declare namespace API {
     batchNo?: string;
     statementTitle?: string;
     paymentTermsDays?: number;
+    exchangeRate?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
   };
 
   type FinanceBillBatch = {
@@ -1423,6 +1427,9 @@ declare namespace API {
     updatedAt?: string;
     verifiedAmount?: string;
     unverifiedAmount?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
   };
 
   type FinanceCommission = {
@@ -1551,6 +1558,12 @@ declare namespace API {
     bankName?: string;
     bankAccount?: string;
     lines?: FinanceInvoiceLine[];
+    baseCurrency?: string;
+    exchangeRate?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
+    baseCurrencyAmount?: string;
   };
 
   type FinanceInvoiceBill = {
@@ -1591,6 +1604,15 @@ declare namespace API {
     reversalReason?: string;
     allocations?: FinanceVerificationAllocation[];
     createdAt?: string;
+    baseCurrency?: string;
+    exchangeRate?: string;
+    exchangeRateSource?: string;
+    exchangeRateDate?: string;
+    exchangeRateSettingId?: string;
+    baseAmount?: string;
+    billBaseAmount?: string;
+    cashflowBaseAmount?: string;
+    exchangeGainLoss?: string;
   };
 
   type FinanceVerificationAllocation = {
@@ -1601,6 +1623,10 @@ declare namespace API {
     billNo?: string;
     amount?: string;
     active?: boolean;
+    billBaseAmount?: string;
+    cashflowBaseAmount?: string;
+    writeOffBaseAmount?: string;
+    exchangeGainLoss?: string;
   };
 
   type GetBackgroundTaskResponse = {

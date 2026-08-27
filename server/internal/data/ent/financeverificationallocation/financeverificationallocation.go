@@ -31,6 +31,14 @@ const (
 	FieldBillNo = "bill_no"
 	// FieldAmount holds the string denoting the amount field in the database.
 	FieldAmount = "amount"
+	// FieldBillBaseAmount holds the string denoting the bill_base_amount field in the database.
+	FieldBillBaseAmount = "bill_base_amount"
+	// FieldCashflowBaseAmount holds the string denoting the cashflow_base_amount field in the database.
+	FieldCashflowBaseAmount = "cashflow_base_amount"
+	// FieldWriteOffBaseAmount holds the string denoting the write_off_base_amount field in the database.
+	FieldWriteOffBaseAmount = "write_off_base_amount"
+	// FieldExchangeGainLoss holds the string denoting the exchange_gain_loss field in the database.
+	FieldExchangeGainLoss = "exchange_gain_loss"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
 	// EdgeVerification holds the string denoting the verification edge name in mutations.
@@ -75,6 +83,10 @@ var Columns = []string{
 	FieldCashflowNo,
 	FieldBillNo,
 	FieldAmount,
+	FieldBillBaseAmount,
+	FieldCashflowBaseAmount,
+	FieldWriteOffBaseAmount,
+	FieldExchangeGainLoss,
 	FieldActive,
 }
 
@@ -151,6 +163,26 @@ func ByBillNo(opts ...sql.OrderTermOption) OrderOption {
 // ByAmount orders the results by the amount field.
 func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAmount, opts...).ToFunc()
+}
+
+// ByBillBaseAmount orders the results by the bill_base_amount field.
+func ByBillBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillBaseAmount, opts...).ToFunc()
+}
+
+// ByCashflowBaseAmount orders the results by the cashflow_base_amount field.
+func ByCashflowBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCashflowBaseAmount, opts...).ToFunc()
+}
+
+// ByWriteOffBaseAmount orders the results by the write_off_base_amount field.
+func ByWriteOffBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWriteOffBaseAmount, opts...).ToFunc()
+}
+
+// ByExchangeGainLoss orders the results by the exchange_gain_loss field.
+func ByExchangeGainLoss(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExchangeGainLoss, opts...).ToFunc()
 }
 
 // ByActive orders the results by the active field.

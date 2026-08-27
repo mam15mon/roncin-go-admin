@@ -290,7 +290,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
 		SetNillableBatchID(bill.BatchID).
 		SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
-		SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).
+		SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).
 		SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
 		SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 	if err != nil {
@@ -410,7 +410,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 			return rollback(allocateErr)
 		}
 		bill.BatchNo = batch.BatchNo
-		_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+		_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 		if saveErr != nil {
 			return rollback(saveErr)
 		}
@@ -460,7 +460,12 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, 
 	if item.Status != financebillent.StatusDRAFT {
 		return rollback(biz.ErrFinanceBillInvalidTransition)
 	}
-	update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetVersion(item.Version + 1)
+	update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
+	if input.ExchangeRateSettingID == nil {
+		update.ClearExchangeRateSettingID()
+	} else {
+		update.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
+	}
 	if input.DueDate == nil {
 		update.ClearDueDate()
 	} else {
@@ -621,11 +626,16 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	if err != nil {
 		return nil, err
 	}
+	exchangeRate, err := decimal.NewFromString(item.ExchangeRate)
+	if err != nil {
+		return nil, err
+	}
 	result := &biz.FinanceBill{
 		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, BillNo: item.BillNo, IdempotencyKey: item.IdempotencyKey,
 		Direction: biz.OrderFeeDirection(item.Direction), Status: biz.FinanceBillStatus(item.Status),
 		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount,
+		ExchangeRate: exchangeRate, ExchangeRateSource: string(item.ExchangeRateSource), ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingID: item.ExchangeRateSettingID,
 		BaseCurrencyAmount: baseAmount, FeeCount: item.FeeCount, BillDate: item.BillDate, StatementTitle: item.StatementTitle, PaymentTermsDays: item.PaymentTermsDays, DueDate: item.DueDate, Note: item.Note,
 		Version: item.Version, ConfirmedAt: item.ConfirmedAt, ConfirmedBy: item.ConfirmedBy, CancelledAt: item.CancelledAt,
 		CancelledBy: item.CancelledBy, CancellationReason: item.CancellationReason, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,

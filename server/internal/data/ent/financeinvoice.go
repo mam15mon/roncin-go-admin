@@ -58,6 +58,18 @@ type FinanceInvoice struct {
 	BankAccount *string `json:"bank_account,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
+	// BaseCurrency holds the value of the "base_currency" field.
+	BaseCurrency string `json:"base_currency,omitempty"`
+	// ExchangeRate holds the value of the "exchange_rate" field.
+	ExchangeRate *string `json:"exchange_rate,omitempty"`
+	// ExchangeRateSource holds the value of the "exchange_rate_source" field.
+	ExchangeRateSource *financeinvoice.ExchangeRateSource `json:"exchange_rate_source,omitempty"`
+	// ExchangeRateDate holds the value of the "exchange_rate_date" field.
+	ExchangeRateDate *string `json:"exchange_rate_date,omitempty"`
+	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
+	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
+	// BaseCurrencyAmount holds the value of the "base_currency_amount" field.
+	BaseCurrencyAmount *string `json:"base_currency_amount,omitempty"`
 	// TotalAmount holds the value of the "total_amount" field.
 	TotalAmount string `json:"total_amount,omitempty"`
 	// NetAmount holds the value of the "net_amount" field.
@@ -212,11 +224,11 @@ func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financeinvoice.FieldInvoiceProfileID, financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
+		case financeinvoice.FieldInvoiceProfileID, financeinvoice.FieldExchangeRateSettingID, financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
+		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldBaseCurrency, financeinvoice.FieldExchangeRate, financeinvoice.FieldExchangeRateSource, financeinvoice.FieldExchangeRateDate, financeinvoice.FieldBaseCurrencyAmount, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
 			values[i] = new(sql.NullString)
 		case financeinvoice.FieldCreatedAt, financeinvoice.FieldUpdatedAt, financeinvoice.FieldIssuedAt, financeinvoice.FieldCancelledAt, financeinvoice.FieldRedFlushedAt:
 			values[i] = new(sql.NullTime)
@@ -357,6 +369,47 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
 			} else if value.Valid {
 				_m.Currency = value.String
+			}
+		case financeinvoice.FieldBaseCurrency:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
+			} else if value.Valid {
+				_m.BaseCurrency = value.String
+			}
+		case financeinvoice.FieldExchangeRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate", values[i])
+			} else if value.Valid {
+				_m.ExchangeRate = new(string)
+				*_m.ExchangeRate = value.String
+			}
+		case financeinvoice.FieldExchangeRateSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_source", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSource = new(financeinvoice.ExchangeRateSource)
+				*_m.ExchangeRateSource = financeinvoice.ExchangeRateSource(value.String)
+			}
+		case financeinvoice.FieldExchangeRateDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_date", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateDate = new(string)
+				*_m.ExchangeRateDate = value.String
+			}
+		case financeinvoice.FieldExchangeRateSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_setting_id", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSettingID = new(uuid.UUID)
+				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
+			}
+		case financeinvoice.FieldBaseCurrencyAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field base_currency_amount", values[i])
+			} else if value.Valid {
+				_m.BaseCurrencyAmount = new(string)
+				*_m.BaseCurrencyAmount = value.String
 			}
 		case financeinvoice.FieldTotalAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -622,6 +675,34 @@ func (_m *FinanceInvoice) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
+	builder.WriteString(", ")
+	builder.WriteString("base_currency=")
+	builder.WriteString(_m.BaseCurrency)
+	builder.WriteString(", ")
+	if v := _m.ExchangeRate; v != nil {
+		builder.WriteString("exchange_rate=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateSource; v != nil {
+		builder.WriteString("exchange_rate_source=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateDate; v != nil {
+		builder.WriteString("exchange_rate_date=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateSettingID; v != nil {
+		builder.WriteString("exchange_rate_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.BaseCurrencyAmount; v != nil {
+		builder.WriteString("base_currency_amount=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("total_amount=")
 	builder.WriteString(_m.TotalAmount)

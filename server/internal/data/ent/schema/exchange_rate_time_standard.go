@@ -16,7 +16,7 @@ func (ExchangeRateTimeStandard) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		field.Enum("rate_type").Values("BASE_CURRENCY", "INVOICE", "SETTLEMENT", "WRITE_OFF", "BILL"),
-		field.Enum("time_standard").Values("ETD_ETA_TRAIN_DATE", "BUSINESS_TIME", "BARGE_ETD", "EXPENSE_TIME", "ORDER_CREATED_AT", "BILL_CREATED_AT", "WRITE_OFF_TIME"),
+		field.Enum("time_standard").Values("ETD_ETA_TRAIN_DATE", "BUSINESS_TIME", "BARGE_ETD", "EXPENSE_TIME", "ORDER_CREATED_AT", "BILL_DATE", "INVOICE_DATE", "TRANSACTION_DATE", "WRITE_OFF_TIME"),
 		field.Int("sort_order").NonNegative(),
 	}
 }

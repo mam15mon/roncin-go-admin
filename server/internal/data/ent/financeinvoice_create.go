@@ -215,6 +215,82 @@ func (_c *FinanceInvoiceCreate) SetCurrency(v string) *FinanceInvoiceCreate {
 	return _c
 }
 
+// SetBaseCurrency sets the "base_currency" field.
+func (_c *FinanceInvoiceCreate) SetBaseCurrency(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetBaseCurrency(v)
+	return _c
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (_c *FinanceInvoiceCreate) SetExchangeRate(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetExchangeRate(v)
+	return _c
+}
+
+// SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableExchangeRate(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetExchangeRate(*v)
+	}
+	return _c
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_c *FinanceInvoiceCreate) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceCreate {
+	_c.mutation.SetExchangeRateSource(v)
+	return _c
+}
+
+// SetNillableExchangeRateSource sets the "exchange_rate_source" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableExchangeRateSource(v *financeinvoice.ExchangeRateSource) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetExchangeRateSource(*v)
+	}
+	return _c
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_c *FinanceInvoiceCreate) SetExchangeRateDate(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetExchangeRateDate(v)
+	return _c
+}
+
+// SetNillableExchangeRateDate sets the "exchange_rate_date" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableExchangeRateDate(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetExchangeRateDate(*v)
+	}
+	return _c
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_c *FinanceInvoiceCreate) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceCreate {
+	_c.mutation.SetExchangeRateSettingID(v)
+	return _c
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableExchangeRateSettingID(v *uuid.UUID) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetExchangeRateSettingID(*v)
+	}
+	return _c
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_c *FinanceInvoiceCreate) SetBaseCurrencyAmount(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetBaseCurrencyAmount(v)
+	return _c
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableBaseCurrencyAmount(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetBaseCurrencyAmount(*v)
+	}
+	return _c
+}
+
 // SetTotalAmount sets the "total_amount" field.
 func (_c *FinanceInvoiceCreate) SetTotalAmount(v string) *FinanceInvoiceCreate {
 	_c.mutation.SetTotalAmount(v)
@@ -708,6 +784,24 @@ func (_c *FinanceInvoiceCreate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.currency": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.BaseCurrency(); !ok {
+		return &ValidationError{Name: "base_currency", err: errors.New(`ent: missing required field "FinanceInvoice.base_currency"`)}
+	}
+	if v, ok := _c.mutation.BaseCurrency(); ok {
+		if err := financeinvoice.BaseCurrencyValidator(v); err != nil {
+			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.base_currency": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ExchangeRateSource(); ok {
+		if err := financeinvoice.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ExchangeRateDate(); ok {
+		if err := financeinvoice.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_date": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.TotalAmount(); !ok {
 		return &ValidationError{Name: "total_amount", err: errors.New(`ent: missing required field "FinanceInvoice.total_amount"`)}
 	}
@@ -863,6 +957,30 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(financeinvoice.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
+	}
+	if value, ok := _c.mutation.BaseCurrency(); ok {
+		_spec.SetField(financeinvoice.FieldBaseCurrency, field.TypeString, value)
+		_node.BaseCurrency = value
+	}
+	if value, ok := _c.mutation.ExchangeRate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRate, field.TypeString, value)
+		_node.ExchangeRate = &value
+	}
+	if value, ok := _c.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSource, field.TypeEnum, value)
+		_node.ExchangeRateSource = &value
+	}
+	if value, ok := _c.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateDate, field.TypeString, value)
+		_node.ExchangeRateDate = &value
+	}
+	if value, ok := _c.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSettingID, field.TypeUUID, value)
+		_node.ExchangeRateSettingID = &value
+	}
+	if value, ok := _c.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString, value)
+		_node.BaseCurrencyAmount = &value
 	}
 	if value, ok := _c.mutation.TotalAmount(); ok {
 		_spec.SetField(financeinvoice.FieldTotalAmount, field.TypeString, value)

@@ -88,6 +88,30 @@ func (_c *FinanceVerificationAllocationCreate) SetAmount(v string) *FinanceVerif
 	return _c
 }
 
+// SetBillBaseAmount sets the "bill_base_amount" field.
+func (_c *FinanceVerificationAllocationCreate) SetBillBaseAmount(v string) *FinanceVerificationAllocationCreate {
+	_c.mutation.SetBillBaseAmount(v)
+	return _c
+}
+
+// SetCashflowBaseAmount sets the "cashflow_base_amount" field.
+func (_c *FinanceVerificationAllocationCreate) SetCashflowBaseAmount(v string) *FinanceVerificationAllocationCreate {
+	_c.mutation.SetCashflowBaseAmount(v)
+	return _c
+}
+
+// SetWriteOffBaseAmount sets the "write_off_base_amount" field.
+func (_c *FinanceVerificationAllocationCreate) SetWriteOffBaseAmount(v string) *FinanceVerificationAllocationCreate {
+	_c.mutation.SetWriteOffBaseAmount(v)
+	return _c
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (_c *FinanceVerificationAllocationCreate) SetExchangeGainLoss(v string) *FinanceVerificationAllocationCreate {
+	_c.mutation.SetExchangeGainLoss(v)
+	return _c
+}
+
 // SetActive sets the "active" field.
 func (_c *FinanceVerificationAllocationCreate) SetActive(v bool) *FinanceVerificationAllocationCreate {
 	_c.mutation.SetActive(v)
@@ -220,6 +244,18 @@ func (_c *FinanceVerificationAllocationCreate) check() error {
 	if _, ok := _c.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.amount"`)}
 	}
+	if _, ok := _c.mutation.BillBaseAmount(); !ok {
+		return &ValidationError{Name: "bill_base_amount", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.bill_base_amount"`)}
+	}
+	if _, ok := _c.mutation.CashflowBaseAmount(); !ok {
+		return &ValidationError{Name: "cashflow_base_amount", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.cashflow_base_amount"`)}
+	}
+	if _, ok := _c.mutation.WriteOffBaseAmount(); !ok {
+		return &ValidationError{Name: "write_off_base_amount", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.write_off_base_amount"`)}
+	}
+	if _, ok := _c.mutation.ExchangeGainLoss(); !ok {
+		return &ValidationError{Name: "exchange_gain_loss", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.exchange_gain_loss"`)}
+	}
 	if _, ok := _c.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "FinanceVerificationAllocation.active"`)}
 	}
@@ -286,6 +322,22 @@ func (_c *FinanceVerificationAllocationCreate) createSpec() (*FinanceVerificatio
 	if value, ok := _c.mutation.Amount(); ok {
 		_spec.SetField(financeverificationallocation.FieldAmount, field.TypeString, value)
 		_node.Amount = value
+	}
+	if value, ok := _c.mutation.BillBaseAmount(); ok {
+		_spec.SetField(financeverificationallocation.FieldBillBaseAmount, field.TypeString, value)
+		_node.BillBaseAmount = value
+	}
+	if value, ok := _c.mutation.CashflowBaseAmount(); ok {
+		_spec.SetField(financeverificationallocation.FieldCashflowBaseAmount, field.TypeString, value)
+		_node.CashflowBaseAmount = value
+	}
+	if value, ok := _c.mutation.WriteOffBaseAmount(); ok {
+		_spec.SetField(financeverificationallocation.FieldWriteOffBaseAmount, field.TypeString, value)
+		_node.WriteOffBaseAmount = value
+	}
+	if value, ok := _c.mutation.ExchangeGainLoss(); ok {
+		_spec.SetField(financeverificationallocation.FieldExchangeGainLoss, field.TypeString, value)
+		_node.ExchangeGainLoss = value
 	}
 	if value, ok := _c.mutation.Active(); ok {
 		_spec.SetField(financeverificationallocation.FieldActive, field.TypeBool, value)

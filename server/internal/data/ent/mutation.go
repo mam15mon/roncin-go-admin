@@ -10757,6 +10757,10 @@ type FinanceBillMutation struct {
 	settlement_party_name           *string
 	currency                        *string
 	base_currency                   *string
+	exchange_rate                   *string
+	exchange_rate_source            *financebill.ExchangeRateSource
+	exchange_rate_date              *string
+	exchange_rate_setting_id        *uuid.UUID
 	total_amount                    *string
 	net_amount                      *string
 	tax_amount                      *string
@@ -11346,6 +11350,163 @@ func (m *FinanceBillMutation) OldBaseCurrency(ctx context.Context) (v string, er
 // ResetBaseCurrency resets all changes to the "base_currency" field.
 func (m *FinanceBillMutation) ResetBaseCurrency() {
 	m.base_currency = nil
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (m *FinanceBillMutation) SetExchangeRate(s string) {
+	m.exchange_rate = &s
+}
+
+// ExchangeRate returns the value of the "exchange_rate" field in the mutation.
+func (m *FinanceBillMutation) ExchangeRate() (r string, exists bool) {
+	v := m.exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRate returns the old "exchange_rate" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldExchangeRate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRate: %w", err)
+	}
+	return oldValue.ExchangeRate, nil
+}
+
+// ResetExchangeRate resets all changes to the "exchange_rate" field.
+func (m *FinanceBillMutation) ResetExchangeRate() {
+	m.exchange_rate = nil
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *FinanceBillMutation) SetExchangeRateSource(frs financebill.ExchangeRateSource) {
+	m.exchange_rate_source = &frs
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *FinanceBillMutation) ExchangeRateSource() (r financebill.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldExchangeRateSource(ctx context.Context) (v financebill.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *FinanceBillMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *FinanceBillMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *FinanceBillMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *FinanceBillMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *FinanceBillMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *FinanceBillMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *FinanceBillMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[financebill.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *FinanceBillMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[financebill.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *FinanceBillMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, financebill.FieldExchangeRateSettingID)
 }
 
 // SetTotalAmount sets the "total_amount" field.
@@ -12459,7 +12620,7 @@ func (m *FinanceBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 32)
 	if m.created_at != nil {
 		fields = append(fields, financebill.FieldCreatedAt)
 	}
@@ -12495,6 +12656,18 @@ func (m *FinanceBillMutation) Fields() []string {
 	}
 	if m.base_currency != nil {
 		fields = append(fields, financebill.FieldBaseCurrency)
+	}
+	if m.exchange_rate != nil {
+		fields = append(fields, financebill.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, financebill.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, financebill.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, financebill.FieldExchangeRateSettingID)
 	}
 	if m.total_amount != nil {
 		fields = append(fields, financebill.FieldTotalAmount)
@@ -12576,6 +12749,14 @@ func (m *FinanceBillMutation) Field(name string) (ent.Value, bool) {
 		return m.Currency()
 	case financebill.FieldBaseCurrency:
 		return m.BaseCurrency()
+	case financebill.FieldExchangeRate:
+		return m.ExchangeRate()
+	case financebill.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case financebill.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case financebill.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
 	case financebill.FieldTotalAmount:
 		return m.TotalAmount()
 	case financebill.FieldNetAmount:
@@ -12641,6 +12822,14 @@ func (m *FinanceBillMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCurrency(ctx)
 	case financebill.FieldBaseCurrency:
 		return m.OldBaseCurrency(ctx)
+	case financebill.FieldExchangeRate:
+		return m.OldExchangeRate(ctx)
+	case financebill.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case financebill.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case financebill.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
 	case financebill.FieldTotalAmount:
 		return m.OldTotalAmount(ctx)
 	case financebill.FieldNetAmount:
@@ -12765,6 +12954,34 @@ func (m *FinanceBillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBaseCurrency(v)
+		return nil
+	case financebill.FieldExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRate(v)
+		return nil
+	case financebill.FieldExchangeRateSource:
+		v, ok := value.(financebill.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case financebill.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case financebill.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
 		return nil
 	case financebill.FieldTotalAmount:
 		v, ok := value.(string)
@@ -12950,6 +13167,9 @@ func (m *FinanceBillMutation) ClearedFields() []string {
 	if m.FieldCleared(financebill.FieldBatchID) {
 		fields = append(fields, financebill.FieldBatchID)
 	}
+	if m.FieldCleared(financebill.FieldExchangeRateSettingID) {
+		fields = append(fields, financebill.FieldExchangeRateSettingID)
+	}
 	if m.FieldCleared(financebill.FieldStatementTitle) {
 		fields = append(fields, financebill.FieldStatementTitle)
 	}
@@ -12993,6 +13213,9 @@ func (m *FinanceBillMutation) ClearField(name string) error {
 	switch name {
 	case financebill.FieldBatchID:
 		m.ClearBatchID()
+		return nil
+	case financebill.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
 		return nil
 	case financebill.FieldStatementTitle:
 		m.ClearStatementTitle()
@@ -13064,6 +13287,18 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 		return nil
 	case financebill.FieldBaseCurrency:
 		m.ResetBaseCurrency()
+		return nil
+	case financebill.FieldExchangeRate:
+		m.ResetExchangeRate()
+		return nil
+	case financebill.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case financebill.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case financebill.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
 		return nil
 	case financebill.FieldTotalAmount:
 		m.ResetTotalAmount()
@@ -15970,6 +16205,9 @@ type FinanceCashflowMutation struct {
 	currency                        *string
 	amount                          *string
 	exchange_rate                   *string
+	exchange_rate_source            *financecashflow.ExchangeRateSource
+	exchange_rate_date              *string
+	exchange_rate_setting_id        *uuid.UUID
 	base_currency                   *string
 	base_amount                     *string
 	transaction_date                *string
@@ -16534,6 +16772,127 @@ func (m *FinanceCashflowMutation) OldExchangeRate(ctx context.Context) (v string
 // ResetExchangeRate resets all changes to the "exchange_rate" field.
 func (m *FinanceCashflowMutation) ResetExchangeRate() {
 	m.exchange_rate = nil
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *FinanceCashflowMutation) SetExchangeRateSource(frs financecashflow.ExchangeRateSource) {
+	m.exchange_rate_source = &frs
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *FinanceCashflowMutation) ExchangeRateSource() (r financecashflow.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the FinanceCashflow entity.
+// If the FinanceCashflow object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCashflowMutation) OldExchangeRateSource(ctx context.Context) (v financecashflow.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *FinanceCashflowMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *FinanceCashflowMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *FinanceCashflowMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the FinanceCashflow entity.
+// If the FinanceCashflow object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCashflowMutation) OldExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *FinanceCashflowMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *FinanceCashflowMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *FinanceCashflowMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the FinanceCashflow entity.
+// If the FinanceCashflow object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCashflowMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *FinanceCashflowMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[financecashflow.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *FinanceCashflowMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[financecashflow.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *FinanceCashflowMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, financecashflow.FieldExchangeRateSettingID)
 }
 
 // SetBaseCurrency sets the "base_currency" field.
@@ -17386,7 +17745,7 @@ func (m *FinanceCashflowMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCashflowMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 29)
 	if m.created_at != nil {
 		fields = append(fields, financecashflow.FieldCreatedAt)
 	}
@@ -17422,6 +17781,15 @@ func (m *FinanceCashflowMutation) Fields() []string {
 	}
 	if m.exchange_rate != nil {
 		fields = append(fields, financecashflow.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, financecashflow.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, financecashflow.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, financecashflow.FieldExchangeRateSettingID)
 	}
 	if m.base_currency != nil {
 		fields = append(fields, financecashflow.FieldBaseCurrency)
@@ -17497,6 +17865,12 @@ func (m *FinanceCashflowMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case financecashflow.FieldExchangeRate:
 		return m.ExchangeRate()
+	case financecashflow.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case financecashflow.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case financecashflow.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
 	case financecashflow.FieldBaseCurrency:
 		return m.BaseCurrency()
 	case financecashflow.FieldBaseAmount:
@@ -17558,6 +17932,12 @@ func (m *FinanceCashflowMutation) OldField(ctx context.Context, name string) (en
 		return m.OldAmount(ctx)
 	case financecashflow.FieldExchangeRate:
 		return m.OldExchangeRate(ctx)
+	case financecashflow.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case financecashflow.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case financecashflow.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
 	case financecashflow.FieldBaseCurrency:
 		return m.OldBaseCurrency(ctx)
 	case financecashflow.FieldBaseAmount:
@@ -17678,6 +18058,27 @@ func (m *FinanceCashflowMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExchangeRate(v)
+		return nil
+	case financecashflow.FieldExchangeRateSource:
+		v, ok := value.(financecashflow.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case financecashflow.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case financecashflow.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
 		return nil
 	case financecashflow.FieldBaseCurrency:
 		v, ok := value.(string)
@@ -17822,6 +18223,9 @@ func (m *FinanceCashflowMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *FinanceCashflowMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(financecashflow.FieldExchangeRateSettingID) {
+		fields = append(fields, financecashflow.FieldExchangeRateSettingID)
+	}
 	if m.FieldCleared(financecashflow.FieldCounterpartyAccount) {
 		fields = append(fields, financecashflow.FieldCounterpartyAccount)
 	}
@@ -17860,6 +18264,9 @@ func (m *FinanceCashflowMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *FinanceCashflowMutation) ClearField(name string) error {
 	switch name {
+	case financecashflow.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
+		return nil
 	case financecashflow.FieldCounterpartyAccount:
 		m.ClearCounterpartyAccount()
 		return nil
@@ -17927,6 +18334,15 @@ func (m *FinanceCashflowMutation) ResetField(name string) error {
 		return nil
 	case financecashflow.FieldExchangeRate:
 		m.ResetExchangeRate()
+		return nil
+	case financecashflow.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case financecashflow.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case financecashflow.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
 		return nil
 	case financecashflow.FieldBaseCurrency:
 		m.ResetBaseCurrency()
@@ -26940,6 +27356,12 @@ type FinanceInvoiceMutation struct {
 	bank_name                  *string
 	bank_account               *string
 	currency                   *string
+	base_currency              *string
+	exchange_rate              *string
+	exchange_rate_source       *financeinvoice.ExchangeRateSource
+	exchange_rate_date         *string
+	exchange_rate_setting_id   *uuid.UUID
+	base_currency_amount       *string
 	total_amount               *string
 	net_amount                 *string
 	tax_amount                 *string
@@ -27822,6 +28244,287 @@ func (m *FinanceInvoiceMutation) OldCurrency(ctx context.Context) (v string, err
 // ResetCurrency resets all changes to the "currency" field.
 func (m *FinanceInvoiceMutation) ResetCurrency() {
 	m.currency = nil
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (m *FinanceInvoiceMutation) SetBaseCurrency(s string) {
+	m.base_currency = &s
+}
+
+// BaseCurrency returns the value of the "base_currency" field in the mutation.
+func (m *FinanceInvoiceMutation) BaseCurrency() (r string, exists bool) {
+	v := m.base_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrency returns the old "base_currency" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldBaseCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrency: %w", err)
+	}
+	return oldValue.BaseCurrency, nil
+}
+
+// ResetBaseCurrency resets all changes to the "base_currency" field.
+func (m *FinanceInvoiceMutation) ResetBaseCurrency() {
+	m.base_currency = nil
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (m *FinanceInvoiceMutation) SetExchangeRate(s string) {
+	m.exchange_rate = &s
+}
+
+// ExchangeRate returns the value of the "exchange_rate" field in the mutation.
+func (m *FinanceInvoiceMutation) ExchangeRate() (r string, exists bool) {
+	v := m.exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRate returns the old "exchange_rate" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldExchangeRate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRate: %w", err)
+	}
+	return oldValue.ExchangeRate, nil
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (m *FinanceInvoiceMutation) ClearExchangeRate() {
+	m.exchange_rate = nil
+	m.clearedFields[financeinvoice.FieldExchangeRate] = struct{}{}
+}
+
+// ExchangeRateCleared returns if the "exchange_rate" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldExchangeRate]
+	return ok
+}
+
+// ResetExchangeRate resets all changes to the "exchange_rate" field.
+func (m *FinanceInvoiceMutation) ResetExchangeRate() {
+	m.exchange_rate = nil
+	delete(m.clearedFields, financeinvoice.FieldExchangeRate)
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *FinanceInvoiceMutation) SetExchangeRateSource(frs financeinvoice.ExchangeRateSource) {
+	m.exchange_rate_source = &frs
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateSource() (r financeinvoice.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldExchangeRateSource(ctx context.Context) (v *financeinvoice.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (m *FinanceInvoiceMutation) ClearExchangeRateSource() {
+	m.exchange_rate_source = nil
+	m.clearedFields[financeinvoice.FieldExchangeRateSource] = struct{}{}
+}
+
+// ExchangeRateSourceCleared returns if the "exchange_rate_source" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateSourceCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldExchangeRateSource]
+	return ok
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *FinanceInvoiceMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+	delete(m.clearedFields, financeinvoice.FieldExchangeRateSource)
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *FinanceInvoiceMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldExchangeRateDate(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (m *FinanceInvoiceMutation) ClearExchangeRateDate() {
+	m.exchange_rate_date = nil
+	m.clearedFields[financeinvoice.FieldExchangeRateDate] = struct{}{}
+}
+
+// ExchangeRateDateCleared returns if the "exchange_rate_date" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateDateCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldExchangeRateDate]
+	return ok
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *FinanceInvoiceMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+	delete(m.clearedFields, financeinvoice.FieldExchangeRateDate)
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *FinanceInvoiceMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *FinanceInvoiceMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[financeinvoice.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *FinanceInvoiceMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, financeinvoice.FieldExchangeRateSettingID)
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (m *FinanceInvoiceMutation) SetBaseCurrencyAmount(s string) {
+	m.base_currency_amount = &s
+}
+
+// BaseCurrencyAmount returns the value of the "base_currency_amount" field in the mutation.
+func (m *FinanceInvoiceMutation) BaseCurrencyAmount() (r string, exists bool) {
+	v := m.base_currency_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrencyAmount returns the old "base_currency_amount" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldBaseCurrencyAmount(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrencyAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrencyAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrencyAmount: %w", err)
+	}
+	return oldValue.BaseCurrencyAmount, nil
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (m *FinanceInvoiceMutation) ClearBaseCurrencyAmount() {
+	m.base_currency_amount = nil
+	m.clearedFields[financeinvoice.FieldBaseCurrencyAmount] = struct{}{}
+}
+
+// BaseCurrencyAmountCleared returns if the "base_currency_amount" field was cleared in this mutation.
+func (m *FinanceInvoiceMutation) BaseCurrencyAmountCleared() bool {
+	_, ok := m.clearedFields[financeinvoice.FieldBaseCurrencyAmount]
+	return ok
+}
+
+// ResetBaseCurrencyAmount resets all changes to the "base_currency_amount" field.
+func (m *FinanceInvoiceMutation) ResetBaseCurrencyAmount() {
+	m.base_currency_amount = nil
+	delete(m.clearedFields, financeinvoice.FieldBaseCurrencyAmount)
 }
 
 // SetTotalAmount sets the "total_amount" field.
@@ -29024,7 +29727,7 @@ func (m *FinanceInvoiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceInvoiceMutation) Fields() []string {
-	fields := make([]string, 0, 36)
+	fields := make([]string, 0, 42)
 	if m.created_at != nil {
 		fields = append(fields, financeinvoice.FieldCreatedAt)
 	}
@@ -29078,6 +29781,24 @@ func (m *FinanceInvoiceMutation) Fields() []string {
 	}
 	if m.currency != nil {
 		fields = append(fields, financeinvoice.FieldCurrency)
+	}
+	if m.base_currency != nil {
+		fields = append(fields, financeinvoice.FieldBaseCurrency)
+	}
+	if m.exchange_rate != nil {
+		fields = append(fields, financeinvoice.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, financeinvoice.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, financeinvoice.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, financeinvoice.FieldExchangeRateSettingID)
+	}
+	if m.base_currency_amount != nil {
+		fields = append(fields, financeinvoice.FieldBaseCurrencyAmount)
 	}
 	if m.total_amount != nil {
 		fields = append(fields, financeinvoice.FieldTotalAmount)
@@ -29177,6 +29898,18 @@ func (m *FinanceInvoiceMutation) Field(name string) (ent.Value, bool) {
 		return m.BankAccount()
 	case financeinvoice.FieldCurrency:
 		return m.Currency()
+	case financeinvoice.FieldBaseCurrency:
+		return m.BaseCurrency()
+	case financeinvoice.FieldExchangeRate:
+		return m.ExchangeRate()
+	case financeinvoice.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case financeinvoice.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case financeinvoice.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
+	case financeinvoice.FieldBaseCurrencyAmount:
+		return m.BaseCurrencyAmount()
 	case financeinvoice.FieldTotalAmount:
 		return m.TotalAmount()
 	case financeinvoice.FieldNetAmount:
@@ -29258,6 +29991,18 @@ func (m *FinanceInvoiceMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldBankAccount(ctx)
 	case financeinvoice.FieldCurrency:
 		return m.OldCurrency(ctx)
+	case financeinvoice.FieldBaseCurrency:
+		return m.OldBaseCurrency(ctx)
+	case financeinvoice.FieldExchangeRate:
+		return m.OldExchangeRate(ctx)
+	case financeinvoice.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case financeinvoice.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case financeinvoice.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
+	case financeinvoice.FieldBaseCurrencyAmount:
+		return m.OldBaseCurrencyAmount(ctx)
 	case financeinvoice.FieldTotalAmount:
 		return m.OldTotalAmount(ctx)
 	case financeinvoice.FieldNetAmount:
@@ -29428,6 +30173,48 @@ func (m *FinanceInvoiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCurrency(v)
+		return nil
+	case financeinvoice.FieldBaseCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrency(v)
+		return nil
+	case financeinvoice.FieldExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRate(v)
+		return nil
+	case financeinvoice.FieldExchangeRateSource:
+		v, ok := value.(financeinvoice.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case financeinvoice.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case financeinvoice.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
+		return nil
+	case financeinvoice.FieldBaseCurrencyAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrencyAmount(v)
 		return nil
 	case financeinvoice.FieldTotalAmount:
 		v, ok := value.(string)
@@ -29633,6 +30420,21 @@ func (m *FinanceInvoiceMutation) ClearedFields() []string {
 	if m.FieldCleared(financeinvoice.FieldBankAccount) {
 		fields = append(fields, financeinvoice.FieldBankAccount)
 	}
+	if m.FieldCleared(financeinvoice.FieldExchangeRate) {
+		fields = append(fields, financeinvoice.FieldExchangeRate)
+	}
+	if m.FieldCleared(financeinvoice.FieldExchangeRateSource) {
+		fields = append(fields, financeinvoice.FieldExchangeRateSource)
+	}
+	if m.FieldCleared(financeinvoice.FieldExchangeRateDate) {
+		fields = append(fields, financeinvoice.FieldExchangeRateDate)
+	}
+	if m.FieldCleared(financeinvoice.FieldExchangeRateSettingID) {
+		fields = append(fields, financeinvoice.FieldExchangeRateSettingID)
+	}
+	if m.FieldCleared(financeinvoice.FieldBaseCurrencyAmount) {
+		fields = append(fields, financeinvoice.FieldBaseCurrencyAmount)
+	}
 	if m.FieldCleared(financeinvoice.FieldTaxInvoiceNo) {
 		fields = append(fields, financeinvoice.FieldTaxInvoiceNo)
 	}
@@ -29706,6 +30508,21 @@ func (m *FinanceInvoiceMutation) ClearField(name string) error {
 		return nil
 	case financeinvoice.FieldBankAccount:
 		m.ClearBankAccount()
+		return nil
+	case financeinvoice.FieldExchangeRate:
+		m.ClearExchangeRate()
+		return nil
+	case financeinvoice.FieldExchangeRateSource:
+		m.ClearExchangeRateSource()
+		return nil
+	case financeinvoice.FieldExchangeRateDate:
+		m.ClearExchangeRateDate()
+		return nil
+	case financeinvoice.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
+		return nil
+	case financeinvoice.FieldBaseCurrencyAmount:
+		m.ClearBaseCurrencyAmount()
 		return nil
 	case financeinvoice.FieldTaxInvoiceNo:
 		m.ClearTaxInvoiceNo()
@@ -29807,6 +30624,24 @@ func (m *FinanceInvoiceMutation) ResetField(name string) error {
 		return nil
 	case financeinvoice.FieldCurrency:
 		m.ResetCurrency()
+		return nil
+	case financeinvoice.FieldBaseCurrency:
+		m.ResetBaseCurrency()
+		return nil
+	case financeinvoice.FieldExchangeRate:
+		m.ResetExchangeRate()
+		return nil
+	case financeinvoice.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case financeinvoice.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case financeinvoice.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
+		return nil
+	case financeinvoice.FieldBaseCurrencyAmount:
+		m.ResetBaseCurrencyAmount()
 		return nil
 	case financeinvoice.FieldTotalAmount:
 		m.ResetTotalAmount()
@@ -31946,40 +32781,49 @@ func (m *FinanceInvoiceLineMutation) ResetEdge(name string) error {
 // FinanceVerificationMutation represents an operation that mutates the FinanceVerification nodes in the graph.
 type FinanceVerificationMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *uuid.UUID
-	created_at              *time.Time
-	updated_at              *time.Time
-	verification_no         *string
-	idempotency_key         *string
-	status                  *financeverification.Status
-	direction               *financeverification.Direction
-	settlement_party_name   *string
-	currency                *string
-	amount                  *string
-	verification_date       *string
-	note                    *string
-	version                 *uint64
-	addversion              *int64
-	reversed_at             *time.Time
-	reversal_reason         *string
-	clearedFields           map[string]struct{}
-	organization            *uuid.UUID
-	clearedorganization     bool
-	settlement_party        *uuid.UUID
-	clearedsettlement_party bool
-	reversed_by_user        *uuid.UUID
-	clearedreversed_by_user bool
-	allocations             map[uuid.UUID]struct{}
-	removedallocations      map[uuid.UUID]struct{}
-	clearedallocations      bool
-	commissions             map[uuid.UUID]struct{}
-	removedcommissions      map[uuid.UUID]struct{}
-	clearedcommissions      bool
-	done                    bool
-	oldValue                func(context.Context) (*FinanceVerification, error)
-	predicates              []predicate.FinanceVerification
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	verification_no          *string
+	idempotency_key          *string
+	status                   *financeverification.Status
+	direction                *financeverification.Direction
+	settlement_party_name    *string
+	currency                 *string
+	amount                   *string
+	base_currency            *string
+	exchange_rate            *string
+	exchange_rate_source     *financeverification.ExchangeRateSource
+	exchange_rate_date       *string
+	exchange_rate_setting_id *uuid.UUID
+	base_amount              *string
+	bill_base_amount         *string
+	cashflow_base_amount     *string
+	exchange_gain_loss       *string
+	verification_date        *string
+	note                     *string
+	version                  *uint64
+	addversion               *int64
+	reversed_at              *time.Time
+	reversal_reason          *string
+	clearedFields            map[string]struct{}
+	organization             *uuid.UUID
+	clearedorganization      bool
+	settlement_party         *uuid.UUID
+	clearedsettlement_party  bool
+	reversed_by_user         *uuid.UUID
+	clearedreversed_by_user  bool
+	allocations              map[uuid.UUID]struct{}
+	removedallocations       map[uuid.UUID]struct{}
+	clearedallocations       bool
+	commissions              map[uuid.UUID]struct{}
+	removedcommissions       map[uuid.UUID]struct{}
+	clearedcommissions       bool
+	done                     bool
+	oldValue                 func(context.Context) (*FinanceVerification, error)
+	predicates               []predicate.FinanceVerification
 }
 
 var _ ent.Mutation = (*FinanceVerificationMutation)(nil)
@@ -32480,6 +33324,343 @@ func (m *FinanceVerificationMutation) OldAmount(ctx context.Context) (v string, 
 // ResetAmount resets all changes to the "amount" field.
 func (m *FinanceVerificationMutation) ResetAmount() {
 	m.amount = nil
+}
+
+// SetBaseCurrency sets the "base_currency" field.
+func (m *FinanceVerificationMutation) SetBaseCurrency(s string) {
+	m.base_currency = &s
+}
+
+// BaseCurrency returns the value of the "base_currency" field in the mutation.
+func (m *FinanceVerificationMutation) BaseCurrency() (r string, exists bool) {
+	v := m.base_currency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseCurrency returns the old "base_currency" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldBaseCurrency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseCurrency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseCurrency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseCurrency: %w", err)
+	}
+	return oldValue.BaseCurrency, nil
+}
+
+// ResetBaseCurrency resets all changes to the "base_currency" field.
+func (m *FinanceVerificationMutation) ResetBaseCurrency() {
+	m.base_currency = nil
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (m *FinanceVerificationMutation) SetExchangeRate(s string) {
+	m.exchange_rate = &s
+}
+
+// ExchangeRate returns the value of the "exchange_rate" field in the mutation.
+func (m *FinanceVerificationMutation) ExchangeRate() (r string, exists bool) {
+	v := m.exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRate returns the old "exchange_rate" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldExchangeRate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRate: %w", err)
+	}
+	return oldValue.ExchangeRate, nil
+}
+
+// ResetExchangeRate resets all changes to the "exchange_rate" field.
+func (m *FinanceVerificationMutation) ResetExchangeRate() {
+	m.exchange_rate = nil
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (m *FinanceVerificationMutation) SetExchangeRateSource(frs financeverification.ExchangeRateSource) {
+	m.exchange_rate_source = &frs
+}
+
+// ExchangeRateSource returns the value of the "exchange_rate_source" field in the mutation.
+func (m *FinanceVerificationMutation) ExchangeRateSource() (r financeverification.ExchangeRateSource, exists bool) {
+	v := m.exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSource returns the old "exchange_rate_source" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldExchangeRateSource(ctx context.Context) (v financeverification.ExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSource: %w", err)
+	}
+	return oldValue.ExchangeRateSource, nil
+}
+
+// ResetExchangeRateSource resets all changes to the "exchange_rate_source" field.
+func (m *FinanceVerificationMutation) ResetExchangeRateSource() {
+	m.exchange_rate_source = nil
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (m *FinanceVerificationMutation) SetExchangeRateDate(s string) {
+	m.exchange_rate_date = &s
+}
+
+// ExchangeRateDate returns the value of the "exchange_rate_date" field in the mutation.
+func (m *FinanceVerificationMutation) ExchangeRateDate() (r string, exists bool) {
+	v := m.exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateDate returns the old "exchange_rate_date" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateDate: %w", err)
+	}
+	return oldValue.ExchangeRateDate, nil
+}
+
+// ResetExchangeRateDate resets all changes to the "exchange_rate_date" field.
+func (m *FinanceVerificationMutation) ResetExchangeRateDate() {
+	m.exchange_rate_date = nil
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (m *FinanceVerificationMutation) SetExchangeRateSettingID(u uuid.UUID) {
+	m.exchange_rate_setting_id = &u
+}
+
+// ExchangeRateSettingID returns the value of the "exchange_rate_setting_id" field in the mutation.
+func (m *FinanceVerificationMutation) ExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeRateSettingID returns the old "exchange_rate_setting_id" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeRateSettingID: %w", err)
+	}
+	return oldValue.ExchangeRateSettingID, nil
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (m *FinanceVerificationMutation) ClearExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	m.clearedFields[financeverification.FieldExchangeRateSettingID] = struct{}{}
+}
+
+// ExchangeRateSettingIDCleared returns if the "exchange_rate_setting_id" field was cleared in this mutation.
+func (m *FinanceVerificationMutation) ExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[financeverification.FieldExchangeRateSettingID]
+	return ok
+}
+
+// ResetExchangeRateSettingID resets all changes to the "exchange_rate_setting_id" field.
+func (m *FinanceVerificationMutation) ResetExchangeRateSettingID() {
+	m.exchange_rate_setting_id = nil
+	delete(m.clearedFields, financeverification.FieldExchangeRateSettingID)
+}
+
+// SetBaseAmount sets the "base_amount" field.
+func (m *FinanceVerificationMutation) SetBaseAmount(s string) {
+	m.base_amount = &s
+}
+
+// BaseAmount returns the value of the "base_amount" field in the mutation.
+func (m *FinanceVerificationMutation) BaseAmount() (r string, exists bool) {
+	v := m.base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseAmount returns the old "base_amount" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseAmount: %w", err)
+	}
+	return oldValue.BaseAmount, nil
+}
+
+// ResetBaseAmount resets all changes to the "base_amount" field.
+func (m *FinanceVerificationMutation) ResetBaseAmount() {
+	m.base_amount = nil
+}
+
+// SetBillBaseAmount sets the "bill_base_amount" field.
+func (m *FinanceVerificationMutation) SetBillBaseAmount(s string) {
+	m.bill_base_amount = &s
+}
+
+// BillBaseAmount returns the value of the "bill_base_amount" field in the mutation.
+func (m *FinanceVerificationMutation) BillBaseAmount() (r string, exists bool) {
+	v := m.bill_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillBaseAmount returns the old "bill_base_amount" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldBillBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillBaseAmount: %w", err)
+	}
+	return oldValue.BillBaseAmount, nil
+}
+
+// ResetBillBaseAmount resets all changes to the "bill_base_amount" field.
+func (m *FinanceVerificationMutation) ResetBillBaseAmount() {
+	m.bill_base_amount = nil
+}
+
+// SetCashflowBaseAmount sets the "cashflow_base_amount" field.
+func (m *FinanceVerificationMutation) SetCashflowBaseAmount(s string) {
+	m.cashflow_base_amount = &s
+}
+
+// CashflowBaseAmount returns the value of the "cashflow_base_amount" field in the mutation.
+func (m *FinanceVerificationMutation) CashflowBaseAmount() (r string, exists bool) {
+	v := m.cashflow_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCashflowBaseAmount returns the old "cashflow_base_amount" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldCashflowBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCashflowBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCashflowBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCashflowBaseAmount: %w", err)
+	}
+	return oldValue.CashflowBaseAmount, nil
+}
+
+// ResetCashflowBaseAmount resets all changes to the "cashflow_base_amount" field.
+func (m *FinanceVerificationMutation) ResetCashflowBaseAmount() {
+	m.cashflow_base_amount = nil
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (m *FinanceVerificationMutation) SetExchangeGainLoss(s string) {
+	m.exchange_gain_loss = &s
+}
+
+// ExchangeGainLoss returns the value of the "exchange_gain_loss" field in the mutation.
+func (m *FinanceVerificationMutation) ExchangeGainLoss() (r string, exists bool) {
+	v := m.exchange_gain_loss
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeGainLoss returns the old "exchange_gain_loss" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldExchangeGainLoss(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeGainLoss is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeGainLoss requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeGainLoss: %w", err)
+	}
+	return oldValue.ExchangeGainLoss, nil
+}
+
+// ResetExchangeGainLoss resets all changes to the "exchange_gain_loss" field.
+func (m *FinanceVerificationMutation) ResetExchangeGainLoss() {
+	m.exchange_gain_loss = nil
 }
 
 // SetVerificationDate sets the "verification_date" field.
@@ -33006,7 +34187,7 @@ func (m *FinanceVerificationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceVerificationMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, financeverification.FieldCreatedAt)
 	}
@@ -33039,6 +34220,33 @@ func (m *FinanceVerificationMutation) Fields() []string {
 	}
 	if m.amount != nil {
 		fields = append(fields, financeverification.FieldAmount)
+	}
+	if m.base_currency != nil {
+		fields = append(fields, financeverification.FieldBaseCurrency)
+	}
+	if m.exchange_rate != nil {
+		fields = append(fields, financeverification.FieldExchangeRate)
+	}
+	if m.exchange_rate_source != nil {
+		fields = append(fields, financeverification.FieldExchangeRateSource)
+	}
+	if m.exchange_rate_date != nil {
+		fields = append(fields, financeverification.FieldExchangeRateDate)
+	}
+	if m.exchange_rate_setting_id != nil {
+		fields = append(fields, financeverification.FieldExchangeRateSettingID)
+	}
+	if m.base_amount != nil {
+		fields = append(fields, financeverification.FieldBaseAmount)
+	}
+	if m.bill_base_amount != nil {
+		fields = append(fields, financeverification.FieldBillBaseAmount)
+	}
+	if m.cashflow_base_amount != nil {
+		fields = append(fields, financeverification.FieldCashflowBaseAmount)
+	}
+	if m.exchange_gain_loss != nil {
+		fields = append(fields, financeverification.FieldExchangeGainLoss)
 	}
 	if m.verification_date != nil {
 		fields = append(fields, financeverification.FieldVerificationDate)
@@ -33088,6 +34296,24 @@ func (m *FinanceVerificationMutation) Field(name string) (ent.Value, bool) {
 		return m.Currency()
 	case financeverification.FieldAmount:
 		return m.Amount()
+	case financeverification.FieldBaseCurrency:
+		return m.BaseCurrency()
+	case financeverification.FieldExchangeRate:
+		return m.ExchangeRate()
+	case financeverification.FieldExchangeRateSource:
+		return m.ExchangeRateSource()
+	case financeverification.FieldExchangeRateDate:
+		return m.ExchangeRateDate()
+	case financeverification.FieldExchangeRateSettingID:
+		return m.ExchangeRateSettingID()
+	case financeverification.FieldBaseAmount:
+		return m.BaseAmount()
+	case financeverification.FieldBillBaseAmount:
+		return m.BillBaseAmount()
+	case financeverification.FieldCashflowBaseAmount:
+		return m.CashflowBaseAmount()
+	case financeverification.FieldExchangeGainLoss:
+		return m.ExchangeGainLoss()
 	case financeverification.FieldVerificationDate:
 		return m.VerificationDate()
 	case financeverification.FieldNote:
@@ -33131,6 +34357,24 @@ func (m *FinanceVerificationMutation) OldField(ctx context.Context, name string)
 		return m.OldCurrency(ctx)
 	case financeverification.FieldAmount:
 		return m.OldAmount(ctx)
+	case financeverification.FieldBaseCurrency:
+		return m.OldBaseCurrency(ctx)
+	case financeverification.FieldExchangeRate:
+		return m.OldExchangeRate(ctx)
+	case financeverification.FieldExchangeRateSource:
+		return m.OldExchangeRateSource(ctx)
+	case financeverification.FieldExchangeRateDate:
+		return m.OldExchangeRateDate(ctx)
+	case financeverification.FieldExchangeRateSettingID:
+		return m.OldExchangeRateSettingID(ctx)
+	case financeverification.FieldBaseAmount:
+		return m.OldBaseAmount(ctx)
+	case financeverification.FieldBillBaseAmount:
+		return m.OldBillBaseAmount(ctx)
+	case financeverification.FieldCashflowBaseAmount:
+		return m.OldCashflowBaseAmount(ctx)
+	case financeverification.FieldExchangeGainLoss:
+		return m.OldExchangeGainLoss(ctx)
 	case financeverification.FieldVerificationDate:
 		return m.OldVerificationDate(ctx)
 	case financeverification.FieldNote:
@@ -33229,6 +34473,69 @@ func (m *FinanceVerificationMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetAmount(v)
 		return nil
+	case financeverification.FieldBaseCurrency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseCurrency(v)
+		return nil
+	case financeverification.FieldExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRate(v)
+		return nil
+	case financeverification.FieldExchangeRateSource:
+		v, ok := value.(financeverification.ExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSource(v)
+		return nil
+	case financeverification.FieldExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateDate(v)
+		return nil
+	case financeverification.FieldExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeRateSettingID(v)
+		return nil
+	case financeverification.FieldBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseAmount(v)
+		return nil
+	case financeverification.FieldBillBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillBaseAmount(v)
+		return nil
+	case financeverification.FieldCashflowBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCashflowBaseAmount(v)
+		return nil
+	case financeverification.FieldExchangeGainLoss:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeGainLoss(v)
+		return nil
 	case financeverification.FieldVerificationDate:
 		v, ok := value.(string)
 		if !ok {
@@ -33316,6 +34623,9 @@ func (m *FinanceVerificationMutation) AddField(name string, value ent.Value) err
 // mutation.
 func (m *FinanceVerificationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(financeverification.FieldExchangeRateSettingID) {
+		fields = append(fields, financeverification.FieldExchangeRateSettingID)
+	}
 	if m.FieldCleared(financeverification.FieldNote) {
 		fields = append(fields, financeverification.FieldNote)
 	}
@@ -33342,6 +34652,9 @@ func (m *FinanceVerificationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *FinanceVerificationMutation) ClearField(name string) error {
 	switch name {
+	case financeverification.FieldExchangeRateSettingID:
+		m.ClearExchangeRateSettingID()
+		return nil
 	case financeverification.FieldNote:
 		m.ClearNote()
 		return nil
@@ -33394,6 +34707,33 @@ func (m *FinanceVerificationMutation) ResetField(name string) error {
 		return nil
 	case financeverification.FieldAmount:
 		m.ResetAmount()
+		return nil
+	case financeverification.FieldBaseCurrency:
+		m.ResetBaseCurrency()
+		return nil
+	case financeverification.FieldExchangeRate:
+		m.ResetExchangeRate()
+		return nil
+	case financeverification.FieldExchangeRateSource:
+		m.ResetExchangeRateSource()
+		return nil
+	case financeverification.FieldExchangeRateDate:
+		m.ResetExchangeRateDate()
+		return nil
+	case financeverification.FieldExchangeRateSettingID:
+		m.ResetExchangeRateSettingID()
+		return nil
+	case financeverification.FieldBaseAmount:
+		m.ResetBaseAmount()
+		return nil
+	case financeverification.FieldBillBaseAmount:
+		m.ResetBillBaseAmount()
+		return nil
+	case financeverification.FieldCashflowBaseAmount:
+		m.ResetCashflowBaseAmount()
+		return nil
+	case financeverification.FieldExchangeGainLoss:
+		m.ResetExchangeGainLoss()
 		return nil
 	case financeverification.FieldVerificationDate:
 		m.ResetVerificationDate()
@@ -33584,25 +34924,29 @@ func (m *FinanceVerificationMutation) ResetEdge(name string) error {
 // FinanceVerificationAllocationMutation represents an operation that mutates the FinanceVerificationAllocation nodes in the graph.
 type FinanceVerificationAllocationMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	cashflow_no         *string
-	bill_no             *string
-	amount              *string
-	active              *bool
-	clearedFields       map[string]struct{}
-	verification        *uuid.UUID
-	clearedverification bool
-	cashflow            *uuid.UUID
-	clearedcashflow     bool
-	bill                *uuid.UUID
-	clearedbill         bool
-	done                bool
-	oldValue            func(context.Context) (*FinanceVerificationAllocation, error)
-	predicates          []predicate.FinanceVerificationAllocation
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	cashflow_no           *string
+	bill_no               *string
+	amount                *string
+	bill_base_amount      *string
+	cashflow_base_amount  *string
+	write_off_base_amount *string
+	exchange_gain_loss    *string
+	active                *bool
+	clearedFields         map[string]struct{}
+	verification          *uuid.UUID
+	clearedverification   bool
+	cashflow              *uuid.UUID
+	clearedcashflow       bool
+	bill                  *uuid.UUID
+	clearedbill           bool
+	done                  bool
+	oldValue              func(context.Context) (*FinanceVerificationAllocation, error)
+	predicates            []predicate.FinanceVerificationAllocation
 }
 
 var _ ent.Mutation = (*FinanceVerificationAllocationMutation)(nil)
@@ -33997,6 +35341,150 @@ func (m *FinanceVerificationAllocationMutation) ResetAmount() {
 	m.amount = nil
 }
 
+// SetBillBaseAmount sets the "bill_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) SetBillBaseAmount(s string) {
+	m.bill_base_amount = &s
+}
+
+// BillBaseAmount returns the value of the "bill_base_amount" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) BillBaseAmount() (r string, exists bool) {
+	v := m.bill_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillBaseAmount returns the old "bill_base_amount" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldBillBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillBaseAmount: %w", err)
+	}
+	return oldValue.BillBaseAmount, nil
+}
+
+// ResetBillBaseAmount resets all changes to the "bill_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) ResetBillBaseAmount() {
+	m.bill_base_amount = nil
+}
+
+// SetCashflowBaseAmount sets the "cashflow_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) SetCashflowBaseAmount(s string) {
+	m.cashflow_base_amount = &s
+}
+
+// CashflowBaseAmount returns the value of the "cashflow_base_amount" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) CashflowBaseAmount() (r string, exists bool) {
+	v := m.cashflow_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCashflowBaseAmount returns the old "cashflow_base_amount" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldCashflowBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCashflowBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCashflowBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCashflowBaseAmount: %w", err)
+	}
+	return oldValue.CashflowBaseAmount, nil
+}
+
+// ResetCashflowBaseAmount resets all changes to the "cashflow_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) ResetCashflowBaseAmount() {
+	m.cashflow_base_amount = nil
+}
+
+// SetWriteOffBaseAmount sets the "write_off_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) SetWriteOffBaseAmount(s string) {
+	m.write_off_base_amount = &s
+}
+
+// WriteOffBaseAmount returns the value of the "write_off_base_amount" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) WriteOffBaseAmount() (r string, exists bool) {
+	v := m.write_off_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWriteOffBaseAmount returns the old "write_off_base_amount" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldWriteOffBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWriteOffBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWriteOffBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWriteOffBaseAmount: %w", err)
+	}
+	return oldValue.WriteOffBaseAmount, nil
+}
+
+// ResetWriteOffBaseAmount resets all changes to the "write_off_base_amount" field.
+func (m *FinanceVerificationAllocationMutation) ResetWriteOffBaseAmount() {
+	m.write_off_base_amount = nil
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (m *FinanceVerificationAllocationMutation) SetExchangeGainLoss(s string) {
+	m.exchange_gain_loss = &s
+}
+
+// ExchangeGainLoss returns the value of the "exchange_gain_loss" field in the mutation.
+func (m *FinanceVerificationAllocationMutation) ExchangeGainLoss() (r string, exists bool) {
+	v := m.exchange_gain_loss
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExchangeGainLoss returns the old "exchange_gain_loss" field's value of the FinanceVerificationAllocation entity.
+// If the FinanceVerificationAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationAllocationMutation) OldExchangeGainLoss(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExchangeGainLoss is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExchangeGainLoss requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExchangeGainLoss: %w", err)
+	}
+	return oldValue.ExchangeGainLoss, nil
+}
+
+// ResetExchangeGainLoss resets all changes to the "exchange_gain_loss" field.
+func (m *FinanceVerificationAllocationMutation) ResetExchangeGainLoss() {
+	m.exchange_gain_loss = nil
+}
+
 // SetActive sets the "active" field.
 func (m *FinanceVerificationAllocationMutation) SetActive(b bool) {
 	m.active = &b
@@ -34148,7 +35636,7 @@ func (m *FinanceVerificationAllocationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceVerificationAllocationMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, financeverificationallocation.FieldCreatedAt)
 	}
@@ -34172,6 +35660,18 @@ func (m *FinanceVerificationAllocationMutation) Fields() []string {
 	}
 	if m.amount != nil {
 		fields = append(fields, financeverificationallocation.FieldAmount)
+	}
+	if m.bill_base_amount != nil {
+		fields = append(fields, financeverificationallocation.FieldBillBaseAmount)
+	}
+	if m.cashflow_base_amount != nil {
+		fields = append(fields, financeverificationallocation.FieldCashflowBaseAmount)
+	}
+	if m.write_off_base_amount != nil {
+		fields = append(fields, financeverificationallocation.FieldWriteOffBaseAmount)
+	}
+	if m.exchange_gain_loss != nil {
+		fields = append(fields, financeverificationallocation.FieldExchangeGainLoss)
 	}
 	if m.active != nil {
 		fields = append(fields, financeverificationallocation.FieldActive)
@@ -34200,6 +35700,14 @@ func (m *FinanceVerificationAllocationMutation) Field(name string) (ent.Value, b
 		return m.BillNo()
 	case financeverificationallocation.FieldAmount:
 		return m.Amount()
+	case financeverificationallocation.FieldBillBaseAmount:
+		return m.BillBaseAmount()
+	case financeverificationallocation.FieldCashflowBaseAmount:
+		return m.CashflowBaseAmount()
+	case financeverificationallocation.FieldWriteOffBaseAmount:
+		return m.WriteOffBaseAmount()
+	case financeverificationallocation.FieldExchangeGainLoss:
+		return m.ExchangeGainLoss()
 	case financeverificationallocation.FieldActive:
 		return m.Active()
 	}
@@ -34227,6 +35735,14 @@ func (m *FinanceVerificationAllocationMutation) OldField(ctx context.Context, na
 		return m.OldBillNo(ctx)
 	case financeverificationallocation.FieldAmount:
 		return m.OldAmount(ctx)
+	case financeverificationallocation.FieldBillBaseAmount:
+		return m.OldBillBaseAmount(ctx)
+	case financeverificationallocation.FieldCashflowBaseAmount:
+		return m.OldCashflowBaseAmount(ctx)
+	case financeverificationallocation.FieldWriteOffBaseAmount:
+		return m.OldWriteOffBaseAmount(ctx)
+	case financeverificationallocation.FieldExchangeGainLoss:
+		return m.OldExchangeGainLoss(ctx)
 	case financeverificationallocation.FieldActive:
 		return m.OldActive(ctx)
 	}
@@ -34293,6 +35809,34 @@ func (m *FinanceVerificationAllocationMutation) SetField(name string, value ent.
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAmount(v)
+		return nil
+	case financeverificationallocation.FieldBillBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillBaseAmount(v)
+		return nil
+	case financeverificationallocation.FieldCashflowBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCashflowBaseAmount(v)
+		return nil
+	case financeverificationallocation.FieldWriteOffBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWriteOffBaseAmount(v)
+		return nil
+	case financeverificationallocation.FieldExchangeGainLoss:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExchangeGainLoss(v)
 		return nil
 	case financeverificationallocation.FieldActive:
 		v, ok := value.(bool)
@@ -34373,6 +35917,18 @@ func (m *FinanceVerificationAllocationMutation) ResetField(name string) error {
 		return nil
 	case financeverificationallocation.FieldAmount:
 		m.ResetAmount()
+		return nil
+	case financeverificationallocation.FieldBillBaseAmount:
+		m.ResetBillBaseAmount()
+		return nil
+	case financeverificationallocation.FieldCashflowBaseAmount:
+		m.ResetCashflowBaseAmount()
+		return nil
+	case financeverificationallocation.FieldWriteOffBaseAmount:
+		m.ResetWriteOffBaseAmount()
+		return nil
+	case financeverificationallocation.FieldExchangeGainLoss:
+		m.ResetExchangeGainLoss()
 		return nil
 	case financeverificationallocation.FieldActive:
 		m.ResetActive()

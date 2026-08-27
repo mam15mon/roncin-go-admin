@@ -101,7 +101,9 @@ const (
 	TimeStandardBARGE_ETD          TimeStandard = "BARGE_ETD"
 	TimeStandardEXPENSE_TIME       TimeStandard = "EXPENSE_TIME"
 	TimeStandardORDER_CREATED_AT   TimeStandard = "ORDER_CREATED_AT"
-	TimeStandardBILL_CREATED_AT    TimeStandard = "BILL_CREATED_AT"
+	TimeStandardBILL_DATE          TimeStandard = "BILL_DATE"
+	TimeStandardINVOICE_DATE       TimeStandard = "INVOICE_DATE"
+	TimeStandardTRANSACTION_DATE   TimeStandard = "TRANSACTION_DATE"
 	TimeStandardWRITE_OFF_TIME     TimeStandard = "WRITE_OFF_TIME"
 )
 
@@ -112,7 +114,7 @@ func (ts TimeStandard) String() string {
 // TimeStandardValidator is a validator for the "time_standard" field enum values. It is called by the builders before save.
 func TimeStandardValidator(ts TimeStandard) error {
 	switch ts {
-	case TimeStandardETD_ETA_TRAIN_DATE, TimeStandardBUSINESS_TIME, TimeStandardBARGE_ETD, TimeStandardEXPENSE_TIME, TimeStandardORDER_CREATED_AT, TimeStandardBILL_CREATED_AT, TimeStandardWRITE_OFF_TIME:
+	case TimeStandardETD_ETA_TRAIN_DATE, TimeStandardBUSINESS_TIME, TimeStandardBARGE_ETD, TimeStandardEXPENSE_TIME, TimeStandardORDER_CREATED_AT, TimeStandardBILL_DATE, TimeStandardINVOICE_DATE, TimeStandardTRANSACTION_DATE, TimeStandardWRITE_OFF_TIME:
 		return nil
 	default:
 		return fmt.Errorf("exchangeratetimestandard: invalid enum value for time_standard field: %q", ts)

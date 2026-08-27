@@ -46,6 +46,14 @@ type FinanceBill struct {
 	Currency string `json:"currency,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
 	BaseCurrency string `json:"base_currency,omitempty"`
+	// ExchangeRate holds the value of the "exchange_rate" field.
+	ExchangeRate string `json:"exchange_rate,omitempty"`
+	// ExchangeRateSource holds the value of the "exchange_rate_source" field.
+	ExchangeRateSource financebill.ExchangeRateSource `json:"exchange_rate_source,omitempty"`
+	// ExchangeRateDate holds the value of the "exchange_rate_date" field.
+	ExchangeRateDate string `json:"exchange_rate_date,omitempty"`
+	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
+	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
 	// TotalAmount holds the value of the "total_amount" field.
 	TotalAmount string `json:"total_amount,omitempty"`
 	// NetAmount holds the value of the "net_amount" field.
@@ -194,11 +202,11 @@ func (*FinanceBill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financebill.FieldBatchID, financebill.FieldConfirmedBy, financebill.FieldCancelledBy:
+		case financebill.FieldBatchID, financebill.FieldExchangeRateSettingID, financebill.FieldConfirmedBy, financebill.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financebill.FieldFeeCount, financebill.FieldPaymentTermsDays, financebill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
+		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financebill.FieldCreatedAt, financebill.FieldUpdatedAt, financebill.FieldConfirmedAt, financebill.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -297,6 +305,31 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
 			} else if value.Valid {
 				_m.BaseCurrency = value.String
+			}
+		case financebill.FieldExchangeRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate", values[i])
+			} else if value.Valid {
+				_m.ExchangeRate = value.String
+			}
+		case financebill.FieldExchangeRateSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_source", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSource = financebill.ExchangeRateSource(value.String)
+			}
+		case financebill.FieldExchangeRateDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_date", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateDate = value.String
+			}
+		case financebill.FieldExchangeRateSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_setting_id", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSettingID = new(uuid.UUID)
+				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
 			}
 		case financebill.FieldTotalAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -516,6 +549,20 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_currency=")
 	builder.WriteString(_m.BaseCurrency)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate=")
+	builder.WriteString(_m.ExchangeRate)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExchangeRateSource))
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_date=")
+	builder.WriteString(_m.ExchangeRateDate)
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateSettingID; v != nil {
+		builder.WriteString("exchange_rate_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("total_amount=")
 	builder.WriteString(_m.TotalAmount)

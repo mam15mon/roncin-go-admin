@@ -5661,8 +5661,6 @@ components:
                 - settlementPartyId
                 - currency
                 - amount
-                - exchangeRate
-                - baseCurrency
                 - transactionDate
                 - ourAccount
                 - paymentMethod
@@ -6250,6 +6248,14 @@ components:
                 paymentTermsDays:
                     type: integer
                     format: int32
+                exchangeRate:
+                    type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
+                    type: string
         finance.v1.FinanceBillBatch:
             type: object
             properties:
@@ -6364,6 +6370,12 @@ components:
                 verifiedAmount:
                     type: string
                 unverifiedAmount:
+                    type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
                     type: string
         finance.v1.FinanceCommission:
             type: object
@@ -6615,6 +6627,18 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceInvoiceLine'
+                baseCurrency:
+                    type: string
+                exchangeRate:
+                    type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
+                    type: string
+                baseCurrencyAmount:
+                    type: string
         finance.v1.FinanceInvoiceBill:
             type: object
             properties:
@@ -6690,6 +6714,24 @@ components:
                         $ref: '#/components/schemas/finance.v1.FinanceVerificationAllocation'
                 createdAt:
                     type: string
+                baseCurrency:
+                    type: string
+                exchangeRate:
+                    type: string
+                exchangeRateSource:
+                    type: string
+                exchangeRateDate:
+                    type: string
+                exchangeRateSettingId:
+                    type: string
+                baseAmount:
+                    type: string
+                billBaseAmount:
+                    type: string
+                cashflowBaseAmount:
+                    type: string
+                exchangeGainLoss:
+                    type: string
         finance.v1.FinanceVerificationAllocation:
             type: object
             properties:
@@ -6707,6 +6749,14 @@ components:
                     type: string
                 active:
                     type: boolean
+                billBaseAmount:
+                    type: string
+                cashflowBaseAmount:
+                    type: string
+                writeOffBaseAmount:
+                    type: string
+                exchangeGainLoss:
+                    type: string
         finance.v1.GetBillResponse:
             type: object
             properties:

@@ -470,6 +470,9 @@ func (_u *FinanceCashflowUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecashflow.FieldStatus, field.TypeEnum, value)
 	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(financecashflow.FieldExchangeRateSettingID, field.TypeUUID)
+	}
 	if value, ok := _u.mutation.TransactionDate(); ok {
 		_spec.SetField(financecashflow.FieldTransactionDate, field.TypeString, value)
 	}
@@ -1112,6 +1115,9 @@ func (_u *FinanceCashflowUpdateOne) sqlSave(ctx context.Context) (_node *Finance
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecashflow.FieldStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(financecashflow.FieldExchangeRateSettingID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.TransactionDate(); ok {
 		_spec.SetField(financecashflow.FieldTransactionDate, field.TypeString, value)

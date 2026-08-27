@@ -31,6 +31,8 @@ type VerificationAllocation struct {
 	ID, VerificationID, CashflowID, BillID uuid.UUID
 	CashflowNo, BillNo                     string
 	Amount                                 decimal.Decimal
+	BillBaseAmount, CashflowBaseAmount     decimal.Decimal
+	WriteOffBaseAmount, ExchangeGainLoss   decimal.Decimal
 	Active                                 bool
 }
 type FinanceVerification struct {
@@ -40,6 +42,12 @@ type FinanceVerification struct {
 	Direction                             OrderFeeDirection
 	SettlementPartyName, Currency         string
 	Amount                                decimal.Decimal
+	BaseCurrency                          string
+	ExchangeRate                          decimal.Decimal
+	ExchangeRateSource, ExchangeRateDate  string
+	ExchangeRateSettingID                 *uuid.UUID
+	BaseAmount, BillBaseAmount            decimal.Decimal
+	CashflowBaseAmount, ExchangeGainLoss  decimal.Decimal
 	VerificationDate                      string
 	Note                                  *string
 	Version                               uint64
@@ -68,15 +76,17 @@ type VerificationRepo interface {
 	List(context.Context, uuid.UUID, VerificationFilter) (*VerificationListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceVerification, error)
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceVerification, error)
+	LoadCashflowContext(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceVerification, *AuditEvent) (*FinanceVerification, error)
 	Reverse(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceVerification, error)
 }
 type VerificationUsecase struct {
-	repo VerificationRepo
+	repo         VerificationRepo
+	exchangeRate *ExchangeRateUsecase
 }
 
-func NewVerificationUsecase(r VerificationRepo) *VerificationUsecase {
-	return &VerificationUsecase{repo: r}
+func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecase) *VerificationUsecase {
+	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate}
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
@@ -116,6 +126,31 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		a.Active = true
 		v.Amount = v.Amount.Add(a.Amount)
 	}
+	if u.exchangeRate == nil {
+		return nil, ErrVerificationInvalid
+	}
+	// 核销记录只能包含同一收付方向和币种；实际方向由仓储在锁内校验。
+	// 先取首笔资金流水确定方向和币种，随后锁内再次核对全部分摊。
+	firstCashflow, err := u.repo.LoadCashflowContext(ctx, org, v.Allocations[0].CashflowID)
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := u.exchangeRate.Resolve(ctx, org, WriteOffRateType, firstCashflow.Direction, firstCashflow.Currency, map[string]string{WriteOffTimeStandard: in.VerificationDate})
+	if err != nil {
+		return nil, err
+	}
+	baseCurrency, err := u.exchangeRate.BaseCurrency(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+	v.Direction = firstCashflow.Direction
+	v.Currency = firstCashflow.Currency
+	v.BaseCurrency = baseCurrency
+	v.ExchangeRate = resolved.Rate
+	v.ExchangeRateSource = resolved.Source
+	v.ExchangeRateDate = resolved.RateDate
+	v.ExchangeRateSettingID = resolved.SettingID
+	v.BaseAmount = v.Amount.Mul(resolved.Rate).RoundBank(8)
 	created, e := u.repo.Create(ctx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
 	if e == nil {
 		return created, nil
@@ -125,6 +160,21 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		return old, nil
 	}
 	return nil, e
+}
+
+func CalculateVerificationAllocationAmounts(direction OrderFeeDirection, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate decimal.Decimal) (billBase, cashflowBase, writeOffBase, gainLoss decimal.Decimal, err error) {
+	if (direction != OrderFeeReceivable && direction != OrderFeePayable) || !amount.IsPositive() || !billTotal.IsPositive() || !billBaseTotal.IsPositive() || !cashflowTotal.IsPositive() || !cashflowBaseTotal.IsPositive() || !writeOffRate.IsPositive() {
+		return decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero, ErrVerificationInvalid
+	}
+	billBase = billBaseTotal.Mul(amount).Div(billTotal).RoundBank(8)
+	cashflowBase = cashflowBaseTotal.Mul(amount).Div(cashflowTotal).RoundBank(8)
+	writeOffBase = amount.Mul(writeOffRate).RoundBank(8)
+	if direction == OrderFeeReceivable {
+		gainLoss = cashflowBase.Sub(billBase).RoundBank(8)
+	} else {
+		gainLoss = billBase.Sub(cashflowBase).RoundBank(8)
+	}
+	return billBase, cashflowBase, writeOffBase, gainLoss, nil
 }
 func sameVerificationIntent(old *FinanceVerification, in CreateVerificationInput) bool {
 	if old == nil || old.VerificationDate != in.VerificationDate || !stringPointersEqual(old.Note, in.Note) || len(old.Allocations) != len(in.Allocations) {

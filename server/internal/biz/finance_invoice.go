@@ -45,6 +45,11 @@ type FinanceInvoice struct {
 	Status                                 FinanceInvoiceStatus
 	InvoiceType                            FinanceInvoiceType
 	SettlementPartyName, Currency          string
+	BaseCurrency                           string
+	ExchangeRate                           *decimal.Decimal
+	ExchangeRateSource, ExchangeRateDate   *string
+	ExchangeRateSettingID                  *uuid.UUID
+	BaseCurrencyAmount                     *decimal.Decimal
 	InvoiceTitle, TaxpayerIdentificationNo string
 	RegisteredAddress, RegisteredPhone     string
 	BankName, BankAccount                  string
@@ -99,6 +104,14 @@ type CreateFinanceInvoiceInput struct {
 	IdempotencyKey   string
 }
 
+type FinanceInvoiceIssueInput struct {
+	TaxInvoiceNo, InvoiceDate            string
+	ExchangeRate                         decimal.Decimal
+	ExchangeRateSource, ExchangeRateDate string
+	ExchangeRateSettingID                *uuid.UUID
+	BaseCurrencyAmount                   decimal.Decimal
+}
+
 type FinanceInvoiceRepo interface {
 	List(context.Context, uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceInvoice, error)
@@ -106,18 +119,19 @@ type FinanceInvoiceRepo interface {
 	LoadBills(context.Context, uuid.UUID, []uuid.UUID) ([]*FinanceBill, error)
 	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
 	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
-	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, *AuditEvent) (*FinanceInvoice, error)
+	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, FinanceInvoiceIssueInput, *AuditEvent) (*FinanceInvoice, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceInvoice, error)
 	RedFlush(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, string, *AuditEvent) (*FinanceInvoice, error)
 }
 
 type FinanceInvoiceUsecase struct {
-	repo   FinanceInvoiceRepo
-	config *OrderConfigUsecase
+	repo         FinanceInvoiceRepo
+	config       *OrderConfigUsecase
+	exchangeRate *ExchangeRateUsecase
 }
 
-func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecase) *FinanceInvoiceUsecase {
-	return &FinanceInvoiceUsecase{repo: repo, config: config}
+func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecase, exchangeRate *ExchangeRateUsecase) *FinanceInvoiceUsecase {
+	return &FinanceInvoiceUsecase{repo: repo, config: config, exchangeRate: exchangeRate}
 }
 
 func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
@@ -212,7 +226,26 @@ func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, acto
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || taxInvoiceNo == "" || utf8.RuneCountInString(taxInvoiceNo) > 100 || !validFinanceDate(invoiceDate) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
-	return uc.repo.Issue(ctx, organizationID, id, actorID, expectedVersion, taxInvoiceNo, invoiceDate, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.issue"))
+	invoice, err := uc.repo.Get(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	if uc.exchangeRate == nil {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, InvoiceRateType, invoice.Direction, invoice.Currency, map[string]string{InvoiceDateStandard: invoiceDate})
+	if err != nil {
+		return nil, err
+	}
+	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if baseCurrency != invoice.BaseCurrency {
+		return nil, ErrFinanceInvoiceBillMismatch
+	}
+	issue := FinanceInvoiceIssueInput{TaxInvoiceNo: taxInvoiceNo, InvoiceDate: invoiceDate, ExchangeRate: resolved.Rate, ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate, ExchangeRateSettingID: resolved.SettingID, BaseCurrencyAmount: invoice.TotalAmount.Mul(resolved.Rate).RoundBank(8)}
+	return uc.repo.Issue(ctx, organizationID, id, actorID, expectedVersion, issue, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.issue"))
 }
 
 func (uc *FinanceInvoiceUsecase) Cancel(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceInvoice, error) {
@@ -236,14 +269,14 @@ func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, profile
 	}
 	id := uuid.Must(uuid.NewV7())
 	profileID := profile.ID
-	invoice := &FinanceInvoice{ID: id, OrganizationID: organizationID, InvoiceProfileID: &profileID, IdempotencyKey: input.IdempotencyKey, Direction: first.Direction, Status: FinanceInvoiceDraft, InvoiceType: input.InvoiceType, SettlementPartyID: first.SettlementPartyID, SettlementPartyName: first.SettlementPartyName, InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, RegisteredAddress: profile.RegisteredAddress, RegisteredPhone: profile.RegisteredPhone, BankName: profile.BankName, BankAccount: profile.BankAccount, Currency: first.Currency, Note: input.Note, Version: 1, Links: make([]*FinanceInvoiceBill, 0, len(bills))}
+	invoice := &FinanceInvoice{ID: id, OrganizationID: organizationID, InvoiceProfileID: &profileID, IdempotencyKey: input.IdempotencyKey, Direction: first.Direction, Status: FinanceInvoiceDraft, InvoiceType: input.InvoiceType, SettlementPartyID: first.SettlementPartyID, SettlementPartyName: first.SettlementPartyName, InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, RegisteredAddress: profile.RegisteredAddress, RegisteredPhone: profile.RegisteredPhone, BankName: profile.BankName, BankAccount: profile.BankAccount, Currency: first.Currency, BaseCurrency: first.BaseCurrency, Note: input.Note, Version: 1, Links: make([]*FinanceInvoiceBill, 0, len(bills))}
 	lineGroups := make(map[string]*FinanceInvoiceLine)
 	lineKeys := make([]string, 0)
 	for _, bill := range bills {
 		if bill.Status != FinanceBillConfirmed {
 			return nil, ErrFinanceInvoiceBillInvalid
 		}
-		if bill.Direction != invoice.Direction || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency {
+		if bill.Direction != invoice.Direction || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency || bill.BaseCurrency != invoice.BaseCurrency {
 			return nil, ErrFinanceInvoiceBillMismatch
 		}
 		invoice.TotalAmount = invoice.TotalAmount.Add(bill.TotalAmount)

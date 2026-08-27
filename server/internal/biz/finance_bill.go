@@ -40,39 +40,43 @@ const (
 )
 
 type FinanceBill struct {
-	ID                  uuid.UUID
-	OrganizationID      uuid.UUID
-	BatchID             *uuid.UUID
-	BatchNo             string
-	BillNo              string
-	IdempotencyKey      string
-	Direction           OrderFeeDirection
-	Status              FinanceBillStatus
-	SettlementPartyID   uuid.UUID
-	SettlementPartyName string
-	Currency            string
-	BaseCurrency        string
-	TotalAmount         decimal.Decimal
-	NetAmount           decimal.Decimal
-	TaxAmount           decimal.Decimal
-	BaseCurrencyAmount  decimal.Decimal
-	VerifiedAmount      decimal.Decimal
-	UnverifiedAmount    decimal.Decimal
-	FeeCount            int
-	BillDate            string
-	StatementTitle      *string
-	PaymentTermsDays    *int
-	DueDate             *string
-	Note                *string
-	Version             uint64
-	ConfirmedAt         *time.Time
-	ConfirmedBy         *uuid.UUID
-	CancelledAt         *time.Time
-	CancelledBy         *uuid.UUID
-	CancellationReason  *string
-	Lines               []*FinanceBillLine
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	ID                    uuid.UUID
+	OrganizationID        uuid.UUID
+	BatchID               *uuid.UUID
+	BatchNo               string
+	BillNo                string
+	IdempotencyKey        string
+	Direction             OrderFeeDirection
+	Status                FinanceBillStatus
+	SettlementPartyID     uuid.UUID
+	SettlementPartyName   string
+	Currency              string
+	BaseCurrency          string
+	ExchangeRate          decimal.Decimal
+	ExchangeRateSource    string
+	ExchangeRateDate      string
+	ExchangeRateSettingID *uuid.UUID
+	TotalAmount           decimal.Decimal
+	NetAmount             decimal.Decimal
+	TaxAmount             decimal.Decimal
+	BaseCurrencyAmount    decimal.Decimal
+	VerifiedAmount        decimal.Decimal
+	UnverifiedAmount      decimal.Decimal
+	FeeCount              int
+	BillDate              string
+	StatementTitle        *string
+	PaymentTermsDays      *int
+	DueDate               *string
+	Note                  *string
+	Version               uint64
+	ConfirmedAt           *time.Time
+	ConfirmedBy           *uuid.UUID
+	CancelledAt           *time.Time
+	CancelledBy           *uuid.UUID
+	CancellationReason    *string
+	Lines                 []*FinanceBillLine
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type FinanceBillLine struct {
@@ -131,13 +135,18 @@ type CreateFinanceBillInput struct {
 }
 
 type UpdateFinanceBillInput struct {
-	ID               uuid.UUID
-	BillDate         string
-	DueDate          *string
-	Note             *string
-	StatementTitle   *string
-	PaymentTermsDays *int
-	ExpectedVersion  uint64
+	ID                    uuid.UUID
+	BillDate              string
+	DueDate               *string
+	Note                  *string
+	StatementTitle        *string
+	PaymentTermsDays      *int
+	ExpectedVersion       uint64
+	ExchangeRate          decimal.Decimal
+	ExchangeRateSource    string
+	ExchangeRateDate      string
+	ExchangeRateSettingID *uuid.UUID
+	BaseCurrencyAmount    decimal.Decimal
 }
 
 type FinanceBillGroupingPolicy struct {
@@ -208,10 +217,13 @@ type FinanceBillRepo interface {
 	Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
 }
 
-type FinanceBillUsecase struct{ repo FinanceBillRepo }
+type FinanceBillUsecase struct {
+	repo         FinanceBillRepo
+	exchangeRate *ExchangeRateUsecase
+}
 
-func NewFinanceBillUsecase(repo FinanceBillRepo) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo}
+func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase) *FinanceBillUsecase {
+	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate}
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -317,6 +329,9 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		if buildErr != nil {
 			return nil, buildErr
 		}
+		if err = uc.applyBillExchangeRate(ctx, organizationID, bill); err != nil {
+			return nil, err
+		}
 		bill.BatchID = &batchID
 		batch.Bills = append(batch.Bills, bill)
 		batch.TotalBaseAmount = batch.TotalBaseAmount.Add(bill.BaseCurrencyAmount)
@@ -378,6 +393,9 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 	if err != nil {
 		return nil, err
 	}
+	if err = uc.applyBillExchangeRate(ctx, organizationID, bill); err != nil {
+		return nil, err
+	}
 	created, err := uc.repo.Create(ctx, bill, financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create"))
 	if err == nil {
 		return created, nil
@@ -389,6 +407,29 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 	return nil, err
 }
 
+func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organizationID uuid.UUID, bill *FinanceBill) error {
+	if uc.exchangeRate == nil || bill == nil {
+		return ErrFinanceBillInvalidArgument
+	}
+	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, BillRateType, bill.Direction, bill.Currency, map[string]string{BillDateStandard: bill.BillDate})
+	if err != nil {
+		return err
+	}
+	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+	if baseCurrency != bill.BaseCurrency {
+		return ErrFinanceBillFeeMismatch
+	}
+	bill.ExchangeRate = resolved.Rate
+	bill.ExchangeRateSource = resolved.Source
+	bill.ExchangeRateDate = resolved.RateDate
+	bill.ExchangeRateSettingID = resolved.SettingID
+	bill.BaseCurrencyAmount = bill.TotalAmount.Mul(resolved.Rate).RoundBank(8)
+	return nil
+}
+
 func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationID, actorID uuid.UUID, input UpdateFinanceBillInput) (*FinanceBill, error) {
 	input.BillDate = strings.TrimSpace(input.BillDate)
 	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
@@ -398,6 +439,22 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationID, actorI
 	if organizationID == uuid.Nil || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
+	existing, err := uc.repo.Get(ctx, organizationID, input.ID)
+	if err != nil {
+		return nil, err
+	}
+	if uc.exchangeRate == nil {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	resolved, err := uc.exchangeRate.Resolve(ctx, organizationID, BillRateType, existing.Direction, existing.Currency, map[string]string{BillDateStandard: input.BillDate})
+	if err != nil {
+		return nil, err
+	}
+	input.ExchangeRate = resolved.Rate
+	input.ExchangeRateSource = resolved.Source
+	input.ExchangeRateDate = resolved.RateDate
+	input.ExchangeRateSettingID = resolved.SettingID
+	input.BaseCurrencyAmount = existing.TotalAmount.Mul(resolved.Rate).RoundBank(8)
 	return uc.repo.Update(ctx, organizationID, input, financeBillAudit(organizationID, actorID, input.ID, "finance.bill.update"))
 }
 

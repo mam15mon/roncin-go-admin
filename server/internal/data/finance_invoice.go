@@ -147,7 +147,7 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 	if active {
 		return rollback(biz.ErrFinanceInvoiceBillInvalid)
 	}
-	_, err = tx.FinanceInvoice.Create().SetID(invoice.ID).SetOrganizationID(invoice.OrganizationID).SetRecordNo(invoice.RecordNo).SetIdempotencyKey(invoice.IdempotencyKey).SetDirection(financeinvoiceent.Direction(invoice.Direction)).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceType(invoice.InvoiceType)).SetNillableInvoiceProfileID(invoice.InvoiceProfileID).SetSettlementPartyID(invoice.SettlementPartyID).SetSettlementPartyName(invoice.SettlementPartyName).SetInvoiceTitle(invoice.InvoiceTitle).SetTaxpayerIdentificationNo(invoice.TaxpayerIdentificationNo).SetRegisteredAddress(invoice.RegisteredAddress).SetRegisteredPhone(invoice.RegisteredPhone).SetBankName(invoice.BankName).SetBankAccount(invoice.BankAccount).SetCurrency(invoice.Currency).SetTotalAmount(invoice.TotalAmount.StringFixed(8)).SetNetAmount(invoice.NetAmount.StringFixed(8)).SetTaxAmount(invoice.TaxAmount.StringFixed(8)).SetBillCount(invoice.BillCount).SetNillableNote(invoice.Note).SetVersion(1).Save(ctx)
+	_, err = tx.FinanceInvoice.Create().SetID(invoice.ID).SetOrganizationID(invoice.OrganizationID).SetRecordNo(invoice.RecordNo).SetIdempotencyKey(invoice.IdempotencyKey).SetDirection(financeinvoiceent.Direction(invoice.Direction)).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceType(invoice.InvoiceType)).SetNillableInvoiceProfileID(invoice.InvoiceProfileID).SetSettlementPartyID(invoice.SettlementPartyID).SetSettlementPartyName(invoice.SettlementPartyName).SetInvoiceTitle(invoice.InvoiceTitle).SetTaxpayerIdentificationNo(invoice.TaxpayerIdentificationNo).SetRegisteredAddress(invoice.RegisteredAddress).SetRegisteredPhone(invoice.RegisteredPhone).SetBankName(invoice.BankName).SetBankAccount(invoice.BankAccount).SetCurrency(invoice.Currency).SetBaseCurrency(invoice.BaseCurrency).SetTotalAmount(invoice.TotalAmount.StringFixed(8)).SetNetAmount(invoice.NetAmount.StringFixed(8)).SetTaxAmount(invoice.TaxAmount.StringFixed(8)).SetBillCount(invoice.BillCount).SetNillableNote(invoice.Note).SetVersion(1).Save(ctx)
 	if err != nil {
 		return rollback(err)
 	}
@@ -174,7 +174,7 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 	return r.Get(ctx, invoice.OrganizationID, invoice.ID)
 }
 
-func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID, version uint64, taxNo, date string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
+func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID, version uint64, issue biz.FinanceInvoiceIssueInput, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -193,7 +193,7 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 	if item.Status != financeinvoiceent.StatusDRAFT {
 		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
 	}
-	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(taxNo)).Exist(ctx)
+	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(issue.TaxInvoiceNo)).Exist(ctx)
 	if err != nil {
 		return rollback(err)
 	}
@@ -201,7 +201,7 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 		return rollback(biz.ErrFinanceInvoiceTaxNoExists)
 	}
 	now := time.Now()
-	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(taxNo).SetInvoiceDate(date).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); err != nil {
+	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(issue.TaxInvoiceNo).SetInvoiceDate(issue.InvoiceDate).SetExchangeRate(issue.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financeinvoiceent.ExchangeRateSource(issue.ExchangeRateSource)).SetExchangeRateDate(issue.ExchangeRateDate).SetNillableExchangeRateSettingID(issue.ExchangeRateSettingID).SetBaseCurrencyAmount(issue.BaseCurrencyAmount.StringFixed(8)).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); err != nil {
 		return rollback(mapFinanceInvoiceNumberConstraint(err))
 	}
 	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
@@ -332,7 +332,27 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, InvoiceProfileID: x.InvoiceProfileID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, InvoiceTitle: financeStringValue(x.InvoiceTitle), TaxpayerIdentificationNo: financeStringValue(x.TaxpayerIdentificationNo), RegisteredAddress: financeStringValue(x.RegisteredAddress), RegisteredPhone: financeStringValue(x.RegisteredPhone), BankName: financeStringValue(x.BankName), BankAccount: financeStringValue(x.BankAccount), Currency: x.Currency, TotalAmount: total, NetAmount: net, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks)), Lines: make([]*biz.FinanceInvoiceLine, 0, len(x.Edges.Lines))}
+	var exchangeRate, baseCurrencyAmount *decimal.Decimal
+	if x.ExchangeRate != nil {
+		value, parseErr := decimal.NewFromString(*x.ExchangeRate)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		exchangeRate = &value
+	}
+	if x.BaseCurrencyAmount != nil {
+		value, parseErr := decimal.NewFromString(*x.BaseCurrencyAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		baseCurrencyAmount = &value
+	}
+	var exchangeRateSource *string
+	if x.ExchangeRateSource != nil {
+		value := string(*x.ExchangeRateSource)
+		exchangeRateSource = &value
+	}
+	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, InvoiceProfileID: x.InvoiceProfileID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, InvoiceTitle: financeStringValue(x.InvoiceTitle), TaxpayerIdentificationNo: financeStringValue(x.TaxpayerIdentificationNo), RegisteredAddress: financeStringValue(x.RegisteredAddress), RegisteredPhone: financeStringValue(x.RegisteredPhone), BankName: financeStringValue(x.BankName), BankAccount: financeStringValue(x.BankAccount), Currency: x.Currency, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: exchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrencyAmount: baseCurrencyAmount, TotalAmount: total, NetAmount: net, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks)), Lines: make([]*biz.FinanceInvoiceLine, 0, len(x.Edges.Lines))}
 	for _, l := range x.Edges.BillLinks {
 		amount, e := decimal.NewFromString(l.Amount)
 		if e != nil {

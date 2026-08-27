@@ -52,6 +52,106 @@ func (_u *FinanceInvoiceUpdate) SetNillableStatus(v *financeinvoice.Status) *Fin
 	return _u
 }
 
+// SetExchangeRate sets the "exchange_rate" field.
+func (_u *FinanceInvoiceUpdate) SetExchangeRate(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetExchangeRate(v)
+	return _u
+}
+
+// SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableExchangeRate(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetExchangeRate(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (_u *FinanceInvoiceUpdate) ClearExchangeRate() *FinanceInvoiceUpdate {
+	_u.mutation.ClearExchangeRate()
+	return _u
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_u *FinanceInvoiceUpdate) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceUpdate {
+	_u.mutation.SetExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableExchangeRateSource sets the "exchange_rate_source" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableExchangeRateSource(v *financeinvoice.ExchangeRateSource) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (_u *FinanceInvoiceUpdate) ClearExchangeRateSource() *FinanceInvoiceUpdate {
+	_u.mutation.ClearExchangeRateSource()
+	return _u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_u *FinanceInvoiceUpdate) SetExchangeRateDate(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableExchangeRateDate sets the "exchange_rate_date" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableExchangeRateDate(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (_u *FinanceInvoiceUpdate) ClearExchangeRateDate() *FinanceInvoiceUpdate {
+	_u.mutation.ClearExchangeRateDate()
+	return _u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_u *FinanceInvoiceUpdate) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.SetExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableExchangeRateSettingID(v *uuid.UUID) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (_u *FinanceInvoiceUpdate) ClearExchangeRateSettingID() *FinanceInvoiceUpdate {
+	_u.mutation.ClearExchangeRateSettingID()
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceInvoiceUpdate) SetBaseCurrencyAmount(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableBaseCurrencyAmount(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (_u *FinanceInvoiceUpdate) ClearBaseCurrencyAmount() *FinanceInvoiceUpdate {
+	_u.mutation.ClearBaseCurrencyAmount()
+	return _u
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (_u *FinanceInvoiceUpdate) SetTaxInvoiceNo(v string) *FinanceInvoiceUpdate {
 	_u.mutation.SetTaxInvoiceNo(v)
@@ -528,6 +628,16 @@ func (_u *FinanceInvoiceUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExchangeRateSource(); ok {
+		if err := financeinvoice.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ExchangeRateDate(); ok {
+		if err := financeinvoice.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_date": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.TaxInvoiceNo(); ok {
 		if err := financeinvoice.TaxInvoiceNoValidator(v); err != nil {
 			return &ValidationError{Name: "tax_invoice_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.tax_invoice_no": %w`, err)}
@@ -607,6 +717,36 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if _u.mutation.BankAccountCleared() {
 		_spec.ClearField(financeinvoice.FieldBankAccount, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRate, field.TypeString, value)
+	}
+	if _u.mutation.ExchangeRateCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSource, field.TypeEnum, value)
+	}
+	if _u.mutation.ExchangeRateSourceCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateSource, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateDate, field.TypeString, value)
+	}
+	if _u.mutation.ExchangeRateDateCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateDate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSettingID, field.TypeUUID, value)
+	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateSettingID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if _u.mutation.BaseCurrencyAmountCleared() {
+		_spec.ClearField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString)
 	}
 	if value, ok := _u.mutation.TaxInvoiceNo(); ok {
 		_spec.SetField(financeinvoice.FieldTaxInvoiceNo, field.TypeString, value)
@@ -888,6 +1028,106 @@ func (_u *FinanceInvoiceUpdateOne) SetNillableStatus(v *financeinvoice.Status) *
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetExchangeRate sets the "exchange_rate" field.
+func (_u *FinanceInvoiceUpdateOne) SetExchangeRate(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetExchangeRate(v)
+	return _u
+}
+
+// SetNillableExchangeRate sets the "exchange_rate" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableExchangeRate(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetExchangeRate(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRate clears the value of the "exchange_rate" field.
+func (_u *FinanceInvoiceUpdateOne) ClearExchangeRate() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearExchangeRate()
+	return _u
+}
+
+// SetExchangeRateSource sets the "exchange_rate_source" field.
+func (_u *FinanceInvoiceUpdateOne) SetExchangeRateSource(v financeinvoice.ExchangeRateSource) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableExchangeRateSource sets the "exchange_rate_source" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableExchangeRateSource(v *financeinvoice.ExchangeRateSource) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSource clears the value of the "exchange_rate_source" field.
+func (_u *FinanceInvoiceUpdateOne) ClearExchangeRateSource() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearExchangeRateSource()
+	return _u
+}
+
+// SetExchangeRateDate sets the "exchange_rate_date" field.
+func (_u *FinanceInvoiceUpdateOne) SetExchangeRateDate(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableExchangeRateDate sets the "exchange_rate_date" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableExchangeRateDate(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateDate clears the value of the "exchange_rate_date" field.
+func (_u *FinanceInvoiceUpdateOne) ClearExchangeRateDate() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearExchangeRateDate()
+	return _u
+}
+
+// SetExchangeRateSettingID sets the "exchange_rate_setting_id" field.
+func (_u *FinanceInvoiceUpdateOne) SetExchangeRateSettingID(v uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableExchangeRateSettingID sets the "exchange_rate_setting_id" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableExchangeRateSettingID(v *uuid.UUID) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearExchangeRateSettingID clears the value of the "exchange_rate_setting_id" field.
+func (_u *FinanceInvoiceUpdateOne) ClearExchangeRateSettingID() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearExchangeRateSettingID()
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceInvoiceUpdateOne) SetBaseCurrencyAmount(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableBaseCurrencyAmount(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
+// ClearBaseCurrencyAmount clears the value of the "base_currency_amount" field.
+func (_u *FinanceInvoiceUpdateOne) ClearBaseCurrencyAmount() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearBaseCurrencyAmount()
 	return _u
 }
 
@@ -1380,6 +1620,16 @@ func (_u *FinanceInvoiceUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExchangeRateSource(); ok {
+		if err := financeinvoice.ExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ExchangeRateDate(); ok {
+		if err := financeinvoice.ExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_date": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.TaxInvoiceNo(); ok {
 		if err := financeinvoice.TaxInvoiceNoValidator(v); err != nil {
 			return &ValidationError{Name: "tax_invoice_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.tax_invoice_no": %w`, err)}
@@ -1476,6 +1726,36 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	}
 	if _u.mutation.BankAccountCleared() {
 		_spec.ClearField(financeinvoice.FieldBankAccount, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRate, field.TypeString, value)
+	}
+	if _u.mutation.ExchangeRateCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRateSource(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSource, field.TypeEnum, value)
+	}
+	if _u.mutation.ExchangeRateSourceCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateSource, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ExchangeRateDate(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateDate, field.TypeString, value)
+	}
+	if _u.mutation.ExchangeRateDateCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateDate, field.TypeString)
+	}
+	if value, ok := _u.mutation.ExchangeRateSettingID(); ok {
+		_spec.SetField(financeinvoice.FieldExchangeRateSettingID, field.TypeUUID, value)
+	}
+	if _u.mutation.ExchangeRateSettingIDCleared() {
+		_spec.ClearField(financeinvoice.FieldExchangeRateSettingID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if _u.mutation.BaseCurrencyAmountCleared() {
+		_spec.ClearField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString)
 	}
 	if value, ok := _u.mutation.TaxInvoiceNo(); ok {
 		_spec.SetField(financeinvoice.FieldTaxInvoiceNo, field.TypeString, value)

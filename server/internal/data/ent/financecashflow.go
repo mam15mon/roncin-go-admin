@@ -45,6 +45,12 @@ type FinanceCashflow struct {
 	Amount string `json:"amount,omitempty"`
 	// ExchangeRate holds the value of the "exchange_rate" field.
 	ExchangeRate string `json:"exchange_rate,omitempty"`
+	// ExchangeRateSource holds the value of the "exchange_rate_source" field.
+	ExchangeRateSource financecashflow.ExchangeRateSource `json:"exchange_rate_source,omitempty"`
+	// ExchangeRateDate holds the value of the "exchange_rate_date" field.
+	ExchangeRateDate string `json:"exchange_rate_date,omitempty"`
+	// ExchangeRateSettingID holds the value of the "exchange_rate_setting_id" field.
+	ExchangeRateSettingID *uuid.UUID `json:"exchange_rate_setting_id,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
 	BaseCurrency string `json:"base_currency,omitempty"`
 	// BaseAmount holds the value of the "base_amount" field.
@@ -154,11 +160,11 @@ func (*FinanceCashflow) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecashflow.FieldConfirmedBy, financecashflow.FieldCancelledBy:
+		case financecashflow.FieldExchangeRateSettingID, financecashflow.FieldConfirmedBy, financecashflow.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecashflow.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecashflow.FieldFlowNo, financecashflow.FieldIdempotencyKey, financecashflow.FieldDirection, financecashflow.FieldStatus, financecashflow.FieldSettlementPartyName, financecashflow.FieldCurrency, financecashflow.FieldAmount, financecashflow.FieldExchangeRate, financecashflow.FieldBaseCurrency, financecashflow.FieldBaseAmount, financecashflow.FieldTransactionDate, financecashflow.FieldOurAccount, financecashflow.FieldCounterpartyAccount, financecashflow.FieldPaymentMethod, financecashflow.FieldBankReferenceNo, financecashflow.FieldNote, financecashflow.FieldCancellationReason:
+		case financecashflow.FieldFlowNo, financecashflow.FieldIdempotencyKey, financecashflow.FieldDirection, financecashflow.FieldStatus, financecashflow.FieldSettlementPartyName, financecashflow.FieldCurrency, financecashflow.FieldAmount, financecashflow.FieldExchangeRate, financecashflow.FieldExchangeRateSource, financecashflow.FieldExchangeRateDate, financecashflow.FieldBaseCurrency, financecashflow.FieldBaseAmount, financecashflow.FieldTransactionDate, financecashflow.FieldOurAccount, financecashflow.FieldCounterpartyAccount, financecashflow.FieldPaymentMethod, financecashflow.FieldBankReferenceNo, financecashflow.FieldNote, financecashflow.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecashflow.FieldCreatedAt, financecashflow.FieldUpdatedAt, financecashflow.FieldConfirmedAt, financecashflow.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -256,6 +262,25 @@ func (_m *FinanceCashflow) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field exchange_rate", values[i])
 			} else if value.Valid {
 				_m.ExchangeRate = value.String
+			}
+		case financecashflow.FieldExchangeRateSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_source", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSource = financecashflow.ExchangeRateSource(value.String)
+			}
+		case financecashflow.FieldExchangeRateDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_date", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateDate = value.String
+			}
+		case financecashflow.FieldExchangeRateSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_rate_setting_id", values[i])
+			} else if value.Valid {
+				_m.ExchangeRateSettingID = new(uuid.UUID)
+				*_m.ExchangeRateSettingID = *value.S.(*uuid.UUID)
 			}
 		case financecashflow.FieldBaseCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -445,6 +470,17 @@ func (_m *FinanceCashflow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("exchange_rate=")
 	builder.WriteString(_m.ExchangeRate)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExchangeRateSource))
+	builder.WriteString(", ")
+	builder.WriteString("exchange_rate_date=")
+	builder.WriteString(_m.ExchangeRateDate)
+	builder.WriteString(", ")
+	if v := _m.ExchangeRateSettingID; v != nil {
+		builder.WriteString("exchange_rate_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("base_currency=")
 	builder.WriteString(_m.BaseCurrency)

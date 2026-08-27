@@ -11,6 +11,8 @@ import (
 type exchangeRateRepoStub struct {
 	rateContext   *ExchangeRateContext
 	timeStandards []*ExchangeRateTimeStandardSetting
+	resolved      *ResolvedExchangeRate
+	resolveErr    error
 }
 
 func (s *exchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*ExchangeRateContext, error) {
@@ -41,8 +43,8 @@ func (*exchangeRateRepoStub) ReplaceTimeStandards(context.Context, uuid.UUID, []
 	return nil
 }
 
-func (*exchangeRateRepoStub) Resolve(context.Context, uuid.UUID, string, OrderFeeDirection, string, string, string) (*ResolvedExchangeRate, error) {
-	return nil, nil
+func (s *exchangeRateRepoStub) Resolve(context.Context, uuid.UUID, string, OrderFeeDirection, string, string, string) (*ResolvedExchangeRate, error) {
+	return s.resolved, s.resolveErr
 }
 
 func TestNormalizeExchangeRateSettingPreservesEightDecimals(t *testing.T) {
@@ -89,10 +91,10 @@ func TestNormalizeExchangeRateSettingRejectsUnknownRateType(t *testing.T) {
 func TestNormalizeExchangeRateTimeStandardsPreservesOrder(t *testing.T) {
 	settings := []*ExchangeRateTimeStandardSetting{
 		{RateType: BaseCurrencyRateType, TimeStandards: []string{BusinessTimeStandard, ETDETAOrTrainDateStandard}},
-		{RateType: InvoiceRateType, TimeStandards: []string{BillCreatedAtStandard}},
-		{RateType: SettlementRateType, TimeStandards: []string{ExpenseTimeStandard}},
+		{RateType: InvoiceRateType, TimeStandards: []string{InvoiceDateStandard}},
+		{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}},
 		{RateType: WriteOffRateType, TimeStandards: []string{WriteOffTimeStandard}},
-		{RateType: BillRateType, TimeStandards: []string{BillCreatedAtStandard}},
+		{RateType: BillRateType, TimeStandards: []string{BillDateStandard}},
 	}
 	value, err := normalizeExchangeRateTimeStandards(settings)
 	if err != nil {
@@ -103,13 +105,31 @@ func TestNormalizeExchangeRateTimeStandardsPreservesOrder(t *testing.T) {
 	}
 }
 
+func TestNodeExchangeRateTypesUseIndependentBusinessDates(t *testing.T) {
+	cases := []struct {
+		rateType string
+		standard string
+	}{
+		{InvoiceRateType, InvoiceDateStandard},
+		{SettlementRateType, TransactionDateStandard},
+		{WriteOffRateType, WriteOffTimeStandard},
+		{BillRateType, BillDateStandard},
+	}
+	for _, test := range cases {
+		settings := []*ExchangeRateTimeStandardSetting{{RateType: test.rateType, TimeStandards: []string{test.standard}}}
+		if got := resolveExchangeRateDate(test.rateType, settings, map[string]string{test.standard: "2026-08-27"}); got != "2026-08-27" {
+			t.Fatalf("汇率类型 %s 未使用独立业务日期 %s，实际 %s", test.rateType, test.standard, got)
+		}
+	}
+}
+
 func TestNormalizeExchangeRateTimeStandardsRejectsUnsupportedCombination(t *testing.T) {
 	settings := []*ExchangeRateTimeStandardSetting{
 		{RateType: BaseCurrencyRateType, TimeStandards: []string{WriteOffTimeStandard}},
-		{RateType: InvoiceRateType, TimeStandards: []string{BillCreatedAtStandard}},
-		{RateType: SettlementRateType, TimeStandards: []string{ExpenseTimeStandard}},
+		{RateType: InvoiceRateType, TimeStandards: []string{InvoiceDateStandard}},
+		{RateType: SettlementRateType, TimeStandards: []string{TransactionDateStandard}},
 		{RateType: WriteOffRateType, TimeStandards: []string{WriteOffTimeStandard}},
-		{RateType: BillRateType, TimeStandards: []string{BillCreatedAtStandard}},
+		{RateType: BillRateType, TimeStandards: []string{BillDateStandard}},
 	}
 	if _, err := normalizeExchangeRateTimeStandards(settings); err != ErrExchangeRateInvalidArgument {
 		t.Fatalf("不适用于汇率类型的时间标准应被拒绝，实际错误为 %v", err)

@@ -183,7 +183,7 @@ var manifest = append([]Permission{
 	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "财务管理 · 汇率", Description: "新建组织汇率"},
 	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织汇率和时间标准"},
 	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织汇率"},
-	{Key: FinanceExchangeRateOverride, Name: "覆盖费用汇率", Group: "财务管理 · 汇率", Description: "在订单费用中手工覆盖系统折本币汇率"},
+	{Key: FinanceExchangeRateOverride, Name: "覆盖财务汇率", Group: "财务管理 · 汇率", Description: "在订单费用或资金流水中手工覆盖系统汇率"},
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "财务管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "财务管理 · 费用设置", Description: "新建费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "财务管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料"},

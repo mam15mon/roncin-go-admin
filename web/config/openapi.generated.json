@@ -9160,8 +9160,6 @@
           "settlementPartyId",
           "currency",
           "amount",
-          "exchangeRate",
-          "baseCurrency",
           "transactionDate",
           "ourAccount",
           "paymentMethod",
@@ -10031,6 +10029,18 @@
           "paymentTermsDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "exchangeRateSource": {
+            "type": "string"
+          },
+          "exchangeRateDate": {
+            "type": "string"
+          },
+          "exchangeRateSettingId": {
+            "type": "string"
           }
         }
       },
@@ -10203,6 +10213,15 @@
             "type": "string"
           },
           "unverifiedAmount": {
+            "type": "string"
+          },
+          "exchangeRateSource": {
+            "type": "string"
+          },
+          "exchangeRateDate": {
+            "type": "string"
+          },
+          "exchangeRateSettingId": {
             "type": "string"
           }
         }
@@ -10581,6 +10600,24 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.FinanceInvoiceLine"
             }
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "exchangeRateSource": {
+            "type": "string"
+          },
+          "exchangeRateDate": {
+            "type": "string"
+          },
+          "exchangeRateSettingId": {
+            "type": "string"
+          },
+          "baseCurrencyAmount": {
+            "type": "string"
           }
         }
       },
@@ -10694,6 +10731,33 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "exchangeRateSource": {
+            "type": "string"
+          },
+          "exchangeRateDate": {
+            "type": "string"
+          },
+          "exchangeRateSettingId": {
+            "type": "string"
+          },
+          "baseAmount": {
+            "type": "string"
+          },
+          "billBaseAmount": {
+            "type": "string"
+          },
+          "cashflowBaseAmount": {
+            "type": "string"
+          },
+          "exchangeGainLoss": {
+            "type": "string"
           }
         }
       },
@@ -10720,6 +10784,18 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "billBaseAmount": {
+            "type": "string"
+          },
+          "cashflowBaseAmount": {
+            "type": "string"
+          },
+          "writeOffBaseAmount": {
+            "type": "string"
+          },
+          "exchangeGainLoss": {
+            "type": "string"
           }
         }
       },

@@ -72,6 +72,16 @@ func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key stri
 	}
 	return verificationToBiz(x)
 }
+func (r *verificationRepo) LoadCashflowContext(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
+	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
+	if ent.IsNotFound(e) {
+		return nil, biz.ErrFinanceCashflowNotFound
+	}
+	if e != nil {
+		return nil, e
+	}
+	return cashflowToBiz(x)
+}
 func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *biz.FinanceVerification, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	tx, e := r.data.db.Tx(ctx)
 	if e != nil {
@@ -102,6 +112,7 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		bm[x.ID] = x
 	}
 	usedCash, usedBill := map[uuid.UUID]decimal.Decimal{}, map[uuid.UUID]decimal.Decimal{}
+	v.BaseAmount, v.BillBaseAmount, v.CashflowBaseAmount, v.ExchangeGainLoss = decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero
 	existing, e := tx.FinanceVerificationAllocation.Query().Where(alloc.ActiveEQ(true), alloc.Or(alloc.CashflowIDIn(cashIDs...), alloc.BillIDIn(billIDs...))).All(ctx)
 	if e != nil {
 		return rollback(e)
@@ -116,7 +127,7 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		if c == nil || b == nil || c.Status != cash.StatusCONFIRMED || b.Status != bill.StatusCONFIRMED {
 			return rollback(biz.ErrVerificationBalance)
 		}
-		if c.Direction != cash.Direction(b.Direction) || c.SettlementPartyID != b.SettlementPartyID || c.Currency != b.Currency {
+		if c.Direction != cash.Direction(b.Direction) || c.SettlementPartyID != b.SettlementPartyID || c.Currency != b.Currency || c.BaseCurrency != b.BaseCurrency || c.BaseCurrency != v.BaseCurrency || biz.OrderFeeDirection(c.Direction) != v.Direction || c.Currency != v.Currency {
 			return rollback(biz.ErrVerificationMismatch)
 		}
 		if i == 0 {
@@ -129,6 +140,14 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		}
 		ca, _ := decimal.NewFromString(c.Amount)
 		ba, _ := decimal.NewFromString(b.TotalAmount)
+		cashBaseTotal, parseErr := decimal.NewFromString(c.BaseAmount)
+		if parseErr != nil {
+			return rollback(parseErr)
+		}
+		billBaseTotal, parseErr := decimal.NewFromString(b.BaseCurrencyAmount)
+		if parseErr != nil {
+			return rollback(parseErr)
+		}
 		usedCash[c.ID] = usedCash[c.ID].Add(x.Amount)
 		usedBill[b.ID] = usedBill[b.ID].Add(x.Amount)
 		if usedCash[c.ID].GreaterThan(ca) || usedBill[b.ID].GreaterThan(ba) {
@@ -136,7 +155,19 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		}
 		x.CashflowNo = c.FlowNo
 		x.BillNo = b.BillNo
+		x.BillBaseAmount, x.CashflowBaseAmount, x.WriteOffBaseAmount, x.ExchangeGainLoss, e = biz.CalculateVerificationAllocationAmounts(v.Direction, x.Amount, ba, billBaseTotal, ca, cashBaseTotal, v.ExchangeRate)
+		if e != nil {
+			return rollback(e)
+		}
+		v.BillBaseAmount = v.BillBaseAmount.Add(x.BillBaseAmount)
+		v.CashflowBaseAmount = v.CashflowBaseAmount.Add(x.CashflowBaseAmount)
+		v.BaseAmount = v.BaseAmount.Add(x.WriteOffBaseAmount)
+		v.ExchangeGainLoss = v.ExchangeGainLoss.Add(x.ExchangeGainLoss)
 	}
+	v.BaseAmount = v.BaseAmount.RoundBank(8)
+	v.BillBaseAmount = v.BillBaseAmount.RoundBank(8)
+	v.CashflowBaseAmount = v.CashflowBaseAmount.RoundBank(8)
+	v.ExchangeGainLoss = v.ExchangeGainLoss.RoundBank(8)
 	now := time.Now().UTC()
 	rule, sequence, e := allocateNumberInTx(ctx, tx, org, biz.DocumentTypeWriteOff, now)
 	if e != nil {
@@ -146,13 +177,13 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 	if e != nil {
 		return rollback(e)
 	}
-	_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+	_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(ver.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetBillBaseAmount(v.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(v.CashflowBaseAmount.StringFixed(8)).SetExchangeGainLoss(v.ExchangeGainLoss.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
 	if e != nil {
 		return rollback(mapVerificationConstraint(e))
 	}
 	builders := make([]*ent.FinanceVerificationAllocationCreate, 0, len(v.Allocations))
 	for _, x := range v.Allocations {
-		builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetActive(true))
+		builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetBillBaseAmount(x.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(x.CashflowBaseAmount.StringFixed(8)).SetWriteOffBaseAmount(x.WriteOffBaseAmount.StringFixed(8)).SetExchangeGainLoss(x.ExchangeGainLoss.StringFixed(8)).SetActive(true))
 	}
 	if _, e = tx.FinanceVerificationAllocation.CreateBulk(builders...).Save(ctx); e != nil {
 		return rollback(mapVerificationConstraint(e))
@@ -232,13 +263,49 @@ func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, er
 	if e != nil {
 		return nil, e
 	}
-	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
+	exchangeRate, e := decimal.NewFromString(x.ExchangeRate)
+	if e != nil {
+		return nil, e
+	}
+	baseAmount, e := decimal.NewFromString(x.BaseAmount)
+	if e != nil {
+		return nil, e
+	}
+	billBaseAmount, e := decimal.NewFromString(x.BillBaseAmount)
+	if e != nil {
+		return nil, e
+	}
+	cashflowBaseAmount, e := decimal.NewFromString(x.CashflowBaseAmount)
+	if e != nil {
+		return nil, e
+	}
+	exchangeGainLoss, e := decimal.NewFromString(x.ExchangeGainLoss)
+	if e != nil {
+		return nil, e
+	}
+	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseAmount: baseAmount, BillBaseAmount: billBaseAmount, CashflowBaseAmount: cashflowBaseAmount, ExchangeGainLoss: exchangeGainLoss, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
 	for _, a := range x.Edges.Allocations {
 		z, e := decimal.NewFromString(a.Amount)
 		if e != nil {
 			return nil, e
 		}
-		v.Allocations = append(v.Allocations, &biz.VerificationAllocation{ID: a.ID, VerificationID: a.VerificationID, CashflowID: a.CashflowID, BillID: a.BillID, CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: z, Active: a.Active})
+		billBase, e := decimal.NewFromString(a.BillBaseAmount)
+		if e != nil {
+			return nil, e
+		}
+		cashBase, e := decimal.NewFromString(a.CashflowBaseAmount)
+		if e != nil {
+			return nil, e
+		}
+		writeOffBase, e := decimal.NewFromString(a.WriteOffBaseAmount)
+		if e != nil {
+			return nil, e
+		}
+		gainLoss, e := decimal.NewFromString(a.ExchangeGainLoss)
+		if e != nil {
+			return nil, e
+		}
+		v.Allocations = append(v.Allocations, &biz.VerificationAllocation{ID: a.ID, VerificationID: a.VerificationID, CashflowID: a.CashflowID, BillID: a.BillID, CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: z, BillBaseAmount: billBase, CashflowBaseAmount: cashBase, WriteOffBaseAmount: writeOffBase, ExchangeGainLoss: gainLoss, Active: a.Active})
 	}
 	return v, nil
 }

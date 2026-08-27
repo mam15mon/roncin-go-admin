@@ -37,6 +37,14 @@ type FinanceVerificationAllocation struct {
 	BillNo string `json:"bill_no,omitempty"`
 	// Amount holds the value of the "amount" field.
 	Amount string `json:"amount,omitempty"`
+	// BillBaseAmount holds the value of the "bill_base_amount" field.
+	BillBaseAmount string `json:"bill_base_amount,omitempty"`
+	// CashflowBaseAmount holds the value of the "cashflow_base_amount" field.
+	CashflowBaseAmount string `json:"cashflow_base_amount,omitempty"`
+	// WriteOffBaseAmount holds the value of the "write_off_base_amount" field.
+	WriteOffBaseAmount string `json:"write_off_base_amount,omitempty"`
+	// ExchangeGainLoss holds the value of the "exchange_gain_loss" field.
+	ExchangeGainLoss string `json:"exchange_gain_loss,omitempty"`
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -98,7 +106,7 @@ func (*FinanceVerificationAllocation) scanValues(columns []string) ([]any, error
 		switch columns[i] {
 		case financeverificationallocation.FieldActive:
 			values[i] = new(sql.NullBool)
-		case financeverificationallocation.FieldCashflowNo, financeverificationallocation.FieldBillNo, financeverificationallocation.FieldAmount:
+		case financeverificationallocation.FieldCashflowNo, financeverificationallocation.FieldBillNo, financeverificationallocation.FieldAmount, financeverificationallocation.FieldBillBaseAmount, financeverificationallocation.FieldCashflowBaseAmount, financeverificationallocation.FieldWriteOffBaseAmount, financeverificationallocation.FieldExchangeGainLoss:
 			values[i] = new(sql.NullString)
 		case financeverificationallocation.FieldCreatedAt, financeverificationallocation.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -172,6 +180,30 @@ func (_m *FinanceVerificationAllocation) assignValues(columns []string, values [
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
 			} else if value.Valid {
 				_m.Amount = value.String
+			}
+		case financeverificationallocation.FieldBillBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bill_base_amount", values[i])
+			} else if value.Valid {
+				_m.BillBaseAmount = value.String
+			}
+		case financeverificationallocation.FieldCashflowBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cashflow_base_amount", values[i])
+			} else if value.Valid {
+				_m.CashflowBaseAmount = value.String
+			}
+		case financeverificationallocation.FieldWriteOffBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field write_off_base_amount", values[i])
+			} else if value.Valid {
+				_m.WriteOffBaseAmount = value.String
+			}
+		case financeverificationallocation.FieldExchangeGainLoss:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field exchange_gain_loss", values[i])
+			} else if value.Valid {
+				_m.ExchangeGainLoss = value.String
 			}
 		case financeverificationallocation.FieldActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -253,6 +285,18 @@ func (_m *FinanceVerificationAllocation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("amount=")
 	builder.WriteString(_m.Amount)
+	builder.WriteString(", ")
+	builder.WriteString("bill_base_amount=")
+	builder.WriteString(_m.BillBaseAmount)
+	builder.WriteString(", ")
+	builder.WriteString("cashflow_base_amount=")
+	builder.WriteString(_m.CashflowBaseAmount)
+	builder.WriteString(", ")
+	builder.WriteString("write_off_base_amount=")
+	builder.WriteString(_m.WriteOffBaseAmount)
+	builder.WriteString(", ")
+	builder.WriteString("exchange_gain_loss=")
+	builder.WriteString(_m.ExchangeGainLoss)
 	builder.WriteString(", ")
 	builder.WriteString("active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Active))

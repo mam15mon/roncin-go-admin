@@ -101,6 +101,46 @@ func Amount(v string) predicate.FinanceVerification {
 	return predicate.FinanceVerification(sql.FieldEQ(FieldAmount, v))
 }
 
+// BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
+func BaseCurrency(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBaseCurrency, v))
+}
+
+// ExchangeRate applies equality check predicate on the "exchange_rate" field. It's identical to ExchangeRateEQ.
+func ExchangeRate(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRate, v))
+}
+
+// ExchangeRateDate applies equality check predicate on the "exchange_rate_date" field. It's identical to ExchangeRateDateEQ.
+func ExchangeRateDate(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateSettingID applies equality check predicate on the "exchange_rate_setting_id" field. It's identical to ExchangeRateSettingIDEQ.
+func ExchangeRateSettingID(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRateSettingID, v))
+}
+
+// BaseAmount applies equality check predicate on the "base_amount" field. It's identical to BaseAmountEQ.
+func BaseAmount(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBaseAmount, v))
+}
+
+// BillBaseAmount applies equality check predicate on the "bill_base_amount" field. It's identical to BillBaseAmountEQ.
+func BillBaseAmount(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBillBaseAmount, v))
+}
+
+// CashflowBaseAmount applies equality check predicate on the "cashflow_base_amount" field. It's identical to CashflowBaseAmountEQ.
+func CashflowBaseAmount(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldCashflowBaseAmount, v))
+}
+
+// ExchangeGainLoss applies equality check predicate on the "exchange_gain_loss" field. It's identical to ExchangeGainLossEQ.
+func ExchangeGainLoss(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeGainLoss, v))
+}
+
 // VerificationDate applies equality check predicate on the "verification_date" field. It's identical to VerificationDateEQ.
 func VerificationDate(v string) predicate.FinanceVerification {
 	return predicate.FinanceVerification(sql.FieldEQ(FieldVerificationDate, v))
@@ -614,6 +654,531 @@ func AmountEqualFold(v string) predicate.FinanceVerification {
 // AmountContainsFold applies the ContainsFold predicate on the "amount" field.
 func AmountContainsFold(v string) predicate.FinanceVerification {
 	return predicate.FinanceVerification(sql.FieldContainsFold(FieldAmount, v))
+}
+
+// BaseCurrencyEQ applies the EQ predicate on the "base_currency" field.
+func BaseCurrencyEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyNEQ applies the NEQ predicate on the "base_currency" field.
+func BaseCurrencyNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyIn applies the In predicate on the "base_currency" field.
+func BaseCurrencyIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldBaseCurrency, vs...))
+}
+
+// BaseCurrencyNotIn applies the NotIn predicate on the "base_currency" field.
+func BaseCurrencyNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldBaseCurrency, vs...))
+}
+
+// BaseCurrencyGT applies the GT predicate on the "base_currency" field.
+func BaseCurrencyGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyGTE applies the GTE predicate on the "base_currency" field.
+func BaseCurrencyGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyLT applies the LT predicate on the "base_currency" field.
+func BaseCurrencyLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyLTE applies the LTE predicate on the "base_currency" field.
+func BaseCurrencyLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyContains applies the Contains predicate on the "base_currency" field.
+func BaseCurrencyContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyHasPrefix applies the HasPrefix predicate on the "base_currency" field.
+func BaseCurrencyHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyHasSuffix applies the HasSuffix predicate on the "base_currency" field.
+func BaseCurrencyHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyEqualFold applies the EqualFold predicate on the "base_currency" field.
+func BaseCurrencyEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldBaseCurrency, v))
+}
+
+// BaseCurrencyContainsFold applies the ContainsFold predicate on the "base_currency" field.
+func BaseCurrencyContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldBaseCurrency, v))
+}
+
+// ExchangeRateEQ applies the EQ predicate on the "exchange_rate" field.
+func ExchangeRateEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRate, v))
+}
+
+// ExchangeRateNEQ applies the NEQ predicate on the "exchange_rate" field.
+func ExchangeRateNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldExchangeRate, v))
+}
+
+// ExchangeRateIn applies the In predicate on the "exchange_rate" field.
+func ExchangeRateIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldExchangeRate, vs...))
+}
+
+// ExchangeRateNotIn applies the NotIn predicate on the "exchange_rate" field.
+func ExchangeRateNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldExchangeRate, vs...))
+}
+
+// ExchangeRateGT applies the GT predicate on the "exchange_rate" field.
+func ExchangeRateGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldExchangeRate, v))
+}
+
+// ExchangeRateGTE applies the GTE predicate on the "exchange_rate" field.
+func ExchangeRateGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldExchangeRate, v))
+}
+
+// ExchangeRateLT applies the LT predicate on the "exchange_rate" field.
+func ExchangeRateLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldExchangeRate, v))
+}
+
+// ExchangeRateLTE applies the LTE predicate on the "exchange_rate" field.
+func ExchangeRateLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldExchangeRate, v))
+}
+
+// ExchangeRateContains applies the Contains predicate on the "exchange_rate" field.
+func ExchangeRateContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldExchangeRate, v))
+}
+
+// ExchangeRateHasPrefix applies the HasPrefix predicate on the "exchange_rate" field.
+func ExchangeRateHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldExchangeRate, v))
+}
+
+// ExchangeRateHasSuffix applies the HasSuffix predicate on the "exchange_rate" field.
+func ExchangeRateHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldExchangeRate, v))
+}
+
+// ExchangeRateEqualFold applies the EqualFold predicate on the "exchange_rate" field.
+func ExchangeRateEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldExchangeRate, v))
+}
+
+// ExchangeRateContainsFold applies the ContainsFold predicate on the "exchange_rate" field.
+func ExchangeRateContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldExchangeRate, v))
+}
+
+// ExchangeRateSourceEQ applies the EQ predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceEQ(v ExchangeRateSource) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRateSource, v))
+}
+
+// ExchangeRateSourceNEQ applies the NEQ predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceNEQ(v ExchangeRateSource) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldExchangeRateSource, v))
+}
+
+// ExchangeRateSourceIn applies the In predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceIn(vs ...ExchangeRateSource) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldExchangeRateSource, vs...))
+}
+
+// ExchangeRateSourceNotIn applies the NotIn predicate on the "exchange_rate_source" field.
+func ExchangeRateSourceNotIn(vs ...ExchangeRateSource) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldExchangeRateSource, vs...))
+}
+
+// ExchangeRateDateEQ applies the EQ predicate on the "exchange_rate_date" field.
+func ExchangeRateDateEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateNEQ applies the NEQ predicate on the "exchange_rate_date" field.
+func ExchangeRateDateNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateIn applies the In predicate on the "exchange_rate_date" field.
+func ExchangeRateDateIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldExchangeRateDate, vs...))
+}
+
+// ExchangeRateDateNotIn applies the NotIn predicate on the "exchange_rate_date" field.
+func ExchangeRateDateNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldExchangeRateDate, vs...))
+}
+
+// ExchangeRateDateGT applies the GT predicate on the "exchange_rate_date" field.
+func ExchangeRateDateGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateGTE applies the GTE predicate on the "exchange_rate_date" field.
+func ExchangeRateDateGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateLT applies the LT predicate on the "exchange_rate_date" field.
+func ExchangeRateDateLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateLTE applies the LTE predicate on the "exchange_rate_date" field.
+func ExchangeRateDateLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateContains applies the Contains predicate on the "exchange_rate_date" field.
+func ExchangeRateDateContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateHasPrefix applies the HasPrefix predicate on the "exchange_rate_date" field.
+func ExchangeRateDateHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateHasSuffix applies the HasSuffix predicate on the "exchange_rate_date" field.
+func ExchangeRateDateHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateEqualFold applies the EqualFold predicate on the "exchange_rate_date" field.
+func ExchangeRateDateEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateDateContainsFold applies the ContainsFold predicate on the "exchange_rate_date" field.
+func ExchangeRateDateContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldExchangeRateDate, v))
+}
+
+// ExchangeRateSettingIDEQ applies the EQ predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDEQ(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDNEQ applies the NEQ predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNEQ(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDIn applies the In predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDIn(vs ...uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldExchangeRateSettingID, vs...))
+}
+
+// ExchangeRateSettingIDNotIn applies the NotIn predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNotIn(vs ...uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldExchangeRateSettingID, vs...))
+}
+
+// ExchangeRateSettingIDGT applies the GT predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDGT(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDGTE applies the GTE predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDGTE(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDLT applies the LT predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDLT(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDLTE applies the LTE predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDLTE(v uuid.UUID) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldExchangeRateSettingID, v))
+}
+
+// ExchangeRateSettingIDIsNil applies the IsNil predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDIsNil() predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIsNull(FieldExchangeRateSettingID))
+}
+
+// ExchangeRateSettingIDNotNil applies the NotNil predicate on the "exchange_rate_setting_id" field.
+func ExchangeRateSettingIDNotNil() predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotNull(FieldExchangeRateSettingID))
+}
+
+// BaseAmountEQ applies the EQ predicate on the "base_amount" field.
+func BaseAmountEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBaseAmount, v))
+}
+
+// BaseAmountNEQ applies the NEQ predicate on the "base_amount" field.
+func BaseAmountNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldBaseAmount, v))
+}
+
+// BaseAmountIn applies the In predicate on the "base_amount" field.
+func BaseAmountIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldBaseAmount, vs...))
+}
+
+// BaseAmountNotIn applies the NotIn predicate on the "base_amount" field.
+func BaseAmountNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldBaseAmount, vs...))
+}
+
+// BaseAmountGT applies the GT predicate on the "base_amount" field.
+func BaseAmountGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldBaseAmount, v))
+}
+
+// BaseAmountGTE applies the GTE predicate on the "base_amount" field.
+func BaseAmountGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldBaseAmount, v))
+}
+
+// BaseAmountLT applies the LT predicate on the "base_amount" field.
+func BaseAmountLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldBaseAmount, v))
+}
+
+// BaseAmountLTE applies the LTE predicate on the "base_amount" field.
+func BaseAmountLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldBaseAmount, v))
+}
+
+// BaseAmountContains applies the Contains predicate on the "base_amount" field.
+func BaseAmountContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldBaseAmount, v))
+}
+
+// BaseAmountHasPrefix applies the HasPrefix predicate on the "base_amount" field.
+func BaseAmountHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldBaseAmount, v))
+}
+
+// BaseAmountHasSuffix applies the HasSuffix predicate on the "base_amount" field.
+func BaseAmountHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldBaseAmount, v))
+}
+
+// BaseAmountEqualFold applies the EqualFold predicate on the "base_amount" field.
+func BaseAmountEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldBaseAmount, v))
+}
+
+// BaseAmountContainsFold applies the ContainsFold predicate on the "base_amount" field.
+func BaseAmountContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldBaseAmount, v))
+}
+
+// BillBaseAmountEQ applies the EQ predicate on the "bill_base_amount" field.
+func BillBaseAmountEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountNEQ applies the NEQ predicate on the "bill_base_amount" field.
+func BillBaseAmountNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountIn applies the In predicate on the "bill_base_amount" field.
+func BillBaseAmountIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldBillBaseAmount, vs...))
+}
+
+// BillBaseAmountNotIn applies the NotIn predicate on the "bill_base_amount" field.
+func BillBaseAmountNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldBillBaseAmount, vs...))
+}
+
+// BillBaseAmountGT applies the GT predicate on the "bill_base_amount" field.
+func BillBaseAmountGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountGTE applies the GTE predicate on the "bill_base_amount" field.
+func BillBaseAmountGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountLT applies the LT predicate on the "bill_base_amount" field.
+func BillBaseAmountLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountLTE applies the LTE predicate on the "bill_base_amount" field.
+func BillBaseAmountLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountContains applies the Contains predicate on the "bill_base_amount" field.
+func BillBaseAmountContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountHasPrefix applies the HasPrefix predicate on the "bill_base_amount" field.
+func BillBaseAmountHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountHasSuffix applies the HasSuffix predicate on the "bill_base_amount" field.
+func BillBaseAmountHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountEqualFold applies the EqualFold predicate on the "bill_base_amount" field.
+func BillBaseAmountEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldBillBaseAmount, v))
+}
+
+// BillBaseAmountContainsFold applies the ContainsFold predicate on the "bill_base_amount" field.
+func BillBaseAmountContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldBillBaseAmount, v))
+}
+
+// CashflowBaseAmountEQ applies the EQ predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountNEQ applies the NEQ predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountIn applies the In predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldCashflowBaseAmount, vs...))
+}
+
+// CashflowBaseAmountNotIn applies the NotIn predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldCashflowBaseAmount, vs...))
+}
+
+// CashflowBaseAmountGT applies the GT predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountGTE applies the GTE predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountLT applies the LT predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountLTE applies the LTE predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountContains applies the Contains predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountHasPrefix applies the HasPrefix predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountHasSuffix applies the HasSuffix predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountEqualFold applies the EqualFold predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldCashflowBaseAmount, v))
+}
+
+// CashflowBaseAmountContainsFold applies the ContainsFold predicate on the "cashflow_base_amount" field.
+func CashflowBaseAmountContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldCashflowBaseAmount, v))
+}
+
+// ExchangeGainLossEQ applies the EQ predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEQ(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossNEQ applies the NEQ predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossNEQ(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNEQ(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossIn applies the In predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldIn(FieldExchangeGainLoss, vs...))
+}
+
+// ExchangeGainLossNotIn applies the NotIn predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossNotIn(vs ...string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldNotIn(FieldExchangeGainLoss, vs...))
+}
+
+// ExchangeGainLossGT applies the GT predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossGT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGT(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossGTE applies the GTE predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossGTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldGTE(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossLT applies the LT predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossLT(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLT(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossLTE applies the LTE predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossLTE(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldLTE(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossContains applies the Contains predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossContains(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContains(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossHasPrefix applies the HasPrefix predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossHasPrefix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasPrefix(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossHasSuffix applies the HasSuffix predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossHasSuffix(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldHasSuffix(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossEqualFold applies the EqualFold predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossEqualFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldEqualFold(FieldExchangeGainLoss, v))
+}
+
+// ExchangeGainLossContainsFold applies the ContainsFold predicate on the "exchange_gain_loss" field.
+func ExchangeGainLossContainsFold(v string) predicate.FinanceVerification {
+	return predicate.FinanceVerification(sql.FieldContainsFold(FieldExchangeGainLoss, v))
 }
 
 // VerificationDateEQ applies the EQ predicate on the "verification_date" field.
