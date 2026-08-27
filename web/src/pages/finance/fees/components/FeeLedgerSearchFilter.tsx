@@ -352,9 +352,11 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
   return (
     <SearchFilterTemplate
       layout="grid"
+      formLayout="horizontal"
+      labelWidth={80}
       collapsible={true}
       defaultCollapsed={true}
-      defaultVisibleCount={4}
+      defaultVisibleCount={3}
       items={items}
       onSearch={onSearch}
       onReset={onReset}

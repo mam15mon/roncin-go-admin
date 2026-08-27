@@ -54,6 +54,10 @@ export interface QuickFilterOption {
 export interface SearchFilterTemplateProps<TValues = any> {
   /** 模式：'bar' 快捷单行搜索栏 | 'grid' 配置化网格表单 | 'custom' 自由插槽，默认 'grid' */
   layout?: 'bar' | 'grid' | 'custom';
+  /** 表单排布方式：'horizontal' 水平行内紧凑 | 'vertical' 垂直上下 | 'inline' 行内，默认 'horizontal' */
+  formLayout?: 'horizontal' | 'vertical' | 'inline';
+  /** 标签固定宽度（当 formLayout='horizontal' 时生效），默认 80 */
+  labelWidth?: number | string;
   /** 是否可折叠（当 layout='grid' 时），默认 true */
   collapsible?: boolean;
   /** 默认是否折叠，默认 true */

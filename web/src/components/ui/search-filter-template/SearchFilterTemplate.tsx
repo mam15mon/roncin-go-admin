@@ -34,6 +34,8 @@ const { RangePicker } = DatePicker;
  */
 export function SearchFilterTemplate<TValues extends Record<string, any> = Record<string, any>>({
   layout = 'grid',
+  formLayout = 'horizontal',
+  labelWidth = 80,
   collapsible = true,
   defaultCollapsed = true,
   defaultVisibleCount = 3,
@@ -65,6 +67,16 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   }, [items, collapsible, collapsed, defaultVisibleCount]);
 
   const hasHiddenItems = collapsible && items.length > defaultVisibleCount;
+
+  // 计算栅格使用量与操作按钮跨度
+  const usedSpan = useMemo(() => {
+    return visibleItems.reduce((acc, it) => acc + (it.span || 6), 0) % 24;
+  }, [visibleItems]);
+
+  const actionSpan = useMemo(() => {
+    if (usedSpan === 0) return 24;
+    return 24 - usedSpan;
+  }, [usedSpan]);
 
   // 提交处理
   const handleFinish = (values: any) => {
@@ -254,35 +266,50 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
         marginBottom: 12,
         ...style,
       }}
-      styles={{ body: { padding: '14px 16px 8px' } }}
+      styles={{ body: { padding: '14px 16px 6px' } }}
     >
-      <Form form={form} layout="vertical" onFinish={handleFinish}>
+      <Form form={form} layout={formLayout} onFinish={handleFinish}>
         <Row gutter={[16, 0]}>
           {visibleItems.map((item) => (
             <Col key={item.name} span={item.span || 6}>
               <Form.Item
                 name={item.name}
                 label={item.label}
+                labelCol={
+                  formLayout === 'horizontal'
+                    ? {
+                        flex:
+                          typeof labelWidth === 'number'
+                            ? `${labelWidth}px`
+                            : labelWidth,
+                      }
+                    : undefined
+                }
+                wrapperCol={
+                  formLayout === 'horizontal' ? { flex: 'auto' } : undefined
+                }
                 initialValue={item.initialValue}
-                style={{ marginBottom: 12 }}
+                style={{ marginBottom: 10 }}
               >
                 {renderFieldInput(item)}
               </Form.Item>
             </Col>
           ))}
 
-          {/* 操作按钮区 */}
+          {/* 操作按钮区：紧随行内（自适应填补行内剩余栅格）或占满末行居右 */}
           <Col
-            span={24}
+            span={actionSpan}
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent:
+                actionSpan === 24 ? 'space-between' : 'flex-end',
               alignItems: 'center',
-              marginBottom: 8,
+              marginBottom: 10,
             }}
           >
-            <div>{extraRight}</div>
+            {actionSpan === 24 ? <div>{extraRight}</div> : null}
             <Space size={8}>
+              {actionSpan !== 24 && extraRight ? extraRight : null}
               <Button
                 type="primary"
                 icon={<SearchOutlined />}
