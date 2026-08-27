@@ -124,7 +124,8 @@ export default function FinanceFeeDetailPage() {
       const amt = Number(f.totalAmount || 0);
       const baseAmt = Number(f.baseCurrencyAmount || 0);
       const taxRate = Number(f.taxRate || 0);
-      const baseNetAmt = taxRate > 0 ? baseAmt / (1 + taxRate) : baseAmt;
+      const baseNetAmt =
+        taxRate > 0 ? baseAmt / (1 + taxRate / 100) : baseAmt;
 
       if (Number(f.direction) === 1) {
         if (f.currency === 'USD') usdRec += amt;
@@ -242,7 +243,7 @@ export default function FinanceFeeDetailPage() {
       key: 'taxRate',
       width: 75,
       align: 'right' as const,
-      render: (val: any) => (val ? `${Number(val) * 100}%` : '0%'),
+      render: (val: any) => (val ? `${Number(val)}%` : '0%'),
     },
     {
       title: '税金',

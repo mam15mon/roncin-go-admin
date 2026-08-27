@@ -412,7 +412,7 @@ export default function FinanceFeeLedgerPage() {
       search: false,
       render: (val) => (
         <span style={{ whiteSpace: 'nowrap' }}>
-          {val ? `${Number(val) * 100}%` : '-'}
+          {val ? `${Number(val)}%` : '-'}
         </span>
       ),
     },
