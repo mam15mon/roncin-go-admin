@@ -9,6 +9,7 @@ import (
 )
 
 type exchangeRateRepoStub struct {
+	ExchangeRateRepo
 	rateContext   *ExchangeRateContext
 	timeStandards []*ExchangeRateTimeStandardSetting
 	resolved      *ResolvedExchangeRate

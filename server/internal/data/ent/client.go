@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
@@ -108,6 +109,8 @@ type Client struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
+	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
 	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
@@ -254,6 +257,7 @@ func (c *Client) init() {
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
+	c.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
 	c.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(c.config)
 	c.FeeSetting = NewFeeSettingClient(c.config)
@@ -417,6 +421,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		BackgroundTask:                NewBackgroundTaskClient(cfg),
 		BillingUnit:                   NewBillingUnitClient(cfg),
 		Currency:                      NewCurrencyClient(cfg),
+		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                    NewFeeSettingClient(cfg),
@@ -507,6 +512,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		BackgroundTask:                NewBackgroundTaskClient(cfg),
 		BillingUnit:                   NewBillingUnitClient(cfg),
 		Currency:                      NewCurrencyClient(cfg),
+		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
 		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
 		FeeSetting:                    NewFeeSettingClient(cfg),
@@ -601,24 +607,25 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
+		c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -629,24 +636,25 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceFeeLedgerPreference,
-		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
-		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.OrderStatusLog, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
-		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.StatusTemplate,
-		c.StatusTemplateItem, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
+		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.MilestoneTemplate, c.MilestoneTemplateItem, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderFee, c.OrderMilestone, c.OrderPersonnel,
+		c.OrderReleasePod, c.OrderServiceType, c.OrderShippingDocument,
+		c.OrderStatusLog, c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
+		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.StatusTemplate, c.StatusTemplateItem,
+		c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -669,6 +677,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingUnit.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
+	case *ExchangeRateImportBatchMutation:
+		return c.ExchangeRateImportBatch.mutate(ctx, m)
 	case *ExchangeRateSettingMutation:
 		return c.ExchangeRateSetting.mutate(ctx, m)
 	case *ExchangeRateTimeStandardMutation:
@@ -1831,6 +1841,139 @@ func (c *CurrencyClient) mutate(ctx context.Context, m *CurrencyMutation) (Value
 		return (&CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Currency mutation op: %q", m.Op())
+	}
+}
+
+// ExchangeRateImportBatchClient is a client for the ExchangeRateImportBatch schema.
+type ExchangeRateImportBatchClient struct {
+	config
+}
+
+// NewExchangeRateImportBatchClient returns a client for the ExchangeRateImportBatch from the given config.
+func NewExchangeRateImportBatchClient(c config) *ExchangeRateImportBatchClient {
+	return &ExchangeRateImportBatchClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `exchangerateimportbatch.Hooks(f(g(h())))`.
+func (c *ExchangeRateImportBatchClient) Use(hooks ...Hook) {
+	c.hooks.ExchangeRateImportBatch = append(c.hooks.ExchangeRateImportBatch, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `exchangerateimportbatch.Intercept(f(g(h())))`.
+func (c *ExchangeRateImportBatchClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExchangeRateImportBatch = append(c.inters.ExchangeRateImportBatch, interceptors...)
+}
+
+// Create returns a builder for creating a ExchangeRateImportBatch entity.
+func (c *ExchangeRateImportBatchClient) Create() *ExchangeRateImportBatchCreate {
+	mutation := newExchangeRateImportBatchMutation(c.config, OpCreate)
+	return &ExchangeRateImportBatchCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExchangeRateImportBatch entities.
+func (c *ExchangeRateImportBatchClient) CreateBulk(builders ...*ExchangeRateImportBatchCreate) *ExchangeRateImportBatchCreateBulk {
+	return &ExchangeRateImportBatchCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExchangeRateImportBatchClient) MapCreateBulk(slice any, setFunc func(*ExchangeRateImportBatchCreate, int)) *ExchangeRateImportBatchCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExchangeRateImportBatchCreateBulk{err: fmt.Errorf("calling to ExchangeRateImportBatchClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExchangeRateImportBatchCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExchangeRateImportBatchCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExchangeRateImportBatch.
+func (c *ExchangeRateImportBatchClient) Update() *ExchangeRateImportBatchUpdate {
+	mutation := newExchangeRateImportBatchMutation(c.config, OpUpdate)
+	return &ExchangeRateImportBatchUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExchangeRateImportBatchClient) UpdateOne(_m *ExchangeRateImportBatch) *ExchangeRateImportBatchUpdateOne {
+	mutation := newExchangeRateImportBatchMutation(c.config, OpUpdateOne, withExchangeRateImportBatch(_m))
+	return &ExchangeRateImportBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExchangeRateImportBatchClient) UpdateOneID(id uuid.UUID) *ExchangeRateImportBatchUpdateOne {
+	mutation := newExchangeRateImportBatchMutation(c.config, OpUpdateOne, withExchangeRateImportBatchID(id))
+	return &ExchangeRateImportBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExchangeRateImportBatch.
+func (c *ExchangeRateImportBatchClient) Delete() *ExchangeRateImportBatchDelete {
+	mutation := newExchangeRateImportBatchMutation(c.config, OpDelete)
+	return &ExchangeRateImportBatchDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExchangeRateImportBatchClient) DeleteOne(_m *ExchangeRateImportBatch) *ExchangeRateImportBatchDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExchangeRateImportBatchClient) DeleteOneID(id uuid.UUID) *ExchangeRateImportBatchDeleteOne {
+	builder := c.Delete().Where(exchangerateimportbatch.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExchangeRateImportBatchDeleteOne{builder}
+}
+
+// Query returns a query builder for ExchangeRateImportBatch.
+func (c *ExchangeRateImportBatchClient) Query() *ExchangeRateImportBatchQuery {
+	return &ExchangeRateImportBatchQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExchangeRateImportBatch},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExchangeRateImportBatch entity by its id.
+func (c *ExchangeRateImportBatchClient) Get(ctx context.Context, id uuid.UUID) (*ExchangeRateImportBatch, error) {
+	return c.Query().Where(exchangerateimportbatch.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExchangeRateImportBatchClient) GetX(ctx context.Context, id uuid.UUID) *ExchangeRateImportBatch {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExchangeRateImportBatchClient) Hooks() []Hook {
+	return c.hooks.ExchangeRateImportBatch
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExchangeRateImportBatchClient) Interceptors() []Interceptor {
+	return c.inters.ExchangeRateImportBatch
+}
+
+func (c *ExchangeRateImportBatchClient) mutate(ctx context.Context, m *ExchangeRateImportBatchMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExchangeRateImportBatchCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExchangeRateImportBatchUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExchangeRateImportBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExchangeRateImportBatchDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExchangeRateImportBatch mutation op: %q", m.Op())
 	}
 }
 
@@ -14135,41 +14278,43 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
-		FinanceBill, FinanceBillBatch, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		Currency, ExchangeRateImportBatch, ExchangeRateSetting,
+		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting,
-		FinanceBill, FinanceBillBatch, FinanceBillLine, FinanceCashflow,
-		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
-		FinanceCommissionRule, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderConsolidation, OrderContainer, OrderContainerRequest,
-		OrderFee, OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderStatusLog, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		Currency, ExchangeRateImportBatch, ExchangeRateSetting,
+		ExchangeRateTimeStandard, FeeSetting, FinanceBill, FinanceBillBatch,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, MilestoneTemplate,
+		MilestoneTemplateItem, NumberRule, NumberSequence, Order, OrderAbnormalCase,
+		OrderAttachment, OrderCargoCategory, OrderCargoItem, OrderConsolidation,
+		OrderContainer, OrderContainerRequest, OrderFee, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderStatusLog, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		PartnerShippingPreset, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, StatusTemplate, StatusTemplateItem,
 		TaxableService, User []ent.Interceptor
 	}

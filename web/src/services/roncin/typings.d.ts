@@ -542,6 +542,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ConfirmExchangeRateImportRequest = {
+    previewToken: string;
+    idempotencyKey: string;
+  };
+
+  type ConfirmExchangeRateImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateImportBatch;
+    traceId?: string;
+  };
+
   type ConfirmFeeRequest = {
     orderId: string;
     id: string;
@@ -1176,7 +1189,52 @@ declare namespace API {
     traceId?: string;
   };
 
+  type DownloadExchangeRateImportTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    fileName?: string;
+    contentType?: string;
+    content?: string;
+    templateVersion?: number;
+    traceId?: string;
+  };
+
+  type ExchangeRateImportBatch = {
+    id?: string;
+    fileName?: string;
+    fileChecksum?: string;
+    templateVersion?: number;
+    status?: string;
+    totalCount?: number;
+    validCount?: number;
+    invalidCount?: number;
+    importedCount?: number;
+    canConfirm?: boolean;
+    rows?: ExchangeRateImportRow[];
+    expiresAt?: string;
+    importedAt?: string;
+    createdAt?: string;
+  };
+
+  type ExchangeRateImportRow = {
+    rowNumber?: number;
+    rateType?: string;
+    fromCurrency?: string;
+    toCurrency?: string;
+    receivableRate?: string;
+    payableRate?: string;
+    effectiveFrom?: string;
+    effectiveTo?: string;
+    status?: string;
+    errors?: string[];
+  };
+
   type ExchangeRateServiceDisableExchangeRateSettingParams = {
+    id: string;
+  };
+
+  type ExchangeRateServiceGetExchangeRateImportParams = {
     id: string;
   };
 
@@ -1653,6 +1711,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetExchangeRateImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateImportBatch;
     traceId?: string;
   };
 
@@ -3436,6 +3502,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CommissionCalculation;
+    traceId?: string;
+  };
+
+  type PreviewExchangeRateImportRequest = {
+    fileName: string;
+    fileContent: string;
+  };
+
+  type PreviewExchangeRateImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ExchangeRateImportBatch;
+    previewToken?: string;
     traceId?: string;
   };
 

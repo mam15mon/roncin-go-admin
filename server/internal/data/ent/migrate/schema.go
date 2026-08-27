@@ -357,6 +357,62 @@ var (
 			},
 		},
 	}
+	// ExchangeRateImportBatchesColumns holds the columns for the "exchange_rate_import_batches" table.
+	ExchangeRateImportBatchesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "owner_organization_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID},
+		{Name: "file_name", Type: field.TypeString, Size: 255},
+		{Name: "file_checksum", Type: field.TypeString, Size: 64},
+		{Name: "template_version", Type: field.TypeInt},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PREVIEW_READY", "PREVIEW_INVALID", "IMPORTED"}},
+		{Name: "preview_token_hash", Type: field.TypeString, Size: 64},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "total_count", Type: field.TypeInt},
+		{Name: "valid_count", Type: field.TypeInt},
+		{Name: "invalid_count", Type: field.TypeInt},
+		{Name: "imported_count", Type: field.TypeInt, Default: 0},
+		{Name: "rows", Type: field.TypeJSON},
+		{Name: "imported_at", Type: field.TypeTime, Nullable: true},
+		{Name: "imported_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// ExchangeRateImportBatchesTable holds the schema information for the "exchange_rate_import_batches" table.
+	ExchangeRateImportBatchesTable = &schema.Table{
+		Name:       "exchange_rate_import_batches",
+		Columns:    ExchangeRateImportBatchesColumns,
+		PrimaryKey: []*schema.Column{ExchangeRateImportBatchesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "exchangerateimportbatch_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateImportBatchesColumns[2]},
+			},
+			{
+				Name:    "exchange_rate_import_preview_token",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateImportBatchesColumns[10]},
+			},
+			{
+				Name:    "exchange_rate_import_org_id",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateImportBatchesColumns[3], ExchangeRateImportBatchesColumns[0]},
+			},
+			{
+				Name:    "exchange_rate_import_idempotency",
+				Unique:  true,
+				Columns: []*schema.Column{ExchangeRateImportBatchesColumns[3], ExchangeRateImportBatchesColumns[12]},
+			},
+			{
+				Name:    "exchange_rate_import_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ExchangeRateImportBatchesColumns[3], ExchangeRateImportBatchesColumns[1]},
+			},
+		},
+	}
 	// ExchangeRateSettingsColumns holds the columns for the "exchange_rate_settings" table.
 	ExchangeRateSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3976,6 +4032,7 @@ var (
 		BackgroundTasksTable,
 		BillingUnitsTable,
 		CurrenciesTable,
+		ExchangeRateImportBatchesTable,
 		ExchangeRateSettingsTable,
 		ExchangeRateTimeStandardsTable,
 		FeeSettingsTable,

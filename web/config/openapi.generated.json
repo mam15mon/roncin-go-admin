@@ -2204,6 +2204,119 @@
         }
       }
     },
+    "/api/v1/finance/exchange-rate-import-template": {
+      "get": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "description": "DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。",
+        "operationId": "ExchangeRateService_DownloadExchangeRateImportTemplate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.DownloadExchangeRateImportTemplateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/exchange-rate-imports": {
+      "post": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "description": "ConfirmExchangeRateImport 使用预检令牌确认整批导入。",
+        "operationId": "ExchangeRateService_ConfirmExchangeRateImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.ConfirmExchangeRateImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ConfirmExchangeRateImportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/exchange-rate-imports/preview": {
+      "post": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "description": "PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。",
+        "operationId": "ExchangeRateService_PreviewExchangeRateImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.PreviewExchangeRateImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.PreviewExchangeRateImportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/exchange-rate-imports/{id}": {
+      "get": {
+        "tags": [
+          "ExchangeRateService"
+        ],
+        "operationId": "ExchangeRateService_GetExchangeRateImport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetExchangeRateImportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/exchange-rate-time-standards": {
       "get": {
         "tags": [
@@ -8972,6 +9085,42 @@
           }
         }
       },
+      "finance.v1.ConfirmExchangeRateImportRequest": {
+        "required": [
+          "previewToken",
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "previewToken": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmExchangeRateImportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.ExchangeRateImportBatch"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.CreateBillBatchGroupInput": {
         "required": [
           "groupKey",
@@ -9609,6 +9758,132 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "finance.v1.DownloadExchangeRateImportTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "format": "bytes"
+          },
+          "templateVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ExchangeRateImportBatch": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileChecksum": {
+            "type": "string"
+          },
+          "templateVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "validCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "importedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canConfirm": {
+            "type": "boolean"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ExchangeRateImportRow"
+            }
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "importedAt": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ExchangeRateImportRow": {
+        "type": "object",
+        "properties": {
+          "rowNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rateType": {
+            "type": "string"
+          },
+          "fromCurrency": {
+            "type": "string"
+          },
+          "toCurrency": {
+            "type": "string"
+          },
+          "receivableRate": {
+            "type": "string"
+          },
+          "payableRate": {
+            "type": "string"
+          },
+          "effectiveFrom": {
+            "type": "string"
+          },
+          "effectiveTo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -10823,6 +11098,27 @@
           }
         }
       },
+      "finance.v1.GetExchangeRateImportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.ExchangeRateImportBatch"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.GetFeeLedgerPreferenceResponse": {
         "type": "object",
         "properties": {
@@ -11363,6 +11659,46 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.CommissionCalculation"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.PreviewExchangeRateImportRequest": {
+        "required": [
+          "fileName",
+          "fileContent"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "fileContent": {
+            "type": "string",
+            "format": "bytes"
+          }
+        }
+      },
+      "finance.v1.PreviewExchangeRateImportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.ExchangeRateImportBatch"
+          },
+          "previewToken": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"

@@ -26,6 +26,8 @@ type Tx struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
+	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
 	ExchangeRateSetting *ExchangeRateSettingClient
 	// ExchangeRateTimeStandard is the client for interacting with the ExchangeRateTimeStandard builders.
@@ -292,6 +294,7 @@ func (tx *Tx) init() {
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
 	tx.BillingUnit = NewBillingUnitClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
+	tx.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
 	tx.ExchangeRateTimeStandard = NewExchangeRateTimeStandardClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)

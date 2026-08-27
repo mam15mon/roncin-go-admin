@@ -114,6 +114,61 @@ func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Contex
 	return &v1.UpdateExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Context, _ *v1.DownloadExchangeRateImportTemplateRequest) (*v1.DownloadExchangeRateImportTemplateResponse, error) {
+	if _, ok := biz.PrincipalFromContext(ctx); !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	content, err := buildExchangeRateImportTemplate()
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DownloadExchangeRateImportTemplateResponse{Success: true, Code: 0, Message: "OK", FileName: "汇率导入模板.xlsx", ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Content: content, TemplateVersion: biz.ExchangeRateImportTemplateVersion, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *ExchangeRateService) PreviewExchangeRateImport(ctx context.Context, request *v1.PreviewExchangeRateImportRequest) (*v1.PreviewExchangeRateImportResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	input, err := parseExchangeRateImportWorkbook(request.GetFileName(), request.GetFileContent())
+	if err != nil {
+		return nil, err
+	}
+	batch, token, err := s.usecase.PreviewImport(ctx, principal.Organization.ID, principal.UserID, input)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PreviewExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), PreviewToken: token, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *ExchangeRateService) ConfirmExchangeRateImport(ctx context.Context, request *v1.ConfirmExchangeRateImportRequest) (*v1.ConfirmExchangeRateImportResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	batch, err := s.usecase.ConfirmImport(ctx, principal.Organization.ID, principal.UserID, request.GetPreviewToken(), request.GetIdempotencyKey())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ConfirmExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *ExchangeRateService) GetExchangeRateImport(ctx context.Context, request *v1.GetExchangeRateImportRequest) (*v1.GetExchangeRateImportResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	id, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrExchangeRateInvalidArgument
+	}
+	batch, err := s.usecase.GetImport(ctx, principal.Organization.ID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func exchangeRateInputFromAPI(rateType, fromCurrency, toCurrency, effectiveFrom string, effectiveTo *string, receivableText, payableText string) (*biz.ExchangeRateSetting, error) {
 	receivable, err := parsePlainDecimal(receivableText)
 	if err != nil {
@@ -136,6 +191,28 @@ func exchangeRateTimeStandardsToAPI(settings []*biz.ExchangeRateTimeStandardSett
 		result = append(result, &v1.ExchangeRateTimeStandardSetting{RateType: setting.RateType, TimeStandards: append([]string(nil), setting.TimeStandards...)})
 	}
 	return result
+}
+
+func exchangeRateImportBatchToAPI(batch *biz.ExchangeRateImportBatch) *v1.ExchangeRateImportBatch {
+	if batch == nil {
+		return nil
+	}
+	rows := make([]*v1.ExchangeRateImportRow, 0, len(batch.Rows))
+	for _, row := range batch.Rows {
+		if row == nil {
+			continue
+		}
+		rows = append(rows, &v1.ExchangeRateImportRow{RowNumber: int32(row.RowNumber), RateType: row.RateType, FromCurrency: row.FromCurrency, ToCurrency: row.ToCurrency, ReceivableRate: row.ReceivableRate, PayableRate: row.PayableRate, EffectiveFrom: row.EffectiveFrom, EffectiveTo: row.EffectiveTo, Status: row.Status, Errors: append([]string(nil), row.Errors...)})
+	}
+	return &v1.ExchangeRateImportBatch{Id: batch.ID.String(), FileName: batch.FileName, FileChecksum: batch.FileChecksum, TemplateVersion: int32(batch.TemplateVersion), Status: batch.Status, TotalCount: int32(batch.TotalCount), ValidCount: int32(batch.ValidCount), InvalidCount: int32(batch.InvalidCount), ImportedCount: int32(batch.ImportedCount), CanConfirm: batch.Status == biz.ExchangeRateImportPreviewReady && batch.InvalidCount == 0 && batch.ExpiresAt.After(time.Now()), Rows: rows, ExpiresAt: batch.ExpiresAt.UTC().Format(time.RFC3339), ImportedAt: exchangeRateImportTime(batch.ImportedAt), CreatedAt: batch.CreatedAt.UTC().Format(time.RFC3339)}
+}
+
+func exchangeRateImportTime(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.UTC().Format(time.RFC3339)
+	return &formatted
 }
 
 var _ v1.ExchangeRateServiceServer = (*ExchangeRateService)(nil)

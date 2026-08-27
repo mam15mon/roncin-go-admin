@@ -2,6 +2,72 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。 GET /api/v1/finance/exchange-rate-import-template */
+export async function exchangeRateServiceDownloadExchangeRateImportTemplate(options?: {
+  [key: string]: any;
+}) {
+  return request<API.DownloadExchangeRateImportTemplateResponse>(
+    "/api/v1/finance/exchange-rate-import-template",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** ConfirmExchangeRateImport 使用预检令牌确认整批导入。 POST /api/v1/finance/exchange-rate-imports */
+export async function exchangeRateServiceConfirmExchangeRateImport(
+  body: API.ConfirmExchangeRateImportRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ConfirmExchangeRateImportResponse>(
+    "/api/v1/finance/exchange-rate-imports",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/exchange-rate-imports/${param0} */
+export async function exchangeRateServiceGetExchangeRateImport(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.ExchangeRateServiceGetExchangeRateImportParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.GetExchangeRateImportResponse>(
+    `/api/v1/finance/exchange-rate-imports/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。 POST /api/v1/finance/exchange-rate-imports/preview */
+export async function exchangeRateServicePreviewExchangeRateImport(
+  body: API.PreviewExchangeRateImportRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.PreviewExchangeRateImportResponse>(
+    "/api/v1/finance/exchange-rate-imports/preview",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/exchange-rate-time-standards */
 export async function exchangeRateServiceListExchangeRateTimeStandards(options?: {
   [key: string]: any;

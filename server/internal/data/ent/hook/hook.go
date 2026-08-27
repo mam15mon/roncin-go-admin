@@ -93,6 +93,18 @@ func (f CurrencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CurrencyMutation", m)
 }
 
+// The ExchangeRateImportBatchFunc type is an adapter to allow the use of ordinary
+// function as ExchangeRateImportBatch mutator.
+type ExchangeRateImportBatchFunc func(context.Context, *ent.ExchangeRateImportBatchMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExchangeRateImportBatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExchangeRateImportBatchMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExchangeRateImportBatchMutation", m)
+}
+
 // The ExchangeRateSettingFunc type is an adapter to allow the use of ordinary
 // function as ExchangeRateSetting mutator.
 type ExchangeRateSettingFunc func(context.Context, *ent.ExchangeRateSettingMutation) (ent.Value, error)

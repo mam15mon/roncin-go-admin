@@ -20,6 +20,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
@@ -104,6 +105,7 @@ const (
 	TypeBackgroundTask                = "BackgroundTask"
 	TypeBillingUnit                   = "BillingUnit"
 	TypeCurrency                      = "Currency"
+	TypeExchangeRateImportBatch       = "ExchangeRateImportBatch"
 	TypeExchangeRateSetting           = "ExchangeRateSetting"
 	TypeExchangeRateTimeStandard      = "ExchangeRateTimeStandard"
 	TypeFeeSetting                    = "FeeSetting"
@@ -7628,6 +7630,1554 @@ func (m *CurrencyMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CurrencyMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Currency edge %s", name)
+}
+
+// ExchangeRateImportBatchMutation represents an operation that mutates the ExchangeRateImportBatch nodes in the graph.
+type ExchangeRateImportBatchMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	organization_id       *uuid.UUID
+	owner_organization_id *uuid.UUID
+	created_by            *uuid.UUID
+	file_name             *string
+	file_checksum         *string
+	template_version      *int
+	addtemplate_version   *int
+	status                *exchangerateimportbatch.Status
+	preview_token_hash    *string
+	expires_at            *time.Time
+	idempotency_key       *string
+	total_count           *int
+	addtotal_count        *int
+	valid_count           *int
+	addvalid_count        *int
+	invalid_count         *int
+	addinvalid_count      *int
+	imported_count        *int
+	addimported_count     *int
+	rows                  *json.RawMessage
+	appendrows            json.RawMessage
+	imported_at           *time.Time
+	imported_by           *uuid.UUID
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*ExchangeRateImportBatch, error)
+	predicates            []predicate.ExchangeRateImportBatch
+}
+
+var _ ent.Mutation = (*ExchangeRateImportBatchMutation)(nil)
+
+// exchangerateimportbatchOption allows management of the mutation configuration using functional options.
+type exchangerateimportbatchOption func(*ExchangeRateImportBatchMutation)
+
+// newExchangeRateImportBatchMutation creates new mutation for the ExchangeRateImportBatch entity.
+func newExchangeRateImportBatchMutation(c config, op Op, opts ...exchangerateimportbatchOption) *ExchangeRateImportBatchMutation {
+	m := &ExchangeRateImportBatchMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeExchangeRateImportBatch,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withExchangeRateImportBatchID sets the ID field of the mutation.
+func withExchangeRateImportBatchID(id uuid.UUID) exchangerateimportbatchOption {
+	return func(m *ExchangeRateImportBatchMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ExchangeRateImportBatch
+		)
+		m.oldValue = func(ctx context.Context) (*ExchangeRateImportBatch, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ExchangeRateImportBatch.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withExchangeRateImportBatch sets the old ExchangeRateImportBatch of the mutation.
+func withExchangeRateImportBatch(node *ExchangeRateImportBatch) exchangerateimportbatchOption {
+	return func(m *ExchangeRateImportBatchMutation) {
+		m.oldValue = func(context.Context) (*ExchangeRateImportBatch, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ExchangeRateImportBatchMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ExchangeRateImportBatchMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ExchangeRateImportBatch entities.
+func (m *ExchangeRateImportBatchMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ExchangeRateImportBatchMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ExchangeRateImportBatchMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ExchangeRateImportBatch.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ExchangeRateImportBatchMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ExchangeRateImportBatchMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ExchangeRateImportBatchMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ExchangeRateImportBatchMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *ExchangeRateImportBatchMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *ExchangeRateImportBatchMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetOwnerOrganizationID sets the "owner_organization_id" field.
+func (m *ExchangeRateImportBatchMutation) SetOwnerOrganizationID(u uuid.UUID) {
+	m.owner_organization_id = &u
+}
+
+// OwnerOrganizationID returns the value of the "owner_organization_id" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) OwnerOrganizationID() (r uuid.UUID, exists bool) {
+	v := m.owner_organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwnerOrganizationID returns the old "owner_organization_id" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldOwnerOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwnerOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwnerOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwnerOrganizationID: %w", err)
+	}
+	return oldValue.OwnerOrganizationID, nil
+}
+
+// ResetOwnerOrganizationID resets all changes to the "owner_organization_id" field.
+func (m *ExchangeRateImportBatchMutation) ResetOwnerOrganizationID() {
+	m.owner_organization_id = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *ExchangeRateImportBatchMutation) SetCreatedBy(u uuid.UUID) {
+	m.created_by = &u
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldCreatedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *ExchangeRateImportBatchMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
+// SetFileName sets the "file_name" field.
+func (m *ExchangeRateImportBatchMutation) SetFileName(s string) {
+	m.file_name = &s
+}
+
+// FileName returns the value of the "file_name" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) FileName() (r string, exists bool) {
+	v := m.file_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "file_name" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "file_name" field.
+func (m *ExchangeRateImportBatchMutation) ResetFileName() {
+	m.file_name = nil
+}
+
+// SetFileChecksum sets the "file_checksum" field.
+func (m *ExchangeRateImportBatchMutation) SetFileChecksum(s string) {
+	m.file_checksum = &s
+}
+
+// FileChecksum returns the value of the "file_checksum" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) FileChecksum() (r string, exists bool) {
+	v := m.file_checksum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileChecksum returns the old "file_checksum" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldFileChecksum(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileChecksum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileChecksum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileChecksum: %w", err)
+	}
+	return oldValue.FileChecksum, nil
+}
+
+// ResetFileChecksum resets all changes to the "file_checksum" field.
+func (m *ExchangeRateImportBatchMutation) ResetFileChecksum() {
+	m.file_checksum = nil
+}
+
+// SetTemplateVersion sets the "template_version" field.
+func (m *ExchangeRateImportBatchMutation) SetTemplateVersion(i int) {
+	m.template_version = &i
+	m.addtemplate_version = nil
+}
+
+// TemplateVersion returns the value of the "template_version" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) TemplateVersion() (r int, exists bool) {
+	v := m.template_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateVersion returns the old "template_version" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldTemplateVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateVersion: %w", err)
+	}
+	return oldValue.TemplateVersion, nil
+}
+
+// AddTemplateVersion adds i to the "template_version" field.
+func (m *ExchangeRateImportBatchMutation) AddTemplateVersion(i int) {
+	if m.addtemplate_version != nil {
+		*m.addtemplate_version += i
+	} else {
+		m.addtemplate_version = &i
+	}
+}
+
+// AddedTemplateVersion returns the value that was added to the "template_version" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedTemplateVersion() (r int, exists bool) {
+	v := m.addtemplate_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTemplateVersion resets all changes to the "template_version" field.
+func (m *ExchangeRateImportBatchMutation) ResetTemplateVersion() {
+	m.template_version = nil
+	m.addtemplate_version = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ExchangeRateImportBatchMutation) SetStatus(e exchangerateimportbatch.Status) {
+	m.status = &e
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) Status() (r exchangerateimportbatch.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldStatus(ctx context.Context) (v exchangerateimportbatch.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ExchangeRateImportBatchMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetPreviewTokenHash sets the "preview_token_hash" field.
+func (m *ExchangeRateImportBatchMutation) SetPreviewTokenHash(s string) {
+	m.preview_token_hash = &s
+}
+
+// PreviewTokenHash returns the value of the "preview_token_hash" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) PreviewTokenHash() (r string, exists bool) {
+	v := m.preview_token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreviewTokenHash returns the old "preview_token_hash" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldPreviewTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreviewTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreviewTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreviewTokenHash: %w", err)
+	}
+	return oldValue.PreviewTokenHash, nil
+}
+
+// ResetPreviewTokenHash resets all changes to the "preview_token_hash" field.
+func (m *ExchangeRateImportBatchMutation) ResetPreviewTokenHash() {
+	m.preview_token_hash = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *ExchangeRateImportBatchMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *ExchangeRateImportBatchMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *ExchangeRateImportBatchMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldIdempotencyKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ClearIdempotencyKey clears the value of the "idempotency_key" field.
+func (m *ExchangeRateImportBatchMutation) ClearIdempotencyKey() {
+	m.idempotency_key = nil
+	m.clearedFields[exchangerateimportbatch.FieldIdempotencyKey] = struct{}{}
+}
+
+// IdempotencyKeyCleared returns if the "idempotency_key" field was cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) IdempotencyKeyCleared() bool {
+	_, ok := m.clearedFields[exchangerateimportbatch.FieldIdempotencyKey]
+	return ok
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *ExchangeRateImportBatchMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+	delete(m.clearedFields, exchangerateimportbatch.FieldIdempotencyKey)
+}
+
+// SetTotalCount sets the "total_count" field.
+func (m *ExchangeRateImportBatchMutation) SetTotalCount(i int) {
+	m.total_count = &i
+	m.addtotal_count = nil
+}
+
+// TotalCount returns the value of the "total_count" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) TotalCount() (r int, exists bool) {
+	v := m.total_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalCount returns the old "total_count" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldTotalCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalCount: %w", err)
+	}
+	return oldValue.TotalCount, nil
+}
+
+// AddTotalCount adds i to the "total_count" field.
+func (m *ExchangeRateImportBatchMutation) AddTotalCount(i int) {
+	if m.addtotal_count != nil {
+		*m.addtotal_count += i
+	} else {
+		m.addtotal_count = &i
+	}
+}
+
+// AddedTotalCount returns the value that was added to the "total_count" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedTotalCount() (r int, exists bool) {
+	v := m.addtotal_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalCount resets all changes to the "total_count" field.
+func (m *ExchangeRateImportBatchMutation) ResetTotalCount() {
+	m.total_count = nil
+	m.addtotal_count = nil
+}
+
+// SetValidCount sets the "valid_count" field.
+func (m *ExchangeRateImportBatchMutation) SetValidCount(i int) {
+	m.valid_count = &i
+	m.addvalid_count = nil
+}
+
+// ValidCount returns the value of the "valid_count" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) ValidCount() (r int, exists bool) {
+	v := m.valid_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValidCount returns the old "valid_count" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldValidCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValidCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValidCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValidCount: %w", err)
+	}
+	return oldValue.ValidCount, nil
+}
+
+// AddValidCount adds i to the "valid_count" field.
+func (m *ExchangeRateImportBatchMutation) AddValidCount(i int) {
+	if m.addvalid_count != nil {
+		*m.addvalid_count += i
+	} else {
+		m.addvalid_count = &i
+	}
+}
+
+// AddedValidCount returns the value that was added to the "valid_count" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedValidCount() (r int, exists bool) {
+	v := m.addvalid_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetValidCount resets all changes to the "valid_count" field.
+func (m *ExchangeRateImportBatchMutation) ResetValidCount() {
+	m.valid_count = nil
+	m.addvalid_count = nil
+}
+
+// SetInvalidCount sets the "invalid_count" field.
+func (m *ExchangeRateImportBatchMutation) SetInvalidCount(i int) {
+	m.invalid_count = &i
+	m.addinvalid_count = nil
+}
+
+// InvalidCount returns the value of the "invalid_count" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) InvalidCount() (r int, exists bool) {
+	v := m.invalid_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInvalidCount returns the old "invalid_count" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldInvalidCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInvalidCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInvalidCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInvalidCount: %w", err)
+	}
+	return oldValue.InvalidCount, nil
+}
+
+// AddInvalidCount adds i to the "invalid_count" field.
+func (m *ExchangeRateImportBatchMutation) AddInvalidCount(i int) {
+	if m.addinvalid_count != nil {
+		*m.addinvalid_count += i
+	} else {
+		m.addinvalid_count = &i
+	}
+}
+
+// AddedInvalidCount returns the value that was added to the "invalid_count" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedInvalidCount() (r int, exists bool) {
+	v := m.addinvalid_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetInvalidCount resets all changes to the "invalid_count" field.
+func (m *ExchangeRateImportBatchMutation) ResetInvalidCount() {
+	m.invalid_count = nil
+	m.addinvalid_count = nil
+}
+
+// SetImportedCount sets the "imported_count" field.
+func (m *ExchangeRateImportBatchMutation) SetImportedCount(i int) {
+	m.imported_count = &i
+	m.addimported_count = nil
+}
+
+// ImportedCount returns the value of the "imported_count" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) ImportedCount() (r int, exists bool) {
+	v := m.imported_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImportedCount returns the old "imported_count" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldImportedCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImportedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImportedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImportedCount: %w", err)
+	}
+	return oldValue.ImportedCount, nil
+}
+
+// AddImportedCount adds i to the "imported_count" field.
+func (m *ExchangeRateImportBatchMutation) AddImportedCount(i int) {
+	if m.addimported_count != nil {
+		*m.addimported_count += i
+	} else {
+		m.addimported_count = &i
+	}
+}
+
+// AddedImportedCount returns the value that was added to the "imported_count" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedImportedCount() (r int, exists bool) {
+	v := m.addimported_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetImportedCount resets all changes to the "imported_count" field.
+func (m *ExchangeRateImportBatchMutation) ResetImportedCount() {
+	m.imported_count = nil
+	m.addimported_count = nil
+}
+
+// SetRows sets the "rows" field.
+func (m *ExchangeRateImportBatchMutation) SetRows(jm json.RawMessage) {
+	m.rows = &jm
+	m.appendrows = nil
+}
+
+// Rows returns the value of the "rows" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) Rows() (r json.RawMessage, exists bool) {
+	v := m.rows
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRows returns the old "rows" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldRows(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRows is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRows requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRows: %w", err)
+	}
+	return oldValue.Rows, nil
+}
+
+// AppendRows adds jm to the "rows" field.
+func (m *ExchangeRateImportBatchMutation) AppendRows(jm json.RawMessage) {
+	m.appendrows = append(m.appendrows, jm...)
+}
+
+// AppendedRows returns the list of values that were appended to the "rows" field in this mutation.
+func (m *ExchangeRateImportBatchMutation) AppendedRows() (json.RawMessage, bool) {
+	if len(m.appendrows) == 0 {
+		return nil, false
+	}
+	return m.appendrows, true
+}
+
+// ResetRows resets all changes to the "rows" field.
+func (m *ExchangeRateImportBatchMutation) ResetRows() {
+	m.rows = nil
+	m.appendrows = nil
+}
+
+// SetImportedAt sets the "imported_at" field.
+func (m *ExchangeRateImportBatchMutation) SetImportedAt(t time.Time) {
+	m.imported_at = &t
+}
+
+// ImportedAt returns the value of the "imported_at" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) ImportedAt() (r time.Time, exists bool) {
+	v := m.imported_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImportedAt returns the old "imported_at" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldImportedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImportedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImportedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImportedAt: %w", err)
+	}
+	return oldValue.ImportedAt, nil
+}
+
+// ClearImportedAt clears the value of the "imported_at" field.
+func (m *ExchangeRateImportBatchMutation) ClearImportedAt() {
+	m.imported_at = nil
+	m.clearedFields[exchangerateimportbatch.FieldImportedAt] = struct{}{}
+}
+
+// ImportedAtCleared returns if the "imported_at" field was cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) ImportedAtCleared() bool {
+	_, ok := m.clearedFields[exchangerateimportbatch.FieldImportedAt]
+	return ok
+}
+
+// ResetImportedAt resets all changes to the "imported_at" field.
+func (m *ExchangeRateImportBatchMutation) ResetImportedAt() {
+	m.imported_at = nil
+	delete(m.clearedFields, exchangerateimportbatch.FieldImportedAt)
+}
+
+// SetImportedBy sets the "imported_by" field.
+func (m *ExchangeRateImportBatchMutation) SetImportedBy(u uuid.UUID) {
+	m.imported_by = &u
+}
+
+// ImportedBy returns the value of the "imported_by" field in the mutation.
+func (m *ExchangeRateImportBatchMutation) ImportedBy() (r uuid.UUID, exists bool) {
+	v := m.imported_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImportedBy returns the old "imported_by" field's value of the ExchangeRateImportBatch entity.
+// If the ExchangeRateImportBatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ExchangeRateImportBatchMutation) OldImportedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImportedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImportedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImportedBy: %w", err)
+	}
+	return oldValue.ImportedBy, nil
+}
+
+// ClearImportedBy clears the value of the "imported_by" field.
+func (m *ExchangeRateImportBatchMutation) ClearImportedBy() {
+	m.imported_by = nil
+	m.clearedFields[exchangerateimportbatch.FieldImportedBy] = struct{}{}
+}
+
+// ImportedByCleared returns if the "imported_by" field was cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) ImportedByCleared() bool {
+	_, ok := m.clearedFields[exchangerateimportbatch.FieldImportedBy]
+	return ok
+}
+
+// ResetImportedBy resets all changes to the "imported_by" field.
+func (m *ExchangeRateImportBatchMutation) ResetImportedBy() {
+	m.imported_by = nil
+	delete(m.clearedFields, exchangerateimportbatch.FieldImportedBy)
+}
+
+// Where appends a list predicates to the ExchangeRateImportBatchMutation builder.
+func (m *ExchangeRateImportBatchMutation) Where(ps ...predicate.ExchangeRateImportBatch) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ExchangeRateImportBatchMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ExchangeRateImportBatchMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ExchangeRateImportBatch, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ExchangeRateImportBatchMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ExchangeRateImportBatchMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ExchangeRateImportBatch).
+func (m *ExchangeRateImportBatchMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ExchangeRateImportBatchMutation) Fields() []string {
+	fields := make([]string, 0, 19)
+	if m.created_at != nil {
+		fields = append(fields, exchangerateimportbatch.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, exchangerateimportbatch.FieldUpdatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, exchangerateimportbatch.FieldOrganizationID)
+	}
+	if m.owner_organization_id != nil {
+		fields = append(fields, exchangerateimportbatch.FieldOwnerOrganizationID)
+	}
+	if m.created_by != nil {
+		fields = append(fields, exchangerateimportbatch.FieldCreatedBy)
+	}
+	if m.file_name != nil {
+		fields = append(fields, exchangerateimportbatch.FieldFileName)
+	}
+	if m.file_checksum != nil {
+		fields = append(fields, exchangerateimportbatch.FieldFileChecksum)
+	}
+	if m.template_version != nil {
+		fields = append(fields, exchangerateimportbatch.FieldTemplateVersion)
+	}
+	if m.status != nil {
+		fields = append(fields, exchangerateimportbatch.FieldStatus)
+	}
+	if m.preview_token_hash != nil {
+		fields = append(fields, exchangerateimportbatch.FieldPreviewTokenHash)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, exchangerateimportbatch.FieldExpiresAt)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, exchangerateimportbatch.FieldIdempotencyKey)
+	}
+	if m.total_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldTotalCount)
+	}
+	if m.valid_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldValidCount)
+	}
+	if m.invalid_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldInvalidCount)
+	}
+	if m.imported_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldImportedCount)
+	}
+	if m.rows != nil {
+		fields = append(fields, exchangerateimportbatch.FieldRows)
+	}
+	if m.imported_at != nil {
+		fields = append(fields, exchangerateimportbatch.FieldImportedAt)
+	}
+	if m.imported_by != nil {
+		fields = append(fields, exchangerateimportbatch.FieldImportedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ExchangeRateImportBatchMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case exchangerateimportbatch.FieldCreatedAt:
+		return m.CreatedAt()
+	case exchangerateimportbatch.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case exchangerateimportbatch.FieldOrganizationID:
+		return m.OrganizationID()
+	case exchangerateimportbatch.FieldOwnerOrganizationID:
+		return m.OwnerOrganizationID()
+	case exchangerateimportbatch.FieldCreatedBy:
+		return m.CreatedBy()
+	case exchangerateimportbatch.FieldFileName:
+		return m.FileName()
+	case exchangerateimportbatch.FieldFileChecksum:
+		return m.FileChecksum()
+	case exchangerateimportbatch.FieldTemplateVersion:
+		return m.TemplateVersion()
+	case exchangerateimportbatch.FieldStatus:
+		return m.Status()
+	case exchangerateimportbatch.FieldPreviewTokenHash:
+		return m.PreviewTokenHash()
+	case exchangerateimportbatch.FieldExpiresAt:
+		return m.ExpiresAt()
+	case exchangerateimportbatch.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case exchangerateimportbatch.FieldTotalCount:
+		return m.TotalCount()
+	case exchangerateimportbatch.FieldValidCount:
+		return m.ValidCount()
+	case exchangerateimportbatch.FieldInvalidCount:
+		return m.InvalidCount()
+	case exchangerateimportbatch.FieldImportedCount:
+		return m.ImportedCount()
+	case exchangerateimportbatch.FieldRows:
+		return m.Rows()
+	case exchangerateimportbatch.FieldImportedAt:
+		return m.ImportedAt()
+	case exchangerateimportbatch.FieldImportedBy:
+		return m.ImportedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ExchangeRateImportBatchMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case exchangerateimportbatch.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case exchangerateimportbatch.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case exchangerateimportbatch.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case exchangerateimportbatch.FieldOwnerOrganizationID:
+		return m.OldOwnerOrganizationID(ctx)
+	case exchangerateimportbatch.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case exchangerateimportbatch.FieldFileName:
+		return m.OldFileName(ctx)
+	case exchangerateimportbatch.FieldFileChecksum:
+		return m.OldFileChecksum(ctx)
+	case exchangerateimportbatch.FieldTemplateVersion:
+		return m.OldTemplateVersion(ctx)
+	case exchangerateimportbatch.FieldStatus:
+		return m.OldStatus(ctx)
+	case exchangerateimportbatch.FieldPreviewTokenHash:
+		return m.OldPreviewTokenHash(ctx)
+	case exchangerateimportbatch.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case exchangerateimportbatch.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case exchangerateimportbatch.FieldTotalCount:
+		return m.OldTotalCount(ctx)
+	case exchangerateimportbatch.FieldValidCount:
+		return m.OldValidCount(ctx)
+	case exchangerateimportbatch.FieldInvalidCount:
+		return m.OldInvalidCount(ctx)
+	case exchangerateimportbatch.FieldImportedCount:
+		return m.OldImportedCount(ctx)
+	case exchangerateimportbatch.FieldRows:
+		return m.OldRows(ctx)
+	case exchangerateimportbatch.FieldImportedAt:
+		return m.OldImportedAt(ctx)
+	case exchangerateimportbatch.FieldImportedBy:
+		return m.OldImportedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown ExchangeRateImportBatch field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExchangeRateImportBatchMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case exchangerateimportbatch.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case exchangerateimportbatch.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case exchangerateimportbatch.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case exchangerateimportbatch.FieldOwnerOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwnerOrganizationID(v)
+		return nil
+	case exchangerateimportbatch.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case exchangerateimportbatch.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case exchangerateimportbatch.FieldFileChecksum:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileChecksum(v)
+		return nil
+	case exchangerateimportbatch.FieldTemplateVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateVersion(v)
+		return nil
+	case exchangerateimportbatch.FieldStatus:
+		v, ok := value.(exchangerateimportbatch.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case exchangerateimportbatch.FieldPreviewTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreviewTokenHash(v)
+		return nil
+	case exchangerateimportbatch.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case exchangerateimportbatch.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case exchangerateimportbatch.FieldTotalCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalCount(v)
+		return nil
+	case exchangerateimportbatch.FieldValidCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValidCount(v)
+		return nil
+	case exchangerateimportbatch.FieldInvalidCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInvalidCount(v)
+		return nil
+	case exchangerateimportbatch.FieldImportedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImportedCount(v)
+		return nil
+	case exchangerateimportbatch.FieldRows:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRows(v)
+		return nil
+	case exchangerateimportbatch.FieldImportedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImportedAt(v)
+		return nil
+	case exchangerateimportbatch.FieldImportedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImportedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateImportBatch field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedFields() []string {
+	var fields []string
+	if m.addtemplate_version != nil {
+		fields = append(fields, exchangerateimportbatch.FieldTemplateVersion)
+	}
+	if m.addtotal_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldTotalCount)
+	}
+	if m.addvalid_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldValidCount)
+	}
+	if m.addinvalid_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldInvalidCount)
+	}
+	if m.addimported_count != nil {
+		fields = append(fields, exchangerateimportbatch.FieldImportedCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ExchangeRateImportBatchMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case exchangerateimportbatch.FieldTemplateVersion:
+		return m.AddedTemplateVersion()
+	case exchangerateimportbatch.FieldTotalCount:
+		return m.AddedTotalCount()
+	case exchangerateimportbatch.FieldValidCount:
+		return m.AddedValidCount()
+	case exchangerateimportbatch.FieldInvalidCount:
+		return m.AddedInvalidCount()
+	case exchangerateimportbatch.FieldImportedCount:
+		return m.AddedImportedCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ExchangeRateImportBatchMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case exchangerateimportbatch.FieldTemplateVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTemplateVersion(v)
+		return nil
+	case exchangerateimportbatch.FieldTotalCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalCount(v)
+		return nil
+	case exchangerateimportbatch.FieldValidCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddValidCount(v)
+		return nil
+	case exchangerateimportbatch.FieldInvalidCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInvalidCount(v)
+		return nil
+	case exchangerateimportbatch.FieldImportedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddImportedCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateImportBatch numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ExchangeRateImportBatchMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(exchangerateimportbatch.FieldIdempotencyKey) {
+		fields = append(fields, exchangerateimportbatch.FieldIdempotencyKey)
+	}
+	if m.FieldCleared(exchangerateimportbatch.FieldImportedAt) {
+		fields = append(fields, exchangerateimportbatch.FieldImportedAt)
+	}
+	if m.FieldCleared(exchangerateimportbatch.FieldImportedBy) {
+		fields = append(fields, exchangerateimportbatch.FieldImportedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ExchangeRateImportBatchMutation) ClearField(name string) error {
+	switch name {
+	case exchangerateimportbatch.FieldIdempotencyKey:
+		m.ClearIdempotencyKey()
+		return nil
+	case exchangerateimportbatch.FieldImportedAt:
+		m.ClearImportedAt()
+		return nil
+	case exchangerateimportbatch.FieldImportedBy:
+		m.ClearImportedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateImportBatch nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ExchangeRateImportBatchMutation) ResetField(name string) error {
+	switch name {
+	case exchangerateimportbatch.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case exchangerateimportbatch.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case exchangerateimportbatch.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case exchangerateimportbatch.FieldOwnerOrganizationID:
+		m.ResetOwnerOrganizationID()
+		return nil
+	case exchangerateimportbatch.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case exchangerateimportbatch.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case exchangerateimportbatch.FieldFileChecksum:
+		m.ResetFileChecksum()
+		return nil
+	case exchangerateimportbatch.FieldTemplateVersion:
+		m.ResetTemplateVersion()
+		return nil
+	case exchangerateimportbatch.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case exchangerateimportbatch.FieldPreviewTokenHash:
+		m.ResetPreviewTokenHash()
+		return nil
+	case exchangerateimportbatch.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case exchangerateimportbatch.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case exchangerateimportbatch.FieldTotalCount:
+		m.ResetTotalCount()
+		return nil
+	case exchangerateimportbatch.FieldValidCount:
+		m.ResetValidCount()
+		return nil
+	case exchangerateimportbatch.FieldInvalidCount:
+		m.ResetInvalidCount()
+		return nil
+	case exchangerateimportbatch.FieldImportedCount:
+		m.ResetImportedCount()
+		return nil
+	case exchangerateimportbatch.FieldRows:
+		m.ResetRows()
+		return nil
+	case exchangerateimportbatch.FieldImportedAt:
+		m.ResetImportedAt()
+		return nil
+	case exchangerateimportbatch.FieldImportedBy:
+		m.ResetImportedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown ExchangeRateImportBatch field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ExchangeRateImportBatchMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ExchangeRateImportBatchMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ExchangeRateImportBatchMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ExchangeRateImportBatchMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ExchangeRateImportBatchMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ExchangeRateImportBatch unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ExchangeRateImportBatchMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ExchangeRateImportBatch edge %s", name)
 }
 
 // ExchangeRateSettingMutation represents an operation that mutates the ExchangeRateSetting nodes in the graph.

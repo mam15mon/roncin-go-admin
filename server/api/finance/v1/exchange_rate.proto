@@ -39,6 +39,29 @@ service ExchangeRateService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/finance/exchange-rate-time-standards" body: "*"};
   }
+
+  // DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。
+  rpc DownloadExchangeRateImportTemplate(DownloadExchangeRateImportTemplateRequest) returns (DownloadExchangeRateImportTemplateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-import-template"};
+  }
+
+  // PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。
+  rpc PreviewExchangeRateImport(PreviewExchangeRateImportRequest) returns (PreviewExchangeRateImportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/exchange-rate-imports/preview" body: "*"};
+  }
+
+  // ConfirmExchangeRateImport 使用预检令牌确认整批导入。
+  rpc ConfirmExchangeRateImport(ConfirmExchangeRateImportRequest) returns (ConfirmExchangeRateImportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/exchange-rate-imports" body: "*"};
+  }
+
+  rpc GetExchangeRateImport(GetExchangeRateImportRequest) returns (GetExchangeRateImportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/exchange-rate-imports/{id}"};
+  }
 }
 
 message ExchangeRateSetting {
@@ -149,5 +172,87 @@ message UpdateExchangeRateTimeStandardsResponse {
   int32 code = 2;
   string message = 3;
   repeated ExchangeRateTimeStandardSetting data = 4;
+  string trace_id = 5;
+}
+
+message DownloadExchangeRateImportTemplateRequest {}
+
+message DownloadExchangeRateImportTemplateResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string file_name = 4;
+  string content_type = 5;
+  bytes content = 6;
+  int32 template_version = 7;
+  string trace_id = 8;
+}
+
+message PreviewExchangeRateImportRequest {
+  string file_name = 1 [(google.api.field_behavior) = REQUIRED];
+  bytes file_content = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ConfirmExchangeRateImportRequest {
+  string preview_token = 1 [(google.api.field_behavior) = REQUIRED];
+  string idempotency_key = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetExchangeRateImportRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ExchangeRateImportRow {
+  int32 row_number = 1;
+  string rate_type = 2;
+  string from_currency = 3;
+  string to_currency = 4;
+  string receivable_rate = 5;
+  string payable_rate = 6;
+  string effective_from = 7;
+  optional string effective_to = 8;
+  string status = 9;
+  repeated string errors = 10;
+}
+
+message ExchangeRateImportBatch {
+  string id = 1;
+  string file_name = 2;
+  string file_checksum = 3;
+  int32 template_version = 4;
+  string status = 5;
+  int32 total_count = 6;
+  int32 valid_count = 7;
+  int32 invalid_count = 8;
+  int32 imported_count = 9;
+  bool can_confirm = 10;
+  repeated ExchangeRateImportRow rows = 11;
+  string expires_at = 12;
+  optional string imported_at = 13;
+  string created_at = 14;
+}
+
+message PreviewExchangeRateImportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateImportBatch data = 4;
+  string preview_token = 5;
+  string trace_id = 6;
+}
+
+message ConfirmExchangeRateImportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateImportBatch data = 4;
+  string trace_id = 5;
+}
+
+message GetExchangeRateImportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ExchangeRateImportBatch data = 4;
   string trace_id = 5;
 }

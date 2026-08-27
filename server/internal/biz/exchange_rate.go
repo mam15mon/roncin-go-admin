@@ -85,6 +85,10 @@ type ExchangeRateRepo interface {
 	ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*ExchangeRateTimeStandardSetting, error)
 	ReplaceTimeStandards(ctx context.Context, organizationID uuid.UUID, settings []*ExchangeRateTimeStandardSetting, audit *AuditEvent) error
 	Resolve(ctx context.Context, organizationID uuid.UUID, rateType string, direction OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (*ResolvedExchangeRate, error)
+	InspectImport(ctx context.Context, ownerOrganizationID uuid.UUID, rows []*ExchangeRateImportRow) (map[int][]string, error)
+	CreateImportPreview(ctx context.Context, batch *ExchangeRateImportBatch, audit *AuditEvent) (*ExchangeRateImportBatch, error)
+	GetImport(ctx context.Context, organizationID, id uuid.UUID) (*ExchangeRateImportBatch, error)
+	ConfirmImport(ctx context.Context, organizationID, ownerOrganizationID, actorID uuid.UUID, previewTokenHash, idempotencyKey string, now time.Time, audit *AuditEvent) (*ExchangeRateImportBatch, error)
 }
 
 type ExchangeRateUsecase struct{ repo ExchangeRateRepo }

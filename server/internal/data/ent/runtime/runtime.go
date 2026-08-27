@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
@@ -777,6 +778,107 @@ func init() {
 	currencyDescID := currencyMixinFields0[0].Descriptor()
 	// currency.DefaultID holds the default value on creation for the id field.
 	currency.DefaultID = currencyDescID.Default.(func() uuid.UUID)
+	exchangerateimportbatchMixin := schema.ExchangeRateImportBatch{}.Mixin()
+	exchangerateimportbatchMixinFields0 := exchangerateimportbatchMixin[0].Fields()
+	_ = exchangerateimportbatchMixinFields0
+	exchangerateimportbatchMixinFields1 := exchangerateimportbatchMixin[1].Fields()
+	_ = exchangerateimportbatchMixinFields1
+	exchangerateimportbatchFields := schema.ExchangeRateImportBatch{}.Fields()
+	_ = exchangerateimportbatchFields
+	// exchangerateimportbatchDescCreatedAt is the schema descriptor for created_at field.
+	exchangerateimportbatchDescCreatedAt := exchangerateimportbatchMixinFields1[0].Descriptor()
+	// exchangerateimportbatch.DefaultCreatedAt holds the default value on creation for the created_at field.
+	exchangerateimportbatch.DefaultCreatedAt = exchangerateimportbatchDescCreatedAt.Default.(func() time.Time)
+	// exchangerateimportbatchDescUpdatedAt is the schema descriptor for updated_at field.
+	exchangerateimportbatchDescUpdatedAt := exchangerateimportbatchMixinFields1[1].Descriptor()
+	// exchangerateimportbatch.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	exchangerateimportbatch.DefaultUpdatedAt = exchangerateimportbatchDescUpdatedAt.Default.(func() time.Time)
+	// exchangerateimportbatch.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	exchangerateimportbatch.UpdateDefaultUpdatedAt = exchangerateimportbatchDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// exchangerateimportbatchDescFileName is the schema descriptor for file_name field.
+	exchangerateimportbatchDescFileName := exchangerateimportbatchFields[3].Descriptor()
+	// exchangerateimportbatch.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	exchangerateimportbatch.FileNameValidator = func() func(string) error {
+		validators := exchangerateimportbatchDescFileName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_name string) error {
+			for _, fn := range fns {
+				if err := fn(file_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangerateimportbatchDescFileChecksum is the schema descriptor for file_checksum field.
+	exchangerateimportbatchDescFileChecksum := exchangerateimportbatchFields[4].Descriptor()
+	// exchangerateimportbatch.FileChecksumValidator is a validator for the "file_checksum" field. It is called by the builders before save.
+	exchangerateimportbatch.FileChecksumValidator = func() func(string) error {
+		validators := exchangerateimportbatchDescFileChecksum.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_checksum string) error {
+			for _, fn := range fns {
+				if err := fn(file_checksum); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangerateimportbatchDescTemplateVersion is the schema descriptor for template_version field.
+	exchangerateimportbatchDescTemplateVersion := exchangerateimportbatchFields[5].Descriptor()
+	// exchangerateimportbatch.TemplateVersionValidator is a validator for the "template_version" field. It is called by the builders before save.
+	exchangerateimportbatch.TemplateVersionValidator = exchangerateimportbatchDescTemplateVersion.Validators[0].(func(int) error)
+	// exchangerateimportbatchDescPreviewTokenHash is the schema descriptor for preview_token_hash field.
+	exchangerateimportbatchDescPreviewTokenHash := exchangerateimportbatchFields[7].Descriptor()
+	// exchangerateimportbatch.PreviewTokenHashValidator is a validator for the "preview_token_hash" field. It is called by the builders before save.
+	exchangerateimportbatch.PreviewTokenHashValidator = func() func(string) error {
+		validators := exchangerateimportbatchDescPreviewTokenHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(preview_token_hash string) error {
+			for _, fn := range fns {
+				if err := fn(preview_token_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// exchangerateimportbatchDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	exchangerateimportbatchDescIdempotencyKey := exchangerateimportbatchFields[9].Descriptor()
+	// exchangerateimportbatch.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	exchangerateimportbatch.IdempotencyKeyValidator = exchangerateimportbatchDescIdempotencyKey.Validators[0].(func(string) error)
+	// exchangerateimportbatchDescTotalCount is the schema descriptor for total_count field.
+	exchangerateimportbatchDescTotalCount := exchangerateimportbatchFields[10].Descriptor()
+	// exchangerateimportbatch.TotalCountValidator is a validator for the "total_count" field. It is called by the builders before save.
+	exchangerateimportbatch.TotalCountValidator = exchangerateimportbatchDescTotalCount.Validators[0].(func(int) error)
+	// exchangerateimportbatchDescValidCount is the schema descriptor for valid_count field.
+	exchangerateimportbatchDescValidCount := exchangerateimportbatchFields[11].Descriptor()
+	// exchangerateimportbatch.ValidCountValidator is a validator for the "valid_count" field. It is called by the builders before save.
+	exchangerateimportbatch.ValidCountValidator = exchangerateimportbatchDescValidCount.Validators[0].(func(int) error)
+	// exchangerateimportbatchDescInvalidCount is the schema descriptor for invalid_count field.
+	exchangerateimportbatchDescInvalidCount := exchangerateimportbatchFields[12].Descriptor()
+	// exchangerateimportbatch.InvalidCountValidator is a validator for the "invalid_count" field. It is called by the builders before save.
+	exchangerateimportbatch.InvalidCountValidator = exchangerateimportbatchDescInvalidCount.Validators[0].(func(int) error)
+	// exchangerateimportbatchDescImportedCount is the schema descriptor for imported_count field.
+	exchangerateimportbatchDescImportedCount := exchangerateimportbatchFields[13].Descriptor()
+	// exchangerateimportbatch.DefaultImportedCount holds the default value on creation for the imported_count field.
+	exchangerateimportbatch.DefaultImportedCount = exchangerateimportbatchDescImportedCount.Default.(int)
+	// exchangerateimportbatch.ImportedCountValidator is a validator for the "imported_count" field. It is called by the builders before save.
+	exchangerateimportbatch.ImportedCountValidator = exchangerateimportbatchDescImportedCount.Validators[0].(func(int) error)
+	// exchangerateimportbatchDescID is the schema descriptor for id field.
+	exchangerateimportbatchDescID := exchangerateimportbatchMixinFields0[0].Descriptor()
+	// exchangerateimportbatch.DefaultID holds the default value on creation for the id field.
+	exchangerateimportbatch.DefaultID = exchangerateimportbatchDescID.Default.(func() uuid.UUID)
 	exchangeratesettingMixin := schema.ExchangeRateSetting{}.Mixin()
 	exchangeratesettingMixinFields0 := exchangeratesettingMixin[0].Fields()
 	_ = exchangeratesettingMixinFields0
