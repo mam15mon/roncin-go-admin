@@ -9,6 +9,8 @@ import {
   type ActionType,
   ProTable,
 } from '@ant-design/pro-components';
+
+type DensitySize = 'middle' | 'small' | 'large' | undefined;
 import {
   App,
   Button,
@@ -62,6 +64,7 @@ export function FinanceLedgerTemplate<
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [globalSummary, setGlobalSummary] =
     useState<FinanceLedgerGlobalSummary>();
+  const [densitySize, setDensitySize] = useState<DensitySize>('small');
 
   // 默认导出 CSV 处理
   const handleDefaultExport = () => {
@@ -147,7 +150,8 @@ export function FinanceLedgerTemplate<
         rowKey={rowKey}
         columns={columns}
         bordered
-        size="small"
+        size={densitySize}
+        onSizeChange={(size) => setDensitySize(size || 'small')}
         scroll={{ x: scrollX }}
         pagination={{ defaultPageSize: 40, showSizeChanger: true }}
         onRow={(record) => {
