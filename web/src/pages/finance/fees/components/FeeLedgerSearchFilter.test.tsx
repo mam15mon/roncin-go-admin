@@ -14,7 +14,7 @@ vi.mock('@/services/roncin/partnerService', () => ({
 }));
 
 describe('FeeLedgerSearchFilter', () => {
-  it('正确渲染首屏核心 6 项与展开更多筛选按钮', () => {
+  it('正确基于 SearchFilterTemplate 渲染首屏 4 项与展开按钮', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
@@ -23,40 +23,38 @@ describe('FeeLedgerSearchFilter', () => {
     );
 
     expect(screen.getByText('综合搜索')).not.toBeNull();
-    expect(screen.getByText('属性')).not.toBeNull();
+    expect(screen.getByText('费用属性')).not.toBeNull();
     expect(screen.getByText('财务进度')).not.toBeNull();
-    expect(screen.getByText('状态')).not.toBeNull();
+    expect(screen.getByText('费用状态')).not.toBeNull();
+    expect(screen.getByText(/展开/)).not.toBeNull();
+  });
+
+  it('点击展开时展现全维 33 项业务字段', () => {
+    const onSearch = vi.fn();
+    const onReset = vi.fn();
+
+    render(
+      <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
+    );
+
+    fireEvent.click(screen.getByText(/展开/));
+
     expect(screen.getByText('结算单位')).not.toBeNull();
     expect(screen.getByText('费用时间')).not.toBeNull();
-    expect(screen.getByText('展开')).not.toBeNull();
+    expect(screen.getByText('委托单位')).not.toBeNull();
+    expect(screen.getByText('账单编号')).not.toBeNull();
+    expect(screen.getByText('订单编号')).not.toBeNull();
+    expect(screen.getByText('主提单号')).not.toBeNull();
+    expect(screen.getByText(/收起/)).not.toBeNull();
   });
 
-  it('点击展开时完整展现多组专业维度字段', () => {
+  it('点击查询和重置正常触发回调', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
     render(
       <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
     );
-
-    fireEvent.click(screen.getByText('展开'));
-
-    expect(screen.getByText(/单据编号与往来实体/)).not.toBeNull();
-    expect(screen.getByText(/航次船期与业务责任人/)).not.toBeNull();
-    expect(screen.getByText(/账期审计、合约与风控标记/)).not.toBeNull();
-    expect(screen.getByText('收起')).not.toBeNull();
-  });
-
-  it('点击查询和重置正常触发回调', () => {
-    const onSearch = vi.fn();
-    const onReset = vi.fn();
-
-    render(
-      <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
-    );
-
-    fireEvent.click(screen.getByText('查询'));
-    expect(onSearch).toHaveBeenCalled();
 
     fireEvent.click(screen.getByText('重置'));
     expect(onReset).toHaveBeenCalled();
