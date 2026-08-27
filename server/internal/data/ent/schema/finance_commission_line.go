@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceCommissionLine 保存提成计算时逐订单形成的不可变金额与人员归属快照。
+// FinanceCommissionLine 保存提成计算时逐订单形成的不可变客户归属、费用和金额快照。
 type FinanceCommissionLine struct{ ent.Schema }
 
 func (FinanceCommissionLine) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -20,9 +20,15 @@ func (FinanceCommissionLine) Fields() []ent.Field {
 		field.UUID("commission_id", uuid.Nil).Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
+		field.String("order_date").NotEmpty().MaxLen(32).Immutable(),
+		field.UUID("customer_id", uuid.Nil).Immutable(),
+		field.String("customer_code").NotEmpty().MaxLen(64).Immutable(),
+		field.String("customer_name").NotEmpty().MaxLen(200).Immutable(),
 		field.UUID("personnel_assignment_id", uuid.Nil).Immutable(),
 		field.UUID("personnel_organization_id", uuid.Nil).Immutable(),
 		field.Time("personnel_assigned_at").Immutable(),
+		field.Int("fee_count").NonNegative().Immutable(),
+		field.String("fee_snapshot").Default("[]").SchemaType(map[string]string{dialect.Postgres: "jsonb"}).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
 		field.String("personnel_role").NotEmpty().MaxLen(20).Immutable(),
@@ -31,6 +37,7 @@ func (FinanceCommissionLine) Fields() []ent.Field {
 		field.String("realized_revenue").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("allocated_cost").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("realized_profit").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("commission_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("rate_percent").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 	}

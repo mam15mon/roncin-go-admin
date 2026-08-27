@@ -1948,6 +1948,29 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1956,7 +1979,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListCommissionEmployeesResponse"
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionCandidateSummariesResponse"
                 }
               }
             }
@@ -8955,6 +8978,74 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.FinanceCommissionLine"
             }
+          },
+          "customerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commissionBaseAmount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CommissionCandidateSummary": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "customerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "realizedRevenue": {
+            "type": "string"
+          },
+          "allocatedCost": {
+            "type": "string"
+          },
+          "realizedProfit": {
+            "type": "string"
+          },
+          "commissionBaseAmount": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "commissionAmount": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
           }
         }
       },
@@ -8965,6 +9056,50 @@
             "type": "string"
           },
           "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CommissionFeeDetail": {
+        "type": "object",
+        "properties": {
+          "feeId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseCurrencyAmount": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "status": {
             "type": "string"
           }
         }
@@ -10720,6 +10855,21 @@
           },
           "effectiveCommissionAmount": {
             "type": "string"
+          },
+          "customerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commissionBaseAmount": {
+            "type": "string"
           }
         }
       },
@@ -10838,6 +10988,40 @@
           },
           "personnelAssignedAt": {
             "type": "string"
+          },
+          "orderDate": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customerCode": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "commissionBaseAmount": {
+            "type": "string"
+          },
+          "customerAssignmentId": {
+            "type": "string"
+          },
+          "customerAssignmentOrganizationId": {
+            "type": "string"
+          },
+          "customerAssignedAt": {
+            "type": "string"
+          },
+          "feeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CommissionFeeDetail"
+            }
           }
         }
       },
@@ -11442,6 +11626,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/finance.v1.FinanceCashflow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListCommissionCandidateSummariesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CommissionCandidateSummary"
             }
           },
           "total": {
@@ -12058,7 +12269,6 @@
       },
       "finance.v1.UpdateBilledFeeEditPolicyRequest": {
         "required": [
-          "editableFields",
           "expectedVersion"
         ],
         "type": "object",

@@ -86,6 +86,26 @@ func OrderNo(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldOrderNo, v))
 }
 
+// OrderDate applies equality check predicate on the "order_date" field. It's identical to OrderDateEQ.
+func OrderDate(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldOrderDate, v))
+}
+
+// CustomerID applies equality check predicate on the "customer_id" field. It's identical to CustomerIDEQ.
+func CustomerID(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerID, v))
+}
+
+// CustomerCode applies equality check predicate on the "customer_code" field. It's identical to CustomerCodeEQ.
+func CustomerCode(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerCode, v))
+}
+
+// CustomerName applies equality check predicate on the "customer_name" field. It's identical to CustomerNameEQ.
+func CustomerName(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerName, v))
+}
+
 // PersonnelAssignmentID applies equality check predicate on the "personnel_assignment_id" field. It's identical to PersonnelAssignmentIDEQ.
 func PersonnelAssignmentID(v uuid.UUID) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldPersonnelAssignmentID, v))
@@ -99,6 +119,16 @@ func PersonnelOrganizationID(v uuid.UUID) predicate.FinanceCommissionLine {
 // PersonnelAssignedAt applies equality check predicate on the "personnel_assigned_at" field. It's identical to PersonnelAssignedAtEQ.
 func PersonnelAssignedAt(v time.Time) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldPersonnelAssignedAt, v))
+}
+
+// FeeCount applies equality check predicate on the "fee_count" field. It's identical to FeeCountEQ.
+func FeeCount(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeCount, v))
+}
+
+// FeeSnapshot applies equality check predicate on the "fee_snapshot" field. It's identical to FeeSnapshotEQ.
+func FeeSnapshot(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeSnapshot, v))
 }
 
 // EmployeeID applies equality check predicate on the "employee_id" field. It's identical to EmployeeIDEQ.
@@ -139,6 +169,11 @@ func AllocatedCost(v string) predicate.FinanceCommissionLine {
 // RealizedProfit applies equality check predicate on the "realized_profit" field. It's identical to RealizedProfitEQ.
 func RealizedProfit(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldRealizedProfit, v))
+}
+
+// CommissionBaseAmount applies equality check predicate on the "commission_base_amount" field. It's identical to CommissionBaseAmountEQ.
+func CommissionBaseAmount(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCommissionBaseAmount, v))
 }
 
 // RatePercent applies equality check predicate on the "rate_percent" field. It's identical to RatePercentEQ.
@@ -356,6 +391,241 @@ func OrderNoContainsFold(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldOrderNo, v))
 }
 
+// OrderDateEQ applies the EQ predicate on the "order_date" field.
+func OrderDateEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldOrderDate, v))
+}
+
+// OrderDateNEQ applies the NEQ predicate on the "order_date" field.
+func OrderDateNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldOrderDate, v))
+}
+
+// OrderDateIn applies the In predicate on the "order_date" field.
+func OrderDateIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldOrderDate, vs...))
+}
+
+// OrderDateNotIn applies the NotIn predicate on the "order_date" field.
+func OrderDateNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldOrderDate, vs...))
+}
+
+// OrderDateGT applies the GT predicate on the "order_date" field.
+func OrderDateGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldOrderDate, v))
+}
+
+// OrderDateGTE applies the GTE predicate on the "order_date" field.
+func OrderDateGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldOrderDate, v))
+}
+
+// OrderDateLT applies the LT predicate on the "order_date" field.
+func OrderDateLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldOrderDate, v))
+}
+
+// OrderDateLTE applies the LTE predicate on the "order_date" field.
+func OrderDateLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldOrderDate, v))
+}
+
+// OrderDateContains applies the Contains predicate on the "order_date" field.
+func OrderDateContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldOrderDate, v))
+}
+
+// OrderDateHasPrefix applies the HasPrefix predicate on the "order_date" field.
+func OrderDateHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldOrderDate, v))
+}
+
+// OrderDateHasSuffix applies the HasSuffix predicate on the "order_date" field.
+func OrderDateHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldOrderDate, v))
+}
+
+// OrderDateEqualFold applies the EqualFold predicate on the "order_date" field.
+func OrderDateEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldOrderDate, v))
+}
+
+// OrderDateContainsFold applies the ContainsFold predicate on the "order_date" field.
+func OrderDateContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldOrderDate, v))
+}
+
+// CustomerIDEQ applies the EQ predicate on the "customer_id" field.
+func CustomerIDEQ(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerID, v))
+}
+
+// CustomerIDNEQ applies the NEQ predicate on the "customer_id" field.
+func CustomerIDNEQ(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldCustomerID, v))
+}
+
+// CustomerIDIn applies the In predicate on the "customer_id" field.
+func CustomerIDIn(vs ...uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldCustomerID, vs...))
+}
+
+// CustomerIDNotIn applies the NotIn predicate on the "customer_id" field.
+func CustomerIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldCustomerID, vs...))
+}
+
+// CustomerIDGT applies the GT predicate on the "customer_id" field.
+func CustomerIDGT(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldCustomerID, v))
+}
+
+// CustomerIDGTE applies the GTE predicate on the "customer_id" field.
+func CustomerIDGTE(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldCustomerID, v))
+}
+
+// CustomerIDLT applies the LT predicate on the "customer_id" field.
+func CustomerIDLT(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldCustomerID, v))
+}
+
+// CustomerIDLTE applies the LTE predicate on the "customer_id" field.
+func CustomerIDLTE(v uuid.UUID) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldCustomerID, v))
+}
+
+// CustomerCodeEQ applies the EQ predicate on the "customer_code" field.
+func CustomerCodeEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerCode, v))
+}
+
+// CustomerCodeNEQ applies the NEQ predicate on the "customer_code" field.
+func CustomerCodeNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldCustomerCode, v))
+}
+
+// CustomerCodeIn applies the In predicate on the "customer_code" field.
+func CustomerCodeIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldCustomerCode, vs...))
+}
+
+// CustomerCodeNotIn applies the NotIn predicate on the "customer_code" field.
+func CustomerCodeNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldCustomerCode, vs...))
+}
+
+// CustomerCodeGT applies the GT predicate on the "customer_code" field.
+func CustomerCodeGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldCustomerCode, v))
+}
+
+// CustomerCodeGTE applies the GTE predicate on the "customer_code" field.
+func CustomerCodeGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldCustomerCode, v))
+}
+
+// CustomerCodeLT applies the LT predicate on the "customer_code" field.
+func CustomerCodeLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldCustomerCode, v))
+}
+
+// CustomerCodeLTE applies the LTE predicate on the "customer_code" field.
+func CustomerCodeLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldCustomerCode, v))
+}
+
+// CustomerCodeContains applies the Contains predicate on the "customer_code" field.
+func CustomerCodeContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldCustomerCode, v))
+}
+
+// CustomerCodeHasPrefix applies the HasPrefix predicate on the "customer_code" field.
+func CustomerCodeHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldCustomerCode, v))
+}
+
+// CustomerCodeHasSuffix applies the HasSuffix predicate on the "customer_code" field.
+func CustomerCodeHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldCustomerCode, v))
+}
+
+// CustomerCodeEqualFold applies the EqualFold predicate on the "customer_code" field.
+func CustomerCodeEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldCustomerCode, v))
+}
+
+// CustomerCodeContainsFold applies the ContainsFold predicate on the "customer_code" field.
+func CustomerCodeContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldCustomerCode, v))
+}
+
+// CustomerNameEQ applies the EQ predicate on the "customer_name" field.
+func CustomerNameEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCustomerName, v))
+}
+
+// CustomerNameNEQ applies the NEQ predicate on the "customer_name" field.
+func CustomerNameNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldCustomerName, v))
+}
+
+// CustomerNameIn applies the In predicate on the "customer_name" field.
+func CustomerNameIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldCustomerName, vs...))
+}
+
+// CustomerNameNotIn applies the NotIn predicate on the "customer_name" field.
+func CustomerNameNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldCustomerName, vs...))
+}
+
+// CustomerNameGT applies the GT predicate on the "customer_name" field.
+func CustomerNameGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldCustomerName, v))
+}
+
+// CustomerNameGTE applies the GTE predicate on the "customer_name" field.
+func CustomerNameGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldCustomerName, v))
+}
+
+// CustomerNameLT applies the LT predicate on the "customer_name" field.
+func CustomerNameLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldCustomerName, v))
+}
+
+// CustomerNameLTE applies the LTE predicate on the "customer_name" field.
+func CustomerNameLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldCustomerName, v))
+}
+
+// CustomerNameContains applies the Contains predicate on the "customer_name" field.
+func CustomerNameContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldCustomerName, v))
+}
+
+// CustomerNameHasPrefix applies the HasPrefix predicate on the "customer_name" field.
+func CustomerNameHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldCustomerName, v))
+}
+
+// CustomerNameHasSuffix applies the HasSuffix predicate on the "customer_name" field.
+func CustomerNameHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldCustomerName, v))
+}
+
+// CustomerNameEqualFold applies the EqualFold predicate on the "customer_name" field.
+func CustomerNameEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldCustomerName, v))
+}
+
+// CustomerNameContainsFold applies the ContainsFold predicate on the "customer_name" field.
+func CustomerNameContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldCustomerName, v))
+}
+
 // PersonnelAssignmentIDEQ applies the EQ predicate on the "personnel_assignment_id" field.
 func PersonnelAssignmentIDEQ(v uuid.UUID) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldPersonnelAssignmentID, v))
@@ -474,6 +744,111 @@ func PersonnelAssignedAtLT(v time.Time) predicate.FinanceCommissionLine {
 // PersonnelAssignedAtLTE applies the LTE predicate on the "personnel_assigned_at" field.
 func PersonnelAssignedAtLTE(v time.Time) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldPersonnelAssignedAt, v))
+}
+
+// FeeCountEQ applies the EQ predicate on the "fee_count" field.
+func FeeCountEQ(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeCount, v))
+}
+
+// FeeCountNEQ applies the NEQ predicate on the "fee_count" field.
+func FeeCountNEQ(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldFeeCount, v))
+}
+
+// FeeCountIn applies the In predicate on the "fee_count" field.
+func FeeCountIn(vs ...int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldFeeCount, vs...))
+}
+
+// FeeCountNotIn applies the NotIn predicate on the "fee_count" field.
+func FeeCountNotIn(vs ...int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldFeeCount, vs...))
+}
+
+// FeeCountGT applies the GT predicate on the "fee_count" field.
+func FeeCountGT(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldFeeCount, v))
+}
+
+// FeeCountGTE applies the GTE predicate on the "fee_count" field.
+func FeeCountGTE(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldFeeCount, v))
+}
+
+// FeeCountLT applies the LT predicate on the "fee_count" field.
+func FeeCountLT(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldFeeCount, v))
+}
+
+// FeeCountLTE applies the LTE predicate on the "fee_count" field.
+func FeeCountLTE(v int) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldFeeCount, v))
+}
+
+// FeeSnapshotEQ applies the EQ predicate on the "fee_snapshot" field.
+func FeeSnapshotEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotNEQ applies the NEQ predicate on the "fee_snapshot" field.
+func FeeSnapshotNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotIn applies the In predicate on the "fee_snapshot" field.
+func FeeSnapshotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldFeeSnapshot, vs...))
+}
+
+// FeeSnapshotNotIn applies the NotIn predicate on the "fee_snapshot" field.
+func FeeSnapshotNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldFeeSnapshot, vs...))
+}
+
+// FeeSnapshotGT applies the GT predicate on the "fee_snapshot" field.
+func FeeSnapshotGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotGTE applies the GTE predicate on the "fee_snapshot" field.
+func FeeSnapshotGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotLT applies the LT predicate on the "fee_snapshot" field.
+func FeeSnapshotLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotLTE applies the LTE predicate on the "fee_snapshot" field.
+func FeeSnapshotLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotContains applies the Contains predicate on the "fee_snapshot" field.
+func FeeSnapshotContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotHasPrefix applies the HasPrefix predicate on the "fee_snapshot" field.
+func FeeSnapshotHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotHasSuffix applies the HasSuffix predicate on the "fee_snapshot" field.
+func FeeSnapshotHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotEqualFold applies the EqualFold predicate on the "fee_snapshot" field.
+func FeeSnapshotEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldFeeSnapshot, v))
+}
+
+// FeeSnapshotContainsFold applies the ContainsFold predicate on the "fee_snapshot" field.
+func FeeSnapshotContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldFeeSnapshot, v))
 }
 
 // EmployeeIDEQ applies the EQ predicate on the "employee_id" field.
@@ -969,6 +1344,71 @@ func RealizedProfitEqualFold(v string) predicate.FinanceCommissionLine {
 // RealizedProfitContainsFold applies the ContainsFold predicate on the "realized_profit" field.
 func RealizedProfitContainsFold(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldRealizedProfit, v))
+}
+
+// CommissionBaseAmountEQ applies the EQ predicate on the "commission_base_amount" field.
+func CommissionBaseAmountEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountNEQ applies the NEQ predicate on the "commission_base_amount" field.
+func CommissionBaseAmountNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountIn applies the In predicate on the "commission_base_amount" field.
+func CommissionBaseAmountIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldCommissionBaseAmount, vs...))
+}
+
+// CommissionBaseAmountNotIn applies the NotIn predicate on the "commission_base_amount" field.
+func CommissionBaseAmountNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldCommissionBaseAmount, vs...))
+}
+
+// CommissionBaseAmountGT applies the GT predicate on the "commission_base_amount" field.
+func CommissionBaseAmountGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountGTE applies the GTE predicate on the "commission_base_amount" field.
+func CommissionBaseAmountGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountLT applies the LT predicate on the "commission_base_amount" field.
+func CommissionBaseAmountLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountLTE applies the LTE predicate on the "commission_base_amount" field.
+func CommissionBaseAmountLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountContains applies the Contains predicate on the "commission_base_amount" field.
+func CommissionBaseAmountContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountHasPrefix applies the HasPrefix predicate on the "commission_base_amount" field.
+func CommissionBaseAmountHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountHasSuffix applies the HasSuffix predicate on the "commission_base_amount" field.
+func CommissionBaseAmountHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountEqualFold applies the EqualFold predicate on the "commission_base_amount" field.
+func CommissionBaseAmountEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldCommissionBaseAmount, v))
+}
+
+// CommissionBaseAmountContainsFold applies the ContainsFold predicate on the "commission_base_amount" field.
+func CommissionBaseAmountContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldCommissionBaseAmount, v))
 }
 
 // RatePercentEQ applies the EQ predicate on the "rate_percent" field.

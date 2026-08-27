@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -24,7 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	personnel "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 	"github.com/shopspring/decimal"
@@ -46,16 +47,18 @@ func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID) ([]*b
 	return result, nil
 }
 
-func (r *commissionRepo) ListCandidates(ctx context.Context, org, verificationID, ruleID uuid.UUID) ([]*biz.CommissionEmployeeOption, error) {
-	ruleItem, err := r.data.db.FinanceCommissionRule.Query().Where(rule.IDEQ(ruleID), rule.OrganizationIDEQ(org), rule.EnabledEQ(true)).Only(ctx)
+func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
+	ruleItem, err := r.data.db.FinanceCommissionRule.Query().Where(rule.IDEQ(f.RuleID), rule.OrganizationIDEQ(org), rule.EnabledEQ(true)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, biz.ErrCommissionRuleNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
-	verificationItem, err := r.data.db.FinanceVerification.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org), verification.StatusEQ(verification.StatusACTIVE), verification.DirectionEQ(verification.DirectionRECEIVABLE)).Only(ctx)
-	if ent.IsNotFound(err) {
+	verificationItem, err := r.data.db.FinanceVerification.Query().Where(verification.IDEQ(f.VerificationID), verification.OrganizationIDEQ(org), verification.StatusEQ(verification.StatusACTIVE), verification.DirectionEQ(verification.DirectionRECEIVABLE)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) {
+		q.Where(allocation.ActiveEQ(true))
+	}).Only(ctx)
+	if ent.IsNotFound(err) || (err == nil && len(verificationItem.Edges.Allocations) == 0) {
 		return nil, biz.ErrCommissionSource
 	}
 	if err != nil {
@@ -64,38 +67,53 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org, verificationID
 	if (ruleItem.EffectiveFrom != nil && verificationItem.VerificationDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && verificationItem.VerificationDate > *ruleItem.EffectiveTo) {
 		return nil, biz.ErrCommissionRuleInvalid
 	}
-	allocations, err := r.data.db.FinanceVerificationAllocation.Query().Where(allocation.VerificationIDEQ(verificationID), allocation.ActiveEQ(true)).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(allocations) == 0 {
-		return nil, biz.ErrCommissionSource
-	}
-	billIDs := make([]uuid.UUID, 0, len(allocations))
-	for _, item := range allocations {
+	billIDs := make([]uuid.UUID, 0, len(verificationItem.Edges.Allocations))
+	for _, item := range verificationItem.Edges.Allocations {
 		billIDs = append(billIDs, item.BillID)
 	}
-	lines, err := r.data.db.FinanceBillLine.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true)).All(ctx)
+	billLines, err := r.data.db.FinanceBillLine.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orderIDs := make([]uuid.UUID, 0, len(lines))
-	seenOrders := map[uuid.UUID]struct{}{}
-	for _, line := range lines {
-		if _, ok := seenOrders[line.OrderID]; !ok {
-			seenOrders[line.OrderID] = struct{}{}
-			orderIDs = append(orderIDs, line.OrderID)
+	orderIDs := make([]uuid.UUID, 0, len(billLines))
+	seenOrders := make(map[uuid.UUID]struct{}, len(billLines))
+	for _, item := range billLines {
+		if _, exists := seenOrders[item.OrderID]; !exists {
+			seenOrders[item.OrderID] = struct{}{}
+			orderIDs = append(orderIDs, item.OrderID)
 		}
 	}
 	if len(orderIDs) == 0 {
-		return []*biz.CommissionEmployeeOption{}, nil
+		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}}, nil
 	}
-	items, err := r.data.db.OrderPersonnel.Query().Where(personnel.OrderIDIn(orderIDs...), personnel.RoleEQ(personnel.Role(ruleItem.PersonnelRole)), personnel.HasUserWith(user.EnabledEQ(true))).WithUser().All(ctx)
+	orders, err := r.data.db.Order.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*biz.CommissionEmployeeOption, 0, len(items))
-	seenUsers := map[uuid.UUID]struct{}{}
+	if len(orders) == 0 {
+		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}}, nil
+	}
+	customerIDs := make([]uuid.UUID, 0, len(orders))
+	seenCustomers := make(map[uuid.UUID]struct{}, len(orders))
+	for _, item := range orders {
+		if _, exists := seenCustomers[item.CustomerID]; !exists {
+			seenCustomers[item.CustomerID] = struct{}{}
+			customerIDs = append(customerIDs, item.CustomerID)
+		}
+	}
+	predicates := []predicate.PartnerAssignment{
+		assignment.OrganizationIDEQ(org), assignment.PartnerIDIn(customerIDs...), assignment.RoleEQ(assignment.Role(ruleItem.PersonnelRole)),
+		assignment.HasUserWith(user.EnabledEQ(true)),
+	}
+	if f.Keyword != "" {
+		predicates = append(predicates, assignment.HasUserWith(user.Or(user.UsernameContainsFold(f.Keyword), user.DisplayNameContainsFold(f.Keyword), user.SearchKeywordsContainsFold(f.Keyword))))
+	}
+	items, err := r.data.db.PartnerAssignment.Query().Where(predicates...).WithUser().Order(assignment.ByUserID()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	employeeIDs := make([]uuid.UUID, 0, len(items))
+	seenUsers := make(map[uuid.UUID]struct{}, len(items))
 	for _, item := range items {
 		employee, edgeErr := item.Edges.UserOrErr()
 		if edgeErr != nil {
@@ -105,8 +123,32 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org, verificationID
 			continue
 		}
 		seenUsers[employee.ID] = struct{}{}
-		result = append(result, &biz.CommissionEmployeeOption{ID: employee.ID, DisplayName: employee.DisplayName})
+		employeeIDs = append(employeeIDs, employee.ID)
 	}
+	result := &biz.CommissionCandidateListResult{Items: make([]*biz.CommissionCalculation, 0, len(employeeIDs))}
+	for _, employeeID := range employeeIDs {
+		calculation, calculateErr := calculateCommission(ctx, commissionStoreFromClient(r.data.db), org, f.VerificationID, employeeID, f.RuleID, false)
+		if calculateErr == biz.ErrCommissionSource || calculateErr == biz.ErrCommissionEmployeeRole {
+			continue
+		}
+		if calculateErr != nil {
+			return nil, calculateErr
+		}
+		calculation.Lines = nil
+		result.Items = append(result.Items, calculation)
+	}
+	sort.Slice(result.Items, func(i, j int) bool { return result.Items[i].EmployeeName < result.Items[j].EmployeeName })
+	result.Total = int64(len(result.Items))
+	start := (f.Page - 1) * f.PageSize
+	if start >= len(result.Items) {
+		result.Items = []*biz.CommissionCalculation{}
+		return result, nil
+	}
+	end := start + f.PageSize
+	if end > len(result.Items) {
+		end = len(result.Items)
+	}
+	result.Items = result.Items[start:end]
 	return result, nil
 }
 
@@ -212,7 +254,7 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
 	p := []predicate.FinanceCommission{commission.OrganizationIDEQ(org)}
 	if f.Keyword != "" {
-		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.VerificationNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword)))
+		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword), commission.RuleNameContainsFold(f.Keyword)))
 	}
 	if f.Status != "" {
 		p = append(p, commission.StatusEQ(commission.Status(f.Status)))
@@ -259,17 +301,17 @@ type commissionCalculationStore struct {
 	rules         *ent.FinanceCommissionRuleClient
 	users         *ent.UserClient
 	bills         *ent.FinanceBillClient
-	personnel     *ent.OrderPersonnelClient
+	assignments   *ent.PartnerAssignmentClient
 	fees          *ent.OrderFeeClient
 	orders        *ent.OrderClient
 }
 
 func commissionStoreFromClient(client *ent.Client) commissionCalculationStore {
-	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, personnel: client.OrderPersonnel, fees: client.OrderFee, orders: client.Order}
+	return commissionCalculationStore{verifications: client.FinanceVerification, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, assignments: client.PartnerAssignment, fees: client.OrderFee, orders: client.Order}
 }
 
 func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
-	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, personnel: tx.OrderPersonnel, fees: tx.OrderFee, orders: tx.Order}
+	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, assignments: tx.PartnerAssignment, fees: tx.OrderFee, orders: tx.Order}
 }
 
 func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
@@ -308,7 +350,7 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	uq := store.users.Query().Where(user.IDEQ(employeeID), user.EnabledEQ(true))
+	uq := store.users.Query().Where(user.IDEQ(employeeID), user.EnabledEQ(true), user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true)))
 	if lock {
 		uq.ForUpdate()
 	}
@@ -319,17 +361,15 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	if len(v.Edges.Allocations) == 0 {
-		return nil, biz.ErrCommissionSource
-	}
-
 	fingerprintParts := []string{
 		fmt.Sprintf("calculation|%s", biz.CommissionCalculationVersion),
 		fmt.Sprintf("verification|%s|%s|%s|%s|%s|%d", v.ID, v.VerificationNo, v.Status, v.Direction, v.VerificationDate, v.Version),
 		fmt.Sprintf("rule|%s|%s|%s|%s|%s|%d|%t|%s|%s", ruleItem.ID, ruleItem.Name, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, ruleItem.Version, ruleItem.Enabled, optionalStringValue(ruleItem.EffectiveFrom), optionalStringValue(ruleItem.EffectiveTo)),
 		fmt.Sprintf("employee|%s|%s|%t", employee.ID, employee.DisplayName, employee.Enabled),
 	}
-
+	if len(v.Edges.Allocations) == 0 {
+		return nil, biz.ErrCommissionSource
+	}
 	billIDs := make([]uuid.UUID, 0, len(v.Edges.Allocations))
 	allocationByBill := make(map[uuid.UUID]decimal.Decimal)
 	seenBills := make(map[uuid.UUID]struct{})
@@ -343,7 +383,7 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 			billIDs = append(billIDs, item.BillID)
 		}
 		allocationByBill[item.BillID] = allocationByBill[item.BillID].Add(amount)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("allocation|%s|%s|%s|%s|%s|%t", item.ID, item.BillID, item.CashflowID, item.Amount, item.BillNo, item.Active))
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("allocation|%s|%s|%s|%s|%t", item.ID, item.BillID, item.CashflowID, item.Amount, item.Active))
 	}
 	bq := store.bills.Query().Where(bill.IDIn(billIDs...), bill.OrganizationIDEQ(org), bill.StatusEQ(bill.StatusCONFIRMED), bill.DirectionEQ(bill.DirectionRECEIVABLE)).WithLines()
 	if lock {
@@ -366,22 +406,22 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		}
 		ratio := allocationByBill[billItem.ID].Div(total)
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill|%s|%s|%s|%s|%s|%d", billItem.ID, billItem.BillNo, billItem.Status, billItem.TotalAmount, billItem.BaseCurrencyAmount, billItem.Version))
-		for _, line := range billItem.Edges.Lines {
-			if !line.Active {
+		for _, billLine := range billItem.Edges.Lines {
+			if !billLine.Active {
 				continue
 			}
-			base, parseErr := decimal.NewFromString(line.BaseCurrencyAmount)
+			base, parseErr := decimal.NewFromString(billLine.BaseCurrencyAmount)
 			if parseErr != nil {
 				return nil, parseErr
 			}
 			if baseCurrency == "" {
-				baseCurrency = line.BaseCurrency
-			} else if baseCurrency != line.BaseCurrency {
+				baseCurrency = billLine.BaseCurrency
+			} else if baseCurrency != billLine.BaseCurrency {
 				return nil, biz.ErrCommissionSource
 			}
-			orderRealized[line.OrderID] = orderRealized[line.OrderID].Add(base.Mul(ratio))
-			orderNos[line.OrderID] = line.OrderNo
-			fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill_line|%s|%s|%s|%s|%s|%s|%t", line.ID, line.OrderFeeID, line.OrderID, line.TotalAmount, line.BaseCurrencyAmount, line.BaseCurrency, line.Active))
+			orderRealized[billLine.OrderID] = orderRealized[billLine.OrderID].Add(base.Mul(ratio))
+			orderNos[billLine.OrderID] = billLine.OrderNo
+			fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill_line|%s|%s|%s|%s|%s|%t", billLine.ID, billLine.OrderFeeID, billLine.OrderID, billLine.BaseCurrencyAmount, billLine.BaseCurrency, billLine.Active))
 		}
 	}
 	orderIDs := make([]uuid.UUID, 0, len(orderRealized))
@@ -392,34 +432,60 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		return nil, biz.ErrCommissionSource
 	}
 	sort.Slice(orderIDs, func(i, j int) bool { return orderIDs[i].String() < orderIDs[j].String() })
+	oq := store.orders.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).WithCustomer().Order(orderent.ByID())
 	if lock {
-		lockedOrders, lockErr := store.orders.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).Order(orderent.ByID()).ForUpdate().All(ctx)
-		if lockErr != nil {
-			return nil, lockErr
-		}
-		if len(lockedOrders) != len(orderIDs) {
-			return nil, biz.ErrCommissionSource
-		}
+		oq.ForUpdate()
 	}
-	pq := store.personnel.Query().Where(personnel.OrderIDIn(orderIDs...), personnel.UserIDEQ(employeeID), personnel.RoleEQ(personnel.Role(ruleItem.PersonnelRole)))
-	if lock {
-		pq.ForUpdate()
-	}
-	assignments, err := pq.All(ctx)
+	orders, err := oq.All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	assignmentByOrder := make(map[uuid.UUID]*ent.OrderPersonnel, len(assignments))
-	eligibleOrderIDs := make([]uuid.UUID, 0, len(assignments))
-	for _, assignment := range assignments {
-		assignmentByOrder[assignment.OrderID] = assignment
-		eligibleOrderIDs = append(eligibleOrderIDs, assignment.OrderID)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("personnel|%s|%s|%s|%s|%s|%s", assignment.ID, assignment.OrderID, assignment.UserID, assignment.OrganizationID, assignment.Role, assignment.AssignedAt.UTC().Format(time.RFC3339Nano)))
+	if len(orders) != len(orderIDs) {
+		return nil, biz.ErrCommissionSource
+	}
+	orderByID := make(map[uuid.UUID]*ent.Order, len(orders))
+	customerIDs := make([]uuid.UUID, 0, len(orders))
+	seenCustomers := make(map[uuid.UUID]struct{})
+	for _, item := range orders {
+		orderByID[item.ID] = item
+		if _, exists := seenCustomers[item.CustomerID]; !exists {
+			seenCustomers[item.CustomerID] = struct{}{}
+			customerIDs = append(customerIDs, item.CustomerID)
+		}
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order|%s|%s|%s|%s|%d", item.ID, item.OrderNo, item.CustomerID, item.OrderDate, item.Version))
+	}
+	aq := store.assignments.Query().Where(
+		assignment.OrganizationIDEQ(org), assignment.PartnerIDIn(customerIDs...), assignment.UserIDEQ(employeeID), assignment.RoleEQ(assignment.Role(ruleItem.PersonnelRole)),
+	).WithPartner()
+	if lock {
+		aq.ForUpdate()
+	}
+	assignments, err := aq.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(assignments) == 0 {
+		return nil, biz.ErrCommissionEmployeeRole
+	}
+	assignmentByCustomer := make(map[uuid.UUID]*ent.PartnerAssignment, len(assignments))
+	for _, item := range assignments {
+		customer, edgeErr := item.Edges.PartnerOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		assignmentByCustomer[item.PartnerID] = item
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("customer_assignment|%s|%s|%s|%s|%s|%s|%s|%t", item.ID, item.PartnerID, item.UserID, item.OrganizationID, item.Role, item.CreatedAt.UTC().Format(time.RFC3339Nano), customer.Code, customer.Enabled))
+	}
+	eligibleOrderIDs := make([]uuid.UUID, 0, len(orderIDs))
+	for _, id := range orderIDs {
+		if _, eligible := assignmentByCustomer[orderByID[id].CustomerID]; eligible {
+			eligibleOrderIDs = append(eligibleOrderIDs, id)
+		}
 	}
 	if len(eligibleOrderIDs) == 0 {
 		return nil, biz.ErrCommissionEmployeeRole
 	}
-	fq := store.fees.Query().Where(fee.OrderIDIn(eligibleOrderIDs...), fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED))
+	fq := store.fees.Query().Where(fee.OrderIDIn(eligibleOrderIDs...), fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED)).WithSettlementParty().Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
 	if lock {
 		fq.ForUpdate()
 	}
@@ -427,23 +493,10 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	receivable, payable := make(map[uuid.UUID]decimal.Decimal), make(map[uuid.UUID]decimal.Decimal)
-	for _, feeItem := range fees {
-		amount, parseErr := decimal.NewFromString(feeItem.BaseCurrencyAmount)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		if feeItem.BaseCurrency != baseCurrency {
-			return nil, biz.ErrCommissionSource
-		}
-		if feeItem.Direction == fee.DirectionRECEIVABLE {
-			receivable[feeItem.OrderID] = receivable[feeItem.OrderID].Add(amount)
-		} else {
-			payable[feeItem.OrderID] = payable[feeItem.OrderID].Add(amount)
-		}
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.Status, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
+	feesByOrder := make(map[uuid.UUID][]*ent.OrderFee)
+	for _, item := range fees {
+		feesByOrder[item.OrderID] = append(feesByOrder[item.OrderID], item)
 	}
-
 	result := &biz.CommissionCalculation{
 		VerificationID: verificationID, VerificationNo: v.VerificationNo,
 		EmployeeID: employeeID, EmployeeName: employee.DisplayName,
@@ -452,45 +505,84 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: baseCurrency, RatePercent: rate,
 		Lines: make([]*biz.FinanceCommissionLine, 0, len(eligibleOrderIDs)),
 	}
-	for orderID, realizedValue := range orderRealized {
-		assignment, eligible := assignmentByOrder[orderID]
-		if !eligible {
-			continue
+	customersWithFees := make(map[uuid.UUID]struct{})
+	for _, orderID := range eligibleOrderIDs {
+		orderItem := orderByID[orderID]
+		orderFees := feesByOrder[orderItem.ID]
+		customer, edgeErr := orderItem.Edges.CustomerOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
 		}
-		if !receivable[orderID].IsPositive() {
-			return nil, biz.ErrCommissionSource
+		assignmentItem := assignmentByCustomer[orderItem.CustomerID]
+		line := &biz.FinanceCommissionLine{
+			OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, OrderDate: orderItem.OrderDate,
+			CustomerID: customer.ID, CustomerCode: customer.Code, CustomerName: customer.LegalName,
+			CustomerAssignmentID: assignmentItem.ID, CustomerAssignmentOrganizationID: assignmentItem.OrganizationID, CustomerAssignedAt: assignmentItem.CreatedAt,
+			EmployeeID: employeeID, EmployeeName: employee.DisplayName, PersonnelRole: result.PersonnelRole,
+			CalculationBasis: result.CalculationBasis, RatePercent: rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
 		}
-		realized := realizedValue.Round(8)
-		cost, profit, amount, calculateErr := biz.CalculateCommissionLine(realized, receivable[orderID], payable[orderID], rate, result.CalculationBasis)
+		for _, feeItem := range orderFees {
+			party, partyErr := feeItem.Edges.SettlementPartyOrErr()
+			if partyErr != nil {
+				return nil, partyErr
+			}
+			totalAmount, parseErr := decimal.NewFromString(feeItem.TotalAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			exchangeRate, parseErr := decimal.NewFromString(feeItem.ExchangeRate)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			baseAmount, parseErr := decimal.NewFromString(feeItem.BaseCurrencyAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			if result.BaseCurrency != feeItem.BaseCurrency {
+				return nil, biz.ErrCommissionSource
+			}
+			line.BaseCurrency = result.BaseCurrency
+			if feeItem.Direction == fee.DirectionRECEIVABLE {
+				line.RealizedRevenue = line.RealizedRevenue.Add(baseAmount)
+			} else {
+				line.AllocatedCost = line.AllocatedCost.Add(baseAmount)
+			}
+			line.Fees = append(line.Fees, &biz.CommissionFeeDetail{
+				FeeID: feeItem.ID, SettlementPartyID: feeItem.SettlementPartyID, Direction: string(feeItem.Direction),
+				FeeCode: feeItem.FeeCode, FeeName: feeItem.FeeName, SettlementPartyName: party.LegalName,
+				Currency: feeItem.Currency, TotalAmount: totalAmount, ExchangeRate: exchangeRate,
+				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount, ExpenseDate: feeItem.ExpenseDate, Status: string(feeItem.Status),
+			})
+			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.Status, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
+		}
+		line.FeeCount = len(line.Fees)
+		totalReceivable := line.RealizedRevenue.Round(8)
+		totalPayable := line.AllocatedCost.Round(8)
+		realized := orderRealized[orderID].Round(8)
+		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, rate, result.CalculationBasis)
 		if calculateErr != nil {
 			return nil, calculateErr
 		}
-		line := &biz.FinanceCommissionLine{
-			OrderID: orderID, OrderNo: orderNos[orderID], PersonnelAssignmentID: assignment.ID,
-			PersonnelOrganizationID: assignment.OrganizationID, PersonnelAssignedAt: assignment.AssignedAt,
-			EmployeeID: employeeID, EmployeeName: employee.DisplayName,
-			PersonnelRole: result.PersonnelRole, CalculationBasis: result.CalculationBasis, BaseCurrency: baseCurrency,
-			RealizedRevenue: realized, AllocatedCost: cost, RealizedProfit: profit, RatePercent: rate, CommissionAmount: amount,
-		}
+		line.RealizedRevenue, line.AllocatedCost, line.RealizedProfit = realized, cost, profit
+		line.CommissionBaseAmount, line.CommissionAmount = commissionBase, amount
 		result.Lines = append(result.Lines, line)
+		customersWithFees[orderItem.CustomerID] = struct{}{}
 		result.RealizedRevenue = result.RealizedRevenue.Add(realized)
 		result.AllocatedCost = result.AllocatedCost.Add(cost)
 		result.RealizedProfit = result.RealizedProfit.Add(profit)
+		result.CommissionBaseAmount = result.CommissionBaseAmount.Add(commissionBase)
 		result.CommissionAmount = result.CommissionAmount.Add(amount)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("result_line|%s|%s|%s|%s|%s", orderID, realized.StringFixed(8), cost.StringFixed(8), profit.StringFixed(8), amount.StringFixed(8)))
+		result.FeeCount += line.FeeCount
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("result_line|%s|%s|%s|%s|%s", orderItem.ID, realized.StringFixed(8), cost.StringFixed(8), profit.StringFixed(8), amount.StringFixed(8)))
 	}
 	if len(result.Lines) == 0 || !result.RealizedRevenue.IsPositive() {
 		return nil, biz.ErrCommissionSource
 	}
-	sort.Slice(result.Lines, func(i, j int) bool {
-		if result.Lines[i].OrderNo == result.Lines[j].OrderNo {
-			return result.Lines[i].OrderID.String() < result.Lines[j].OrderID.String()
-		}
-		return result.Lines[i].OrderNo < result.Lines[j].OrderNo
-	})
+	result.CustomerCount, result.OrderCount = len(customersWithFees), len(result.Lines)
 	result.RealizedRevenue = result.RealizedRevenue.Round(8)
 	result.AllocatedCost = result.AllocatedCost.Round(8)
 	result.RealizedProfit = result.RealizedProfit.Round(8)
+	result.CommissionBaseAmount = result.CommissionBaseAmount.Round(8)
 	result.CommissionAmount = result.CommissionAmount.Round(8)
 	sort.Strings(fingerprintParts)
 	digest := sha256.Sum256([]byte(strings.Join(fingerprintParts, "\n")))
@@ -526,8 +618,10 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 	c.PersonnelRole, c.CalculationBasis = calculation.PersonnelRole, calculation.CalculationBasis
 	c.RuleVersion, c.CalculationVersion, c.SourceFingerprint = calculation.RuleVersion, calculation.CalculationVersion, calculation.SourceFingerprint
 	c.BaseCurrency, c.RatePercent = calculation.BaseCurrency, calculation.RatePercent
-	c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit, c.CommissionAmount = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit, calculation.CommissionAmount
-	_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
+	c.CustomerCount, c.OrderCount, c.FeeCount = calculation.CustomerCount, calculation.OrderCount, calculation.FeeCount
+	c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit
+	c.CommissionBaseAmount, c.CommissionAmount = calculation.CommissionBaseAmount, calculation.CommissionAmount
+	_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
 	if ent.IsConstraintError(err) {
 		return rollback(biz.ErrCommissionDuplicate)
 	}
@@ -539,7 +633,11 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 		line.ID = uuid.Must(uuid.NewV7())
 		line.OrganizationID = org
 		line.CommissionID = c.ID
-		lineBuilders = append(lineBuilders, tx.FinanceCommissionLine.Create().SetID(line.ID).SetOrganizationID(org).SetCommissionID(c.ID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetPersonnelAssignmentID(line.PersonnelAssignmentID).SetPersonnelOrganizationID(line.PersonnelOrganizationID).SetPersonnelAssignedAt(line.PersonnelAssignedAt).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)))
+		feeSnapshot, marshalErr := json.Marshal(line.Fees)
+		if marshalErr != nil {
+			return rollback(marshalErr)
+		}
+		lineBuilders = append(lineBuilders, tx.FinanceCommissionLine.Create().SetID(line.ID).SetOrganizationID(org).SetCommissionID(c.ID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetOrderDate(line.OrderDate).SetCustomerID(line.CustomerID).SetCustomerCode(line.CustomerCode).SetCustomerName(line.CustomerName).SetPersonnelAssignmentID(line.CustomerAssignmentID).SetPersonnelOrganizationID(line.CustomerAssignmentOrganizationID).SetPersonnelAssignedAt(line.CustomerAssignedAt).SetFeeCount(line.FeeCount).SetFeeSnapshot(string(feeSnapshot)).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(line.CommissionBaseAmount.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)))
 	}
 	if _, err = tx.FinanceCommissionLine.CreateBulk(lineBuilders...).Save(ctx); err != nil {
 		return rollback(err)
@@ -712,7 +810,11 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	commissionBase, err := decimal.NewFromString(x.CommissionBaseAmount)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
 	if x.RuleID != nil {
 		result.RuleID = *x.RuleID
 	}
@@ -749,7 +851,15 @@ func commissionLineToBiz(x *ent.FinanceCommissionLine) (*biz.FinanceCommissionLi
 	if err != nil {
 		return nil, err
 	}
-	return &biz.FinanceCommissionLine{ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID, OrderNo: x.OrderNo, PersonnelAssignmentID: x.PersonnelAssignmentID, PersonnelOrganizationID: x.PersonnelOrganizationID, PersonnelAssignedAt: x.PersonnelAssignedAt, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, RatePercent: rate, CommissionAmount: amount, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
+	commissionBase, err := decimal.NewFromString(x.CommissionBaseAmount)
+	if err != nil {
+		return nil, err
+	}
+	fees := make([]*biz.CommissionFeeDetail, 0, x.FeeCount)
+	if err = json.Unmarshal([]byte(x.FeeSnapshot), &fees); err != nil {
+		return nil, err
+	}
+	return &biz.FinanceCommissionLine{ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID, OrderNo: x.OrderNo, OrderDate: x.OrderDate, CustomerID: x.CustomerID, CustomerCode: x.CustomerCode, CustomerName: x.CustomerName, CustomerAssignmentID: x.PersonnelAssignmentID, CustomerAssignmentOrganizationID: x.PersonnelOrganizationID, CustomerAssignedAt: x.PersonnelAssignedAt, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, PersonnelRole: biz.CommissionPersonnelRole(x.PersonnelRole), CalculationBasis: biz.CommissionCalculationBasis(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, FeeCount: x.FeeCount, Fees: fees, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}, nil
 }
 
 func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCommissionAdjustment, error) {

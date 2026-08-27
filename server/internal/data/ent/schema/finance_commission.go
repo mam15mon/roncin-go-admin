@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceCommission 保存基于有效应收核销计算出的已实现毛利及提成快照。
+// FinanceCommission 保存某员工在指定订单期间内的客户、订单利润和提成汇总快照。
 type FinanceCommission struct{ ent.Schema }
 
 func (FinanceCommission) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -23,18 +23,22 @@ func (FinanceCommission) Fields() []ent.Field {
 		field.String("verification_no").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
+		field.Int("customer_count").NonNegative().Immutable(),
+		field.Int("order_count").NonNegative().Immutable(),
+		field.Int("fee_count").NonNegative().Immutable(),
 		field.UUID("rule_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("rule_name").Optional().Nillable().MaxLen(100).Immutable(),
 		field.String("personnel_role").Optional().Nillable().MaxLen(20).Immutable(),
 		field.String("calculation_basis").Optional().Nillable().MaxLen(30).Immutable(),
 		field.Uint64("rule_version").Default(1).Immutable(),
-		field.String("calculation_version").NotEmpty().MaxLen(32).Default("ORDER_LINE_V1").Immutable(),
+		field.String("calculation_version").NotEmpty().MaxLen(32).Default("CUSTOMER_REALIZED_PROFIT_V2").Immutable(),
 		field.String("source_fingerprint").MaxLen(64).Default("").Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "PAID", "CANCELLED").Default("DRAFT"),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("realized_revenue").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("allocated_cost").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("realized_profit").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("commission_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("rate_percent").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.Uint64("adjustment_sequence").Default(0),

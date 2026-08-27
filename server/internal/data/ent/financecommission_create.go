@@ -97,6 +97,24 @@ func (_c *FinanceCommissionCreate) SetEmployeeName(v string) *FinanceCommissionC
 	return _c
 }
 
+// SetCustomerCount sets the "customer_count" field.
+func (_c *FinanceCommissionCreate) SetCustomerCount(v int) *FinanceCommissionCreate {
+	_c.mutation.SetCustomerCount(v)
+	return _c
+}
+
+// SetOrderCount sets the "order_count" field.
+func (_c *FinanceCommissionCreate) SetOrderCount(v int) *FinanceCommissionCreate {
+	_c.mutation.SetOrderCount(v)
+	return _c
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (_c *FinanceCommissionCreate) SetFeeCount(v int) *FinanceCommissionCreate {
+	_c.mutation.SetFeeCount(v)
+	return _c
+}
+
 // SetRuleID sets the "rule_id" field.
 func (_c *FinanceCommissionCreate) SetRuleID(v uuid.UUID) *FinanceCommissionCreate {
 	_c.mutation.SetRuleID(v)
@@ -230,6 +248,12 @@ func (_c *FinanceCommissionCreate) SetAllocatedCost(v string) *FinanceCommission
 // SetRealizedProfit sets the "realized_profit" field.
 func (_c *FinanceCommissionCreate) SetRealizedProfit(v string) *FinanceCommissionCreate {
 	_c.mutation.SetRealizedProfit(v)
+	return _c
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (_c *FinanceCommissionCreate) SetCommissionBaseAmount(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCommissionBaseAmount(v)
 	return _c
 }
 
@@ -628,6 +652,30 @@ func (_c *FinanceCommissionCreate) check() error {
 			return &ValidationError{Name: "employee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.employee_name": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.CustomerCount(); !ok {
+		return &ValidationError{Name: "customer_count", err: errors.New(`ent: missing required field "FinanceCommission.customer_count"`)}
+	}
+	if v, ok := _c.mutation.CustomerCount(); ok {
+		if err := financecommission.CustomerCountValidator(v); err != nil {
+			return &ValidationError{Name: "customer_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.customer_count": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.OrderCount(); !ok {
+		return &ValidationError{Name: "order_count", err: errors.New(`ent: missing required field "FinanceCommission.order_count"`)}
+	}
+	if v, ok := _c.mutation.OrderCount(); ok {
+		if err := financecommission.OrderCountValidator(v); err != nil {
+			return &ValidationError{Name: "order_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.order_count": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.FeeCount(); !ok {
+		return &ValidationError{Name: "fee_count", err: errors.New(`ent: missing required field "FinanceCommission.fee_count"`)}
+	}
+	if v, ok := _c.mutation.FeeCount(); ok {
+		if err := financecommission.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.fee_count": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.RuleName(); ok {
 		if err := financecommission.RuleNameValidator(v); err != nil {
 			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.rule_name": %w`, err)}
@@ -686,6 +734,9 @@ func (_c *FinanceCommissionCreate) check() error {
 	}
 	if _, ok := _c.mutation.RealizedProfit(); !ok {
 		return &ValidationError{Name: "realized_profit", err: errors.New(`ent: missing required field "FinanceCommission.realized_profit"`)}
+	}
+	if _, ok := _c.mutation.CommissionBaseAmount(); !ok {
+		return &ValidationError{Name: "commission_base_amount", err: errors.New(`ent: missing required field "FinanceCommission.commission_base_amount"`)}
 	}
 	if _, ok := _c.mutation.RatePercent(); !ok {
 		return &ValidationError{Name: "rate_percent", err: errors.New(`ent: missing required field "FinanceCommission.rate_percent"`)}
@@ -777,6 +828,18 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 		_spec.SetField(financecommission.FieldEmployeeName, field.TypeString, value)
 		_node.EmployeeName = value
 	}
+	if value, ok := _c.mutation.CustomerCount(); ok {
+		_spec.SetField(financecommission.FieldCustomerCount, field.TypeInt, value)
+		_node.CustomerCount = value
+	}
+	if value, ok := _c.mutation.OrderCount(); ok {
+		_spec.SetField(financecommission.FieldOrderCount, field.TypeInt, value)
+		_node.OrderCount = value
+	}
+	if value, ok := _c.mutation.FeeCount(); ok {
+		_spec.SetField(financecommission.FieldFeeCount, field.TypeInt, value)
+		_node.FeeCount = value
+	}
 	if value, ok := _c.mutation.RuleName(); ok {
 		_spec.SetField(financecommission.FieldRuleName, field.TypeString, value)
 		_node.RuleName = &value
@@ -820,6 +883,10 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.RealizedProfit(); ok {
 		_spec.SetField(financecommission.FieldRealizedProfit, field.TypeString, value)
 		_node.RealizedProfit = value
+	}
+	if value, ok := _c.mutation.CommissionBaseAmount(); ok {
+		_spec.SetField(financecommission.FieldCommissionBaseAmount, field.TypeString, value)
+		_node.CommissionBaseAmount = value
 	}
 	if value, ok := _c.mutation.RatePercent(); ok {
 		_spec.SetField(financecommission.FieldRatePercent, field.TypeString, value)

@@ -91,7 +91,7 @@ type SettlementServiceHTTPServer interface {
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
-	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionEmployeesResponse, error)
+	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidateSummariesResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
@@ -805,7 +805,7 @@ func _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv SettlementSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListCommissionEmployeesResponse)
+		reply := out.(*ListCommissionCandidateSummariesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1091,7 +1091,7 @@ type SettlementServiceHTTPClient interface {
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
 	ListCashflows(ctx context.Context, req *ListCashflowsRequest, opts ...http.CallOption) (rsp *ListCashflowsResponse, err error)
-	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
+	ListCommissionCandidates(ctx context.Context, req *ListCommissionCandidatesRequest, opts ...http.CallOption) (rsp *ListCommissionCandidateSummariesResponse, err error)
 	ListCommissionEmployees(ctx context.Context, req *ListCommissionEmployeesRequest, opts ...http.CallOption) (rsp *ListCommissionEmployeesResponse, err error)
 	ListCommissionRules(ctx context.Context, req *ListCommissionRulesRequest, opts ...http.CallOption) (rsp *ListCommissionRulesResponse, err error)
 	ListCommissions(ctx context.Context, req *ListCommissionsRequest, opts ...http.CallOption) (rsp *ListCommissionsResponse, err error)
@@ -1560,8 +1560,8 @@ func (c *SettlementServiceHTTPClientImpl) ListCashflows(ctx context.Context, in 
 	return &out, nil
 }
 
-func (c *SettlementServiceHTTPClientImpl) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...http.CallOption) (*ListCommissionEmployeesResponse, error) {
-	var out ListCommissionEmployeesResponse
+func (c *SettlementServiceHTTPClientImpl) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...http.CallOption) (*ListCommissionCandidateSummariesResponse, error) {
+	var out ListCommissionCandidateSummariesResponse
 	pattern := "/api/v1/finance/commissions/candidates"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{

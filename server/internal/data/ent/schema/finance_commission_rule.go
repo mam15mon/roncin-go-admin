@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceCommissionRule 定义按订单人员角色和计提口径生效的提成考核规则。
+// FinanceCommissionRule 定义按客户档案人员角色和订单利润计提的提成规则。
 type FinanceCommissionRule struct{ ent.Schema }
 
 func (FinanceCommissionRule) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -18,7 +18,7 @@ func (FinanceCommissionRule) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("name").NotEmpty().MaxLen(100),
-		field.Enum("personnel_role").Values("SALES", "OPERATOR"),
+		field.Enum("personnel_role").Values("SALES", "OPERATOR", "CUSTOMER_SERVICE"),
 		field.Enum("calculation_basis").Values("REALIZED_PROFIT", "REALIZED_REVENUE"),
 		field.String("rate_percent").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}),
 		field.String("effective_from").Optional().Nillable().MinLen(10).MaxLen(10),

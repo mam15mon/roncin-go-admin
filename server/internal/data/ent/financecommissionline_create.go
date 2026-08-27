@@ -76,6 +76,30 @@ func (_c *FinanceCommissionLineCreate) SetOrderNo(v string) *FinanceCommissionLi
 	return _c
 }
 
+// SetOrderDate sets the "order_date" field.
+func (_c *FinanceCommissionLineCreate) SetOrderDate(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetOrderDate(v)
+	return _c
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (_c *FinanceCommissionLineCreate) SetCustomerID(v uuid.UUID) *FinanceCommissionLineCreate {
+	_c.mutation.SetCustomerID(v)
+	return _c
+}
+
+// SetCustomerCode sets the "customer_code" field.
+func (_c *FinanceCommissionLineCreate) SetCustomerCode(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetCustomerCode(v)
+	return _c
+}
+
+// SetCustomerName sets the "customer_name" field.
+func (_c *FinanceCommissionLineCreate) SetCustomerName(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetCustomerName(v)
+	return _c
+}
+
 // SetPersonnelAssignmentID sets the "personnel_assignment_id" field.
 func (_c *FinanceCommissionLineCreate) SetPersonnelAssignmentID(v uuid.UUID) *FinanceCommissionLineCreate {
 	_c.mutation.SetPersonnelAssignmentID(v)
@@ -91,6 +115,26 @@ func (_c *FinanceCommissionLineCreate) SetPersonnelOrganizationID(v uuid.UUID) *
 // SetPersonnelAssignedAt sets the "personnel_assigned_at" field.
 func (_c *FinanceCommissionLineCreate) SetPersonnelAssignedAt(v time.Time) *FinanceCommissionLineCreate {
 	_c.mutation.SetPersonnelAssignedAt(v)
+	return _c
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (_c *FinanceCommissionLineCreate) SetFeeCount(v int) *FinanceCommissionLineCreate {
+	_c.mutation.SetFeeCount(v)
+	return _c
+}
+
+// SetFeeSnapshot sets the "fee_snapshot" field.
+func (_c *FinanceCommissionLineCreate) SetFeeSnapshot(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetFeeSnapshot(v)
+	return _c
+}
+
+// SetNillableFeeSnapshot sets the "fee_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableFeeSnapshot(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetFeeSnapshot(*v)
+	}
 	return _c
 }
 
@@ -139,6 +183,12 @@ func (_c *FinanceCommissionLineCreate) SetAllocatedCost(v string) *FinanceCommis
 // SetRealizedProfit sets the "realized_profit" field.
 func (_c *FinanceCommissionLineCreate) SetRealizedProfit(v string) *FinanceCommissionLineCreate {
 	_c.mutation.SetRealizedProfit(v)
+	return _c
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (_c *FinanceCommissionLineCreate) SetCommissionBaseAmount(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetCommissionBaseAmount(v)
 	return _c
 }
 
@@ -226,6 +276,10 @@ func (_c *FinanceCommissionLineCreate) defaults() {
 		v := financecommissionline.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.FeeSnapshot(); !ok {
+		v := financecommissionline.DefaultFeeSnapshot
+		_c.mutation.SetFeeSnapshot(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := financecommissionline.DefaultID()
 		_c.mutation.SetID(v)
@@ -257,6 +311,33 @@ func (_c *FinanceCommissionLineCreate) check() error {
 			return &ValidationError{Name: "order_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.order_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.OrderDate(); !ok {
+		return &ValidationError{Name: "order_date", err: errors.New(`ent: missing required field "FinanceCommissionLine.order_date"`)}
+	}
+	if v, ok := _c.mutation.OrderDate(); ok {
+		if err := financecommissionline.OrderDateValidator(v); err != nil {
+			return &ValidationError{Name: "order_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.order_date": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CustomerID(); !ok {
+		return &ValidationError{Name: "customer_id", err: errors.New(`ent: missing required field "FinanceCommissionLine.customer_id"`)}
+	}
+	if _, ok := _c.mutation.CustomerCode(); !ok {
+		return &ValidationError{Name: "customer_code", err: errors.New(`ent: missing required field "FinanceCommissionLine.customer_code"`)}
+	}
+	if v, ok := _c.mutation.CustomerCode(); ok {
+		if err := financecommissionline.CustomerCodeValidator(v); err != nil {
+			return &ValidationError{Name: "customer_code", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.customer_code": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CustomerName(); !ok {
+		return &ValidationError{Name: "customer_name", err: errors.New(`ent: missing required field "FinanceCommissionLine.customer_name"`)}
+	}
+	if v, ok := _c.mutation.CustomerName(); ok {
+		if err := financecommissionline.CustomerNameValidator(v); err != nil {
+			return &ValidationError{Name: "customer_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.customer_name": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.PersonnelAssignmentID(); !ok {
 		return &ValidationError{Name: "personnel_assignment_id", err: errors.New(`ent: missing required field "FinanceCommissionLine.personnel_assignment_id"`)}
 	}
@@ -265,6 +346,17 @@ func (_c *FinanceCommissionLineCreate) check() error {
 	}
 	if _, ok := _c.mutation.PersonnelAssignedAt(); !ok {
 		return &ValidationError{Name: "personnel_assigned_at", err: errors.New(`ent: missing required field "FinanceCommissionLine.personnel_assigned_at"`)}
+	}
+	if _, ok := _c.mutation.FeeCount(); !ok {
+		return &ValidationError{Name: "fee_count", err: errors.New(`ent: missing required field "FinanceCommissionLine.fee_count"`)}
+	}
+	if v, ok := _c.mutation.FeeCount(); ok {
+		if err := financecommissionline.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionLine.fee_count": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.FeeSnapshot(); !ok {
+		return &ValidationError{Name: "fee_snapshot", err: errors.New(`ent: missing required field "FinanceCommissionLine.fee_snapshot"`)}
 	}
 	if _, ok := _c.mutation.EmployeeID(); !ok {
 		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "FinanceCommissionLine.employee_id"`)}
@@ -309,6 +401,9 @@ func (_c *FinanceCommissionLineCreate) check() error {
 	}
 	if _, ok := _c.mutation.RealizedProfit(); !ok {
 		return &ValidationError{Name: "realized_profit", err: errors.New(`ent: missing required field "FinanceCommissionLine.realized_profit"`)}
+	}
+	if _, ok := _c.mutation.CommissionBaseAmount(); !ok {
+		return &ValidationError{Name: "commission_base_amount", err: errors.New(`ent: missing required field "FinanceCommissionLine.commission_base_amount"`)}
 	}
 	if _, ok := _c.mutation.RatePercent(); !ok {
 		return &ValidationError{Name: "rate_percent", err: errors.New(`ent: missing required field "FinanceCommissionLine.rate_percent"`)}
@@ -372,6 +467,22 @@ func (_c *FinanceCommissionLineCreate) createSpec() (*FinanceCommissionLine, *sq
 		_spec.SetField(financecommissionline.FieldOrderNo, field.TypeString, value)
 		_node.OrderNo = value
 	}
+	if value, ok := _c.mutation.OrderDate(); ok {
+		_spec.SetField(financecommissionline.FieldOrderDate, field.TypeString, value)
+		_node.OrderDate = value
+	}
+	if value, ok := _c.mutation.CustomerID(); ok {
+		_spec.SetField(financecommissionline.FieldCustomerID, field.TypeUUID, value)
+		_node.CustomerID = value
+	}
+	if value, ok := _c.mutation.CustomerCode(); ok {
+		_spec.SetField(financecommissionline.FieldCustomerCode, field.TypeString, value)
+		_node.CustomerCode = value
+	}
+	if value, ok := _c.mutation.CustomerName(); ok {
+		_spec.SetField(financecommissionline.FieldCustomerName, field.TypeString, value)
+		_node.CustomerName = value
+	}
 	if value, ok := _c.mutation.PersonnelAssignmentID(); ok {
 		_spec.SetField(financecommissionline.FieldPersonnelAssignmentID, field.TypeUUID, value)
 		_node.PersonnelAssignmentID = value
@@ -383,6 +494,14 @@ func (_c *FinanceCommissionLineCreate) createSpec() (*FinanceCommissionLine, *sq
 	if value, ok := _c.mutation.PersonnelAssignedAt(); ok {
 		_spec.SetField(financecommissionline.FieldPersonnelAssignedAt, field.TypeTime, value)
 		_node.PersonnelAssignedAt = value
+	}
+	if value, ok := _c.mutation.FeeCount(); ok {
+		_spec.SetField(financecommissionline.FieldFeeCount, field.TypeInt, value)
+		_node.FeeCount = value
+	}
+	if value, ok := _c.mutation.FeeSnapshot(); ok {
+		_spec.SetField(financecommissionline.FieldFeeSnapshot, field.TypeString, value)
+		_node.FeeSnapshot = value
 	}
 	if value, ok := _c.mutation.EmployeeID(); ok {
 		_spec.SetField(financecommissionline.FieldEmployeeID, field.TypeUUID, value)
@@ -415,6 +534,10 @@ func (_c *FinanceCommissionLineCreate) createSpec() (*FinanceCommissionLine, *sq
 	if value, ok := _c.mutation.RealizedProfit(); ok {
 		_spec.SetField(financecommissionline.FieldRealizedProfit, field.TypeString, value)
 		_node.RealizedProfit = value
+	}
+	if value, ok := _c.mutation.CommissionBaseAmount(); ok {
+		_spec.SetField(financecommissionline.FieldCommissionBaseAmount, field.TypeString, value)
+		_node.CommissionBaseAmount = value
 	}
 	if value, ok := _c.mutation.RatePercent(); ok {
 		_spec.SetField(financecommissionline.FieldRatePercent, field.TypeString, value)

@@ -34,6 +34,12 @@ const (
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
 	FieldEmployeeName = "employee_name"
+	// FieldCustomerCount holds the string denoting the customer_count field in the database.
+	FieldCustomerCount = "customer_count"
+	// FieldOrderCount holds the string denoting the order_count field in the database.
+	FieldOrderCount = "order_count"
+	// FieldFeeCount holds the string denoting the fee_count field in the database.
+	FieldFeeCount = "fee_count"
 	// FieldRuleID holds the string denoting the rule_id field in the database.
 	FieldRuleID = "rule_id"
 	// FieldRuleName holds the string denoting the rule_name field in the database.
@@ -58,6 +64,8 @@ const (
 	FieldAllocatedCost = "allocated_cost"
 	// FieldRealizedProfit holds the string denoting the realized_profit field in the database.
 	FieldRealizedProfit = "realized_profit"
+	// FieldCommissionBaseAmount holds the string denoting the commission_base_amount field in the database.
+	FieldCommissionBaseAmount = "commission_base_amount"
 	// FieldRatePercent holds the string denoting the rate_percent field in the database.
 	FieldRatePercent = "rate_percent"
 	// FieldCommissionAmount holds the string denoting the commission_amount field in the database.
@@ -179,6 +187,9 @@ var Columns = []string{
 	FieldVerificationNo,
 	FieldEmployeeID,
 	FieldEmployeeName,
+	FieldCustomerCount,
+	FieldOrderCount,
+	FieldFeeCount,
 	FieldRuleID,
 	FieldRuleName,
 	FieldPersonnelRole,
@@ -191,6 +202,7 @@ var Columns = []string{
 	FieldRealizedRevenue,
 	FieldAllocatedCost,
 	FieldRealizedProfit,
+	FieldCommissionBaseAmount,
 	FieldRatePercent,
 	FieldCommissionAmount,
 	FieldAdjustmentSequence,
@@ -230,6 +242,12 @@ var (
 	VerificationNoValidator func(string) error
 	// EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	EmployeeNameValidator func(string) error
+	// CustomerCountValidator is a validator for the "customer_count" field. It is called by the builders before save.
+	CustomerCountValidator func(int) error
+	// OrderCountValidator is a validator for the "order_count" field. It is called by the builders before save.
+	OrderCountValidator func(int) error
+	// FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
+	FeeCountValidator func(int) error
 	// RuleNameValidator is a validator for the "rule_name" field. It is called by the builders before save.
 	RuleNameValidator func(string) error
 	// PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
@@ -341,6 +359,21 @@ func ByEmployeeName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmployeeName, opts...).ToFunc()
 }
 
+// ByCustomerCount orders the results by the customer_count field.
+func ByCustomerCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomerCount, opts...).ToFunc()
+}
+
+// ByOrderCount orders the results by the order_count field.
+func ByOrderCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrderCount, opts...).ToFunc()
+}
+
+// ByFeeCount orders the results by the fee_count field.
+func ByFeeCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeCount, opts...).ToFunc()
+}
+
 // ByRuleID orders the results by the rule_id field.
 func ByRuleID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRuleID, opts...).ToFunc()
@@ -399,6 +432,11 @@ func ByAllocatedCost(opts ...sql.OrderTermOption) OrderOption {
 // ByRealizedProfit orders the results by the realized_profit field.
 func ByRealizedProfit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRealizedProfit, opts...).ToFunc()
+}
+
+// ByCommissionBaseAmount orders the results by the commission_base_amount field.
+func ByCommissionBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCommissionBaseAmount, opts...).ToFunc()
 }
 
 // ByRatePercent orders the results by the rate_percent field.

@@ -474,11 +474,49 @@ declare namespace API {
     ratePercent?: string;
     commissionAmount?: string;
     lines?: FinanceCommissionLine[];
+    customerCount?: number;
+    orderCount?: number;
+    feeCount?: number;
+    commissionBaseAmount?: string;
+  };
+
+  type CommissionCandidateSummary = {
+    employeeId?: string;
+    employeeName?: string;
+    personnelRole?: string;
+    customerCount?: number;
+    orderCount?: number;
+    feeCount?: number;
+    baseCurrency?: string;
+    realizedRevenue?: string;
+    allocatedCost?: string;
+    realizedProfit?: string;
+    commissionBaseAmount?: string;
+    ratePercent?: string;
+    commissionAmount?: string;
+    id?: string;
+    displayName?: string;
   };
 
   type CommissionEmployeeOption = {
     id?: string;
     displayName?: string;
+  };
+
+  type CommissionFeeDetail = {
+    feeId?: string;
+    direction?: string;
+    feeCode?: string;
+    feeName?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    totalAmount?: string;
+    exchangeRate?: string;
+    baseCurrency?: string;
+    baseCurrencyAmount?: string;
+    expenseDate?: string;
+    status?: string;
   };
 
   type CommissionResponse = {
@@ -1529,6 +1567,10 @@ declare namespace API {
     adjustments?: FinanceCommissionAdjustment[];
     adjustmentAmount?: string;
     effectiveCommissionAmount?: string;
+    customerCount?: number;
+    orderCount?: number;
+    feeCount?: number;
+    commissionBaseAmount?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -1571,6 +1613,16 @@ declare namespace API {
     commissionAmount?: string;
     personnelOrganizationId?: string;
     personnelAssignedAt?: string;
+    orderDate?: string;
+    customerId?: string;
+    customerCode?: string;
+    customerName?: string;
+    commissionBaseAmount?: string;
+    customerAssignmentId?: string;
+    customerAssignmentOrganizationId?: string;
+    customerAssignedAt?: string;
+    feeCount?: number;
+    fees?: CommissionFeeDetail[];
   };
 
   type FinanceCommissionRule = {
@@ -1933,6 +1985,15 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCashflow[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListCommissionCandidateSummariesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CommissionCandidateSummary[];
     total?: string;
     traceId?: string;
   };
@@ -3874,6 +3935,9 @@ declare namespace API {
   type SettlementServiceListCommissionCandidatesParams = {
     verificationId?: string;
     ruleId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type SettlementServiceListCommissionRulesParams = {
@@ -4108,7 +4172,7 @@ declare namespace API {
 
   type UpdateBilledFeeEditPolicyRequest = {
     enabled?: boolean;
-    editableFields: number[];
+    editableFields?: number[];
     expectedVersion: string;
   };
 

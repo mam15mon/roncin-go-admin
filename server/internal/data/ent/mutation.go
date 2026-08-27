@@ -20967,6 +20967,12 @@ type FinanceCommissionMutation struct {
 	idempotency_key          *string
 	verification_no          *string
 	employee_name            *string
+	customer_count           *int
+	addcustomer_count        *int
+	order_count              *int
+	addorder_count           *int
+	fee_count                *int
+	addfee_count             *int
 	rule_name                *string
 	personnel_role           *string
 	calculation_basis        *string
@@ -20979,6 +20985,7 @@ type FinanceCommissionMutation struct {
 	realized_revenue         *string
 	allocated_cost           *string
 	realized_profit          *string
+	commission_base_amount   *string
 	rate_percent             *string
 	commission_amount        *string
 	adjustment_sequence      *uint64
@@ -21442,6 +21449,174 @@ func (m *FinanceCommissionMutation) OldEmployeeName(ctx context.Context) (v stri
 // ResetEmployeeName resets all changes to the "employee_name" field.
 func (m *FinanceCommissionMutation) ResetEmployeeName() {
 	m.employee_name = nil
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (m *FinanceCommissionMutation) SetCustomerCount(i int) {
+	m.customer_count = &i
+	m.addcustomer_count = nil
+}
+
+// CustomerCount returns the value of the "customer_count" field in the mutation.
+func (m *FinanceCommissionMutation) CustomerCount() (r int, exists bool) {
+	v := m.customer_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomerCount returns the old "customer_count" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCustomerCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomerCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomerCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomerCount: %w", err)
+	}
+	return oldValue.CustomerCount, nil
+}
+
+// AddCustomerCount adds i to the "customer_count" field.
+func (m *FinanceCommissionMutation) AddCustomerCount(i int) {
+	if m.addcustomer_count != nil {
+		*m.addcustomer_count += i
+	} else {
+		m.addcustomer_count = &i
+	}
+}
+
+// AddedCustomerCount returns the value that was added to the "customer_count" field in this mutation.
+func (m *FinanceCommissionMutation) AddedCustomerCount() (r int, exists bool) {
+	v := m.addcustomer_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCustomerCount resets all changes to the "customer_count" field.
+func (m *FinanceCommissionMutation) ResetCustomerCount() {
+	m.customer_count = nil
+	m.addcustomer_count = nil
+}
+
+// SetOrderCount sets the "order_count" field.
+func (m *FinanceCommissionMutation) SetOrderCount(i int) {
+	m.order_count = &i
+	m.addorder_count = nil
+}
+
+// OrderCount returns the value of the "order_count" field in the mutation.
+func (m *FinanceCommissionMutation) OrderCount() (r int, exists bool) {
+	v := m.order_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderCount returns the old "order_count" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldOrderCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderCount: %w", err)
+	}
+	return oldValue.OrderCount, nil
+}
+
+// AddOrderCount adds i to the "order_count" field.
+func (m *FinanceCommissionMutation) AddOrderCount(i int) {
+	if m.addorder_count != nil {
+		*m.addorder_count += i
+	} else {
+		m.addorder_count = &i
+	}
+}
+
+// AddedOrderCount returns the value that was added to the "order_count" field in this mutation.
+func (m *FinanceCommissionMutation) AddedOrderCount() (r int, exists bool) {
+	v := m.addorder_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrderCount resets all changes to the "order_count" field.
+func (m *FinanceCommissionMutation) ResetOrderCount() {
+	m.order_count = nil
+	m.addorder_count = nil
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (m *FinanceCommissionMutation) SetFeeCount(i int) {
+	m.fee_count = &i
+	m.addfee_count = nil
+}
+
+// FeeCount returns the value of the "fee_count" field in the mutation.
+func (m *FinanceCommissionMutation) FeeCount() (r int, exists bool) {
+	v := m.fee_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeCount returns the old "fee_count" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldFeeCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeCount: %w", err)
+	}
+	return oldValue.FeeCount, nil
+}
+
+// AddFeeCount adds i to the "fee_count" field.
+func (m *FinanceCommissionMutation) AddFeeCount(i int) {
+	if m.addfee_count != nil {
+		*m.addfee_count += i
+	} else {
+		m.addfee_count = &i
+	}
+}
+
+// AddedFeeCount returns the value that was added to the "fee_count" field in this mutation.
+func (m *FinanceCommissionMutation) AddedFeeCount() (r int, exists bool) {
+	v := m.addfee_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFeeCount resets all changes to the "fee_count" field.
+func (m *FinanceCommissionMutation) ResetFeeCount() {
+	m.fee_count = nil
+	m.addfee_count = nil
 }
 
 // SetRuleID sets the "rule_id" field.
@@ -21946,6 +22121,42 @@ func (m *FinanceCommissionMutation) OldRealizedProfit(ctx context.Context) (v st
 // ResetRealizedProfit resets all changes to the "realized_profit" field.
 func (m *FinanceCommissionMutation) ResetRealizedProfit() {
 	m.realized_profit = nil
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (m *FinanceCommissionMutation) SetCommissionBaseAmount(s string) {
+	m.commission_base_amount = &s
+}
+
+// CommissionBaseAmount returns the value of the "commission_base_amount" field in the mutation.
+func (m *FinanceCommissionMutation) CommissionBaseAmount() (r string, exists bool) {
+	v := m.commission_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommissionBaseAmount returns the old "commission_base_amount" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCommissionBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommissionBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommissionBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommissionBaseAmount: %w", err)
+	}
+	return oldValue.CommissionBaseAmount, nil
+}
+
+// ResetCommissionBaseAmount resets all changes to the "commission_base_amount" field.
+func (m *FinanceCommissionMutation) ResetCommissionBaseAmount() {
+	m.commission_base_amount = nil
 }
 
 // SetRatePercent sets the "rate_percent" field.
@@ -22894,7 +23105,7 @@ func (m *FinanceCommissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 37)
 	if m.created_at != nil {
 		fields = append(fields, financecommission.FieldCreatedAt)
 	}
@@ -22921,6 +23132,15 @@ func (m *FinanceCommissionMutation) Fields() []string {
 	}
 	if m.employee_name != nil {
 		fields = append(fields, financecommission.FieldEmployeeName)
+	}
+	if m.customer_count != nil {
+		fields = append(fields, financecommission.FieldCustomerCount)
+	}
+	if m.order_count != nil {
+		fields = append(fields, financecommission.FieldOrderCount)
+	}
+	if m.fee_count != nil {
+		fields = append(fields, financecommission.FieldFeeCount)
 	}
 	if m.rule != nil {
 		fields = append(fields, financecommission.FieldRuleID)
@@ -22957,6 +23177,9 @@ func (m *FinanceCommissionMutation) Fields() []string {
 	}
 	if m.realized_profit != nil {
 		fields = append(fields, financecommission.FieldRealizedProfit)
+	}
+	if m.commission_base_amount != nil {
+		fields = append(fields, financecommission.FieldCommissionBaseAmount)
 	}
 	if m.rate_percent != nil {
 		fields = append(fields, financecommission.FieldRatePercent)
@@ -23020,6 +23243,12 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.EmployeeID()
 	case financecommission.FieldEmployeeName:
 		return m.EmployeeName()
+	case financecommission.FieldCustomerCount:
+		return m.CustomerCount()
+	case financecommission.FieldOrderCount:
+		return m.OrderCount()
+	case financecommission.FieldFeeCount:
+		return m.FeeCount()
 	case financecommission.FieldRuleID:
 		return m.RuleID()
 	case financecommission.FieldRuleName:
@@ -23044,6 +23273,8 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.AllocatedCost()
 	case financecommission.FieldRealizedProfit:
 		return m.RealizedProfit()
+	case financecommission.FieldCommissionBaseAmount:
+		return m.CommissionBaseAmount()
 	case financecommission.FieldRatePercent:
 		return m.RatePercent()
 	case financecommission.FieldCommissionAmount:
@@ -23095,6 +23326,12 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldEmployeeID(ctx)
 	case financecommission.FieldEmployeeName:
 		return m.OldEmployeeName(ctx)
+	case financecommission.FieldCustomerCount:
+		return m.OldCustomerCount(ctx)
+	case financecommission.FieldOrderCount:
+		return m.OldOrderCount(ctx)
+	case financecommission.FieldFeeCount:
+		return m.OldFeeCount(ctx)
 	case financecommission.FieldRuleID:
 		return m.OldRuleID(ctx)
 	case financecommission.FieldRuleName:
@@ -23119,6 +23356,8 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldAllocatedCost(ctx)
 	case financecommission.FieldRealizedProfit:
 		return m.OldRealizedProfit(ctx)
+	case financecommission.FieldCommissionBaseAmount:
+		return m.OldCommissionBaseAmount(ctx)
 	case financecommission.FieldRatePercent:
 		return m.OldRatePercent(ctx)
 	case financecommission.FieldCommissionAmount:
@@ -23215,6 +23454,27 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetEmployeeName(v)
 		return nil
+	case financecommission.FieldCustomerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomerCount(v)
+		return nil
+	case financecommission.FieldOrderCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderCount(v)
+		return nil
+	case financecommission.FieldFeeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeCount(v)
+		return nil
 	case financecommission.FieldRuleID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -23298,6 +23558,13 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRealizedProfit(v)
+		return nil
+	case financecommission.FieldCommissionBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommissionBaseAmount(v)
 		return nil
 	case financecommission.FieldRatePercent:
 		v, ok := value.(string)
@@ -23391,6 +23658,15 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 // this mutation.
 func (m *FinanceCommissionMutation) AddedFields() []string {
 	var fields []string
+	if m.addcustomer_count != nil {
+		fields = append(fields, financecommission.FieldCustomerCount)
+	}
+	if m.addorder_count != nil {
+		fields = append(fields, financecommission.FieldOrderCount)
+	}
+	if m.addfee_count != nil {
+		fields = append(fields, financecommission.FieldFeeCount)
+	}
 	if m.addrule_version != nil {
 		fields = append(fields, financecommission.FieldRuleVersion)
 	}
@@ -23408,6 +23684,12 @@ func (m *FinanceCommissionMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *FinanceCommissionMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case financecommission.FieldCustomerCount:
+		return m.AddedCustomerCount()
+	case financecommission.FieldOrderCount:
+		return m.AddedOrderCount()
+	case financecommission.FieldFeeCount:
+		return m.AddedFeeCount()
 	case financecommission.FieldRuleVersion:
 		return m.AddedRuleVersion()
 	case financecommission.FieldAdjustmentSequence:
@@ -23423,6 +23705,27 @@ func (m *FinanceCommissionMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FinanceCommissionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case financecommission.FieldCustomerCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomerCount(v)
+		return nil
+	case financecommission.FieldOrderCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderCount(v)
+		return nil
+	case financecommission.FieldFeeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFeeCount(v)
+		return nil
 	case financecommission.FieldRuleVersion:
 		v, ok := value.(int64)
 		if !ok {
@@ -23573,6 +23876,15 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 	case financecommission.FieldEmployeeName:
 		m.ResetEmployeeName()
 		return nil
+	case financecommission.FieldCustomerCount:
+		m.ResetCustomerCount()
+		return nil
+	case financecommission.FieldOrderCount:
+		m.ResetOrderCount()
+		return nil
+	case financecommission.FieldFeeCount:
+		m.ResetFeeCount()
+		return nil
 	case financecommission.FieldRuleID:
 		m.ResetRuleID()
 		return nil
@@ -23608,6 +23920,9 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 		return nil
 	case financecommission.FieldRealizedProfit:
 		m.ResetRealizedProfit()
+		return nil
+	case financecommission.FieldCommissionBaseAmount:
+		m.ResetCommissionBaseAmount()
 		return nil
 	case financecommission.FieldRatePercent:
 		m.ResetRatePercent()
@@ -26082,9 +26397,16 @@ type FinanceCommissionLineMutation struct {
 	created_at                *time.Time
 	updated_at                *time.Time
 	order_no                  *string
+	order_date                *string
+	customer_id               *uuid.UUID
+	customer_code             *string
+	customer_name             *string
 	personnel_assignment_id   *uuid.UUID
 	personnel_organization_id *uuid.UUID
 	personnel_assigned_at     *time.Time
+	fee_count                 *int
+	addfee_count              *int
+	fee_snapshot              *string
 	employee_id               *uuid.UUID
 	employee_name             *string
 	personnel_role            *string
@@ -26093,6 +26415,7 @@ type FinanceCommissionLineMutation struct {
 	realized_revenue          *string
 	allocated_cost            *string
 	realized_profit           *string
+	commission_base_amount    *string
 	rate_percent              *string
 	commission_amount         *string
 	clearedFields             map[string]struct{}
@@ -26427,6 +26750,150 @@ func (m *FinanceCommissionLineMutation) ResetOrderNo() {
 	m.order_no = nil
 }
 
+// SetOrderDate sets the "order_date" field.
+func (m *FinanceCommissionLineMutation) SetOrderDate(s string) {
+	m.order_date = &s
+}
+
+// OrderDate returns the value of the "order_date" field in the mutation.
+func (m *FinanceCommissionLineMutation) OrderDate() (r string, exists bool) {
+	v := m.order_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderDate returns the old "order_date" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldOrderDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderDate: %w", err)
+	}
+	return oldValue.OrderDate, nil
+}
+
+// ResetOrderDate resets all changes to the "order_date" field.
+func (m *FinanceCommissionLineMutation) ResetOrderDate() {
+	m.order_date = nil
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (m *FinanceCommissionLineMutation) SetCustomerID(u uuid.UUID) {
+	m.customer_id = &u
+}
+
+// CustomerID returns the value of the "customer_id" field in the mutation.
+func (m *FinanceCommissionLineMutation) CustomerID() (r uuid.UUID, exists bool) {
+	v := m.customer_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomerID returns the old "customer_id" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldCustomerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomerID: %w", err)
+	}
+	return oldValue.CustomerID, nil
+}
+
+// ResetCustomerID resets all changes to the "customer_id" field.
+func (m *FinanceCommissionLineMutation) ResetCustomerID() {
+	m.customer_id = nil
+}
+
+// SetCustomerCode sets the "customer_code" field.
+func (m *FinanceCommissionLineMutation) SetCustomerCode(s string) {
+	m.customer_code = &s
+}
+
+// CustomerCode returns the value of the "customer_code" field in the mutation.
+func (m *FinanceCommissionLineMutation) CustomerCode() (r string, exists bool) {
+	v := m.customer_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomerCode returns the old "customer_code" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldCustomerCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomerCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomerCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomerCode: %w", err)
+	}
+	return oldValue.CustomerCode, nil
+}
+
+// ResetCustomerCode resets all changes to the "customer_code" field.
+func (m *FinanceCommissionLineMutation) ResetCustomerCode() {
+	m.customer_code = nil
+}
+
+// SetCustomerName sets the "customer_name" field.
+func (m *FinanceCommissionLineMutation) SetCustomerName(s string) {
+	m.customer_name = &s
+}
+
+// CustomerName returns the value of the "customer_name" field in the mutation.
+func (m *FinanceCommissionLineMutation) CustomerName() (r string, exists bool) {
+	v := m.customer_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomerName returns the old "customer_name" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldCustomerName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomerName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomerName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomerName: %w", err)
+	}
+	return oldValue.CustomerName, nil
+}
+
+// ResetCustomerName resets all changes to the "customer_name" field.
+func (m *FinanceCommissionLineMutation) ResetCustomerName() {
+	m.customer_name = nil
+}
+
 // SetPersonnelAssignmentID sets the "personnel_assignment_id" field.
 func (m *FinanceCommissionLineMutation) SetPersonnelAssignmentID(u uuid.UUID) {
 	m.personnel_assignment_id = &u
@@ -26533,6 +27000,98 @@ func (m *FinanceCommissionLineMutation) OldPersonnelAssignedAt(ctx context.Conte
 // ResetPersonnelAssignedAt resets all changes to the "personnel_assigned_at" field.
 func (m *FinanceCommissionLineMutation) ResetPersonnelAssignedAt() {
 	m.personnel_assigned_at = nil
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (m *FinanceCommissionLineMutation) SetFeeCount(i int) {
+	m.fee_count = &i
+	m.addfee_count = nil
+}
+
+// FeeCount returns the value of the "fee_count" field in the mutation.
+func (m *FinanceCommissionLineMutation) FeeCount() (r int, exists bool) {
+	v := m.fee_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeCount returns the old "fee_count" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldFeeCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeCount: %w", err)
+	}
+	return oldValue.FeeCount, nil
+}
+
+// AddFeeCount adds i to the "fee_count" field.
+func (m *FinanceCommissionLineMutation) AddFeeCount(i int) {
+	if m.addfee_count != nil {
+		*m.addfee_count += i
+	} else {
+		m.addfee_count = &i
+	}
+}
+
+// AddedFeeCount returns the value that was added to the "fee_count" field in this mutation.
+func (m *FinanceCommissionLineMutation) AddedFeeCount() (r int, exists bool) {
+	v := m.addfee_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFeeCount resets all changes to the "fee_count" field.
+func (m *FinanceCommissionLineMutation) ResetFeeCount() {
+	m.fee_count = nil
+	m.addfee_count = nil
+}
+
+// SetFeeSnapshot sets the "fee_snapshot" field.
+func (m *FinanceCommissionLineMutation) SetFeeSnapshot(s string) {
+	m.fee_snapshot = &s
+}
+
+// FeeSnapshot returns the value of the "fee_snapshot" field in the mutation.
+func (m *FinanceCommissionLineMutation) FeeSnapshot() (r string, exists bool) {
+	v := m.fee_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeSnapshot returns the old "fee_snapshot" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldFeeSnapshot(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeSnapshot: %w", err)
+	}
+	return oldValue.FeeSnapshot, nil
+}
+
+// ResetFeeSnapshot resets all changes to the "fee_snapshot" field.
+func (m *FinanceCommissionLineMutation) ResetFeeSnapshot() {
+	m.fee_snapshot = nil
 }
 
 // SetEmployeeID sets the "employee_id" field.
@@ -26823,6 +27382,42 @@ func (m *FinanceCommissionLineMutation) ResetRealizedProfit() {
 	m.realized_profit = nil
 }
 
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (m *FinanceCommissionLineMutation) SetCommissionBaseAmount(s string) {
+	m.commission_base_amount = &s
+}
+
+// CommissionBaseAmount returns the value of the "commission_base_amount" field in the mutation.
+func (m *FinanceCommissionLineMutation) CommissionBaseAmount() (r string, exists bool) {
+	v := m.commission_base_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommissionBaseAmount returns the old "commission_base_amount" field's value of the FinanceCommissionLine entity.
+// If the FinanceCommissionLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionLineMutation) OldCommissionBaseAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommissionBaseAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommissionBaseAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommissionBaseAmount: %w", err)
+	}
+	return oldValue.CommissionBaseAmount, nil
+}
+
+// ResetCommissionBaseAmount resets all changes to the "commission_base_amount" field.
+func (m *FinanceCommissionLineMutation) ResetCommissionBaseAmount() {
+	m.commission_base_amount = nil
+}
+
 // SetRatePercent sets the "rate_percent" field.
 func (m *FinanceCommissionLineMutation) SetRatePercent(s string) {
 	m.rate_percent = &s
@@ -27010,7 +27605,7 @@ func (m *FinanceCommissionLineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionLineMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionline.FieldCreatedAt)
 	}
@@ -27029,6 +27624,18 @@ func (m *FinanceCommissionLineMutation) Fields() []string {
 	if m.order_no != nil {
 		fields = append(fields, financecommissionline.FieldOrderNo)
 	}
+	if m.order_date != nil {
+		fields = append(fields, financecommissionline.FieldOrderDate)
+	}
+	if m.customer_id != nil {
+		fields = append(fields, financecommissionline.FieldCustomerID)
+	}
+	if m.customer_code != nil {
+		fields = append(fields, financecommissionline.FieldCustomerCode)
+	}
+	if m.customer_name != nil {
+		fields = append(fields, financecommissionline.FieldCustomerName)
+	}
 	if m.personnel_assignment_id != nil {
 		fields = append(fields, financecommissionline.FieldPersonnelAssignmentID)
 	}
@@ -27037,6 +27644,12 @@ func (m *FinanceCommissionLineMutation) Fields() []string {
 	}
 	if m.personnel_assigned_at != nil {
 		fields = append(fields, financecommissionline.FieldPersonnelAssignedAt)
+	}
+	if m.fee_count != nil {
+		fields = append(fields, financecommissionline.FieldFeeCount)
+	}
+	if m.fee_snapshot != nil {
+		fields = append(fields, financecommissionline.FieldFeeSnapshot)
 	}
 	if m.employee_id != nil {
 		fields = append(fields, financecommissionline.FieldEmployeeID)
@@ -27061,6 +27674,9 @@ func (m *FinanceCommissionLineMutation) Fields() []string {
 	}
 	if m.realized_profit != nil {
 		fields = append(fields, financecommissionline.FieldRealizedProfit)
+	}
+	if m.commission_base_amount != nil {
+		fields = append(fields, financecommissionline.FieldCommissionBaseAmount)
 	}
 	if m.rate_percent != nil {
 		fields = append(fields, financecommissionline.FieldRatePercent)
@@ -27088,12 +27704,24 @@ func (m *FinanceCommissionLineMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case financecommissionline.FieldOrderNo:
 		return m.OrderNo()
+	case financecommissionline.FieldOrderDate:
+		return m.OrderDate()
+	case financecommissionline.FieldCustomerID:
+		return m.CustomerID()
+	case financecommissionline.FieldCustomerCode:
+		return m.CustomerCode()
+	case financecommissionline.FieldCustomerName:
+		return m.CustomerName()
 	case financecommissionline.FieldPersonnelAssignmentID:
 		return m.PersonnelAssignmentID()
 	case financecommissionline.FieldPersonnelOrganizationID:
 		return m.PersonnelOrganizationID()
 	case financecommissionline.FieldPersonnelAssignedAt:
 		return m.PersonnelAssignedAt()
+	case financecommissionline.FieldFeeCount:
+		return m.FeeCount()
+	case financecommissionline.FieldFeeSnapshot:
+		return m.FeeSnapshot()
 	case financecommissionline.FieldEmployeeID:
 		return m.EmployeeID()
 	case financecommissionline.FieldEmployeeName:
@@ -27110,6 +27738,8 @@ func (m *FinanceCommissionLineMutation) Field(name string) (ent.Value, bool) {
 		return m.AllocatedCost()
 	case financecommissionline.FieldRealizedProfit:
 		return m.RealizedProfit()
+	case financecommissionline.FieldCommissionBaseAmount:
+		return m.CommissionBaseAmount()
 	case financecommissionline.FieldRatePercent:
 		return m.RatePercent()
 	case financecommissionline.FieldCommissionAmount:
@@ -27135,12 +27765,24 @@ func (m *FinanceCommissionLineMutation) OldField(ctx context.Context, name strin
 		return m.OldOrderID(ctx)
 	case financecommissionline.FieldOrderNo:
 		return m.OldOrderNo(ctx)
+	case financecommissionline.FieldOrderDate:
+		return m.OldOrderDate(ctx)
+	case financecommissionline.FieldCustomerID:
+		return m.OldCustomerID(ctx)
+	case financecommissionline.FieldCustomerCode:
+		return m.OldCustomerCode(ctx)
+	case financecommissionline.FieldCustomerName:
+		return m.OldCustomerName(ctx)
 	case financecommissionline.FieldPersonnelAssignmentID:
 		return m.OldPersonnelAssignmentID(ctx)
 	case financecommissionline.FieldPersonnelOrganizationID:
 		return m.OldPersonnelOrganizationID(ctx)
 	case financecommissionline.FieldPersonnelAssignedAt:
 		return m.OldPersonnelAssignedAt(ctx)
+	case financecommissionline.FieldFeeCount:
+		return m.OldFeeCount(ctx)
+	case financecommissionline.FieldFeeSnapshot:
+		return m.OldFeeSnapshot(ctx)
 	case financecommissionline.FieldEmployeeID:
 		return m.OldEmployeeID(ctx)
 	case financecommissionline.FieldEmployeeName:
@@ -27157,6 +27799,8 @@ func (m *FinanceCommissionLineMutation) OldField(ctx context.Context, name strin
 		return m.OldAllocatedCost(ctx)
 	case financecommissionline.FieldRealizedProfit:
 		return m.OldRealizedProfit(ctx)
+	case financecommissionline.FieldCommissionBaseAmount:
+		return m.OldCommissionBaseAmount(ctx)
 	case financecommissionline.FieldRatePercent:
 		return m.OldRatePercent(ctx)
 	case financecommissionline.FieldCommissionAmount:
@@ -27212,6 +27856,34 @@ func (m *FinanceCommissionLineMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetOrderNo(v)
 		return nil
+	case financecommissionline.FieldOrderDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderDate(v)
+		return nil
+	case financecommissionline.FieldCustomerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomerID(v)
+		return nil
+	case financecommissionline.FieldCustomerCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomerCode(v)
+		return nil
+	case financecommissionline.FieldCustomerName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomerName(v)
+		return nil
 	case financecommissionline.FieldPersonnelAssignmentID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -27232,6 +27904,20 @@ func (m *FinanceCommissionLineMutation) SetField(name string, value ent.Value) e
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPersonnelAssignedAt(v)
+		return nil
+	case financecommissionline.FieldFeeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeCount(v)
+		return nil
+	case financecommissionline.FieldFeeSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeSnapshot(v)
 		return nil
 	case financecommissionline.FieldEmployeeID:
 		v, ok := value.(uuid.UUID)
@@ -27289,6 +27975,13 @@ func (m *FinanceCommissionLineMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetRealizedProfit(v)
 		return nil
+	case financecommissionline.FieldCommissionBaseAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommissionBaseAmount(v)
+		return nil
 	case financecommissionline.FieldRatePercent:
 		v, ok := value.(string)
 		if !ok {
@@ -27310,13 +28003,21 @@ func (m *FinanceCommissionLineMutation) SetField(name string, value ent.Value) e
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *FinanceCommissionLineMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addfee_count != nil {
+		fields = append(fields, financecommissionline.FieldFeeCount)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *FinanceCommissionLineMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case financecommissionline.FieldFeeCount:
+		return m.AddedFeeCount()
+	}
 	return nil, false
 }
 
@@ -27325,6 +28026,13 @@ func (m *FinanceCommissionLineMutation) AddedField(name string) (ent.Value, bool
 // type.
 func (m *FinanceCommissionLineMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case financecommissionline.FieldFeeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFeeCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FinanceCommissionLine numeric field %s", name)
 }
@@ -27370,6 +28078,18 @@ func (m *FinanceCommissionLineMutation) ResetField(name string) error {
 	case financecommissionline.FieldOrderNo:
 		m.ResetOrderNo()
 		return nil
+	case financecommissionline.FieldOrderDate:
+		m.ResetOrderDate()
+		return nil
+	case financecommissionline.FieldCustomerID:
+		m.ResetCustomerID()
+		return nil
+	case financecommissionline.FieldCustomerCode:
+		m.ResetCustomerCode()
+		return nil
+	case financecommissionline.FieldCustomerName:
+		m.ResetCustomerName()
+		return nil
 	case financecommissionline.FieldPersonnelAssignmentID:
 		m.ResetPersonnelAssignmentID()
 		return nil
@@ -27378,6 +28098,12 @@ func (m *FinanceCommissionLineMutation) ResetField(name string) error {
 		return nil
 	case financecommissionline.FieldPersonnelAssignedAt:
 		m.ResetPersonnelAssignedAt()
+		return nil
+	case financecommissionline.FieldFeeCount:
+		m.ResetFeeCount()
+		return nil
+	case financecommissionline.FieldFeeSnapshot:
+		m.ResetFeeSnapshot()
 		return nil
 	case financecommissionline.FieldEmployeeID:
 		m.ResetEmployeeID()
@@ -27402,6 +28128,9 @@ func (m *FinanceCommissionLineMutation) ResetField(name string) error {
 		return nil
 	case financecommissionline.FieldRealizedProfit:
 		m.ResetRealizedProfit()
+		return nil
+	case financecommissionline.FieldCommissionBaseAmount:
+		m.ResetCommissionBaseAmount()
 		return nil
 	case financecommissionline.FieldRatePercent:
 		m.ResetRatePercent()

@@ -40,6 +40,12 @@ type FinanceCommission struct {
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
 	EmployeeName string `json:"employee_name,omitempty"`
+	// CustomerCount holds the value of the "customer_count" field.
+	CustomerCount int `json:"customer_count,omitempty"`
+	// OrderCount holds the value of the "order_count" field.
+	OrderCount int `json:"order_count,omitempty"`
+	// FeeCount holds the value of the "fee_count" field.
+	FeeCount int `json:"fee_count,omitempty"`
 	// RuleID holds the value of the "rule_id" field.
 	RuleID *uuid.UUID `json:"rule_id,omitempty"`
 	// RuleName holds the value of the "rule_name" field.
@@ -64,6 +70,8 @@ type FinanceCommission struct {
 	AllocatedCost string `json:"allocated_cost,omitempty"`
 	// RealizedProfit holds the value of the "realized_profit" field.
 	RealizedProfit string `json:"realized_profit,omitempty"`
+	// CommissionBaseAmount holds the value of the "commission_base_amount" field.
+	CommissionBaseAmount string `json:"commission_base_amount,omitempty"`
 	// RatePercent holds the value of the "rate_percent" field.
 	RatePercent string `json:"rate_percent,omitempty"`
 	// CommissionAmount holds the value of the "commission_amount" field.
@@ -221,9 +229,9 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financecommission.FieldRuleID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
+		case financecommission.FieldCustomerCount, financecommission.FieldOrderCount, financecommission.FieldFeeCount, financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -304,6 +312,24 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.EmployeeName = value.String
 			}
+		case financecommission.FieldCustomerCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_count", values[i])
+			} else if value.Valid {
+				_m.CustomerCount = int(value.Int64)
+			}
+		case financecommission.FieldOrderCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field order_count", values[i])
+			} else if value.Valid {
+				_m.OrderCount = int(value.Int64)
+			}
+		case financecommission.FieldFeeCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_count", values[i])
+			} else if value.Valid {
+				_m.FeeCount = int(value.Int64)
+			}
 		case financecommission.FieldRuleID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field rule_id", values[i])
@@ -379,6 +405,12 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field realized_profit", values[i])
 			} else if value.Valid {
 				_m.RealizedProfit = value.String
+			}
+		case financecommission.FieldCommissionBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field commission_base_amount", values[i])
+			} else if value.Valid {
+				_m.CommissionBaseAmount = value.String
 			}
 		case financecommission.FieldRatePercent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -568,6 +600,15 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString("employee_name=")
 	builder.WriteString(_m.EmployeeName)
 	builder.WriteString(", ")
+	builder.WriteString("customer_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CustomerCount))
+	builder.WriteString(", ")
+	builder.WriteString("order_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrderCount))
+	builder.WriteString(", ")
+	builder.WriteString("fee_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeCount))
+	builder.WriteString(", ")
 	if v := _m.RuleID; v != nil {
 		builder.WriteString("rule_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -611,6 +652,9 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("realized_profit=")
 	builder.WriteString(_m.RealizedProfit)
+	builder.WriteString(", ")
+	builder.WriteString("commission_base_amount=")
+	builder.WriteString(_m.CommissionBaseAmount)
 	builder.WriteString(", ")
 	builder.WriteString("rate_percent=")
 	builder.WriteString(_m.RatePercent)

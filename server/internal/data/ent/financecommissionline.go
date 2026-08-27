@@ -33,12 +33,24 @@ type FinanceCommissionLine struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// OrderNo holds the value of the "order_no" field.
 	OrderNo string `json:"order_no,omitempty"`
+	// OrderDate holds the value of the "order_date" field.
+	OrderDate string `json:"order_date,omitempty"`
+	// CustomerID holds the value of the "customer_id" field.
+	CustomerID uuid.UUID `json:"customer_id,omitempty"`
+	// CustomerCode holds the value of the "customer_code" field.
+	CustomerCode string `json:"customer_code,omitempty"`
+	// CustomerName holds the value of the "customer_name" field.
+	CustomerName string `json:"customer_name,omitempty"`
 	// PersonnelAssignmentID holds the value of the "personnel_assignment_id" field.
 	PersonnelAssignmentID uuid.UUID `json:"personnel_assignment_id,omitempty"`
 	// PersonnelOrganizationID holds the value of the "personnel_organization_id" field.
 	PersonnelOrganizationID uuid.UUID `json:"personnel_organization_id,omitempty"`
 	// PersonnelAssignedAt holds the value of the "personnel_assigned_at" field.
 	PersonnelAssignedAt time.Time `json:"personnel_assigned_at,omitempty"`
+	// FeeCount holds the value of the "fee_count" field.
+	FeeCount int `json:"fee_count,omitempty"`
+	// FeeSnapshot holds the value of the "fee_snapshot" field.
+	FeeSnapshot string `json:"fee_snapshot,omitempty"`
 	// EmployeeID holds the value of the "employee_id" field.
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
@@ -55,6 +67,8 @@ type FinanceCommissionLine struct {
 	AllocatedCost string `json:"allocated_cost,omitempty"`
 	// RealizedProfit holds the value of the "realized_profit" field.
 	RealizedProfit string `json:"realized_profit,omitempty"`
+	// CommissionBaseAmount holds the value of the "commission_base_amount" field.
+	CommissionBaseAmount string `json:"commission_base_amount,omitempty"`
 	// RatePercent holds the value of the "rate_percent" field.
 	RatePercent string `json:"rate_percent,omitempty"`
 	// CommissionAmount holds the value of the "commission_amount" field.
@@ -116,11 +130,13 @@ func (*FinanceCommissionLine) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionline.FieldOrderNo, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount:
+		case financecommissionline.FieldFeeCount:
+			values[i] = new(sql.NullInt64)
+		case financecommissionline.FieldOrderNo, financecommissionline.FieldOrderDate, financecommissionline.FieldCustomerCode, financecommissionline.FieldCustomerName, financecommissionline.FieldFeeSnapshot, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldCommissionBaseAmount, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount:
 			values[i] = new(sql.NullString)
 		case financecommissionline.FieldCreatedAt, financecommissionline.FieldUpdatedAt, financecommissionline.FieldPersonnelAssignedAt:
 			values[i] = new(sql.NullTime)
-		case financecommissionline.FieldID, financecommissionline.FieldOrganizationID, financecommissionline.FieldCommissionID, financecommissionline.FieldOrderID, financecommissionline.FieldPersonnelAssignmentID, financecommissionline.FieldPersonnelOrganizationID, financecommissionline.FieldEmployeeID:
+		case financecommissionline.FieldID, financecommissionline.FieldOrganizationID, financecommissionline.FieldCommissionID, financecommissionline.FieldOrderID, financecommissionline.FieldCustomerID, financecommissionline.FieldPersonnelAssignmentID, financecommissionline.FieldPersonnelOrganizationID, financecommissionline.FieldEmployeeID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -179,6 +195,30 @@ func (_m *FinanceCommissionLine) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.OrderNo = value.String
 			}
+		case financecommissionline.FieldOrderDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field order_date", values[i])
+			} else if value.Valid {
+				_m.OrderDate = value.String
+			}
+		case financecommissionline.FieldCustomerID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_id", values[i])
+			} else if value != nil {
+				_m.CustomerID = *value
+			}
+		case financecommissionline.FieldCustomerCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_code", values[i])
+			} else if value.Valid {
+				_m.CustomerCode = value.String
+			}
+		case financecommissionline.FieldCustomerName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_name", values[i])
+			} else if value.Valid {
+				_m.CustomerName = value.String
+			}
 		case financecommissionline.FieldPersonnelAssignmentID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field personnel_assignment_id", values[i])
@@ -196,6 +236,18 @@ func (_m *FinanceCommissionLine) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field personnel_assigned_at", values[i])
 			} else if value.Valid {
 				_m.PersonnelAssignedAt = value.Time
+			}
+		case financecommissionline.FieldFeeCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_count", values[i])
+			} else if value.Valid {
+				_m.FeeCount = int(value.Int64)
+			}
+		case financecommissionline.FieldFeeSnapshot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_snapshot", values[i])
+			} else if value.Valid {
+				_m.FeeSnapshot = value.String
 			}
 		case financecommissionline.FieldEmployeeID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -244,6 +296,12 @@ func (_m *FinanceCommissionLine) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field realized_profit", values[i])
 			} else if value.Valid {
 				_m.RealizedProfit = value.String
+			}
+		case financecommissionline.FieldCommissionBaseAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field commission_base_amount", values[i])
+			} else if value.Valid {
+				_m.CommissionBaseAmount = value.String
 			}
 		case financecommissionline.FieldRatePercent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -326,6 +384,18 @@ func (_m *FinanceCommissionLine) String() string {
 	builder.WriteString("order_no=")
 	builder.WriteString(_m.OrderNo)
 	builder.WriteString(", ")
+	builder.WriteString("order_date=")
+	builder.WriteString(_m.OrderDate)
+	builder.WriteString(", ")
+	builder.WriteString("customer_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CustomerID))
+	builder.WriteString(", ")
+	builder.WriteString("customer_code=")
+	builder.WriteString(_m.CustomerCode)
+	builder.WriteString(", ")
+	builder.WriteString("customer_name=")
+	builder.WriteString(_m.CustomerName)
+	builder.WriteString(", ")
 	builder.WriteString("personnel_assignment_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PersonnelAssignmentID))
 	builder.WriteString(", ")
@@ -334,6 +404,12 @@ func (_m *FinanceCommissionLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("personnel_assigned_at=")
 	builder.WriteString(_m.PersonnelAssignedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("fee_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeCount))
+	builder.WriteString(", ")
+	builder.WriteString("fee_snapshot=")
+	builder.WriteString(_m.FeeSnapshot)
 	builder.WriteString(", ")
 	builder.WriteString("employee_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EmployeeID))
@@ -358,6 +434,9 @@ func (_m *FinanceCommissionLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("realized_profit=")
 	builder.WriteString(_m.RealizedProfit)
+	builder.WriteString(", ")
+	builder.WriteString("commission_base_amount=")
+	builder.WriteString(_m.CommissionBaseAmount)
 	builder.WriteString(", ")
 	builder.WriteString("rate_percent=")
 	builder.WriteString(_m.RatePercent)

@@ -27,12 +27,24 @@ const (
 	FieldOrderID = "order_id"
 	// FieldOrderNo holds the string denoting the order_no field in the database.
 	FieldOrderNo = "order_no"
+	// FieldOrderDate holds the string denoting the order_date field in the database.
+	FieldOrderDate = "order_date"
+	// FieldCustomerID holds the string denoting the customer_id field in the database.
+	FieldCustomerID = "customer_id"
+	// FieldCustomerCode holds the string denoting the customer_code field in the database.
+	FieldCustomerCode = "customer_code"
+	// FieldCustomerName holds the string denoting the customer_name field in the database.
+	FieldCustomerName = "customer_name"
 	// FieldPersonnelAssignmentID holds the string denoting the personnel_assignment_id field in the database.
 	FieldPersonnelAssignmentID = "personnel_assignment_id"
 	// FieldPersonnelOrganizationID holds the string denoting the personnel_organization_id field in the database.
 	FieldPersonnelOrganizationID = "personnel_organization_id"
 	// FieldPersonnelAssignedAt holds the string denoting the personnel_assigned_at field in the database.
 	FieldPersonnelAssignedAt = "personnel_assigned_at"
+	// FieldFeeCount holds the string denoting the fee_count field in the database.
+	FieldFeeCount = "fee_count"
+	// FieldFeeSnapshot holds the string denoting the fee_snapshot field in the database.
+	FieldFeeSnapshot = "fee_snapshot"
 	// FieldEmployeeID holds the string denoting the employee_id field in the database.
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
@@ -49,6 +61,8 @@ const (
 	FieldAllocatedCost = "allocated_cost"
 	// FieldRealizedProfit holds the string denoting the realized_profit field in the database.
 	FieldRealizedProfit = "realized_profit"
+	// FieldCommissionBaseAmount holds the string denoting the commission_base_amount field in the database.
+	FieldCommissionBaseAmount = "commission_base_amount"
 	// FieldRatePercent holds the string denoting the rate_percent field in the database.
 	FieldRatePercent = "rate_percent"
 	// FieldCommissionAmount holds the string denoting the commission_amount field in the database.
@@ -93,9 +107,15 @@ var Columns = []string{
 	FieldCommissionID,
 	FieldOrderID,
 	FieldOrderNo,
+	FieldOrderDate,
+	FieldCustomerID,
+	FieldCustomerCode,
+	FieldCustomerName,
 	FieldPersonnelAssignmentID,
 	FieldPersonnelOrganizationID,
 	FieldPersonnelAssignedAt,
+	FieldFeeCount,
+	FieldFeeSnapshot,
 	FieldEmployeeID,
 	FieldEmployeeName,
 	FieldPersonnelRole,
@@ -104,6 +124,7 @@ var Columns = []string{
 	FieldRealizedRevenue,
 	FieldAllocatedCost,
 	FieldRealizedProfit,
+	FieldCommissionBaseAmount,
 	FieldRatePercent,
 	FieldCommissionAmount,
 }
@@ -127,6 +148,16 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
 	OrderNoValidator func(string) error
+	// OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
+	OrderDateValidator func(string) error
+	// CustomerCodeValidator is a validator for the "customer_code" field. It is called by the builders before save.
+	CustomerCodeValidator func(string) error
+	// CustomerNameValidator is a validator for the "customer_name" field. It is called by the builders before save.
+	CustomerNameValidator func(string) error
+	// FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
+	FeeCountValidator func(int) error
+	// DefaultFeeSnapshot holds the default value on creation for the "fee_snapshot" field.
+	DefaultFeeSnapshot string
 	// EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	EmployeeNameValidator func(string) error
 	// PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
@@ -177,6 +208,26 @@ func ByOrderNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderNo, opts...).ToFunc()
 }
 
+// ByOrderDate orders the results by the order_date field.
+func ByOrderDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrderDate, opts...).ToFunc()
+}
+
+// ByCustomerID orders the results by the customer_id field.
+func ByCustomerID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomerID, opts...).ToFunc()
+}
+
+// ByCustomerCode orders the results by the customer_code field.
+func ByCustomerCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomerCode, opts...).ToFunc()
+}
+
+// ByCustomerName orders the results by the customer_name field.
+func ByCustomerName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomerName, opts...).ToFunc()
+}
+
 // ByPersonnelAssignmentID orders the results by the personnel_assignment_id field.
 func ByPersonnelAssignmentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPersonnelAssignmentID, opts...).ToFunc()
@@ -190,6 +241,16 @@ func ByPersonnelOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 // ByPersonnelAssignedAt orders the results by the personnel_assigned_at field.
 func ByPersonnelAssignedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPersonnelAssignedAt, opts...).ToFunc()
+}
+
+// ByFeeCount orders the results by the fee_count field.
+func ByFeeCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeCount, opts...).ToFunc()
+}
+
+// ByFeeSnapshot orders the results by the fee_snapshot field.
+func ByFeeSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeSnapshot, opts...).ToFunc()
 }
 
 // ByEmployeeID orders the results by the employee_id field.
@@ -230,6 +291,11 @@ func ByAllocatedCost(opts ...sql.OrderTermOption) OrderOption {
 // ByRealizedProfit orders the results by the realized_profit field.
 func ByRealizedProfit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRealizedProfit, opts...).ToFunc()
+}
+
+// ByCommissionBaseAmount orders the results by the commission_base_amount field.
+func ByCommissionBaseAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCommissionBaseAmount, opts...).ToFunc()
 }
 
 // ByRatePercent orders the results by the rate_percent field.

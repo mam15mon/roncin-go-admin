@@ -117,8 +117,9 @@ type PersonnelRole string
 
 // PersonnelRole values.
 const (
-	PersonnelRoleSALES    PersonnelRole = "SALES"
-	PersonnelRoleOPERATOR PersonnelRole = "OPERATOR"
+	PersonnelRoleSALES            PersonnelRole = "SALES"
+	PersonnelRoleOPERATOR         PersonnelRole = "OPERATOR"
+	PersonnelRoleCUSTOMER_SERVICE PersonnelRole = "CUSTOMER_SERVICE"
 )
 
 func (pr PersonnelRole) String() string {
@@ -128,7 +129,7 @@ func (pr PersonnelRole) String() string {
 // PersonnelRoleValidator is a validator for the "personnel_role" field enum values. It is called by the builders before save.
 func PersonnelRoleValidator(pr PersonnelRole) error {
 	switch pr {
-	case PersonnelRoleSALES, PersonnelRoleOPERATOR:
+	case PersonnelRoleSALES, PersonnelRoleOPERATOR, PersonnelRoleCUSTOMER_SERVICE:
 		return nil
 	default:
 		return fmt.Errorf("financecommissionrule: invalid enum value for personnel_role field: %q", pr)

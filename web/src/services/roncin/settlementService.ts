@@ -503,7 +503,7 @@ export async function settlementServiceListCommissionCandidates(
   params: API.SettlementServiceListCommissionCandidatesParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListCommissionEmployeesResponse>(
+  return request<API.ListCommissionCandidateSummariesResponse>(
     "/api/v1/finance/commissions/candidates",
     {
       method: "GET",

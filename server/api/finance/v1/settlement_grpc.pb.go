@@ -108,7 +108,7 @@ type SettlementServiceClient interface {
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
-	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
+	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidateSummariesResponse, error)
 	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
 	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
@@ -441,9 +441,9 @@ func (c *settlementServiceClient) ListCommissionEmployees(ctx context.Context, i
 	return out, nil
 }
 
-func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error) {
+func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidateSummariesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCommissionEmployeesResponse)
+	out := new(ListCommissionCandidateSummariesResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListCommissionCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -614,7 +614,7 @@ type SettlementServiceServer interface {
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*CommissionResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
-	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionEmployeesResponse, error)
+	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidateSummariesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error)
@@ -730,7 +730,7 @@ func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetC
 func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionEmployees not implemented")
 }
-func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionEmployeesResponse, error) {
+func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidateSummariesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error) {
