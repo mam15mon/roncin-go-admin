@@ -62,6 +62,23 @@ function amount(value?: string | number) {
   return Number(value || 0);
 }
 
+function formatMoney(value?: any, decimals = 2): string {
+  if (value === undefined || value === null || value === '') return '-';
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  return num.toLocaleString('zh-CN', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+function formatRate(value?: any): string {
+  if (value === undefined || value === null || value === '') return '-';
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  return Number(num.toFixed(4)).toString();
+}
+
 export default function FinanceFeeLedgerPage() {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -276,36 +293,51 @@ export default function FinanceFeeLedgerPage() {
     {
       title: '金额',
       dataIndex: 'totalAmount',
-      width: 125,
+      width: 110,
       align: 'right',
       search: false,
       render: (_, row) => (
-        <strong style={{ color: '#262626' }}>
-          {row.totalAmount} {row.currency}
-        </strong>
+        <span
+          style={{
+            fontWeight: 600,
+            color: '#262626',
+            fontFamily: 'monospace',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {formatMoney(row.totalAmount)}
+        </span>
       ),
     },
     {
       title: '汇率',
       dataIndex: 'exchangeRate',
-      width: 85,
+      width: 80,
       align: 'right',
       search: false,
+      render: (val) => (
+        <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+          {formatRate(val)}
+        </span>
+      ),
     },
     {
       title: '折本币总价',
       dataIndex: 'baseCurrencyAmount',
-      width: 135,
+      width: 120,
       align: 'right',
       search: false,
       render: (_, row) => (
-        <strong
+        <span
           style={{
+            fontWeight: 600,
+            fontFamily: 'monospace',
+            whiteSpace: 'nowrap',
             color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
           }}
         >
-          {row.baseCurrencyAmount} {row.baseCurrency}
-        </strong>
+          {formatMoney(row.baseCurrencyAmount)}
+        </span>
       ),
     },
     {
@@ -314,21 +346,35 @@ export default function FinanceFeeLedgerPage() {
       width: 75,
       align: 'right',
       search: false,
-      render: (val) => (val ? `${Number(val) * 100}%` : '-'),
+      render: (val) => (
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {val ? `${Number(val) * 100}%` : '-'}
+        </span>
+      ),
     },
     {
       title: '税金',
       dataIndex: 'taxAmount',
-      width: 95,
+      width: 90,
       align: 'right',
       search: false,
+      render: (val) => (
+        <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+          {formatMoney(val)}
+        </span>
+      ),
     },
     {
       title: '不含税总价',
       dataIndex: 'netAmount',
-      width: 110,
+      width: 100,
       align: 'right',
       search: false,
+      render: (val) => (
+        <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+          {formatMoney(val)}
+        </span>
+      ),
     },
     {
       title: '费用状态',
