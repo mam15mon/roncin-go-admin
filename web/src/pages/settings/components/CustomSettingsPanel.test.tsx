@@ -31,7 +31,7 @@ describe('CustomSettingsPanel', () => {
     cleanup();
   });
 
-  it('正确加载并渲染自定义汇率设置与继承规则表格', async () => {
+  it('正确加载并渲染自定义汇率设置项与开关', async () => {
     mockGetExchangeRateCustomSetting.mockResolvedValueOnce({
       success: true,
       data: {
@@ -47,19 +47,12 @@ describe('CustomSettingsPanel', () => {
       </App>,
     );
 
-    expect(screen.getByText('财务汇率继承设置')).toBeInTheDocument();
-    expect(screen.getByText('专用汇率未配置时，继承折本币汇率')).toBeInTheDocument();
+    expect(screen.getByText('财务汇率设置')).toBeInTheDocument();
+    expect(screen.getByText('专用汇率未配置时继承折本币汇率')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('默认关闭')).toBeInTheDocument();
     });
-
-    // 检查规则表格中的业务环节
-    expect(screen.getByText('建立账单')).toBeInTheDocument();
-    expect(screen.getByText('登记开票')).toBeInTheDocument();
-    expect(screen.getByText('收付结算')).toBeInTheDocument();
-    expect(screen.getByText('资金核销')).toBeInTheDocument();
-    expect(screen.getByText('汇率生效与优先级规则')).toBeInTheDocument();
   });
 
   it('点击切换开关时提交 expectedVersion 并成功更新状态', async () => {
