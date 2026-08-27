@@ -142,6 +142,9 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			CustomerName:      customer.LegalName,
 			FinancialProgress: biz.FeeLedgerUnbilled,
 		}
+		if fee.Status == biz.OrderFeeCancelled {
+			ledgerItem.FinancialProgress = ""
+		}
 		billLines, edgeErr := item.Edges.FinanceBillLinesOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr
