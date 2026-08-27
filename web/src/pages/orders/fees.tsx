@@ -733,7 +733,8 @@ export default function OrderFeesPage() {
       width: 110,
       fixed: 'right',
       render: (_, record) => financeLocked ? [] : [
-        feeStatusCode(record.status) === FEE_DRAFT && (
+        (feeStatusCode(record.status) === FEE_DRAFT ||
+          feeStatusCode(record.status) === FEE_BILLED) && (
           <Button
             key="edit"
             type="link"
@@ -1231,6 +1232,7 @@ export default function OrderFeesPage() {
               name="feeSettingId"
               label="费用项目"
               rules={[{ required: true, message: '请选择费用项目' }]}
+              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
               options={feeSettings.map((item) => ({
                 label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
                 value: item.id ?? '',
@@ -1287,6 +1289,7 @@ export default function OrderFeesPage() {
               name="settlementPartyId"
               label="结算单位"
               rules={[{ required: true, message: '请选择结算单位' }]}
+              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
               options={settlementParties.map((item) => ({
                 label: item.name ?? '',
                 value: item.id ?? '',
@@ -1369,6 +1372,7 @@ export default function OrderFeesPage() {
               name="billingUnitId"
               label="计费单位"
               rules={[{ required: true, message: '请选择计费单位' }]}
+              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
               options={billingUnits.map((u) => ({
                 label: `${u.name} (${u.code})`,
                 value: u.id ?? '',
@@ -1380,6 +1384,7 @@ export default function OrderFeesPage() {
               name="expenseDate"
               label="发生日期"
               rules={[{ required: true, message: '请选择发生日期' }]}
+              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
               fieldProps={{ style: { width: '100%' } }}
             />
           </Col>

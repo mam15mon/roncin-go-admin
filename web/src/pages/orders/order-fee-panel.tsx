@@ -390,16 +390,18 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         fixed: 'right',
         render: (_, record) => (
           <Space size="small">
-            {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => openEdit(record)}
-              >
-                编辑
-              </Button>
-            )}
+            {canUpdate &&
+              (feeStatusCode(record.status) === FEE_DRAFT ||
+                feeStatusCode(record.status) === FEE_BILLED) && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => openEdit(record)}
+                >
+                  编辑
+                </Button>
+              )}
             {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
               <Popconfirm
                 title="确认后该费用才能进入账单，确定继续？"
@@ -709,6 +711,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             name="direction"
             label="应收 / 应付"
             rules={[{ required: true, message: '请选择收付方向' }]}
+            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
             options={[
               { label: '应收', value: RECEIVABLE },
               { label: '应付', value: PAYABLE },
@@ -719,6 +722,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             name="feeSettingId"
             label="费用设置"
             rules={[{ required: true, message: '请选择费用设置' }]}
+            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
             showSearch
             options={feeSettings.map((item) => ({
               label: `${item.feeCode} - ${item.nameZh}${item.aliasName ? `（${item.aliasName}）` : ''}`,
@@ -773,6 +777,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             name="settlementPartyId"
             label="结算单位"
             rules={[{ required: true, message: '请选择结算单位' }]}
+            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
             showSearch
             options={settlementParties.map((item) => ({
               label: `${item.name} (${item.code})`,
@@ -785,6 +790,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             name="billingUnitId"
             label="计费单位"
             rules={[{ required: true, message: '请选择计费单位' }]}
+            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
             options={billingUnits.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
