@@ -65,7 +65,7 @@ type CreateValues = {
 };
 type RuleValues = {
   name: string;
-  personnelRole: 'SALES' | 'OPERATOR';
+  personnelRole: 'SALES' | 'OPERATOR' | 'CUSTOMER_SERVICE';
   calculationBasis: 'REALIZED_PROFIT' | 'REALIZED_REVENUE';
   ratePercent: number;
   effectiveRange?: [Dayjs, Dayjs];
@@ -90,8 +90,11 @@ const statusMeta: Record<string, { text: string; color: string }> = {
 const calculationBasisText = (value?: string) =>
   value === 'REALIZED_REVENUE' ? '已实现收入' : '已实现毛利';
 
-const personnelRoleText = (value?: string) =>
-  value === 'OPERATOR' ? '操作' : '销售';
+const personnelRoleText = (value?: string) => {
+  if (value === 'OPERATOR') return '操作';
+  if (value === 'CUSTOMER_SERVICE') return '客服';
+  return '销售';
+};
 
 const decimalText = (value?: string) => {
   if (!value) return '0';
@@ -219,7 +222,7 @@ export default function FinanceCommissionsPage() {
       title: `${action}提成 ${record.commissionNo}？`,
       content:
         target === 'CONFIRMED'
-          ? '系统会重新校验核销、账单费用、提成规则和人员归属；来源发生变化时将拒绝确认。'
+          ? '系统会重新校验核销、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
           : '该操作表示提成已实际发放，完成后不可取消。',
       onOk: async () => {
         const body = { id, expectedVersion: version };
@@ -275,7 +278,7 @@ export default function FinanceCommissionsPage() {
     {
       title: '提成编号',
       dataIndex: 'commissionNo',
-      width: 260,
+      width: 240,
       copyable: true,
       search: false,
       render: (_, record) => (
@@ -305,13 +308,13 @@ export default function FinanceCommissionsPage() {
     {
       title: '提成员工',
       dataIndex: 'employeeName',
-      width: 130,
+      width: 120,
       search: false,
     },
     {
       title: '考核规则',
       dataIndex: 'ruleName',
-      width: 170,
+      width: 160,
       search: false,
       renderText: (value) => value || '历史手工计提',
     },
@@ -321,47 +324,58 @@ export default function FinanceCommissionsPage() {
       search: false,
       renderText: (_, record) =>
         record.personnelRole
-          ? `${record.personnelRole === 'SALES' ? '销售' : '操作'} · ${record.calculationBasis === 'REALIZED_PROFIT' ? '已实现毛利' : '已实现收入'}`
+          ? `${personnelRoleText(record.personnelRole)} · ${calculationBasisText(record.calculationBasis)}`
           : '-',
+    },
+    {
+      title: '业务覆盖',
+      width: 140,
+      search: false,
+      render: (_, record) => (
+        <Space size={4}>
+          <Tag color="blue">{record.customerCount || 1} 客户</Tag>
+          <Tag color="cyan">{record.orderCount || 1} 订单</Tag>
+        </Space>
+      ),
     },
     {
       title: '已实现收入',
       dataIndex: 'realizedRevenue',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
-      renderText: (value, record) => `${value} ${record.baseCurrency}`,
+      renderText: (value, record) => `${decimalText(value)} ${record.baseCurrency}`,
     },
     {
       title: '分摊成本',
       dataIndex: 'allocatedCost',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
-      renderText: (value, record) => `${value} ${record.baseCurrency}`,
+      renderText: (value, record) => `${decimalText(value)} ${record.baseCurrency}`,
     },
     {
       title: '已实现毛利',
       dataIndex: 'realizedProfit',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, record) => (
-        <strong>{`${record.realizedProfit} ${record.baseCurrency}`}</strong>
+        <strong>{`${decimalText(record.realizedProfit)} ${record.baseCurrency}`}</strong>
       ),
     },
     {
       title: '比例',
       dataIndex: 'ratePercent',
-      width: 90,
+      width: 80,
       align: 'right',
       search: false,
-      renderText: (value) => `${value}%`,
+      renderText: (value) => `${decimalText(value)}%`,
     },
     {
       title: '原始/有效提成',
       dataIndex: 'commissionAmount',
-      width: 180,
+      width: 170,
       align: 'right',
       search: false,
       render: (_, record) => (
@@ -408,17 +422,48 @@ export default function FinanceCommissionsPage() {
   ];
 
   const previewColumns = [
-    { title: '订单编号', dataIndex: 'orderNo', key: 'orderNo', width: 190 },
     {
-      title: '人员归属快照',
-      key: 'personnelSnapshot',
+      title: '客户名称',
+      dataIndex: 'customerName',
+      key: 'customerName',
       width: 180,
+      render: (val: string, line: API.FinanceCommissionLine) => (
+        <Space direction="vertical" size={0}>
+          <Typography.Text strong>{val || '-'}</Typography.Text>
+          {line.customerCode && (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {line.customerCode}
+            </Typography.Text>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '订单编号',
+      dataIndex: 'orderNo',
+      key: 'orderNo',
+      width: 170,
+      render: (val: string, line: API.FinanceCommissionLine) => (
+        <Space direction="vertical" size={0}>
+          <Typography.Text strong>{val}</Typography.Text>
+          {line.orderDate && (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {line.orderDate}
+            </Typography.Text>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '客户人员归属',
+      key: 'personnelSnapshot',
+      width: 170,
       render: (_: unknown, line: API.FinanceCommissionLine) => (
         <Space direction="vertical" size={0}>
           <span>{`${line.employeeName} · ${personnelRoleText(line.personnelRole)}`}</span>
-          <Typography.Text type="secondary">
-            {line.personnelAssignedAt
-              ? dayjs(line.personnelAssignedAt).format('YYYY-MM-DD HH:mm')
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {line.customerAssignedAt || line.personnelAssignedAt
+              ? `归属于 ${dayjs(line.customerAssignedAt || line.personnelAssignedAt).format('YYYY-MM-DD')}`
               : '-'}
           </Typography.Text>
         </Space>
@@ -445,8 +490,9 @@ export default function FinanceCommissionsPage() {
       dataIndex: 'realizedProfit',
       key: 'realizedProfit',
       align: 'right' as const,
-      render: (value: string, line: API.FinanceCommissionLine) =>
-        `${decimalText(value)} ${line.baseCurrency}`,
+      render: (value: string, line: API.FinanceCommissionLine) => (
+        <strong>{`${decimalText(value)} ${line.baseCurrency}`}</strong>
+      ),
     },
     {
       title: '提成金额',
@@ -460,6 +506,109 @@ export default function FinanceCommissionsPage() {
       ),
     },
   ];
+
+  const renderExpandedFees = (record: API.FinanceCommissionLine) => {
+    if (!record.fees || record.fees.length === 0) {
+      return (
+        <Typography.Text
+          type="secondary"
+          style={{ padding: '8px 16px', display: 'block' }}
+        >
+          暂无关联费用明细
+        </Typography.Text>
+      );
+    }
+    const feeColumns = [
+      {
+        title: '费用项目',
+        key: 'feeName',
+        render: (_: unknown, fee: API.CommissionFeeDetail) => (
+          <Space size={4}>
+            <Typography.Text strong>{fee.feeName || '-'}</Typography.Text>
+            {fee.feeCode && <Tag>{fee.feeCode}</Tag>}
+          </Space>
+        ),
+      },
+      {
+        title: '收付方向',
+        dataIndex: 'direction',
+        key: 'direction',
+        width: 90,
+        render: (dir: string) => (
+          <Tag color={dir === 'RECEIVABLE' ? 'blue' : 'orange'}>
+            {dir === 'RECEIVABLE' ? '应收' : '应付'}
+          </Tag>
+        ),
+      },
+      {
+        title: '结算单位',
+        dataIndex: 'settlementPartyName',
+        key: 'settlementPartyName',
+        render: (val?: string) => val || '-',
+      },
+      {
+        title: '原币金额',
+        key: 'totalAmount',
+        align: 'right' as const,
+        render: (_: unknown, fee: API.CommissionFeeDetail) =>
+          `${decimalText(fee.totalAmount)} ${fee.currency || ''}`,
+      },
+      {
+        title: '汇率',
+        dataIndex: 'exchangeRate',
+        key: 'exchangeRate',
+        align: 'right' as const,
+        width: 90,
+        render: (val?: string) => decimalText(val),
+      },
+      {
+        title: '折本币金额',
+        key: 'baseCurrencyAmount',
+        align: 'right' as const,
+        render: (_: unknown, fee: API.CommissionFeeDetail) => (
+          <Typography.Text strong>
+            {`${decimalText(fee.baseCurrencyAmount)} ${fee.baseCurrency || record.baseCurrency || ''}`}
+          </Typography.Text>
+        ),
+      },
+      {
+        title: '费用日期',
+        dataIndex: 'expenseDate',
+        key: 'expenseDate',
+        width: 110,
+        render: (val?: string) => val || '-',
+      },
+    ];
+
+    return (
+      <div
+        style={{
+          padding: '10px 16px',
+          backgroundColor: '#fafbfc',
+          borderRadius: 4,
+          border: '1px solid #f0f0f0',
+          margin: '4px 0',
+        }}
+      >
+        <Typography.Text
+          type="secondary"
+          style={{ fontSize: 12, marginBottom: 6, display: 'block' }}
+        >
+          订单费用构成核算快照（共 {record.fees.length} 笔）
+        </Typography.Text>
+        <Table<API.CommissionFeeDetail>
+          rowKey={(item) =>
+            item.feeId || `${item.feeCode}-${item.expenseDate}-${item.totalAmount}`
+          }
+          columns={feeColumns}
+          dataSource={record.fees}
+          pagination={false}
+          size="small"
+          bordered
+        />
+      </div>
+    );
+  };
 
   const adjustmentColumns = [
     { title: '调整编号', dataIndex: 'adjustmentNo', key: 'adjustmentNo', width: 190 },
@@ -526,10 +675,14 @@ export default function FinanceCommissionsPage() {
     {
       title: '适用角色',
       dataIndex: 'personnelRole',
-      width: 100,
+      width: 120,
       valueType: 'select',
-      valueEnum: { SALES: { text: '销售' }, OPERATOR: { text: '操作' } },
-      renderText: (value) => (value === 'SALES' ? '销售' : '操作'),
+      valueEnum: {
+        SALES: { text: '客户销售' },
+        OPERATOR: { text: '客户操作' },
+        CUSTOMER_SERVICE: { text: '客户客服' },
+      },
+      renderText: (value) => personnelRoleText(value),
     },
     {
       title: '计算口径',
@@ -545,7 +698,7 @@ export default function FinanceCommissionsPage() {
       width: 90,
       align: 'right',
       search: false,
-      renderText: (value) => `${value}%`,
+      renderText: (value) => `${decimalText(value)}%`,
     },
     {
       title: '有效期',
@@ -599,7 +752,7 @@ export default function FinanceCommissionsPage() {
         columns={columns}
         bordered
         size="small"
-        scroll={{ x: 2050 }}
+        scroll={{ x: 2150 }}
         toolBarRender={() =>
           access.canManageFinanceCommissions
             ? [
@@ -647,7 +800,7 @@ export default function FinanceCommissionsPage() {
         formRef={createFormRef}
         title="生成提成"
         open={open}
-        width={960}
+        width={980}
         submitter={{
           searchConfig: { submitText: '生成草稿' },
           submitButtonProps: { disabled: !preview },
@@ -698,7 +851,7 @@ export default function FinanceCommissionsPage() {
         <ProFormSelect
           name="verificationId"
           label="有效应收核销"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: '请选择有效应收核销单' }]}
           request={async () => {
             const response = await settlementServiceListVerifications({
               page: 1,
@@ -724,7 +877,7 @@ export default function FinanceCommissionsPage() {
               enabled: true,
             });
             return (response.data || []).map((item) => ({
-              label: `${item.name}｜${item.personnelRole === 'SALES' ? '销售' : '操作'}｜${item.calculationBasis === 'REALIZED_PROFIT' ? '毛利' : '收入'} × ${item.ratePercent}%`,
+              label: `${item.name}｜${personnelRoleText(item.personnelRole)}｜${item.calculationBasis === 'REALIZED_PROFIT' ? '毛利' : '收入'} × ${decimalText(item.ratePercent)}%`,
               value: item.id,
             }));
           }}
@@ -734,8 +887,8 @@ export default function FinanceCommissionsPage() {
             <ProFormSelect
               key={`${verificationId || ''}-${ruleId || ''}`}
               name="employeeId"
-              label="符合规则的订单人员"
-              rules={[{ required: true, message: '请选择符合角色的订单人员' }]}
+              label="符合规则的客户归属人员"
+              rules={[{ required: true, message: '请选择符合角色的客户归属人员' }]}
               disabled={!verificationId || !ruleId}
               request={async () => {
                 if (!verificationId || !ruleId) return [];
@@ -749,7 +902,7 @@ export default function FinanceCommissionsPage() {
                   value: item.id,
                 }));
               }}
-              extra="人员来自本次核销涉及订单中的销售或操作分工，不能选择无关人员。"
+              extra="人员来自本次核销涉及订单的客户档案人员（按客户销售/指定角色归属匹配）。"
             />
           )}
         </ProFormDependency>
@@ -796,7 +949,7 @@ export default function FinanceCommissionsPage() {
                   type="info"
                   showIcon
                   message="生成前必须计算预览"
-                  description="系统会按本次核销涉及的订单，分别展示已实现收入、分摊成本、毛利和提成金额。"
+                  description="系统会按本次核销涉及的订单，分别展示已实现收入、分摊成本、毛利和提成金额，并支持下钻展开费用明细。"
                 />
               ) : (
                 <>
@@ -824,6 +977,11 @@ export default function FinanceCommissionsPage() {
                         key: 'rate',
                         label: '比例',
                         children: `${decimalText(preview.ratePercent)}%`,
+                      },
+                      {
+                        key: 'coverage',
+                        label: '业务覆盖',
+                        children: `${preview.customerCount || 1} 个客户 · ${preview.orderCount || 1} 票订单 · ${preview.feeCount || 0} 笔费用`,
                       },
                       {
                         key: 'revenue',
@@ -858,24 +1016,28 @@ export default function FinanceCommissionsPage() {
                     rowKey={(line) => line.orderId || line.orderNo || ''}
                     columns={previewColumns}
                     dataSource={preview.lines || []}
-                    scroll={{ x: 1040 }}
+                    scroll={{ x: 1080 }}
+                    expandable={{
+                      expandedRowRender: renderExpandedFees,
+                      rowExpandable: (record) => Boolean(record.fees && record.fees.length > 0),
+                    }}
                   />
                 </>
               )}
             </Space>
           )}
         </ProFormDependency>
-        <Space direction="vertical" size={2} style={{ color: '#666' }}>
+        <Space direction="vertical" size={2} style={{ color: '#666', marginTop: 8 }}>
           <span>
             计算比例、角色与口径均取自已启用且在核销日期生效的考核规则。
           </span>
           <span>亏损订单逐票按 0 计提，但仍保留真实负毛利快照。</span>
-          <span>草稿确认时会重新校验来源；来源变化后必须取消并重新生成。</span>
+          <span>草稿确认时会重新校验客户人员与费用来源；来源变化后必须取消并重新生成。</span>
         </Space>
       </ModalForm>
       <Drawer
         title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
-        width={1080}
+        width={1120}
         open={detailOpen}
         loading={detailLoading}
         extra={
@@ -938,6 +1100,11 @@ export default function FinanceCommissionsPage() {
                   children: `${decimalText(detail.ratePercent)}%`,
                 },
                 {
+                  key: 'coverage',
+                  label: '业务覆盖',
+                  children: `${detail.customerCount || 1} 个客户 · ${detail.orderCount || 1} 票订单 · ${detail.feeCount || 0} 笔费用`,
+                },
+                {
                   key: 'profit',
                   label: '已实现毛利',
                   children: `${decimalText(detail.realizedProfit)} ${detail.baseCurrency}`,
@@ -997,7 +1164,7 @@ export default function FinanceCommissionsPage() {
               type="info"
               showIcon
               message="逐订单计算快照与财务锁"
-              description="下列金额是生成提成时固化的计算证据。提成确认后，关联订单的原费用会进入财务锁定；后续差异必须新增独立调整，不能改写历史快照。"
+              description="下列数据是生成提成时固化的计算证据。提成确认后，关联订单的原费用会进入财务锁定；支持展开行下钻查看每笔订单的具体费用明细构成。"
             />
             <Table<API.FinanceCommissionLine>
               size="small"
@@ -1006,7 +1173,11 @@ export default function FinanceCommissionsPage() {
               rowKey={(line) => line.id || line.orderId || ''}
               columns={previewColumns}
               dataSource={detail.lines || []}
-              scroll={{ x: 1040 }}
+              scroll={{ x: 1080 }}
+              expandable={{
+                expandedRowRender: renderExpandedFees,
+                rowExpandable: (record) => Boolean(record.fees && record.fees.length > 0),
+              }}
             />
             <Space style={{ width: '100%', justifyContent: 'space-between' }}>
               <Typography.Title level={5} style={{ margin: 0 }}>
@@ -1212,24 +1383,25 @@ export default function FinanceCommissionsPage() {
         <ProFormText
           name="name"
           label="规则名称"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: '请输入规则名称' }]}
         />
         <ProFormSelect
           name="personnelRole"
-          label="适用订单角色"
-          rules={[{ required: true }]}
+          label="适用客户人员角色"
+          rules={[{ required: true, message: '请选择适用角色' }]}
           options={[
-            { value: 'SALES', label: '销售人员' },
-            { value: 'OPERATOR', label: '操作人员' },
+            { value: 'SALES', label: '客户销售人员' },
+            { value: 'OPERATOR', label: '客户操作人员' },
+            { value: 'CUSTOMER_SERVICE', label: '客户客服人员' },
           ]}
         />
         <ProFormSelect
           name="calculationBasis"
           label="计提口径"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: '请选择计提口径' }]}
           options={[
-            { value: 'REALIZED_PROFIT', label: '已实现毛利' },
-            { value: 'REALIZED_REVENUE', label: '已实现收入（计费数据）' },
+            { value: 'REALIZED_PROFIT', label: '已实现毛利（收入配比分摊成本）' },
+            { value: 'REALIZED_REVENUE', label: '已实现收入（回款全额）' },
           ]}
         />
         <ProFormDigit
@@ -1238,7 +1410,7 @@ export default function FinanceCommissionsPage() {
           min={0.0001}
           max={100}
           fieldProps={{ precision: 4 }}
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: '请输入提成比例' }]}
         />
         <ProFormDateRangePicker name="effectiveRange" label="生效区间" />
         <ProFormSwitch name="enabled" label="启用" />
