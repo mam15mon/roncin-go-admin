@@ -36,7 +36,7 @@ export default function ShippingLinesPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListShippingLines({ page: 1, pageSize: 100 });
+      const response = await masterDataServiceListShippingLines({ page: 1, pageSize: 200 });
       setData((response.data ?? []).map(mapShippingLine));
     } finally {
       setLoading(false);

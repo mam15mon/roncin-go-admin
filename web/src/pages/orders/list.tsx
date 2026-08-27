@@ -268,9 +268,9 @@ export default function OrderListPage() {
   useEffect(() => {
     void Promise.all([
       masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 100 }),
-      masterDataServiceListAirports({ page: 1, pageSize: 100 }),
-      partnerServiceListPartners({ role: 1, page: 1, pageSize: 100 }),
+      masterDataServiceListPorts({ page: 1, pageSize: 200 }),
+      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
+      partnerServiceListPartners({ role: 1, page: 1, pageSize: 200 }),
     ])
       .then(([optionsResponse, portsResponse, airportsResponse, partnersResponse]) => {
         setMasterOptions(optionsResponse.data ?? []);

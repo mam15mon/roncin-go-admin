@@ -224,18 +224,23 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'customerId',
       width: 180,
       valueType: 'select',
-      request: async () => {
+      request: async ({ keyWords }) => {
         const response = await partnerServiceListPartners({
           role: 1,
           page: 1,
-          pageSize: 100,
+          pageSize: 200,
+          keyword: keyWords,
         });
         return (response.data || []).map((item) => ({
           label: item.legalName || item.code || item.id,
           value: item.id,
         }));
       },
-      fieldProps: { showSearch: true, optionFilterProp: 'label' },
+      fieldProps: {
+        showSearch: true,
+        filterOption: false,
+        placeholder: '输入名称/全拼/首字母搜索',
+      },
       render: (_, row) => row.customerName || '-',
     },
     {

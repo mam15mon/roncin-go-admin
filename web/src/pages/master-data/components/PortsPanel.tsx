@@ -36,7 +36,7 @@ export default function PortsPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListPorts({ page: 1, pageSize: 100 });
+      const response = await masterDataServiceListPorts({ page: 1, pageSize: 200 });
       setData((response.data ?? []).map(mapPort));
     } finally {
       setLoading(false);

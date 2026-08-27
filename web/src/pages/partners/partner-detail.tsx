@@ -174,9 +174,9 @@ export default function PartnerDetailPage() {
     const fetchOptions = async () => {
       try {
         const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled([
-          adminServiceListUsers({ page: 1, pageSize: 100 }),
+          adminServiceListUsers({ page: 1, pageSize: 200 }),
           adminServiceListOrganizations(),
-          masterDataServiceListCurrencies(),
+          masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
           partnerServiceListPartnerAssignmentOptions(),
         ]);
 

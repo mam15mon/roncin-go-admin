@@ -32,7 +32,7 @@ export default function CountriesPanel() {
   const fetchServerData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await masterDataServiceListItems({ kind: 2, page: 1, pageSize: 100 });
+      const response = await masterDataServiceListItems({ kind: 2, page: 1, pageSize: 200 });
       setData((response.data ?? []).map(mapCountry));
     } finally {
       setLoading(false);

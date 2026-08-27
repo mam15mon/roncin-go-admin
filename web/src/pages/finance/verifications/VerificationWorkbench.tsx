@@ -84,7 +84,7 @@ export default function VerificationWorkbench({
 
   useEffect(() => {
     if (!open) return;
-    void partnerServiceListPartners({ page: 1, pageSize: 100, enabled: true })
+    void partnerServiceListPartners({ page: 1, pageSize: 200, enabled: true })
       .then((response) => setPartners(response.data || []))
       .catch(() => message.error('加载结算单位失败'));
   }, [message, open]);

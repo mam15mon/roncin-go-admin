@@ -261,9 +261,9 @@ export async function fetchOrderMasterData() {
   const [optionsResponse, portsResponse, airportsResponse, currenciesResponse] =
     await Promise.all([
       masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 100 }),
-      masterDataServiceListAirports({ page: 1, pageSize: 100 }),
-      masterDataServiceListCurrencies(),
+      masterDataServiceListPorts({ page: 1, pageSize: 200 }),
+      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
+      masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
     ]);
 
   const masterOptions = optionsResponse.data ?? [];

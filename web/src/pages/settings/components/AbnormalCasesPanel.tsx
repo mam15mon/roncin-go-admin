@@ -54,7 +54,7 @@ export function AbnormalCasesPanel() {
         const res = await masterDataServiceListItems({
           kind: ABNORMAL_CASE_KIND,
           page: 1,
-          pageSize: 100,
+          pageSize: 200,
         });
         return {
           data: res.data ?? [],

@@ -398,11 +398,12 @@ export default function FinanceCashflowsPage() {
           label="往来结算单位"
           rules={[{ required: true }]}
           showSearch
-          request={async () => {
+          request={async ({ keyWords }) => {
             const r = await partnerServiceListPartners({
               page: 1,
-              pageSize: 100,
+              pageSize: 200,
               enabled: true,
+              keyword: keyWords,
             });
             return (r.data || []).map((x) => ({
               value: x.id,
