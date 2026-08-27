@@ -101,7 +101,11 @@ func TestBackgroundTaskPageValues(t *testing.T) {
 	if _, _, err := backgroundTaskPageValues(-1, 20); err != biz.ErrBackgroundTaskInvalidArgument {
 		t.Fatalf("expected invalid argument for negative page, got %v", err)
 	}
-	if _, _, err := backgroundTaskPageValues(1, 101); err != biz.ErrBackgroundTaskInvalidArgument {
+	page, pageSize, err = backgroundTaskPageValues(1, biz.MaxListPageSize)
+	if err != nil || page != 1 || pageSize != biz.MaxListPageSize {
+		t.Fatalf("expected maximum page size, got %d/%d err %v", page, pageSize, err)
+	}
+	if _, _, err := backgroundTaskPageValues(1, biz.MaxListPageSize+1); err != biz.ErrBackgroundTaskInvalidArgument {
 		t.Fatalf("expected invalid argument for oversized page size, got %v", err)
 	}
 }
