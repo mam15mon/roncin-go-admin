@@ -33,7 +33,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Card, Modal, Popconfirm, Select, Space, Tag } from 'antd';
+import { App, Button, Card, Form, Modal, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
@@ -171,6 +171,7 @@ export function ExchangeRatesPanel() {
   const access = useAccess();
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const [form] = Form.useForm<ExchangeRateFormValues>();
   const [modalOpen, setModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
@@ -183,6 +184,26 @@ export function ExchangeRatesPanel() {
 
   const openCreate = () => {
     setEditing(undefined);
+    form.resetFields();
+    form.setFieldsValue({
+      rateType: 'BASE_CURRENCY',
+      toCurrency: baseCurrency,
+      effectiveFrom: dayjs(),
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (record: API.ExchangeRateSetting) => {
+    setEditing(record);
+    form.setFieldsValue({
+      rateType: record.rateType,
+      fromCurrency: record.fromCurrency,
+      toCurrency: record.toCurrency,
+      effectiveFrom: record.effectiveFrom ? dayjs(record.effectiveFrom) : undefined,
+      effectiveTo: record.effectiveTo ? dayjs(record.effectiveTo) : undefined,
+      receivableRate: trimExactDecimal(record.receivableRate),
+      payableRate: trimExactDecimal(record.payableRate),
+    });
     setModalOpen(true);
   };
 
@@ -341,10 +362,7 @@ export function ExchangeRatesPanel() {
               type="link"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => {
-                setEditing(record);
-                setModalOpen(true);
-              }}
+              onClick={() => openEdit(record)}
             >
               编辑
             </Button>
@@ -466,10 +484,12 @@ export function ExchangeRatesPanel() {
         initialValues={initialValues}
         layout="horizontal"
         labelAlign="right"
-        labelCol={{ flex: '120px' }}
-        wrapperCol={{ flex: 'auto' }}
+        form={form}
         modalProps={{ destroyOnHidden: true, onCancel: () => setModalOpen(false), width: 580 }}
-        onOpenChange={setModalOpen}
+        onOpenChange={(visible) => {
+          setModalOpen(visible);
+          if (!visible) setEditing(undefined);
+        }}
         onFinish={async (values) => {
           const effectiveFrom = dayjs(values.effectiveFrom).format('YYYY-MM-DDTHH:mm:ssZ');
           const effectiveTo = values.effectiveTo
@@ -479,28 +499,44 @@ export function ExchangeRatesPanel() {
             message.error('生效结束时间必须晚于生效开始时间');
             return false;
           }
+          const fromCurrency = (values.fromCurrency || editing?.fromCurrency || '').trim().toUpperCase();
+          const toCurrency = (values.toCurrency || editing?.toCurrency || baseCurrency || '').trim().toUpperCase();
+          if (!fromCurrency) {
+            message.error('请选择原币币种');
+            return false;
+          }
+          if (!toCurrency) {
+            message.error('未能获取目标本币');
+            return false;
+          }
           const input = {
             rateType: values.rateType,
-            fromCurrency: values.fromCurrency.trim().toUpperCase(),
-            toCurrency: values.toCurrency.trim().toUpperCase(),
+            fromCurrency,
+            toCurrency,
             effectiveFrom,
             effectiveTo,
             receivableRate: values.receivableRate,
             payableRate: values.payableRate,
           };
-          if (editing?.id) {
-            await exchangeRateServiceUpdateExchangeRateSetting(
-              { id: editing.id },
-              { id: editing.id, ...input },
-            );
-            message.success('汇率更新成功');
-          } else {
-            await exchangeRateServiceCreateExchangeRateSetting(input);
-            message.success('汇率创建成功');
+          try {
+            if (editing?.id) {
+              await exchangeRateServiceUpdateExchangeRateSetting(
+                { id: editing.id },
+                { id: editing.id, ...input },
+              );
+              message.success('汇率更新成功');
+            } else {
+              await exchangeRateServiceCreateExchangeRateSetting(input);
+              message.success('汇率创建成功');
+            }
+            setModalOpen(false);
+            actionRef.current?.reload();
+            return true;
+          } catch (err: any) {
+            const msg = err.data?.message || err.response?.data?.message || err.message;
+            message.error(msg || '保存汇率失败');
+            return false;
           }
-          setModalOpen(false);
-          actionRef.current?.reload();
-          return true;
         }}
       >
         <ProFormSelect
