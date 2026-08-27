@@ -70,9 +70,18 @@ export function TableColumnConfigModal({
   const [columnMap, setColumnMap] = useState<Map<string, boolean>>(new Map());
   const [searchKeyword, setSearchKeyword] = useState('');
 
-  // 拖拽状态
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // 拖拽状态（基于 key）
+  const [draggedKey, setDraggedKey] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+
+  // 全局实时序号映射（确保搜索/分类过滤后编号依然精准反映真实全局先后顺序）
+  const fieldOrderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    fieldList.forEach((f, idx) => {
+      map.set(f.key, idx + 1);
+    });
+    return map;
+  }, [fieldList]);
 
   // 2. 基础分页与排序
   const [pageSize, setPageSize] = useState<number>(40);
@@ -237,70 +246,76 @@ export function TableColumnConfigModal({
     message.success('已恢复系统默认推荐显示字段与初始顺序');
   };
 
-  // 拖拽排序事件
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
+  // 拖拽排序事件（基于 field key）
+  const handleDragStart = (e: React.DragEvent, key: string) => {
+    setDraggedKey(key);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(index));
+    e.dataTransfer.setData('text/plain', key);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent, key: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (dragOverIndex !== index) {
-      setDragOverIndex(index);
+    if (dragOverKey !== key) {
+      setDragOverKey(key);
     }
   };
 
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+  const handleDrop = (e: React.DragEvent, targetKey: string) => {
     e.preventDefault();
-    if (draggedIndex === null || draggedIndex === targetIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
+    if (!draggedKey || draggedKey === targetKey) {
+      setDraggedKey(null);
+      setDragOverKey(null);
       return;
     }
     setFieldList((prev) => {
       const next = [...prev];
-      const [item] = next.splice(draggedIndex, 1);
-      next.splice(targetIndex, 0, item);
+      const srcIdx = next.findIndex((f) => f.key === draggedKey);
+      const tgtIdx = next.findIndex((f) => f.key === targetKey);
+      if (srcIdx === -1 || tgtIdx === -1) return prev;
+      const [item] = next.splice(srcIdx, 1);
+      next.splice(tgtIdx, 0, item);
       return next;
     });
-    setDraggedIndex(null);
-    setDragOverIndex(null);
+    setDraggedKey(null);
+    setDragOverKey(null);
   };
 
-  // 快捷置顶
-  const handleMoveToTop = (index: number, e: React.MouseEvent) => {
+  // 快捷置顶（基于 key，全局安全）
+  const handleMoveToTop = (key: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (index === 0) return;
     setFieldList((prev) => {
+      const idx = prev.findIndex((f) => f.key === key);
+      if (idx <= 0) return prev;
       const next = [...prev];
-      const [item] = next.splice(index, 1);
+      const [item] = next.splice(idx, 1);
       next.unshift(item);
       return next;
     });
   };
 
-  // 快捷上移
-  const handleMoveUp = (index: number, e: React.MouseEvent) => {
+  // 快捷上移（基于 key，全局安全）
+  const handleMoveUp = (key: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (index === 0) return;
     setFieldList((prev) => {
+      const idx = prev.findIndex((f) => f.key === key);
+      if (idx <= 0) return prev;
       const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.splice(index - 1, 0, item);
+      const [item] = next.splice(idx, 1);
+      next.splice(idx - 1, 0, item);
       return next;
     });
   };
 
-  // 快捷下移
-  const handleMoveDown = (index: number, e: React.MouseEvent) => {
+  // 快捷下移（基于 key，全局安全）
+  const handleMoveDown = (key: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (index >= fieldList.length - 1) return;
     setFieldList((prev) => {
+      const idx = prev.findIndex((f) => f.key === key);
+      if (idx === -1 || idx >= prev.length - 1) return prev;
       const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.splice(index + 1, 0, item);
+      const [item] = next.splice(idx, 1);
+      next.splice(idx + 1, 0, item);
       return next;
     });
   };
@@ -527,21 +542,22 @@ export function TableColumnConfigModal({
             }}
           >
             <Row gutter={[8, 8]}>
-              {filteredFields.map((field, index) => {
+              {filteredFields.map((field) => {
                 const checked = Boolean(columnMap.get(field.key));
-                const isDragging = draggedIndex === index;
-                const isDragOver = dragOverIndex === index;
+                const isDragging = draggedKey === field.key;
+                const isDragOver = dragOverKey === field.key;
+                const globalIndex = fieldOrderMap.get(field.key) || 1;
 
                 return (
                   <Col span={6} key={field.key}>
                     <div
                       draggable
-                      onDragStart={(e) => handleDragStart(e, index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDrop={(e) => handleDrop(e, index)}
+                      onDragStart={(e) => handleDragStart(e, field.key)}
+                      onDragOver={(e) => handleDragOver(e, field.key)}
+                      onDrop={(e) => handleDrop(e, field.key)}
                       onDragEnd={() => {
-                        setDraggedIndex(null);
-                        setDragOverIndex(null);
+                        setDraggedKey(null);
+                        setDragOverKey(null);
                       }}
                       onClick={() => handleToggleColumn(field.key)}
                       style={{
@@ -587,7 +603,7 @@ export function TableColumnConfigModal({
                             display: 'inline-block',
                           }}
                         >
-                          #{index + 1}
+                          #{globalIndex}
                         </span>
                         <span
                           style={{
@@ -608,19 +624,19 @@ export function TableColumnConfigModal({
                         <Tooltip title="置顶">
                           <VerticalAlignTopOutlined
                             style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveToTop(index, e)}
+                            onClick={(e) => handleMoveToTop(field.key, e)}
                           />
                         </Tooltip>
                         <Tooltip title="上移">
                           <ArrowUpOutlined
                             style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveUp(index, e)}
+                            onClick={(e) => handleMoveUp(field.key, e)}
                           />
                         </Tooltip>
                         <Tooltip title="下移">
                           <ArrowDownOutlined
                             style={{ fontSize: 11, color: '#8c8c8c' }}
-                            onClick={(e) => handleMoveDown(index, e)}
+                            onClick={(e) => handleMoveDown(field.key, e)}
                           />
                         </Tooltip>
                         <Checkbox
