@@ -24,7 +24,12 @@ func (User) Fields() []ent.Field {
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
+}
+
+func (User) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("display_name", "wecom_name", "dingtalk_name")}
 }
 
 func (User) Edges() []ent.Edge {

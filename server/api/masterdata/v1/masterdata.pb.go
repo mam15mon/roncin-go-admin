@@ -4278,6 +4278,66 @@ func (*ListCurrenciesRequest) Descriptor() ([]byte, []int) {
 	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{41}
 }
 
+type SearchCurrenciesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchCurrenciesRequest) Reset() {
+	*x = SearchCurrenciesRequest{}
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchCurrenciesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchCurrenciesRequest) ProtoMessage() {}
+
+func (x *SearchCurrenciesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchCurrenciesRequest.ProtoReflect.Descriptor instead.
+func (*SearchCurrenciesRequest) Descriptor() ([]byte, []int) {
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *SearchCurrenciesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchCurrenciesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchCurrenciesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type Currency struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -4294,7 +4354,7 @@ type Currency struct {
 
 func (x *Currency) Reset() {
 	*x = Currency{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4306,7 +4366,7 @@ func (x *Currency) String() string {
 func (*Currency) ProtoMessage() {}
 
 func (x *Currency) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[42]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4319,7 +4379,7 @@ func (x *Currency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Currency.ProtoReflect.Descriptor instead.
 func (*Currency) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{42}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *Currency) GetId() string {
@@ -4385,13 +4445,16 @@ type ListCurrenciesResponse struct {
 	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data          []*Currency            `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListCurrenciesResponse) Reset() {
 	*x = ListCurrenciesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4403,7 +4466,7 @@ func (x *ListCurrenciesResponse) String() string {
 func (*ListCurrenciesResponse) ProtoMessage() {}
 
 func (x *ListCurrenciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[43]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4416,7 +4479,7 @@ func (x *ListCurrenciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrenciesResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrenciesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{43}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListCurrenciesResponse) GetSuccess() bool {
@@ -4454,18 +4517,41 @@ func (x *ListCurrenciesResponse) GetTraceId() string {
 	return ""
 }
 
+func (x *ListCurrenciesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListCurrenciesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListCurrenciesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type ListAdministrativeRegionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Level         *int32                 `protobuf:"varint,1,opt,name=level,proto3,oneof" json:"level,omitempty"`
 	ParentCode    *string                `protobuf:"bytes,2,opt,name=parent_code,json=parentCode,proto3,oneof" json:"parent_code,omitempty"`
 	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListAdministrativeRegionsRequest) Reset() {
 	*x = ListAdministrativeRegionsRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4477,7 +4563,7 @@ func (x *ListAdministrativeRegionsRequest) String() string {
 func (*ListAdministrativeRegionsRequest) ProtoMessage() {}
 
 func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[44]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4490,7 +4576,7 @@ func (x *ListAdministrativeRegionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAdministrativeRegionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAdministrativeRegionsRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{44}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ListAdministrativeRegionsRequest) GetLevel() int32 {
@@ -4514,6 +4600,20 @@ func (x *ListAdministrativeRegionsRequest) GetKeyword() string {
 	return ""
 }
 
+func (x *ListAdministrativeRegionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAdministrativeRegionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type AdministrativeRegion struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -4533,7 +4633,7 @@ type AdministrativeRegion struct {
 
 func (x *AdministrativeRegion) Reset() {
 	*x = AdministrativeRegion{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4545,7 +4645,7 @@ func (x *AdministrativeRegion) String() string {
 func (*AdministrativeRegion) ProtoMessage() {}
 
 func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[45]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4558,7 +4658,7 @@ func (x *AdministrativeRegion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdministrativeRegion.ProtoReflect.Descriptor instead.
 func (*AdministrativeRegion) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{45}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *AdministrativeRegion) GetId() string {
@@ -4645,13 +4745,16 @@ type ListAdministrativeRegionsResponse struct {
 	Message       string                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data          []*AdministrativeRegion `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                  `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                   `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                   `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                   `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListAdministrativeRegionsResponse) Reset() {
 	*x = ListAdministrativeRegionsResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4663,7 +4766,7 @@ func (x *ListAdministrativeRegionsResponse) String() string {
 func (*ListAdministrativeRegionsResponse) ProtoMessage() {}
 
 func (x *ListAdministrativeRegionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[46]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4676,7 +4779,7 @@ func (x *ListAdministrativeRegionsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListAdministrativeRegionsResponse.ProtoReflect.Descriptor instead.
 func (*ListAdministrativeRegionsResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{46}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListAdministrativeRegionsResponse) GetSuccess() bool {
@@ -4714,6 +4817,27 @@ func (x *ListAdministrativeRegionsResponse) GetTraceId() string {
 	return ""
 }
 
+func (x *ListAdministrativeRegionsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListAdministrativeRegionsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAdministrativeRegionsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type ListNumberRulesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -4722,7 +4846,7 @@ type ListNumberRulesRequest struct {
 
 func (x *ListNumberRulesRequest) Reset() {
 	*x = ListNumberRulesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4734,7 +4858,7 @@ func (x *ListNumberRulesRequest) String() string {
 func (*ListNumberRulesRequest) ProtoMessage() {}
 
 func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[47]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4747,7 +4871,7 @@ func (x *ListNumberRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNumberRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListNumberRulesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{47}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
 }
 
 type CreateNumberRuleRequest struct {
@@ -4763,7 +4887,7 @@ type CreateNumberRuleRequest struct {
 
 func (x *CreateNumberRuleRequest) Reset() {
 	*x = CreateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4775,7 +4899,7 @@ func (x *CreateNumberRuleRequest) String() string {
 func (*CreateNumberRuleRequest) ProtoMessage() {}
 
 func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[48]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4788,7 +4912,7 @@ func (x *CreateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{48}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CreateNumberRuleRequest) GetDocumentType() DocumentType {
@@ -4840,7 +4964,7 @@ type UpdateNumberRuleRequest struct {
 
 func (x *UpdateNumberRuleRequest) Reset() {
 	*x = UpdateNumberRuleRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4852,7 +4976,7 @@ func (x *UpdateNumberRuleRequest) String() string {
 func (*UpdateNumberRuleRequest) ProtoMessage() {}
 
 func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[49]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4865,7 +4989,7 @@ func (x *UpdateNumberRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNumberRuleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNumberRuleRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{49}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UpdateNumberRuleRequest) GetId() string {
@@ -4928,7 +5052,7 @@ type NumberRule struct {
 
 func (x *NumberRule) Reset() {
 	*x = NumberRule{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4940,7 +5064,7 @@ func (x *NumberRule) String() string {
 func (*NumberRule) ProtoMessage() {}
 
 func (x *NumberRule) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[50]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4953,7 +5077,7 @@ func (x *NumberRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NumberRule.ProtoReflect.Descriptor instead.
 func (*NumberRule) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{50}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *NumberRule) GetId() string {
@@ -5039,7 +5163,7 @@ type ListNumberRulesResponse struct {
 
 func (x *ListNumberRulesResponse) Reset() {
 	*x = ListNumberRulesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5051,7 +5175,7 @@ func (x *ListNumberRulesResponse) String() string {
 func (*ListNumberRulesResponse) ProtoMessage() {}
 
 func (x *ListNumberRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[51]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5064,7 +5188,7 @@ func (x *ListNumberRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNumberRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListNumberRulesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{51}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ListNumberRulesResponse) GetSuccess() bool {
@@ -5115,7 +5239,7 @@ type CreateNumberRuleResponse struct {
 
 func (x *CreateNumberRuleResponse) Reset() {
 	*x = CreateNumberRuleResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5127,7 +5251,7 @@ func (x *CreateNumberRuleResponse) String() string {
 func (*CreateNumberRuleResponse) ProtoMessage() {}
 
 func (x *CreateNumberRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[52]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5140,7 +5264,7 @@ func (x *CreateNumberRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNumberRuleResponse.ProtoReflect.Descriptor instead.
 func (*CreateNumberRuleResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{52}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CreateNumberRuleResponse) GetSuccess() bool {
@@ -5191,7 +5315,7 @@ type UpdateNumberRuleResponse struct {
 
 func (x *UpdateNumberRuleResponse) Reset() {
 	*x = UpdateNumberRuleResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5203,7 +5327,7 @@ func (x *UpdateNumberRuleResponse) String() string {
 func (*UpdateNumberRuleResponse) ProtoMessage() {}
 
 func (x *UpdateNumberRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[53]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5216,7 +5340,7 @@ func (x *UpdateNumberRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNumberRuleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNumberRuleResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{53}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UpdateNumberRuleResponse) GetSuccess() bool {
@@ -5268,7 +5392,7 @@ type StatusTemplateItemInput struct {
 
 func (x *StatusTemplateItemInput) Reset() {
 	*x = StatusTemplateItemInput{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5280,7 +5404,7 @@ func (x *StatusTemplateItemInput) String() string {
 func (*StatusTemplateItemInput) ProtoMessage() {}
 
 func (x *StatusTemplateItemInput) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[54]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5293,7 +5417,7 @@ func (x *StatusTemplateItemInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplateItemInput.ProtoReflect.Descriptor instead.
 func (*StatusTemplateItemInput) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{54}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *StatusTemplateItemInput) GetCode() string {
@@ -5351,7 +5475,7 @@ type CreateStatusTemplateRequest struct {
 
 func (x *CreateStatusTemplateRequest) Reset() {
 	*x = CreateStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5363,7 +5487,7 @@ func (x *CreateStatusTemplateRequest) String() string {
 func (*CreateStatusTemplateRequest) ProtoMessage() {}
 
 func (x *CreateStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[55]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5376,7 +5500,7 @@ func (x *CreateStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*CreateStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{55}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *CreateStatusTemplateRequest) GetCode() string {
@@ -5424,7 +5548,7 @@ type ListStatusTemplatesRequest struct {
 
 func (x *ListStatusTemplatesRequest) Reset() {
 	*x = ListStatusTemplatesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5436,7 +5560,7 @@ func (x *ListStatusTemplatesRequest) String() string {
 func (*ListStatusTemplatesRequest) ProtoMessage() {}
 
 func (x *ListStatusTemplatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[56]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5449,7 +5573,7 @@ func (x *ListStatusTemplatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStatusTemplatesRequest.ProtoReflect.Descriptor instead.
 func (*ListStatusTemplatesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{56}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListStatusTemplatesRequest) GetBusinessType() BusinessType {
@@ -5476,7 +5600,7 @@ type PublishStatusTemplateRequest struct {
 
 func (x *PublishStatusTemplateRequest) Reset() {
 	*x = PublishStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5488,7 +5612,7 @@ func (x *PublishStatusTemplateRequest) String() string {
 func (*PublishStatusTemplateRequest) ProtoMessage() {}
 
 func (x *PublishStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[57]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5501,7 +5625,7 @@ func (x *PublishStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*PublishStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{57}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *PublishStatusTemplateRequest) GetId() string {
@@ -5527,7 +5651,7 @@ type SetDefaultStatusTemplateRequest struct {
 
 func (x *SetDefaultStatusTemplateRequest) Reset() {
 	*x = SetDefaultStatusTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5539,7 +5663,7 @@ func (x *SetDefaultStatusTemplateRequest) String() string {
 func (*SetDefaultStatusTemplateRequest) ProtoMessage() {}
 
 func (x *SetDefaultStatusTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[58]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5552,7 +5676,7 @@ func (x *SetDefaultStatusTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultStatusTemplateRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultStatusTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{58}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *SetDefaultStatusTemplateRequest) GetId() string {
@@ -5577,7 +5701,7 @@ type StatusTemplateItem struct {
 
 func (x *StatusTemplateItem) Reset() {
 	*x = StatusTemplateItem{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5589,7 +5713,7 @@ func (x *StatusTemplateItem) String() string {
 func (*StatusTemplateItem) ProtoMessage() {}
 
 func (x *StatusTemplateItem) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[59]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5602,7 +5726,7 @@ func (x *StatusTemplateItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplateItem.ProtoReflect.Descriptor instead.
 func (*StatusTemplateItem) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{59}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *StatusTemplateItem) GetId() string {
@@ -5674,7 +5798,7 @@ type StatusTemplate struct {
 
 func (x *StatusTemplate) Reset() {
 	*x = StatusTemplate{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5686,7 +5810,7 @@ func (x *StatusTemplate) String() string {
 func (*StatusTemplate) ProtoMessage() {}
 
 func (x *StatusTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[60]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5699,7 +5823,7 @@ func (x *StatusTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusTemplate.ProtoReflect.Descriptor instead.
 func (*StatusTemplate) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{60}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *StatusTemplate) GetId() string {
@@ -5799,7 +5923,7 @@ type ListStatusTemplatesResponse struct {
 
 func (x *ListStatusTemplatesResponse) Reset() {
 	*x = ListStatusTemplatesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5811,7 +5935,7 @@ func (x *ListStatusTemplatesResponse) String() string {
 func (*ListStatusTemplatesResponse) ProtoMessage() {}
 
 func (x *ListStatusTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[61]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5824,7 +5948,7 @@ func (x *ListStatusTemplatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStatusTemplatesResponse.ProtoReflect.Descriptor instead.
 func (*ListStatusTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{61}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListStatusTemplatesResponse) GetSuccess() bool {
@@ -5875,7 +5999,7 @@ type CreateStatusTemplateResponse struct {
 
 func (x *CreateStatusTemplateResponse) Reset() {
 	*x = CreateStatusTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5887,7 +6011,7 @@ func (x *CreateStatusTemplateResponse) String() string {
 func (*CreateStatusTemplateResponse) ProtoMessage() {}
 
 func (x *CreateStatusTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[62]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5900,7 +6024,7 @@ func (x *CreateStatusTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStatusTemplateResponse.ProtoReflect.Descriptor instead.
 func (*CreateStatusTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{62}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *CreateStatusTemplateResponse) GetSuccess() bool {
@@ -5951,7 +6075,7 @@ type PublishStatusTemplateResponse struct {
 
 func (x *PublishStatusTemplateResponse) Reset() {
 	*x = PublishStatusTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5963,7 +6087,7 @@ func (x *PublishStatusTemplateResponse) String() string {
 func (*PublishStatusTemplateResponse) ProtoMessage() {}
 
 func (x *PublishStatusTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[63]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5976,7 +6100,7 @@ func (x *PublishStatusTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishStatusTemplateResponse.ProtoReflect.Descriptor instead.
 func (*PublishStatusTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{63}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *PublishStatusTemplateResponse) GetSuccess() bool {
@@ -6027,7 +6151,7 @@ type SetDefaultStatusTemplateResponse struct {
 
 func (x *SetDefaultStatusTemplateResponse) Reset() {
 	*x = SetDefaultStatusTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6039,7 +6163,7 @@ func (x *SetDefaultStatusTemplateResponse) String() string {
 func (*SetDefaultStatusTemplateResponse) ProtoMessage() {}
 
 func (x *SetDefaultStatusTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[64]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6052,7 +6176,7 @@ func (x *SetDefaultStatusTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultStatusTemplateResponse.ProtoReflect.Descriptor instead.
 func (*SetDefaultStatusTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{64}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *SetDefaultStatusTemplateResponse) GetSuccess() bool {
@@ -6105,7 +6229,7 @@ type MilestoneTemplateItemInput struct {
 
 func (x *MilestoneTemplateItemInput) Reset() {
 	*x = MilestoneTemplateItemInput{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6117,7 +6241,7 @@ func (x *MilestoneTemplateItemInput) String() string {
 func (*MilestoneTemplateItemInput) ProtoMessage() {}
 
 func (x *MilestoneTemplateItemInput) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[65]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6130,7 +6254,7 @@ func (x *MilestoneTemplateItemInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplateItemInput.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplateItemInput) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{65}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *MilestoneTemplateItemInput) GetCode() string {
@@ -6196,7 +6320,7 @@ type CreateMilestoneTemplateRequest struct {
 
 func (x *CreateMilestoneTemplateRequest) Reset() {
 	*x = CreateMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6208,7 +6332,7 @@ func (x *CreateMilestoneTemplateRequest) String() string {
 func (*CreateMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *CreateMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[66]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6221,7 +6345,7 @@ func (x *CreateMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*CreateMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{66}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CreateMilestoneTemplateRequest) GetCode() string {
@@ -6277,7 +6401,7 @@ type ListMilestoneTemplatesRequest struct {
 
 func (x *ListMilestoneTemplatesRequest) Reset() {
 	*x = ListMilestoneTemplatesRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6289,7 +6413,7 @@ func (x *ListMilestoneTemplatesRequest) String() string {
 func (*ListMilestoneTemplatesRequest) ProtoMessage() {}
 
 func (x *ListMilestoneTemplatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[67]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6302,7 +6426,7 @@ func (x *ListMilestoneTemplatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMilestoneTemplatesRequest.ProtoReflect.Descriptor instead.
 func (*ListMilestoneTemplatesRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{67}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListMilestoneTemplatesRequest) GetBusinessType() BusinessType {
@@ -6336,7 +6460,7 @@ type PublishMilestoneTemplateRequest struct {
 
 func (x *PublishMilestoneTemplateRequest) Reset() {
 	*x = PublishMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6348,7 +6472,7 @@ func (x *PublishMilestoneTemplateRequest) String() string {
 func (*PublishMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *PublishMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[68]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6361,7 +6485,7 @@ func (x *PublishMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*PublishMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{68}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PublishMilestoneTemplateRequest) GetId() string {
@@ -6387,7 +6511,7 @@ type SetDefaultMilestoneTemplateRequest struct {
 
 func (x *SetDefaultMilestoneTemplateRequest) Reset() {
 	*x = SetDefaultMilestoneTemplateRequest{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6399,7 +6523,7 @@ func (x *SetDefaultMilestoneTemplateRequest) String() string {
 func (*SetDefaultMilestoneTemplateRequest) ProtoMessage() {}
 
 func (x *SetDefaultMilestoneTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[69]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6412,7 +6536,7 @@ func (x *SetDefaultMilestoneTemplateRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetDefaultMilestoneTemplateRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultMilestoneTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{69}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *SetDefaultMilestoneTemplateRequest) GetId() string {
@@ -6438,7 +6562,7 @@ type MilestoneTemplateItem struct {
 
 func (x *MilestoneTemplateItem) Reset() {
 	*x = MilestoneTemplateItem{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6450,7 +6574,7 @@ func (x *MilestoneTemplateItem) String() string {
 func (*MilestoneTemplateItem) ProtoMessage() {}
 
 func (x *MilestoneTemplateItem) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[70]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6463,7 +6587,7 @@ func (x *MilestoneTemplateItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplateItem.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplateItem) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{70}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *MilestoneTemplateItem) GetId() string {
@@ -6543,7 +6667,7 @@ type MilestoneTemplate struct {
 
 func (x *MilestoneTemplate) Reset() {
 	*x = MilestoneTemplate{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6555,7 +6679,7 @@ func (x *MilestoneTemplate) String() string {
 func (*MilestoneTemplate) ProtoMessage() {}
 
 func (x *MilestoneTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[71]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6568,7 +6692,7 @@ func (x *MilestoneTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MilestoneTemplate.ProtoReflect.Descriptor instead.
 func (*MilestoneTemplate) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{71}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *MilestoneTemplate) GetId() string {
@@ -6675,7 +6799,7 @@ type ListMilestoneTemplatesResponse struct {
 
 func (x *ListMilestoneTemplatesResponse) Reset() {
 	*x = ListMilestoneTemplatesResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6687,7 +6811,7 @@ func (x *ListMilestoneTemplatesResponse) String() string {
 func (*ListMilestoneTemplatesResponse) ProtoMessage() {}
 
 func (x *ListMilestoneTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[72]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6700,7 +6824,7 @@ func (x *ListMilestoneTemplatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMilestoneTemplatesResponse.ProtoReflect.Descriptor instead.
 func (*ListMilestoneTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{72}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *ListMilestoneTemplatesResponse) GetSuccess() bool {
@@ -6751,7 +6875,7 @@ type CreateMilestoneTemplateResponse struct {
 
 func (x *CreateMilestoneTemplateResponse) Reset() {
 	*x = CreateMilestoneTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6763,7 +6887,7 @@ func (x *CreateMilestoneTemplateResponse) String() string {
 func (*CreateMilestoneTemplateResponse) ProtoMessage() {}
 
 func (x *CreateMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[73]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6776,7 +6900,7 @@ func (x *CreateMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
 func (*CreateMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{73}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *CreateMilestoneTemplateResponse) GetSuccess() bool {
@@ -6827,7 +6951,7 @@ type PublishMilestoneTemplateResponse struct {
 
 func (x *PublishMilestoneTemplateResponse) Reset() {
 	*x = PublishMilestoneTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6839,7 +6963,7 @@ func (x *PublishMilestoneTemplateResponse) String() string {
 func (*PublishMilestoneTemplateResponse) ProtoMessage() {}
 
 func (x *PublishMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[74]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6852,7 +6976,7 @@ func (x *PublishMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
 func (*PublishMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{74}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *PublishMilestoneTemplateResponse) GetSuccess() bool {
@@ -6903,7 +7027,7 @@ type SetDefaultMilestoneTemplateResponse struct {
 
 func (x *SetDefaultMilestoneTemplateResponse) Reset() {
 	*x = SetDefaultMilestoneTemplateResponse{}
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6915,7 +7039,7 @@ func (x *SetDefaultMilestoneTemplateResponse) String() string {
 func (*SetDefaultMilestoneTemplateResponse) ProtoMessage() {}
 
 func (x *SetDefaultMilestoneTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_masterdata_v1_masterdata_proto_msgTypes[75]
+	mi := &file_masterdata_v1_masterdata_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6928,7 +7052,7 @@ func (x *SetDefaultMilestoneTemplateResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use SetDefaultMilestoneTemplateResponse.ProtoReflect.Descriptor instead.
 func (*SetDefaultMilestoneTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{75}
+	return file_masterdata_v1_masterdata_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *SetDefaultMilestoneTemplateResponse) GetSuccess() bool {
@@ -7437,7 +7561,11 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.masterdata.v1.ShippingLineR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x17\n" +
-	"\x15ListCurrenciesRequest\"\xd1\x01\n" +
+	"\x15ListCurrenciesRequest\"d\n" +
+	"\x17SearchCurrenciesRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xd1\x01\n" +
 	"\bCurrency\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -7449,18 +7577,23 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xa8\x01\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xef\x01\n" +
 	"\x16ListCurrenciesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
 	"\x04data\x18\x04 \x03(\v2\x17.masterdata.v1.CurrencyR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x97\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xc8\x01\n" +
 	" ListAdministrativeRegionsRequest\x12\x19\n" +
 	"\x05level\x18\x01 \x01(\x05H\x00R\x05level\x88\x01\x01\x12$\n" +
 	"\vparent_code\x18\x02 \x01(\tH\x01R\n" +
 	"parentCode\x88\x01\x01\x12\x18\n" +
-	"\akeyword\x18\x03 \x01(\tR\akeywordB\b\n" +
+	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSizeB\b\n" +
 	"\x06_levelB\x0e\n" +
 	"\f_parent_code\"\xff\x02\n" +
 	"\x14AdministrativeRegion\x12\x0e\n" +
@@ -7482,13 +7615,16 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"updated_at\x18\v \x01(\tR\tupdatedAtB\x0e\n" +
 	"\f_parent_codeB\x0e\n" +
 	"\f_region_typeB\x11\n" +
-	"\x0f_source_version\"\xbf\x01\n" +
+	"\x0f_source_version\"\x86\x02\n" +
 	"!ListAdministrativeRegionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x127\n" +
 	"\x04data\x18\x04 \x03(\v2#.masterdata.v1.AdministrativeRegionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x18\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x18\n" +
 	"\x16ListNumberRulesRequest\"\xab\x02\n" +
 	"\x17CreateNumberRuleRequest\x12E\n" +
 	"\rdocument_type\x18\x01 \x01(\x0e2\x1b.masterdata.v1.DocumentTypeB\x03\xe0A\x02R\fdocumentType\x12\x16\n" +
@@ -7765,7 +7901,7 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x10BUSINESS_TYPE_AE\x10\x03\x12\x14\n" +
 	"\x10BUSINESS_TYPE_AI\x10\x04\x12\x16\n" +
 	"\x12BUSINESS_TYPE_LAND\x10\x05\x12\x16\n" +
-	"\x12BUSINESS_TYPE_RAIL\x10\x062\xc3-\n" +
+	"\x12BUSINESS_TYPE_RAIL\x10\x062\xfe.\n" +
 	"\x11MasterDataService\x12\x97\x01\n" +
 	"\tListItems\x12\x1f.masterdata.v1.ListItemsRequest\x1a .masterdata.v1.ListItemsResponse\"G\x82\xb5\x18\"\b\x03\x12\x1csystem.master_data.item.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/master-data/items\x12\x9f\x01\n" +
 	"\n" +
@@ -7788,7 +7924,8 @@ const file_masterdata_v1_masterdata_proto_rawDesc = "" +
 	"\x11ListShippingLines\x12'.masterdata.v1.ListShippingLinesRequest\x1a(.masterdata.v1.ListShippingLinesResponse\"Y\x82\xb5\x18+\b\x03\x12%system.master_data.shipping_line.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/master-data/shipping-lines\x12\xc9\x01\n" +
 	"\x12CreateShippingLine\x12(.masterdata.v1.CreateShippingLineRequest\x1a).masterdata.v1.CreateShippingLineResponse\"^\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.create \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/master-data/shipping-lines\x12\xce\x01\n" +
 	"\x12UpdateShippingLine\x12(.masterdata.v1.UpdateShippingLineRequest\x1a).masterdata.v1.UpdateShippingLineResponse\"c\x82\xb5\x18-\b\x03\x12'system.master_data.shipping_line.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/master-data/shipping-lines/{id}\x12\xad\x01\n" +
-	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xe7\x01\n" +
+	"\x0eListCurrencies\x12$.masterdata.v1.ListCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"N\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/reference/currencies\x12\xb8\x01\n" +
+	"\x10SearchCurrencies\x12&.masterdata.v1.SearchCurrenciesRequest\x1a%.masterdata.v1.ListCurrenciesResponse\"U\x82\xb5\x18&\b\x03\x12 system.master_data.currency.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/reference/currencies/search\x12\xe7\x01\n" +
 	"\x19ListAdministrativeRegions\x12/.masterdata.v1.ListAdministrativeRegionsRequest\x1a0.masterdata.v1.ListAdministrativeRegionsResponse\"g\x82\xb5\x183\b\x03\x12-system.master_data.administrative_region.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/reference/administrative-regions\x12\xb7\x01\n" +
 	"\x0fListNumberRules\x12%.masterdata.v1.ListNumberRulesRequest\x1a&.masterdata.v1.ListNumberRulesResponse\"U\x82\xb5\x18)\b\x03\x12#system.master_data.number_rule.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/master-data/number-rules\x12\xbf\x01\n" +
 	"\x10CreateNumberRule\x12&.masterdata.v1.CreateNumberRuleRequest\x1a'.masterdata.v1.CreateNumberRuleResponse\"Z\x82\xb5\x18+\b\x03\x12%system.master_data.number_rule.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/master-data/number-rules\x12\xc4\x01\n" +
@@ -7815,7 +7952,7 @@ func file_masterdata_v1_masterdata_proto_rawDescGZIP() []byte {
 }
 
 var file_masterdata_v1_masterdata_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 76)
+var file_masterdata_v1_masterdata_proto_msgTypes = make([]protoimpl.MessageInfo, 77)
 var file_masterdata_v1_masterdata_proto_goTypes = []any{
 	(MasterDataImportMode)(0),                   // 0: masterdata.v1.MasterDataImportMode
 	(MasterDataKind)(0),                         // 1: masterdata.v1.MasterDataKind
@@ -7865,40 +8002,41 @@ var file_masterdata_v1_masterdata_proto_goTypes = []any{
 	(*CreateShippingLineResponse)(nil),          // 45: masterdata.v1.CreateShippingLineResponse
 	(*UpdateShippingLineResponse)(nil),          // 46: masterdata.v1.UpdateShippingLineResponse
 	(*ListCurrenciesRequest)(nil),               // 47: masterdata.v1.ListCurrenciesRequest
-	(*Currency)(nil),                            // 48: masterdata.v1.Currency
-	(*ListCurrenciesResponse)(nil),              // 49: masterdata.v1.ListCurrenciesResponse
-	(*ListAdministrativeRegionsRequest)(nil),    // 50: masterdata.v1.ListAdministrativeRegionsRequest
-	(*AdministrativeRegion)(nil),                // 51: masterdata.v1.AdministrativeRegion
-	(*ListAdministrativeRegionsResponse)(nil),   // 52: masterdata.v1.ListAdministrativeRegionsResponse
-	(*ListNumberRulesRequest)(nil),              // 53: masterdata.v1.ListNumberRulesRequest
-	(*CreateNumberRuleRequest)(nil),             // 54: masterdata.v1.CreateNumberRuleRequest
-	(*UpdateNumberRuleRequest)(nil),             // 55: masterdata.v1.UpdateNumberRuleRequest
-	(*NumberRule)(nil),                          // 56: masterdata.v1.NumberRule
-	(*ListNumberRulesResponse)(nil),             // 57: masterdata.v1.ListNumberRulesResponse
-	(*CreateNumberRuleResponse)(nil),            // 58: masterdata.v1.CreateNumberRuleResponse
-	(*UpdateNumberRuleResponse)(nil),            // 59: masterdata.v1.UpdateNumberRuleResponse
-	(*StatusTemplateItemInput)(nil),             // 60: masterdata.v1.StatusTemplateItemInput
-	(*CreateStatusTemplateRequest)(nil),         // 61: masterdata.v1.CreateStatusTemplateRequest
-	(*ListStatusTemplatesRequest)(nil),          // 62: masterdata.v1.ListStatusTemplatesRequest
-	(*PublishStatusTemplateRequest)(nil),        // 63: masterdata.v1.PublishStatusTemplateRequest
-	(*SetDefaultStatusTemplateRequest)(nil),     // 64: masterdata.v1.SetDefaultStatusTemplateRequest
-	(*StatusTemplateItem)(nil),                  // 65: masterdata.v1.StatusTemplateItem
-	(*StatusTemplate)(nil),                      // 66: masterdata.v1.StatusTemplate
-	(*ListStatusTemplatesResponse)(nil),         // 67: masterdata.v1.ListStatusTemplatesResponse
-	(*CreateStatusTemplateResponse)(nil),        // 68: masterdata.v1.CreateStatusTemplateResponse
-	(*PublishStatusTemplateResponse)(nil),       // 69: masterdata.v1.PublishStatusTemplateResponse
-	(*SetDefaultStatusTemplateResponse)(nil),    // 70: masterdata.v1.SetDefaultStatusTemplateResponse
-	(*MilestoneTemplateItemInput)(nil),          // 71: masterdata.v1.MilestoneTemplateItemInput
-	(*CreateMilestoneTemplateRequest)(nil),      // 72: masterdata.v1.CreateMilestoneTemplateRequest
-	(*ListMilestoneTemplatesRequest)(nil),       // 73: masterdata.v1.ListMilestoneTemplatesRequest
-	(*PublishMilestoneTemplateRequest)(nil),     // 74: masterdata.v1.PublishMilestoneTemplateRequest
-	(*SetDefaultMilestoneTemplateRequest)(nil),  // 75: masterdata.v1.SetDefaultMilestoneTemplateRequest
-	(*MilestoneTemplateItem)(nil),               // 76: masterdata.v1.MilestoneTemplateItem
-	(*MilestoneTemplate)(nil),                   // 77: masterdata.v1.MilestoneTemplate
-	(*ListMilestoneTemplatesResponse)(nil),      // 78: masterdata.v1.ListMilestoneTemplatesResponse
-	(*CreateMilestoneTemplateResponse)(nil),     // 79: masterdata.v1.CreateMilestoneTemplateResponse
-	(*PublishMilestoneTemplateResponse)(nil),    // 80: masterdata.v1.PublishMilestoneTemplateResponse
-	(*SetDefaultMilestoneTemplateResponse)(nil), // 81: masterdata.v1.SetDefaultMilestoneTemplateResponse
+	(*SearchCurrenciesRequest)(nil),             // 48: masterdata.v1.SearchCurrenciesRequest
+	(*Currency)(nil),                            // 49: masterdata.v1.Currency
+	(*ListCurrenciesResponse)(nil),              // 50: masterdata.v1.ListCurrenciesResponse
+	(*ListAdministrativeRegionsRequest)(nil),    // 51: masterdata.v1.ListAdministrativeRegionsRequest
+	(*AdministrativeRegion)(nil),                // 52: masterdata.v1.AdministrativeRegion
+	(*ListAdministrativeRegionsResponse)(nil),   // 53: masterdata.v1.ListAdministrativeRegionsResponse
+	(*ListNumberRulesRequest)(nil),              // 54: masterdata.v1.ListNumberRulesRequest
+	(*CreateNumberRuleRequest)(nil),             // 55: masterdata.v1.CreateNumberRuleRequest
+	(*UpdateNumberRuleRequest)(nil),             // 56: masterdata.v1.UpdateNumberRuleRequest
+	(*NumberRule)(nil),                          // 57: masterdata.v1.NumberRule
+	(*ListNumberRulesResponse)(nil),             // 58: masterdata.v1.ListNumberRulesResponse
+	(*CreateNumberRuleResponse)(nil),            // 59: masterdata.v1.CreateNumberRuleResponse
+	(*UpdateNumberRuleResponse)(nil),            // 60: masterdata.v1.UpdateNumberRuleResponse
+	(*StatusTemplateItemInput)(nil),             // 61: masterdata.v1.StatusTemplateItemInput
+	(*CreateStatusTemplateRequest)(nil),         // 62: masterdata.v1.CreateStatusTemplateRequest
+	(*ListStatusTemplatesRequest)(nil),          // 63: masterdata.v1.ListStatusTemplatesRequest
+	(*PublishStatusTemplateRequest)(nil),        // 64: masterdata.v1.PublishStatusTemplateRequest
+	(*SetDefaultStatusTemplateRequest)(nil),     // 65: masterdata.v1.SetDefaultStatusTemplateRequest
+	(*StatusTemplateItem)(nil),                  // 66: masterdata.v1.StatusTemplateItem
+	(*StatusTemplate)(nil),                      // 67: masterdata.v1.StatusTemplate
+	(*ListStatusTemplatesResponse)(nil),         // 68: masterdata.v1.ListStatusTemplatesResponse
+	(*CreateStatusTemplateResponse)(nil),        // 69: masterdata.v1.CreateStatusTemplateResponse
+	(*PublishStatusTemplateResponse)(nil),       // 70: masterdata.v1.PublishStatusTemplateResponse
+	(*SetDefaultStatusTemplateResponse)(nil),    // 71: masterdata.v1.SetDefaultStatusTemplateResponse
+	(*MilestoneTemplateItemInput)(nil),          // 72: masterdata.v1.MilestoneTemplateItemInput
+	(*CreateMilestoneTemplateRequest)(nil),      // 73: masterdata.v1.CreateMilestoneTemplateRequest
+	(*ListMilestoneTemplatesRequest)(nil),       // 74: masterdata.v1.ListMilestoneTemplatesRequest
+	(*PublishMilestoneTemplateRequest)(nil),     // 75: masterdata.v1.PublishMilestoneTemplateRequest
+	(*SetDefaultMilestoneTemplateRequest)(nil),  // 76: masterdata.v1.SetDefaultMilestoneTemplateRequest
+	(*MilestoneTemplateItem)(nil),               // 77: masterdata.v1.MilestoneTemplateItem
+	(*MilestoneTemplate)(nil),                   // 78: masterdata.v1.MilestoneTemplate
+	(*ListMilestoneTemplatesResponse)(nil),      // 79: masterdata.v1.ListMilestoneTemplatesResponse
+	(*CreateMilestoneTemplateResponse)(nil),     // 80: masterdata.v1.CreateMilestoneTemplateResponse
+	(*PublishMilestoneTemplateResponse)(nil),    // 81: masterdata.v1.PublishMilestoneTemplateResponse
+	(*SetDefaultMilestoneTemplateResponse)(nil), // 82: masterdata.v1.SetDefaultMilestoneTemplateResponse
 }
 var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	1,  // 0: masterdata.v1.ListItemsRequest.kind:type_name -> masterdata.v1.MasterDataKind
@@ -7929,8 +8067,8 @@ var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	41, // 25: masterdata.v1.ListShippingLinesResponse.data:type_name -> masterdata.v1.ShippingLine
 	41, // 26: masterdata.v1.CreateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
 	41, // 27: masterdata.v1.UpdateShippingLineResponse.data:type_name -> masterdata.v1.ShippingLine
-	48, // 28: masterdata.v1.ListCurrenciesResponse.data:type_name -> masterdata.v1.Currency
-	51, // 29: masterdata.v1.ListAdministrativeRegionsResponse.data:type_name -> masterdata.v1.AdministrativeRegion
+	49, // 28: masterdata.v1.ListCurrenciesResponse.data:type_name -> masterdata.v1.Currency
+	52, // 29: masterdata.v1.ListAdministrativeRegionsResponse.data:type_name -> masterdata.v1.AdministrativeRegion
 	2,  // 30: masterdata.v1.CreateNumberRuleRequest.document_type:type_name -> masterdata.v1.DocumentType
 	3,  // 31: masterdata.v1.CreateNumberRuleRequest.date_format:type_name -> masterdata.v1.DateFormat
 	4,  // 32: masterdata.v1.CreateNumberRuleRequest.reset_policy:type_name -> masterdata.v1.ResetPolicy
@@ -7939,27 +8077,27 @@ var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	2,  // 35: masterdata.v1.NumberRule.document_type:type_name -> masterdata.v1.DocumentType
 	3,  // 36: masterdata.v1.NumberRule.date_format:type_name -> masterdata.v1.DateFormat
 	4,  // 37: masterdata.v1.NumberRule.reset_policy:type_name -> masterdata.v1.ResetPolicy
-	56, // 38: masterdata.v1.ListNumberRulesResponse.data:type_name -> masterdata.v1.NumberRule
-	56, // 39: masterdata.v1.CreateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
-	56, // 40: masterdata.v1.UpdateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	57, // 38: masterdata.v1.ListNumberRulesResponse.data:type_name -> masterdata.v1.NumberRule
+	57, // 39: masterdata.v1.CreateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
+	57, // 40: masterdata.v1.UpdateNumberRuleResponse.data:type_name -> masterdata.v1.NumberRule
 	5,  // 41: masterdata.v1.CreateStatusTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
-	60, // 42: masterdata.v1.CreateStatusTemplateRequest.items:type_name -> masterdata.v1.StatusTemplateItemInput
+	61, // 42: masterdata.v1.CreateStatusTemplateRequest.items:type_name -> masterdata.v1.StatusTemplateItemInput
 	5,  // 43: masterdata.v1.ListStatusTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
 	5,  // 44: masterdata.v1.StatusTemplate.business_type:type_name -> masterdata.v1.BusinessType
-	65, // 45: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
-	66, // 46: masterdata.v1.ListStatusTemplatesResponse.data:type_name -> masterdata.v1.StatusTemplate
-	66, // 47: masterdata.v1.CreateStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
-	66, // 48: masterdata.v1.PublishStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
-	66, // 49: masterdata.v1.SetDefaultStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	66, // 45: masterdata.v1.StatusTemplate.items:type_name -> masterdata.v1.StatusTemplateItem
+	67, // 46: masterdata.v1.ListStatusTemplatesResponse.data:type_name -> masterdata.v1.StatusTemplate
+	67, // 47: masterdata.v1.CreateStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	67, // 48: masterdata.v1.PublishStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
+	67, // 49: masterdata.v1.SetDefaultStatusTemplateResponse.data:type_name -> masterdata.v1.StatusTemplate
 	5,  // 50: masterdata.v1.CreateMilestoneTemplateRequest.business_type:type_name -> masterdata.v1.BusinessType
-	71, // 51: masterdata.v1.CreateMilestoneTemplateRequest.items:type_name -> masterdata.v1.MilestoneTemplateItemInput
+	72, // 51: masterdata.v1.CreateMilestoneTemplateRequest.items:type_name -> masterdata.v1.MilestoneTemplateItemInput
 	5,  // 52: masterdata.v1.ListMilestoneTemplatesRequest.business_type:type_name -> masterdata.v1.BusinessType
 	5,  // 53: masterdata.v1.MilestoneTemplate.business_type:type_name -> masterdata.v1.BusinessType
-	76, // 54: masterdata.v1.MilestoneTemplate.items:type_name -> masterdata.v1.MilestoneTemplateItem
-	77, // 55: masterdata.v1.ListMilestoneTemplatesResponse.data:type_name -> masterdata.v1.MilestoneTemplate
-	77, // 56: masterdata.v1.CreateMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
-	77, // 57: masterdata.v1.PublishMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
-	77, // 58: masterdata.v1.SetDefaultMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	77, // 54: masterdata.v1.MilestoneTemplate.items:type_name -> masterdata.v1.MilestoneTemplateItem
+	78, // 55: masterdata.v1.ListMilestoneTemplatesResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	78, // 56: masterdata.v1.CreateMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	78, // 57: masterdata.v1.PublishMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
+	78, // 58: masterdata.v1.SetDefaultMilestoneTemplateResponse.data:type_name -> masterdata.v1.MilestoneTemplate
 	6,  // 59: masterdata.v1.MasterDataService.ListItems:input_type -> masterdata.v1.ListItemsRequest
 	8,  // 60: masterdata.v1.MasterDataService.CreateItem:input_type -> masterdata.v1.CreateItemRequest
 	9,  // 61: masterdata.v1.MasterDataService.UpdateItem:input_type -> masterdata.v1.UpdateItemRequest
@@ -7978,50 +8116,52 @@ var file_masterdata_v1_masterdata_proto_depIdxs = []int32{
 	42, // 74: masterdata.v1.MasterDataService.CreateShippingLine:input_type -> masterdata.v1.CreateShippingLineRequest
 	43, // 75: masterdata.v1.MasterDataService.UpdateShippingLine:input_type -> masterdata.v1.UpdateShippingLineRequest
 	47, // 76: masterdata.v1.MasterDataService.ListCurrencies:input_type -> masterdata.v1.ListCurrenciesRequest
-	50, // 77: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
-	53, // 78: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
-	54, // 79: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
-	55, // 80: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
-	62, // 81: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
-	61, // 82: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
-	63, // 83: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
-	64, // 84: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
-	73, // 85: masterdata.v1.MasterDataService.ListMilestoneTemplates:input_type -> masterdata.v1.ListMilestoneTemplatesRequest
-	72, // 86: masterdata.v1.MasterDataService.CreateMilestoneTemplate:input_type -> masterdata.v1.CreateMilestoneTemplateRequest
-	74, // 87: masterdata.v1.MasterDataService.PublishMilestoneTemplate:input_type -> masterdata.v1.PublishMilestoneTemplateRequest
-	75, // 88: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:input_type -> masterdata.v1.SetDefaultMilestoneTemplateRequest
-	15, // 89: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.ListItemsResponse
-	16, // 90: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.CreateItemResponse
-	17, // 91: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.UpdateItemResponse
-	12, // 92: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.ImportItemsResponse
-	18, // 93: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.ListOptionsResponse
-	26, // 94: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.ListPortsResponse
-	27, // 95: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.CreatePortResponse
-	28, // 96: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.UpdatePortResponse
-	32, // 97: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.ListAirportsResponse
-	33, // 98: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.CreateAirportResponse
-	34, // 99: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.UpdateAirportResponse
-	38, // 100: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.ListAirlinesResponse
-	39, // 101: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.CreateAirlineResponse
-	40, // 102: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.UpdateAirlineResponse
-	44, // 103: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ListShippingLinesResponse
-	45, // 104: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.CreateShippingLineResponse
-	46, // 105: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.UpdateShippingLineResponse
-	49, // 106: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
-	52, // 107: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.ListAdministrativeRegionsResponse
-	57, // 108: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.ListNumberRulesResponse
-	58, // 109: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.CreateNumberRuleResponse
-	59, // 110: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.UpdateNumberRuleResponse
-	67, // 111: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.ListStatusTemplatesResponse
-	68, // 112: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.CreateStatusTemplateResponse
-	69, // 113: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.PublishStatusTemplateResponse
-	70, // 114: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.SetDefaultStatusTemplateResponse
-	78, // 115: masterdata.v1.MasterDataService.ListMilestoneTemplates:output_type -> masterdata.v1.ListMilestoneTemplatesResponse
-	79, // 116: masterdata.v1.MasterDataService.CreateMilestoneTemplate:output_type -> masterdata.v1.CreateMilestoneTemplateResponse
-	80, // 117: masterdata.v1.MasterDataService.PublishMilestoneTemplate:output_type -> masterdata.v1.PublishMilestoneTemplateResponse
-	81, // 118: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:output_type -> masterdata.v1.SetDefaultMilestoneTemplateResponse
-	89, // [89:119] is the sub-list for method output_type
-	59, // [59:89] is the sub-list for method input_type
+	48, // 77: masterdata.v1.MasterDataService.SearchCurrencies:input_type -> masterdata.v1.SearchCurrenciesRequest
+	51, // 78: masterdata.v1.MasterDataService.ListAdministrativeRegions:input_type -> masterdata.v1.ListAdministrativeRegionsRequest
+	54, // 79: masterdata.v1.MasterDataService.ListNumberRules:input_type -> masterdata.v1.ListNumberRulesRequest
+	55, // 80: masterdata.v1.MasterDataService.CreateNumberRule:input_type -> masterdata.v1.CreateNumberRuleRequest
+	56, // 81: masterdata.v1.MasterDataService.UpdateNumberRule:input_type -> masterdata.v1.UpdateNumberRuleRequest
+	63, // 82: masterdata.v1.MasterDataService.ListStatusTemplates:input_type -> masterdata.v1.ListStatusTemplatesRequest
+	62, // 83: masterdata.v1.MasterDataService.CreateStatusTemplate:input_type -> masterdata.v1.CreateStatusTemplateRequest
+	64, // 84: masterdata.v1.MasterDataService.PublishStatusTemplate:input_type -> masterdata.v1.PublishStatusTemplateRequest
+	65, // 85: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:input_type -> masterdata.v1.SetDefaultStatusTemplateRequest
+	74, // 86: masterdata.v1.MasterDataService.ListMilestoneTemplates:input_type -> masterdata.v1.ListMilestoneTemplatesRequest
+	73, // 87: masterdata.v1.MasterDataService.CreateMilestoneTemplate:input_type -> masterdata.v1.CreateMilestoneTemplateRequest
+	75, // 88: masterdata.v1.MasterDataService.PublishMilestoneTemplate:input_type -> masterdata.v1.PublishMilestoneTemplateRequest
+	76, // 89: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:input_type -> masterdata.v1.SetDefaultMilestoneTemplateRequest
+	15, // 90: masterdata.v1.MasterDataService.ListItems:output_type -> masterdata.v1.ListItemsResponse
+	16, // 91: masterdata.v1.MasterDataService.CreateItem:output_type -> masterdata.v1.CreateItemResponse
+	17, // 92: masterdata.v1.MasterDataService.UpdateItem:output_type -> masterdata.v1.UpdateItemResponse
+	12, // 93: masterdata.v1.MasterDataService.ImportItems:output_type -> masterdata.v1.ImportItemsResponse
+	18, // 94: masterdata.v1.MasterDataService.ListOptions:output_type -> masterdata.v1.ListOptionsResponse
+	26, // 95: masterdata.v1.MasterDataService.ListPorts:output_type -> masterdata.v1.ListPortsResponse
+	27, // 96: masterdata.v1.MasterDataService.CreatePort:output_type -> masterdata.v1.CreatePortResponse
+	28, // 97: masterdata.v1.MasterDataService.UpdatePort:output_type -> masterdata.v1.UpdatePortResponse
+	32, // 98: masterdata.v1.MasterDataService.ListAirports:output_type -> masterdata.v1.ListAirportsResponse
+	33, // 99: masterdata.v1.MasterDataService.CreateAirport:output_type -> masterdata.v1.CreateAirportResponse
+	34, // 100: masterdata.v1.MasterDataService.UpdateAirport:output_type -> masterdata.v1.UpdateAirportResponse
+	38, // 101: masterdata.v1.MasterDataService.ListAirlines:output_type -> masterdata.v1.ListAirlinesResponse
+	39, // 102: masterdata.v1.MasterDataService.CreateAirline:output_type -> masterdata.v1.CreateAirlineResponse
+	40, // 103: masterdata.v1.MasterDataService.UpdateAirline:output_type -> masterdata.v1.UpdateAirlineResponse
+	44, // 104: masterdata.v1.MasterDataService.ListShippingLines:output_type -> masterdata.v1.ListShippingLinesResponse
+	45, // 105: masterdata.v1.MasterDataService.CreateShippingLine:output_type -> masterdata.v1.CreateShippingLineResponse
+	46, // 106: masterdata.v1.MasterDataService.UpdateShippingLine:output_type -> masterdata.v1.UpdateShippingLineResponse
+	50, // 107: masterdata.v1.MasterDataService.ListCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
+	50, // 108: masterdata.v1.MasterDataService.SearchCurrencies:output_type -> masterdata.v1.ListCurrenciesResponse
+	53, // 109: masterdata.v1.MasterDataService.ListAdministrativeRegions:output_type -> masterdata.v1.ListAdministrativeRegionsResponse
+	58, // 110: masterdata.v1.MasterDataService.ListNumberRules:output_type -> masterdata.v1.ListNumberRulesResponse
+	59, // 111: masterdata.v1.MasterDataService.CreateNumberRule:output_type -> masterdata.v1.CreateNumberRuleResponse
+	60, // 112: masterdata.v1.MasterDataService.UpdateNumberRule:output_type -> masterdata.v1.UpdateNumberRuleResponse
+	68, // 113: masterdata.v1.MasterDataService.ListStatusTemplates:output_type -> masterdata.v1.ListStatusTemplatesResponse
+	69, // 114: masterdata.v1.MasterDataService.CreateStatusTemplate:output_type -> masterdata.v1.CreateStatusTemplateResponse
+	70, // 115: masterdata.v1.MasterDataService.PublishStatusTemplate:output_type -> masterdata.v1.PublishStatusTemplateResponse
+	71, // 116: masterdata.v1.MasterDataService.SetDefaultStatusTemplate:output_type -> masterdata.v1.SetDefaultStatusTemplateResponse
+	79, // 117: masterdata.v1.MasterDataService.ListMilestoneTemplates:output_type -> masterdata.v1.ListMilestoneTemplatesResponse
+	80, // 118: masterdata.v1.MasterDataService.CreateMilestoneTemplate:output_type -> masterdata.v1.CreateMilestoneTemplateResponse
+	81, // 119: masterdata.v1.MasterDataService.PublishMilestoneTemplate:output_type -> masterdata.v1.PublishMilestoneTemplateResponse
+	82, // 120: masterdata.v1.MasterDataService.SetDefaultMilestoneTemplate:output_type -> masterdata.v1.SetDefaultMilestoneTemplateResponse
+	90, // [90:121] is the sub-list for method output_type
+	59, // [59:90] is the sub-list for method input_type
 	59, // [59:59] is the sub-list for extension type_name
 	59, // [59:59] is the sub-list for extension extendee
 	0,  // [0:59] is the sub-list for field type_name
@@ -8052,23 +8192,23 @@ func file_masterdata_v1_masterdata_proto_init() {
 	file_masterdata_v1_masterdata_proto_msgTypes[35].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[36].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[37].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[44].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[45].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[54].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[56].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[59].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[46].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[55].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[57].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[60].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[65].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[67].OneofWrappers = []any{}
-	file_masterdata_v1_masterdata_proto_msgTypes[70].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[61].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[66].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[68].OneofWrappers = []any{}
 	file_masterdata_v1_masterdata_proto_msgTypes[71].OneofWrappers = []any{}
+	file_masterdata_v1_masterdata_proto_msgTypes[72].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_masterdata_v1_masterdata_proto_rawDesc), len(file_masterdata_v1_masterdata_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   76,
+			NumMessages:   77,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

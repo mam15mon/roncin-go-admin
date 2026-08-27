@@ -5,6 +5,7 @@ package partneralias
 import (
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -27,6 +28,8 @@ const (
 	FieldNormalizedAliasName = "normalized_alias_name"
 	// FieldSortOrder holds the string denoting the sort_order field in the database.
 	FieldSortOrder = "sort_order"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// EdgePartner holds the string denoting the partner edge name in mutations.
 	EdgePartner = "partner"
 	// Table holds the table name of the partneralias in the database.
@@ -49,6 +52,7 @@ var Columns = []string{
 	FieldAliasName,
 	FieldNormalizedAliasName,
 	FieldSortOrder,
+	FieldSearchKeywords,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -61,7 +65,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -76,6 +86,8 @@ var (
 	DefaultSortOrder int
 	// SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
 	SortOrderValidator func(int) error
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -116,6 +128,11 @@ func ByNormalizedAliasName(opts ...sql.OrderTermOption) OrderOption {
 // BySortOrder orders the results by the sort_order field.
 func BySortOrder(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSortOrder, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // ByPartnerField orders the results by partner field.

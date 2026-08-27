@@ -34,7 +34,12 @@ func (MasterDataItem) Fields() []ent.Field {
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
 		field.JSON("attributes", &MasterDataAttributes{}).Default(&MasterDataAttributes{}),
+		searchKeywordsField(),
 	}
+}
+
+func (MasterDataItem) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name", "name_en")}
 }
 
 func (MasterDataItem) Edges() []ent.Edge {

@@ -96,6 +96,11 @@ func Enabled(v bool) predicate.TaxableService {
 	return predicate.TaxableService(sql.FieldEQ(FieldEnabled, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.TaxableService {
 	return predicate.TaxableService(sql.FieldEQ(FieldCreatedAt, v))
@@ -484,6 +489,71 @@ func EnabledEQ(v bool) predicate.TaxableService {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.TaxableService {
 	return predicate.TaxableService(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.TaxableService {
+	return predicate.TaxableService(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

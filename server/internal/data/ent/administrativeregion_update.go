@@ -157,6 +157,20 @@ func (_u *AdministrativeRegionUpdate) SetNillableEnabled(v *bool) *Administrativ
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *AdministrativeRegionUpdate) SetSearchKeywords(v string) *AdministrativeRegionUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *AdministrativeRegionUpdate) SetNillableSearchKeywords(v *string) *AdministrativeRegionUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AdministrativeRegionMutation object of the builder.
 func (_u *AdministrativeRegionUpdate) Mutation() *AdministrativeRegionMutation {
 	return _u.mutation
@@ -164,7 +178,9 @@ func (_u *AdministrativeRegionUpdate) Mutation() *AdministrativeRegionMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AdministrativeRegionUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -191,11 +207,15 @@ func (_u *AdministrativeRegionUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *AdministrativeRegionUpdate) defaults() {
+func (_u *AdministrativeRegionUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if administrativeregion.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized administrativeregion.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := administrativeregion.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -280,6 +300,9 @@ func (_u *AdministrativeRegionUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(administrativeregion.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(administrativeregion.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -430,6 +453,20 @@ func (_u *AdministrativeRegionUpdateOne) SetNillableEnabled(v *bool) *Administra
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *AdministrativeRegionUpdateOne) SetSearchKeywords(v string) *AdministrativeRegionUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *AdministrativeRegionUpdateOne) SetNillableSearchKeywords(v *string) *AdministrativeRegionUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AdministrativeRegionMutation object of the builder.
 func (_u *AdministrativeRegionUpdateOne) Mutation() *AdministrativeRegionMutation {
 	return _u.mutation
@@ -450,7 +487,9 @@ func (_u *AdministrativeRegionUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated AdministrativeRegion entity.
 func (_u *AdministrativeRegionUpdateOne) Save(ctx context.Context) (*AdministrativeRegion, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -477,11 +516,15 @@ func (_u *AdministrativeRegionUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *AdministrativeRegionUpdateOne) defaults() {
+func (_u *AdministrativeRegionUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if administrativeregion.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized administrativeregion.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := administrativeregion.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -583,6 +626,9 @@ func (_u *AdministrativeRegionUpdateOne) sqlSave(ctx context.Context) (_node *Ad
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(administrativeregion.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(administrativeregion.FieldSearchKeywords, field.TypeString, value)
 	}
 	_node = &AdministrativeRegion{config: _u.config}
 	_spec.Assign = _node.assignValues

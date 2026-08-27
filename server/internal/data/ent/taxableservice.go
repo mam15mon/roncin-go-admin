@@ -35,6 +35,8 @@ type TaxableService struct {
 	DefaultTaxRate string `json:"default_tax_rate,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TaxableServiceQuery when eager-loading is set.
 	Edges        TaxableServiceEdges `json:"edges"`
@@ -79,7 +81,7 @@ func (*TaxableService) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case taxableservice.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case taxableservice.FieldName, taxableservice.FieldShortName, taxableservice.FieldGoodsCode, taxableservice.FieldDefaultTaxRate:
+		case taxableservice.FieldName, taxableservice.FieldShortName, taxableservice.FieldGoodsCode, taxableservice.FieldDefaultTaxRate, taxableservice.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case taxableservice.FieldCreatedAt, taxableservice.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -156,6 +158,12 @@ func (_m *TaxableService) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case taxableservice.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -229,6 +237,9 @@ func (_m *TaxableService) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

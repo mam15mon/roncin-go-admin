@@ -186,6 +186,20 @@ func (_c *UserCreate) SetNillableEnabled(v *bool) *UserCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *UserCreate) SetSearchKeywords(v string) *UserCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *UserCreate) SetNillableSearchKeywords(v *string) *UserCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v uuid.UUID) *UserCreate {
 	_c.mutation.SetID(v)
@@ -552,7 +566,9 @@ func (_c *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -579,12 +595,18 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *UserCreate) defaults() {
+func (_c *UserCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if user.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized user.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := user.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if user.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized user.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := user.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -592,10 +614,18 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := user.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if user.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized user.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := user.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -654,6 +684,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "User.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "User.search_keywords"`)}
 	}
 	return nil
 }
@@ -737,6 +770,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.MembershipsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

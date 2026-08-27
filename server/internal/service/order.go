@@ -128,23 +128,24 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 	return &v1.CheckOrderReferenceResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *OrderService) ListPersonnelOptions(ctx context.Context, _ *v1.ListPersonnelOptionsRequest) (*v1.ListPersonnelOptionsResponse, error) {
+func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.ListPersonnelOptionsRequest) (*v1.ListPersonnelOptionsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	items, err := s.usecase.ListPersonnelOptions(ctx, principal.Organization.ID)
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	result, err := s.usecase.ListPersonnelOptions(ctx, principal.Organization.ID, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.OrderPersonnelOption, 0, len(items))
-	for _, item := range items {
+	data := make([]*v1.OrderPersonnelOption, 0, len(result.Items))
+	for _, item := range result.Items {
 		data = append(data, &v1.OrderPersonnelOption{
 			UserId: item.UserID.String(), DisplayName: item.DisplayName,
 			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		})
 	}
-	return &v1.ListPersonnelOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPersonnelOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.ListOrderConsolidationsRequest) (*v1.ListOrderConsolidationsResponse, error) {

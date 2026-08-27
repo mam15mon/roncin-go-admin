@@ -37,8 +37,8 @@ func (s *orderRepoStub) FindReferenceDuplicate(_ context.Context, _ uuid.UUID, c
 	return s.referenceMatch, nil
 }
 
-func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID) ([]*OrderPersonnelOption, error) {
-	return nil, nil
+func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID, options SelectorListOptions) (*PagedList[*OrderPersonnelOption], error) {
+	return &PagedList[*OrderPersonnelOption]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (s *orderRepoStub) HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error) {

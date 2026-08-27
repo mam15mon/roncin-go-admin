@@ -25,7 +25,12 @@ func (ShippingLine) Fields() []ent.Field {
 		field.String("source").MaxLen(100).Default("manual"),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
+}
+
+func (ShippingLine) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name_zh", "name_en")}
 }
 
 func (ShippingLine) Edges() []ent.Edge {

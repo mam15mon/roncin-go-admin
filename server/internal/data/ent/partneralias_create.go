@@ -82,6 +82,20 @@ func (_c *PartnerAliasCreate) SetNillableSortOrder(v *int) *PartnerAliasCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *PartnerAliasCreate) SetSearchKeywords(v string) *PartnerAliasCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *PartnerAliasCreate) SetNillableSearchKeywords(v *string) *PartnerAliasCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PartnerAliasCreate) SetID(v uuid.UUID) *PartnerAliasCreate {
 	_c.mutation.SetID(v)
@@ -108,7 +122,9 @@ func (_c *PartnerAliasCreate) Mutation() *PartnerAliasMutation {
 
 // Save creates the PartnerAlias in the database.
 func (_c *PartnerAliasCreate) Save(ctx context.Context) (*PartnerAlias, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -135,12 +151,18 @@ func (_c *PartnerAliasCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *PartnerAliasCreate) defaults() {
+func (_c *PartnerAliasCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if partneralias.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partneralias.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := partneralias.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if partneralias.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partneralias.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partneralias.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -148,10 +170,18 @@ func (_c *PartnerAliasCreate) defaults() {
 		v := partneralias.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := partneralias.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if partneralias.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized partneralias.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := partneralias.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -188,6 +218,9 @@ func (_c *PartnerAliasCreate) check() error {
 		if err := partneralias.SortOrderValidator(v); err != nil {
 			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "PartnerAlias.sort_order": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "PartnerAlias.search_keywords"`)}
 	}
 	if len(_c.mutation.PartnerIDs()) == 0 {
 		return &ValidationError{Name: "partner", err: errors.New(`ent: missing required edge "PartnerAlias.partner"`)}
@@ -246,6 +279,10 @@ func (_c *PartnerAliasCreate) createSpec() (*PartnerAlias, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(partneralias.FieldSortOrder, field.TypeInt, value)
 		_node.SortOrder = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(partneralias.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.PartnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

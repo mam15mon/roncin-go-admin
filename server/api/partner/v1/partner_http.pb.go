@@ -36,6 +36,7 @@ const OperationPartnerServiceListPartnerSettlementRules = "/partner.v1.PartnerSe
 const OperationPartnerServiceListPartnerShippingPresets = "/partner.v1.PartnerService/ListPartnerShippingPresets"
 const OperationPartnerServiceListPartners = "/partner.v1.PartnerService/ListPartners"
 const OperationPartnerServiceRegisterPartnerAttachment = "/partner.v1.PartnerService/RegisterPartnerAttachment"
+const OperationPartnerServiceSearchPartnerAssignmentOptions = "/partner.v1.PartnerService/SearchPartnerAssignmentOptions"
 const OperationPartnerServiceSetSupplierBlacklist = "/partner.v1.PartnerService/SetSupplierBlacklist"
 const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdatePartner"
 const OperationPartnerServiceUpdatePartnerAccount = "/partner.v1.PartnerService/UpdatePartnerAccount"
@@ -64,6 +65,7 @@ type PartnerServiceHTTPServer interface {
 	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
 	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error)
+	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
@@ -77,7 +79,8 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/partners/{id}", _PartnerService_GetPartner0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners", _PartnerService_ListPartners0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/partners/assignment-options", _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partner-assignment-options", _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/partner-assignment-options/search", _PartnerService_SearchPartnerAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners/{partner_id}/invoice-profiles", _PartnerService_ListPartnerInvoiceProfiles0_HTTP_Handler(srv))
@@ -153,6 +156,25 @@ func _PartnerService_ListPartnerAssignmentOptions0_HTTP_Handler(srv PartnerServi
 		http.SetOperation(ctx, OperationPartnerServiceListPartnerAssignmentOptions)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.ListPartnerAssignmentOptions(ctx, req.(*ListPartnerAssignmentOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListPartnerAssignmentOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_SearchPartnerAssignmentOptions0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SearchPartnerAssignmentOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceSearchPartnerAssignmentOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SearchPartnerAssignmentOptions(ctx, req.(*SearchPartnerAssignmentOptionsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -680,6 +702,7 @@ type PartnerServiceHTTPClient interface {
 	ListPartnerShippingPresets(ctx context.Context, req *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (rsp *ListPartnerShippingPresetsResponse, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *ListPartnersResponse, err error)
 	RegisterPartnerAttachment(ctx context.Context, req *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (rsp *RegisterPartnerAttachmentResponse, err error)
+	SearchPartnerAssignmentOptions(ctx context.Context, req *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListPartnerAssignmentOptionsResponse, err error)
 	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *SetSupplierBlacklistResponse, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *UpdatePartnerResponse, err error)
 	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *UpdatePartnerAccountResponse, err error)
@@ -866,7 +889,7 @@ func (c *PartnerServiceHTTPClientImpl) ListPartnerAccounts(ctx context.Context, 
 
 func (c *PartnerServiceHTTPClientImpl) ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
 	var out ListPartnerAssignmentOptionsResponse
-	pattern := "/api/v1/partners/assignment-options"
+	pattern := "/api/v1/partner-assignment-options"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
@@ -1003,6 +1026,22 @@ func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Con
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
+	var out ListPartnerAssignmentOptionsResponse
+	pattern := "/api/v1/partner-assignment-options/search"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationPartnerServiceSearchPartnerAssignmentOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

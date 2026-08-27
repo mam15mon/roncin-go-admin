@@ -180,6 +180,20 @@ func (_c *FeeSettingCreate) SetNillableSortOrder(v *int) *FeeSettingCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FeeSettingCreate) SetSearchKeywords(v string) *FeeSettingCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FeeSettingCreate) SetNillableSearchKeywords(v *string) *FeeSettingCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FeeSettingCreate) SetID(v uuid.UUID) *FeeSettingCreate {
 	_c.mutation.SetID(v)
@@ -241,7 +255,9 @@ func (_c *FeeSettingCreate) Mutation() *FeeSettingMutation {
 
 // Save creates the FeeSetting in the database.
 func (_c *FeeSettingCreate) Save(ctx context.Context) (*FeeSetting, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -268,12 +284,18 @@ func (_c *FeeSettingCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FeeSettingCreate) defaults() {
+func (_c *FeeSettingCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if feesetting.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized feesetting.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := feesetting.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if feesetting.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized feesetting.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := feesetting.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -285,10 +307,18 @@ func (_c *FeeSettingCreate) defaults() {
 		v := feesetting.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := feesetting.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if feesetting.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized feesetting.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := feesetting.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -350,6 +380,9 @@ func (_c *FeeSettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		return &ValidationError{Name: "sort_order", err: errors.New(`ent: missing required field "FeeSetting.sort_order"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FeeSetting.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "FeeSetting.organization"`)}
@@ -434,6 +467,10 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(feesetting.FieldSortOrder, field.TypeInt, value)
 		_node.SortOrder = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(feesetting.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

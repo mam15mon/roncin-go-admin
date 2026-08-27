@@ -1072,6 +1072,51 @@
         }
       }
     },
+    "/api/v1/finance/billing-units/search": {
+      "get": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_SearchBillingUnits",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListBillingUnitsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/billing-units/{id}": {
       "put": {
         "tags": [
@@ -2383,6 +2428,51 @@
         }
       }
     },
+    "/api/v1/finance/fee-settings/search": {
+      "get": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_SearchFeeSettings",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFeeSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/fee-settings/{id}": {
       "put": {
         "tags": [
@@ -2881,6 +2971,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.CreateTaxableServiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/taxable-services/search": {
+      "get": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_SearchTaxableServices",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListTaxableServicesResponse"
                 }
               }
             }
@@ -4104,6 +4239,29 @@
             "schema": {
               "type": "integer",
               "format": "enum"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -5896,6 +6054,71 @@
         }
       }
     },
+    "/api/v1/partner-assignment-options": {
+      "get": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_ListPartnerAssignmentOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner-assignment-options/search": {
+      "get": {
+        "tags": [
+          "PartnerService"
+        ],
+        "operationId": "PartnerService_SearchPartnerAssignmentOptions",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/partners": {
       "get": {
         "tags": [
@@ -5977,26 +6200,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/partner.v1.CreatePartnerResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/partners/assignment-options": {
-      "get": {
-        "tags": [
-          "PartnerService"
-        ],
-        "operationId": "PartnerService_ListPartnerAssignmentOptions",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse"
                 }
               }
             }
@@ -6965,6 +7168,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         ],
         "responses": {
@@ -6987,6 +7206,51 @@
           "MasterDataService"
         ],
         "operationId": "MasterDataService_ListCurrencies",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/masterdata.v1.ListCurrenciesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reference/currencies/search": {
+      "get": {
+        "tags": [
+          "MasterDataService"
+        ],
+        "operationId": "MasterDataService_SearchCurrencies",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -10587,6 +10851,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -10824,6 +11100,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -10875,6 +11163,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -12254,6 +12554,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -12350,6 +12662,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -14458,6 +14782,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -16964,6 +17300,18 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

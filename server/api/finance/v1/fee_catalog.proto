@@ -14,6 +14,10 @@ service FeeCatalogService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fee-settings"};
   }
+  rpc SearchFeeSettings(SearchFeeCatalogRequest) returns (ListFeeSettingsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fee-settings/search"};
+  }
   rpc CreateFeeSetting(CreateFeeSettingRequest) returns (CreateFeeSettingResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/fee-settings" body: "*"};
@@ -27,6 +31,10 @@ service FeeCatalogService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/billing-units"};
   }
+  rpc SearchBillingUnits(SearchFeeCatalogRequest) returns (ListBillingUnitsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/billing-units/search"};
+  }
   rpc CreateBillingUnit(CreateBillingUnitRequest) returns (CreateBillingUnitResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/billing-units" body: "*"};
@@ -39,6 +47,10 @@ service FeeCatalogService {
   rpc ListTaxableServices(ListTaxableServicesRequest) returns (ListTaxableServicesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/taxable-services"};
+  }
+  rpc SearchTaxableServices(SearchFeeCatalogRequest) returns (ListTaxableServicesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/taxable-services/search"};
   }
   rpc CreateTaxableService(CreateTaxableServiceRequest) returns (CreateTaxableServiceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.create" scope: DATA_SCOPE_ORGANIZATION};
@@ -100,6 +112,7 @@ message FeeSetting {
 message ListFeeSettingsRequest {}
 message ListBillingUnitsRequest {}
 message ListTaxableServicesRequest {}
+message SearchFeeCatalogRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
 
 message CreateFeeSettingRequest {
   string fee_code = 1 [(google.api.field_behavior) = REQUIRED];
@@ -163,9 +176,9 @@ message UpdateTaxableServiceRequest {
   bool enabled = 6;
 }
 
-message ListFeeSettingsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeSetting data = 4; string trace_id = 5; }
-message ListBillingUnitsResponse { bool success = 1; int32 code = 2; string message = 3; repeated BillingUnit data = 4; string trace_id = 5; }
-message ListTaxableServicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated TaxableService data = 4; string trace_id = 5; }
+message ListFeeSettingsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeSetting data = 4; string trace_id = 5; int32 total = 6; int32 page = 7; int32 page_size = 8; }
+message ListBillingUnitsResponse { bool success = 1; int32 code = 2; string message = 3; repeated BillingUnit data = 4; string trace_id = 5; int32 total = 6; int32 page = 7; int32 page_size = 8; }
+message ListTaxableServicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated TaxableService data = 4; string trace_id = 5; int32 total = 6; int32 page = 7; int32 page_size = 8; }
 message CreateFeeSettingResponse { bool success = 1; int32 code = 2; string message = 3; FeeSetting data = 4; string trace_id = 5; }
 message UpdateFeeSettingResponse { bool success = 1; int32 code = 2; string message = 3; FeeSetting data = 4; string trace_id = 5; }
 message CreateBillingUnitResponse { bool success = 1; int32 code = 2; string message = 3; BillingUnit data = 4; string trace_id = 5; }

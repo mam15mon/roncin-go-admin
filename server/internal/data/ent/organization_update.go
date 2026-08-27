@@ -135,6 +135,20 @@ func (_u *OrganizationUpdate) ClearBaseCurrency() *OrganizationUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrganizationUpdate) SetSearchKeywords(v string) *OrganizationUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrganizationUpdate) SetNillableSearchKeywords(v *string) *OrganizationUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetParent sets the "parent" edge to the Organization entity.
 func (_u *OrganizationUpdate) SetParent(v *Organization) *OrganizationUpdate {
 	return _u.SetParentID(v.ID)
@@ -1341,7 +1355,9 @@ func (_u *OrganizationUpdate) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFee
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *OrganizationUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -1368,11 +1384,15 @@ func (_u *OrganizationUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrganizationUpdate) defaults() {
+func (_u *OrganizationUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if organization.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized organization.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := organization.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1416,6 +1436,9 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.BaseCurrencyCleared() {
 		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -3025,6 +3048,20 @@ func (_u *OrganizationUpdateOne) ClearBaseCurrency() *OrganizationUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrganizationUpdateOne) SetSearchKeywords(v string) *OrganizationUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrganizationUpdateOne) SetNillableSearchKeywords(v *string) *OrganizationUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetParent sets the "parent" edge to the Organization entity.
 func (_u *OrganizationUpdateOne) SetParent(v *Organization) *OrganizationUpdateOne {
 	return _u.SetParentID(v.ID)
@@ -4244,7 +4281,9 @@ func (_u *OrganizationUpdateOne) Select(field string, fields ...string) *Organiz
 
 // Save executes the query and returns the updated Organization entity.
 func (_u *OrganizationUpdateOne) Save(ctx context.Context) (*Organization, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -4271,11 +4310,15 @@ func (_u *OrganizationUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrganizationUpdateOne) defaults() {
+func (_u *OrganizationUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if organization.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized organization.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := organization.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -4336,6 +4379,9 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 	}
 	if _u.mutation.BaseCurrencyCleared() {
 		_spec.ClearField(organization.FieldBaseCurrency, field.TypeString)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

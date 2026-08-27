@@ -22,7 +22,12 @@ func (TaxableService) Fields() []ent.Field {
 		field.String("goods_code").Optional().Nillable().MaxLen(64),
 		field.String("default_tax_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(5,2)"}),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
+}
+
+func (TaxableService) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name", "short_name")}
 }
 
 func (TaxableService) Edges() []ent.Edge {

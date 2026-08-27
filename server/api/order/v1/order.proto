@@ -320,6 +320,9 @@ message CheckOrderReferenceRequest {
 
 message ListPersonnelOptionsRequest {
   BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
 }
 
 message ListOrderConsolidationsRequest {
@@ -525,4 +528,7 @@ message ListPersonnelOptionsResponse {
   string message = 3;
   repeated OrderPersonnelOption data = 4;
   string trace_id = 5;
+  int32 total = 6;
+  int32 page = 7;
+  int32 page_size = 8;
 }

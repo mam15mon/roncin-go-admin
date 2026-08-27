@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"sort"
 	"strings"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -203,7 +202,7 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 	return result, nil
 }
 
-func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.OrderPersonnelOption, error) {
+func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.OrderPersonnelOption], error) {
 	organizations, err := r.data.db.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
 		All(ctx)
@@ -220,12 +219,25 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	memberships, err := r.data.db.Membership.Query().Where(
+	query := r.data.db.Membership.Query().Where(
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
 		membershipent.HasUserWith(userent.EnabledEQ(true)),
 		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
-	).WithUser().WithOrganization().All(ctx)
+	)
+	if options.Keyword != "" {
+		query.Where(membershipent.Or(
+			membershipent.HasUserWith(userent.Or(userent.UsernameContainsFold(options.Keyword), userent.DisplayNameContainsFold(options.Keyword), userent.SearchKeywordsContainsFold(options.Keyword))),
+			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
+		))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	memberships, err := query.WithUser().WithOrganization().
+		Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
+		Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -236,13 +248,7 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			OrganizationID: membership.OrganizationID, OrganizationName: membership.Edges.Organization.Name,
 		})
 	}
-	sort.Slice(result, func(i, j int) bool {
-		if result[i].DisplayName == result[j].DisplayName {
-			return result[i].OrganizationName < result[j].OrganizationName
-		}
-		return result[i].DisplayName < result[j].DisplayName
-	})
-	return result, nil
+	return &biz.PagedList[*biz.OrderPersonnelOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order) (*biz.Order, error) {

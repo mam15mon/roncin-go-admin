@@ -39,6 +39,7 @@ const OperationMasterDataServiceListShippingLines = "/masterdata.v1.MasterDataSe
 const OperationMasterDataServiceListStatusTemplates = "/masterdata.v1.MasterDataService/ListStatusTemplates"
 const OperationMasterDataServicePublishMilestoneTemplate = "/masterdata.v1.MasterDataService/PublishMilestoneTemplate"
 const OperationMasterDataServicePublishStatusTemplate = "/masterdata.v1.MasterDataService/PublishStatusTemplate"
+const OperationMasterDataServiceSearchCurrencies = "/masterdata.v1.MasterDataService/SearchCurrencies"
 const OperationMasterDataServiceSetDefaultMilestoneTemplate = "/masterdata.v1.MasterDataService/SetDefaultMilestoneTemplate"
 const OperationMasterDataServiceSetDefaultStatusTemplate = "/masterdata.v1.MasterDataService/SetDefaultStatusTemplate"
 const OperationMasterDataServiceUpdateAirline = "/masterdata.v1.MasterDataService/UpdateAirline"
@@ -71,6 +72,7 @@ type MasterDataServiceHTTPServer interface {
 	ListStatusTemplates(context.Context, *ListStatusTemplatesRequest) (*ListStatusTemplatesResponse, error)
 	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
 	PublishStatusTemplate(context.Context, *PublishStatusTemplateRequest) (*PublishStatusTemplateResponse, error)
+	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error)
 	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
 	SetDefaultStatusTemplate(context.Context, *SetDefaultStatusTemplateRequest) (*SetDefaultStatusTemplateResponse, error)
 	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
@@ -101,6 +103,7 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("POST", "/api/v1/master-data/shipping-lines", _MasterDataService_CreateShippingLine0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/shipping-lines/{id}", _MasterDataService_UpdateShippingLine0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/currencies", _MasterDataService_ListCurrencies0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/reference/currencies/search", _MasterDataService_SearchCurrencies0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/reference/administrative-regions", _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/number-rules", _MasterDataService_ListNumberRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/number-rules", _MasterDataService_CreateNumberRule0_HTTP_Handler(srv))
@@ -472,6 +475,25 @@ func _MasterDataService_ListCurrencies0_HTTP_Handler(srv MasterDataServiceHTTPSe
 	}
 }
 
+func _MasterDataService_SearchCurrencies0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SearchCurrenciesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceSearchCurrencies)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SearchCurrencies(ctx, req.(*SearchCurrenciesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCurrenciesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _MasterDataService_ListAdministrativeRegions0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListAdministrativeRegionsRequest
@@ -738,6 +760,7 @@ type MasterDataServiceHTTPClient interface {
 	ListStatusTemplates(ctx context.Context, req *ListStatusTemplatesRequest, opts ...http.CallOption) (rsp *ListStatusTemplatesResponse, err error)
 	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *PublishMilestoneTemplateResponse, err error)
 	PublishStatusTemplate(ctx context.Context, req *PublishStatusTemplateRequest, opts ...http.CallOption) (rsp *PublishStatusTemplateResponse, err error)
+	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *ListCurrenciesResponse, err error)
 	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultMilestoneTemplateResponse, err error)
 	SetDefaultStatusTemplate(ctx context.Context, req *SetDefaultStatusTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultStatusTemplateResponse, err error)
 	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
@@ -1113,6 +1136,22 @@ func (c *MasterDataServiceHTTPClientImpl) PublishStatusTemplate(ctx context.Cont
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MasterDataServiceHTTPClientImpl) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...http.CallOption) (*ListCurrenciesResponse, error) {
+	var out ListCurrenciesResponse
+	pattern := "/api/v1/reference/currencies/search"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceSearchCurrencies),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -58,7 +58,7 @@ func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, opt
 		query.Where(masterdataent.KindEQ(masterdataent.Kind(options.Kind)))
 	}
 	if options.Keyword != "" {
-		query.Where(masterdataent.Or(masterdataent.CodeContainsFold(options.Keyword), masterdataent.NameContainsFold(options.Keyword), masterdataent.NameEnContainsFold(options.Keyword)))
+		query.Where(masterdataent.Or(masterdataent.CodeContainsFold(options.Keyword), masterdataent.NameContainsFold(options.Keyword), masterdataent.NameEnContainsFold(options.Keyword), masterdataent.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	if options.Enabled != nil {
 		query.Where(masterdataent.EnabledEQ(*options.Enabled))

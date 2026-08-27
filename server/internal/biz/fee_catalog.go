@@ -73,14 +73,20 @@ type FeeSetting struct {
 	UpdatedAt          time.Time
 }
 
+type FeeCatalogListOptions struct {
+	Keyword  string
+	Page     int
+	PageSize int
+}
+
 type FeeCatalogRepo interface {
-	ListFeeSettings(context.Context, uuid.UUID) ([]*FeeSetting, error)
+	ListFeeSettings(context.Context, uuid.UUID, FeeCatalogListOptions) (*PagedList[*FeeSetting], error)
 	CreateFeeSetting(context.Context, *FeeSetting, *AuditEvent) (*FeeSetting, error)
 	UpdateFeeSetting(context.Context, *FeeSetting, *AuditEvent) (*FeeSetting, error)
-	ListBillingUnits(context.Context, uuid.UUID) ([]*BillingUnit, error)
+	ListBillingUnits(context.Context, uuid.UUID, FeeCatalogListOptions) (*PagedList[*BillingUnit], error)
 	CreateBillingUnit(context.Context, *BillingUnit, *AuditEvent) (*BillingUnit, error)
 	UpdateBillingUnit(context.Context, *BillingUnit, *AuditEvent) (*BillingUnit, error)
-	ListTaxableServices(context.Context, uuid.UUID) ([]*TaxableService, error)
+	ListTaxableServices(context.Context, uuid.UUID, FeeCatalogListOptions) (*PagedList[*TaxableService], error)
 	CreateTaxableService(context.Context, *TaxableService, *AuditEvent) (*TaxableService, error)
 	UpdateTaxableService(context.Context, *TaxableService, *AuditEvent) (*TaxableService, error)
 }
@@ -91,11 +97,12 @@ func NewFeeCatalogUsecase(repo FeeCatalogRepo) *FeeCatalogUsecase {
 	return &FeeCatalogUsecase{repo: repo}
 }
 
-func (uc *FeeCatalogUsecase) ListFeeSettings(ctx context.Context, organizationID uuid.UUID) ([]*FeeSetting, error) {
-	if organizationID == uuid.Nil {
+func (uc *FeeCatalogUsecase) ListFeeSettings(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*FeeSetting], error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
-	return uc.repo.ListFeeSettings(ctx, organizationID)
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	return uc.repo.ListFeeSettings(ctx, organizationID, options)
 }
 
 func (uc *FeeCatalogUsecase) CreateFeeSetting(ctx context.Context, organizationID, actorID uuid.UUID, input *FeeSetting) (*FeeSetting, error) {
@@ -125,11 +132,12 @@ func (uc *FeeCatalogUsecase) UpdateFeeSetting(ctx context.Context, organizationI
 	return uc.repo.UpdateFeeSetting(ctx, normalized, feeCatalogAudit(organizationID, actorID, id, "finance.fee_setting.update", "fee_setting"))
 }
 
-func (uc *FeeCatalogUsecase) ListBillingUnits(ctx context.Context, organizationID uuid.UUID) ([]*BillingUnit, error) {
-	if organizationID == uuid.Nil {
+func (uc *FeeCatalogUsecase) ListBillingUnits(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*BillingUnit], error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
-	return uc.repo.ListBillingUnits(ctx, organizationID)
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	return uc.repo.ListBillingUnits(ctx, organizationID, options)
 }
 
 func (uc *FeeCatalogUsecase) CreateBillingUnit(ctx context.Context, organizationID, actorID uuid.UUID, input *BillingUnit) (*BillingUnit, error) {
@@ -159,11 +167,12 @@ func (uc *FeeCatalogUsecase) UpdateBillingUnit(ctx context.Context, organization
 	return uc.repo.UpdateBillingUnit(ctx, normalized, feeCatalogAudit(organizationID, actorID, id, "finance.billing_unit.update", "billing_unit"))
 }
 
-func (uc *FeeCatalogUsecase) ListTaxableServices(ctx context.Context, organizationID uuid.UUID) ([]*TaxableService, error) {
-	if organizationID == uuid.Nil {
+func (uc *FeeCatalogUsecase) ListTaxableServices(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*TaxableService], error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
-	return uc.repo.ListTaxableServices(ctx, organizationID)
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	return uc.repo.ListTaxableServices(ctx, organizationID, options)
 }
 
 func (uc *FeeCatalogUsecase) CreateTaxableService(ctx context.Context, organizationID, actorID uuid.UUID, input *TaxableService) (*TaxableService, error) {

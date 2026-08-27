@@ -131,6 +131,20 @@ func (_c *PartnerCreate) SetNillableEnabled(v *bool) *PartnerCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *PartnerCreate) SetSearchKeywords(v string) *PartnerCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *PartnerCreate) SetNillableSearchKeywords(v *string) *PartnerCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PartnerCreate) SetID(v uuid.UUID) *PartnerCreate {
 	_c.mutation.SetID(v)
@@ -386,7 +400,9 @@ func (_c *PartnerCreate) Mutation() *PartnerMutation {
 
 // Save creates the Partner in the database.
 func (_c *PartnerCreate) Save(ctx context.Context) (*Partner, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -413,12 +429,18 @@ func (_c *PartnerCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *PartnerCreate) defaults() {
+func (_c *PartnerCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if partner.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partner.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := partner.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if partner.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partner.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partner.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -426,10 +448,18 @@ func (_c *PartnerCreate) defaults() {
 		v := partner.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := partner.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if partner.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized partner.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := partner.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -479,6 +509,9 @@ func (_c *PartnerCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Partner.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Partner.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Partner.organization"`)}
@@ -549,6 +582,10 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(partner.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(partner.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

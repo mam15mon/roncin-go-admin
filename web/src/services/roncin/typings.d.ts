@@ -1211,6 +1211,24 @@ declare namespace API {
     traceId?: string;
   };
 
+  type FeeCatalogServiceSearchBillingUnitsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FeeCatalogServiceSearchFeeSettingsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FeeCatalogServiceSearchTaxableServicesParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type FeeCatalogServiceUpdateBillingUnitParams = {
     id: string;
   };
@@ -1710,6 +1728,9 @@ declare namespace API {
     message?: string;
     data?: AdministrativeRegion[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListAirlinesResponse = {
@@ -1770,6 +1791,9 @@ declare namespace API {
     message?: string;
     data?: BillingUnit[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListBillsResponse = {
@@ -1838,6 +1862,9 @@ declare namespace API {
     message?: string;
     data?: Currency[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListExchangeRateSettingsResponse = {
@@ -1890,6 +1917,9 @@ declare namespace API {
     message?: string;
     data?: FeeSetting[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListFeesResponse = {
@@ -2001,6 +2031,9 @@ declare namespace API {
     message?: string;
     data?: PartnerAssignmentOption[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListPartnerAttachmentsResponse = {
@@ -2079,6 +2112,9 @@ declare namespace API {
     message?: string;
     data?: OrderPersonnelOption[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListPersonnelResponse = {
@@ -2149,6 +2185,9 @@ declare namespace API {
     message?: string;
     data?: TaxableService[];
     traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListUsersResponse = {
@@ -2244,6 +2283,8 @@ declare namespace API {
     level?: number;
     parentCode?: string;
     keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type MasterDataServiceListAirlinesParams = {
@@ -2299,6 +2340,12 @@ declare namespace API {
 
   type MasterDataServicePublishStatusTemplateParams = {
     id: string;
+  };
+
+  type MasterDataServiceSearchCurrenciesParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type MasterDataServiceSetDefaultMilestoneTemplateParams = {
@@ -2854,6 +2901,9 @@ declare namespace API {
 
   type OrderServiceListPersonnelOptionsParams = {
     businessType?: number;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type OrderServiceTransitionOrderStatusParams = {
@@ -3204,6 +3254,12 @@ declare namespace API {
 
   type PartnerServiceRegisterPartnerAttachmentParams = {
     partnerId: string;
+  };
+
+  type PartnerServiceSearchPartnerAssignmentOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type PartnerServiceSetSupplierBlacklistParams = {

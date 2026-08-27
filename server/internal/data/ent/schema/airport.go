@@ -28,7 +28,12 @@ func (Airport) Fields() []ent.Field {
 		field.String("source_hash").MaxLen(64).Optional().Nillable(),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
+}
+
+func (Airport) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name_zh", "name_en", "city_name_zh", "city_name_en")}
 }
 
 func (Airport) Edges() []ent.Edge {

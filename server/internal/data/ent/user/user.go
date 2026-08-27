@@ -5,6 +5,7 @@ package user
 import (
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -39,6 +40,8 @@ const (
 	FieldDingtalkName = "dingtalk_name"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
 	EdgeMemberships = "memberships"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -265,6 +268,7 @@ var Columns = []string{
 	FieldDingtalkUnionid,
 	FieldDingtalkName,
 	FieldEnabled,
+	FieldSearchKeywords,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -277,7 +281,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -302,6 +312,8 @@ var (
 	DingtalkNameValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -372,6 +384,11 @@ func ByDingtalkName(opts ...sql.OrderTermOption) OrderOption {
 // ByEnabled orders the results by the enabled field.
 func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // ByMembershipsCount orders the results by memberships count.

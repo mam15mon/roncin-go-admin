@@ -38,6 +38,8 @@ type Partner struct {
 	RegisteredAddress string `json:"registered_address,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PartnerQuery when eager-loading is set.
 	Edges        PartnerEdges `json:"edges"`
@@ -238,7 +240,7 @@ func (*Partner) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partner.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case partner.FieldCode, partner.FieldLegalName, partner.FieldNormalizedName, partner.FieldUnifiedSocialCreditCode, partner.FieldRegisteredAddress:
+		case partner.FieldCode, partner.FieldLegalName, partner.FieldNormalizedName, partner.FieldUnifiedSocialCreditCode, partner.FieldRegisteredAddress, partner.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case partner.FieldCreatedAt, partner.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -319,6 +321,12 @@ func (_m *Partner) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enabled", values[i])
 			} else if value.Valid {
 				_m.Enabled = value.Bool
+			}
+		case partner.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -464,6 +472,9 @@ func (_m *Partner) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

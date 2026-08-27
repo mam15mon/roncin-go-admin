@@ -189,6 +189,20 @@ func (_u *AirlineUpdate) SetNillableEnabled(v *bool) *AirlineUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *AirlineUpdate) SetSearchKeywords(v string) *AirlineUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *AirlineUpdate) SetNillableSearchKeywords(v *string) *AirlineUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *AirlineUpdate) SetOrganization(v *Organization) *AirlineUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -207,7 +221,9 @@ func (_u *AirlineUpdate) ClearOrganization() *AirlineUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *AirlineUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -234,11 +250,15 @@ func (_u *AirlineUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *AirlineUpdate) defaults() {
+func (_u *AirlineUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if airline.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized airline.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := airline.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -326,6 +346,9 @@ func (_u *AirlineUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(airline.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(airline.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -535,6 +558,20 @@ func (_u *AirlineUpdateOne) SetNillableEnabled(v *bool) *AirlineUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *AirlineUpdateOne) SetSearchKeywords(v string) *AirlineUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *AirlineUpdateOne) SetNillableSearchKeywords(v *string) *AirlineUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *AirlineUpdateOne) SetOrganization(v *Organization) *AirlineUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -566,7 +603,9 @@ func (_u *AirlineUpdateOne) Select(field string, fields ...string) *AirlineUpdat
 
 // Save executes the query and returns the updated Airline entity.
 func (_u *AirlineUpdateOne) Save(ctx context.Context) (*Airline, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -593,11 +632,15 @@ func (_u *AirlineUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *AirlineUpdateOne) defaults() {
+func (_u *AirlineUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if airline.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized airline.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := airline.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -702,6 +745,9 @@ func (_u *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err er
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(airline.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(airline.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

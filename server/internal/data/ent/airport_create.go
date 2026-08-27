@@ -200,6 +200,20 @@ func (_c *AirportCreate) SetNillableEnabled(v *bool) *AirportCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *AirportCreate) SetSearchKeywords(v string) *AirportCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *AirportCreate) SetNillableSearchKeywords(v *string) *AirportCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AirportCreate) SetID(v uuid.UUID) *AirportCreate {
 	_c.mutation.SetID(v)
@@ -226,7 +240,9 @@ func (_c *AirportCreate) Mutation() *AirportMutation {
 
 // Save creates the Airport in the database.
 func (_c *AirportCreate) Save(ctx context.Context) (*Airport, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -253,12 +269,18 @@ func (_c *AirportCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *AirportCreate) defaults() {
+func (_c *AirportCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if airport.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized airport.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := airport.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if airport.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized airport.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := airport.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -274,10 +296,18 @@ func (_c *AirportCreate) defaults() {
 		v := airport.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := airport.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if airport.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized airport.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := airport.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -358,6 +388,9 @@ func (_c *AirportCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Airport.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Airport.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "Airport.organization"`)}
@@ -452,6 +485,10 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(airport.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(airport.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

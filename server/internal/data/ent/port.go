@@ -46,6 +46,8 @@ type Port struct {
 	SortOrder int `json:"sort_order,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PortQuery when eager-loading is set.
 	Edges        PortEdges `json:"edges"`
@@ -83,7 +85,7 @@ func (*Port) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case port.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case port.FieldUnLocode, port.FieldNameZh, port.FieldNameEn, port.FieldCountryCode, port.FieldSource, port.FieldSourceVersion, port.FieldSourceHash:
+		case port.FieldUnLocode, port.FieldNameZh, port.FieldNameEn, port.FieldCountryCode, port.FieldSource, port.FieldSourceVersion, port.FieldSourceHash, port.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case port.FieldCreatedAt, port.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -193,6 +195,12 @@ func (_m *Port) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case port.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -278,6 +286,9 @@ func (_m *Port) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

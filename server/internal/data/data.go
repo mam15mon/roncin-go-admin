@@ -8,6 +8,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	_ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"

@@ -19,8 +19,11 @@ func (PartnerAlias) Fields() []ent.Field {
 		field.String("alias_name").NotEmpty().MaxLen(200),
 		field.String("normalized_alias_name").NotEmpty().MaxLen(200),
 		field.Int("sort_order").Default(0).NonNegative(),
+		searchKeywordsField(),
 	}
 }
+
+func (PartnerAlias) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("alias_name")} }
 
 func (PartnerAlias) Edges() []ent.Edge {
 	return []ent.Edge{

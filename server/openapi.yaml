@@ -648,6 +648,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateBillingUnitResponse'
+    /api/v1/finance/billing-units/search:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_SearchBillingUnits
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListBillingUnitsResponse'
     /api/v1/finance/billing-units/{id}:
         put:
             tags:
@@ -1433,6 +1460,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateFeeSettingResponse'
+    /api/v1/finance/fee-settings/search:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_SearchFeeSettings
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFeeSettingsResponse'
     /api/v1/finance/fee-settings/{id}:
         put:
             tags:
@@ -1736,6 +1790,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateTaxableServiceResponse'
+    /api/v1/finance/taxable-services/search:
+        get:
+            tags:
+                - FeeCatalogService
+            operationId: FeeCatalogService_SearchTaxableServices
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListTaxableServicesResponse'
     /api/v1/finance/taxable-services/{id}:
         put:
             tags:
@@ -2469,6 +2550,20 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
             responses:
                 "200":
                     description: OK
@@ -3563,6 +3658,45 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.TransitionShippingDocumentStatusResponse'
+    /api/v1/partner-assignment-options:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_ListPartnerAssignmentOptions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse'
+    /api/v1/partner-assignment-options/search:
+        get:
+            tags:
+                - PartnerService
+            operationId: PartnerService_SearchPartnerAssignmentOptions
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse'
     /api/v1/partners:
         get:
             tags:
@@ -3616,18 +3750,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.CreatePartnerResponse'
-    /api/v1/partners/assignment-options:
-        get:
-            tags:
-                - PartnerService
-            operationId: PartnerService_ListPartnerAssignmentOptions
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse'
     /api/v1/partners/export:
         get:
             tags:
@@ -4211,6 +4333,16 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
             responses:
                 "200":
                     description: OK
@@ -4223,6 +4355,33 @@ paths:
             tags:
                 - MasterDataService
             operationId: MasterDataService_ListCurrencies
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.ListCurrenciesResponse'
+    /api/v1/reference/currencies/search:
+        get:
+            tags:
+                - MasterDataService
+            operationId: MasterDataService_SearchCurrencies
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
             responses:
                 "200":
                     description: OK
@@ -6636,6 +6795,15 @@ components:
                         $ref: '#/components/schemas/finance.v1.BillingUnit'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.ListBillsResponse:
             type: object
             properties:
@@ -6794,6 +6962,15 @@ components:
                         $ref: '#/components/schemas/finance.v1.FeeSetting'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.ListInvoicesResponse:
             type: object
             properties:
@@ -6828,6 +7005,15 @@ components:
                         $ref: '#/components/schemas/finance.v1.TaxableService'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.ListVerificationsResponse:
             type: object
             properties:
@@ -7768,6 +7954,15 @@ components:
                         $ref: '#/components/schemas/masterdata.v1.AdministrativeRegion'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         masterdata.v1.ListAirlinesResponse:
             type: object
             properties:
@@ -7834,6 +8029,15 @@ components:
                         $ref: '#/components/schemas/masterdata.v1.Currency'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         masterdata.v1.ListItemsResponse:
             type: object
             properties:
@@ -9272,6 +9476,15 @@ components:
                         $ref: '#/components/schemas/order.v1.OrderPersonnelOption'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         order.v1.ListPersonnelResponse:
             type: object
             properties:
@@ -10984,6 +11197,15 @@ components:
                         $ref: '#/components/schemas/partner.v1.PartnerAssignmentOption'
                 traceId:
                     type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         partner.v1.ListPartnerAttachmentsResponse:
             type: object
             properties:

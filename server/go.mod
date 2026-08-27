@@ -6,6 +6,7 @@ require (
 	entgo.io/ent v0.14.6
 	github.com/google/wire v0.7.0
 	github.com/jackc/pgx/v5 v5.7.1
+	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/shopspring/decimal v1.4.0
 	go.einride.tech/aip v0.86.3
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0

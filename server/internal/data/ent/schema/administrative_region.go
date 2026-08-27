@@ -21,7 +21,12 @@ func (AdministrativeRegion) Fields() []ent.Field {
 		field.String("source").NotEmpty().MaxLen(50).Default("MCA_DMFW"),
 		field.String("source_version").Optional().Nillable().MaxLen(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
+}
+
+func (AdministrativeRegion) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name")}
 }
 
 func (AdministrativeRegion) Indexes() []ent.Index {

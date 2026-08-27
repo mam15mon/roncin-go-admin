@@ -133,6 +133,20 @@ func (_u *TaxableServiceUpdate) SetNillableEnabled(v *bool) *TaxableServiceUpdat
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *TaxableServiceUpdate) SetSearchKeywords(v string) *TaxableServiceUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *TaxableServiceUpdate) SetNillableSearchKeywords(v *string) *TaxableServiceUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *TaxableServiceUpdate) SetOrganization(v *Organization) *TaxableServiceUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -187,7 +201,9 @@ func (_u *TaxableServiceUpdate) RemoveFeeSettings(v ...*FeeSetting) *TaxableServ
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *TaxableServiceUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -214,11 +230,15 @@ func (_u *TaxableServiceUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *TaxableServiceUpdate) defaults() {
+func (_u *TaxableServiceUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if taxableservice.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized taxableservice.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := taxableservice.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -279,6 +299,9 @@ func (_u *TaxableServiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(taxableservice.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(taxableservice.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -476,6 +499,20 @@ func (_u *TaxableServiceUpdateOne) SetNillableEnabled(v *bool) *TaxableServiceUp
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *TaxableServiceUpdateOne) SetSearchKeywords(v string) *TaxableServiceUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *TaxableServiceUpdateOne) SetNillableSearchKeywords(v *string) *TaxableServiceUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *TaxableServiceUpdateOne) SetOrganization(v *Organization) *TaxableServiceUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -543,7 +580,9 @@ func (_u *TaxableServiceUpdateOne) Select(field string, fields ...string) *Taxab
 
 // Save executes the query and returns the updated TaxableService entity.
 func (_u *TaxableServiceUpdateOne) Save(ctx context.Context) (*TaxableService, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -570,11 +609,15 @@ func (_u *TaxableServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *TaxableServiceUpdateOne) defaults() {
+func (_u *TaxableServiceUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if taxableservice.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized taxableservice.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := taxableservice.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -652,6 +695,9 @@ func (_u *TaxableServiceUpdateOne) sqlSave(ctx context.Context) (_node *TaxableS
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(taxableservice.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(taxableservice.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

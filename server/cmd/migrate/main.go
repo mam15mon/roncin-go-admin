@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -35,6 +36,10 @@ func main() {
 	}
 	if err := migration.Apply(ctx, db, *dir); err != nil {
 		fmt.Fprintf(os.Stderr, "执行数据库迁移失败: %v\n", err)
+		os.Exit(1)
+	}
+	if err := data.BackfillSelectorSearchKeywords(ctx, db); err != nil {
+		fmt.Fprintf(os.Stderr, "回填下拉候选项拼音检索键失败: %v\n", err)
 		os.Exit(1)
 	}
 }

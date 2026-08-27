@@ -111,6 +111,20 @@ func (_c *TaxableServiceCreate) SetNillableEnabled(v *bool) *TaxableServiceCreat
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *TaxableServiceCreate) SetSearchKeywords(v string) *TaxableServiceCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *TaxableServiceCreate) SetNillableSearchKeywords(v *string) *TaxableServiceCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *TaxableServiceCreate) SetID(v uuid.UUID) *TaxableServiceCreate {
 	_c.mutation.SetID(v)
@@ -152,7 +166,9 @@ func (_c *TaxableServiceCreate) Mutation() *TaxableServiceMutation {
 
 // Save creates the TaxableService in the database.
 func (_c *TaxableServiceCreate) Save(ctx context.Context) (*TaxableService, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -179,12 +195,18 @@ func (_c *TaxableServiceCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *TaxableServiceCreate) defaults() {
+func (_c *TaxableServiceCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if taxableservice.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized taxableservice.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := taxableservice.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if taxableservice.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized taxableservice.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := taxableservice.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -192,10 +214,18 @@ func (_c *TaxableServiceCreate) defaults() {
 		v := taxableservice.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := taxableservice.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if taxableservice.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized taxableservice.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := taxableservice.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -232,6 +262,9 @@ func (_c *TaxableServiceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "TaxableService.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "TaxableService.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "TaxableService.organization"`)}
@@ -298,6 +331,10 @@ func (_c *TaxableServiceCreate) createSpec() (*TaxableService, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(taxableservice.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(taxableservice.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

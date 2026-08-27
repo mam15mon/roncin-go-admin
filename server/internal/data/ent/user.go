@@ -42,6 +42,8 @@ type User struct {
 	DingtalkName *string `json:"dingtalk_name,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -315,7 +317,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkName:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkName, user.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -420,6 +422,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enabled", values[i])
 			} else if value.Valid {
 				_m.Enabled = value.Bool
+			}
+		case user.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -618,6 +626,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

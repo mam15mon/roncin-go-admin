@@ -216,6 +216,20 @@ func (_u *UserUpdate) SetNillableEnabled(v *bool) *UserUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *UserUpdate) SetSearchKeywords(v string) *UserUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableSearchKeywords(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // AddMembershipIDs adds the "memberships" edge to the Membership entity by IDs.
 func (_u *UserUpdate) AddMembershipIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddMembershipIDs(ids...)
@@ -1051,7 +1065,9 @@ func (_u *UserUpdate) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPr
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *UserUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -1078,11 +1094,15 @@ func (_u *UserUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *UserUpdate) defaults() {
+func (_u *UserUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if user.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized user.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := user.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1187,6 +1207,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.MembershipsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2417,6 +2440,20 @@ func (_u *UserUpdateOne) SetNillableEnabled(v *bool) *UserUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *UserUpdateOne) SetSearchKeywords(v string) *UserUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableSearchKeywords(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // AddMembershipIDs adds the "memberships" edge to the Membership entity by IDs.
 func (_u *UserUpdateOne) AddMembershipIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddMembershipIDs(ids...)
@@ -3265,7 +3302,9 @@ func (_u *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne {
 
 // Save executes the query and returns the updated User entity.
 func (_u *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -3292,11 +3331,15 @@ func (_u *UserUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *UserUpdateOne) defaults() {
+func (_u *UserUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if user.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized user.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := user.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -3418,6 +3461,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.MembershipsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -47,6 +47,8 @@ type MasterDataItem struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// Attributes holds the value of the "attributes" field.
 	Attributes *schema.MasterDataAttributes `json:"attributes,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MasterDataItemQuery when eager-loading is set.
 	Edges        MasterDataItemEdges `json:"edges"`
@@ -106,7 +108,7 @@ func (*MasterDataItem) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case masterdataitem.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case masterdataitem.FieldKind, masterdataitem.FieldCode, masterdataitem.FieldName, masterdataitem.FieldNameEn, masterdataitem.FieldParentCode, masterdataitem.FieldTeuFactor, masterdataitem.FieldSource:
+		case masterdataitem.FieldKind, masterdataitem.FieldCode, masterdataitem.FieldName, masterdataitem.FieldNameEn, masterdataitem.FieldParentCode, masterdataitem.FieldTeuFactor, masterdataitem.FieldSource, masterdataitem.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case masterdataitem.FieldCreatedAt, masterdataitem.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -216,6 +218,12 @@ func (_m *MasterDataItem) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field attributes: %w", err)
 				}
 			}
+		case masterdataitem.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -311,6 +319,9 @@ func (_m *MasterDataItem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("attributes=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Attributes))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

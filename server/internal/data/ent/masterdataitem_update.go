@@ -195,6 +195,20 @@ func (_u *MasterDataItemUpdate) SetAttributes(v *schema.MasterDataAttributes) *M
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *MasterDataItemUpdate) SetSearchKeywords(v string) *MasterDataItemUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *MasterDataItemUpdate) SetNillableSearchKeywords(v *string) *MasterDataItemUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *MasterDataItemUpdate) SetOrganization(v *Organization) *MasterDataItemUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -285,7 +299,9 @@ func (_u *MasterDataItemUpdate) RemoveAbnormalCaseFeeSettings(v ...*FeeSetting) 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *MasterDataItemUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -312,11 +328,15 @@ func (_u *MasterDataItemUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *MasterDataItemUpdate) defaults() {
+func (_u *MasterDataItemUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if masterdataitem.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized masterdataitem.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := masterdataitem.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -410,6 +430,9 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.Attributes(); ok {
 		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -713,6 +736,20 @@ func (_u *MasterDataItemUpdateOne) SetAttributes(v *schema.MasterDataAttributes)
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *MasterDataItemUpdateOne) SetSearchKeywords(v string) *MasterDataItemUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *MasterDataItemUpdateOne) SetNillableSearchKeywords(v *string) *MasterDataItemUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *MasterDataItemUpdateOne) SetOrganization(v *Organization) *MasterDataItemUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -816,7 +853,9 @@ func (_u *MasterDataItemUpdateOne) Select(field string, fields ...string) *Maste
 
 // Save executes the query and returns the updated MasterDataItem entity.
 func (_u *MasterDataItemUpdateOne) Save(ctx context.Context) (*MasterDataItem, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -843,11 +882,15 @@ func (_u *MasterDataItemUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *MasterDataItemUpdateOne) defaults() {
+func (_u *MasterDataItemUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if masterdataitem.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized masterdataitem.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := masterdataitem.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -958,6 +1001,9 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 	}
 	if value, ok := _u.mutation.Attributes(); ok {
 		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

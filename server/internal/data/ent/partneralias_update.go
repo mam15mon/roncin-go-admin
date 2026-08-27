@@ -99,6 +99,20 @@ func (_u *PartnerAliasUpdate) AddSortOrder(v int) *PartnerAliasUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *PartnerAliasUpdate) SetSearchKeywords(v string) *PartnerAliasUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *PartnerAliasUpdate) SetNillableSearchKeywords(v *string) *PartnerAliasUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetPartner sets the "partner" edge to the Partner entity.
 func (_u *PartnerAliasUpdate) SetPartner(v *Partner) *PartnerAliasUpdate {
 	return _u.SetPartnerID(v.ID)
@@ -117,7 +131,9 @@ func (_u *PartnerAliasUpdate) ClearPartner() *PartnerAliasUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PartnerAliasUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -144,11 +160,15 @@ func (_u *PartnerAliasUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *PartnerAliasUpdate) defaults() {
+func (_u *PartnerAliasUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if partneralias.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partneralias.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partneralias.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -200,6 +220,9 @@ func (_u *PartnerAliasUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.AddedSortOrder(); ok {
 		_spec.AddField(partneralias.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(partneralias.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -319,6 +342,20 @@ func (_u *PartnerAliasUpdateOne) AddSortOrder(v int) *PartnerAliasUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *PartnerAliasUpdateOne) SetSearchKeywords(v string) *PartnerAliasUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *PartnerAliasUpdateOne) SetNillableSearchKeywords(v *string) *PartnerAliasUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetPartner sets the "partner" edge to the Partner entity.
 func (_u *PartnerAliasUpdateOne) SetPartner(v *Partner) *PartnerAliasUpdateOne {
 	return _u.SetPartnerID(v.ID)
@@ -350,7 +387,9 @@ func (_u *PartnerAliasUpdateOne) Select(field string, fields ...string) *Partner
 
 // Save executes the query and returns the updated PartnerAlias entity.
 func (_u *PartnerAliasUpdateOne) Save(ctx context.Context) (*PartnerAlias, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -377,11 +416,15 @@ func (_u *PartnerAliasUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *PartnerAliasUpdateOne) defaults() {
+func (_u *PartnerAliasUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if partneralias.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partneralias.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partneralias.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -450,6 +493,9 @@ func (_u *PartnerAliasUpdateOne) sqlSave(ctx context.Context) (_node *PartnerAli
 	}
 	if value, ok := _u.mutation.AddedSortOrder(); ok {
 		_spec.AddField(partneralias.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(partneralias.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.PartnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

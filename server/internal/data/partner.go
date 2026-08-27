@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"sort"
 	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -45,8 +44,12 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 		query.Where(partnerent.Or(
 			partnerent.CodeContainsFold(options.Keyword),
 			partnerent.LegalNameContainsFold(options.Keyword),
+			partnerent.SearchKeywordsContainsFold(options.Keyword),
 			partnerent.UnifiedSocialCreditCodeContainsFold(options.Keyword),
-			partnerent.HasAliasesWith(partneraliasent.AliasNameContainsFold(options.Keyword)),
+			partnerent.HasAliasesWith(partneraliasent.Or(
+				partneraliasent.AliasNameContainsFold(options.Keyword),
+				partneraliasent.SearchKeywordsContainsFold(options.Keyword),
+			)),
 			partnerent.HasContactsWith(partnercontactent.Or(
 				partnercontactent.NameContainsFold(options.Keyword),
 				partnercontactent.PhoneContainsFold(options.Keyword),
@@ -82,7 +85,7 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 	return &biz.PartnerList{Items: partners, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID) ([]*biz.PartnerAssignmentOption, error) {
+func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.PartnerAssignmentOption], error) {
 	organizations, err := r.data.db.Organization.Query().
 		Select(organizationent.FieldID, organizationent.FieldParentID).
 		All(ctx)
@@ -99,12 +102,25 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 			organizationIDs = append(organizationIDs, organization.ID)
 		}
 	}
-	memberships, err := r.data.db.Membership.Query().Where(
+	query := r.data.db.Membership.Query().Where(
 		membershipent.OrganizationIDIn(organizationIDs...),
 		membershipent.EnabledEQ(true),
 		membershipent.HasUserWith(userent.EnabledEQ(true)),
 		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
-	).WithUser().WithOrganization().All(ctx)
+	)
+	if options.Keyword != "" {
+		query.Where(membershipent.Or(
+			membershipent.HasUserWith(userent.Or(userent.UsernameContainsFold(options.Keyword), userent.DisplayNameContainsFold(options.Keyword), userent.SearchKeywordsContainsFold(options.Keyword))),
+			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
+		))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	memberships, err := query.WithUser().WithOrganization().
+		Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
+		Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +132,7 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 			MembershipEnabled: item.Enabled,
 		})
 	}
-	sort.Slice(result, func(i, j int) bool {
-		if result[i].DisplayName == result[j].DisplayName {
-			return result[i].OrganizationName < result[j].OrganizationName
-		}
-		return result[i].DisplayName < result[j].DisplayName
-	})
-	return result, nil
+	return &biz.PagedList[*biz.PartnerAssignmentOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*biz.PartnerAuditLogList, error) {

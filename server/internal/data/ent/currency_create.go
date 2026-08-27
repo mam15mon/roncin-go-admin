@@ -103,6 +103,20 @@ func (_c *CurrencyCreate) SetNillableEnabled(v *bool) *CurrencyCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *CurrencyCreate) SetSearchKeywords(v string) *CurrencyCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *CurrencyCreate) SetNillableSearchKeywords(v *string) *CurrencyCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *CurrencyCreate) SetID(v uuid.UUID) *CurrencyCreate {
 	_c.mutation.SetID(v)
@@ -124,7 +138,9 @@ func (_c *CurrencyCreate) Mutation() *CurrencyMutation {
 
 // Save creates the Currency in the database.
 func (_c *CurrencyCreate) Save(ctx context.Context) (*Currency, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -151,12 +167,18 @@ func (_c *CurrencyCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *CurrencyCreate) defaults() {
+func (_c *CurrencyCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if currency.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized currency.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := currency.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if currency.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized currency.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := currency.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -168,10 +190,18 @@ func (_c *CurrencyCreate) defaults() {
 		v := currency.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := currency.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if currency.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized currency.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := currency.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -213,6 +243,9 @@ func (_c *CurrencyCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Currency.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Currency.search_keywords"`)}
 	}
 	return nil
 }
@@ -276,6 +309,10 @@ func (_c *CurrencyCreate) createSpec() (*Currency, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(currency.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(currency.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	return _node, _spec
 }

@@ -24,8 +24,8 @@ func (s *partnerRepoStub) List(_ context.Context, _ uuid.UUID, options PartnerLi
 	return &PartnerList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (s *partnerRepoStub) ListAssignmentOptions(context.Context, uuid.UUID) ([]*PartnerAssignmentOption, error) {
-	return nil, nil
+func (s *partnerRepoStub) ListAssignmentOptions(_ context.Context, _ uuid.UUID, options SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error) {
+	return &PagedList[*PartnerAssignmentOption]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (s *partnerRepoStub) ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error) {

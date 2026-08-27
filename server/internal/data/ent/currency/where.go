@@ -90,6 +90,11 @@ func Enabled(v bool) predicate.Currency {
 	return predicate.Currency(sql.FieldEQ(FieldEnabled, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Currency {
 	return predicate.Currency(sql.FieldEQ(FieldCreatedAt, v))
@@ -423,6 +428,71 @@ func EnabledEQ(v bool) predicate.Currency {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.Currency {
 	return predicate.Currency(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.Currency {
+	return predicate.Currency(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.Currency {
+	return predicate.Currency(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.Currency {
+	return predicate.Currency(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // And groups predicates with the AND operator between them.

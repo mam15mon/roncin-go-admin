@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -32,6 +33,8 @@ const (
 	FieldEnabled = "enabled"
 	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
 	FieldBaseCurrency = "base_currency"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -347,6 +350,7 @@ var Columns = []string{
 	FieldParentID,
 	FieldEnabled,
 	FieldBaseCurrency,
+	FieldSearchKeywords,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -359,7 +363,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -374,6 +384,8 @@ var (
 	DefaultEnabled bool
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -449,6 +461,11 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 // ByBaseCurrency orders the results by the base_currency field.
 func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // ByParentField orders the results by parent field.

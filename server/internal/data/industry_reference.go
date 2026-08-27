@@ -22,7 +22,7 @@ func NewIndustryReferenceRepo(data *Data) biz.IndustryReferenceRepo {
 func (r *industryReferenceRepo) ListPorts(ctx context.Context, organizationID uuid.UUID, options biz.IndustryReferenceListOptions) (*biz.PortList, error) {
 	query := r.data.db.Port.Query().Where(port.OrganizationIDEQ(organizationID))
 	if options.Keyword != "" {
-		query.Where(port.Or(port.UnLocodeContainsFold(options.Keyword), port.NameZhContainsFold(options.Keyword), port.NameEnContainsFold(options.Keyword)))
+		query.Where(port.Or(port.UnLocodeContainsFold(options.Keyword), port.NameZhContainsFold(options.Keyword), port.NameEnContainsFold(options.Keyword), port.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	if options.Enabled != nil {
 		query.Where(port.EnabledEQ(*options.Enabled))
@@ -65,7 +65,7 @@ func (r *industryReferenceRepo) UpdatePort(ctx context.Context, organizationID, 
 func (r *industryReferenceRepo) ListAirports(ctx context.Context, organizationID uuid.UUID, options biz.IndustryReferenceListOptions) (*biz.AirportList, error) {
 	query := r.data.db.Airport.Query().Where(airport.OrganizationIDEQ(organizationID))
 	if options.Keyword != "" {
-		query.Where(airport.Or(airport.IataCodeContainsFold(options.Keyword), airport.IcaoCodeContainsFold(options.Keyword), airport.NameZhContainsFold(options.Keyword), airport.NameEnContainsFold(options.Keyword), airport.CityNameZhContainsFold(options.Keyword), airport.CityNameEnContainsFold(options.Keyword)))
+		query.Where(airport.Or(airport.IataCodeContainsFold(options.Keyword), airport.IcaoCodeContainsFold(options.Keyword), airport.NameZhContainsFold(options.Keyword), airport.NameEnContainsFold(options.Keyword), airport.CityNameZhContainsFold(options.Keyword), airport.CityNameEnContainsFold(options.Keyword), airport.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	if options.Enabled != nil {
 		query.Where(airport.EnabledEQ(*options.Enabled))
@@ -119,7 +119,7 @@ func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationI
 func (r *industryReferenceRepo) ListAirlines(ctx context.Context, organizationID uuid.UUID, options biz.IndustryReferenceListOptions) (*biz.AirlineList, error) {
 	query := r.data.db.Airline.Query().Where(airline.OrganizationIDEQ(organizationID))
 	if options.Keyword != "" {
-		query.Where(airline.Or(airline.IataCodeContainsFold(options.Keyword), airline.IcaoCodeContainsFold(options.Keyword), airline.AwbPrefixContainsFold(options.Keyword), airline.NameZhContainsFold(options.Keyword), airline.NameEnContainsFold(options.Keyword)))
+		query.Where(airline.Or(airline.IataCodeContainsFold(options.Keyword), airline.IcaoCodeContainsFold(options.Keyword), airline.AwbPrefixContainsFold(options.Keyword), airline.NameZhContainsFold(options.Keyword), airline.NameEnContainsFold(options.Keyword), airline.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	if options.Enabled != nil {
 		query.Where(airline.EnabledEQ(*options.Enabled))
@@ -168,7 +168,7 @@ func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationI
 func (r *industryReferenceRepo) ListShippingLines(ctx context.Context, organizationID uuid.UUID, options biz.IndustryReferenceListOptions) (*biz.ShippingLineList, error) {
 	query := r.data.db.ShippingLine.Query().Where(shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) })
 	if options.Keyword != "" {
-		query.Where(shippingline.Or(shippingline.ScacCodeContainsFold(options.Keyword), shippingline.NameZhContainsFold(options.Keyword), shippingline.NameEnContainsFold(options.Keyword)))
+		query.Where(shippingline.Or(shippingline.ScacCodeContainsFold(options.Keyword), shippingline.NameZhContainsFold(options.Keyword), shippingline.NameEnContainsFold(options.Keyword), shippingline.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	if options.Enabled != nil {
 		query.Where(shippingline.EnabledEQ(*options.Enabled))

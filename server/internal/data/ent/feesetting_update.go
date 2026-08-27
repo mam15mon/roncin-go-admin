@@ -253,6 +253,20 @@ func (_u *FeeSettingUpdate) AddSortOrder(v int) *FeeSettingUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FeeSettingUpdate) SetSearchKeywords(v string) *FeeSettingUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FeeSettingUpdate) SetNillableSearchKeywords(v *string) *FeeSettingUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *FeeSettingUpdate) SetOrganization(v *Organization) *FeeSettingUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -351,7 +365,9 @@ func (_u *FeeSettingUpdate) RemoveOrderFees(v ...*OrderFee) *FeeSettingUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FeeSettingUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -378,11 +394,15 @@ func (_u *FeeSettingUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FeeSettingUpdate) defaults() {
+func (_u *FeeSettingUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if feesetting.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized feesetting.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := feesetting.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -471,6 +491,9 @@ func (_u *FeeSettingUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.AddedSortOrder(); ok {
 		_spec.AddField(feesetting.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(feesetting.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -901,6 +924,20 @@ func (_u *FeeSettingUpdateOne) AddSortOrder(v int) *FeeSettingUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FeeSettingUpdateOne) SetSearchKeywords(v string) *FeeSettingUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FeeSettingUpdateOne) SetNillableSearchKeywords(v *string) *FeeSettingUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *FeeSettingUpdateOne) SetOrganization(v *Organization) *FeeSettingUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -1012,7 +1049,9 @@ func (_u *FeeSettingUpdateOne) Select(field string, fields ...string) *FeeSettin
 
 // Save executes the query and returns the updated FeeSetting entity.
 func (_u *FeeSettingUpdateOne) Save(ctx context.Context) (*FeeSetting, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -1039,11 +1078,15 @@ func (_u *FeeSettingUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FeeSettingUpdateOne) defaults() {
+func (_u *FeeSettingUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if feesetting.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized feesetting.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := feesetting.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1149,6 +1192,9 @@ func (_u *FeeSettingUpdateOne) sqlSave(ctx context.Context) (_node *FeeSetting, 
 	}
 	if value, ok := _u.mutation.AddedSortOrder(); ok {
 		_spec.AddField(feesetting.FieldSortOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(feesetting.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

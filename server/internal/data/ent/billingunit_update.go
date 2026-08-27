@@ -129,6 +129,20 @@ func (_u *BillingUnitUpdate) SetNillableEnabled(v *bool) *BillingUnitUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *BillingUnitUpdate) SetSearchKeywords(v string) *BillingUnitUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *BillingUnitUpdate) SetNillableSearchKeywords(v *string) *BillingUnitUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *BillingUnitUpdate) SetOrganization(v *Organization) *BillingUnitUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -219,7 +233,9 @@ func (_u *BillingUnitUpdate) RemoveOrderFees(v ...*OrderFee) *BillingUnitUpdate 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *BillingUnitUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -246,11 +262,15 @@ func (_u *BillingUnitUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *BillingUnitUpdate) defaults() {
+func (_u *BillingUnitUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if billingunit.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized billingunit.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := billingunit.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -303,6 +323,9 @@ func (_u *BillingUnitUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(billingunit.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -540,6 +563,20 @@ func (_u *BillingUnitUpdateOne) SetNillableEnabled(v *bool) *BillingUnitUpdateOn
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *BillingUnitUpdateOne) SetSearchKeywords(v string) *BillingUnitUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *BillingUnitUpdateOne) SetNillableSearchKeywords(v *string) *BillingUnitUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *BillingUnitUpdateOne) SetOrganization(v *Organization) *BillingUnitUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -643,7 +680,9 @@ func (_u *BillingUnitUpdateOne) Select(field string, fields ...string) *BillingU
 
 // Save executes the query and returns the updated BillingUnit entity.
 func (_u *BillingUnitUpdateOne) Save(ctx context.Context) (*BillingUnit, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -670,11 +709,15 @@ func (_u *BillingUnitUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *BillingUnitUpdateOne) defaults() {
+func (_u *BillingUnitUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if billingunit.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized billingunit.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := billingunit.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -744,6 +787,9 @@ func (_u *BillingUnitUpdateOne) sqlSave(ctx context.Context) (_node *BillingUnit
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(billingunit.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

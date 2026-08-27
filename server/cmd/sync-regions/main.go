@@ -18,6 +18,7 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
 
 const (
@@ -266,8 +267,8 @@ func applyRegions(ctx context.Context, rows []regionRow) error {
 	}
 	statement := `
 		INSERT INTO administrative_regions
-			(id, created_at, updated_at, code, name, level, parent_code, region_type, source, source_version, enabled)
-		VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4, $5, $6, $7, $8, true)
+			(id, created_at, updated_at, code, name, level, parent_code, region_type, source, source_version, enabled, search_keywords)
+		VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4, $5, $6, $7, $8, true, $9)
 		ON CONFLICT (code) DO UPDATE SET
 			name = EXCLUDED.name,
 			level = EXCLUDED.level,
@@ -275,10 +276,11 @@ func applyRegions(ctx context.Context, rows []regionRow) error {
 			region_type = EXCLUDED.region_type,
 			source = EXCLUDED.source,
 			source_version = EXCLUDED.source_version,
+			search_keywords = EXCLUDED.search_keywords,
 			enabled = true,
 			updated_at = CURRENT_TIMESTAMP`
 	for _, row := range rows {
-		if _, err := tx.ExecContext(ctx, statement, uuid.Must(uuid.NewV7()), row.Code, row.Name, row.Level, row.ParentCode, row.RegionType, mcaSource, row.SourceVersion); err != nil {
+		if _, err := tx.ExecContext(ctx, statement, uuid.Must(uuid.NewV7()), row.Code, row.Name, row.Level, row.ParentCode, row.RegionType, mcaSource, row.SourceVersion, searchtext.Build(row.Name)); err != nil {
 			return fmt.Errorf("写入行政区划 %s 失败: %w", row.Code, err)
 		}
 	}

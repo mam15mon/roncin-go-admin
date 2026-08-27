@@ -173,24 +173,25 @@ const (
 // AdministrativeRegionMutation represents an operation that mutates the AdministrativeRegion nodes in the graph.
 type AdministrativeRegionMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	created_at     *time.Time
-	updated_at     *time.Time
-	code           *string
-	name           *string
-	level          *int
-	addlevel       *int
-	parent_code    *string
-	region_type    *string
-	source         *string
-	source_version *string
-	enabled        *bool
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*AdministrativeRegion, error)
-	predicates     []predicate.AdministrativeRegion
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	code            *string
+	name            *string
+	level           *int
+	addlevel        *int
+	parent_code     *string
+	region_type     *string
+	source          *string
+	source_version  *string
+	enabled         *bool
+	search_keywords *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*AdministrativeRegion, error)
+	predicates      []predicate.AdministrativeRegion
 }
 
 var _ ent.Mutation = (*AdministrativeRegionMutation)(nil)
@@ -716,6 +717,42 @@ func (m *AdministrativeRegionMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *AdministrativeRegionMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *AdministrativeRegionMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the AdministrativeRegion entity.
+// If the AdministrativeRegion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdministrativeRegionMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *AdministrativeRegionMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // Where appends a list predicates to the AdministrativeRegionMutation builder.
 func (m *AdministrativeRegionMutation) Where(ps ...predicate.AdministrativeRegion) {
 	m.predicates = append(m.predicates, ps...)
@@ -750,7 +787,7 @@ func (m *AdministrativeRegionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AdministrativeRegionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, administrativeregion.FieldCreatedAt)
 	}
@@ -781,6 +818,9 @@ func (m *AdministrativeRegionMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, administrativeregion.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, administrativeregion.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -809,6 +849,8 @@ func (m *AdministrativeRegionMutation) Field(name string) (ent.Value, bool) {
 		return m.SourceVersion()
 	case administrativeregion.FieldEnabled:
 		return m.Enabled()
+	case administrativeregion.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -838,6 +880,8 @@ func (m *AdministrativeRegionMutation) OldField(ctx context.Context, name string
 		return m.OldSourceVersion(ctx)
 	case administrativeregion.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case administrativeregion.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown AdministrativeRegion field %s", name)
 }
@@ -916,6 +960,13 @@ func (m *AdministrativeRegionMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case administrativeregion.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AdministrativeRegion field %s", name)
@@ -1032,6 +1083,9 @@ func (m *AdministrativeRegionMutation) ResetField(name string) error {
 	case administrativeregion.FieldEnabled:
 		m.ResetEnabled()
 		return nil
+	case administrativeregion.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
 	}
 	return fmt.Errorf("unknown AdministrativeRegion field %s", name)
 }
@@ -1103,6 +1157,7 @@ type AirlineMutation struct {
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
+	search_keywords     *string
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -1716,6 +1771,42 @@ func (m *AirlineMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *AirlineMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *AirlineMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *AirlineMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *AirlineMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -1777,7 +1868,7 @@ func (m *AirlineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirlineMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, airline.FieldCreatedAt)
 	}
@@ -1817,6 +1908,9 @@ func (m *AirlineMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, airline.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, airline.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -1851,6 +1945,8 @@ func (m *AirlineMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case airline.FieldEnabled:
 		return m.Enabled()
+	case airline.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -1886,6 +1982,8 @@ func (m *AirlineMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldSortOrder(ctx)
 	case airline.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case airline.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Airline field %s", name)
 }
@@ -1985,6 +2083,13 @@ func (m *AirlineMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case airline.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Airline field %s", name)
@@ -2098,6 +2203,9 @@ func (m *AirlineMutation) ResetField(name string) error {
 	case airline.FieldEnabled:
 		m.ResetEnabled()
 		return nil
+	case airline.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
 	}
 	return fmt.Errorf("unknown Airline field %s", name)
 }
@@ -2197,6 +2305,7 @@ type AirportMutation struct {
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
+	search_keywords     *string
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -2947,6 +3056,42 @@ func (m *AirportMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *AirportMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *AirportMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Airport entity.
+// If the Airport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirportMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *AirportMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *AirportMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -3008,7 +3153,7 @@ func (m *AirportMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirportMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, airport.FieldCreatedAt)
 	}
@@ -3054,6 +3199,9 @@ func (m *AirportMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, airport.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, airport.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -3092,6 +3240,8 @@ func (m *AirportMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case airport.FieldEnabled:
 		return m.Enabled()
+	case airport.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -3131,6 +3281,8 @@ func (m *AirportMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldSortOrder(ctx)
 	case airport.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case airport.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Airport field %s", name)
 }
@@ -3244,6 +3396,13 @@ func (m *AirportMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case airport.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Airport field %s", name)
@@ -3392,6 +3551,9 @@ func (m *AirportMutation) ResetField(name string) error {
 		return nil
 	case airport.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case airport.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown Airport field %s", name)
@@ -5692,6 +5854,7 @@ type BillingUnitMutation struct {
 	sort_order          *int
 	addsort_order       *int
 	enabled             *bool
+	search_keywords     *string
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -6118,6 +6281,42 @@ func (m *BillingUnitMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *BillingUnitMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *BillingUnitMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the BillingUnit entity.
+// If the BillingUnit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillingUnitMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *BillingUnitMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *BillingUnitMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -6287,7 +6486,7 @@ func (m *BillingUnitMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BillingUnitMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, billingunit.FieldCreatedAt)
 	}
@@ -6311,6 +6510,9 @@ func (m *BillingUnitMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, billingunit.FieldEnabled)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, billingunit.FieldSearchKeywords)
 	}
 	return fields
 }
@@ -6336,6 +6538,8 @@ func (m *BillingUnitMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case billingunit.FieldEnabled:
 		return m.Enabled()
+	case billingunit.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -6361,6 +6565,8 @@ func (m *BillingUnitMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldSortOrder(ctx)
 	case billingunit.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case billingunit.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown BillingUnit field %s", name)
 }
@@ -6425,6 +6631,13 @@ func (m *BillingUnitMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case billingunit.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown BillingUnit field %s", name)
@@ -6513,6 +6726,9 @@ func (m *BillingUnitMutation) ResetField(name string) error {
 		return nil
 	case billingunit.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case billingunit.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown BillingUnit field %s", name)
@@ -6649,21 +6865,22 @@ func (m *BillingUnitMutation) ResetEdge(name string) error {
 // CurrencyMutation represents an operation that mutates the Currency nodes in the graph.
 type CurrencyMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	updated_at    *time.Time
-	code          *string
-	name          *string
-	symbol        *string
-	minor_unit    *int
-	addminor_unit *int
-	enabled       *bool
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Currency, error)
-	predicates    []predicate.Currency
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	code            *string
+	name            *string
+	symbol          *string
+	minor_unit      *int
+	addminor_unit   *int
+	enabled         *bool
+	search_keywords *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*Currency, error)
+	predicates      []predicate.Currency
 }
 
 var _ ent.Mutation = (*CurrencyMutation)(nil)
@@ -7055,6 +7272,42 @@ func (m *CurrencyMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *CurrencyMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *CurrencyMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Currency entity.
+// If the Currency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CurrencyMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *CurrencyMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // Where appends a list predicates to the CurrencyMutation builder.
 func (m *CurrencyMutation) Where(ps ...predicate.Currency) {
 	m.predicates = append(m.predicates, ps...)
@@ -7089,7 +7342,7 @@ func (m *CurrencyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CurrencyMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, currency.FieldCreatedAt)
 	}
@@ -7110,6 +7363,9 @@ func (m *CurrencyMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, currency.FieldEnabled)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, currency.FieldSearchKeywords)
 	}
 	return fields
 }
@@ -7133,6 +7389,8 @@ func (m *CurrencyMutation) Field(name string) (ent.Value, bool) {
 		return m.MinorUnit()
 	case currency.FieldEnabled:
 		return m.Enabled()
+	case currency.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -7156,6 +7414,8 @@ func (m *CurrencyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldMinorUnit(ctx)
 	case currency.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case currency.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Currency field %s", name)
 }
@@ -7213,6 +7473,13 @@ func (m *CurrencyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case currency.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Currency field %s", name)
@@ -7307,6 +7574,9 @@ func (m *CurrencyMutation) ResetField(name string) error {
 		return nil
 	case currency.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case currency.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown Currency field %s", name)
@@ -8909,6 +9179,7 @@ type FeeSettingMutation struct {
 	enabled                *bool
 	sort_order             *int
 	addsort_order          *int
+	search_keywords        *string
 	clearedFields          map[string]struct{}
 	organization           *uuid.UUID
 	clearedorganization    bool
@@ -9644,6 +9915,42 @@ func (m *FeeSettingMutation) ResetSortOrder() {
 	m.addsort_order = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FeeSettingMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FeeSettingMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FeeSetting entity.
+// If the FeeSetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FeeSettingMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FeeSettingMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *FeeSettingMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -9867,7 +10174,7 @@ func (m *FeeSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeeSettingMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, feesetting.FieldCreatedAt)
 	}
@@ -9913,6 +10220,9 @@ func (m *FeeSettingMutation) Fields() []string {
 	if m.sort_order != nil {
 		fields = append(fields, feesetting.FieldSortOrder)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, feesetting.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -9951,6 +10261,8 @@ func (m *FeeSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.Enabled()
 	case feesetting.FieldSortOrder:
 		return m.SortOrder()
+	case feesetting.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -9990,6 +10302,8 @@ func (m *FeeSettingMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldEnabled(ctx)
 	case feesetting.FieldSortOrder:
 		return m.OldSortOrder(ctx)
+	case feesetting.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown FeeSetting field %s", name)
 }
@@ -10103,6 +10417,13 @@ func (m *FeeSettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSortOrder(v)
+		return nil
+	case feesetting.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown FeeSetting field %s", name)
@@ -10239,6 +10560,9 @@ func (m *FeeSettingMutation) ResetField(name string) error {
 		return nil
 	case feesetting.FieldSortOrder:
 		m.ResetSortOrder()
+		return nil
+	case feesetting.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown FeeSetting field %s", name)
@@ -34770,6 +35094,7 @@ type MasterDataItemMutation struct {
 	addsort_order                     *int
 	enabled                           *bool
 	attributes                        **schema.MasterDataAttributes
+	search_keywords                   *string
 	clearedFields                     map[string]struct{}
 	organization                      *uuid.UUID
 	clearedorganization               bool
@@ -35415,6 +35740,42 @@ func (m *MasterDataItemMutation) ResetAttributes() {
 	m.attributes = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *MasterDataItemMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *MasterDataItemMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the MasterDataItem entity.
+// If the MasterDataItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MasterDataItemMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *MasterDataItemMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *MasterDataItemMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -35584,7 +35945,7 @@ func (m *MasterDataItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MasterDataItemMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, masterdataitem.FieldCreatedAt)
 	}
@@ -35624,6 +35985,9 @@ func (m *MasterDataItemMutation) Fields() []string {
 	if m.attributes != nil {
 		fields = append(fields, masterdataitem.FieldAttributes)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, masterdataitem.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -35658,6 +36022,8 @@ func (m *MasterDataItemMutation) Field(name string) (ent.Value, bool) {
 		return m.Enabled()
 	case masterdataitem.FieldAttributes:
 		return m.Attributes()
+	case masterdataitem.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -35693,6 +36059,8 @@ func (m *MasterDataItemMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldEnabled(ctx)
 	case masterdataitem.FieldAttributes:
 		return m.OldAttributes(ctx)
+	case masterdataitem.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown MasterDataItem field %s", name)
 }
@@ -35792,6 +36160,13 @@ func (m *MasterDataItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAttributes(v)
+		return nil
+	case masterdataitem.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MasterDataItem field %s", name)
@@ -35916,6 +36291,9 @@ func (m *MasterDataItemMutation) ResetField(name string) error {
 		return nil
 	case masterdataitem.FieldAttributes:
 		m.ResetAttributes()
+		return nil
+	case masterdataitem.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown MasterDataItem field %s", name)
@@ -59856,6 +60234,7 @@ type OrganizationMutation struct {
 	kind                                    *organization.Kind
 	enabled                                 *bool
 	base_currency                           *string
+	search_keywords                         *string
 	clearedFields                           map[string]struct{}
 	parent                                  *uuid.UUID
 	clearedparent                           bool
@@ -60379,6 +60758,42 @@ func (m *OrganizationMutation) BaseCurrencyCleared() bool {
 func (m *OrganizationMutation) ResetBaseCurrency() {
 	m.base_currency = nil
 	delete(m.clearedFields, organization.FieldBaseCurrency)
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *OrganizationMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *OrganizationMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *OrganizationMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // ClearParent clears the "parent" edge to the Organization entity.
@@ -62224,7 +62639,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, organization.FieldCreatedAt)
 	}
@@ -62248,6 +62663,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.base_currency != nil {
 		fields = append(fields, organization.FieldBaseCurrency)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, organization.FieldSearchKeywords)
 	}
 	return fields
 }
@@ -62273,6 +62691,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.Enabled()
 	case organization.FieldBaseCurrency:
 		return m.BaseCurrency()
+	case organization.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -62298,6 +62718,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldEnabled(ctx)
 	case organization.FieldBaseCurrency:
 		return m.OldBaseCurrency(ctx)
+	case organization.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Organization field %s", name)
 }
@@ -62362,6 +62784,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBaseCurrency(v)
+		return nil
+	case organization.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Organization field %s", name)
@@ -62450,6 +62879,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldBaseCurrency:
 		m.ResetBaseCurrency()
+		return nil
+	case organization.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization field %s", name)
@@ -63403,6 +63835,7 @@ type PartnerMutation struct {
 	unified_social_credit_code   *string
 	registered_address           *string
 	enabled                      *bool
+	search_keywords              *string
 	clearedFields                map[string]struct{}
 	organization                 *uuid.UUID
 	clearedorganization          bool
@@ -63907,6 +64340,42 @@ func (m *PartnerMutation) OldEnabled(ctx context.Context) (v bool, err error) {
 // ResetEnabled resets all changes to the "enabled" field.
 func (m *PartnerMutation) ResetEnabled() {
 	m.enabled = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *PartnerMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *PartnerMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Partner entity.
+// If the Partner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *PartnerMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // ClearOrganization clears the "organization" edge to the Organization entity.
@@ -64765,7 +65234,7 @@ func (m *PartnerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, partner.FieldCreatedAt)
 	}
@@ -64793,6 +65262,9 @@ func (m *PartnerMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, partner.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, partner.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -64819,6 +65291,8 @@ func (m *PartnerMutation) Field(name string) (ent.Value, bool) {
 		return m.RegisteredAddress()
 	case partner.FieldEnabled:
 		return m.Enabled()
+	case partner.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -64846,6 +65320,8 @@ func (m *PartnerMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldRegisteredAddress(ctx)
 	case partner.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case partner.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Partner field %s", name)
 }
@@ -64917,6 +65393,13 @@ func (m *PartnerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case partner.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Partner field %s", name)
@@ -65008,6 +65491,9 @@ func (m *PartnerMutation) ResetField(name string) error {
 		return nil
 	case partner.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case partner.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown Partner field %s", name)
@@ -66488,6 +66974,7 @@ type PartnerAliasMutation struct {
 	normalized_alias_name *string
 	sort_order            *int
 	addsort_order         *int
+	search_keywords       *string
 	clearedFields         map[string]struct{}
 	partner               *uuid.UUID
 	clearedpartner        bool
@@ -66836,6 +67323,42 @@ func (m *PartnerAliasMutation) ResetSortOrder() {
 	m.addsort_order = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *PartnerAliasMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *PartnerAliasMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the PartnerAlias entity.
+// If the PartnerAlias object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerAliasMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *PartnerAliasMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearPartner clears the "partner" edge to the Partner entity.
 func (m *PartnerAliasMutation) ClearPartner() {
 	m.clearedpartner = true
@@ -66897,7 +67420,7 @@ func (m *PartnerAliasMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerAliasMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, partneralias.FieldCreatedAt)
 	}
@@ -66915,6 +67438,9 @@ func (m *PartnerAliasMutation) Fields() []string {
 	}
 	if m.sort_order != nil {
 		fields = append(fields, partneralias.FieldSortOrder)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, partneralias.FieldSearchKeywords)
 	}
 	return fields
 }
@@ -66936,6 +67462,8 @@ func (m *PartnerAliasMutation) Field(name string) (ent.Value, bool) {
 		return m.NormalizedAliasName()
 	case partneralias.FieldSortOrder:
 		return m.SortOrder()
+	case partneralias.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -66957,6 +67485,8 @@ func (m *PartnerAliasMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldNormalizedAliasName(ctx)
 	case partneralias.FieldSortOrder:
 		return m.OldSortOrder(ctx)
+	case partneralias.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown PartnerAlias field %s", name)
 }
@@ -67007,6 +67537,13 @@ func (m *PartnerAliasMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSortOrder(v)
+		return nil
+	case partneralias.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerAlias field %s", name)
@@ -67089,6 +67626,9 @@ func (m *PartnerAliasMutation) ResetField(name string) error {
 		return nil
 	case partneralias.FieldSortOrder:
 		m.ResetSortOrder()
+		return nil
+	case partneralias.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerAlias field %s", name)
@@ -77986,6 +78526,7 @@ type PortMutation struct {
 	sort_order            *int
 	addsort_order         *int
 	enabled               *bool
+	search_keywords       *string
 	clearedFields         map[string]struct{}
 	organization          *uuid.UUID
 	clearedorganization   bool
@@ -78640,6 +79181,42 @@ func (m *PortMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *PortMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *PortMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Port entity.
+// If the Port object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PortMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *PortMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *PortMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -78701,7 +79278,7 @@ func (m *PortMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PortMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, port.FieldCreatedAt)
 	}
@@ -78741,6 +79318,9 @@ func (m *PortMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, port.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, port.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -78775,6 +79355,8 @@ func (m *PortMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case port.FieldEnabled:
 		return m.Enabled()
+	case port.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -78810,6 +79392,8 @@ func (m *PortMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSortOrder(ctx)
 	case port.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case port.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown Port field %s", name)
 }
@@ -78909,6 +79493,13 @@ func (m *PortMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case port.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Port field %s", name)
@@ -79033,6 +79624,9 @@ func (m *PortMutation) ResetField(name string) error {
 		return nil
 	case port.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case port.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown Port field %s", name)
@@ -82311,6 +82905,7 @@ type ShippingLineMutation struct {
 	sort_order                *int
 	addsort_order             *int
 	enabled                   *bool
+	search_keywords           *string
 	clearedFields             map[string]struct{}
 	organization              *uuid.UUID
 	clearedorganization       bool
@@ -82904,6 +83499,42 @@ func (m *ShippingLineMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *ShippingLineMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *ShippingLineMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the ShippingLine entity.
+// If the ShippingLine object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShippingLineMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *ShippingLineMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *ShippingLineMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -83019,7 +83650,7 @@ func (m *ShippingLineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ShippingLineMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, shippingline.FieldCreatedAt)
 	}
@@ -83056,6 +83687,9 @@ func (m *ShippingLineMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, shippingline.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, shippingline.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -83088,6 +83722,8 @@ func (m *ShippingLineMutation) Field(name string) (ent.Value, bool) {
 		return m.SortOrder()
 	case shippingline.FieldEnabled:
 		return m.Enabled()
+	case shippingline.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -83121,6 +83757,8 @@ func (m *ShippingLineMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldSortOrder(ctx)
 	case shippingline.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case shippingline.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown ShippingLine field %s", name)
 }
@@ -83213,6 +83851,13 @@ func (m *ShippingLineMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case shippingline.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ShippingLine field %s", name)
@@ -83328,6 +83973,9 @@ func (m *ShippingLineMutation) ResetField(name string) error {
 		return nil
 	case shippingline.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case shippingline.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown ShippingLine field %s", name)
@@ -86024,6 +86672,7 @@ type TaxableServiceMutation struct {
 	goods_code          *string
 	default_tax_rate    *string
 	enabled             *bool
+	search_keywords     *string
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -86453,6 +87102,42 @@ func (m *TaxableServiceMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *TaxableServiceMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *TaxableServiceMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the TaxableService entity.
+// If the TaxableService object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaxableServiceMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *TaxableServiceMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *TaxableServiceMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -86568,7 +87253,7 @@ func (m *TaxableServiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TaxableServiceMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, taxableservice.FieldCreatedAt)
 	}
@@ -86592,6 +87277,9 @@ func (m *TaxableServiceMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, taxableservice.FieldEnabled)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, taxableservice.FieldSearchKeywords)
 	}
 	return fields
 }
@@ -86617,6 +87305,8 @@ func (m *TaxableServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.DefaultTaxRate()
 	case taxableservice.FieldEnabled:
 		return m.Enabled()
+	case taxableservice.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -86642,6 +87332,8 @@ func (m *TaxableServiceMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldDefaultTaxRate(ctx)
 	case taxableservice.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case taxableservice.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown TaxableService field %s", name)
 }
@@ -86706,6 +87398,13 @@ func (m *TaxableServiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case taxableservice.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown TaxableService field %s", name)
@@ -86794,6 +87493,9 @@ func (m *TaxableServiceMutation) ResetField(name string) error {
 		return nil
 	case taxableservice.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case taxableservice.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown TaxableService field %s", name)
@@ -86919,6 +87621,7 @@ type UserMutation struct {
 	dingtalk_unionid                                *string
 	dingtalk_name                                   *string
 	enabled                                         *bool
+	search_keywords                                 *string
 	clearedFields                                   map[string]struct{}
 	memberships                                     map[uuid.UUID]struct{}
 	removedmemberships                              map[uuid.UUID]struct{}
@@ -87619,6 +88322,42 @@ func (m *UserMutation) OldEnabled(ctx context.Context) (v bool, err error) {
 // ResetEnabled resets all changes to the "enabled" field.
 func (m *UserMutation) ResetEnabled() {
 	m.enabled = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *UserMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *UserMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *UserMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // AddMembershipIDs adds the "memberships" edge to the Membership entity by ids.
@@ -88897,7 +89636,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -88934,6 +89673,9 @@ func (m *UserMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, user.FieldEnabled)
 	}
+	if m.search_keywords != nil {
+		fields = append(fields, user.FieldSearchKeywords)
+	}
 	return fields
 }
 
@@ -88966,6 +89708,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DingtalkName()
 	case user.FieldEnabled:
 		return m.Enabled()
+	case user.FieldSearchKeywords:
+		return m.SearchKeywords()
 	}
 	return nil, false
 }
@@ -88999,6 +89743,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDingtalkName(ctx)
 	case user.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case user.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -89091,6 +89837,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case user.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -89221,6 +89974,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case user.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

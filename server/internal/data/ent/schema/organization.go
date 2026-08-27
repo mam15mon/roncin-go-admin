@@ -21,8 +21,11 @@ func (Organization) Fields() []ent.Field {
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 		field.String("base_currency").Optional().Nillable().MinLen(3).MaxLen(3),
+		searchKeywordsField(),
 	}
 }
+
+func (Organization) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }
 
 func (Organization) Edges() []ent.Edge {
 	return []ent.Edge{

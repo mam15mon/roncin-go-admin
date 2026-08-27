@@ -26,8 +26,11 @@ func (Airline) Fields() []ent.Field {
 		field.String("source").MaxLen(100).Default("manual"),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
 }
+
+func (Airline) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name_zh", "name_en")} }
 
 func (Airline) Edges() []ent.Edge {
 	return []ent.Edge{edge.From("organization", Organization.Type).Ref("airlines").Field("organization_id").Unique().Required()}

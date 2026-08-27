@@ -26,8 +26,11 @@ func (Port) Fields() []ent.Field {
 		field.String("source_hash").MaxLen(64).Optional().Nillable(),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
 }
+
+func (Port) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name_zh", "name_en")} }
 
 func (Port) Edges() []ent.Edge {
 	return []ent.Edge{edge.From("organization", Organization.Type).Ref("ports").Field("organization_id").Unique().Required()}

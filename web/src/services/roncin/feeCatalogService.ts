@@ -55,6 +55,24 @@ export async function feeCatalogServiceUpdateBillingUnit(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/billing-units/search */
+export async function feeCatalogServiceSearchBillingUnits(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.FeeCatalogServiceSearchBillingUnitsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListBillingUnitsResponse>(
+    "/api/v1/finance/billing-units/search",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/fee-settings */
 export async function feeCatalogServiceListFeeSettings(options?: {
   [key: string]: any;
@@ -97,6 +115,24 @@ export async function feeCatalogServiceUpdateFeeSetting(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/fee-settings/search */
+export async function feeCatalogServiceSearchFeeSettings(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.FeeCatalogServiceSearchFeeSettingsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFeeSettingsResponse>(
+    "/api/v1/finance/fee-settings/search",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
       ...(options || {}),
     }
   );
@@ -150,6 +186,24 @@ export async function feeCatalogServiceUpdateTaxableService(
       },
       params: { ...queryParams },
       data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/taxable-services/search */
+export async function feeCatalogServiceSearchTaxableServices(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.FeeCatalogServiceSearchTaxableServicesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListTaxableServicesResponse>(
+    "/api/v1/finance/taxable-services/search",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
       ...(options || {}),
     }
   );

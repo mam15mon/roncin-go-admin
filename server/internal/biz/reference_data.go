@@ -43,11 +43,14 @@ type AdministrativeRegionQuery struct {
 	Level      int
 	ParentCode *string
 	Keyword    string
+	Page       int
+	PageSize   int
 }
 
 type ReferenceDataRepo interface {
 	ListCurrencies(context.Context) ([]*Currency, error)
-	ListAdministrativeRegions(context.Context, AdministrativeRegionQuery) ([]*AdministrativeRegion, error)
+	SearchCurrencies(context.Context, SelectorListOptions) (*PagedList[*Currency], error)
+	ListAdministrativeRegions(context.Context, AdministrativeRegionQuery) (*PagedList[*AdministrativeRegion], error)
 }
 
 type ReferenceDataUsecase struct {
@@ -62,9 +65,17 @@ func (uc *ReferenceDataUsecase) ListCurrencies(ctx context.Context) ([]*Currency
 	return uc.repo.ListCurrencies(ctx)
 }
 
-func (uc *ReferenceDataUsecase) ListAdministrativeRegions(ctx context.Context, query AdministrativeRegionQuery) ([]*AdministrativeRegion, error) {
+func (uc *ReferenceDataUsecase) SearchCurrencies(ctx context.Context, options SelectorListOptions) (*PagedList[*Currency], error) {
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	if !ValidListPagination(options.Page, options.PageSize) || len([]rune(options.Keyword)) > 100 {
+		return nil, ErrReferenceDataInvalidArgument
+	}
+	return uc.repo.SearchCurrencies(ctx, options)
+}
+
+func (uc *ReferenceDataUsecase) ListAdministrativeRegions(ctx context.Context, query AdministrativeRegionQuery) (*PagedList[*AdministrativeRegion], error) {
 	query.Keyword = strings.TrimSpace(query.Keyword)
-	if query.Level < 0 || query.Level > 3 {
+	if query.Level < 0 || query.Level > 3 || !ValidListPagination(query.Page, query.PageSize) {
 		return nil, ErrReferenceDataInvalidArgument
 	}
 	if query.Level <= 1 {

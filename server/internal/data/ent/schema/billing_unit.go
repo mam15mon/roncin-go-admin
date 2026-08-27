@@ -21,8 +21,11 @@ func (BillingUnit) Fields() []ent.Field {
 		field.Bool("is_container_unit").Default(false),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
 }
+
+func (BillingUnit) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }
 
 func (BillingUnit) Edges() []ent.Edge {
 	return []ent.Edge{

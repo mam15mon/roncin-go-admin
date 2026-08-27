@@ -37,8 +37,10 @@ type AdministrativeRegion struct {
 	// SourceVersion holds the value of the "source_version" field.
 	SourceVersion *string `json:"source_version,omitempty"`
 	// Enabled holds the value of the "enabled" field.
-	Enabled      bool `json:"enabled,omitempty"`
-	selectValues sql.SelectValues
+	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
+	selectValues   sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -50,7 +52,7 @@ func (*AdministrativeRegion) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case administrativeregion.FieldLevel:
 			values[i] = new(sql.NullInt64)
-		case administrativeregion.FieldCode, administrativeregion.FieldName, administrativeregion.FieldParentCode, administrativeregion.FieldRegionType, administrativeregion.FieldSource, administrativeregion.FieldSourceVersion:
+		case administrativeregion.FieldCode, administrativeregion.FieldName, administrativeregion.FieldParentCode, administrativeregion.FieldRegionType, administrativeregion.FieldSource, administrativeregion.FieldSourceVersion, administrativeregion.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case administrativeregion.FieldCreatedAt, administrativeregion.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -140,6 +142,12 @@ func (_m *AdministrativeRegion) assignValues(columns []string, values []any) err
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case administrativeregion.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -211,6 +219,9 @@ func (_m *AdministrativeRegion) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -22,6 +22,7 @@ var (
 		{Name: "source", Type: field.TypeString, Size: 50, Default: "MCA_DMFW"},
 		{Name: "source_version", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// AdministrativeRegionsTable holds the schema information for the "administrative_regions" table.
 	AdministrativeRegionsTable = &schema.Table{
@@ -71,6 +72,7 @@ var (
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// AirlinesTable holds the schema information for the "airlines" table.
@@ -81,7 +83,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "airlines_organizations_airlines",
-				Columns:    []*schema.Column{AirlinesColumns[13]},
+				Columns:    []*schema.Column{AirlinesColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -95,22 +97,22 @@ var (
 			{
 				Name:    "airline_organization_id_iata_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[3]},
+				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[3]},
 			},
 			{
 				Name:    "airline_organization_id_icao_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[4]},
+				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[4]},
 			},
 			{
 				Name:    "airline_organization_id_awb_prefix",
 				Unique:  true,
-				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[5]},
+				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[5]},
 			},
 			{
 				Name:    "airline_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirlinesColumns[13], AirlinesColumns[12], AirlinesColumns[11]},
+				Columns: []*schema.Column{AirlinesColumns[14], AirlinesColumns[12], AirlinesColumns[11]},
 			},
 		},
 	}
@@ -131,6 +133,7 @@ var (
 		{Name: "source_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// AirportsTable holds the schema information for the "airports" table.
@@ -141,7 +144,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "airports_organizations_airports",
-				Columns:    []*schema.Column{AirportsColumns[15]},
+				Columns:    []*schema.Column{AirportsColumns[16]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -155,17 +158,17 @@ var (
 			{
 				Name:    "airport_organization_id_iata_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[3]},
+				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[3]},
 			},
 			{
 				Name:    "airport_organization_id_icao_code",
 				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[4]},
+				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[4]},
 			},
 			{
 				Name:    "airport_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirportsColumns[15], AirportsColumns[14], AirportsColumns[13]},
+				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[14], AirportsColumns[13]},
 			},
 		},
 	}
@@ -285,6 +288,7 @@ var (
 		{Name: "is_container_unit", Type: field.TypeBool, Default: false},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// BillingUnitsTable holds the schema information for the "billing_units" table.
@@ -295,7 +299,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "billing_units_organizations_billing_units",
-				Columns:    []*schema.Column{BillingUnitsColumns[8]},
+				Columns:    []*schema.Column{BillingUnitsColumns[9]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -309,12 +313,12 @@ var (
 			{
 				Name:    "billingunit_organization_id_code",
 				Unique:  true,
-				Columns: []*schema.Column{BillingUnitsColumns[8], BillingUnitsColumns[3]},
+				Columns: []*schema.Column{BillingUnitsColumns[9], BillingUnitsColumns[3]},
 			},
 			{
 				Name:    "billingunit_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{BillingUnitsColumns[8], BillingUnitsColumns[7], BillingUnitsColumns[6]},
+				Columns: []*schema.Column{BillingUnitsColumns[9], BillingUnitsColumns[7], BillingUnitsColumns[6]},
 			},
 		},
 	}
@@ -328,6 +332,7 @@ var (
 		{Name: "symbol", Type: field.TypeString, Nullable: true, Size: 16},
 		{Name: "minor_unit", Type: field.TypeInt, Default: 2},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// CurrenciesTable holds the schema information for the "currencies" table.
 	CurrenciesTable = &schema.Table{
@@ -441,6 +446,7 @@ var (
 		{Name: "tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "billing_unit_id", Type: field.TypeUUID},
 		{Name: "service_type_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "abnormal_case_id", Type: field.TypeUUID, Nullable: true},
@@ -455,31 +461,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "fee_settings_billing_units_fee_settings",
-				Columns:    []*schema.Column{FeeSettingsColumns[11]},
+				Columns:    []*schema.Column{FeeSettingsColumns[12]},
 				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fee_settings_master_data_items_service_type_fee_settings",
-				Columns:    []*schema.Column{FeeSettingsColumns[12]},
-				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "fee_settings_master_data_items_abnormal_case_fee_settings",
 				Columns:    []*schema.Column{FeeSettingsColumns[13]},
 				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "fee_settings_organizations_fee_settings",
+				Symbol:     "fee_settings_master_data_items_abnormal_case_fee_settings",
 				Columns:    []*schema.Column{FeeSettingsColumns[14]},
+				RefColumns: []*schema.Column{MasterDataItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "fee_settings_organizations_fee_settings",
+				Columns:    []*schema.Column{FeeSettingsColumns[15]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fee_settings_taxable_services_fee_settings",
-				Columns:    []*schema.Column{FeeSettingsColumns[15]},
+				Columns:    []*schema.Column{FeeSettingsColumns[16]},
 				RefColumns: []*schema.Column{TaxableServicesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -493,17 +499,17 @@ var (
 			{
 				Name:    "feesetting_organization_id_fee_code",
 				Unique:  true,
-				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[3]},
+				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[3]},
 			},
 			{
 				Name:    "feesetting_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[9], FeeSettingsColumns[10]},
+				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[9], FeeSettingsColumns[10]},
 			},
 			{
 				Name:    "feesetting_organization_id_service_type_id_abnormal_case_id",
 				Unique:  false,
-				Columns: []*schema.Column{FeeSettingsColumns[14], FeeSettingsColumns[12], FeeSettingsColumns[13]},
+				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[13], FeeSettingsColumns[14]},
 			},
 		},
 	}
@@ -1628,6 +1634,7 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "attributes", Type: field.TypeJSON},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// MasterDataItemsTable holds the schema information for the "master_data_items" table.
@@ -1638,7 +1645,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "master_data_items_organizations_master_data_items",
-				Columns:    []*schema.Column{MasterDataItemsColumns[13]},
+				Columns:    []*schema.Column{MasterDataItemsColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1652,17 +1659,17 @@ var (
 			{
 				Name:    "masterdataitem_organization_id_kind_code",
 				Unique:  true,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[4]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[11], MasterDataItemsColumns[10]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[11], MasterDataItemsColumns[10]},
 			},
 			{
 				Name:    "masterdataitem_organization_id_kind_name",
 				Unique:  false,
-				Columns: []*schema.Column{MasterDataItemsColumns[13], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
+				Columns: []*schema.Column{MasterDataItemsColumns[14], MasterDataItemsColumns[3], MasterDataItemsColumns[5]},
 			},
 		},
 	}
@@ -2716,6 +2723,7 @@ var (
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"headquarters", "company", "department", "team"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "base_currency", Type: field.TypeString, Nullable: true, Size: 3},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// OrganizationsTable holds the schema information for the "organizations" table.
@@ -2726,7 +2734,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "organizations_organizations_children",
-				Columns:    []*schema.Column{OrganizationsColumns[8]},
+				Columns:    []*schema.Column{OrganizationsColumns[9]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2745,7 +2753,7 @@ var (
 			{
 				Name:    "organization_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrganizationsColumns[8]},
+				Columns: []*schema.Column{OrganizationsColumns[9]},
 			},
 		},
 	}
@@ -2760,6 +2768,7 @@ var (
 		{Name: "unified_social_credit_code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "registered_address", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// PartnersTable holds the schema information for the "partners" table.
@@ -2770,7 +2779,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partners_organizations_partners",
-				Columns:    []*schema.Column{PartnersColumns[9]},
+				Columns:    []*schema.Column{PartnersColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2784,22 +2793,22 @@ var (
 			{
 				Name:    "partner_org_code_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[3]},
+				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[3]},
 			},
 			{
 				Name:    "partner_org_name_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[5]},
+				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[5]},
 			},
 			{
 				Name:    "partner_org_uscc_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[6]},
+				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[6]},
 			},
 			{
 				Name:    "partner_organization_id_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{PartnersColumns[9], PartnersColumns[8]},
+				Columns: []*schema.Column{PartnersColumns[10], PartnersColumns[8]},
 			},
 		},
 	}
@@ -2865,6 +2874,7 @@ var (
 		{Name: "alias_name", Type: field.TypeString, Size: 200},
 		{Name: "normalized_alias_name", Type: field.TypeString, Size: 200},
 		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "partner_id", Type: field.TypeUUID},
 	}
 	// PartnerAliasTable holds the schema information for the "partner_alias" table.
@@ -2875,7 +2885,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_alias_partners_aliases",
-				Columns:    []*schema.Column{PartnerAliasColumns[6]},
+				Columns:    []*schema.Column{PartnerAliasColumns[7]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2889,12 +2899,12 @@ var (
 			{
 				Name:    "partner_alias_name_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerAliasColumns[6], PartnerAliasColumns[4]},
+				Columns: []*schema.Column{PartnerAliasColumns[7], PartnerAliasColumns[4]},
 			},
 			{
 				Name:    "partneralias_partner_id_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerAliasColumns[6], PartnerAliasColumns[5]},
+				Columns: []*schema.Column{PartnerAliasColumns[7], PartnerAliasColumns[5]},
 			},
 		},
 	}
@@ -3409,6 +3419,7 @@ var (
 		{Name: "source_hash", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// PortsTable holds the schema information for the "ports" table.
@@ -3419,7 +3430,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ports_organizations_ports",
-				Columns:    []*schema.Column{PortsColumns[13]},
+				Columns:    []*schema.Column{PortsColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -3433,12 +3444,12 @@ var (
 			{
 				Name:    "port_organization_id_un_locode",
 				Unique:  true,
-				Columns: []*schema.Column{PortsColumns[13], PortsColumns[3]},
+				Columns: []*schema.Column{PortsColumns[14], PortsColumns[3]},
 			},
 			{
 				Name:    "port_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{PortsColumns[13], PortsColumns[12], PortsColumns[11]},
+				Columns: []*schema.Column{PortsColumns[14], PortsColumns[12], PortsColumns[11]},
 			},
 		},
 	}
@@ -3640,6 +3651,7 @@ var (
 		{Name: "source", Type: field.TypeString, Size: 100, Default: "manual"},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// ShippingLinesTable holds the schema information for the "shipping_lines" table.
@@ -3650,7 +3662,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "shipping_lines_organizations_shipping_lines",
-				Columns:    []*schema.Column{ShippingLinesColumns[12]},
+				Columns:    []*schema.Column{ShippingLinesColumns[13]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -3664,12 +3676,12 @@ var (
 			{
 				Name:    "shippingline_organization_id_scac_code",
 				Unique:  true,
-				Columns: []*schema.Column{ShippingLinesColumns[12], ShippingLinesColumns[3]},
+				Columns: []*schema.Column{ShippingLinesColumns[13], ShippingLinesColumns[3]},
 			},
 			{
 				Name:    "shippingline_organization_id_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{ShippingLinesColumns[12], ShippingLinesColumns[11], ShippingLinesColumns[10]},
+				Columns: []*schema.Column{ShippingLinesColumns[13], ShippingLinesColumns[11], ShippingLinesColumns[10]},
 			},
 		},
 	}
@@ -3820,6 +3832,7 @@ var (
 		{Name: "goods_code", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "default_tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
 	// TaxableServicesTable holds the schema information for the "taxable_services" table.
@@ -3830,7 +3843,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "taxable_services_organizations_taxable_services",
-				Columns:    []*schema.Column{TaxableServicesColumns[8]},
+				Columns:    []*schema.Column{TaxableServicesColumns[9]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -3844,12 +3857,12 @@ var (
 			{
 				Name:    "taxableservice_organization_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{TaxableServicesColumns[8], TaxableServicesColumns[3]},
+				Columns: []*schema.Column{TaxableServicesColumns[9], TaxableServicesColumns[3]},
 			},
 			{
 				Name:    "taxableservice_organization_id_enabled_name",
 				Unique:  false,
-				Columns: []*schema.Column{TaxableServicesColumns[8], TaxableServicesColumns[7], TaxableServicesColumns[3]},
+				Columns: []*schema.Column{TaxableServicesColumns[9], TaxableServicesColumns[7], TaxableServicesColumns[3]},
 			},
 		},
 	}
@@ -3868,6 +3881,7 @@ var (
 		{Name: "dingtalk_unionid", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "dingtalk_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

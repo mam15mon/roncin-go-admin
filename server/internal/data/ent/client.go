@@ -912,7 +912,8 @@ func (c *AdministrativeRegionClient) GetX(ctx context.Context, id uuid.UUID) *Ad
 
 // Hooks returns the client hooks.
 func (c *AdministrativeRegionClient) Hooks() []Hook {
-	return c.hooks.AdministrativeRegion
+	hooks := c.hooks.AdministrativeRegion
+	return append(hooks[:len(hooks):len(hooks)], administrativeregion.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -1061,7 +1062,8 @@ func (c *AirlineClient) QueryOrganization(_m *Airline) *OrganizationQuery {
 
 // Hooks returns the client hooks.
 func (c *AirlineClient) Hooks() []Hook {
-	return c.hooks.Airline
+	hooks := c.hooks.Airline
+	return append(hooks[:len(hooks):len(hooks)], airline.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -1210,7 +1212,8 @@ func (c *AirportClient) QueryOrganization(_m *Airport) *OrganizationQuery {
 
 // Hooks returns the client hooks.
 func (c *AirportClient) Hooks() []Hook {
-	return c.hooks.Airport
+	hooks := c.hooks.Airport
+	return append(hooks[:len(hooks):len(hooks)], airport.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -1673,7 +1676,8 @@ func (c *BillingUnitClient) QueryOrderFees(_m *BillingUnit) *OrderFeeQuery {
 
 // Hooks returns the client hooks.
 func (c *BillingUnitClient) Hooks() []Hook {
-	return c.hooks.BillingUnit
+	hooks := c.hooks.BillingUnit
+	return append(hooks[:len(hooks):len(hooks)], billingunit.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -1806,7 +1810,8 @@ func (c *CurrencyClient) GetX(ctx context.Context, id uuid.UUID) *Currency {
 
 // Hooks returns the client hooks.
 func (c *CurrencyClient) Hooks() []Hook {
-	return c.hooks.Currency
+	hooks := c.hooks.Currency
+	return append(hooks[:len(hooks):len(hooks)], currency.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -2301,7 +2306,8 @@ func (c *FeeSettingClient) QueryOrderFees(_m *FeeSetting) *OrderFeeQuery {
 
 // Hooks returns the client hooks.
 func (c *FeeSettingClient) Hooks() []Hook {
-	return c.hooks.FeeSetting
+	hooks := c.hooks.FeeSetting
+	return append(hooks[:len(hooks):len(hooks)], feesetting.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -5453,7 +5459,8 @@ func (c *MasterDataItemClient) QueryAbnormalCaseFeeSettings(_m *MasterDataItem) 
 
 // Hooks returns the client hooks.
 func (c *MasterDataItemClient) Hooks() []Hook {
-	return c.hooks.MasterDataItem
+	hooks := c.hooks.MasterDataItem
+	return append(hooks[:len(hooks):len(hooks)], masterdataitem.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -9670,7 +9677,8 @@ func (c *OrganizationClient) QueryFinanceFeeLedgerPreferences(_m *Organization) 
 
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
-	return c.hooks.Organization
+	hooks := c.hooks.Organization
+	return append(hooks[:len(hooks):len(hooks)], organization.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -10059,7 +10067,8 @@ func (c *PartnerClient) QueryFinanceVerifications(_m *Partner) *FinanceVerificat
 
 // Hooks returns the client hooks.
 func (c *PartnerClient) Hooks() []Hook {
-	return c.hooks.Partner
+	hooks := c.hooks.Partner
+	return append(hooks[:len(hooks):len(hooks)], partner.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -10357,7 +10366,8 @@ func (c *PartnerAliasClient) QueryPartner(_m *PartnerAlias) *PartnerQuery {
 
 // Hooks returns the client hooks.
 func (c *PartnerAliasClient) Hooks() []Hook {
-	return c.hooks.PartnerAlias
+	hooks := c.hooks.PartnerAlias
+	return append(hooks[:len(hooks):len(hooks)], partneralias.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -12092,7 +12102,8 @@ func (c *PortClient) QueryOrganization(_m *Port) *OrganizationQuery {
 
 // Hooks returns the client hooks.
 func (c *PortClient) Hooks() []Hook {
-	return c.hooks.Port
+	hooks := c.hooks.Port
+	return append(hooks[:len(hooks):len(hooks)], port.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -12949,7 +12960,8 @@ func (c *ShippingLineClient) QueryContainerPrefixes(_m *ShippingLine) *ShippingL
 
 // Hooks returns the client hooks.
 func (c *ShippingLineClient) Hooks() []Hook {
-	return c.hooks.ShippingLine
+	hooks := c.hooks.ShippingLine
+	return append(hooks[:len(hooks):len(hooks)], shippingline.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -13593,7 +13605,8 @@ func (c *TaxableServiceClient) QueryFeeSettings(_m *TaxableService) *FeeSettingQ
 
 // Hooks returns the client hooks.
 func (c *TaxableServiceClient) Hooks() []Hook {
-	return c.hooks.TaxableService
+	hooks := c.hooks.TaxableService
+	return append(hooks[:len(hooks):len(hooks)], taxableservice.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -14094,7 +14107,8 @@ func (c *UserClient) QueryFinanceFeeLedgerPreferences(_m *User) *FinanceFeeLedge
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.

@@ -86,6 +86,11 @@ func SortOrder(v int) predicate.PartnerAlias {
 	return predicate.PartnerAlias(sql.FieldEQ(FieldSortOrder, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.PartnerAlias {
 	return predicate.PartnerAlias(sql.FieldEQ(FieldCreatedAt, v))
@@ -354,6 +359,71 @@ func SortOrderLT(v int) predicate.PartnerAlias {
 // SortOrderLTE applies the LTE predicate on the "sort_order" field.
 func SortOrderLTE(v int) predicate.PartnerAlias {
 	return predicate.PartnerAlias(sql.FieldLTE(FieldSortOrder, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.PartnerAlias {
+	return predicate.PartnerAlias(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // HasPartner applies the HasEdge predicate on the "partner" edge.

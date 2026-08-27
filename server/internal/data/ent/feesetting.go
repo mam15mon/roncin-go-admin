@@ -52,6 +52,8 @@ type FeeSetting struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
 	SortOrder int `json:"sort_order,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FeeSettingQuery when eager-loading is set.
 	Edges        FeeSettingEdges `json:"edges"`
@@ -152,7 +154,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case feesetting.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case feesetting.FieldFeeCode, feesetting.FieldNameZh, feesetting.FieldNameEn, feesetting.FieldAliasName, feesetting.FieldDefaultCurrency, feesetting.FieldTaxRate:
+		case feesetting.FieldFeeCode, feesetting.FieldNameZh, feesetting.FieldNameEn, feesetting.FieldAliasName, feesetting.FieldDefaultCurrency, feesetting.FieldTaxRate, feesetting.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case feesetting.FieldCreatedAt, feesetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -273,6 +275,12 @@ func (_m *FeeSetting) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SortOrder = int(value.Int64)
 			}
+		case feesetting.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -391,6 +399,9 @@ func (_m *FeeSetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sort_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -265,7 +265,7 @@ type OrderRepo interface {
 	Find(context.Context, uuid.UUID) (*Order, error)
 	List(context.Context, []uuid.UUID, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
-	ListPersonnelOptions(context.Context, uuid.UUID) ([]*OrderPersonnelOption, error)
+	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order) (*Order, error)
@@ -330,11 +330,12 @@ func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.
 	return uc.repo.FindReferenceDuplicate(ctx, organizationID, check)
 }
 
-func (uc *OrderUsecase) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID) ([]*OrderPersonnelOption, error) {
-	if organizationID == uuid.Nil {
+func (uc *OrderUsecase) ListPersonnelOptions(ctx context.Context, organizationID uuid.UUID, options SelectorListOptions) (*PagedList[*OrderPersonnelOption], error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrOrderInvalidArgument
 	}
-	return uc.repo.ListPersonnelOptions(ctx, organizationID)
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	return uc.repo.ListPersonnelOptions(ctx, organizationID, options)
 }
 
 func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderConsolidationSummary, error) {

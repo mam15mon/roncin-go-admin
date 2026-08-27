@@ -245,7 +245,7 @@ type PartnerBlacklistResult struct {
 type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
 	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
-	ListAssignmentOptions(context.Context, uuid.UUID) ([]*PartnerAssignmentOption, error)
+	ListAssignmentOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error)
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner) (*PartnerUpdateResult, error)
@@ -281,11 +281,12 @@ func (uc *PartnerUsecase) List(ctx context.Context, organizationID uuid.UUID, op
 	return uc.repo.List(ctx, organizationID, options)
 }
 
-func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID) ([]*PartnerAssignmentOption, error) {
-	if organizationID == uuid.Nil {
+func (uc *PartnerUsecase) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error) {
+	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrPartnerInvalidArgument
 	}
-	return uc.repo.ListAssignmentOptions(ctx, organizationID)
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	return uc.repo.ListAssignmentOptions(ctx, organizationID, options)
 }
 
 func (uc *PartnerUsecase) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*PartnerAuditLogList, error) {

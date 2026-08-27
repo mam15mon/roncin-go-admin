@@ -22,8 +22,11 @@ func (Partner) Fields() []ent.Field {
 		field.String("unified_social_credit_code").Optional().Nillable().MaxLen(64),
 		field.String("registered_address").Optional().MaxLen(500),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
 }
+
+func (Partner) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("legal_name")} }
 
 func (Partner) Edges() []ent.Edge {
 	return []ent.Edge{

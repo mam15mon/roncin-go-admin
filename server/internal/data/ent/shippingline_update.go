@@ -182,6 +182,20 @@ func (_u *ShippingLineUpdate) SetNillableEnabled(v *bool) *ShippingLineUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *ShippingLineUpdate) SetSearchKeywords(v string) *ShippingLineUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *ShippingLineUpdate) SetNillableSearchKeywords(v *string) *ShippingLineUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *ShippingLineUpdate) SetOrganization(v *Organization) *ShippingLineUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -236,7 +250,9 @@ func (_u *ShippingLineUpdate) RemoveContainerPrefixes(v ...*ShippingLineContaine
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ShippingLineUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -263,11 +279,15 @@ func (_u *ShippingLineUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *ShippingLineUpdate) defaults() {
+func (_u *ShippingLineUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if shippingline.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized shippingline.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := shippingline.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -355,6 +375,9 @@ func (_u *ShippingLineUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(shippingline.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -601,6 +624,20 @@ func (_u *ShippingLineUpdateOne) SetNillableEnabled(v *bool) *ShippingLineUpdate
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *ShippingLineUpdateOne) SetSearchKeywords(v string) *ShippingLineUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *ShippingLineUpdateOne) SetNillableSearchKeywords(v *string) *ShippingLineUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *ShippingLineUpdateOne) SetOrganization(v *Organization) *ShippingLineUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -668,7 +705,9 @@ func (_u *ShippingLineUpdateOne) Select(field string, fields ...string) *Shippin
 
 // Save executes the query and returns the updated ShippingLine entity.
 func (_u *ShippingLineUpdateOne) Save(ctx context.Context) (*ShippingLine, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -695,11 +734,15 @@ func (_u *ShippingLineUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *ShippingLineUpdateOne) defaults() {
+func (_u *ShippingLineUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if shippingline.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized shippingline.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := shippingline.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -804,6 +847,9 @@ func (_u *ShippingLineUpdateOne) sqlSave(ctx context.Context) (_node *ShippingLi
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(shippingline.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{

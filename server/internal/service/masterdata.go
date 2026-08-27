@@ -46,21 +46,38 @@ func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurren
 			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
 		})
 	}
-	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(len(data)), Page: 1, PageSize: int32(biz.MaxListPageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.SearchCurrenciesRequest) (*v1.ListCurrenciesResponse, error) {
+	if _, err := requirePrincipal(ctx); err != nil {
+		return nil, err
+	}
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	result, err := s.referenceDataUsecase.SearchCurrencies(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.Currency, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, &v1.Currency{Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol, MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano)})
+	}
+	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, request *v1.ListAdministrativeRegionsRequest) (*v1.ListAdministrativeRegionsResponse, error) {
 	if _, err := requirePrincipal(ctx); err != nil {
 		return nil, err
 	}
-	items, err := s.referenceDataUsecase.ListAdministrativeRegions(ctx, biz.AdministrativeRegionQuery{
-		Level: int(request.GetLevel()), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), Keyword: request.GetKeyword(),
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), biz.MaxListPageSize)
+	result, err := s.referenceDataUsecase.ListAdministrativeRegions(ctx, biz.AdministrativeRegionQuery{
+		Level: int(request.GetLevel()), ParentCode: optionalString(request.GetParentCode(), request.ParentCode != nil), Keyword: request.GetKeyword(), Page: page, PageSize: pageSize,
 	})
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.AdministrativeRegion, 0, len(items))
-	for _, item := range items {
+	data := make([]*v1.AdministrativeRegion, 0, len(result.Items))
+	for _, item := range result.Items {
 		data = append(data, &v1.AdministrativeRegion{
 			Id: item.ID.String(), Code: item.Code, Name: item.Name, Level: int32(item.Level),
 			ParentCode: item.ParentCode, RegionType: item.RegionType, Source: item.Source,
@@ -68,7 +85,7 @@ func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, reque
 			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
 		})
 	}
-	return &v1.ListAdministrativeRegionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListAdministrativeRegionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListItemsRequest) (*v1.ListItemsResponse, error) {

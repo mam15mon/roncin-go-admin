@@ -166,6 +166,20 @@ func (_c *MasterDataItemCreate) SetAttributes(v *schema.MasterDataAttributes) *M
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *MasterDataItemCreate) SetSearchKeywords(v string) *MasterDataItemCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *MasterDataItemCreate) SetNillableSearchKeywords(v *string) *MasterDataItemCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MasterDataItemCreate) SetID(v uuid.UUID) *MasterDataItemCreate {
 	_c.mutation.SetID(v)
@@ -222,7 +236,9 @@ func (_c *MasterDataItemCreate) Mutation() *MasterDataItemMutation {
 
 // Save creates the MasterDataItem in the database.
 func (_c *MasterDataItemCreate) Save(ctx context.Context) (*MasterDataItem, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -249,12 +265,18 @@ func (_c *MasterDataItemCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *MasterDataItemCreate) defaults() {
+func (_c *MasterDataItemCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if masterdataitem.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized masterdataitem.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := masterdataitem.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if masterdataitem.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized masterdataitem.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := masterdataitem.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -274,10 +296,18 @@ func (_c *MasterDataItemCreate) defaults() {
 		v := masterdataitem.DefaultAttributes
 		_c.mutation.SetAttributes(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := masterdataitem.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if masterdataitem.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized masterdataitem.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := masterdataitem.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -346,6 +376,9 @@ func (_c *MasterDataItemCreate) check() error {
 	}
 	if _, ok := _c.mutation.Attributes(); !ok {
 		return &ValidationError{Name: "attributes", err: errors.New(`ent: missing required field "MasterDataItem.attributes"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "MasterDataItem.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "MasterDataItem.organization"`)}
@@ -432,6 +465,10 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Attributes(); ok {
 		_spec.SetField(masterdataitem.FieldAttributes, field.TypeJSON, value)
 		_node.Attributes = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

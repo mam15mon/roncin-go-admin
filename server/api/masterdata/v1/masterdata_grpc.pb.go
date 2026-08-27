@@ -37,6 +37,7 @@ const (
 	MasterDataService_CreateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/CreateShippingLine"
 	MasterDataService_UpdateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/UpdateShippingLine"
 	MasterDataService_ListCurrencies_FullMethodName              = "/masterdata.v1.MasterDataService/ListCurrencies"
+	MasterDataService_SearchCurrencies_FullMethodName            = "/masterdata.v1.MasterDataService/SearchCurrencies"
 	MasterDataService_ListAdministrativeRegions_FullMethodName   = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
 	MasterDataService_ListNumberRules_FullMethodName             = "/masterdata.v1.MasterDataService/ListNumberRules"
 	MasterDataService_CreateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/CreateNumberRule"
@@ -73,6 +74,7 @@ type MasterDataServiceClient interface {
 	CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*CreateShippingLineResponse, error)
 	UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*UpdateShippingLineResponse, error)
 	ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error)
+	SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error)
 	ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*ListAdministrativeRegionsResponse, error)
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error)
 	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error)
@@ -275,6 +277,16 @@ func (c *masterDataServiceClient) ListCurrencies(ctx context.Context, in *ListCu
 	return out, nil
 }
 
+func (c *masterDataServiceClient) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCurrenciesResponse)
+	err := c.cc.Invoke(ctx, MasterDataService_SearchCurrencies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *masterDataServiceClient) ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*ListAdministrativeRegionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListAdministrativeRegionsResponse)
@@ -417,6 +429,7 @@ type MasterDataServiceServer interface {
 	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error)
 	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*UpdateShippingLineResponse, error)
 	ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error)
+	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error)
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
@@ -492,6 +505,9 @@ func (UnimplementedMasterDataServiceServer) UpdateShippingLine(context.Context, 
 }
 func (UnimplementedMasterDataServiceServer) ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCurrencies not implemented")
+}
+func (UnimplementedMasterDataServiceServer) SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchCurrencies not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAdministrativeRegions not implemented")
@@ -874,6 +890,24 @@ func _MasterDataService_ListCurrencies_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterDataService_SearchCurrencies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchCurrenciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).SearchCurrencies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_SearchCurrencies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).SearchCurrencies(ctx, req.(*SearchCurrenciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MasterDataService_ListAdministrativeRegions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAdministrativeRegionsRequest)
 	if err := dec(in); err != nil {
@@ -1168,6 +1202,10 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCurrencies",
 			Handler:    _MasterDataService_ListCurrencies_Handler,
+		},
+		{
+			MethodName: "SearchCurrencies",
+			Handler:    _MasterDataService_SearchCurrencies_Handler,
 		},
 		{
 			MethodName: "ListAdministrativeRegions",

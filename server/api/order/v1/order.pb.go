@@ -2033,6 +2033,9 @@ func (x *CheckOrderReferenceRequest) GetExcludeOrderId() string {
 type ListPersonnelOptionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BusinessType  BusinessType           `protobuf:"varint,1,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
+	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2072,6 +2075,27 @@ func (x *ListPersonnelOptionsRequest) GetBusinessType() BusinessType {
 		return x.BusinessType
 	}
 	return BusinessType_BUSINESS_TYPE_UNSPECIFIED
+}
+
+func (x *ListPersonnelOptionsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListPersonnelOptionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListPersonnelOptionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 type ListOrderConsolidationsRequest struct {
@@ -3752,6 +3776,9 @@ type ListPersonnelOptionsResponse struct {
 	Message       string                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data          []*OrderPersonnelOption `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                  `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                   `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                   `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                   `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3819,6 +3846,27 @@ func (x *ListPersonnelOptionsResponse) GetTraceId() string {
 		return x.TraceId
 	}
 	return ""
+}
+
+func (x *ListPersonnelOptionsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListPersonnelOptionsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListPersonnelOptionsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 var File_order_v1_order_proto protoreflect.FileDescriptor
@@ -4048,9 +4096,12 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"customerId\x88\x01\x01\x12-\n" +
 	"\x10exclude_order_id\x18\x04 \x01(\tH\x01R\x0eexcludeOrderId\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x13\n" +
-	"\x11_exclude_order_id\"_\n" +
+	"\x11_exclude_order_id\"\xaa\x01\n" +
 	"\x1bListPersonnelOptionsRequest\x12@\n" +
-	"\rbusiness_type\x18\x01 \x01(\x0e2\x16.order.v1.BusinessTypeB\x03\xe0A\x02R\fbusinessType\"5\n" +
+	"\rbusiness_type\x18\x01 \x01(\x0e2\x16.order.v1.BusinessTypeB\x03\xe0A\x02R\fbusinessType\x12\x18\n" +
+	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"5\n" +
 	"\x1eListOrderConsolidationsRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x8d\x01\n" +
 	"\x13OrderReferenceCheck\x12\x1c\n" +
@@ -4336,13 +4387,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
 	"\x04data\x18\x04 \x01(\v2\x1d.order.v1.OrderReferenceCheckR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb5\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xfc\x01\n" +
 	"\x1cListPersonnelOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
 	"\x04data\x18\x04 \x03(\v2\x1e.order.v1.OrderPersonnelOptionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xb5\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize*\xb5\x01\n" +
 	"\fBusinessType\x12\x1d\n" +
 	"\x19BUSINESS_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10BUSINESS_TYPE_SE\x10\x01\x12\x14\n" +

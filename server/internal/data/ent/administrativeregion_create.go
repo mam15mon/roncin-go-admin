@@ -137,6 +137,20 @@ func (_c *AdministrativeRegionCreate) SetNillableEnabled(v *bool) *Administrativ
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *AdministrativeRegionCreate) SetSearchKeywords(v string) *AdministrativeRegionCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *AdministrativeRegionCreate) SetNillableSearchKeywords(v *string) *AdministrativeRegionCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AdministrativeRegionCreate) SetID(v uuid.UUID) *AdministrativeRegionCreate {
 	_c.mutation.SetID(v)
@@ -158,7 +172,9 @@ func (_c *AdministrativeRegionCreate) Mutation() *AdministrativeRegionMutation {
 
 // Save creates the AdministrativeRegion in the database.
 func (_c *AdministrativeRegionCreate) Save(ctx context.Context) (*AdministrativeRegion, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -185,12 +201,18 @@ func (_c *AdministrativeRegionCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *AdministrativeRegionCreate) defaults() {
+func (_c *AdministrativeRegionCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if administrativeregion.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized administrativeregion.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := administrativeregion.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if administrativeregion.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized administrativeregion.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := administrativeregion.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -202,10 +224,18 @@ func (_c *AdministrativeRegionCreate) defaults() {
 		v := administrativeregion.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := administrativeregion.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if administrativeregion.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized administrativeregion.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := administrativeregion.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -265,6 +295,9 @@ func (_c *AdministrativeRegionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "AdministrativeRegion.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "AdministrativeRegion.search_keywords"`)}
 	}
 	return nil
 }
@@ -340,6 +373,10 @@ func (_c *AdministrativeRegionCreate) createSpec() (*AdministrativeRegion, *sqlg
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(administrativeregion.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(administrativeregion.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	return _node, _spec
 }

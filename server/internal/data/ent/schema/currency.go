@@ -18,8 +18,11 @@ func (Currency) Fields() []ent.Field {
 		field.String("symbol").Optional().MaxLen(16),
 		field.Int("minor_unit").Default(2).Min(0).Max(4),
 		field.Bool("enabled").Default(true),
+		searchKeywordsField(),
 	}
 }
+
+func (Currency) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }
 
 func (Currency) Indexes() []ent.Index {
 	return []ent.Index{

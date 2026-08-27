@@ -136,7 +136,7 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		if keyword != "" && !strings.Contains(strings.ToLower(account.Username), keyword) && !strings.Contains(strings.ToLower(account.DisplayName), keyword) {
+		if keyword != "" && !strings.Contains(strings.ToLower(account.Username), keyword) && !strings.Contains(strings.ToLower(account.DisplayName), keyword) && !strings.Contains(strings.ToLower(account.SearchKeywords), keyword) {
 			continue
 		}
 		filtered = append(filtered, item)

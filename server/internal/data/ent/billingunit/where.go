@@ -96,6 +96,11 @@ func Enabled(v bool) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldEnabled, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldCreatedAt, v))
@@ -384,6 +389,71 @@ func EnabledEQ(v bool) predicate.BillingUnit {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

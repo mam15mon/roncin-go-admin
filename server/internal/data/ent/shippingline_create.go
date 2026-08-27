@@ -151,6 +151,20 @@ func (_c *ShippingLineCreate) SetNillableEnabled(v *bool) *ShippingLineCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *ShippingLineCreate) SetSearchKeywords(v string) *ShippingLineCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *ShippingLineCreate) SetNillableSearchKeywords(v *string) *ShippingLineCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ShippingLineCreate) SetID(v uuid.UUID) *ShippingLineCreate {
 	_c.mutation.SetID(v)
@@ -192,7 +206,9 @@ func (_c *ShippingLineCreate) Mutation() *ShippingLineMutation {
 
 // Save creates the ShippingLine in the database.
 func (_c *ShippingLineCreate) Save(ctx context.Context) (*ShippingLine, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -219,12 +235,18 @@ func (_c *ShippingLineCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *ShippingLineCreate) defaults() {
+func (_c *ShippingLineCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if shippingline.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized shippingline.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := shippingline.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if shippingline.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized shippingline.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := shippingline.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -240,10 +262,18 @@ func (_c *ShippingLineCreate) defaults() {
 		v := shippingline.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := shippingline.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if shippingline.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized shippingline.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := shippingline.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -312,6 +342,9 @@ func (_c *ShippingLineCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "ShippingLine.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "ShippingLine.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "ShippingLine.organization"`)}
@@ -394,6 +427,10 @@ func (_c *ShippingLineCreate) createSpec() (*ShippingLine, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(shippingline.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(shippingline.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

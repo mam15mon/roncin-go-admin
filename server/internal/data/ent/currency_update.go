@@ -103,6 +103,20 @@ func (_u *CurrencyUpdate) SetNillableEnabled(v *bool) *CurrencyUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *CurrencyUpdate) SetSearchKeywords(v string) *CurrencyUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *CurrencyUpdate) SetNillableSearchKeywords(v *string) *CurrencyUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // Mutation returns the CurrencyMutation object of the builder.
 func (_u *CurrencyUpdate) Mutation() *CurrencyMutation {
 	return _u.mutation
@@ -110,7 +124,9 @@ func (_u *CurrencyUpdate) Mutation() *CurrencyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CurrencyUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -137,11 +153,15 @@ func (_u *CurrencyUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CurrencyUpdate) defaults() {
+func (_u *CurrencyUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if currency.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized currency.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := currency.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -196,6 +216,9 @@ func (_u *CurrencyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(currency.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(currency.FieldSearchKeywords, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -292,6 +315,20 @@ func (_u *CurrencyUpdateOne) SetNillableEnabled(v *bool) *CurrencyUpdateOne {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *CurrencyUpdateOne) SetSearchKeywords(v string) *CurrencyUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *CurrencyUpdateOne) SetNillableSearchKeywords(v *string) *CurrencyUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // Mutation returns the CurrencyMutation object of the builder.
 func (_u *CurrencyUpdateOne) Mutation() *CurrencyMutation {
 	return _u.mutation
@@ -312,7 +349,9 @@ func (_u *CurrencyUpdateOne) Select(field string, fields ...string) *CurrencyUpd
 
 // Save executes the query and returns the updated Currency entity.
 func (_u *CurrencyUpdateOne) Save(ctx context.Context) (*Currency, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -339,11 +378,15 @@ func (_u *CurrencyUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *CurrencyUpdateOne) defaults() {
+func (_u *CurrencyUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if currency.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized currency.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := currency.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -415,6 +458,9 @@ func (_u *CurrencyUpdateOne) sqlSave(ctx context.Context) (_node *Currency, err 
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(currency.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(currency.FieldSearchKeywords, field.TypeString, value)
 	}
 	_node = &Currency{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -29,7 +29,12 @@ func (FeeSetting) Fields() []ent.Field {
 		field.UUID("taxable_service_id", uuid.Nil),
 		field.Bool("enabled").Default(true),
 		field.Int("sort_order").Default(100),
+		searchKeywordsField(),
 	}
+}
+
+func (FeeSetting) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name_zh", "name_en", "alias_name")}
 }
 
 func (FeeSetting) Edges() []ent.Edge {

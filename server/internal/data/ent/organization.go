@@ -34,6 +34,8 @@ type Organization struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// BaseCurrency holds the value of the "base_currency" field.
 	BaseCurrency *string `json:"base_currency,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrganizationQuery when eager-loading is set.
 	Edges        OrganizationEdges `json:"edges"`
@@ -432,7 +434,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case organization.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case organization.FieldCode, organization.FieldName, organization.FieldKind, organization.FieldBaseCurrency:
+		case organization.FieldCode, organization.FieldName, organization.FieldKind, organization.FieldBaseCurrency, organization.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreatedAt, organization.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -508,6 +510,12 @@ func (_m *Organization) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.BaseCurrency = new(string)
 				*_m.BaseCurrency = value.String
+			}
+		case organization.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -742,6 +750,9 @@ func (_m *Organization) String() string {
 		builder.WriteString("base_currency=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

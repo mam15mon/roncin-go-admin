@@ -31,8 +31,10 @@ type Currency struct {
 	// MinorUnit holds the value of the "minor_unit" field.
 	MinorUnit int `json:"minor_unit,omitempty"`
 	// Enabled holds the value of the "enabled" field.
-	Enabled      bool `json:"enabled,omitempty"`
-	selectValues sql.SelectValues
+	Enabled bool `json:"enabled,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
+	selectValues   sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -44,7 +46,7 @@ func (*Currency) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case currency.FieldMinorUnit:
 			values[i] = new(sql.NullInt64)
-		case currency.FieldCode, currency.FieldName, currency.FieldSymbol:
+		case currency.FieldCode, currency.FieldName, currency.FieldSymbol, currency.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case currency.FieldCreatedAt, currency.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -113,6 +115,12 @@ func (_m *Currency) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
+		case currency.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -169,6 +177,9 @@ func (_m *Currency) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -131,6 +131,11 @@ func SortOrder(v int) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldSortOrder, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldCreatedAt, v))
@@ -789,6 +794,71 @@ func SortOrderLT(v int) predicate.FeeSetting {
 // SortOrderLTE applies the LTE predicate on the "sort_order" field.
 func SortOrderLTE(v int) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldLTE(FieldSortOrder, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.FeeSetting {
+	return predicate.FeeSetting(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

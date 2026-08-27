@@ -33,15 +33,23 @@ func (r *feeCatalogRepo) requireHeadquarters(ctx context.Context, organizationID
 	return nil
 }
 
-func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uuid.UUID) ([]*biz.FeeSetting, error) {
+func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.FeeSetting], error) {
 	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.FeeSetting.Query().
-		Where(feesettingent.OrganizationIDEQ(headquartersID)).
+	query := r.data.db.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(headquartersID))
+	if options.Keyword != "" {
+		query.Where(feesettingent.Or(feesettingent.FeeCodeContainsFold(options.Keyword), feesettingent.NameZhContainsFold(options.Keyword), feesettingent.NameEnContainsFold(options.Keyword), feesettingent.AliasNameContainsFold(options.Keyword), feesettingent.SearchKeywordsContainsFold(options.Keyword)))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.
 		WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().
-		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).All(ctx)
+		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
+		Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +61,7 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 		}
 		result = append(result, converted)
 	}
-	return result, nil
+	return &biz.PagedList[*biz.FeeSetting]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
@@ -208,12 +216,20 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, input
 	return nil
 }
 
-func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uuid.UUID) ([]*biz.BillingUnit, error) {
+func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.BillingUnit], error) {
 	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID)).Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).All(ctx)
+	query := r.data.db.BillingUnit.Query().Where(billingunitent.OrganizationIDEQ(headquartersID))
+	if options.Keyword != "" {
+		query.Where(billingunitent.Or(billingunitent.CodeContainsFold(options.Keyword), billingunitent.NameContainsFold(options.Keyword), billingunitent.SearchKeywordsContainsFold(options.Keyword)))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.Order(billingunitent.BySortOrder(), billingunitent.ByCode(), billingunitent.ByID()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +237,7 @@ func (r *feeCatalogRepo) ListBillingUnits(ctx context.Context, organizationID uu
 	for _, item := range items {
 		result = append(result, billingUnitToBiz(item))
 	}
-	return result, nil
+	return &biz.PagedList[*biz.BillingUnit]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.BillingUnit, audit *biz.AuditEvent) (*biz.BillingUnit, error) {
@@ -284,12 +300,20 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 	return billingUnitToBiz(saved), nil
 }
 
-func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID uuid.UUID) ([]*biz.TaxableService, error) {
+func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID uuid.UUID, options biz.FeeCatalogListOptions) (*biz.PagedList[*biz.TaxableService], error) {
 	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.data.db.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID)).Order(taxableserviceent.ByName(), taxableserviceent.ByID()).All(ctx)
+	query := r.data.db.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(headquartersID))
+	if options.Keyword != "" {
+		query.Where(taxableserviceent.Or(taxableserviceent.NameContainsFold(options.Keyword), taxableserviceent.ShortNameContainsFold(options.Keyword), taxableserviceent.GoodsCodeContainsFold(options.Keyword), taxableserviceent.SearchKeywordsContainsFold(options.Keyword)))
+	}
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := query.Order(taxableserviceent.ByName(), taxableserviceent.ByID()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +325,7 @@ func (r *feeCatalogRepo) ListTaxableServices(ctx context.Context, organizationID
 		}
 		result = append(result, converted)
 	}
-	return result, nil
+	return &biz.PagedList[*biz.TaxableService]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.TaxableService, audit *biz.AuditEvent) (*biz.TaxableService, error) {

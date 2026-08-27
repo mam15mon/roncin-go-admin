@@ -141,6 +141,20 @@ func (_c *OrganizationCreate) SetNillableBaseCurrency(v *string) *OrganizationCr
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *OrganizationCreate) SetSearchKeywords(v string) *OrganizationCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *OrganizationCreate) SetNillableSearchKeywords(v *string) *OrganizationCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrganizationCreate) SetID(v uuid.UUID) *OrganizationCreate {
 	_c.mutation.SetID(v)
@@ -662,7 +676,9 @@ func (_c *OrganizationCreate) Mutation() *OrganizationMutation {
 
 // Save creates the Organization in the database.
 func (_c *OrganizationCreate) Save(ctx context.Context) (*Organization, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -689,12 +705,18 @@ func (_c *OrganizationCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *OrganizationCreate) defaults() {
+func (_c *OrganizationCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if organization.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized organization.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := organization.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if organization.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized organization.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := organization.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -702,10 +724,18 @@ func (_c *OrganizationCreate) defaults() {
 		v := organization.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := organization.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if organization.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized organization.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := organization.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -747,6 +777,9 @@ func (_c *OrganizationCreate) check() error {
 		if err := organization.BaseCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Organization.search_keywords"`)}
 	}
 	return nil
 }
@@ -810,6 +843,10 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.BaseCurrency(); ok {
 		_spec.SetField(organization.FieldBaseCurrency, field.TypeString, value)
 		_node.BaseCurrency = &value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(organization.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

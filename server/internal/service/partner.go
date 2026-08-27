@@ -133,23 +133,32 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 }
 
 func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
+	return s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+}
+
+func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, request *v1.SearchPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	return s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+}
+
+func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, options biz.SelectorListOptions) (*v1.ListPartnerAssignmentOptionsResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	items, err := s.usecase.ListAssignmentOptions(ctx, principal.Organization.ID)
+	result, err := s.usecase.ListAssignmentOptions(ctx, principal.Organization.ID, options)
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.PartnerAssignmentOption, 0, len(items))
-	for _, item := range items {
+	data := make([]*v1.PartnerAssignmentOption, 0, len(result.Items))
+	for _, item := range result.Items {
 		data = append(data, &v1.PartnerAssignmentOption{
 			UserId: item.UserID.String(), DisplayName: item.DisplayName,
 			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 			MembershipEnabled: item.MembershipEnabled,
 		})
 	}
-	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.CreatePartnerResponse, error) {

@@ -112,6 +112,20 @@ func (_c *BillingUnitCreate) SetNillableEnabled(v *bool) *BillingUnitCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *BillingUnitCreate) SetSearchKeywords(v string) *BillingUnitCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *BillingUnitCreate) SetNillableSearchKeywords(v *string) *BillingUnitCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *BillingUnitCreate) SetID(v uuid.UUID) *BillingUnitCreate {
 	_c.mutation.SetID(v)
@@ -168,7 +182,9 @@ func (_c *BillingUnitCreate) Mutation() *BillingUnitMutation {
 
 // Save creates the BillingUnit in the database.
 func (_c *BillingUnitCreate) Save(ctx context.Context) (*BillingUnit, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -195,12 +211,18 @@ func (_c *BillingUnitCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *BillingUnitCreate) defaults() {
+func (_c *BillingUnitCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if billingunit.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized billingunit.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := billingunit.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if billingunit.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized billingunit.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := billingunit.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
@@ -216,10 +238,18 @@ func (_c *BillingUnitCreate) defaults() {
 		v := billingunit.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := billingunit.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if billingunit.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized billingunit.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := billingunit.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -257,6 +287,9 @@ func (_c *BillingUnitCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "BillingUnit.enabled"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "BillingUnit.search_keywords"`)}
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "BillingUnit.organization"`)}
@@ -323,6 +356,10 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(billingunit.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(billingunit.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

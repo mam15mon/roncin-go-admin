@@ -108,6 +108,11 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
 
+  rpc SearchCurrencies(SearchCurrenciesRequest) returns (ListCurrenciesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/reference/currencies/search"};
+  }
+
   rpc ListAdministrativeRegions(ListAdministrativeRegionsRequest) returns (ListAdministrativeRegionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.administrative_region.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/administrative-regions"};
@@ -685,6 +690,7 @@ message UpdateShippingLineResponse {
 }
 
 message ListCurrenciesRequest {}
+message SearchCurrenciesRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
 
 message Currency {
   string id = 1;
@@ -703,12 +709,17 @@ message ListCurrenciesResponse {
   string message = 3;
   repeated Currency data = 4;
   string trace_id = 5;
+  int32 total = 6;
+  int32 page = 7;
+  int32 page_size = 8;
 }
 
 message ListAdministrativeRegionsRequest {
   optional int32 level = 1;
   optional string parent_code = 2;
   string keyword = 3;
+  int32 page = 4;
+  int32 page_size = 5;
 }
 
 message AdministrativeRegion {
@@ -731,6 +742,9 @@ message ListAdministrativeRegionsResponse {
   string message = 3;
   repeated AdministrativeRegion data = 4;
   string trace_id = 5;
+  int32 total = 6;
+  int32 page = 7;
+  int32 page_size = 8;
 }
 
 message ListNumberRulesRequest {}
