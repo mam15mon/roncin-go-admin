@@ -24,6 +24,7 @@ import {
   Input,
   Modal,
   Select,
+  Space,
   Table,
   Tag,
   Typography,
@@ -292,14 +293,57 @@ export default function FinanceInvoicesPage() {
     {
       title: '金额',
       dataIndex: 'totalAmount',
-      width: 150,
+      width: 140,
       align: 'right',
       search: false,
       render: (_, r) => (
-        <strong>
+        <strong style={{ color: '#262626' }}>
           {r.totalAmount} {r.currency}
         </strong>
       ),
+    },
+    {
+      title: '开票汇率',
+      dataIndex: 'exchangeRate',
+      width: 135,
+      align: 'right',
+      search: false,
+      render: (_, r) => {
+        if (!r.exchangeRate) {
+          return r.status === 'DRAFT' ? <span style={{ color: '#8c8c8c' }}>开票时确定</span> : '-';
+        }
+        const sourceLabel =
+          r.exchangeRateSource === 'MANUAL'
+            ? '手工'
+            : r.exchangeRateSource === 'BASE_CURRENCY'
+            ? '本币'
+            : '系统';
+        const sourceColor =
+          r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
+        return (
+          <Space size={4}>
+            <span>{r.exchangeRate}</span>
+            <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
+              {sourceLabel}
+            </Tag>
+          </Space>
+        );
+      },
+    },
+    {
+      title: '折本币金额',
+      dataIndex: 'baseCurrencyAmount',
+      width: 145,
+      align: 'right',
+      search: false,
+      render: (_, r) =>
+        r.baseCurrencyAmount ? (
+          <strong style={{ color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16' }}>
+            {r.baseCurrencyAmount} {r.baseCurrency}
+          </strong>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '税额',
@@ -700,14 +744,55 @@ export default function FinanceInvoicesPage() {
               <Descriptions.Item label="银行账号">
                 {detail.bankAccount || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="金额">
-                {detail.totalAmount} {detail.currency}
-              </Descriptions.Item>
               <Descriptions.Item label="开票日期">
                 {detail.invoiceDate || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="税额">
-                {detail.taxAmount}
+              <Descriptions.Item label="未税金额">
+                {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="税额汇总">
+                {detail.taxAmount ? `${detail.taxAmount} ${detail.currency}` : '0.00'}
+              </Descriptions.Item>
+              <Descriptions.Item label="含税总额">
+                <strong style={{ color: '#262626' }}>
+                  {detail.totalAmount} {detail.currency}
+                </strong>
+              </Descriptions.Item>
+              <Descriptions.Item label="开票汇率">
+                {detail.exchangeRate ? (
+                  <Space size={4}>
+                    <span>{detail.exchangeRate}</span>
+                    <Tag
+                      color={
+                        detail.exchangeRateSource === 'MANUAL'
+                          ? 'purple'
+                          : detail.exchangeRateSource === 'BASE_CURRENCY'
+                          ? 'default'
+                          : 'blue'
+                      }
+                    >
+                      {detail.exchangeRateSource === 'MANUAL'
+                        ? '手工'
+                        : detail.exchangeRateSource === 'BASE_CURRENCY'
+                        ? '本币'
+                        : '系统'}
+                    </Tag>
+                  </Space>
+                ) : (
+                  <span style={{ color: '#8c8c8c' }}>草稿（开票时固化）</span>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="发票折本币">
+                {detail.baseCurrencyAmount ? (
+                  <strong style={{ color: '#1677ff' }}>
+                    {detail.baseCurrencyAmount} {detail.baseCurrency}
+                  </strong>
+                ) : (
+                  '-'
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="汇率生效日期">
+                {detail.exchangeRateDate || detail.invoiceDate || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="备注" span={2}>
                 {detail.note || '-'}

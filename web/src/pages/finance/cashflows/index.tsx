@@ -12,7 +12,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Input, Popconfirm, Tag } from 'antd';
+import { App, Input, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
@@ -209,12 +209,42 @@ export default function FinanceCashflowsPage() {
       ),
     },
     {
+      title: '结算汇率',
+      dataIndex: 'exchangeRate',
+      width: 140,
+      align: 'right',
+      search: false,
+      render: (_, r) => {
+        if (!r.exchangeRate) return '-';
+        const sourceLabel =
+          r.exchangeRateSource === 'MANUAL'
+            ? '手工'
+            : r.exchangeRateSource === 'BASE_CURRENCY'
+            ? '本币'
+            : '系统';
+        const sourceColor =
+          r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
+        return (
+          <Space size={4}>
+            <span>{r.exchangeRate}</span>
+            <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
+              {sourceLabel}
+            </Tag>
+          </Space>
+        );
+      },
+    },
+    {
       title: '折本币',
       dataIndex: 'baseAmount',
       width: 140,
       align: 'right',
       search: false,
-      render: (_, r) => `${r.baseAmount} ${r.baseCurrency}`,
+      render: (_, r) => (
+        <strong style={{ color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16' }}>
+          {r.baseAmount} {r.baseCurrency}
+        </strong>
+      ),
     },
     {
       title: '已核销',
@@ -303,7 +333,7 @@ export default function FinanceCashflowsPage() {
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={1800}
+        scrollX={1900}
         primaryActionText="登记流水"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={
@@ -352,8 +382,6 @@ export default function FinanceCashflowsPage() {
         initialValues={{
           direction: 'RECEIVABLE',
           currency: 'CNY',
-          exchangeRate: '1.00000000',
-          baseCurrency: 'CNY',
           transactionDate: dayjs(),
           paymentMethod: 'BANK_TRANSFER',
         }}
@@ -364,8 +392,7 @@ export default function FinanceCashflowsPage() {
               settlementPartyId: v.settlementPartyId,
               currency: v.currency,
               amount: v.amount,
-              exchangeRate: v.exchangeRate,
-              baseCurrency: v.baseCurrency,
+              exchangeRate: v.exchangeRate ? v.exchangeRate.trim() : undefined,
               transactionDate: dayjs(v.transactionDate).format('YYYY-MM-DD'),
               ourAccount: v.ourAccount,
               counterpartyAccount: v.counterpartyAccount,
@@ -427,13 +454,20 @@ export default function FinanceCashflowsPage() {
         />
         <ProFormText
           name="exchangeRate"
-          label="汇率"
-          rules={[{ required: true }, decimalRule]}
-        />
-        <ProFormText
-          name="baseCurrency"
-          label="本位币"
-          rules={[{ required: true }]}
+          label="结算汇率（可选）"
+          placeholder="留空默认根据交易日期自动获取系统结算汇率"
+          extra="外币流水若不填则自动按交易日期匹配 SETTLEMENT 汇率；手动输入需具备财务汇率覆盖权限"
+          rules={[
+            {
+              validator: (_, val) => {
+                if (!val) return Promise.resolve();
+                if (!decimalRule.pattern.test(val)) {
+                  return Promise.reject(new Error('请输入大于 0 且最多 8 位小数的汇率'));
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
         />
         <ProFormDatePicker
           name="transactionDate"

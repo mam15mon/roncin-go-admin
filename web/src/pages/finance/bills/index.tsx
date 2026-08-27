@@ -296,6 +296,32 @@ export default function FinanceBillsPage() {
       ),
     },
     {
+      title: '账单汇率',
+      dataIndex: 'exchangeRate',
+      width: 135,
+      align: 'right',
+      search: false,
+      render: (_, row) => {
+        if (!row.exchangeRate) return '-';
+        const sourceLabel =
+          row.exchangeRateSource === 'MANUAL'
+            ? '手工'
+            : row.exchangeRateSource === 'BASE_CURRENCY'
+            ? '本币'
+            : '系统';
+        const sourceColor =
+          row.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
+        return (
+          <Space size={4}>
+            <span>{row.exchangeRate}</span>
+            <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
+              {sourceLabel}
+            </Tag>
+          </Space>
+        );
+      },
+    },
+    {
       title: '折本币金额',
       dataIndex: 'baseCurrencyAmount',
       width: 150,
@@ -349,6 +375,7 @@ export default function FinanceBillsPage() {
           billDateTo: value[1],
         }),
       },
+      render: (_, row) => row.billDate || '-',
     },
     {
       title: '到期日',
@@ -358,12 +385,20 @@ export default function FinanceBillsPage() {
       renderText: (value) => value || '-',
     },
     {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      width: 160,
+      search: false,
+      render: (_, row) =>
+        row.createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm') : '-',
+    },
+    {
       title: '操作',
       valueType: 'option',
       fixed: 'right',
-      width: 220,
+      width: 170,
       render: (_, row) => [
-        <a key="detail" onClick={() => void openDetail(row)}>
+        <a key="view" onClick={() => void openDetail(row)}>
           <EyeOutlined /> 详情
         </a>,
         access.canUpdateFinanceBills && row.status === 'DRAFT' ? (
@@ -374,7 +409,7 @@ export default function FinanceBillsPage() {
         access.canConfirmFinanceBills && row.status === 'DRAFT' ? (
           <Popconfirm
             key="confirm"
-            title="确认后账单将进入正式结算流程，是否继续？"
+            title="确认该账单？确认后将锁定对账金额并进入开票与核销"
             onConfirm={() => void confirmBill(row)}
           >
             <a>
@@ -398,12 +433,12 @@ export default function FinanceBillsPage() {
   return (
     <>
       <FinanceLedgerTemplate<API.FinanceBill>
-        headerTitle="对账单管理"
+        headerTitle="账单管理台账"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
-        scrollX={1900}
-        primaryActionText="生成账单"
+        scrollX={2000}
+        primaryActionText="新建对账单"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={access.canCreateFinanceBills ? () => openCreate() : undefined}
         batchActions={[
@@ -430,12 +465,12 @@ export default function FinanceBillsPage() {
           let recBase = 0;
           let payBase = 0;
           let unvBase = 0;
-          for (const b of list) {
-            const baseAmount = Number(b.baseCurrencyAmount || 0);
-            const unverified = Number(b.unverifiedAmount || 0);
-            if (b.direction === 'RECEIVABLE') {
+          for (const item of list) {
+            const baseAmount = Number(item.baseCurrencyAmount || 0);
+            const unverified = Number(item.unverifiedAmount || 0);
+            if (item.direction === 'RECEIVABLE') {
               recBase += baseAmount;
-            } else if (b.direction === 'PAYABLE') {
+            } else if (item.direction === 'PAYABLE') {
               payBase += baseAmount;
             }
             unvBase += unverified;
@@ -481,6 +516,7 @@ export default function FinanceBillsPage() {
             <Form.Item
               name="billDate"
               label="账单日期"
+              extra="修改账单日期将自动按新账单日重置 BILL 汇率快照"
               rules={[{ required: true, message: '请选择账单日期' }]}
             >
               <DatePicker allowClear={false} />
@@ -504,7 +540,7 @@ export default function FinanceBillsPage() {
       <Drawer
         title={`账单详情 ${detail?.billNo || ''}`}
         open={detailOpen}
-        width={980}
+        width={1020}
         loading={detailLoading}
         onClose={() => setDetailOpen(false)}
       >
@@ -533,14 +569,48 @@ export default function FinanceBillsPage() {
               <Descriptions.Item label="对账抬头">
                 {detail.statementTitle || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="账单金额">
-                {detail.totalAmount} {detail.currency}
+              <Descriptions.Item label="含税总额">
+                <strong style={{ color: '#262626' }}>
+                  {detail.totalAmount} {detail.currency}
+                </strong>
               </Descriptions.Item>
-              <Descriptions.Item label="折本币">
-                {detail.baseCurrencyAmount} {detail.baseCurrency}
+              <Descriptions.Item label="不含税金额">
+                {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="税额">
-                {detail.taxAmount} {detail.currency}
+              <Descriptions.Item label="税额汇总">
+                {detail.taxAmount ? `${detail.taxAmount} ${detail.currency}` : '0.00'}
+              </Descriptions.Item>
+              <Descriptions.Item label="账单汇率">
+                {detail.exchangeRate ? (
+                  <Space size={4}>
+                    <span>{detail.exchangeRate}</span>
+                    <Tag
+                      color={
+                        detail.exchangeRateSource === 'MANUAL'
+                          ? 'purple'
+                          : detail.exchangeRateSource === 'BASE_CURRENCY'
+                          ? 'default'
+                          : 'blue'
+                      }
+                    >
+                      {detail.exchangeRateSource === 'MANUAL'
+                        ? '手工'
+                        : detail.exchangeRateSource === 'BASE_CURRENCY'
+                        ? '本币'
+                        : '系统'}
+                    </Tag>
+                  </Space>
+                ) : (
+                  '-'
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="折本币总额">
+                <strong style={{ color: '#1677ff' }}>
+                  {detail.baseCurrencyAmount} {detail.baseCurrency}
+                </strong>
+              </Descriptions.Item>
+              <Descriptions.Item label="汇率生效日期">
+                {detail.exchangeRateDate || detail.billDate || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="账单日期">
                 {detail.billDate}
@@ -553,8 +623,8 @@ export default function FinanceBillsPage() {
                   ? '-'
                   : `${detail.paymentTermsDays} 天`}
               </Descriptions.Item>
-              <Descriptions.Item label="费用数">
-                {detail.feeCount}
+              <Descriptions.Item label="费用笔数">
+                {detail.feeCount} 笔
               </Descriptions.Item>
               <Descriptions.Item label="备注" span={3}>
                 {detail.note || '-'}
@@ -573,24 +643,40 @@ export default function FinanceBillsPage() {
               dataSource={detail.lines || []}
               columns={[
                 { title: '订单编号', dataIndex: 'orderNo', width: 150 },
-                { title: '费用代码', dataIndex: 'feeCode', width: 110 },
-                { title: '费用名称', dataIndex: 'feeName', width: 140 },
+                { title: '费用代码', dataIndex: 'feeCode', width: 100 },
+                { title: '费用名称', dataIndex: 'feeName', width: 130 },
                 {
                   title: '税率',
                   dataIndex: 'taxRate',
                   align: 'right',
-                  width: 90,
+                  width: 80,
                   render: (value) =>
                     value == null ? '-' : `${Number(value)}%`,
                 },
                 {
-                  title: '原币金额',
-                  render: (_, row) => `${row.totalAmount} ${row.currency}`,
+                  title: '不含税金额',
+                  dataIndex: 'netAmount',
+                  align: 'right',
+                  render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
+                },
+                {
+                  title: '税额',
+                  dataIndex: 'taxAmount',
+                  align: 'right',
+                  render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
+                },
+                {
+                  title: '含税金额',
+                  dataIndex: 'totalAmount',
+                  render: (_, row) => (
+                    <strong>
+                      {row.totalAmount} {row.currency}
+                    </strong>
+                  ),
                   align: 'right',
                 },
-                { title: '税额', dataIndex: 'taxAmount', align: 'right' },
                 {
-                  title: '折本币',
+                  title: '费用折本币',
                   render: (_, row) =>
                     `${row.baseCurrencyAmount} ${row.baseCurrency}`,
                   align: 'right',
@@ -603,7 +689,7 @@ export default function FinanceBillsPage() {
                     ) : (
                       <Tag>已释放</Tag>
                     ),
-                  width: 90,
+                  width: 85,
                 },
               ]}
             />

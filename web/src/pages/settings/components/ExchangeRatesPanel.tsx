@@ -57,21 +57,24 @@ const timeStandardLabels: Record<string, string> = {
   BARGE_ETD: '驳船 ETD',
   EXPENSE_TIME: '费用时间',
   ORDER_CREATED_AT: '订单创建时间',
+  BILL_DATE: '账单日期',
   BILL_CREATED_AT: '账单创建时间',
+  INVOICE_DATE: '开票日期',
+  TRANSACTION_DATE: '资金交易日期',
   WRITE_OFF_TIME: '核销时间',
 };
 const timeStandardsByRateType: Record<string, string[]> = {
-  BASE_CURRENCY: ['ETD_ETA_TRAIN_DATE', 'BUSINESS_TIME', 'BARGE_ETD', 'ORDER_CREATED_AT'],
-  INVOICE: ['BILL_CREATED_AT'],
-  SETTLEMENT: [
+  BASE_CURRENCY: [
     'ETD_ETA_TRAIN_DATE',
     'BUSINESS_TIME',
     'BARGE_ETD',
     'EXPENSE_TIME',
     'ORDER_CREATED_AT',
   ],
+  BILL: ['BILL_DATE', 'BILL_CREATED_AT'],
+  INVOICE: ['INVOICE_DATE'],
+  SETTLEMENT: ['TRANSACTION_DATE'],
   WRITE_OFF: ['WRITE_OFF_TIME'],
-  BILL: ['BILL_CREATED_AT'],
 };
 
 type ExchangeRateFormValues = {
