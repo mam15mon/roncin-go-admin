@@ -3101,7 +3101,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "INTERNAL_CONTACT"}},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "FINANCE", "COMMERCIAL", "INTERNAL_CONTACT"}},
 		{Name: "sort_order", Type: field.TypeInt, Default: 0},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "partner_id", Type: field.TypeUUID},

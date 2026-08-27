@@ -107,7 +107,7 @@ const (
 	RoleOPERATOR         Role = "OPERATOR"
 	RoleSALES            Role = "SALES"
 	RoleCUSTOMER_SERVICE Role = "CUSTOMER_SERVICE"
-	RoleDOCUMENT         Role = "DOCUMENT"
+	RoleFINANCE          Role = "FINANCE"
 	RoleCOMMERCIAL       Role = "COMMERCIAL"
 	RoleINTERNAL_CONTACT Role = "INTERNAL_CONTACT"
 )
@@ -119,7 +119,7 @@ func (r Role) String() string {
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RoleCREATOR, RoleOPERATOR, RoleSALES, RoleCUSTOMER_SERVICE, RoleDOCUMENT, RoleCOMMERCIAL, RoleINTERNAL_CONTACT:
+	case RoleCREATOR, RoleOPERATOR, RoleSALES, RoleCUSTOMER_SERVICE, RoleFINANCE, RoleCOMMERCIAL, RoleINTERNAL_CONTACT:
 		return nil
 	default:
 		return fmt.Errorf("partnerassignment: invalid enum value for role field: %q", r)

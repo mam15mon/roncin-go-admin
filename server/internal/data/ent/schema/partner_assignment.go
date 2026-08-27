@@ -18,7 +18,7 @@ func (PartnerAssignment) Fields() []ent.Field {
 		field.UUID("partner_id", uuid.Nil),
 		field.UUID("user_id", uuid.Nil),
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("role").Values("CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "DOCUMENT", "COMMERCIAL", "INTERNAL_CONTACT"),
+		field.Enum("role").Values("CREATOR", "OPERATOR", "SALES", "CUSTOMER_SERVICE", "FINANCE", "COMMERCIAL", "INTERNAL_CONTACT"),
 		field.Int("sort_order").Default(0).NonNegative(),
 	}
 }

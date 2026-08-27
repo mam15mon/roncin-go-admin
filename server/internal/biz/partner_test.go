@@ -334,4 +334,13 @@ func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	}
 }
 
+func TestPartnerAssignmentFinanceReplacesDocumentRole(t *testing.T) {
+	if !PartnerAssignmentFinance.Valid() {
+		t.Fatal("客户财务人员角色应当有效")
+	}
+	if PartnerAssignmentRole("DOCUMENT").Valid() {
+		t.Fatal("客户单证人员旧角色不应继续有效")
+	}
+}
+
 var _ PartnerRepo = (*partnerRepoStub)(nil)
