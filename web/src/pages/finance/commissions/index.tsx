@@ -22,7 +22,7 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
 import { useAccess } from '@umijs/max';
 import {
   Alert,
@@ -952,8 +952,55 @@ export default function FinanceCommissionsPage() {
     },
   ];
 
+  const [searchParams, setSearchParams] = useState<{ keyword?: string; status?: string }>({});
+
   return (
     <>
+      <SearchFilterTemplate
+        layout="bar"
+        keywordPlaceholder="搜索提成单号、人员名称或业务单号..."
+        quickFilters={[
+          {
+            name: 'status',
+            placeholder: '全部状态',
+            width: 120,
+            options: [
+              { label: '草稿', value: 'DRAFT' },
+              { label: '已确认', value: 'CONFIRMED' },
+              { label: '已作废', value: 'CANCELLED' },
+            ],
+          },
+        ]}
+        onSearch={(values) => {
+          setSearchParams(values);
+          actionRef.current?.reload();
+        }}
+        onReset={() => {
+          setSearchParams({});
+          actionRef.current?.reload();
+        }}
+        extraRight={
+          <Space size={8}>
+            {access.canManageFinanceCommissions && (
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openCreateModal}
+              >
+                生成提成
+              </Button>
+            )}
+            <Button
+              key="rules"
+              icon={<SettingOutlined />}
+              onClick={() => setRulesOpen(true)}
+            >
+              {access.canManageFinanceCommissions ? '考核规则' : '查看规则'}
+            </Button>
+          </Space>
+        }
+      />
       <ProTable<API.FinanceCommission>
         headerTitle="提成管理"
         actionRef={actionRef}
@@ -962,41 +1009,14 @@ export default function FinanceCommissionsPage() {
         bordered
         size="small"
         scroll={{ x: 2150 }}
-        toolBarRender={() =>
-          access.canManageFinanceCommissions
-            ? [
-                <Button
-                  key="create"
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={openCreateModal}
-                >
-                  生成提成
-                </Button>,
-                <Button
-                  key="rules"
-                  icon={<SettingOutlined />}
-                  onClick={() => setRulesOpen(true)}
-                >
-                  考核规则
-                </Button>,
-              ]
-            : [
-                <Button
-                  key="rules"
-                  icon={<SettingOutlined />}
-                  onClick={() => setRulesOpen(true)}
-                >
-                  查看规则
-                </Button>,
-              ]
-        }
+        search={false}
+        toolBarRender={false}
         request={async (params) => {
           const response = await settlementServiceListCommissions({
             page: params.current ?? 1,
             pageSize: params.pageSize ?? 20,
-            keyword: params.keyword,
-            status: params.status,
+            keyword: searchParams.keyword,
+            status: searchParams.status,
           });
           return {
             data: response.data || [],

@@ -15,7 +15,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
 import { Alert, App, Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import { useAccess, useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
@@ -317,8 +317,41 @@ export default function UsersPanel() {
     },
   ];
 
+  const [searchParams, setSearchParams] = useState<{ keyword?: string }>({});
+
   return (
     <>
+      <SearchFilterTemplate
+        layout="bar"
+        keywordPlaceholder="搜索用户名、姓名、拼音或邮箱..."
+        onSearch={(values) => {
+          setSearchParams(values);
+          actionRef.current?.reload();
+        }}
+        onReset={() => {
+          setSearchParams({});
+          actionRef.current?.reload();
+        }}
+        extraRight={
+          <Space size={8}>
+            <Button
+              key="refresh"
+              icon={<ReloadOutlined />}
+              onClick={() => actionRef.current?.reload()}
+            >
+              刷新
+            </Button>
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreate}
+            >
+              新增用户
+            </Button>
+          </Space>
+        }
+      />
       <ProTable<API.AdminUser>
         headerTitle={
           <Space size={8}>
@@ -339,7 +372,7 @@ export default function UsersPanel() {
           const response = await adminServiceListUsers({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: params.keyword || params.username || params.displayName,
+            keyword: searchParams.keyword,
           });
           return {
             data: response.data ?? [],
@@ -347,28 +380,8 @@ export default function UsersPanel() {
             total: response.total ?? 0,
           };
         }}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-          span: 8,
-        }}
-        toolBarRender={() => [
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>,
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={openCreate}
-          >
-            新增用户
-          </Button>,
-        ]}
+        search={false}
+        toolBarRender={false}
       />
 
       {/* Create / Edit User Modal */}

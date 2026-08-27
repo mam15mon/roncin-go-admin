@@ -19,7 +19,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
 import {
   App,
   Button,
@@ -385,8 +385,49 @@ export default function RolesPanel() {
     },
   ];
 
+  const [searchParams, setSearchParams] = useState<{ keyword?: string; dataScope?: number }>({});
+
   return (
     <>
+      <SearchFilterTemplate
+        layout="bar"
+        keywordPlaceholder="搜索角色名称或角色编码..."
+        quickFilters={[
+          {
+            name: 'dataScope',
+            placeholder: '全部数据范围',
+            width: 140,
+            options: dataScopeOptions.map((opt) => ({ label: opt.label, value: opt.value })),
+          },
+        ]}
+        onSearch={(values) => {
+          setSearchParams(values);
+          actionRef.current?.reload();
+        }}
+        onReset={() => {
+          setSearchParams({});
+          actionRef.current?.reload();
+        }}
+        extraRight={
+          <Space size={8}>
+            <Button
+              key="refresh"
+              icon={<ReloadOutlined />}
+              onClick={() => actionRef.current?.reload()}
+            >
+              刷新
+            </Button>
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openCreate}
+            >
+              新增角色
+            </Button>
+          </Space>
+        }
+      />
       <ProTable<API.AdminRole>
         headerTitle={
           <Space size={8}>
@@ -402,25 +443,21 @@ export default function RolesPanel() {
         pagination={false}
         request={async () => {
           const response = await adminServiceListRoles();
-          return { data: response.data ?? [], success: response.success ?? true };
+          let list = response.data ?? [];
+          if (searchParams.keyword) {
+            const kw = searchParams.keyword.toLowerCase().trim();
+            list = list.filter(
+              (r) =>
+                r.name?.toLowerCase().includes(kw) ||
+                r.code?.toLowerCase().includes(kw),
+            );
+          }
+          if (searchParams.dataScope !== undefined) {
+            list = list.filter((r) => r.dataScope === searchParams.dataScope);
+          }
+          return { data: list, success: response.success ?? true };
         }}
-        toolBarRender={() => [
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>,
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={openCreate}
-          >
-            新增角色
-          </Button>,
-        ]}
+        toolBarRender={false}
       />
 
       {/* Role Create/Edit Modal */}

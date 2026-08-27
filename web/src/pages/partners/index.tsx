@@ -25,6 +25,7 @@ import {
 import { history, useAccess, useLocation } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { SearchFilterTemplate } from '@/components/ui';
 import {
   partnerServiceExportPartners,
   partnerServiceImportPartners,
@@ -327,11 +328,69 @@ export default function Partners() {
     },
   ];
 
+  const [searchParams, setSearchParams] = useState<{ keyword?: string; enabled?: boolean }>({});
+
   return (
     <PageContainer
       title={currentView.title}
       subTitle={currentView.description}
     >
+      <SearchFilterTemplate
+        layout="bar"
+        keywordPlaceholder={`搜索${currentView.title}代码、名称、拼音或税号...`}
+        quickFilters={[
+          {
+            name: 'enabled',
+            placeholder: '全部状态',
+            width: 120,
+            options: [
+              { label: '启用', value: true },
+              { label: '停用', value: false },
+            ],
+          },
+        ]}
+        onSearch={(values) => {
+          setSearchParams(values);
+          actionRef.current?.reload();
+        }}
+        onReset={() => {
+          setSearchParams({});
+          actionRef.current?.reload();
+        }}
+        extraRight={
+          <Space size={8}>
+            <Button
+              key="refresh"
+              icon={<ReloadOutlined />}
+              onClick={() => actionRef.current?.reload()}
+            >
+              刷新
+            </Button>
+            <Button
+              key="export"
+              icon={<ExportOutlined />}
+              loading={exporting}
+              onClick={handleExport}
+            >
+              导出 CSV
+            </Button>
+            {access.canManagePartners && (
+              <Button
+                key="import"
+                icon={<ImportOutlined />}
+                onClick={openImport}
+              >
+                导入数据
+              </Button>
+            )}
+            {access.canManagePartners && (
+              <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+                新增{currentView.title}
+              </Button>
+            )}
+          </Space>
+        }
+      />
       <ProTable<API.Partner>
         key={location.pathname}
         headerTitle={
@@ -350,9 +409,9 @@ export default function Partners() {
           const response = await partnerServiceListPartners({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: params.keyword,
+            keyword: searchParams.keyword,
             role: currentView.roleType,
-            enabled: params.enabled,
+            enabled: searchParams.enabled,
           });
           return {
             data: response.data ?? [],
@@ -360,38 +419,8 @@ export default function Partners() {
             total: response.total ?? 0,
           };
         }}
-        search={{ labelWidth: 'auto', defaultCollapsed: false }}
-        toolBarRender={() => [
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>,
-          <Button
-            key="export"
-            icon={<ExportOutlined />}
-            loading={exporting}
-            onClick={handleExport}
-          >
-            导出 CSV
-          </Button>,
-          access.canManagePartners ? (
-            <Button
-              key="import"
-              icon={<ImportOutlined />}
-              onClick={openImport}
-            >
-              导入数据
-            </Button>
-          ) : null,
-          access.canManagePartners ? (
-            <Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              新增{currentView.title}
-            </Button>
-          ) : null,
-        ].filter(Boolean) as React.ReactNode[]}
+        search={false}
+        toolBarRender={false}
       />
 
       <ModalForm<PartnerImportFormValues>
