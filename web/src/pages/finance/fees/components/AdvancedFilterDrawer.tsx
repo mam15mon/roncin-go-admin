@@ -29,6 +29,8 @@ export interface AdvancedFeeFilterValues {
   direction?: string;
   settlementPartyId?: string;
   financialProgress?: string;
+  status?: string;
+  billNo?: string;
   invoiceDateRange?: [dayjs.Dayjs, dayjs.Dayjs];
   verificationDateRange?: [dayjs.Dayjs, dayjs.Dayjs];
 
@@ -237,10 +239,10 @@ export function AdvancedFilterDrawer({
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item label="费用状态" name="financialProgress">
+              <Form.Item label="财务进度" name="financialProgress">
                 <Select
                   allowClear
-                  placeholder="请选择状态"
+                  placeholder="请选择财务进度"
                   options={[
                     { label: '账单未建立', value: 'UNBILLED' },
                     { label: '未核销未开票', value: 'UNVERIFIED_UNINVOICED' },
@@ -251,6 +253,25 @@ export function AdvancedFilterDrawer({
                     { label: '已完成 (已开票已核销)', value: 'COMPLETED' },
                   ]}
                 />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item label="费用状态" name="status">
+                <Select
+                  allowClear
+                  placeholder="请选择费用状态"
+                  options={[
+                    { label: '草稿 (DRAFT)', value: 'DRAFT' },
+                    { label: '已确认 (CONFIRMED)', value: 'CONFIRMED' },
+                    { label: '已开账 (BILLED)', value: 'BILLED' },
+                    { label: '已作废 (CANCELLED)', value: 'CANCELLED' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item label="账单编号" name="billNo">
+                <Input allowClear placeholder="输入账单编号" />
               </Form.Item>
             </Col>
             <Col span={12}>

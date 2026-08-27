@@ -342,9 +342,9 @@ export default function FinanceFeeLedgerPage() {
       render: (val) => val || '-',
     },
     {
-      title: '费用状态',
+      title: '财务进度',
       dataIndex: 'financialProgress',
-      width: 120,
+      width: 125,
       valueType: 'select',
       order: 85,
       valueEnum: Object.fromEntries(
@@ -357,6 +357,36 @@ export default function FinanceFeeLedgerPage() {
         const progress = row.financialProgress || 'UNBILLED';
         const item = financialProgressLabels[progress] || {
           text: progress,
+          color: 'default',
+        };
+        return (
+          <Tag color={item.color} style={{ margin: 0 }}>
+            {item.text}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: '费用状态',
+      dataIndex: 'status',
+      width: 90,
+      valueType: 'select',
+      order: 82,
+      valueEnum: {
+        DRAFT: { text: '草稿' },
+        CONFIRMED: { text: '已确认' },
+        BILLED: { text: '已开账' },
+        CANCELLED: { text: '已作废' },
+      },
+      render: (_, row) => {
+        const statusMap: Record<string, { text: string; color: string }> = {
+          DRAFT: { text: '草稿', color: 'default' },
+          CONFIRMED: { text: '已确认', color: 'blue' },
+          BILLED: { text: '已开账', color: 'green' },
+          CANCELLED: { text: '已作废', color: 'error' },
+        };
+        const item = statusMap[row.status || 'DRAFT'] || {
+          text: row.status || '-',
           color: 'default',
         };
         return (
@@ -620,7 +650,7 @@ export default function FinanceFeeLedgerPage() {
       return baseColumns;
     }
     const normalizeKey = (k: string) => {
-      if (k === 'status') return 'financialProgress';
+      if (k === 'financial_progress') return 'financialProgress';
       if (k === 'customerName') return 'customerId';
       return k;
     };
@@ -768,14 +798,16 @@ export default function FinanceFeeLedgerPage() {
               params.salesName ||
               params.invoiceNo ||
               undefined,
+            billNo:
+              advancedFilters.contractNo || params.billNo || undefined,
             businessType:
               advancedFilters.businessType || params.businessType || undefined,
             direction:
               advancedFilters.direction || params.direction || undefined,
-            status:
+            status: params.status || undefined,
+            financialProgress:
               advancedFilters.financialProgress ||
               params.financialProgress ||
-              params.status ||
               undefined,
             customerId:
               advancedFilters.customerId || params.customerId || undefined,

@@ -42,6 +42,7 @@ describe('AdvancedFilterDrawer', () => {
     expect(screen.getByText('费用时间')).not.toBeNull();
     expect(screen.getByText('费用属性')).not.toBeNull();
     expect(screen.getByText('结算单位')).not.toBeNull();
+    expect(screen.getByText('财务进度')).not.toBeNull();
     expect(screen.getByText('费用状态')).not.toBeNull();
     expect(screen.getByText('订单/主单号/加拼主单号')).not.toBeNull();
     expect(screen.getByText('ETD（预计离港时间）')).not.toBeNull();
