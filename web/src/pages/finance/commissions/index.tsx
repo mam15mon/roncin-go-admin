@@ -17,12 +17,12 @@ import {
   ProFormDateRangePicker,
   ProFormDependency,
   ProFormDigit,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { useAccess } from '@umijs/max';
 import {
   Alert,
@@ -1060,7 +1060,7 @@ export default function FinanceCommissionsPage() {
           }
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="verificationId"
           label="有效应收核销"
           rules={[{ required: true, message: '请选择有效应收核销单' }]}
@@ -1078,7 +1078,7 @@ export default function FinanceCommissionsPage() {
               }));
           }}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="ruleId"
           label="考核规则"
           rules={[{ required: true, message: '请选择考核规则' }]}
@@ -1096,7 +1096,7 @@ export default function FinanceCommissionsPage() {
         />
         <ProFormDependency name={['verificationId', 'ruleId']}>
           {({ verificationId, ruleId }) => (
-            <ProFormSelect
+            <ProFormSearchableSelect
               key={`${verificationId || ''}-${ruleId || ''}`}
               name="employeeId"
               label="符合规则的候选人员"
@@ -1469,7 +1469,7 @@ export default function FinanceCommissionsPage() {
           description="请选择产生差异的具体订单。增提或冲减会形成独立编号，并保留确认、发放/扣回和取消轨迹。冲减金额不能使有效提成小于零。"
           style={{ marginBottom: 16 }}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="orderId"
           label="归属订单"
           rules={[{ required: true, message: '请选择调整归属订单' }]}
@@ -1478,7 +1478,7 @@ export default function FinanceCommissionsPage() {
             value: line.orderId,
           }))}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="direction"
           label="调整方向"
           rules={[{ required: true }]}
@@ -1633,7 +1633,7 @@ export default function FinanceCommissionsPage() {
           label="规则名称"
           rules={[{ required: true, message: '请输入规则名称' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="personnelRole"
           label="适用客户人员角色"
           rules={[{ required: true, message: '请选择适用角色' }]}
@@ -1643,7 +1643,7 @@ export default function FinanceCommissionsPage() {
             { value: 'CUSTOMER_SERVICE', label: '客服人员' },
           ]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="calculationBasis"
           label="计提口径"
           rules={[{ required: true, message: '请选择计提口径' }]}

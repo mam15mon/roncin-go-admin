@@ -11,11 +11,11 @@ import {
 import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import { useAccess, useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
@@ -446,13 +446,15 @@ export default function UsersPanel() {
           />
         )}
         {pendingProvider && (
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="organizationId"
             label="所属组织"
             placeholder="请选择公司、部门或组"
             options={organizations.map((organization) => ({
               label: `${organization.name} (${organization.code})`,
               value: organization.id,
+              code: organization.code,
+              name: organization.name,
             }))}
             rules={[{ required: true, message: '请选择所属组织' }]}
             fieldProps={{
@@ -496,7 +498,7 @@ export default function UsersPanel() {
           placeholder="例如：user@roncin.com"
           rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="roleIds"
           label="分配角色"
           mode="multiple"
@@ -504,6 +506,8 @@ export default function UsersPanel() {
           options={(pendingProvider ? approvalRoles : roles).map((role) => ({
             label: `${role.name} (${role.code})`,
             value: role.id,
+            code: role.code,
+            name: role.name,
           }))}
           rules={
             pendingProvider

@@ -6,11 +6,11 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ModalForm,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
@@ -375,7 +375,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             label="回单编号 (POD No)"
             placeholder="请输入回单编号 (可选)"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="shippingDocumentId"
             label="关联提单"
             options={documentOptions}

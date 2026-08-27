@@ -17,7 +17,11 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { OrderListTemplate, type OrderListItem } from '@/components/ui';
+import {
+  OrderListTemplate,
+  ProFormSearchableSelect,
+  type OrderListItem,
+} from '@/components/ui';
 import {
   Alert,
   App,
@@ -1416,18 +1420,15 @@ export default function OrderListPage() {
           return true;
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="customerId"
           label="客户单位"
           rules={[{ required: true, message: '请选择客户' }]}
-          fieldProps={{
-            showSearch: true,
-            placeholder: '搜索客户',
-          }}
+          placeholder="搜索客户"
           request={async ({ keyWords }) => searchCustomers(keyWords)}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="tradeDirection"
           label="贸易方向"
@@ -1435,7 +1436,7 @@ export default function OrderListPage() {
           options={tradeDirectionOptions}
           placeholder="请选择贸易方向"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="tradeTerm"
           label="贸易条款"
@@ -1443,7 +1444,7 @@ export default function OrderListPage() {
           options={tradeTermOptions}
           placeholder="请选择贸易条款"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="paymentTerm"
           label="运费条款"
@@ -1451,7 +1452,7 @@ export default function OrderListPage() {
           options={paymentTermOptions}
           placeholder="请选择付款条款"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="shipmentType"
           label="装载方式"
@@ -1464,20 +1465,18 @@ export default function OrderListPage() {
         {config.category === 'sea' && (
           <SeaContainerPlanFields options={containerSpecOptions} />
         )}
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="originLocationId"
           label="起运港 / 地点"
           options={locationOptions}
-          fieldProps={{ showSearch: true }}
           placeholder="请选择起运地点"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="destinationLocationId"
           label="目的港 / 地点"
           options={locationOptions}
-          fieldProps={{ showSearch: true }}
           placeholder="请选择目的地点"
         />
         <ProFormText
@@ -1498,7 +1497,7 @@ export default function OrderListPage() {
           label="预计到达时间 (ETA)"
           fieldProps={{ style: { width: '100%' } }}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="serviceTypeIds"
           label="服务类型"
@@ -1506,7 +1505,7 @@ export default function OrderListPage() {
           options={serviceTypeOptions}
           placeholder="请选择服务类型"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           colProps={{ span: 12 }}
           name="cargoCategoryIds"
           label="货物类别"
@@ -1944,7 +1943,7 @@ export default function OrderListPage() {
           placeholder="请输入人员所属公司 UUID"
           rules={[{ required: true, message: '请输入人员所属公司 UUID' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="role"
           label="担当角色"
           rules={[{ required: true, message: '请选择角色' }]}
@@ -2075,14 +2074,14 @@ export default function OrderListPage() {
           placeholder="请输入箱号 (如 COSU1234567)"
           rules={[{ required: true, message: '请输入箱号' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="containerSpecId"
           label="集装箱规格"
           rules={[{ required: true, message: '请选择箱型' }]}
           options={containerSpecOptions}
           placeholder="请选择箱型"
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="shippingDocumentId"
           label="关联提单"
           options={containerDocumentOptions}
@@ -2484,14 +2483,14 @@ export default function OrderListPage() {
         />
         {config.category === 'sea' && (
           <>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="masterDocumentType"
               label="主单单证类型"
               options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
               placeholder="请选择主单单证类型"
               allowClear={false}
             />
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="masterReleaseMethod"
               label="主单签放方式"
               options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
@@ -2513,7 +2512,7 @@ export default function OrderListPage() {
           rules={[{ required: true, message: '请输入分单号' }]}
         />
         {config.category === 'sea' ? (
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="releaseType"
             label="分单签放方式"
             options={SEA_HOUSE_RELEASE_TYPE_OPTIONS}

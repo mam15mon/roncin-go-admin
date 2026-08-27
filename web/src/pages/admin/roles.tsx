@@ -15,11 +15,11 @@ import {
 import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   App,
   Button,
@@ -494,7 +494,7 @@ export default function RolesPanel() {
 
         <Row gutter={16}>
           <Col span={16}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="dataScope"
               label="数据访问范围"
               options={dataScopeOptions.map((opt) => ({

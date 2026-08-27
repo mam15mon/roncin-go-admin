@@ -2,11 +2,11 @@ import {
   ProFormDatePicker,
   ProFormDateTimePicker,
   ProFormDigit,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import React from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { OrderShippingDocumentFields } from '../order-plan-fields';
 import { paymentTermOptions, tradeTermOptions } from '../common';
 import type { TemplateProps, TemplateSection } from './types';
@@ -30,38 +30,29 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
           <OrderShippingDocumentFields transportMode="air" />
 
           {/* 第 1 行：核心商务信息（一行 5 个） */}
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 24, lg: 12, xl: 7 }}
             name="customerId"
             label="客户单位"
             rules={[{ required: true, message: '请选择客户单位' }]}
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索客户单位',
-            }}
+            placeholder="搜索客户单位"
             request={async ({ keyWords }) => searchCustomers(keyWords)}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
             name="carrierId"
             label="承运人 (航司)"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索承运人/航空公司',
-            }}
+            placeholder="搜索承运人/航空公司"
             request={async ({ keyWords }) => searchCarriers(keyWords)}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
             name="bookingAgentId"
             label="订舱代理"
-            fieldProps={{
-              showSearch: true,
-              placeholder: '搜索订舱代理',
-            }}
+            placeholder="搜索订舱代理"
             request={async ({ keyWords }) => searchBookingAgents(keyWords)}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
             name="tradeTerm"
             label="贸易条款"
@@ -69,7 +60,7 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             options={tradeTermOptions}
             placeholder="请选择贸易条款"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 4 }}
             name="paymentTerm"
             label="付款条款"
@@ -79,7 +70,7 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
           />
 
           {/* 第 2 行：服务与分类（一行 3 个） */}
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 10 }}
             name="serviceTypeIds"
             label="服务类型"
@@ -87,7 +78,7 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             options={serviceTypeOptions}
             placeholder="请选择服务类型 (多选)"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 10 }}
             name="cargoCategoryIds"
             label="货类"
@@ -110,20 +101,18 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
       content: (
         <>
           {/* 第 1 行：航线与航班（一行 3 个，各占 8 栅格） */}
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 8 }}
             name="originLocationId"
             label="起运机场 / 地点"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择起运机场或地点"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 8 }}
             name="destinationLocationId"
             label="目的机场 / 地点"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择目的机场或地点"
           />
           <ProFormText

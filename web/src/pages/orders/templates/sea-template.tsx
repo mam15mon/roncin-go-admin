@@ -4,14 +4,17 @@ import {
   ProFormDateTimePicker,
   ProFormDigit,
   ProFormRadio,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, Button, Col, Form, Row, Select, Space, Tag } from 'antd';
+import { Alert, Button, Col, Form, Row, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { TooltipInput } from '@/components/ui/tooltip-input';
+import {
+  ProFormSearchableSelect,
+  SearchableSelect,
+  TooltipInput,
+} from '@/components/ui';
 import {
   containerOwnershipOptions,
   loadingTermsOptions,
@@ -185,7 +188,7 @@ function SeaCargoMeasurementFields() {
           />
         </Col>
       )}
-      <ProFormSelect
+      <ProFormSearchableSelect
         colProps={{ xs: 24, sm: 12, lg: 8 }}
         name="paymentTerm"
         label="付款方式"
@@ -264,15 +267,13 @@ function PersonnelAssignmentFields({
               }),
             ]}
           >
-            <Select
+            <SearchableSelect
               allowClear
               disabled={disabled}
-              showSearch
-              optionFilterProp="label"
               options={userOptions}
               placeholder="请选择人员"
               style={{ width: '50%' }}
-              onChange={(userID) => {
+              onChange={(userID: any) => {
                 if (!userID) return;
                 const memberships = options.filter(
                   (option) => option.userId === userID,
@@ -304,15 +305,13 @@ function PersonnelAssignmentFields({
               }),
             ]}
           >
-            <Select
+            <SearchableSelect
               allowClear
               disabled={disabled}
-              showSearch
-              optionFilterProp="label"
               options={organizationOptions}
               placeholder="所属公司"
               style={{ width: '50%' }}
-              onChange={(organizationID) => {
+              onChange={(organizationID: any) => {
                 if (
                   selectedUserID &&
                   !options.some(
@@ -453,12 +452,11 @@ export function getSeaTemplateSections(
           <Col span={24}>
             <Row gutter={16} align="middle">
               <Col className="col-5">
-                <ProFormSelect
+                <ProFormSearchableSelect
                   name="customerId"
                   label="委托单位"
                   rules={[{ required: true, message: '请选择客户单位' }]}
                   fieldProps={{
-                    showSearch: true,
                     placeholder: '请选择',
                     onChange: (_, option) =>
                       setCustomerCode(
@@ -541,7 +539,7 @@ export function getSeaTemplateSections(
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="tradeTerm"
               label="贸易条款"
               rules={[{ required: true, message: '请选择贸易条款' }]}
@@ -550,24 +548,18 @@ export function getSeaTemplateSections(
             />
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="bookingAgentId"
               label="订舱代理"
-              fieldProps={{
-                showSearch: true,
-                placeholder: '请选择',
-              }}
+              placeholder="请选择"
               request={async ({ keyWords }) => searchBookingAgents(keyWords)}
             />
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="foreignAgentId"
               label="国外代理"
-              fieldProps={{
-                showSearch: true,
-                placeholder: '请选择',
-              }}
+              placeholder="请选择"
               request={async ({ keyWords }) => searchForeignAgents(keyWords)}
             />
           </Col>
@@ -581,24 +573,18 @@ export function getSeaTemplateSections(
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="carrierId"
               label="船公司"
-              fieldProps={{
-                showSearch: true,
-                placeholder: '请选择',
-              }}
+              placeholder="请选择"
               request={async ({ keyWords }) => searchCarriers(keyWords)}
             />
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="shippingAgentId"
               label="船代"
-              fieldProps={{
-                showSearch: true,
-                placeholder: '请选择',
-              }}
+              placeholder="请选择"
               request={async ({ keyWords }) => searchShippingAgents(keyWords)}
             />
           </Col>
@@ -638,9 +624,7 @@ export function getSeaTemplateSections(
                           }),
                         ]}
                       >
-                        <Select
-                          showSearch
-                          optionFilterProp="label"
+                        <SearchableSelect
                           popupMatchSelectWidth={false}
                           options={currencyOptions}
                           placeholder="币种"
@@ -692,9 +676,7 @@ export function getSeaTemplateSections(
                           }),
                         ]}
                       >
-                        <Select
-                          showSearch
-                          optionFilterProp="label"
+                        <SearchableSelect
                           popupMatchSelectWidth={false}
                           options={currencyOptions}
                           placeholder="币种"
@@ -736,7 +718,7 @@ export function getSeaTemplateSections(
             </Form.Item>
           </Col>
           <Col className="col-5">
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="loadingTerms"
               label="运输条款"
               options={loadingTermsOptions}
@@ -796,41 +778,37 @@ export function getSeaTemplateSections(
           <OrderShippingDocumentFields transportMode="sea" />
 
           {/* 第 1 行：航线 4 港口（一行 4 个，各占 6 栅格） */}
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="originLocationId"
             label="起运港"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择起运港或地点"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="destinationLocationId"
             label="目的港"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择目的港或地点"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="dischargeLocationId"
             label="卸货港"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择卸货港"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
             name="transitLocationId"
             label="中转港"
             options={locationOptions}
-            fieldProps={{ showSearch: true }}
             placeholder="请选择中转港"
           />
 
           {/* 第 2 行：箱货与船期（一行 4 个） */}
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
             name="containerOwnership"
             label="货主箱标记"

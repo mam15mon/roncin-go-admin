@@ -4,7 +4,8 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ModalForm, ProFormSelect, ProTable } from '@ant-design/pro-components';
+import { ModalForm, ProTable } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
@@ -280,7 +281,7 @@ const AbnormalCasePanel = forwardRef<
           return true;
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="abnormalCaseId"
           label="异常类别"
           rules={[{ required: true, message: '请选择异常类型' }]}

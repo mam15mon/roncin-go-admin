@@ -14,11 +14,11 @@ import type {
 import {
   ModalForm,
   ProFormDatePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
   Alert,
@@ -1228,7 +1228,7 @@ export default function OrderFeesPage() {
       >
         <Row gutter={16}>
           <Col span={12}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="feeSettingId"
               label="费用项目"
               rules={[{ required: true, message: '请选择费用项目' }]}
@@ -1236,9 +1236,10 @@ export default function OrderFeesPage() {
               options={feeSettings.map((item) => ({
                 label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
                 value: item.id ?? '',
+                code: item.feeCode,
+                name: item.nameZh,
               }))}
               fieldProps={{
-                showSearch: true,
                 dropdownRender: (menu) => (
                   <>
                     {menu}
@@ -1285,7 +1286,7 @@ export default function OrderFeesPage() {
             />
           </Col>
           <Col span={12}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="settlementPartyId"
               label="结算单位"
               rules={[{ required: true, message: '请选择结算单位' }]}
@@ -1293,9 +1294,10 @@ export default function OrderFeesPage() {
               options={settlementParties.map((item) => ({
                 label: item.name ?? '',
                 value: item.id ?? '',
+                code: item.code,
+                name: item.name,
               }))}
               fieldProps={{
-                showSearch: true,
                 dropdownRender: (menu) => (
                   <>
                     {menu}
@@ -1325,13 +1327,15 @@ export default function OrderFeesPage() {
             />
           </Col>
           <Col span={8}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="currency"
               label="币种"
               rules={[{ required: true, message: '请选择币种' }]}
               options={currencies.map((c) => ({
                 label: `${c.code} (${c.name})`,
                 value: c.code ?? '',
+                code: c.code,
+                name: c.name,
               }))}
             />
           </Col>
@@ -1368,7 +1372,7 @@ export default function OrderFeesPage() {
             />
           </Col>
           <Col span={12}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="billingUnitId"
               label="计费单位"
               rules={[{ required: true, message: '请选择计费单位' }]}
@@ -1376,6 +1380,8 @@ export default function OrderFeesPage() {
               options={billingUnits.map((u) => ({
                 label: `${u.name} (${u.code})`,
                 value: u.id ?? '',
+                code: u.code,
+                name: u.name,
               }))}
             />
           </Col>

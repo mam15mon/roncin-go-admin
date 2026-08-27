@@ -7,11 +7,11 @@ import type {
 import {
   ModalForm,
   ProFormDatePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { useAccess } from '@umijs/max';
 import {
   Alert,
@@ -706,7 +706,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             return true;
           }}
         >
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="direction"
             label="应收 / 应付"
@@ -717,16 +717,18 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               { label: '应付', value: PAYABLE },
             ]}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 24 }}
             name="feeSettingId"
             label="费用设置"
             rules={[{ required: true, message: '请选择费用设置' }]}
             disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            showSearch
             options={feeSettings.map((item) => ({
               label: `${item.feeCode} - ${item.nameZh}${item.aliasName ? `（${item.aliasName}）` : ''}`,
               value: item.id,
+              code: item.feeCode,
+              name: item.nameZh,
+              aliasName: item.aliasName,
             }))}
             placeholder="请选择适用于当前订单的费用"
           />
@@ -772,20 +774,21 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               disabled: true,
             }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="settlementPartyId"
             label="结算单位"
             rules={[{ required: true, message: '请选择结算单位' }]}
             disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            showSearch
             options={settlementParties.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
+              code: item.code,
+              name: item.name,
             }))}
             placeholder="搜索往来单位"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="billingUnitId"
             label="计费单位"
@@ -794,11 +797,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             options={billingUnits.map((item) => ({
               label: `${item.name} (${item.code})`,
               value: item.id,
+              code: item.code,
+              name: item.name,
             }))}
-            showSearch
             placeholder="请选择计费单位"
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             colProps={{ span: 12 }}
             name="currency"
             label="币种"
@@ -806,8 +810,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             options={currencies.map((item) => ({
               label: `${item.code} - ${item.name}`,
               value: item.code,
+              code: item.code,
+              name: item.name,
             }))}
-            showSearch
             placeholder="请选择币种"
           />
           <ProFormText

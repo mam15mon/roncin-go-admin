@@ -65,13 +65,13 @@ describe('MasterDataPage (主数据中心多Tab模板)', () => {
       ),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('海运港口 (UN/LOCODE)')).toBeInTheDocument();
-    expect(screen.getByText('空运机场 (IATA)')).toBeInTheDocument();
-    expect(screen.getByText('航空公司 (Airlines)')).toBeInTheDocument();
-    expect(screen.getByText('船公司 (Shipping Lines)')).toBeInTheDocument();
-    expect(screen.getByText('国家与地区 (Countries)')).toBeInTheDocument();
-    expect(screen.getByText('城市与区划 (Cities)')).toBeInTheDocument();
-    expect(screen.getByText('货币与币种 (Currencies)')).toBeInTheDocument();
+    expect(screen.getByText('海运港口')).toBeInTheDocument();
+    expect(screen.getByText('空运机场')).toBeInTheDocument();
+    expect(screen.getByText('航空公司')).toBeInTheDocument();
+    expect(screen.getByText('船公司')).toBeInTheDocument();
+    expect(screen.getByText('国家与地区')).toBeInTheDocument();
+    expect(screen.getByText('城市区划')).toBeInTheDocument();
+    expect(screen.getByText('货币币种')).toBeInTheDocument();
 
     // 默认展示 ports
     expect(screen.getByTestId('ports-panel')).toBeInTheDocument();

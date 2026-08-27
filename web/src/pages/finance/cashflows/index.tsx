@@ -7,18 +7,18 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormDatePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import {
+  FinanceLedgerTemplate,
+  ProFormSearchableSelect,
+  type FinanceLedgerMetricCard,
+} from '@/components/ui';
 import { useAccess } from '@umijs/max';
 import { App, Input, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import {
-  FinanceLedgerTemplate,
-  type FinanceLedgerMetricCard,
-} from '@/components/ui';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelCashflow,
@@ -411,7 +411,7 @@ export default function FinanceCashflowsPage() {
           }
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="direction"
           label="流水方向"
           rules={[{ required: true }]}
@@ -420,11 +420,10 @@ export default function FinanceCashflowsPage() {
             { label: '付款（流出）', value: 'PAYABLE' },
           ]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="settlementPartyId"
           label="往来结算单位"
           rules={[{ required: true }]}
-          showSearch
           request={async ({ keyWords }) => {
             const r = await partnerServiceListPartners({
               page: 1,
@@ -435,10 +434,12 @@ export default function FinanceCashflowsPage() {
             return (r.data || []).map((x) => ({
               value: x.id,
               label: `${x.legalName || x.code} (${x.code})`,
+              code: x.code,
+              name: x.legalName,
             }));
           }}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="currency"
           label="原币币种"
           rules={[{ required: true }]}
@@ -480,7 +481,7 @@ export default function FinanceCashflowsPage() {
           rules={[{ required: true }]}
         />
         <ProFormText name="counterpartyAccount" label="对方账户" />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="paymentMethod"
           label="支付方式"
           rules={[{ required: true }]}
