@@ -135,7 +135,7 @@ export default function FinanceFeeLedgerPage() {
 
   // 34 项核心业务字段预置列定义
   const baseColumns: ProColumns<API.FeeLedgerItem>[] = [
-    // --- 1. 基础与单据信息 ---
+    // 1. 序号与属性（固定左侧）
     {
       title: '序号',
       dataIndex: 'index',
@@ -159,6 +159,8 @@ export default function FinanceFeeLedgerPage() {
         </Tag>
       ),
     },
+
+    // 2. 主单号、委托单位、结算单位、业务类型
     {
       title: '主单号',
       dataIndex: 'masterNo',
@@ -166,59 +168,6 @@ export default function FinanceFeeLedgerPage() {
       search: false,
       render: (val) => val || '-',
     },
-    {
-      title: '分单号',
-      dataIndex: 'houseNo',
-      width: 130,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '订单编号',
-      dataIndex: 'orderNo',
-      width: 160,
-      copyable: true,
-      render: (_, row) => (
-        <a
-          style={{ fontWeight: 500 }}
-          onClick={() => history.push(`/finance/fees/detail/${row.orderId}`)}
-        >
-          {row.orderNo}
-        </a>
-      ),
-    },
-    {
-      title: '账单编号',
-      dataIndex: 'billNo',
-      width: 155,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: 'SO号',
-      dataIndex: 'soNo',
-      width: 130,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '发票号',
-      dataIndex: 'invoiceNo',
-      width: 130,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '业务类型',
-      dataIndex: 'businessType',
-      width: 95,
-      valueType: 'select',
-      valueEnum: Object.fromEntries(
-        Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
-      ),
-    },
-
-    // --- 2. 主体与往来单位 ---
     {
       title: '委托单位',
       dataIndex: 'customerId',
@@ -252,31 +201,16 @@ export default function FinanceFeeLedgerPage() {
       render: (val) => val || '-',
     },
     {
-      title: '收货人简称',
-      dataIndex: 'consignee',
-      width: 110,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '发货人简称',
-      dataIndex: 'shipper',
-      width: 110,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '通知人简称',
-      dataIndex: 'notifyParty',
-      width: 110,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
+      title: '业务类型',
+      dataIndex: 'businessType',
+      width: 95,
+      valueType: 'select',
+      valueEnum: Object.fromEntries(
+        Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
+      ),
     },
 
-    // --- 3. 费用与财务金额 ---
+    // 3. 费用名称、币种、金额、发票号、费用状态、汇率
     {
       title: '费用名称',
       dataIndex: 'feeName',
@@ -313,6 +247,37 @@ export default function FinanceFeeLedgerPage() {
       ),
     },
     {
+      title: '发票号',
+      dataIndex: 'invoiceNo',
+      width: 130,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '费用状态',
+      dataIndex: 'financialProgress',
+      width: 120,
+      valueType: 'select',
+      valueEnum: Object.fromEntries(
+        Object.entries(financialProgressLabels).map(([key, value]) => [
+          key,
+          { text: value.text },
+        ]),
+      ),
+      render: (_, row) => {
+        const progress = row.financialProgress || 'UNBILLED';
+        const item = financialProgressLabels[progress] || {
+          text: progress,
+          color: 'default',
+        };
+        return (
+          <Tag color={item.color} style={{ margin: 0 }}>
+            {item.text}
+          </Tag>
+        );
+      },
+    },
+    {
       title: '汇率',
       dataIndex: 'exchangeRate',
       width: 80,
@@ -324,25 +289,42 @@ export default function FinanceFeeLedgerPage() {
         </span>
       ),
     },
+
+    // 4. 操作人员、业务人员、客服人员、关联人员
     {
-      title: '折本币总价',
-      dataIndex: 'baseCurrencyAmount',
-      width: 120,
-      align: 'right',
+      title: '操作人员',
+      dataIndex: 'operatorName',
+      width: 100,
+      ellipsis: true,
       search: false,
-      render: (_, row) => (
-        <span
-          style={{
-            fontWeight: 600,
-            fontFamily: 'monospace',
-            whiteSpace: 'nowrap',
-            color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
-          }}
-        >
-          {formatMoney(row.baseCurrencyAmount)}
-        </span>
-      ),
+      render: (val) => val || '-',
     },
+    {
+      title: '业务人员',
+      dataIndex: 'salesName',
+      width: 100,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '客服人员',
+      dataIndex: 'csName',
+      width: 100,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '关联人员',
+      dataIndex: 'relatedPersonnel',
+      width: 100,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+
+    // 5. 税率(%)、税金、不含税总价
     {
       title: '税率(%)',
       dataIndex: 'taxRate',
@@ -379,29 +361,107 @@ export default function FinanceFeeLedgerPage() {
         </span>
       ),
     },
+
+    // 6. 分单号、账单编号、订单编号、费用时间、SO号、折本币总价、关联信息
     {
-      title: '费用状态',
-      dataIndex: 'financialProgress',
-      width: 120,
-      valueType: 'select',
-      valueEnum: Object.fromEntries(
-        Object.entries(financialProgressLabels).map(([key, value]) => [
-          key,
-          { text: value.text },
-        ]),
+      title: '分单号',
+      dataIndex: 'houseNo',
+      width: 130,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '账单编号',
+      dataIndex: 'billNo',
+      width: 155,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '订单编号',
+      dataIndex: 'orderNo',
+      width: 160,
+      copyable: true,
+      render: (_, row) => (
+        <a
+          style={{ fontWeight: 500 }}
+          onClick={() => history.push(`/finance/fees/detail/${row.orderId}`)}
+        >
+          {row.orderNo}
+        </a>
       ),
-      render: (_, row) => {
-        const progress = row.financialProgress || 'UNBILLED';
-        const item = financialProgressLabels[progress] || {
-          text: progress,
-          color: 'default',
-        };
-        return (
-          <Tag color={item.color} style={{ margin: 0 }}>
-            {item.text}
-          </Tag>
-        );
+    },
+    {
+      title: '费用时间',
+      dataIndex: 'expenseDate',
+      width: 110,
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => ({
+          expenseDateFrom: value[0],
+          expenseDateTo: value[1],
+        }),
       },
+    },
+    {
+      title: 'SO号',
+      dataIndex: 'soNo',
+      width: 130,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '折本币总价',
+      dataIndex: 'baseCurrencyAmount',
+      width: 120,
+      align: 'right',
+      search: false,
+      render: (_, row) => (
+        <span
+          style={{
+            fontWeight: 600,
+            fontFamily: 'monospace',
+            whiteSpace: 'nowrap',
+            color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
+          }}
+        >
+          {formatMoney(row.baseCurrencyAmount)}
+        </span>
+      ),
+    },
+    {
+      title: '关联信息',
+      dataIndex: 'relatedInfo',
+      width: 120,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+
+    // 7. 收货人简称、发货人简称、通知人简称、已核销金额、未核销金额
+    {
+      title: '收货人简称',
+      dataIndex: 'consignee',
+      width: 110,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '发货人简称',
+      dataIndex: 'shipper',
+      width: 110,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
+    },
+    {
+      title: '通知人简称',
+      dataIndex: 'notifyParty',
+      width: 110,
+      ellipsis: true,
+      search: false,
+      render: (val) => val || '-',
     },
     {
       title: '已核销金额',
@@ -419,52 +479,8 @@ export default function FinanceFeeLedgerPage() {
       search: false,
       render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
     },
-    {
-      title: '费用时间',
-      dataIndex: 'expenseDate',
-      width: 110,
-      valueType: 'dateRange',
-      search: {
-        transform: (value) => ({
-          expenseDateFrom: value[0],
-          expenseDateTo: value[1],
-        }),
-      },
-    },
 
-    // --- 4. 人员与货物属性 ---
-    {
-      title: '操作人员',
-      dataIndex: 'operatorName',
-      width: 100,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '业务人员',
-      dataIndex: 'salesName',
-      width: 100,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '客服人员',
-      dataIndex: 'csName',
-      width: 100,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
-    {
-      title: '关联人员',
-      dataIndex: 'relatedPersonnel',
-      width: 100,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
-    },
+    // 8. 实际总毛重(KGS)、实际总体积、备注
     {
       title: '实际总毛重(KGS)',
       dataIndex: 'grossWeightKg',
@@ -478,14 +494,6 @@ export default function FinanceFeeLedgerPage() {
       width: 100,
       align: 'right',
       search: false,
-    },
-    {
-      title: '关联信息',
-      dataIndex: 'relatedInfo',
-      width: 120,
-      ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
     },
     {
       title: '备注',
