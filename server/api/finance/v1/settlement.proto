@@ -154,9 +154,7 @@ message FeeLedgerItem {
   string customer_name = 28;
   string financial_progress = 29;
   optional string bill_no = 30;
-  string invoiced_amount = 31;
-  string verified_amount = 32;
-  string unverified_amount = 33;
+  reserved 31 to 33;
 }
 
 message FeeLedgerSummary {

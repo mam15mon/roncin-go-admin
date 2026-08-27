@@ -49,9 +49,6 @@ type FeeLedgerItem struct {
 	CustomerName      string
 	FinancialProgress FeeLedgerFinancialProgress
 	BillNo            string
-	InvoicedAmount    decimal.Decimal
-	VerifiedAmount    decimal.Decimal
-	UnverifiedAmount  decimal.Decimal
 }
 
 func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount decimal.Decimal) FeeLedgerFinancialProgress {

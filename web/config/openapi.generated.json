@@ -9510,15 +9510,6 @@
           },
           "billNo": {
             "type": "string"
-          },
-          "invoicedAmount": {
-            "type": "string"
-          },
-          "verifiedAmount": {
-            "type": "string"
-          },
-          "unverifiedAmount": {
-            "type": "string"
           }
         }
       },

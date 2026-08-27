@@ -5918,12 +5918,6 @@ components:
                     type: string
                 billNo:
                     type: string
-                invoicedAmount:
-                    type: string
-                verifiedAmount:
-                    type: string
-                unverifiedAmount:
-                    type: string
         finance.v1.FeeLedgerPreference:
             type: object
             properties:

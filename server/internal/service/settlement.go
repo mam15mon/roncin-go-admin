@@ -77,7 +77,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
 			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
-			FinancialProgress: string(item.FinancialProgress), InvoicedAmount: item.InvoicedAmount.StringFixed(8), VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8),
+			FinancialProgress: string(item.FinancialProgress),
 		})
 		if item.BillNo != "" {
 			data[len(data)-1].BillNo = &item.BillNo

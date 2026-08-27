@@ -141,9 +141,6 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			CustomerID:        customer.ID,
 			CustomerName:      customer.LegalName,
 			FinancialProgress: biz.FeeLedgerUnbilled,
-			InvoicedAmount:    decimal.Zero,
-			VerifiedAmount:    decimal.Zero,
-			UnverifiedAmount:  decimal.Zero,
 		}
 		billLines, edgeErr := item.Edges.FinanceBillLinesOrErr()
 		if edgeErr != nil {
@@ -162,30 +159,20 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			if linkErr != nil {
 				return nil, linkErr
 			}
-			for _, link := range invoiceLinks {
-				amount, amountErr := decimal.NewFromString(link.Amount)
-				if amountErr != nil {
-					return nil, amountErr
-				}
-				ledgerItem.InvoicedAmount = ledgerItem.InvoicedAmount.Add(amount)
-			}
 			allocations, allocationErr := bill.Edges.VerificationAllocationsOrErr()
 			if allocationErr != nil {
 				return nil, allocationErr
 			}
+			verifiedAmount := decimal.Zero
 			for _, allocation := range allocations {
 				amount, amountErr := decimal.NewFromString(allocation.Amount)
 				if amountErr != nil {
 					return nil, amountErr
 				}
-				ledgerItem.VerifiedAmount = ledgerItem.VerifiedAmount.Add(amount)
+				verifiedAmount = verifiedAmount.Add(amount)
 			}
 			ledgerItem.BillNo = bill.BillNo
-			ledgerItem.UnverifiedAmount = billAmount.Sub(ledgerItem.VerifiedAmount)
-			if ledgerItem.UnverifiedAmount.IsNegative() {
-				ledgerItem.UnverifiedAmount = decimal.Zero
-			}
-			ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, ledgerItem.VerifiedAmount)
+			ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, verifiedAmount)
 		}
 		result.Items = append(result.Items, ledgerItem)
 	}

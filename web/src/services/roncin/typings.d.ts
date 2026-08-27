@@ -1259,9 +1259,6 @@ declare namespace API {
     customerName?: string;
     financialProgress?: string;
     billNo?: string;
-    invoicedAmount?: string;
-    verifiedAmount?: string;
-    unverifiedAmount?: string;
   };
 
   type FeeLedgerPreference = {

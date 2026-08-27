@@ -179,9 +179,6 @@ type FeeLedgerItem struct {
 	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	FinancialProgress   string                 `protobuf:"bytes,29,opt,name=financial_progress,json=financialProgress,proto3" json:"financial_progress,omitempty"`
 	BillNo              *string                `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
-	InvoicedAmount      string                 `protobuf:"bytes,31,opt,name=invoiced_amount,json=invoicedAmount,proto3" json:"invoiced_amount,omitempty"`
-	VerifiedAmount      string                 `protobuf:"bytes,32,opt,name=verified_amount,json=verifiedAmount,proto3" json:"verified_amount,omitempty"`
-	UnverifiedAmount    string                 `protobuf:"bytes,33,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -422,27 +419,6 @@ func (x *FeeLedgerItem) GetFinancialProgress() string {
 func (x *FeeLedgerItem) GetBillNo() string {
 	if x != nil && x.BillNo != nil {
 		return *x.BillNo
-	}
-	return ""
-}
-
-func (x *FeeLedgerItem) GetInvoicedAmount() string {
-	if x != nil {
-		return x.InvoicedAmount
-	}
-	return ""
-}
-
-func (x *FeeLedgerItem) GetVerifiedAmount() string {
-	if x != nil {
-		return x.VerifiedAmount
-	}
-	return ""
-}
-
-func (x *FeeLedgerItem) GetUnverifiedAmount() string {
-	if x != nil {
-		return x.UnverifiedAmount
 	}
 	return ""
 }
@@ -9069,7 +9045,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\t_currencyB\x14\n" +
 	"\x12_expense_date_fromB\x12\n" +
 	"\x10_expense_date_toB\x0e\n" +
-	"\f_customer_id\"\x89\t\n" +
+	"\f_customer_id\"\x90\b\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -9107,14 +9083,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"customerId\x12#\n" +
 	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12-\n" +
 	"\x12financial_progress\x18\x1d \x01(\tR\x11financialProgress\x12\x1c\n" +
-	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12'\n" +
-	"\x0finvoiced_amount\x18\x1f \x01(\tR\x0einvoicedAmount\x12'\n" +
-	"\x0fverified_amount\x18  \x01(\tR\x0everifiedAmount\x12+\n" +
-	"\x11unverified_amount\x18! \x01(\tR\x10unverifiedAmountB\a\n" +
+	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01B\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +
-	"\b_bill_no\"\xee\x01\n" +
+	"\b_bill_noJ\x04\b\x1f\x10\"\"\xee\x01\n" +
 	"\x10FeeLedgerSummary\x12!\n" +
 	"\factive_count\x18\x01 \x01(\x03R\vactiveCount\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +
