@@ -50,7 +50,7 @@ export default function FinanceVerificationsPage() {
           { id },
           { id, expectedVersion: v, reason },
         );
-        message.success('反核销成功，资金和账单余额已释放');
+        message.success('反核销成功；相关未支付提成已自动取消，资金与账单余额已释放');
         reload();
       },
     });

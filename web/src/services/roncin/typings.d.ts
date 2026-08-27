@@ -1595,6 +1595,8 @@ declare namespace API {
     cancellationReason?: string;
     createdAt?: string;
     updatedAt?: string;
+    sourceType?: string;
+    sourceVerificationId?: string;
   };
 
   type FinanceCommissionLine = {

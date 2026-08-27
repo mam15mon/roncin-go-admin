@@ -10938,6 +10938,12 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "sourceVerificationId": {
+            "type": "string"
           }
         }
       },
