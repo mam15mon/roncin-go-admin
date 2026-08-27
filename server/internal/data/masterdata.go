@@ -48,6 +48,25 @@ func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID u
 	return nil
 }
 
+func CreateDefaultCountries(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID) error {
+	for _, item := range biz.DefaultCountryOptions() {
+		if _, err := tx.MasterDataItem.Create().
+			SetOrganizationID(organizationID).
+			SetKind(masterdataent.Kind(item.Kind)).
+			SetCode(item.Code).
+			SetName(item.Name).
+			SetNillableNameEn(item.NameEN).
+			SetSource(item.Source).
+			SetSortOrder(item.SortOrder).
+			SetEnabled(true).
+			SetAttributes(masterDataAttributesToEnt(item.Attributes)).
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建默认国家 %s: %w", item.Code, err)
+		}
+	}
+	return nil
+}
+
 func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.MasterDataListOptions) (*biz.MasterDataList, error) {
 	headquartersID, err := r.headquartersOrganizationID(ctx, organizationID)
 	if err != nil {

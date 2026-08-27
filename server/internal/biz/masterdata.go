@@ -122,6 +122,109 @@ func DefaultOrderOptions() []MasterDataItem {
 	return items
 }
 
+// DefaultCountryOptions 返回系统预置的全球常用国家与地区主数据字典（覆盖全球 50+ 主要贸易伙伴国）。
+func DefaultCountryOptions() []MasterDataItem {
+	rawCountries := []struct {
+		code         string
+		name         string
+		nameEn       string
+		continent    string
+		currencyCode string
+	}{
+		// 亚洲 (Asia)
+		{"CN", "中国", "China", "Asia", "CNY"},
+		{"HK", "中国香港", "Hong Kong", "Asia", "HKD"},
+		{"MO", "中国澳门", "Macao", "Asia", "MOP"},
+		{"TW", "中国台湾", "Taiwan", "Asia", "TWD"},
+		{"JP", "日本", "Japan", "Asia", "JPY"},
+		{"KR", "韩国", "South Korea", "Asia", "KRW"},
+		{"SG", "新加坡", "Singapore", "Asia", "SGD"},
+		{"MY", "马来西亚", "Malaysia", "Asia", "MYR"},
+		{"TH", "泰国", "Thailand", "Asia", "THB"},
+		{"VN", "越南", "Vietnam", "Asia", "VND"},
+		{"ID", "印度尼西亚", "Indonesia", "Asia", "IDR"},
+		{"PH", "菲律宾", "Philippines", "Asia", "PHP"},
+		{"IN", "印度", "India", "Asia", "INR"},
+		{"PK", "巴基斯坦", "Pakistan", "Asia", "PKR"},
+		{"BD", "孟加拉国", "Bangladesh", "Asia", "BDT"},
+		{"AE", "阿联酋", "United Arab Emirates", "Asia", "AED"},
+		{"SA", "沙特阿拉伯", "Saudi Arabia", "Asia", "SAR"},
+		{"QA", "卡塔尔", "Qatar", "Asia", "QAR"},
+		{"TR", "土耳其", "Turkey", "Asia", "TRY"},
+		{"IL", "以色列", "Israel", "Asia", "ILS"},
+		{"KZ", "哈萨克斯坦", "Kazakhstan", "Asia", "KZT"},
+		{"UZ", "乌兹别克斯坦", "Uzbekistan", "Asia", "UZS"},
+
+		// 欧洲 (Europe)
+		{"DE", "德国", "Germany", "Europe", "EUR"},
+		{"GB", "英国", "United Kingdom", "Europe", "GBP"},
+		{"FR", "法国", "France", "Europe", "EUR"},
+		{"IT", "意大利", "Italy", "Europe", "EUR"},
+		{"NL", "荷兰", "Netherlands", "Europe", "EUR"},
+		{"BE", "比利时", "Belgium", "Europe", "EUR"},
+		{"ES", "西班牙", "Spain", "Europe", "EUR"},
+		{"PL", "波兰", "Poland", "Europe", "PLN"},
+		{"RU", "俄罗斯", "Russia", "Europe", "RUB"},
+		{"CH", "瑞士", "Switzerland", "Europe", "CHF"},
+		{"SE", "瑞典", "Sweden", "Europe", "SEK"},
+		{"NO", "挪威", "Norway", "Europe", "NOK"},
+		{"DK", "丹麦", "Denmark", "Europe", "DKK"},
+		{"FI", "芬兰", "Finland", "Europe", "EUR"},
+		{"AT", "奥地利", "Austria", "Europe", "EUR"},
+		{"CZ", "捷克", "Czech Republic", "Europe", "CZK"},
+		{"HU", "匈牙利", "Hungary", "Europe", "HUF"},
+		{"GR", "希腊", "Greece", "Europe", "EUR"},
+		{"PT", "葡萄牙", "Portugal", "Europe", "EUR"},
+		{"IE", "爱尔兰", "Ireland", "Europe", "EUR"},
+
+		// 北美洲 (North America)
+		{"US", "美国", "United States", "North America", "USD"},
+		{"CA", "加拿大", "Canada", "North America", "CAD"},
+		{"MX", "墨西哥", "Mexico", "North America", "MXN"},
+		{"PA", "巴拿马", "Panama", "North America", "USD"},
+
+		// 南美洲 (South America)
+		{"BR", "巴西", "Brazil", "South America", "BRL"},
+		{"CL", "智利", "Chile", "South America", "CLP"},
+		{"AR", "阿根廷", "Argentina", "South America", "ARS"},
+		{"PE", "秘鲁", "Peru", "South America", "PEN"},
+		{"CO", "哥伦比亚", "Colombia", "South America", "COP"},
+
+		// 大洋洲 (Oceania)
+		{"AU", "澳大利亚", "Australia", "Oceania", "AUD"},
+		{"NZ", "新西兰", "New Zealand", "Oceania", "NZD"},
+
+		// 非洲 (Africa)
+		{"EG", "埃及", "Egypt", "Africa", "EGP"},
+		{"ZA", "南非", "South Africa", "Africa", "ZAR"},
+		{"NG", "尼日利亚", "Nigeria", "Africa", "NGN"},
+		{"KE", "肯尼亚", "Kenya", "Africa", "KES"},
+		{"MA", "摩洛哥", "Morocco", "Africa", "MAD"},
+		{"GH", "加纳", "Ghana", "Africa", "GHS"},
+	}
+
+	items := make([]MasterDataItem, 0, len(rawCountries))
+	for index, item := range rawCountries {
+		nameEn := item.nameEn
+		continent := item.continent
+		currencyCode := item.currencyCode
+		items = append(items, MasterDataItem{
+			Kind:      MasterDataKindCountry,
+			Code:      item.code,
+			Name:      item.name,
+			NameEN:    &nameEn,
+			Source:    "system",
+			SortOrder: (index + 1) * 10,
+			Enabled:   true,
+			Attributes: MasterDataAttributes{
+				Continent:    &continent,
+				CurrencyCode: &currencyCode,
+			},
+		})
+	}
+	return items
+}
+
 type MasterDataAttributes struct {
 	Continent    *string
 	CurrencyCode *string

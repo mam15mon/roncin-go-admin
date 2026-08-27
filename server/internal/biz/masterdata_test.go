@@ -87,6 +87,33 @@ func TestDefaultOrderOptions(t *testing.T) {
 	}
 }
 
+func TestDefaultCountryOptions(t *testing.T) {
+	countries := DefaultCountryOptions()
+	if len(countries) < 50 {
+		t.Fatalf("DefaultCountryOptions() count = %d, expected >= 50", len(countries))
+	}
+
+	seen := make(map[string]struct{}, len(countries))
+	for _, c := range countries {
+		if c.Kind != MasterDataKindCountry {
+			t.Fatalf("unexpected kind %q", c.Kind)
+		}
+		if _, exists := seen[c.Code]; exists {
+			t.Fatalf("duplicate country code %q", c.Code)
+		}
+		seen[c.Code] = struct{}{}
+		if c.Code == "" || c.Name == "" || c.NameEN == nil || *c.NameEN == "" || !c.Enabled {
+			t.Fatalf("invalid country item: %#v", c)
+		}
+		if c.Attributes.Continent == nil || *c.Attributes.Continent == "" {
+			t.Fatalf("missing continent for country %q", c.Code)
+		}
+		if c.Attributes.CurrencyCode == nil || *c.Attributes.CurrencyCode == "" {
+			t.Fatalf("missing currencyCode for country %q", c.Code)
+		}
+	}
+}
+
 func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 	repo := &masterDataRepoStub{}
 	audit := &auditRepoStub{}
