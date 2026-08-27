@@ -236,16 +236,23 @@ export function FinanceLedgerTemplate<
             </Tooltip>
           ),
           onOpenColumnConfig && (
-            <Button
-              key="col-config"
-              icon={<SettingOutlined />}
-              onClick={onOpenColumnConfig}
-            >
-              表头排序与设置
-            </Button>
+            <Tooltip key="col-config" title="列设置与表头排序">
+              <Button
+                type="text"
+                icon={<SettingOutlined style={{ fontSize: 16, color: '#595959' }} />}
+                onClick={onOpenColumnConfig}
+                style={{ padding: '4px 6px' }}
+              />
+            </Tooltip>
           ),
           ...extraToolBarActions,
         ].filter(Boolean)}
+        options={{
+          fullScreen: true,
+          reload: true,
+          density: true,
+          setting: false,
+        }}
         rowSelection={{
           selectedRowKeys,
           onChange: (keys, rows) => {
