@@ -194,11 +194,27 @@ export default function FinanceFeeLedgerPage() {
     },
     {
       title: '结算单位',
-      dataIndex: 'settlementPartyName',
+      dataIndex: 'settlementPartyId',
       width: 180,
       ellipsis: true,
-      search: false,
-      render: (val) => val || '-',
+      valueType: 'select',
+      request: async ({ keyWords }) => {
+        const response = await partnerServiceListPartners({
+          page: 1,
+          pageSize: 200,
+          keyword: keyWords,
+        });
+        return (response.data || []).map((item) => ({
+          label: item.legalName || item.code || item.id,
+          value: item.id,
+        }));
+      },
+      fieldProps: {
+        showSearch: true,
+        filterOption: false,
+        placeholder: '输入名称/全拼/首字母搜索',
+      },
+      render: (_, row) => row.settlementPartyName || '-',
     },
     {
       title: '业务类型',
@@ -224,7 +240,13 @@ export default function FinanceFeeLedgerPage() {
       dataIndex: 'currency',
       width: 65,
       align: 'center',
-      search: false,
+      valueType: 'select',
+      valueEnum: {
+        CNY: { text: 'CNY' },
+        USD: { text: 'USD' },
+        EUR: { text: 'EUR' },
+        HKD: { text: 'HKD' },
+      },
       render: (val) => <Tag style={{ margin: 0 }}>{val}</Tag>,
     },
     {
@@ -621,11 +643,13 @@ export default function FinanceFeeLedgerPage() {
           const response = await settlementServiceListFeeLedger({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: params.keyword,
+            keyword: params.keyword || params.orderNo || undefined,
             businessType: params.businessType,
             direction: params.direction,
-            status: params.status,
+            status: params.financialProgress || params.status || undefined,
             customerId: params.customerId,
+            settlementPartyId: params.settlementPartyId,
+            currency: params.currency,
             expenseDateFrom: params.expenseDateFrom,
             expenseDateTo: params.expenseDateTo,
           });

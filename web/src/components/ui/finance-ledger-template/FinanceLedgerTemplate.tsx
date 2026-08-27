@@ -395,6 +395,12 @@ export function FinanceLedgerTemplate<
         onSizeChange={(size) => setDensitySize(size || 'small')}
         scroll={{ x: scrollX }}
         pagination={{ defaultPageSize: 40, showSizeChanger: true }}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: false,
+          searchText: '查询',
+          resetText: '重置',
+        }}
         onRow={(record) => {
           const style: React.CSSProperties = {};
           if (onRowClick) {
