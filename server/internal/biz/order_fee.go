@@ -134,6 +134,8 @@ type OrderFeeOptions struct {
 	FinanceLocked            bool
 	FinanceLockReason        string
 	FinanceLockCommissionNos []string
+	CustomerID               uuid.UUID
+	CustomerName             string
 }
 
 type OrderFeeExchangeRateContext struct {

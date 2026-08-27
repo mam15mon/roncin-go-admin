@@ -41,19 +41,36 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   );
   expect(acceptanceOrder?.id).toBeTruthy();
   expect(acceptanceOrder?.customerId).toBeTruthy();
+  const customer = await page.evaluate(async (customerId) => {
+    const response = await fetch(`/api/v1/partners/${customerId}`);
+    return response.json();
+  }, acceptanceOrder.customerId);
   await page.goto(`/orders/sea-export/${acceptanceOrder.id}/fees`);
   await expect(
     page.getByText('费用录入', { exact: true }).first(),
   ).toBeVisible();
   await expect(page.getByText('已进账单').first()).toBeVisible();
   await expect(
+    page.getByText(customer.data.legalName, { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
     page.getByRole('button', { name: /生成账单（0）/ }).first(),
   ).toBeDisabled();
 
-  const customer = await page.evaluate(async (customerId) => {
-    const response = await fetch(`/api/v1/partners/${customerId}`);
-    return response.json();
-  }, acceptanceOrder.customerId);
+  await page.goto('/finance/fees');
+  await expect(
+    page.getByTestId('pro-table').getByText('集运费用明细台账', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('columnheader', { name: '委托单位', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('columnheader', { name: '结算单位', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(customer.data.legalName, { exact: true }).first(),
+  ).toBeVisible();
+
   await page.goto('/partners/customers');
   const customerRow = page
     .locator('.ant-table-tbody > tr.ant-table-row')

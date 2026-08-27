@@ -23,15 +23,18 @@ type FeeLedgerFilter struct {
 	Direction         OrderFeeDirection
 	Status            OrderFeeStatus
 	SettlementPartyID *uuid.UUID
+	CustomerID        *uuid.UUID
 	Currency          string
 	ExpenseDateFrom   string
 	ExpenseDateTo     string
 }
 
 type FeeLedgerItem struct {
-	Fee      *OrderFee
-	OrderNo  string
-	Business string
+	Fee          *OrderFee
+	OrderNo      string
+	Business     string
+	CustomerID   uuid.UUID
+	CustomerName string
 }
 
 type FeeLedgerSummary struct {
@@ -65,6 +68,9 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationID u
 	filter.BusinessType = strings.ToUpper(strings.TrimSpace(filter.BusinessType))
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
 	if organizationID == uuid.Nil || filter.Page < 1 || filter.PageSize < 1 || filter.PageSize > 200 || len([]rune(filter.Keyword)) > 100 {
+		return nil, ErrFinanceLedgerInvalidArgument
+	}
+	if filter.CustomerID != nil && *filter.CustomerID == uuid.Nil {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.BusinessType != "" && filter.BusinessType != "SE" && filter.BusinessType != "SI" && filter.BusinessType != "AE" && filter.BusinessType != "AI" && filter.BusinessType != "LAND" && filter.BusinessType != "RAIL" {

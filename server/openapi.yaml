@@ -1506,6 +1506,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: customerId
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -5849,6 +5853,10 @@ components:
                     type: string
                 taxRate:
                     type: string
+                customerId:
+                    type: string
+                customerName:
+                    type: string
         finance.v1.FeeLedgerSummary:
             type: object
             properties:
@@ -8997,6 +9005,10 @@ components:
                     type: array
                     items:
                         type: string
+                customerId:
+                    type: string
+                customerName:
+                    type: string
         order.v1.ListFeesResponse:
             type: object
             properties:

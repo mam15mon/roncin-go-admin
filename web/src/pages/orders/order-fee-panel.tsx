@@ -149,6 +149,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
       string[]
     >([]);
+    const [customerName, setCustomerName] = useState('');
 
     useImperativeHandle(ref, () => ({
       open: (record) => {
@@ -163,6 +164,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFinanceLocked(Boolean(response.financeLocked));
             setFinanceLockReason(response.financeLockReason || '');
             setFinanceLockCommissionNos(response.financeLockCommissionNos || []);
+            setCustomerName(response.customerName || '');
           })
           .catch((error: Error) =>
             message.error(error.message || '费用录入选项加载失败'),
@@ -523,10 +525,19 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFinanceLocked(false);
             setFinanceLockReason('');
             setFinanceLockCommissionNos([]);
+            setCustomerName('');
           }}
           width={1280}
           destroyOnHidden
         >
+          {customerName && (
+            <Alert
+              type="info"
+              showIcon
+              message={`委托单位：${customerName}`}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           {financeLocked && (
             <Alert
               type="warning"

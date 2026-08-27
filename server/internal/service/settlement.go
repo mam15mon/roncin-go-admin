@@ -52,6 +52,13 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		}
 		filter.SettlementPartyID = &id
 	}
+	if request.CustomerId != nil && strings.TrimSpace(*request.CustomerId) != "" {
+		id, err := uuid.Parse(strings.TrimSpace(*request.CustomerId))
+		if err != nil {
+			return nil, biz.ErrFinanceLedgerInvalidArgument
+		}
+		filter.CustomerID = &id
+	}
 	result, err := s.usecase.ListFeeLedger(ctx, principal.Organization.ID, filter)
 	if err != nil {
 		return nil, err
@@ -60,7 +67,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	for _, item := range result.Items {
 		fee := item.Fee
 		data = append(data, &v1.FeeLedgerItem{
-			Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business,
+			Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName,
 			Direction: string(fee.Direction), Status: string(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName,
 			SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 			Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8),

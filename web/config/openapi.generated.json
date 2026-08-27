@@ -2502,6 +2502,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9399,6 +9406,12 @@
           },
           "taxRate": {
             "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
           }
         }
       },
@@ -14044,6 +14057,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
           }
         }
       },

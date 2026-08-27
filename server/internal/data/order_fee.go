@@ -127,6 +127,17 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	if err != nil {
 		return nil, err
 	}
+	businessOrder, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).WithCustomer().Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, biz.ErrOrderFeeNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	customer, err := businessOrder.Edges.CustomerOrErr()
+	if err != nil {
+		return nil, err
+	}
 	headquartersID, err := resolveHeadquartersOrganizationID(ctx, r.data.db.Organization, organizationID)
 	if err != nil {
 		return nil, err
@@ -165,6 +176,8 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		Currencies:        make([]biz.OrderFeeCurrencyOption, 0, len(currencies)),
 		FeeSettings:       make([]biz.OrderFeeSettingOption, 0, len(feeSettings)),
 		BillingUnits:      make([]biz.OrderFeeBillingUnitOption, 0, len(billingUnits)),
+		CustomerID:        customer.ID,
+		CustomerName:      customer.LegalName,
 	}
 	lockNos, err := r.financeLockCommissionNos(ctx, organizationID, orderID)
 	if err != nil {

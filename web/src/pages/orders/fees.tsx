@@ -186,6 +186,7 @@ export default function OrderFeesPage() {
   const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
     string[]
   >([]);
+  const [customerName, setCustomerName] = useState('');
   const [_selectedFeeSetting, setSelectedFeeSetting] =
     useState<API.OrderFeeSettingOption>();
 
@@ -350,6 +351,7 @@ export default function OrderFeesPage() {
       setFinanceLocked(Boolean(optionsRes.financeLocked));
       setFinanceLockReason(optionsRes.financeLockReason || '');
       setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
+      setCustomerName(optionsRes.customerName || '');
     } catch (error: any) {
       message.error(error.message || '加载费用信息失败');
     } finally {
@@ -920,7 +922,7 @@ export default function OrderFeesPage() {
               </a>
             </Descriptions.Item>
             <Descriptions.Item label="委托单位">
-              {order.customerId || '-'}
+              {customerName || order.customerId || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="业务类型">
               {config.title}

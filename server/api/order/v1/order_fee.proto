@@ -178,6 +178,8 @@ message ListFeeOptionsResponse {
   bool finance_locked = 10;
   optional string finance_lock_reason = 11;
   repeated string finance_lock_commission_nos = 12;
+  string customer_id = 13;
+  string customer_name = 14;
 }
 
 message AddFeeRequest {

@@ -35,6 +35,7 @@ type ListFeeLedgerRequest struct {
 	Currency          *string                `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	ExpenseDateFrom   *string                `protobuf:"bytes,9,opt,name=expense_date_from,json=expenseDateFrom,proto3,oneof" json:"expense_date_from,omitempty"`
 	ExpenseDateTo     *string                `protobuf:"bytes,10,opt,name=expense_date_to,json=expenseDateTo,proto3,oneof" json:"expense_date_to,omitempty"`
+	CustomerId        *string                `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -139,6 +140,13 @@ func (x *ListFeeLedgerRequest) GetExpenseDateTo() string {
 	return ""
 }
 
+func (x *ListFeeLedgerRequest) GetCustomerId() string {
+	if x != nil && x.CustomerId != nil {
+		return *x.CustomerId
+	}
+	return ""
+}
+
 type FeeLedgerItem struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -167,6 +175,8 @@ type FeeLedgerItem struct {
 	CreatedAt           string                 `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt           string                 `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	TaxRate             *string                `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	CustomerId          string                 `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -379,6 +389,20 @@ func (x *FeeLedgerItem) GetUpdatedAt() string {
 func (x *FeeLedgerItem) GetTaxRate() string {
 	if x != nil && x.TaxRate != nil {
 		return *x.TaxRate
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetCustomerId() string {
+	if x != nil {
+		return x.CustomerId
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
 	}
 	return ""
 }
@@ -8344,7 +8368,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x8a\x04\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc0\x04\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -8356,7 +8380,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bcurrency\x18\b \x01(\tH\x05R\bcurrency\x88\x01\x01\x12/\n" +
 	"\x11expense_date_from\x18\t \x01(\tH\x06R\x0fexpenseDateFrom\x88\x01\x01\x12+\n" +
 	"\x0fexpense_date_to\x18\n" +
-	" \x01(\tH\aR\rexpenseDateTo\x88\x01\x01B\n" +
+	" \x01(\tH\aR\rexpenseDateTo\x88\x01\x01\x12$\n" +
+	"\vcustomer_id\x18\v \x01(\tH\bR\n" +
+	"customerId\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -8366,7 +8392,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x14_settlement_party_idB\v\n" +
 	"\t_currencyB\x14\n" +
 	"\x12_expense_date_fromB\x12\n" +
-	"\x10_expense_date_to\"\xeb\x06\n" +
+	"\x10_expense_date_toB\x0e\n" +
+	"\f_customer_id\"\xb1\a\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -8399,7 +8426,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"created_at\x18\x18 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\x19 \x01(\tR\tupdatedAt\x12\x1e\n" +
-	"\btax_rate\x18\x1a \x01(\tH\x01R\ataxRate\x88\x01\x01B\a\n" +
+	"\btax_rate\x18\x1a \x01(\tH\x01R\ataxRate\x88\x01\x01\x12\x1f\n" +
+	"\vcustomer_id\x18\x1b \x01(\tR\n" +
+	"customerId\x12#\n" +
+	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerNameB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rate\"\xee\x01\n" +
 	"\x10FeeLedgerSummary\x12!\n" +

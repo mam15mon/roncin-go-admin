@@ -165,7 +165,7 @@ export default function FinanceFeeLedgerPage() {
         const response = await partnerServiceListPartners({
           role: 1,
           page: 1,
-          pageSize: 200,
+          pageSize: 100,
         });
         return (response.data || []).map((item) => ({
           label: item.legalName || item.code || item.id,

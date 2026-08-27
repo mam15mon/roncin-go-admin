@@ -843,6 +843,8 @@ type ListFeeOptionsResponse struct {
 	FinanceLocked            bool                             `protobuf:"varint,10,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
 	FinanceLockReason        *string                          `protobuf:"bytes,11,opt,name=finance_lock_reason,json=financeLockReason,proto3,oneof" json:"finance_lock_reason,omitempty"`
 	FinanceLockCommissionNos []string                         `protobuf:"bytes,12,rep,name=finance_lock_commission_nos,json=financeLockCommissionNos,proto3" json:"finance_lock_commission_nos,omitempty"`
+	CustomerId               string                           `protobuf:"bytes,13,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CustomerName             string                           `protobuf:"bytes,14,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -959,6 +961,20 @@ func (x *ListFeeOptionsResponse) GetFinanceLockCommissionNos() []string {
 		return x.FinanceLockCommissionNos
 	}
 	return nil
+}
+
+func (x *ListFeeOptionsResponse) GetCustomerId() string {
+	if x != nil {
+		return x.CustomerId
+	}
+	return ""
+}
+
+func (x *ListFeeOptionsResponse) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
 }
 
 type AddFeeRequest struct {
@@ -2150,7 +2166,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x19OrderFeeBillingUnitOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\xfb\x04\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"\xc1\x05\n" +
 	"\x16ListFeeOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -2166,7 +2182,10 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x0efinance_locked\x18\n" +
 	" \x01(\bR\rfinanceLocked\x123\n" +
 	"\x13finance_lock_reason\x18\v \x01(\tH\x00R\x11financeLockReason\x88\x01\x01\x12=\n" +
-	"\x1bfinance_lock_commission_nos\x18\f \x03(\tR\x18financeLockCommissionNosB\x16\n" +
+	"\x1bfinance_lock_commission_nos\x18\f \x03(\tR\x18financeLockCommissionNos\x12\x1f\n" +
+	"\vcustomer_id\x18\r \x01(\tR\n" +
+	"customerId\x12#\n" +
+	"\rcustomer_name\x18\x0e \x01(\tR\fcustomerNameB\x16\n" +
 	"\x14_finance_lock_reason\"\xa6\x05\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +

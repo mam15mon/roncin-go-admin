@@ -102,6 +102,7 @@ message ListFeeLedgerRequest {
   optional string currency = 8;
   optional string expense_date_from = 9;
   optional string expense_date_to = 10;
+  optional string customer_id = 11;
 }
 
 message FeeLedgerItem {
@@ -131,6 +132,8 @@ message FeeLedgerItem {
   string created_at = 24;
   string updated_at = 25;
   optional string tax_rate = 26;
+  string customer_id = 27;
+  string customer_name = 28;
 }
 
 message FeeLedgerSummary {

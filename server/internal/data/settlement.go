@@ -6,6 +6,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -29,6 +30,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			orderfee.FeeNameContainsFold(filter.Keyword),
 			orderfee.HasOrderWith(order.OrderNoContainsFold(filter.Keyword)),
 			orderfee.HasSettlementPartyWith(partner.LegalNameContainsFold(filter.Keyword)),
+			orderfee.HasOrderWith(order.HasCustomerWith(partner.LegalNameContainsFold(filter.Keyword))),
 		))
 	}
 	if filter.BusinessType != "" {
@@ -42,6 +44,9 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 	}
 	if filter.SettlementPartyID != nil {
 		predicates = append(predicates, orderfee.SettlementPartyIDEQ(*filter.SettlementPartyID))
+	}
+	if filter.CustomerID != nil {
+		predicates = append(predicates, orderfee.HasOrderWith(order.CustomerIDEQ(*filter.CustomerID)))
 	}
 	if filter.Currency != "" {
 		predicates = append(predicates, orderfee.CurrencyEQ(filter.Currency))
@@ -80,7 +85,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 	}
 	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
 	items, err := baseQuery.Clone().
-		WithSettlementParty().WithOrder().
+		WithSettlementParty().WithOrder(func(query *ent.OrderQuery) { query.WithCustomer() }).
 		Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
@@ -96,7 +101,11 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		result.Items = append(result.Items, &biz.FeeLedgerItem{Fee: fee, OrderNo: businessOrder.OrderNo, Business: string(businessOrder.BusinessType)})
+		customer, edgeErr := businessOrder.Edges.CustomerOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		result.Items = append(result.Items, &biz.FeeLedgerItem{Fee: fee, OrderNo: businessOrder.OrderNo, Business: string(businessOrder.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName})
 	}
 	return result, nil
 }

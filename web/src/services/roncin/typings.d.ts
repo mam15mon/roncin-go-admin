@@ -1250,6 +1250,8 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     taxRate?: string;
+    customerId?: string;
+    customerName?: string;
   };
 
   type FeeLedgerSummary = {
@@ -1842,6 +1844,8 @@ declare namespace API {
     financeLocked?: boolean;
     financeLockReason?: string;
     financeLockCommissionNos?: string[];
+    customerId?: string;
+    customerName?: string;
   };
 
   type ListFeeSettingsResponse = {
@@ -3692,6 +3696,7 @@ declare namespace API {
     currency?: string;
     expenseDateFrom?: string;
     expenseDateTo?: string;
+    customerId?: string;
   };
 
   type SettlementServiceListInvoicesParams = {

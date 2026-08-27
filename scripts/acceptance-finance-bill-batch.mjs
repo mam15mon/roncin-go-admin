@@ -164,6 +164,11 @@ assert(feeSetting?.id, '没有可用于验收的启用费用设置');
 assert(feeSetting.defaultBillingUnitId, '费用设置缺少默认计费单位');
 assert(settlementParty?.id, '费用选项中未返回验收客户');
 assert(options.baseCurrency, '费用选项缺少本位币');
+assert(
+  options.customerId === customer.id &&
+    options.customerName === customer.legalName,
+  '订单费用选项未返回委托单位名称',
+);
 
 const createdFees = [];
 for (const [index, price] of ['100.00', '25.00'].entries()) {
@@ -204,6 +209,23 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 }
 
 const feeIds = createdFees.map((fee) => fee.id);
+const feeLedgerByCustomer = await request(
+  `/api/v1/finance/fees?page=1&pageSize=200&customerId=${customer.id}`,
+);
+const ledgerOrderFees = (feeLedgerByCustomer.data || []).filter(
+  (item) => item.orderId === order.id,
+);
+assert(
+  ledgerOrderFees.length === createdFees.length &&
+    ledgerOrderFees.every(
+      (item) =>
+        item.customerId === customer.id &&
+        item.customerName === customer.legalName &&
+        item.settlementPartyId === settlementParty.id &&
+        item.settlementPartyName === customer.legalName,
+    ),
+  '费用台账未同时返回或按委托单位、结算单位正确筛选',
+);
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
   body: JSON.stringify({
@@ -1073,6 +1095,7 @@ console.log(
     {
       orderNo: order.orderNo,
       feeCount: feeIds.length,
+      feeCustomerAndSettlementPartyVerified: true,
       previewGroupCount: preview.data.length,
       batchNo: batch.batchNo,
       billNos: confirmedBatch.data.bills.map((bill) => bill.billNo),
