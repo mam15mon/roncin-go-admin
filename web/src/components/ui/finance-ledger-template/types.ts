@@ -90,6 +90,9 @@ export interface FinanceLedgerTemplateProps<
 
   // ProTable 搜索表单配置覆盖（默认固定 labelWidth: 80 保持对齐）
   search?: Record<string, any> | false;
+
+  // 自定义嵌入式搜索筛选栏插槽（置于顶部指标统计卡与表格台账之间）
+  customSearch?: ReactNode;
 }
 
 

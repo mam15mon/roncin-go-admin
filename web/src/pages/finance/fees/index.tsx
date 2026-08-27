@@ -690,17 +690,17 @@ export default function FinanceFeeLedgerPage() {
 
   return (
     <>
-      {/* 顶部嵌入式 33 项全维高密度搜索筛选卡片 */}
-      <FeeLedgerSearchFilter
-        onSearch={handleSearch}
-        onReset={handleReset}
-      />
-
       <FinanceLedgerTemplate<API.FeeLedgerItem>
         headerTitle="集运费用明细台账"
         actionRef={actionRef}
         columns={columns}
         metricCards={metricCards}
+        customSearch={
+          <FeeLedgerSearchFilter
+            onSearch={handleSearch}
+            onReset={handleReset}
+          />
+        }
         scrollX={3200}
         search={false}
         primaryActionText="创建账单"

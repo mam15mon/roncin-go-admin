@@ -249,6 +249,7 @@ export function FinanceLedgerTemplate<
   getRowStatusColorKey,
   onRowClick,
   search,
+  customSearch,
 }: FinanceLedgerTemplateProps<T>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -380,7 +381,10 @@ export function FinanceLedgerTemplate<
         </Row>
       )}
 
-      {/* 2. ProTable 宽表主体 */}
+      {/* 2. 自定义嵌入式搜索筛选栏（位于指标统计卡与表格台账之间） */}
+      {customSearch}
+
+      {/* 3. ProTable 宽表主体 */}
       <ProTable<T>
         headerTitle={headerTitle}
         actionRef={actionRef}
