@@ -141,6 +141,56 @@ func (BackgroundTaskStatus) EnumDescriptor() ([]byte, []int) {
 	return file_task_v1_background_task_proto_rawDescGZIP(), []int{1}
 }
 
+// BackgroundTaskPhase 后台任务所处阶段。
+type BackgroundTaskPhase int32
+
+const (
+	BackgroundTaskPhase_BACKGROUND_TASK_PHASE_UNSPECIFIED BackgroundTaskPhase = 0
+	BackgroundTaskPhase_BACKGROUND_TASK_PHASE_ACTIVE      BackgroundTaskPhase = 1
+	BackgroundTaskPhase_BACKGROUND_TASK_PHASE_HISTORY     BackgroundTaskPhase = 2
+)
+
+// Enum value maps for BackgroundTaskPhase.
+var (
+	BackgroundTaskPhase_name = map[int32]string{
+		0: "BACKGROUND_TASK_PHASE_UNSPECIFIED",
+		1: "BACKGROUND_TASK_PHASE_ACTIVE",
+		2: "BACKGROUND_TASK_PHASE_HISTORY",
+	}
+	BackgroundTaskPhase_value = map[string]int32{
+		"BACKGROUND_TASK_PHASE_UNSPECIFIED": 0,
+		"BACKGROUND_TASK_PHASE_ACTIVE":      1,
+		"BACKGROUND_TASK_PHASE_HISTORY":     2,
+	}
+)
+
+func (x BackgroundTaskPhase) Enum() *BackgroundTaskPhase {
+	p := new(BackgroundTaskPhase)
+	*p = x
+	return p
+}
+
+func (x BackgroundTaskPhase) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BackgroundTaskPhase) Descriptor() protoreflect.EnumDescriptor {
+	return file_task_v1_background_task_proto_enumTypes[2].Descriptor()
+}
+
+func (BackgroundTaskPhase) Type() protoreflect.EnumType {
+	return &file_task_v1_background_task_proto_enumTypes[2]
+}
+
+func (x BackgroundTaskPhase) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BackgroundTaskPhase.Descriptor instead.
+func (BackgroundTaskPhase) EnumDescriptor() ([]byte, []int) {
+	return file_task_v1_background_task_proto_rawDescGZIP(), []int{2}
+}
+
 // BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。
 type BackgroundTask struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
@@ -283,6 +333,7 @@ type ListBackgroundTasksRequest struct {
 	Kind          BackgroundTaskKind     `protobuf:"varint,4,opt,name=kind,proto3,enum=task.v1.BackgroundTaskKind" json:"kind,omitempty"`
 	StartTime     string                 `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime       string                 `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	Phase         BackgroundTaskPhase    `protobuf:"varint,7,opt,name=phase,proto3,enum=task.v1.BackgroundTaskPhase" json:"phase,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -357,6 +408,13 @@ func (x *ListBackgroundTasksRequest) GetEndTime() string {
 		return x.EndTime
 	}
 	return ""
+}
+
+func (x *ListBackgroundTasksRequest) GetPhase() BackgroundTaskPhase {
+	if x != nil {
+		return x.Phase
+	}
+	return BackgroundTaskPhase_BACKGROUND_TASK_PHASE_UNSPECIFIED
 }
 
 // GetBackgroundTaskRequest 查询单个后台任务请求。
@@ -727,7 +785,7 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x11recipient_user_id\x18\f \x01(\tH\x02R\x0frecipientUserId\x88\x01\x01B\r\n" +
 	"\v_last_errorB\x19\n" +
 	"\x17_recipient_display_nameB\x14\n" +
-	"\x12_recipient_user_id\"\xef\x01\n" +
+	"\x12_recipient_user_id\"\xa3\x02\n" +
 	"\x1aListBackgroundTasksRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x125\n" +
@@ -735,7 +793,8 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x04kind\x18\x04 \x01(\x0e2\x1b.task.v1.BackgroundTaskKindR\x04kind\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x05 \x01(\tR\tstartTime\x12\x19\n" +
-	"\bend_time\x18\x06 \x01(\tR\aendTime\"/\n" +
+	"\bend_time\x18\x06 \x01(\tR\aendTime\x122\n" +
+	"\x05phase\x18\a \x01(\x0e2\x1c.task.v1.BackgroundTaskPhaseR\x05phase\"/\n" +
 	"\x18GetBackgroundTaskRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"3\n" +
 	"\x1cRequeueBackgroundTaskRequest\x12\x13\n" +
@@ -774,7 +833,11 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x1eBACKGROUND_TASK_STATUS_RUNNING\x10\x02\x12$\n" +
 	" BACKGROUND_TASK_STATUS_SUCCEEDED\x10\x03\x12!\n" +
 	"\x1dBACKGROUND_TASK_STATUS_FAILED\x10\x04\x12&\n" +
-	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x052\x8c\x04\n" +
+	"\"BACKGROUND_TASK_STATUS_DEAD_LETTER\x10\x05*\x81\x01\n" +
+	"\x13BackgroundTaskPhase\x12%\n" +
+	"!BACKGROUND_TASK_PHASE_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cBACKGROUND_TASK_PHASE_ACTIVE\x10\x01\x12!\n" +
+	"\x1dBACKGROUND_TASK_PHASE_HISTORY\x10\x022\x8c\x04\n" +
 	"\x15BackgroundTaskService\x12\x9c\x01\n" +
 	"\x13ListBackgroundTasks\x12#.task.v1.ListBackgroundTasksRequest\x1a$.task.v1.ListBackgroundTasksResponse\":\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/background-tasks\x12\x9b\x01\n" +
 	"\x11GetBackgroundTask\x12!.task.v1.GetBackgroundTaskRequest\x1a\".task.v1.GetBackgroundTaskResponse\"?\x82\xb5\x18\x16\b\x03\x12\x10system.task.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/background-tasks/{id}\x12\xb5\x01\n" +
@@ -792,38 +855,40 @@ func file_task_v1_background_task_proto_rawDescGZIP() []byte {
 	return file_task_v1_background_task_proto_rawDescData
 }
 
-var file_task_v1_background_task_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_task_v1_background_task_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_task_v1_background_task_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_task_v1_background_task_proto_goTypes = []any{
 	(BackgroundTaskKind)(0),               // 0: task.v1.BackgroundTaskKind
 	(BackgroundTaskStatus)(0),             // 1: task.v1.BackgroundTaskStatus
-	(*BackgroundTask)(nil),                // 2: task.v1.BackgroundTask
-	(*ListBackgroundTasksRequest)(nil),    // 3: task.v1.ListBackgroundTasksRequest
-	(*GetBackgroundTaskRequest)(nil),      // 4: task.v1.GetBackgroundTaskRequest
-	(*RequeueBackgroundTaskRequest)(nil),  // 5: task.v1.RequeueBackgroundTaskRequest
-	(*GetBackgroundTaskResponse)(nil),     // 6: task.v1.GetBackgroundTaskResponse
-	(*RequeueBackgroundTaskResponse)(nil), // 7: task.v1.RequeueBackgroundTaskResponse
-	(*ListBackgroundTasksResponse)(nil),   // 8: task.v1.ListBackgroundTasksResponse
+	(BackgroundTaskPhase)(0),              // 2: task.v1.BackgroundTaskPhase
+	(*BackgroundTask)(nil),                // 3: task.v1.BackgroundTask
+	(*ListBackgroundTasksRequest)(nil),    // 4: task.v1.ListBackgroundTasksRequest
+	(*GetBackgroundTaskRequest)(nil),      // 5: task.v1.GetBackgroundTaskRequest
+	(*RequeueBackgroundTaskRequest)(nil),  // 6: task.v1.RequeueBackgroundTaskRequest
+	(*GetBackgroundTaskResponse)(nil),     // 7: task.v1.GetBackgroundTaskResponse
+	(*RequeueBackgroundTaskResponse)(nil), // 8: task.v1.RequeueBackgroundTaskResponse
+	(*ListBackgroundTasksResponse)(nil),   // 9: task.v1.ListBackgroundTasksResponse
 }
 var file_task_v1_background_task_proto_depIdxs = []int32{
 	0,  // 0: task.v1.BackgroundTask.kind:type_name -> task.v1.BackgroundTaskKind
 	1,  // 1: task.v1.BackgroundTask.status:type_name -> task.v1.BackgroundTaskStatus
 	1,  // 2: task.v1.ListBackgroundTasksRequest.status:type_name -> task.v1.BackgroundTaskStatus
 	0,  // 3: task.v1.ListBackgroundTasksRequest.kind:type_name -> task.v1.BackgroundTaskKind
-	2,  // 4: task.v1.GetBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
-	2,  // 5: task.v1.RequeueBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
-	2,  // 6: task.v1.ListBackgroundTasksResponse.data:type_name -> task.v1.BackgroundTask
-	3,  // 7: task.v1.BackgroundTaskService.ListBackgroundTasks:input_type -> task.v1.ListBackgroundTasksRequest
-	4,  // 8: task.v1.BackgroundTaskService.GetBackgroundTask:input_type -> task.v1.GetBackgroundTaskRequest
-	5,  // 9: task.v1.BackgroundTaskService.RequeueBackgroundTask:input_type -> task.v1.RequeueBackgroundTaskRequest
-	8,  // 10: task.v1.BackgroundTaskService.ListBackgroundTasks:output_type -> task.v1.ListBackgroundTasksResponse
-	6,  // 11: task.v1.BackgroundTaskService.GetBackgroundTask:output_type -> task.v1.GetBackgroundTaskResponse
-	7,  // 12: task.v1.BackgroundTaskService.RequeueBackgroundTask:output_type -> task.v1.RequeueBackgroundTaskResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	2,  // 4: task.v1.ListBackgroundTasksRequest.phase:type_name -> task.v1.BackgroundTaskPhase
+	3,  // 5: task.v1.GetBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
+	3,  // 6: task.v1.RequeueBackgroundTaskResponse.data:type_name -> task.v1.BackgroundTask
+	3,  // 7: task.v1.ListBackgroundTasksResponse.data:type_name -> task.v1.BackgroundTask
+	4,  // 8: task.v1.BackgroundTaskService.ListBackgroundTasks:input_type -> task.v1.ListBackgroundTasksRequest
+	5,  // 9: task.v1.BackgroundTaskService.GetBackgroundTask:input_type -> task.v1.GetBackgroundTaskRequest
+	6,  // 10: task.v1.BackgroundTaskService.RequeueBackgroundTask:input_type -> task.v1.RequeueBackgroundTaskRequest
+	9,  // 11: task.v1.BackgroundTaskService.ListBackgroundTasks:output_type -> task.v1.ListBackgroundTasksResponse
+	7,  // 12: task.v1.BackgroundTaskService.GetBackgroundTask:output_type -> task.v1.GetBackgroundTaskResponse
+	8,  // 13: task.v1.BackgroundTaskService.RequeueBackgroundTask:output_type -> task.v1.RequeueBackgroundTaskResponse
+	11, // [11:14] is the sub-list for method output_type
+	8,  // [8:11] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_task_v1_background_task_proto_init() }
@@ -837,7 +902,7 @@ func file_task_v1_background_task_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_task_v1_background_task_proto_rawDesc), len(file_task_v1_background_task_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,

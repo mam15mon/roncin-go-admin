@@ -53,6 +53,20 @@ func TestBackgroundTaskStatusRoundTrip(t *testing.T) {
 	}
 }
 
+func TestBackgroundTaskPhaseFromAPI(t *testing.T) {
+	phase, err := backgroundTaskPhaseFromAPI(taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_ACTIVE)
+	if err != nil || phase != biz.BackgroundTaskPhaseActive {
+		t.Fatalf("expected active phase, got %q error %v", phase, err)
+	}
+	phase, err = backgroundTaskPhaseFromAPI(taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_HISTORY)
+	if err != nil || phase != biz.BackgroundTaskPhaseHistory {
+		t.Fatalf("expected history phase, got %q error %v", phase, err)
+	}
+	if _, err := backgroundTaskPhaseFromAPI(taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_UNSPECIFIED); err != biz.ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected invalid argument for unspecified phase, got %v", err)
+	}
+}
+
 func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 	nextRunAt := time.Date(2026, 8, 21, 10, 0, 0, 0, time.UTC)
 	createdAt := time.Date(2026, 8, 20, 9, 0, 0, 0, time.UTC)

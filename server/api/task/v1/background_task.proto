@@ -53,6 +53,13 @@ enum BackgroundTaskStatus {
   BACKGROUND_TASK_STATUS_DEAD_LETTER = 5;
 }
 
+// BackgroundTaskPhase 后台任务所处阶段。
+enum BackgroundTaskPhase {
+  BACKGROUND_TASK_PHASE_UNSPECIFIED = 0;
+  BACKGROUND_TASK_PHASE_ACTIVE = 1;
+  BACKGROUND_TASK_PHASE_HISTORY = 2;
+}
+
 // BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。
 message BackgroundTask {
   string id = 1;
@@ -77,6 +84,7 @@ message ListBackgroundTasksRequest {
   BackgroundTaskKind kind = 4;
   string start_time = 5;
   string end_time = 6;
+  BackgroundTaskPhase phase = 7;
 }
 
 // GetBackgroundTaskRequest 查询单个后台任务请求。

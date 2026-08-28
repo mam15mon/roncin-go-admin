@@ -37,6 +37,13 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 		}
 		options.Status = &status
 	}
+	if request.GetPhase() != taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_UNSPECIFIED {
+		phase, err := backgroundTaskPhaseFromAPI(request.GetPhase())
+		if err != nil {
+			return nil, err
+		}
+		options.Phase = &phase
+	}
 	if request.GetKind() != taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_UNSPECIFIED {
 		kind, err := backgroundTaskKindFromAPI(request.GetKind())
 		if err != nil {
@@ -213,6 +220,17 @@ func backgroundTaskStatusToAPI(status biz.BackgroundTaskStatus) taskv1.Backgroun
 		return taskv1.BackgroundTaskStatus_BACKGROUND_TASK_STATUS_DEAD_LETTER
 	default:
 		return taskv1.BackgroundTaskStatus_BACKGROUND_TASK_STATUS_UNSPECIFIED
+	}
+}
+
+func backgroundTaskPhaseFromAPI(phase taskv1.BackgroundTaskPhase) (biz.BackgroundTaskPhase, error) {
+	switch phase {
+	case taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_ACTIVE:
+		return biz.BackgroundTaskPhaseActive, nil
+	case taskv1.BackgroundTaskPhase_BACKGROUND_TASK_PHASE_HISTORY:
+		return biz.BackgroundTaskPhaseHistory, nil
+	default:
+		return "", biz.ErrBackgroundTaskInvalidArgument
 	}
 }
 

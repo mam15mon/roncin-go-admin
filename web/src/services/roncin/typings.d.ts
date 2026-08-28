@@ -368,6 +368,7 @@ declare namespace API {
     kind?: number;
     startTime?: string;
     endTime?: string;
+    phase?: number;
   };
 
   type BackgroundTaskServiceRequeueBackgroundTaskParams = {

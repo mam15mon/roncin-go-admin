@@ -3,7 +3,11 @@ import {
   RedoOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import {
@@ -12,11 +16,12 @@ import {
   Descriptions,
   Popconfirm,
   Space,
+  Tabs,
   Tag,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
@@ -37,8 +42,23 @@ const statusTagMap: Record<number, { color: string; label: string }> = {
   5: { color: 'error', label: '已停止' },
 };
 
+type BackgroundTaskPhase = 1 | 2;
+
+const activeStatusValueEnum = {
+  1: { text: '待执行' },
+  2: { text: '执行中' },
+  4: { text: '等待重试' },
+};
+
+const historyStatusValueEnum = {
+  3: { text: '执行成功' },
+  5: { text: '已停止' },
+};
+
 export default function BackgroundTasksPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const [taskPhase, setTaskPhase] = useState<BackgroundTaskPhase>(1);
   const access = useAccess();
   const { message } = App.useApp();
 
@@ -114,13 +134,8 @@ export default function BackgroundTasksPanel() {
       title: '执行状态',
       dataIndex: 'status',
       width: 110,
-      valueEnum: {
-        1: { text: '待执行' },
-        2: { text: '执行中' },
-        3: { text: '执行成功' },
-        4: { text: '等待重试' },
-        5: { text: '已停止' },
-      },
+      valueEnum:
+        taskPhase === 1 ? activeStatusValueEnum : historyStatusValueEnum,
       render: (_, record) => {
         const config = record.status ? statusTagMap[record.status] : undefined;
         return config ? <Tag color={config.color}>{config.label}</Tag> : '-';
@@ -209,14 +224,31 @@ export default function BackgroundTasksPanel() {
   return (
     <ProTable<API.BackgroundTask>
       headerTitle={
-        <Space size={8}>
-          <ClockCircleOutlined style={{ color: '#1677ff' }} />
-          <span>后台任务</span>
-          <Text type="secondary">系统自动执行的导入、通知和集成记录</Text>
-        </Space>
+        <div>
+          <Space size={8}>
+            <ClockCircleOutlined style={{ color: '#1677ff' }} />
+            <span>后台任务</span>
+            <Text type="secondary">系统自动执行的导入、通知和集成记录</Text>
+          </Space>
+          <Tabs
+            activeKey={String(taskPhase)}
+            items={[
+              { key: '1', label: '正在进行' },
+              { key: '2', label: '历史记录' },
+            ]}
+            onChange={(key) => {
+              formRef.current?.setFieldValue('status', undefined);
+              setTaskPhase(Number(key) as BackgroundTaskPhase);
+            }}
+            size="small"
+            tabBarStyle={{ margin: '8px 0 0' }}
+          />
+        </div>
       }
       rowKey="id"
       actionRef={actionRef}
+      formRef={formRef}
+      params={{ phase: taskPhase }}
       columns={columns}
       bordered
       expandable={{
@@ -267,6 +299,7 @@ export default function BackgroundTasksPanel() {
         const response = await backgroundTaskServiceListBackgroundTasks({
           page: params.current,
           pageSize: params.pageSize,
+          phase: taskPhase,
           status:
             params.status !== undefined && params.status !== ''
               ? Number(params.status)

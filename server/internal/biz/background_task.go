@@ -66,6 +66,35 @@ func (s BackgroundTaskStatus) Valid() bool {
 	}
 }
 
+type BackgroundTaskPhase string
+
+const (
+	BackgroundTaskPhaseActive  BackgroundTaskPhase = "ACTIVE"
+	BackgroundTaskPhaseHistory BackgroundTaskPhase = "HISTORY"
+)
+
+func (p BackgroundTaskPhase) Valid() bool {
+	return p == BackgroundTaskPhaseActive || p == BackgroundTaskPhaseHistory
+}
+
+func (p BackgroundTaskPhase) Statuses() []BackgroundTaskStatus {
+	switch p {
+	case BackgroundTaskPhaseActive:
+		return []BackgroundTaskStatus{
+			BackgroundTaskStatusPending,
+			BackgroundTaskStatusRunning,
+			BackgroundTaskStatusFailed,
+		}
+	case BackgroundTaskPhaseHistory:
+		return []BackgroundTaskStatus{
+			BackgroundTaskStatusSucceeded,
+			BackgroundTaskStatusDeadLetter,
+		}
+	default:
+		return nil
+	}
+}
+
 type BackgroundTask struct {
 	ID                   uuid.UUID
 	CreatedAt            time.Time
@@ -88,6 +117,7 @@ type BackgroundTaskListOptions struct {
 	Page      int
 	PageSize  int
 	Status    *BackgroundTaskStatus
+	Phase     *BackgroundTaskPhase
 	Kind      *BackgroundTaskKind
 	StartTime *time.Time
 	EndTime   *time.Time
@@ -221,6 +251,9 @@ func (uc *BackgroundTaskUsecase) List(ctx context.Context, organizationID uuid.U
 		return nil, ErrBackgroundTaskInvalidArgument
 	}
 	if options.Status != nil && !options.Status.Valid() {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	if options.Phase != nil && !options.Phase.Valid() {
 		return nil, ErrBackgroundTaskInvalidArgument
 	}
 	if options.Kind != nil && !options.Kind.Valid() {

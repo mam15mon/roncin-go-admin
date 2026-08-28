@@ -1030,6 +1030,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
           }
         ],
         "responses": {

@@ -546,6 +546,11 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid status, got %v", err)
 	}
 
+	invalidPhase := BackgroundTaskPhase("INVALID_PHASE")
+	if _, err := uc.List(context.Background(), orgID, BackgroundTaskListOptions{Page: 1, PageSize: 20, Phase: &invalidPhase}); err != ErrBackgroundTaskInvalidArgument {
+		t.Fatalf("expected ErrBackgroundTaskInvalidArgument for invalid phase, got %v", err)
+	}
+
 	// invalid kind enum
 	invalidKind := BackgroundTaskKind("INVALID_KIND")
 	if _, err := uc.List(context.Background(), orgID, BackgroundTaskListOptions{Page: 1, PageSize: 20, Kind: &invalidKind}); err != ErrBackgroundTaskInvalidArgument {
@@ -554,6 +559,7 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 
 	// success with valid options and pass-through assertion
 	validStatus := BackgroundTaskStatusFailed
+	validPhase := BackgroundTaskPhaseActive
 	validKind := BackgroundTaskKindMasterDataImport
 	now := time.Now()
 	startTime := now.Add(-24 * time.Hour)
@@ -562,6 +568,7 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 		Page:      2,
 		PageSize:  50,
 		Status:    &validStatus,
+		Phase:     &validPhase,
 		Kind:      &validKind,
 		StartTime: &startTime,
 		EndTime:   &endTime,
@@ -589,8 +596,19 @@ func TestBackgroundTaskUsecaseList(t *testing.T) {
 	if repo.listOrgID != orgID {
 		t.Fatalf("expected repo.listOrgID %v, got %v", orgID, repo.listOrgID)
 	}
-	if repo.listOptions.Page != 2 || repo.listOptions.PageSize != 50 || *repo.listOptions.Status != validStatus || *repo.listOptions.Kind != validKind || !repo.listOptions.StartTime.Equal(startTime) || !repo.listOptions.EndTime.Equal(endTime) {
+	if repo.listOptions.Page != 2 || repo.listOptions.PageSize != 50 || *repo.listOptions.Status != validStatus || *repo.listOptions.Phase != validPhase || *repo.listOptions.Kind != validKind || !repo.listOptions.StartTime.Equal(startTime) || !repo.listOptions.EndTime.Equal(endTime) {
 		t.Fatalf("expected repo.listOptions %+v, got %+v", opt, repo.listOptions)
+	}
+}
+
+func TestBackgroundTaskPhaseStatuses(t *testing.T) {
+	active := BackgroundTaskPhaseActive.Statuses()
+	if len(active) != 3 || active[0] != BackgroundTaskStatusPending || active[1] != BackgroundTaskStatusRunning || active[2] != BackgroundTaskStatusFailed {
+		t.Fatalf("unexpected active statuses: %#v", active)
+	}
+	history := BackgroundTaskPhaseHistory.Statuses()
+	if len(history) != 2 || history[0] != BackgroundTaskStatusSucceeded || history[1] != BackgroundTaskStatusDeadLetter {
+		t.Fatalf("unexpected history statuses: %#v", history)
 	}
 }
 

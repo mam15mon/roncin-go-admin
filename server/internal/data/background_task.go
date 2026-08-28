@@ -297,6 +297,14 @@ func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID,
 	if options.Status != nil {
 		query.Where(backgroundtaskent.StatusEQ(backgroundtaskent.Status(*options.Status)))
 	}
+	if options.Phase != nil {
+		statuses := options.Phase.Statuses()
+		entStatuses := make([]backgroundtaskent.Status, len(statuses))
+		for index, status := range statuses {
+			entStatuses[index] = backgroundtaskent.Status(status)
+		}
+		query.Where(backgroundtaskent.StatusIn(entStatuses...))
+	}
 	if options.Kind != nil {
 		query.Where(backgroundtaskent.KindEQ(backgroundtaskent.Kind(*options.Kind)))
 	}

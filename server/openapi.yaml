@@ -625,6 +625,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: phase
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
