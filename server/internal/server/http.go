@@ -4,7 +4,6 @@ import (
 	"log/slog"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
-	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	"github.com/go-kratos/kratos/v3/transport/http"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
@@ -25,7 +24,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
-			recovery.Recovery(),
+			Recovery(logger),
 			tracing.Server(),
 			requestmeta.Middleware(),
 			requestmeta.Logging(logger),
