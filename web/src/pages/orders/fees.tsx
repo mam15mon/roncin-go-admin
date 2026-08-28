@@ -11,44 +11,31 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDatePicker,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-} from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { ProTable } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
-  Alert,
   App,
   Button,
   Card,
-  Col,
-  Descriptions,
   Empty,
-  Form,
   Input,
-  Modal,
   Popconfirm,
-  Row,
-  Select,
   Space,
   Spin,
-  Statistic,
   Tabs,
   Tag,
-  Typography,
 } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
+import { FinanceSummaryBoard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
-import {
-  feeCatalogServiceCreateFeeSetting,
-  feeCatalogServiceListTaxableServices,
-} from '@/services/roncin/feeCatalogService';
+import FeeFormModal, {
+  type FeeFormValues,
+} from './components/fees/FeeFormModal';
+import OrderFeeHeader from './components/fees/OrderFeeHeader';
+import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
+import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
+import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
@@ -60,17 +47,12 @@ import {
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
-import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 import { parseOrderKind } from './common';
 import {
   calculateExactFeeTotal,
-  exchangeRatePattern,
-  isPositiveExactDecimal,
   quantityOrPricePattern,
   trimExactDecimal,
 } from './order-fee-decimal';
-
-const { Text } = Typography;
 
 const RECEIVABLE = 1;
 const PAYABLE = 2;
@@ -101,35 +83,12 @@ function feeStatusCode(status: unknown): number {
   return FEE_STATUS_CODES[String(status)] ?? 0;
 }
 
-type FeeFormValues = {
-  direction: number;
-  feeSettingId: string;
-  settlementPartyId: string;
-  billingUnitId: string;
-  quantity: string;
-  unitPrice: string;
-  currency: string;
-  expenseDate: string | Dayjs;
-  note?: string;
-  exchangeRateOverride?: string;
-};
-
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
 type FeeRequestError = Error & {
   data?: { message?: string; reason?: string };
   response?: { data?: { message?: string; reason?: string } };
 };
-
-function positiveDecimalRule(pattern: RegExp, precisionMessage: string) {
-  return async (_: unknown, value?: string) => {
-    if (!value) throw new Error('请输入数值');
-    if (!pattern.test(value)) throw new Error(precisionMessage);
-    if (!isPositiveExactDecimal(value, pattern)) {
-      throw new Error('数值必须大于 0');
-    }
-  };
-}
 
 export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
@@ -208,131 +167,25 @@ export default function OrderFeesPage() {
 
   // 快捷新增费目状态
   const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
-  const [quickAddFeeSaving, setQuickAddFeeSaving] = useState(false);
   const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>([]);
-  const [quickAddFeeForm] = Form.useForm();
 
   // 快捷新建结算单位状态
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] = useState(false);
-  const [quickAddPartnerSaving, setQuickAddPartnerSaving] = useState(false);
-  const [quickAddPartnerForm] = Form.useForm();
 
   const handleOpenQuickAddFee = async () => {
-    quickAddFeeForm.resetFields();
-    quickAddFeeForm.setFieldsValue({
-      defaultCurrency: 'CNY',
-      billingUnitId: billingUnits[0]?.id || '',
-      taxRate: '0',
-    });
     setQuickAddFeeModalOpen(true);
     try {
       const res = await feeCatalogServiceListTaxableServices({
         skipErrorHandler: true,
       });
       setTaxableServices(res.data || []);
-      if (res.data && res.data.length > 0) {
-        quickAddFeeForm.setFieldValue('taxableServiceId', res.data[0].id);
-      }
     } catch {
       // ignore
     }
   };
 
-  const handleSaveQuickAddFee = async () => {
-    const values = await quickAddFeeForm.validateFields();
-    setQuickAddFeeSaving(true);
-    try {
-      const res = await feeCatalogServiceCreateFeeSetting(
-        {
-          feeCode: values.feeCode.trim().toUpperCase(),
-          nameZh: values.nameZh.trim(),
-          nameEn: values.nameEn?.trim() || undefined,
-          defaultCurrency: values.defaultCurrency,
-          billingUnitId: values.billingUnitId,
-          taxRate: values.taxRate,
-          taxableServiceId:
-            values.taxableServiceId || taxableServices[0]?.id || '',
-        },
-        { skipErrorHandler: true },
-      );
-      const created = res.data;
-      if (created) {
-        const newOption: API.OrderFeeSettingOption = {
-          id: created.id,
-          feeCode: created.feeCode,
-          nameZh: created.nameZh,
-          nameEn: created.nameEn,
-          defaultCurrency: created.defaultCurrency,
-          defaultBillingUnitId: created.billingUnitId,
-          defaultBillingUnitName: billingUnits.find(
-            (b) => b.id === created.billingUnitId,
-          )?.name,
-          taxRate: created.taxRate,
-        };
-        setFeeSettings((prev) => [newOption, ...prev]);
-        formRef.current?.setFieldValue('feeSettingId', created.id);
-        setSelectedFeeSetting(newOption);
-        if (created.billingUnitId) {
-          formRef.current?.setFieldValue('billingUnitId', created.billingUnitId);
-        }
-        if (created.defaultCurrency) {
-          formRef.current?.setFieldValue('currency', created.defaultCurrency);
-        }
-        handleValuesChange();
-        message.success(`已成功新建费用科目【${created.nameZh}】并自动选用`);
-        setQuickAddFeeModalOpen(false);
-      }
-    } catch (error: any) {
-      message.error(error.message || '新建费用科目失败');
-    } finally {
-      setQuickAddFeeSaving(false);
-    }
-  };
-
   const handleOpenQuickAddPartner = () => {
-    quickAddPartnerForm.resetFields();
-    quickAddPartnerForm.setFieldsValue({
-      roles: [modalDirection === RECEIVABLE ? 'CUSTOMER' : 'SUPPLIER'],
-    });
     setQuickAddPartnerModalOpen(true);
-  };
-
-  const handleSaveQuickAddPartner = async () => {
-    const values = await quickAddPartnerForm.validateFields();
-    setQuickAddPartnerSaving(true);
-    try {
-      const res = await partnerServiceCreatePartner(
-        {
-          legalName: values.legalName.trim(),
-          code: values.code
-            ? values.code.trim().toUpperCase()
-            : `P${Date.now().toString().slice(-6)}`,
-          unifiedSocialCreditCode:
-            values.unifiedSocialCreditCode?.trim().toUpperCase() || undefined,
-          roles: (values.roles || ['SUPPLIER']).map((role: string) => ({
-            type: role === 'CUSTOMER' ? 1 : 2,
-            enabled: true,
-          })),
-        },
-        { skipErrorHandler: true },
-      );
-      const created = res.data;
-      if (created) {
-        const newOption: API.OrderFeeSettlementPartyOption = {
-          id: created.id,
-          name: created.legalName,
-          code: created.code,
-        };
-        setSettlementParties((prev) => [newOption, ...prev]);
-        formRef.current?.setFieldValue('settlementPartyId', created.id);
-        message.success(`已成功新建往来单位【${created.legalName}】并自动选用`);
-        setQuickAddPartnerModalOpen(false);
-      }
-    } catch (error: any) {
-      message.error(error.message || '新建往来单位失败');
-    } finally {
-      setQuickAddPartnerSaving(false);
-    }
   };
 
   const loadData = async () => {
@@ -495,7 +348,7 @@ export default function OrderFeesPage() {
   const handleModalSubmit = async (values: FeeFormValues) => {
     if (!orderId) return false;
     const body = {
-      direction: values.direction,
+      direction: values.direction ?? modalDirection,
       feeSettingId: values.feeSettingId,
       settlementPartyId: values.settlementPartyId,
       billingUnitId: values.billingUnitId,
@@ -895,128 +748,20 @@ export default function OrderFeesPage() {
       </div>
 
       <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 24px' }}>
-        {financeLocked && (
-          <Alert
-            type="warning"
-            showIcon
-            title="该订单费用已进入财务锁定"
-            description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续提成差异请在提成管理中新增独立调整记录。`}
-            style={{ marginBottom: 16 }}
-          />
-        )}
-        {/* 1. 基础信息卡片 */}
-        <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
-          <Descriptions
-            size="small"
-            column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-          >
-            <Descriptions.Item label="订单编号">
-              <a
-                style={{
-                  fontWeight: 600,
-                  color: '#1677ff',
-                  fontFamily: 'monospace',
-                }}
-                onClick={() => history.push(`/orders/${kind}/${orderId}`)}
-              >
-                {order.orderNo || order.id}
-              </a>
-            </Descriptions.Item>
-            <Descriptions.Item label="委托单位">
-              {customerName || order.customerId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="业务类型">
-              {config.title}
-            </Descriptions.Item>
-            <Descriptions.Item label="贸易条款">
-              {order.tradeTerm ? 'FOB / CIF' : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="主单号 (MBL)">
-              {order.shippingDocuments?.[0]?.masterNo || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="船名航次">
-              {order.vesselVoyage || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="起运港 (POL)">
-              {order.originLocationId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="目的港 (POD)">
-              {order.destinationLocationId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="承运人 (船司)">
-              {order.carrierId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="订舱代理">
-              {order.bookingAgentId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="ETD">
-              {order.etd ? dayjs(order.etd).format('YYYY-MM-DD') : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="件重尺">
-              {order.totalPackages || '-'} 件 /{' '}
-              {order.totalGrossWeightKg || '-'} kg /{' '}
-              {order.totalVolumeCbm || '-'} m³
-            </Descriptions.Item>
-          </Descriptions>
-        </SectionCard>
-
-        {/* 2. 费用汇总统计指标卡 */}
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={8}>
-            <Card
-              variant="borderless"
-              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
-            >
-              <Statistic
-                title={<span style={{ color: '#64748b' }}>应收总计</span>}
-                value={receivableSummary.totalAmount}
-                precision={2}
-                prefix="¥"
-                styles={{ content: { color: '#1677ff', fontWeight: 700 } }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card
-              variant="borderless"
-              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
-            >
-              <Statistic
-                title={<span style={{ color: '#64748b' }}>应付总计</span>}
-                value={payableSummary.totalAmount}
-                precision={2}
-                prefix="¥"
-                styles={{ content: { color: '#fa8c16', fontWeight: 700 } }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card
-              variant="borderless"
-              style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
-            >
-              <Statistic
-                title={
-                  <Space>
-                    <span style={{ color: '#64748b' }}>预计毛利</span>
-                    <Tag color={profitCny >= 0 ? 'success' : 'error'}>
-                      {profitRate}%
-                    </Tag>
-                  </Space>
-                }
-                value={profitCny}
-                precision={2}
-                prefix="¥"
-                styles={{
-                  content: {
-                    color: profitCny >= 0 ? '#52c41a' : '#ff4d4f',
-                    fontWeight: 700,
-                  },
-                }}
-              />
-            </Card>
-          </Col>
-        </Row>
+        <OrderFeeHeader
+          order={order}
+          kind={kind}
+          orderId={orderId || ''}
+          configTitle={config.title}
+          customerName={customerName}
+          financeLocked={financeLocked}
+          financeLockReason={financeLockReason}
+          financeLockCommissionNos={financeLockCommissionNos}
+          receivableSummary={receivableSummary}
+          payableSummary={payableSummary}
+          profitCny={profitCny}
+          profitRate={profitRate}
+        />
 
         {/* 3. 费用表格工作区 */}
         <Tabs
@@ -1214,427 +959,74 @@ export default function OrderFeesPage() {
       />
 
       {/* 4. 费用录入/编辑 ModalForm */}
-      <ModalForm<FeeFormValues>
-        title={
-          editingFee
-            ? `编辑${modalDirection === RECEIVABLE ? '应收' : '应付'}费用`
-            : `新增${modalDirection === RECEIVABLE ? '应收' : '应付'}费用`
-        }
+      <FeeFormModal
         open={modalOpen}
-        formRef={formRef}
         onOpenChange={setModalOpen}
-        onFinish={handleModalSubmit}
+        editingFee={editingFee}
+        modalDirection={modalDirection}
+        isFeeBilled={feeStatusCode(editingFee?.status) === FEE_BILLED}
+        feeSettings={feeSettings}
+        settlementParties={settlementParties}
+        currencies={currencies}
+        billingUnits={billingUnits}
+        totalPreview={totalPreview}
+        exchangeRateStatus={exchangeRateStatus}
+        exchangeRatePreview={exchangeRatePreview}
+        manualExchangeRate={manualExchangeRate}
+        setManualExchangeRate={setManualExchangeRate}
+        onOpenQuickAddFee={handleOpenQuickAddFee}
+        onOpenQuickAddPartner={handleOpenQuickAddPartner}
         onValuesChange={handleValuesChange}
-        width={680}
-        modalProps={{ destroyOnClose: true }}
-      >
-        <Row gutter={16}>
-          <Col span={12}>
-            <ProFormSearchableSelect
-              name="feeSettingId"
-              label="费用项目"
-              rules={[{ required: true, message: '请选择费用项目' }]}
-              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-              options={feeSettings.map((item) => ({
-                label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
-                value: item.id ?? '',
-                code: item.feeCode,
-                name: item.nameZh,
-              }))}
-              fieldProps={{
-                dropdownRender: (menu) => (
-                  <>
-                    {menu}
-                    <div
-                      style={{
-                        padding: '6px 12px',
-                        cursor: 'pointer',
-                        color: '#1677ff',
-                        fontSize: 12,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        background: '#f6faff',
-                        borderTop: '1px solid #f0f0f0',
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        void handleOpenQuickAddFee();
-                      }}
-                    >
-                      <PlusOutlined /> 快捷新增费用科目
-                    </div>
-                  </>
-                ),
-                onChange: (val) => {
-                  const setting = feeSettings.find((item) => item.id === val);
-                  setSelectedFeeSetting(setting);
-                  if (setting?.defaultBillingUnitId) {
-                    formRef.current?.setFieldValue(
-                      'billingUnitId',
-                      setting.defaultBillingUnitId,
-                    );
-                  }
-                  if (setting?.defaultCurrency) {
-                    formRef.current?.setFieldValue(
-                      'currency',
-                      setting.defaultCurrency,
-                    );
-                  }
-                  handleValuesChange();
-                },
-              }}
-            />
-          </Col>
-          <Col span={12}>
-            <ProFormSearchableSelect
-              name="settlementPartyId"
-              label="结算单位"
-              rules={[{ required: true, message: '请选择结算单位' }]}
-              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-              options={settlementParties.map((item) => ({
-                label: item.name ?? '',
-                value: item.id ?? '',
-                code: item.code,
-                name: item.name,
-              }))}
-              fieldProps={{
-                dropdownRender: (menu) => (
-                  <>
-                    {menu}
-                    <div
-                      style={{
-                        padding: '6px 12px',
-                        cursor: 'pointer',
-                        color: '#1677ff',
-                        fontSize: 12,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        background: '#f6faff',
-                        borderTop: '1px solid #f0f0f0',
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleOpenQuickAddPartner();
-                      }}
-                    >
-                      <PlusOutlined /> 快捷新建往来单位
-                    </div>
-                  </>
-                ),
-              }}
-            />
-          </Col>
-          <Col span={8}>
-            <ProFormSearchableSelect
-              name="currency"
-              label="币种"
-              rules={[{ required: true, message: '请选择币种' }]}
-              options={currencies.map((c) => ({
-                label: `${c.code} (${c.name})`,
-                value: c.code ?? '',
-                code: c.code,
-                name: c.name,
-              }))}
-            />
-          </Col>
-          <Col span={8}>
-            <ProFormText
-              name="unitPrice"
-              label="单价"
-              rules={[
-                { required: true, message: '请输入单价' },
-                {
-                  validator: positiveDecimalRule(
-                    quantityOrPricePattern,
-                    '单价格式不正确',
-                  ),
-                },
-              ]}
-              placeholder="0.00"
-            />
-          </Col>
-          <Col span={8}>
-            <ProFormText
-              name="quantity"
-              label="数量"
-              rules={[
-                { required: true, message: '请输入数量' },
-                {
-                  validator: positiveDecimalRule(
-                    quantityOrPricePattern,
-                    '数量格式不正确',
-                  ),
-                },
-              ]}
-              placeholder="1"
-            />
-          </Col>
-          <Col span={12}>
-            <ProFormSearchableSelect
-              name="billingUnitId"
-              label="计费单位"
-              rules={[{ required: true, message: '请选择计费单位' }]}
-              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-              options={billingUnits.map((u) => ({
-                label: `${u.name} (${u.code})`,
-                value: u.id ?? '',
-                code: u.code,
-                name: u.name,
-              }))}
-            />
-          </Col>
-          <Col span={12}>
-            <ProFormDatePicker
-              name="expenseDate"
-              label="发生日期"
-              rules={[{ required: true, message: '请选择发生日期' }]}
-              disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-              fieldProps={{ style: { width: '100%' } }}
-            />
-          </Col>
-
-          {/* 汇率与金额计算预览 */}
-          <Col span={24}>
-            <Card
-              size="small"
-              style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}
-            >
-              <Space
-                separator={<span style={{ color: '#cbd5e1' }}>|</span>}
-                size={16}
-              >
-                <div>
-                  <Text type="secondary">费用金额：</Text>
-                  <Text
-                    strong
-                    style={{
-                      fontSize: 16,
-                      color:
-                        modalDirection === RECEIVABLE ? '#1677ff' : '#fa8c16',
-                    }}
-                  >
-                    {totalPreview
-                      ? `${formRef.current?.getFieldValue('currency') || ''} ${totalPreview}`
-                      : '-'}
-                  </Text>
-                </div>
-                <div>
-                  <Text type="secondary">生效汇率：</Text>
-                  {exchangeRateStatus === 'loading' && <Spin size="small" />}
-                  {exchangeRateStatus === 'resolved' && (
-                    <Text strong style={{ color: '#52c41a' }}>
-                      {exchangeRatePreview}
-                    </Text>
-                  )}
-                  {exchangeRateStatus === 'missing' && (
-                    <Space size={4}>
-                      <Tag color="error">汇率未配置</Tag>
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => setManualExchangeRate(true)}
-                      >
-                        手动输入
-                      </Button>
-                    </Space>
-                  )}
-                </div>
-              </Space>
-            </Card>
-          </Col>
-
-          {manualExchangeRate && (
-            <Col span={24}>
-              <ProFormText
-                name="exchangeRateOverride"
-                label="手动指定汇率 (对 CNY)"
-                rules={[
-                  { required: true, message: '请输入手动汇率' },
-                  {
-                    validator: positiveDecimalRule(
-                      exchangeRatePattern,
-                      '汇率格式不正确',
-                    ),
-                  },
-                ]}
-                placeholder="例如 7.2345"
-              />
-            </Col>
-          )}
-
-          <Col span={24}>
-            <ProFormTextArea
-              name="note"
-              label="备注说明"
-              placeholder="请输入费用相关备注（可选）"
-              fieldProps={{ rows: 2, maxLength: 500, showCount: true }}
-            />
-          </Col>
-        </Row>
-      </ModalForm>
+        onFeeSettingSelect={setSelectedFeeSetting}
+        onSubmit={handleModalSubmit}
+      />
 
       {/* 快捷新增费用科目 Modal */}
-      <Modal
-        title="快捷新增费用科目"
+      <QuickAddFeeModal
         open={quickAddFeeModalOpen}
-        confirmLoading={quickAddFeeSaving}
-        okText="保存并选用"
-        cancelText="取消"
-        onOk={() => void handleSaveQuickAddFee()}
         onCancel={() => setQuickAddFeeModalOpen(false)}
-        destroyOnHidden
-        width={580}
-      >
-        <Form form={quickAddFeeForm} layout="vertical" preserve={false}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="feeCode"
-                label="科目代码"
-                rules={[
-                  { required: true, whitespace: true, message: '请输入科目代码' },
-                  { max: 30, message: '不能超过 30 字符' },
-                ]}
-              >
-                <Input placeholder="例如：THC、OFRT、CUSTOMS" maxLength={30} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="nameZh"
-                label="科目中文名称"
-                rules={[
-                  { required: true, whitespace: true, message: '请输入中文名称' },
-                  { max: 100, message: '不能超过 100 字符' },
-                ]}
-              >
-                <Input placeholder="例如：码头操作费、海运费" maxLength={100} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="nameEn" label="英文名称（选填）">
-                <Input placeholder="例如：Terminal Handling Charge" maxLength={100} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="defaultCurrency"
-                label="默认币种"
-                rules={[{ required: true, message: '请选择币种' }]}
-              >
-                <Select
-                  options={currencies.map((c) => ({
-                    label: `${c.code} (${c.name})`,
-                    value: c.code ?? '',
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="billingUnitId"
-                label="默认计费单位"
-                rules={[{ required: true, message: '请选择计费单位' }]}
-              >
-                <Select
-                  options={billingUnits.map((u) => ({
-                    label: u.name ?? '',
-                    value: u.id ?? '',
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="taxRate"
-                label="默认增值税税率"
-                rules={[{ required: true, message: '请选择税率' }]}
-              >
-                <Select
-                  options={[
-                    { label: '0% (零税率/免税)', value: '0' },
-                    { label: '6% (现代服务业/货运代理)', value: '0.06' },
-                    { label: '9% (基础交通运输)', value: '0.09' },
-                    { label: '13% (商品贸易/修箱)', value: '0.13' },
-                  ]}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item name="taxableServiceId" label="应税服务类别">
-                <Select
-                  placeholder="选择税目分类"
-                  options={taxableServices.map((s) => ({
-                    label: s.goodsCode
-                      ? `${s.name} (${s.goodsCode})`
-                      : s.name || '',
-                    value: s.id ?? '',
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
+        currencies={currencies}
+        billingUnits={billingUnits}
+        taxableServices={taxableServices}
+        onSuccess={(created) => {
+          const newOption: API.OrderFeeSettingOption = {
+            id: created.id,
+            feeCode: created.feeCode,
+            nameZh: created.nameZh,
+            nameEn: created.nameEn,
+            defaultCurrency: created.defaultCurrency,
+            defaultBillingUnitId: created.billingUnitId,
+            defaultBillingUnitName: billingUnits.find(
+              (b) => b.id === created.billingUnitId,
+            )?.name,
+            taxRate: created.taxRate,
+          };
+          setFeeSettings((prev) => [newOption, ...prev]);
+          formRef.current?.setFieldValue('feeSettingId', created.id);
+          setSelectedFeeSetting(newOption);
+          if (created.billingUnitId) {
+            formRef.current?.setFieldValue('billingUnitId', created.billingUnitId);
+          }
+          if (created.defaultCurrency) {
+            formRef.current?.setFieldValue('currency', created.defaultCurrency);
+          }
+          handleValuesChange();
+          message.success(`已成功新建费用科目【${created.nameZh}】并自动选用`);
+          setQuickAddFeeModalOpen(false);
+        }}
+      />
 
       {/* 快捷新建往来单位 Modal */}
-      <Modal
-        title="快捷新建往来单位"
+      <QuickAddPartnerModal
         open={quickAddPartnerModalOpen}
-        confirmLoading={quickAddPartnerSaving}
-        okText="保存并选用"
-        cancelText="取消"
-        onOk={() => void handleSaveQuickAddPartner()}
         onCancel={() => setQuickAddPartnerModalOpen(false)}
-        destroyOnHidden
-        width={540}
-      >
-        <Form form={quickAddPartnerForm} layout="vertical" preserve={false}>
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                name="legalName"
-                label="单位全称"
-                rules={[
-                  { required: true, whitespace: true, message: '请输入单位全称' },
-                  { max: 200, message: '不能超过 200 字符' },
-                ]}
-              >
-                <Input placeholder="工商登记全称或客商名称" maxLength={200} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="code" label="客商代码（选填）">
-                <Input placeholder="例如：COSCO、SITC（留空自动生成）" maxLength={50} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="unifiedSocialCreditCode" label="统一社会信用代码（选填）">
-                <Input placeholder="18 位税号" maxLength={50} />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item
-                name="roles"
-                label="客商类型"
-                rules={[{ required: true, message: '请选择至少一种类型' }]}
-              >
-                <Select
-                  mode="multiple"
-                  options={[
-                    { label: '客户 (委托单位/收发通)', value: 'CUSTOMER' },
-                    { label: '供应商 (船东/车队/报关行/码头)', value: 'SUPPLIER' },
-                  ]}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
+        onSuccess={(newOption) => {
+          setSettlementParties((prev) => [newOption, ...prev]);
+          formRef.current?.setFieldValue('settlementPartyId', newOption.id);
+          message.success(`已成功新建往来单位【${newOption.name}】并自动选用`);
+          setQuickAddPartnerModalOpen(false);
+        }}
+      />
     </div>
   );
 }
