@@ -3,6 +3,8 @@
 !.env.example
 .idea/
 .vscode/
+.agents/
+**/.agents/
 node_modules/
 .cache/
 web/dist/
