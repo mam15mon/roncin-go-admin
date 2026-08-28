@@ -18,7 +18,7 @@ func (fn roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error)
 }
 
 func TestDingTalkAuthorizeURL(t *testing.T) {
-	provider := &dingTalkIdentityProvider{enabled: true, clientID: "client-id", redirectURI: "https://admin.example.com/user/login/dingtalk/callback"}
+	provider := &dingTalkIdentityProvider{enabled: true, clientID: "client-id", redirectURI: "https://admin.example.com/user/login/dingtalk/callback", corpID: "ding-corp"}
 	authorizeURL, err := provider.AuthorizeURL("state-value")
 	if err != nil {
 		t.Fatalf("AuthorizeURL() error = %v", err)
@@ -32,6 +32,9 @@ func TestDingTalkAuthorizeURL(t *testing.T) {
 	}
 	if parsed.Query().Get("scope") != "openid corpid" {
 		t.Fatalf("授权地址未申请企业身份范围: %s", authorizeURL)
+	}
+	if parsed.Query().Get("corpId") != "ding-corp" {
+		t.Fatalf("授权地址未限定目标企业: %s", authorizeURL)
 	}
 }
 

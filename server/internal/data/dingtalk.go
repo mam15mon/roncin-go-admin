@@ -98,6 +98,7 @@ func (p *dingTalkIdentityProvider) AuthorizeURL(state string) (string, error) {
 	values.Set("response_type", "code")
 	values.Set("client_id", p.clientID)
 	values.Set("scope", "openid corpid")
+	values.Set("corpId", p.corpID)
 	values.Set("state", state)
 	values.Set("prompt", "consent")
 	return dingTalkAuthorizeURL + "?" + values.Encode(), nil
