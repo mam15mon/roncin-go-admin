@@ -1,7 +1,10 @@
 import { GlobalOutlined, LinkOutlined } from '@ant-design/icons';
-import { App, Button, Tag, Tooltip } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
+import { Button, Tag, Tooltip } from 'antd';
+import React from 'react';
+import {
+  MasterDataTemplate,
+  useMasterDataCrud,
+} from '@/components/ui/master-data-template';
 import {
   masterDataServiceCreateShippingLine,
   masterDataServiceListShippingLines,
@@ -19,88 +22,88 @@ export interface ShippingLineItem extends PersistedMasterDataItem {
 }
 
 const mapShippingLine = (item: API.ShippingLine): ShippingLineItem => {
-  if (!item.id || !item.scacCode || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (
+    !item.id ||
+    !item.scacCode ||
+    !item.nameZh ||
+    !item.nameEn ||
+    !item.countryCode ||
+    item.enabled === undefined ||
+    item.source === undefined ||
+    item.sortOrder === undefined
+  ) {
     throw new Error('船司响应缺少必填字段');
   }
   const containerPrefixes = item.containerPrefixes ?? [];
-  return { id: item.id, code: item.scacCode, name: item.nameZh, nameEn: item.nameEn, trackingUrl: item.trackingUrl, countryCode: item.countryCode, alliance: item.alliance, containerPrefixes, containerPrefixesText: containerPrefixes.join(', '), enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return {
+    id: item.id,
+    code: item.scacCode,
+    name: item.nameZh,
+    nameEn: item.nameEn,
+    trackingUrl: item.trackingUrl,
+    countryCode: item.countryCode,
+    alliance: item.alliance,
+    containerPrefixes,
+    containerPrefixesText: containerPrefixes.join(', '),
+    enabled: item.enabled,
+    source: item.source,
+    sortOrder: item.sortOrder,
+    updatedAt: item.updatedAt,
+  };
 };
 
-const parseContainerPrefixes = (value?: string) => value?.split(/[,，\s]+/).map((item) => item.trim().toUpperCase()).filter(Boolean) ?? [];
+const parseContainerPrefixes = (value?: string) =>
+  value
+    ?.split(/[,，\s]+/)
+    .map((item) => item.trim().toUpperCase())
+    .filter(Boolean) ?? [];
 
 export default function ShippingLinesPanel() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<ShippingLineItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListShippingLines({ page: 1, pageSize: 200 });
-      setData((response.data ?? []).map(mapShippingLine));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchServerData().catch((error: Error) => message.error(error.message || '船司主数据加载失败'));
-  }, [fetchServerData, message]);
-
-  const saveResponse = (response: API.CreateShippingLineResponse | API.UpdateShippingLineResponse) => {
-    if (!response.data) throw new Error('船司响应缺少数据');
-    const saved = mapShippingLine(response.data);
-    setData((current) => {
-      const exists = current.some((item) => item.id === saved.id);
-      return exists
-        ? current.map((item) => (item.id === saved.id ? saved : item))
-        : [saved, ...current];
-    });
-  };
-
-  const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateShippingLine({
-      scacCode: values.code.toUpperCase().trim(),
-      nameZh: values.name.trim(),
-      nameEn: values.nameEn.trim(),
-      countryCode: values.countryCode.toUpperCase().trim(),
-      trackingUrl: values.trackingUrl?.trim() || undefined,
-      alliance: values.alliance || undefined,
-      containerPrefixes: parseContainerPrefixes(values.containerPrefixesText),
-      source: 'manual',
-      sortOrder: 100,
-    });
-    saveResponse(response);
-  };
-
-  const updateItem = async (record: ShippingLineItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateShippingLine(
-      { id: record.id },
-      {
-        id: record.id,
+  const {
+    data,
+    loading,
+    reload,
+    handleCreate,
+    handleUpdate,
+    handleToggleActive,
+  } = useMasterDataCrud<ShippingLineItem, API.ShippingLine>({
+    entityName: '船司',
+    fetchList: () =>
+      masterDataServiceListShippingLines({ page: 1, pageSize: 200 }),
+    mapItem: mapShippingLine,
+    createItem: (values) =>
+      masterDataServiceCreateShippingLine({
+        scacCode: values.code.toUpperCase().trim(),
         nameZh: values.name.trim(),
         nameEn: values.nameEn.trim(),
         countryCode: values.countryCode.toUpperCase().trim(),
         trackingUrl: values.trackingUrl?.trim() || undefined,
         alliance: values.alliance || undefined,
-        containerPrefixes: parseContainerPrefixes(values.containerPrefixesText),
-        source: record.source,
-        sortOrder: record.sortOrder,
-        enabled,
-      },
-    );
-    saveResponse(response);
-  };
-
-  const handleUpdate = async (id: string, values: any) => {
-    const record = data.find((item) => item.id === id);
-    if (!record) throw new Error('待更新船司不存在');
-    await updateItem(record, values, record.enabled);
-  };
-
-  const handleToggleActive = async (record: ShippingLineItem) => {
-    await updateItem(record, record, !record.enabled);
-  };
+        containerPrefixes: parseContainerPrefixes(
+          values.containerPrefixesText,
+        ),
+        source: 'manual',
+        sortOrder: 100,
+      }),
+    updateItem: (id, values, enabled, record) =>
+      masterDataServiceUpdateShippingLine(
+        { id },
+        {
+          id,
+          nameZh: values.name.trim(),
+          nameEn: values.nameEn.trim(),
+          countryCode: values.countryCode.toUpperCase().trim(),
+          trackingUrl: values.trackingUrl?.trim() || undefined,
+          alliance: values.alliance || undefined,
+          containerPrefixes: parseContainerPrefixes(
+            values.containerPrefixesText,
+          ),
+          source: record.source,
+          sortOrder: record.sortOrder,
+          enabled,
+        },
+      ),
+  });
 
   return (
     <MasterDataTemplate<ShippingLineItem>
@@ -110,11 +113,26 @@ export default function ShippingLinesPanel() {
       codeLabel="SCAC 标准代码"
       items={data}
       loading={loading}
-      onRefresh={fetchServerData}
+      onRefresh={reload}
       searchPlaceholder="搜索 SCAC（如 MAEU）/ BIC 箱主前缀（如 MSKU）/ 船司中英文名称..."
       extraStats={[
-        { label: '三大班轮联盟', value: data.filter((s) => s.alliance && s.alliance !== 'Independent').length, color: '#1677ff' },
-        { label: '独立/近洋船司', value: data.filter((s) => !s.alliance || s.alliance === 'Independent' || s.alliance === 'Intra-Asia').length, color: '#52c41a' },
+        {
+          label: '三大班轮联盟',
+          value: data.filter(
+            (s) => s.alliance && s.alliance !== 'Independent',
+          ).length,
+          color: '#1677ff',
+        },
+        {
+          label: '独立/近洋船司',
+          value: data.filter(
+            (s) =>
+              !s.alliance ||
+              s.alliance === 'Independent' ||
+              s.alliance === 'Intra-Asia',
+          ).length,
+          color: '#52c41a',
+        },
       ]}
       filterOptions={[
         {
@@ -138,7 +156,15 @@ export default function ShippingLinesPanel() {
           key: 'containerPrefixes',
           width: 180,
           render: (prefixes: string[]) => (
-            <Tag style={{ fontFamily: 'monospace', fontWeight: 600, color: '#0958d9', backgroundColor: '#e6f4ff', margin: 0 }}>
+            <Tag
+              style={{
+                fontFamily: 'monospace',
+                fontWeight: 600,
+                color: '#0958d9',
+                backgroundColor: '#e6f4ff',
+                margin: 0,
+              }}
+            >
               {prefixes?.join(', ') || '-'}
             </Tag>
           ),
@@ -149,9 +175,11 @@ export default function ShippingLinesPanel() {
           key: 'alliance',
           width: 140,
           render: (alliance: string) => {
-            if (alliance === 'Ocean Alliance') return <Tag color="blue">Ocean Alliance</Tag>;
+            if (alliance === 'Ocean Alliance')
+              return <Tag color="blue">Ocean Alliance</Tag>;
             if (alliance === 'Gemini') return <Tag color="purple">Gemini</Tag>;
-            if (alliance === 'Premier Alliance') return <Tag color="cyan">Premier Alliance</Tag>;
+            if (alliance === 'Premier Alliance')
+              return <Tag color="cyan">Premier Alliance</Tag>;
             return <Tag color="default">{alliance || '-'}</Tag>;
           },
         },
@@ -194,7 +222,13 @@ export default function ShippingLinesPanel() {
           name: 'containerPrefixesText',
           label: 'BIC 箱主前缀',
           placeholder: '例如：MSKU, MRSU（多个使用逗号分隔）',
-          rules: [{ pattern: /^\s*$|^[A-Za-z]{3}[UJZujz](\s*[,，]\s*[A-Za-z]{3}[UJZujz])*$/, message: '每个箱主前缀应为3位字母加 U/J/Z，并用逗号分隔' }],
+          rules: [
+            {
+              pattern:
+                /^\s*$|^[A-Za-z]{3}[UJZujz](\s*[,，]\s*[A-Za-z]{3}[UJZujz])*$/,
+              message: '每个箱主前缀应为3位字母加 U/J/Z，并用逗号分隔',
+            },
+          ],
         },
         {
           name: 'name',
@@ -215,10 +249,22 @@ export default function ShippingLinesPanel() {
           required: true,
           initialValue: 'Independent',
           options: [
-            { label: 'Ocean Alliance (海洋联盟 - 中远/达飞/长荣)', value: 'Ocean Alliance' },
-            { label: 'Gemini (双子星联盟 - 马士基/赫伯罗特)', value: 'Gemini' },
-            { label: 'Premier Alliance (卓越联盟 - ONE/HMM/阳明)', value: 'Premier Alliance' },
-            { label: 'Independent (独立运营/近洋船司)', value: 'Independent' },
+            {
+              label: 'Ocean Alliance (海洋联盟 - 中远/达飞/长荣)',
+              value: 'Ocean Alliance',
+            },
+            {
+              label: 'Gemini (双子星联盟 - 马士基/赫伯罗特)',
+              value: 'Gemini',
+            },
+            {
+              label: 'Premier Alliance (卓越联盟 - ONE/HMM/阳明)',
+              value: 'Premier Alliance',
+            },
+            {
+              label: 'Independent (独立运营/近洋船司)',
+              value: 'Independent',
+            },
           ],
         },
         {

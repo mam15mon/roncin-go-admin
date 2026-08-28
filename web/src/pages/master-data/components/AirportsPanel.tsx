@@ -1,7 +1,10 @@
 import { SendOutlined } from '@ant-design/icons';
-import { App, Tag } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
+import { Tag } from 'antd';
+import React from 'react';
+import {
+  MasterDataTemplate,
+  useMasterDataCrud,
+} from '@/components/ui/master-data-template';
 import {
   masterDataServiceCreateAirport,
   masterDataServiceListAirports,
@@ -18,83 +21,73 @@ export interface AirportItem extends PersistedMasterDataItem {
 }
 
 const mapAirport = (item: API.Airport): AirportItem => {
-  if (!item.id || !item.iataCode || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (
+    !item.id ||
+    !item.iataCode ||
+    !item.nameEn ||
+    !item.countryCode ||
+    item.enabled === undefined ||
+    item.source === undefined ||
+    item.sortOrder === undefined
+  ) {
     throw new Error('机场响应缺少必填字段');
   }
-  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode ?? '', name: item.nameZh ?? '', nameEn: item.nameEn, cityName: item.cityNameZh ?? '', cityNameEn: item.cityNameEn, countryCode: item.countryCode, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return {
+    id: item.id,
+    code: item.iataCode,
+    icaoCode: item.icaoCode ?? '',
+    name: item.nameZh ?? '',
+    nameEn: item.nameEn,
+    cityName: item.cityNameZh ?? '',
+    cityNameEn: item.cityNameEn,
+    countryCode: item.countryCode,
+    enabled: item.enabled,
+    source: item.source,
+    sortOrder: item.sortOrder,
+    updatedAt: item.updatedAt,
+  };
 };
 
 export default function AirportsPanel() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<AirportItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListAirports({ page: 1, pageSize: 200 });
-      setData((response.data ?? []).map(mapAirport));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchServerData().catch((error: Error) => message.error(error.message || '机场主数据加载失败'));
-  }, [fetchServerData, message]);
-
-  const saveResponse = (response: API.CreateAirportResponse | API.UpdateAirportResponse) => {
-    if (!response.data) throw new Error('机场响应缺少数据');
-    const saved = mapAirport(response.data);
-    setData((current) => {
-      const exists = current.some((item) => item.id === saved.id);
-      return exists
-        ? current.map((item) => (item.id === saved.id ? saved : item))
-        : [saved, ...current];
-    });
-  };
-
-  const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateAirport({
-      iataCode: values.code.toUpperCase().trim(),
-      nameZh: values.name?.trim() || undefined,
-      nameEn: values.nameEn.trim(),
-      icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-      cityNameZh: values.cityName?.trim() || undefined,
-      cityNameEn: values.cityNameEn?.trim() || undefined,
-      countryCode: values.countryCode.toUpperCase().trim(),
-      sortOrder: 100,
-    });
-    saveResponse(response);
-  };
-
-  const updateItem = async (record: AirportItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateAirport(
-      { id: record.id },
-      {
-        id: record.id,
+  const {
+    data,
+    loading,
+    reload,
+    handleCreate,
+    handleUpdate,
+    handleToggleActive,
+  } = useMasterDataCrud<AirportItem, API.Airport>({
+    entityName: '机场',
+    fetchList: () =>
+      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
+    mapItem: mapAirport,
+    createItem: (values) =>
+      masterDataServiceCreateAirport({
+        iataCode: values.code.toUpperCase().trim(),
         nameZh: values.name?.trim() || undefined,
         nameEn: values.nameEn.trim(),
         icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
         cityNameZh: values.cityName?.trim() || undefined,
         cityNameEn: values.cityNameEn?.trim() || undefined,
         countryCode: values.countryCode.toUpperCase().trim(),
-        sortOrder: record.sortOrder,
-        enabled,
-      },
-    );
-    saveResponse(response);
-  };
-
-  const handleUpdate = async (id: string, values: any) => {
-    const record = data.find((item) => item.id === id);
-    if (!record) throw new Error('待更新机场不存在');
-    await updateItem(record, values, record.enabled);
-  };
-
-  const handleToggleActive = async (record: AirportItem) => {
-    await updateItem(record, record, !record.enabled);
-  };
+        sortOrder: 100,
+      }),
+    updateItem: (id, values, enabled, record) =>
+      masterDataServiceUpdateAirport(
+        { id },
+        {
+          id,
+          nameZh: values.name?.trim() || undefined,
+          nameEn: values.nameEn.trim(),
+          icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+          cityNameZh: values.cityName?.trim() || undefined,
+          cityNameEn: values.cityNameEn?.trim() || undefined,
+          countryCode: values.countryCode.toUpperCase().trim(),
+          sortOrder: record.sortOrder,
+          enabled,
+        },
+      ),
+  });
 
   return (
     <MasterDataTemplate<AirportItem>
@@ -104,11 +97,23 @@ export default function AirportsPanel() {
       codeLabel="IATA 三字码"
       items={data}
       loading={loading}
-      onRefresh={fetchServerData}
+      onRefresh={reload}
       searchPlaceholder="搜索三字码(如 PVG) / 四字码(如 ZSPD) / 机场中英文名..."
       extraStats={[
-        { label: '国内枢纽', value: data.filter((a) => ['CN', 'HK', 'TW'].includes(a.countryCode)).length, color: '#1677ff' },
-        { label: '国际枢纽', value: data.filter((a) => !['CN', 'HK', 'TW'].includes(a.countryCode)).length, color: '#722ed1' },
+        {
+          label: '国内枢纽',
+          value: data.filter((a) =>
+            ['CN', 'HK', 'TW'].includes(a.countryCode),
+          ).length,
+          color: '#1677ff',
+        },
+        {
+          label: '国际枢纽',
+          value: data.filter(
+            (a) => !['CN', 'HK', 'TW'].includes(a.countryCode),
+          ).length,
+          color: '#722ed1',
+        },
       ]}
       filterOptions={[
         {
@@ -136,7 +141,16 @@ export default function AirportsPanel() {
           width: 120,
           render: (icao: string) =>
             icao ? (
-              <Tag style={{ fontFamily: 'monospace', fontWeight: 600, color: '#722ed1', backgroundColor: '#f9f0ff', borderColor: '#d3adf7', margin: 0 }}>
+              <Tag
+                style={{
+                  fontFamily: 'monospace',
+                  fontWeight: 600,
+                  color: '#722ed1',
+                  backgroundColor: '#f9f0ff',
+                  borderColor: '#d3adf7',
+                  margin: 0,
+                }}
+              >
                 {icao}
               </Tag>
             ) : (
@@ -148,7 +162,9 @@ export default function AirportsPanel() {
           dataIndex: 'cityName',
           key: 'cityName',
           width: 100,
-          render: (city: string) => <span style={{ fontWeight: 500 }}>{city || '-'}</span>,
+          render: (city: string) => (
+            <span style={{ fontWeight: 500 }}>{city || '-'}</span>
+          ),
         },
         {
           title: '所属国家',
@@ -156,7 +172,10 @@ export default function AirportsPanel() {
           key: 'countryCode',
           width: 100,
           render: (cc: string) => (
-            <Tag color="cyan" style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+            <Tag
+              color="cyan"
+              style={{ fontFamily: 'monospace', fontWeight: 600 }}
+            >
               {cc}
             </Tag>
           ),
@@ -171,14 +190,22 @@ export default function AirportsPanel() {
           disabledOnEdit: true,
           rules: [
             { required: true, message: '请输入IATA三字码' },
-            { pattern: /^[A-Za-z]{3}$/, message: '请输入标准的3位字母IATA代码' },
+            {
+              pattern: /^[A-Za-z]{3}$/,
+              message: '请输入标准的3位字母IATA代码',
+            },
           ],
         },
         {
           name: 'icaoCode',
           label: 'ICAO 四字码',
           placeholder: '例如：ZSPD、KLAX (4位民航代码)',
-          rules: [{ pattern: /^[A-Za-z]{4}$/, message: '请输入标准的4位字母ICAO代码' }],
+          rules: [
+            {
+              pattern: /^[A-Za-z]{4}$/,
+              message: '请输入标准的4位字母ICAO代码',
+            },
+          ],
         },
         {
           name: 'name',

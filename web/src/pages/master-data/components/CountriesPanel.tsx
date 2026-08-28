@@ -1,7 +1,10 @@
 import { GlobalOutlined } from '@ant-design/icons';
-import { App, Tag } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
+import { Tag } from 'antd';
+import React from 'react';
+import {
+  MasterDataTemplate,
+  useMasterDataCrud,
+} from '@/components/ui/master-data-template';
 import {
   masterDataServiceCreateItem,
   masterDataServiceListItems,
@@ -25,79 +28,53 @@ const mapCountry = (item: API.MasterDataItem): CountryItem => ({
 });
 
 export default function CountriesPanel() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<CountryItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListItems({ kind: 2, page: 1, pageSize: 200 });
-      setData((response.data ?? []).map(mapCountry));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchServerData().catch((error: Error) => message.error(error.message || '国家主数据加载失败'));
-  }, [fetchServerData, message]);
-
-  const saveResponse = (response: API.CreateItemResponse | API.UpdateItemResponse) => {
-    const saved = mapCountry(requireMasterDataResponse(response));
-    setData((current) => {
-      const exists = current.some((item) => item.id === saved.id);
-      return exists
-        ? current.map((item) => (item.id === saved.id ? saved : item))
-        : [saved, ...current];
-    });
-  };
-
-  const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateItem({
-      kind: 2,
-      code: values.code.toUpperCase().trim(),
-      name: values.name.trim(),
-      nameEn: values.nameEn.trim(),
-      source: 'manual',
-      sortOrder: 100,
-      attributes: {
-        continent: values.continent,
-        currencyCode: values.currencyCode.toUpperCase().trim(),
-      },
-    });
-    saveResponse(response);
-  };
-
-  const updateItem = async (record: CountryItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateItem(
-      { id: record.id },
-      {
-        id: record.id,
+  const {
+    data,
+    loading,
+    reload,
+    handleCreate,
+    handleUpdate,
+    handleToggleActive,
+  } = useMasterDataCrud<CountryItem, API.MasterDataItem>({
+    entityName: '国家',
+    fetchList: () =>
+      masterDataServiceListItems({ kind: 2, page: 1, pageSize: 200 }),
+    mapItem: mapCountry,
+    createItem: async (values) => {
+      const res = await masterDataServiceCreateItem({
         kind: 2,
+        code: values.code.toUpperCase().trim(),
         name: values.name.trim(),
         nameEn: values.nameEn.trim(),
-        source: record.source,
-        sortOrder: record.sortOrder,
-        enabled,
+        source: 'manual',
+        sortOrder: 100,
         attributes: {
           continent: values.continent,
           currencyCode: values.currencyCode.toUpperCase().trim(),
         },
-      },
-    );
-    saveResponse(response);
-  };
-
-  const handleUpdate = async (id: string, values: any) => {
-    const record = data.find((item) => item.id === id);
-    if (!record) throw new Error('待更新国家不存在');
-    await updateItem(record, values, record.enabled);
-  };
-
-  const handleToggleActive = async (record: CountryItem) => {
-    await updateItem(record, record, !record.enabled);
-  };
+      });
+      return { data: requireMasterDataResponse(res) };
+    },
+    updateItem: async (id, values, enabled, record) => {
+      const res = await masterDataServiceUpdateItem(
+        { id },
+        {
+          id: record.id,
+          kind: 2,
+          name: values.name.trim(),
+          nameEn: values.nameEn.trim(),
+          source: record.source,
+          sortOrder: record.sortOrder,
+          enabled,
+          attributes: {
+            continent: values.continent,
+            currencyCode: values.currencyCode.toUpperCase().trim(),
+          },
+        },
+      );
+      return { data: requireMasterDataResponse(res) };
+    },
+  });
 
   return (
     <MasterDataTemplate<CountryItem>
@@ -107,11 +84,21 @@ export default function CountriesPanel() {
       codeLabel="ISO 二字码"
       items={data}
       loading={loading}
-      onRefresh={fetchServerData}
+      onRefresh={reload}
       searchPlaceholder="搜索国家代码(如 CN) / 国家中英文名称..."
       extraStats={[
-        { label: '亚洲国家', value: data.filter((c) => c.continent === '亚洲').length, color: '#1677ff' },
-        { label: '欧美国家', value: data.filter((c) => ['欧洲', '北美洲'].includes(c.continent || '')).length, color: '#722ed1' },
+        {
+          label: '亚洲国家',
+          value: data.filter((c) => c.continent === '亚洲').length,
+          color: '#1677ff',
+        },
+        {
+          label: '欧美国家',
+          value: data.filter((c) =>
+            ['欧洲', '北美洲'].includes(c.continent || ''),
+          ).length,
+          color: '#722ed1',
+        },
       ]}
       filterOptions={[
         {
@@ -136,7 +123,9 @@ export default function CountriesPanel() {
           dataIndex: 'continent',
           key: 'continent',
           width: 110,
-          render: (continent: string) => <Tag color="blue">{continent || '-'}</Tag>,
+          render: (continent: string) => (
+            <Tag color="blue">{continent || '-'}</Tag>
+          ),
         },
         {
           title: '官方货币',
@@ -144,7 +133,10 @@ export default function CountriesPanel() {
           key: 'currencyCode',
           width: 100,
           render: (curr: string) => (
-            <Tag color="gold" style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+            <Tag
+              color="gold"
+              style={{ fontFamily: 'monospace', fontWeight: 600 }}
+            >
               {curr || '-'}
             </Tag>
           ),
@@ -159,7 +151,10 @@ export default function CountriesPanel() {
           disabledOnEdit: true,
           rules: [
             { required: true, message: '请输入ISO二字码' },
-            { pattern: /^[A-Za-z]{2}$/, message: '请输入标准的2位字母ISO国家代码' },
+            {
+              pattern: /^[A-Za-z]{2}$/,
+              message: '请输入标准的2位字母ISO国家代码',
+            },
           ],
         },
         {

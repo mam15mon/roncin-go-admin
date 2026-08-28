@@ -1,7 +1,10 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { App, Space, Tag } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
+import { Space, Tag } from 'antd';
+import React from 'react';
+import {
+  MasterDataTemplate,
+  useMasterDataCrud,
+} from '@/components/ui/master-data-template';
 import {
   masterDataServiceCreatePort,
   masterDataServiceListPorts,
@@ -22,79 +25,66 @@ const MODE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const mapPort = (item: API.Port): PortItem => {
-  if (!item.id || !item.unLocode || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (
+    !item.id ||
+    !item.unLocode ||
+    !item.nameEn ||
+    !item.countryCode ||
+    item.enabled === undefined ||
+    item.source === undefined ||
+    item.sortOrder === undefined
+  ) {
     throw new Error('港口响应缺少必填字段');
   }
-  return { id: item.id, code: item.unLocode, name: item.nameZh ?? '', nameEn: item.nameEn, countryCode: item.countryCode, modes: item.transportModes ?? [], enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return {
+    id: item.id,
+    code: item.unLocode,
+    name: item.nameZh ?? '',
+    nameEn: item.nameEn,
+    countryCode: item.countryCode,
+    modes: item.transportModes ?? [],
+    enabled: item.enabled,
+    source: item.source,
+    sortOrder: item.sortOrder,
+    updatedAt: item.updatedAt,
+  };
 };
 
 export default function PortsPanel() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<PortItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListPorts({ page: 1, pageSize: 200 });
-      setData((response.data ?? []).map(mapPort));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchServerData().catch((error: Error) => message.error(error.message || '港口主数据加载失败'));
-  }, [fetchServerData, message]);
-
-  const saveResponse = (response: API.CreatePortResponse | API.UpdatePortResponse) => {
-    if (!response.data) throw new Error('港口响应缺少数据');
-    const saved = mapPort(response.data);
-    setData((current) => {
-      const exists = current.some((item) => item.id === saved.id);
-      return exists
-        ? current.map((item) => (item.id === saved.id ? saved : item))
-        : [saved, ...current];
-    });
-  };
-
-  const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreatePort({
-      unLocode: values.code.toUpperCase().trim(),
-      nameZh: values.name?.trim() || undefined,
-      nameEn: values.nameEn.trim().toUpperCase(),
-      sortOrder: 100,
-      countryCode: values.countryCode.toUpperCase().trim(),
-      transportModes: values.modes ?? [],
-    });
-    saveResponse(response);
-  };
-
-  const updateItem = async (record: PortItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdatePort(
-      { id: record.id },
-      {
-        id: record.id,
+  const {
+    data,
+    loading,
+    reload,
+    handleCreate,
+    handleUpdate,
+    handleToggleActive,
+  } = useMasterDataCrud<PortItem, API.Port>({
+    entityName: '港口',
+    fetchList: () => masterDataServiceListPorts({ page: 1, pageSize: 200 }),
+    mapItem: mapPort,
+    createItem: (values) =>
+      masterDataServiceCreatePort({
+        unLocode: values.code.toUpperCase().trim(),
         nameZh: values.name?.trim() || undefined,
         nameEn: values.nameEn.trim().toUpperCase(),
-        sortOrder: record.sortOrder,
-        enabled,
+        sortOrder: 100,
         countryCode: values.countryCode.toUpperCase().trim(),
         transportModes: values.modes ?? [],
-      },
-    );
-    saveResponse(response);
-  };
-
-  const handleUpdate = async (id: string, values: any) => {
-    const record = data.find((item) => item.id === id);
-    if (!record) throw new Error('待更新港口不存在');
-    await updateItem(record, values, record.enabled);
-  };
-
-  const handleToggleActive = async (record: PortItem) => {
-    await updateItem(record, record, !record.enabled);
-  };
+      }),
+    updateItem: (id, values, enabled, record) =>
+      masterDataServiceUpdatePort(
+        { id },
+        {
+          id,
+          nameZh: values.name?.trim() || undefined,
+          nameEn: values.nameEn.trim().toUpperCase(),
+          sortOrder: record.sortOrder,
+          enabled,
+          countryCode: values.countryCode.toUpperCase().trim(),
+          transportModes: values.modes ?? [],
+        },
+      ),
+  });
 
   return (
     <MasterDataTemplate<PortItem>
@@ -104,11 +94,19 @@ export default function PortsPanel() {
       codeLabel="UN/LOCODE 五字码"
       items={data}
       loading={loading}
-      onRefresh={fetchServerData}
+      onRefresh={reload}
       searchPlaceholder="搜索五字码(如 CNSHG) / 港口中英文名..."
       extraStats={[
-        { label: '海港枢纽', value: data.filter((p) => p.modes.includes('PORT')).length, color: '#1677ff' },
-        { label: '多式联运港', value: data.filter((p) => p.modes.length > 1).length, color: '#722ed1' },
+        {
+          label: '海港枢纽',
+          value: data.filter((p) => p.modes.includes('PORT')).length,
+          color: '#1677ff',
+        },
+        {
+          label: '多式联运港',
+          value: data.filter((p) => p.modes.length > 1).length,
+          color: '#722ed1',
+        },
       ]}
       filterOptions={[
         {
@@ -135,7 +133,10 @@ export default function PortsPanel() {
           key: 'countryCode',
           width: 110,
           render: (cc: string) => (
-            <Tag color="cyan" style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+            <Tag
+              color="cyan"
+              style={{ fontFamily: 'monospace', fontWeight: 600 }}
+            >
               {cc}
             </Tag>
           ),
@@ -150,7 +151,11 @@ export default function PortsPanel() {
               {modes.map((m) => {
                 const conf = MODE_LABELS[m] || { label: m, color: 'default' };
                 return (
-                  <Tag key={m} color={conf.color} style={{ fontSize: 11, padding: '0 4px', margin: 0 }}>
+                  <Tag
+                    key={m}
+                    color={conf.color}
+                    style={{ fontSize: 11, padding: '0 4px', margin: 0 }}
+                  >
                     {conf.label}
                   </Tag>
                 );
@@ -168,7 +173,10 @@ export default function PortsPanel() {
           disabledOnEdit: true,
           rules: [
             { required: true, message: '请输入五字码' },
-            { pattern: /^[A-Za-z]{2}[A-Za-z0-9]{3}$/, message: 'UN/LOCODE 应为2位国家码加3位地点码' },
+            {
+              pattern: /^[A-Za-z]{2}[A-Za-z0-9]{3}$/,
+              message: 'UN/LOCODE 应为2位国家码加3位地点码',
+            },
           ],
         },
         {

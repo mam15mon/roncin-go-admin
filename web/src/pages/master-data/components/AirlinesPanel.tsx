@@ -1,7 +1,10 @@
 import { RocketOutlined } from '@ant-design/icons';
-import { App, Tag } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
+import { Tag } from 'antd';
+import React from 'react';
+import {
+  MasterDataTemplate,
+  useMasterDataCrud,
+} from '@/components/ui/master-data-template';
 import {
   masterDataServiceCreateAirline,
   masterDataServiceListAirlines,
@@ -18,85 +21,76 @@ export interface AirlineItem extends PersistedMasterDataItem {
 }
 
 const mapAirline = (item: API.Airline): AirlineItem => {
-  if (!item.id || !item.iataCode || !item.awbPrefix || !item.nameZh || !item.nameEn || !item.countryCode || item.enabled === undefined || item.source === undefined || item.sortOrder === undefined) {
+  if (
+    !item.id ||
+    !item.iataCode ||
+    !item.awbPrefix ||
+    !item.nameZh ||
+    !item.nameEn ||
+    !item.countryCode ||
+    item.enabled === undefined ||
+    item.source === undefined ||
+    item.sortOrder === undefined
+  ) {
     throw new Error('航司响应缺少必填字段');
   }
-  return { id: item.id, code: item.iataCode, icaoCode: item.icaoCode, awbPrefix: item.awbPrefix, name: item.nameZh, nameEn: item.nameEn, countryCode: item.countryCode, isCargoOnly: item.cargoOnly, enabled: item.enabled, source: item.source, sortOrder: item.sortOrder, updatedAt: item.updatedAt };
+  return {
+    id: item.id,
+    code: item.iataCode,
+    icaoCode: item.icaoCode,
+    awbPrefix: item.awbPrefix,
+    name: item.nameZh,
+    nameEn: item.nameEn,
+    countryCode: item.countryCode,
+    isCargoOnly: item.cargoOnly,
+    enabled: item.enabled,
+    source: item.source,
+    sortOrder: item.sortOrder,
+    updatedAt: item.updatedAt,
+  };
 };
 
 export default function AirlinesPanel() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<AirlineItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListAirlines({ page: 1, pageSize: 200 });
-      setData((response.data ?? []).map(mapAirline));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchServerData().catch((error: Error) => message.error(error.message || '航司主数据加载失败'));
-  }, [fetchServerData, message]);
-
-  const saveResponse = (response: API.CreateAirlineResponse | API.UpdateAirlineResponse) => {
-    if (!response.data) throw new Error('航司响应缺少数据');
-    const saved = mapAirline(response.data);
-    setData((current) => {
-      const exists = current.some((item) => item.id === saved.id);
-      return exists
-        ? current.map((item) => (item.id === saved.id ? saved : item))
-        : [saved, ...current];
-    });
-  };
-
-  const handleCreate = async (values: any) => {
-    const response = await masterDataServiceCreateAirline({
-      iataCode: values.code.toUpperCase().trim(),
-      icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
-      nameZh: values.name.trim(),
-      nameEn: values.nameEn.trim(),
-      awbPrefix: values.awbPrefix.trim(),
-      countryCode: values.countryCode.toUpperCase().trim(),
-      cargoOnly: values.isCargoOnly === true,
-      source: 'manual',
-      sortOrder: 100,
-    });
-    saveResponse(response);
-  };
-
-  const updateItem = async (record: AirlineItem, values: any, enabled: boolean) => {
-    const response = await masterDataServiceUpdateAirline(
-      { id: record.id },
-      {
-        id: record.id,
+  const {
+    data,
+    loading,
+    reload,
+    handleCreate,
+    handleUpdate,
+    handleToggleActive,
+  } = useMasterDataCrud<AirlineItem, API.Airline>({
+    entityName: '航司',
+    fetchList: () => masterDataServiceListAirlines({ page: 1, pageSize: 200 }),
+    mapItem: mapAirline,
+    createItem: (values) =>
+      masterDataServiceCreateAirline({
+        iataCode: values.code.toUpperCase().trim(),
         icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
         nameZh: values.name.trim(),
         nameEn: values.nameEn.trim(),
         awbPrefix: values.awbPrefix.trim(),
         countryCode: values.countryCode.toUpperCase().trim(),
         cargoOnly: values.isCargoOnly === true,
-        source: record.source,
-        sortOrder: record.sortOrder,
-        enabled,
-      },
-    );
-    saveResponse(response);
-  };
-
-  const handleUpdate = async (id: string, values: any) => {
-    const record = data.find((item) => item.id === id);
-    if (!record) throw new Error('待更新航司不存在');
-    await updateItem(record, values, record.enabled);
-  };
-
-  const handleToggleActive = async (record: AirlineItem) => {
-    await updateItem(record, record, !record.enabled);
-  };
+        source: 'manual',
+        sortOrder: 100,
+      }),
+    updateItem: (id, values, enabled, record) =>
+      masterDataServiceUpdateAirline(
+        { id },
+        {
+          id,
+          icaoCode: values.icaoCode?.toUpperCase().trim() || undefined,
+          nameZh: values.name.trim(),
+          nameEn: values.nameEn.trim(),
+          awbPrefix: values.awbPrefix.trim(),
+          countryCode: values.countryCode.toUpperCase().trim(),
+          cargoOnly: values.isCargoOnly === true,
+          source: record.source,
+          sortOrder: record.sortOrder,
+          enabled,
+        },
+      ),
+  });
 
   return (
     <MasterDataTemplate<AirlineItem>
@@ -106,11 +100,21 @@ export default function AirlinesPanel() {
       codeLabel="IATA 二字码"
       items={data}
       loading={loading}
-      onRefresh={fetchServerData}
+      onRefresh={reload}
       searchPlaceholder="搜索二字码(如 CA) / 运单前缀(如 999) / 航司中英文名..."
       extraStats={[
-        { label: '中国国内航司', value: data.filter((a) => ['CN', 'HK', 'TW'].includes(a.countryCode)).length, color: '#1677ff' },
-        { label: '全货机航司', value: data.filter((a) => a.isCargoOnly).length, color: '#fa8c16' },
+        {
+          label: '中国国内航司',
+          value: data.filter((a) =>
+            ['CN', 'HK', 'TW'].includes(a.countryCode),
+          ).length,
+          color: '#1677ff',
+        },
+        {
+          label: '全货机航司',
+          value: data.filter((a) => a.isCargoOnly).length,
+          color: '#fa8c16',
+        },
       ]}
       filterOptions={[
         {
@@ -177,7 +181,10 @@ export default function AirlinesPanel() {
           key: 'countryCode',
           width: 100,
           render: (cc: string) => (
-            <Tag color="cyan" style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+            <Tag
+              color="cyan"
+              style={{ fontFamily: 'monospace', fontWeight: 600 }}
+            >
               {cc}
             </Tag>
           ),
@@ -192,7 +199,10 @@ export default function AirlinesPanel() {
           disabledOnEdit: true,
           rules: [
             { required: true, message: '请输入IATA二字码' },
-            { pattern: /^[A-Za-z0-9]{2}$/, message: '请输入标准的2位IATA代码' },
+            {
+              pattern: /^[A-Za-z0-9]{2}$/,
+              message: '请输入标准的2位IATA代码',
+            },
           ],
         },
         {
@@ -209,7 +219,12 @@ export default function AirlinesPanel() {
           name: 'icaoCode',
           label: 'ICAO 三字码',
           placeholder: '例如：CCA、CES、DLH',
-          rules: [{ pattern: /^[A-Za-z0-9]{3}$/, message: '请输入标准的3位 ICAO 航司代码' }],
+          rules: [
+            {
+              pattern: /^[A-Za-z0-9]{3}$/,
+              message: '请输入标准的3位 ICAO 航司代码',
+            },
+          ],
         },
         {
           name: 'name',
