@@ -4810,6 +4810,10 @@ components:
                         type: string
                 createdAt:
                     type: string
+                actorDisplayName:
+                    type: string
+                targetDisplayName:
+                    type: string
         admin.v1.AdminOrganization:
             type: object
             properties:

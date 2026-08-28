@@ -107,6 +107,8 @@ declare namespace API {
     ipAddress?: string;
     details?: Record<string, any>;
     createdAt?: string;
+    actorDisplayName?: string;
+    targetDisplayName?: string;
   };
 
   type AdministrativeRegion = {

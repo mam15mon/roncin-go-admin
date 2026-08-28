@@ -3557,21 +3557,23 @@ func (x *ListAuditLogsRequest) GetResourceId() string {
 }
 
 type AdminAuditLog struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId *string                `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
-	UserId         *string                `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
-	Action         string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
-	ResourceType   *string                `protobuf:"bytes,5,opt,name=resource_type,json=resourceType,proto3,oneof" json:"resource_type,omitempty"`
-	ResourceId     *string                `protobuf:"bytes,6,opt,name=resource_id,json=resourceId,proto3,oneof" json:"resource_id,omitempty"`
-	Result         string                 `protobuf:"bytes,7,opt,name=result,proto3" json:"result,omitempty"`
-	RequestId      string                 `protobuf:"bytes,8,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	TraceId        string                 `protobuf:"bytes,9,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	IpAddress      string                 `protobuf:"bytes,10,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
-	Details        map[string]string      `protobuf:"bytes,11,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	CreatedAt      string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId    *string                `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	UserId            *string                `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3,oneof" json:"user_id,omitempty"`
+	Action            string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
+	ResourceType      *string                `protobuf:"bytes,5,opt,name=resource_type,json=resourceType,proto3,oneof" json:"resource_type,omitempty"`
+	ResourceId        *string                `protobuf:"bytes,6,opt,name=resource_id,json=resourceId,proto3,oneof" json:"resource_id,omitempty"`
+	Result            string                 `protobuf:"bytes,7,opt,name=result,proto3" json:"result,omitempty"`
+	RequestId         string                 `protobuf:"bytes,8,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	TraceId           string                 `protobuf:"bytes,9,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	IpAddress         string                 `protobuf:"bytes,10,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	Details           map[string]string      `protobuf:"bytes,11,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	CreatedAt         string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ActorDisplayName  *string                `protobuf:"bytes,13,opt,name=actor_display_name,json=actorDisplayName,proto3,oneof" json:"actor_display_name,omitempty"`
+	TargetDisplayName *string                `protobuf:"bytes,14,opt,name=target_display_name,json=targetDisplayName,proto3,oneof" json:"target_display_name,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *AdminAuditLog) Reset() {
@@ -3684,6 +3686,20 @@ func (x *AdminAuditLog) GetDetails() map[string]string {
 func (x *AdminAuditLog) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *AdminAuditLog) GetActorDisplayName() string {
+	if x != nil && x.ActorDisplayName != nil {
+		return *x.ActorDisplayName
+	}
+	return ""
+}
+
+func (x *AdminAuditLog) GetTargetDisplayName() string {
+	if x != nil && x.TargetDisplayName != nil {
+		return *x.TargetDisplayName
 	}
 	return ""
 }
@@ -4090,7 +4106,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\bend_time\x18\x06 \x01(\tR\aendTime\x12#\n" +
 	"\rresource_type\x18\a \x01(\tR\fresourceType\x12\x1f\n" +
 	"\vresource_id\x18\b \x01(\tR\n" +
-	"resourceId\"\xa1\x04\n" +
+	"resourceId\"\xb8\x05\n" +
 	"\rAdminAuditLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x1c\n" +
@@ -4108,7 +4124,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	" \x01(\tR\tipAddress\x12>\n" +
 	"\adetails\x18\v \x03(\v2$.admin.v1.AdminAuditLog.DetailsEntryR\adetails\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\f \x01(\tR\tcreatedAt\x1a:\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x121\n" +
+	"\x12actor_display_name\x18\r \x01(\tH\x04R\x10actorDisplayName\x88\x01\x01\x123\n" +
+	"\x13target_display_name\x18\x0e \x01(\tH\x05R\x11targetDisplayName\x88\x01\x01\x1a:\n" +
 	"\fDetailsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x12\n" +
@@ -4116,7 +4134,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"\b_user_idB\x10\n" +
 	"\x0e_resource_typeB\x0e\n" +
-	"\f_resource_id\"\xee\x01\n" +
+	"\f_resource_idB\x15\n" +
+	"\x13_actor_display_nameB\x16\n" +
+	"\x14_target_display_name\"\xee\x01\n" +
 	"\x15ListAuditLogsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

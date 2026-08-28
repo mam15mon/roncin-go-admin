@@ -7960,6 +7960,12 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "actorDisplayName": {
+            "type": "string"
+          },
+          "targetDisplayName": {
+            "type": "string"
           }
         }
       },

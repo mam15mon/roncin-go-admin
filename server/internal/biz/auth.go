@@ -227,18 +227,20 @@ type AuditEvent struct {
 }
 
 type AuditLog struct {
-	ID             uuid.UUID
-	OrganizationID *uuid.UUID
-	UserID         *uuid.UUID
-	Action         string
-	ResourceType   *string
-	ResourceID     *string
-	Result         string
-	RequestID      string
-	TraceID        string
-	IPAddress      string
-	Details        map[string]string
-	CreatedAt      time.Time
+	ID                uuid.UUID
+	OrganizationID    *uuid.UUID
+	UserID            *uuid.UUID
+	Action            string
+	ResourceType      *string
+	ResourceID        *string
+	Result            string
+	RequestID         string
+	TraceID           string
+	IPAddress         string
+	Details           map[string]string
+	CreatedAt         time.Time
+	ActorDisplayName  *string
+	TargetDisplayName *string
 }
 
 type AuthRepo interface {

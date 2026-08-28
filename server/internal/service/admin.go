@@ -600,7 +600,7 @@ func orderOrganizationAccessesToAPI(values []biz.OrderOrganizationAccess) []*v1.
 }
 
 func auditLogToAPI(value *biz.AuditLog) *v1.AdminAuditLog {
-	return &v1.AdminAuditLog{Id: value.ID.String(), OrganizationId: uuidString(value.OrganizationID), UserId: uuidString(value.UserID), Action: value.Action, ResourceType: value.ResourceType, ResourceId: value.ResourceID, Result: value.Result, RequestId: value.RequestID, TraceId: value.TraceID, IpAddress: value.IPAddress, Details: value.Details, CreatedAt: value.CreatedAt.Format(time.RFC3339)}
+	return &v1.AdminAuditLog{Id: value.ID.String(), OrganizationId: uuidString(value.OrganizationID), UserId: uuidString(value.UserID), Action: value.Action, ResourceType: value.ResourceType, ResourceId: value.ResourceID, Result: value.Result, RequestId: value.RequestID, TraceId: value.TraceID, IpAddress: value.IPAddress, Details: value.Details, CreatedAt: value.CreatedAt.Format(time.RFC3339), ActorDisplayName: value.ActorDisplayName, TargetDisplayName: value.TargetDisplayName}
 }
 
 func uuidString(value *uuid.UUID) *string {

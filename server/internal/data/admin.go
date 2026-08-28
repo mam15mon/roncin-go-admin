@@ -869,14 +869,64 @@ func (r *adminRepo) ListAuditLogs(ctx context.Context, organizationID uuid.UUID,
 		return nil, err
 	}
 	result := make([]*biz.AuditLog, 0, len(items))
+	userIDs := make(map[uuid.UUID]struct{})
 	for _, item := range items {
 		mapped, mapErr := auditLogToBiz(item)
 		if mapErr != nil {
 			return nil, mapErr
 		}
+		if mapped.UserID != nil {
+			userIDs[*mapped.UserID] = struct{}{}
+		}
+		if targetID := auditTargetUserID(mapped); targetID != nil {
+			userIDs[*targetID] = struct{}{}
+		}
 		result = append(result, mapped)
 	}
+	if len(userIDs) > 0 {
+		ids := make([]uuid.UUID, 0, len(userIDs))
+		for id := range userIDs {
+			ids = append(ids, id)
+		}
+		users, userErr := r.data.db.User.Query().Where(userent.IDIn(ids...)).All(ctx)
+		if userErr != nil {
+			return nil, userErr
+		}
+		names := make(map[uuid.UUID]string, len(users))
+		for _, item := range users {
+			names[item.ID] = item.DisplayName
+		}
+		for _, item := range result {
+			if item.UserID != nil {
+				if name, ok := names[*item.UserID]; ok {
+					item.ActorDisplayName = &name
+				}
+			}
+			if targetID := auditTargetUserID(item); targetID != nil {
+				if name, ok := names[*targetID]; ok {
+					item.TargetDisplayName = &name
+				}
+			}
+		}
+	}
 	return &biz.AdminAuditLogList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func auditTargetUserID(item *biz.AuditLog) *uuid.UUID {
+	if item == nil || !strings.HasPrefix(item.Action, "admin.user.") {
+		return nil
+	}
+	value := ""
+	if item.ResourceID != nil {
+		value = *item.ResourceID
+	} else {
+		value = item.Details["resource_id"]
+	}
+	id, err := uuid.Parse(value)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 func auditLogToBiz(item *ent.AuditLog) (*biz.AuditLog, error) {

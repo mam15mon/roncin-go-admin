@@ -1,12 +1,31 @@
 import { HistoryOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Descriptions, Popover, Space, Tag, Typography } from 'antd';
+import { Button, Descriptions, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
 import { adminServiceListAuditLogs } from '@/services/roncin/adminService';
+import {
+  auditActionPresentation,
+  auditActorName,
+  auditBusinessObject,
+  auditDetailLabel,
+} from './audit-presentation';
 
 const { Text } = Typography;
+
+function technicalText(value?: string) {
+  return value ? (
+    <Text
+      copyable
+      style={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}
+    >
+      {value}
+    </Text>
+  ) : (
+    '—'
+  );
+}
 
 export default function AuditPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -17,9 +36,7 @@ export default function AuditPanel() {
       dataIndex: 'timeRange',
       valueType: 'dateRange',
       hideInTable: true,
-      fieldProps: {
-        placeholder: ['开始时间', '结束时间'],
-      },
+      fieldProps: { placeholder: ['开始时间', '结束时间'] },
     },
     {
       title: '操作时间',
@@ -29,31 +46,47 @@ export default function AuditPanel() {
       search: false,
     },
     {
-      title: '操作动作',
-      dataIndex: 'action',
-      width: 200,
-      render: (_, record) => (
-        <Text strong style={{ fontSize: 13 }}>
-          {record.action}
-        </Text>
-      ),
+      title: '操作人',
+      dataIndex: 'actorDisplayName',
+      width: 140,
+      search: false,
+      render: (_, record) => <Text strong>{auditActorName(record)}</Text>,
     },
     {
-      title: '操作用户',
-      dataIndex: 'userId',
-      width: 200,
-      copyable: true,
-      render: (_, record) => (
-        <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
-          {record.userId || '-'}
-        </Text>
-      ),
+      title: '操作内容',
+      dataIndex: 'action',
+      width: 260,
+      search: false,
+      render: (_, record) => {
+        const presentation = auditActionPresentation(record.action);
+        return (
+          <Space size={6}>
+            <Tag color={presentation.color}>{presentation.category}</Tag>
+            <Text>{presentation.title}</Text>
+          </Space>
+        );
+      },
+    },
+    {
+      title: '业务对象',
+      dataIndex: 'targetDisplayName',
+      width: 190,
+      search: false,
+      render: (_, record) => {
+        const target = auditBusinessObject(record);
+        return (
+          <Space orientation="vertical" size={0}>
+            <Text>{target.name}</Text>
+            {target.type && <Text type="secondary">{target.type}</Text>}
+          </Space>
+        );
+      },
     },
     {
       title: '执行结果',
       dataIndex: 'result',
       width: 100,
-      valueEnum: { success: { text: '成功' }, failure: { text: '失败' } },
+      search: false,
       render: (_, record) =>
         record.result === 'success' ? (
           <Tag color="success">成功</Tag>
@@ -62,86 +95,25 @@ export default function AuditPanel() {
         ),
     },
     {
-      title: '操作资源',
-      dataIndex: 'resourceId',
-      width: 180,
-      copyable: true,
-      render: (_, record) =>
-        record.resourceId ? (
-          <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
-            {record.resourceId}
-          </Text>
-        ) : (
-          '-'
-        ),
-    },
-    {
-      title: 'IP 地址',
+      title: '来源地址',
       dataIndex: 'ipAddress',
       width: 140,
       search: false,
-      render: (_, record) => record.ipAddress || '-',
-    },
-    {
-      title: '请求 / 追踪编号',
-      dataIndex: 'requestId',
-      width: 180,
-      search: false,
-      render: (_, record) => (
-        <Space vertical size={0}>
-          {record.requestId && (
-            <Text copyable style={{ fontSize: 11, fontFamily: 'monospace' }}>
-              Req: {record.requestId}
-            </Text>
-          )}
-          {record.traceId && (
-            <Text copyable type="secondary" style={{ fontSize: 11, fontFamily: 'monospace' }}>
-              Trace: {record.traceId}
-            </Text>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: '变更详情',
-      dataIndex: 'details',
-      width: 110,
-      search: false,
-      render: (_, record) => {
-        const entries = Object.entries(record.details ?? {});
-        if (entries.length === 0) return <Text type="secondary">-</Text>;
-
-        return (
-          <Popover
-            title="操作详细参数"
-            trigger="click"
-            content={
-              <Descriptions size="small" column={1} bordered style={{ maxWidth: 360 }}>
-                {entries.map(([key, value]) => (
-                  <Descriptions.Item key={key} label={key}>
-                    <span style={{ wordBreak: 'break-all', fontFamily: 'monospace', fontSize: 12 }}>
-                      {String(value)}
-                    </span>
-                  </Descriptions.Item>
-                ))}
-              </Descriptions>
-            }
-          >
-            <Button type="link" size="small" style={{ padding: 0 }}>
-              查看详情 ({entries.length})
-            </Button>
-          </Popover>
-        );
-      },
+      render: (_, record) => record.ipAddress || '—',
     },
   ];
 
   return (
     <ProTable<API.AdminAuditLog>
       headerTitle={
-        <Space size={8}>
+        <Space size={10}>
           <HistoryOutlined style={{ color: '#1677ff' }} />
-          <span>系统操作与安全审计日志</span>
+          <Space orientation="vertical" size={0}>
+            <Text strong>操作与安全记录</Text>
+            <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
+              查看人员登录、权限和业务资料变更
+            </Text>
+          </Space>
         </Space>
       }
       rowKey="id"
@@ -158,14 +130,88 @@ export default function AuditPanel() {
         const response = await adminServiceListAuditLogs({
           page: params.current,
           pageSize: params.pageSize,
-          action: params.action,
-          startTime: range?.[0] ? dayjs(range[0]).startOf('day').toISOString() : undefined,
-          endTime: range?.[1] ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString() : undefined,
+          startTime: range?.[0]
+            ? dayjs(range[0]).startOf('day').toISOString()
+            : undefined,
+          endTime: range?.[1]
+            ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
+            : undefined,
         });
-        return { data: response.data ?? [], success: response.success ?? true, total: response.total ?? 0 };
+        return {
+          data: response.data ?? [],
+          success: response.success ?? true,
+          total: response.total ?? 0,
+        };
+      }}
+      expandable={{
+        expandedRowRender: (record) => {
+          const presentation = auditActionPresentation(record.action);
+          const target = auditBusinessObject(record);
+          const details = Object.entries(record.details ?? {});
+          return (
+            <Descriptions
+              title="技术详情"
+              size="small"
+              bordered
+              column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
+              items={[
+                {
+                  key: 'summary',
+                  label: '业务说明',
+                  children: `${auditActorName(record)} · ${presentation.title} · ${target.name}`,
+                  span: 'filled',
+                },
+                {
+                  key: 'action',
+                  label: '原始动作码',
+                  children: technicalText(record.action),
+                },
+                {
+                  key: 'actor',
+                  label: '操作人用户 ID',
+                  children: technicalText(record.userId),
+                },
+                {
+                  key: 'audit',
+                  label: '审计记录 ID',
+                  children: technicalText(record.id),
+                },
+                {
+                  key: 'resourceType',
+                  label: '资源类型',
+                  children: technicalText(record.resourceType),
+                },
+                {
+                  key: 'resourceId',
+                  label: '资源 ID',
+                  children: technicalText(record.resourceId),
+                },
+                {
+                  key: 'request',
+                  label: '请求编号',
+                  children: technicalText(record.requestId),
+                },
+                {
+                  key: 'trace',
+                  label: '追踪编号',
+                  children: technicalText(record.traceId),
+                },
+                ...details.map(([key, value]) => ({
+                  key: `detail-${key}`,
+                  label: auditDetailLabel(key),
+                  children: technicalText(String(value)),
+                })),
+              ]}
+            />
+          );
+        },
       }}
       toolBarRender={() => [
-        <Button key="refresh" icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>
+        <Button
+          key="refresh"
+          icon={<ReloadOutlined />}
+          onClick={() => actionRef.current?.reload()}
+        >
           刷新
         </Button>,
       ]}

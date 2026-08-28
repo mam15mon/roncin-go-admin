@@ -536,6 +536,8 @@ message AdminAuditLog {
   string ip_address = 10;
   map<string, string> details = 11;
   string created_at = 12;
+  optional string actor_display_name = 13;
+  optional string target_display_name = 14;
 }
 
 message ListAuditLogsResponse {
