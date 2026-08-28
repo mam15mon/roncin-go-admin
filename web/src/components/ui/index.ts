@@ -11,3 +11,4 @@ export * from './search-filter-template';
 export * from './date-presets';
 export * from './quick-date-picker';
 export * from './sub-entity-drawer';
+export * from './quick-create-modal';
