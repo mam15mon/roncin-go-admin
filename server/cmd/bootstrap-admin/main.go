@@ -117,12 +117,26 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return err
 	}
+	existingPermissions, err := tx.Permission.Query().All(ctx)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("query existing permissions: %w", err)
+	}
+	existingPermissionsByKey := make(map[string]*ent.Permission, len(existingPermissions))
+	for _, item := range existingPermissions {
+		existingPermissionsByKey[item.Key] = item
+	}
 	permissions := make([]*ent.Permission, 0, len(access.Manifest()))
 	for _, definition := range access.Manifest() {
-		permission, createErr := tx.Permission.Create().SetKey(definition.Key).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
-		if createErr != nil {
+		permission := existingPermissionsByKey[definition.Key]
+		if permission == nil {
+			permission, err = tx.Permission.Create().SetKey(definition.Key).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
+		} else {
+			permission, err = permission.Update().SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
+		}
+		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("create permission %s: %w", definition.Key, createErr)
+			return fmt.Errorf("synchronize permission %s: %w", definition.Key, err)
 		}
 		permissions = append(permissions, permission)
 	}
