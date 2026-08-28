@@ -143,7 +143,21 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 	return credential, true, err
 }
 
-func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, bool, error) {
+func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, error) {
+	if identity == nil || strings.TrimSpace(identity.UnionID) == "" {
+		return nil, biz.ErrDingTalkLoginFailed
+	}
+	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrDingTalkNotRegistered
+		}
+		return nil, err
+	}
+	return r.credentialForAccount(ctx, account)
+}
+
+func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, bool, error) {
 	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrDingTalkLoginFailed
 	}
@@ -151,24 +165,9 @@ func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity 
 	dingtalkName := strings.TrimSpace(identity.Name)
 	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
 	if err == nil {
-		update := account.Update()
-		changed := false
-		if account.DingtalkName == nil || *account.DingtalkName != dingtalkName {
-			update.SetDingtalkName(dingtalkName)
-			changed = true
-		}
-		if identity.AvatarURL != nil {
-			avatarURL := strings.TrimSpace(*identity.AvatarURL)
-			if avatarURL != "" && (account.AvatarURL == nil || *account.AvatarURL != avatarURL) {
-				update.SetAvatarURL(avatarURL)
-				changed = true
-			}
-		}
-		if changed {
-			account, err = update.Save(ctx)
-			if err != nil {
-				return nil, false, err
-			}
+		account, err = updateDingTalkProfile(ctx, account, identity)
+		if err != nil {
+			return nil, false, err
 		}
 		credential, credentialErr := r.credentialForAccount(ctx, account)
 		return credential, false, credentialErr
@@ -186,9 +185,7 @@ func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity 
 		_ = tx.Rollback()
 		return nil, false, err
 	}
-	digest := sha256.Sum256([]byte(unionID))
-	username := "dingtalk_" + hex.EncodeToString(digest[:12])
-	create := tx.User.Create().SetUsername(username).SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkName(dingtalkName).SetEnabled(false)
+	create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkName(dingtalkName).SetEnabled(false)
 	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
 		create.SetEmail(strings.TrimSpace(*identity.Email))
 	}
@@ -213,6 +210,27 @@ func (r *authRepo) FindOrCreateDingTalkCredential(ctx context.Context, identity 
 	}
 	credential, err := r.credentialForAccount(ctx, account)
 	return credential, true, err
+}
+
+func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz.DingTalkIdentity) (*ent.User, error) {
+	update := account.Update()
+	changed := false
+	dingtalkName := strings.TrimSpace(identity.Name)
+	if dingtalkName != "" && (account.DingtalkName == nil || *account.DingtalkName != dingtalkName) {
+		update.SetDingtalkName(dingtalkName)
+		changed = true
+	}
+	if identity.AvatarURL != nil {
+		avatarURL := strings.TrimSpace(*identity.AvatarURL)
+		if avatarURL != "" && (account.AvatarURL == nil || *account.AvatarURL != avatarURL) {
+			update.SetAvatarURL(avatarURL)
+			changed = true
+		}
+	}
+	if !changed {
+		return account, nil
+	}
+	return update.Save(ctx)
 }
 
 func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) (*biz.Credential, error) {
