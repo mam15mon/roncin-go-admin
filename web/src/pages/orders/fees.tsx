@@ -1,8 +1,6 @@
 import {
   ArrowLeftOutlined,
-  FileDoneOutlined,
   LockOutlined,
-  PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type {
@@ -10,7 +8,6 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
   App,
@@ -20,7 +17,6 @@ import {
   Input,
   Space,
   Spin,
-  Tabs,
   Tag,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -32,6 +28,7 @@ import FeeFormModal, {
 } from './components/fees/FeeFormModal';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
+import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
@@ -39,7 +36,6 @@ import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
-  orderFeeServiceListFees,
   orderFeeServiceRemoveFee,
   orderFeeServiceReopenFee,
   orderFeeServiceResolveFeeExchangeRate,
@@ -54,11 +50,7 @@ import {
 } from './order-fee-decimal';
 import {
   FEE_BILLED,
-  FEE_CANCELLED,
-  FEE_CONFIRMED,
-  PAYABLE,
   RECEIVABLE,
-  feeDirectionCode,
   feeStatusCode,
 } from './components/fees/feeConstants';
 
@@ -592,173 +584,28 @@ export default function OrderFeesPage() {
         />
 
         {/* 3. 费用表格工作区 */}
-        <Tabs
-          type="card"
-          defaultActiveKey="receivable"
-          items={[
-            {
-              key: 'receivable',
-              label: (
-                <Space>
-                  <span>应收费用</span>
-                  <Tag color="blue">{receivableSummary.count}</Tag>
-                </Space>
-              ),
-              children: (
-                <ProTable<API.OrderFee>
-                  actionRef={receivableActionRef}
-                  rowKey="id"
-                  search={false}
-                  bordered
-                  pagination={false}
-                  rowSelection={{
-                    selectedRowKeys: selectedReceivableFeeIds,
-                    onChange: setSelectedReceivableFeeIds,
-                    getCheckboxProps: (record) => ({
-                      disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
-                    }),
-                  }}
-                  tableAlertRender={({ selectedRowKeys }) =>
-                    `已选择 ${selectedRowKeys.length} 笔已确认应收费用`
-                  }
-                  toolBarRender={() =>
-                    [
-                      access.canCreateFinanceBills && (
-                        <Button
-                          key="bill"
-                          icon={<FileDoneOutlined />}
-                          disabled={selectedReceivableFeeIds.length === 0}
-                          onClick={() => {
-                            setBillWorkbenchFeeIds(
-                              selectedReceivableFeeIds.map(String),
-                            );
-                            setBillWorkbenchOpen(true);
-                          }}
-                        >
-                          生成账单（{selectedReceivableFeeIds.length}）
-                        </Button>
-                      ),
-                      <Button
-                        key="add"
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        disabled={financeLocked}
-                        onClick={() => openFeeModal(RECEIVABLE)}
-                      >
-                        + 新增应收费用
-                      </Button>,
-                    ].filter(Boolean)
-                  }
-                  request={async () => {
-                    if (!orderId) return { data: [], success: true };
-                    const res = await orderFeeServiceListFees({ orderId });
-                    const rItems = (res.data ?? []).filter(
-                      (f) => feeDirectionCode(f.direction) === RECEIVABLE,
-                    );
-                    setAllReceivableItems(rItems);
-                    const activeItems = rItems.filter(
-                      (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                    );
-                    const total = activeItems.reduce(
-                      (acc, cur) =>
-                        acc +
-                        (cur.baseCurrencyAmount
-                          ? Number(cur.baseCurrencyAmount)
-                          : 0),
-                      0,
-                    );
-                    setReceivableSummary({
-                      totalAmount: total,
-                      count: rItems.length,
-                    });
-                    return { data: rItems, success: true };
-                  }}
-                  columns={getTableColumns(RECEIVABLE)}
-                />
-              ),
-            },
-            {
-              key: 'payable',
-              label: `应付费用 (${payableSummary.count})`,
-              children: (
-                <ProTable<API.OrderFee>
-                  actionRef={payableActionRef}
-                  rowKey="id"
-                  search={false}
-                  bordered
-                  size="small"
-                  pagination={false}
-                  rowSelection={{
-                    selectedRowKeys: selectedPayableFeeIds,
-                    onChange: setSelectedPayableFeeIds,
-                    getCheckboxProps: (record) => ({
-                      disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
-                    }),
-                  }}
-                  tableAlertRender={({ selectedRowKeys }) =>
-                    `已选择 ${selectedRowKeys.length} 笔已确认应付费用`
-                  }
-                  toolBarRender={() =>
-                    [
-                      access.canCreateFinanceBills && (
-                        <Button
-                          key="bill"
-                          icon={<FileDoneOutlined />}
-                          disabled={selectedPayableFeeIds.length === 0}
-                          onClick={() => {
-                            setBillWorkbenchFeeIds(
-                              selectedPayableFeeIds.map(String),
-                            );
-                            setBillWorkbenchOpen(true);
-                          }}
-                        >
-                          生成账单（{selectedPayableFeeIds.length}）
-                        </Button>
-                      ),
-                      <Button
-                        key="add"
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        disabled={financeLocked}
-                        style={{
-                          backgroundColor: '#fa8c16',
-                          borderColor: '#fa8c16',
-                        }}
-                        onClick={() => openFeeModal(PAYABLE)}
-                      >
-                        + 新增应付费用
-                      </Button>,
-                    ].filter(Boolean)
-                  }
-                  request={async () => {
-                    if (!orderId) return { data: [], success: true };
-                    const res = await orderFeeServiceListFees({ orderId });
-                    const pItems = (res.data ?? []).filter(
-                      (f) => feeDirectionCode(f.direction) === PAYABLE,
-                    );
-                    setAllPayableItems(pItems);
-                    const activeItems = pItems.filter(
-                      (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                    );
-                    const total = activeItems.reduce(
-                      (acc, cur) =>
-                        acc +
-                        (cur.baseCurrencyAmount
-                          ? Number(cur.baseCurrencyAmount)
-                          : 0),
-                      0,
-                    );
-                    setPayableSummary({
-                      totalAmount: total,
-                      count: pItems.length,
-                    });
-                    return { data: pItems, success: true };
-                  }}
-                  columns={getTableColumns(PAYABLE)}
-                />
-              ),
-            },
-          ]}
+        <OrderFeeTableTabs
+          orderId={orderId || ''}
+          receivableActionRef={receivableActionRef}
+          payableActionRef={payableActionRef}
+          receivableSummary={receivableSummary}
+          payableSummary={payableSummary}
+          selectedReceivableFeeIds={selectedReceivableFeeIds}
+          setSelectedReceivableFeeIds={setSelectedReceivableFeeIds}
+          selectedPayableFeeIds={selectedPayableFeeIds}
+          setSelectedPayableFeeIds={setSelectedPayableFeeIds}
+          setAllReceivableItems={setAllReceivableItems}
+          setAllPayableItems={setAllPayableItems}
+          setReceivableSummary={setReceivableSummary}
+          setPayableSummary={setPayableSummary}
+          canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
+          financeLocked={financeLocked}
+          onOpenBillWorkbench={(feeIds) => {
+            setBillWorkbenchFeeIds(feeIds);
+            setBillWorkbenchOpen(true);
+          }}
+          onOpenFeeModal={openFeeModal}
+          getTableColumns={getTableColumns}
         />
 
         {/* 底部双层多币种动态汇总看板 */}
