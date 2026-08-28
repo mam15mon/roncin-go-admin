@@ -118,6 +118,11 @@ scripts/                  根目录开发与构建辅助脚本
 生成文件只通过生成器更新，不手工修补。若生成结果异常，先修正源文件或生成
 配置，再重新生成。
 
+修改 `server/internal/access/manifest.go`（新增、改名或删除权限码，或调整
+`Requires` 依赖）后，执行 `pnpm run generate:permission-keys` 重新生成
+`web/src/permissions.generated.ts`，使 `web/src/access.ts` 的权限键名在
+编译期与后端清单对齐；该生成物同样与源文件放在同一提交中。
+
 ## 日常命令
 
 在仓库根目录执行：
@@ -129,6 +134,7 @@ pnpm run dev:web
 pnpm run dev:server
 pnpm run dev:permit
 pnpm run generate:web-client
+pnpm run generate:permission-keys
 pnpm run check:web
 pnpm run check:server
 pnpm run check
@@ -168,6 +174,10 @@ pnpm --dir web biome:lint
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
   并随代码提交迁移；不得绕过 Ent 在业务代码中散落手写 SQL（确有必要时说明
   原因并集中封装在 `internal/data`）。
+- 权限目录随 `cmd/migrate` 自动同步：`pnpm run migrate:server`（生产发版的
+  迁移步骤同样执行该命令）在迁移完成后按 `internal/access` 的 Manifest 幂等
+  同步 `permissions` 表，并为 `administrator` 角色补挂缺失权限。新增权限码
+  不需要单独跑 `pnpm run dev:permit`，该脚本仅保留作开发期手工兜底。
 - 生产采用同域部署：Go 服务提供 `/api/*`、`/health/*` 以及 React 静态资源。
   修改静态资源打包或路由时，同时验证开发期代理和生产同域路径。
 
