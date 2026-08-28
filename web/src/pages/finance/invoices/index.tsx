@@ -5,51 +5,41 @@ import {
   PlusOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import {
-  type ActionType,
-  type ProColumns,
-  ProTable,
+import type {
+  ActionType,
+  ProColumns,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
+import {
+  App,
+  Form,
+  Input,
+  Space,
+  Tag,
+} from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
+import React, { useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
-import {
-  App,
-  DatePicker,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  Modal,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Typography,
-} from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
 import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
   settlementServiceGetInvoice,
   settlementServiceIssueInvoice,
-  settlementServiceListBills,
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
+import InvoiceCreateModal from './components/InvoiceCreateModal';
+import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
+import {
+  InvoiceIssueModal,
+  InvoiceRedFlushModal,
+} from './components/InvoiceIssueAndRedFlushModals';
+import { invoiceStates } from './components/invoiceConstants';
 
-const { Text } = Typography;
-
-const states: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '待开具', color: 'gold' },
-  ISSUED: { text: '已开具', color: 'green' },
-  CANCELLED: { text: '已取消/作废', color: 'default' },
-  RED_FLUSHED: { text: '已红冲', color: 'red' },
-};
 type CreateValues = {
   invoiceProfileId: string;
   invoiceType: string;
@@ -130,6 +120,7 @@ export default function FinanceInvoicesPage() {
       message.error(error.message || '加载开票详情失败');
     }
   };
+
   const createInvoice = async () => {
     const values = await createForm.validateFields();
     if (!selectedIDs.length) {
@@ -159,6 +150,7 @@ export default function FinanceInvoicesPage() {
       setSubmitting(false);
     }
   };
+
   const issueInvoice = async () => {
     if (!issueTarget?.id || !issueTarget.version) return;
     const values = await issueForm.validateFields();
@@ -182,9 +174,10 @@ export default function FinanceInvoicesPage() {
       setSubmitting(false);
     }
   };
+
   const cancelInvoice = (row: API.FinanceInvoice) => {
-    const id = row.id,
-      version = row.version;
+    const id = row.id;
+    const version = row.version;
     if (!id || !version) return;
     let reason = '';
     modal.confirm({
@@ -213,6 +206,7 @@ export default function FinanceInvoicesPage() {
       },
     });
   };
+
   const redFlushInvoice = async () => {
     if (!redFlushTarget?.id || !redFlushTarget.version) return;
     const values = await redFlushForm.validateFields();
@@ -237,6 +231,7 @@ export default function FinanceInvoicesPage() {
       setSubmitting(false);
     }
   };
+
   const columns: ProColumns<API.FinanceInvoice>[] = [
     {
       title: '关键词',
@@ -269,11 +264,11 @@ export default function FinanceInvoicesPage() {
       width: 90,
       valueType: 'select',
       valueEnum: Object.fromEntries(
-        Object.entries(states).map(([k, v]) => [k, { text: v.text }]),
+        Object.entries(invoiceStates).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
-        const v = states[r.status || 'DRAFT'];
-        return <Tag color={v.color}>{v.text}</Tag>;
+        const v = invoiceStates[r.status || 'DRAFT'];
+        return <Tag color={v?.color}>{v?.text}</Tag>;
       },
     },
     {
@@ -310,14 +305,18 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) => {
         if (!r.exchangeRate) {
-          return r.status === 'DRAFT' ? <span style={{ color: '#8c8c8c' }}>开票时确定</span> : '-';
+          return r.status === 'DRAFT' ? (
+            <span style={{ color: '#8c8c8c' }}>开票时确定</span>
+          ) : (
+            '-'
+          );
         }
         const sourceLabel =
           r.exchangeRateSource === 'MANUAL'
             ? '手工'
             : r.exchangeRateSource === 'BASE_CURRENCY'
-            ? '本币'
-            : '系统';
+              ? '本币'
+              : '系统';
         const sourceColor =
           r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
@@ -338,7 +337,11 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) =>
         r.baseCurrencyAmount ? (
-          <strong style={{ color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16' }}>
+          <strong
+            style={{
+              color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
+            }}
+          >
             {r.baseCurrencyAmount} {r.baseCurrency}
           </strong>
         ) : (
@@ -412,6 +415,7 @@ export default function FinanceInvoicesPage() {
       ],
     },
   ];
+
   const metricCards: FinanceLedgerMetricCard[] = [
     {
       key: 'total-invoices',
@@ -452,21 +456,18 @@ export default function FinanceInvoicesPage() {
         columns={columns}
         metricCards={metricCards}
         scrollX={1600}
-        primaryActionText="新建开票记录"
-        primaryActionIcon={<PlusOutlined />}
-        onPrimaryAction={
-          access.canCreateFinanceInvoices
-            ? () => {
-                setSelectedIDs([]);
-                setSelectedBills([]);
-                setAvailableProfiles([]);
-                setSelectedProfile(undefined);
-                createForm.resetFields();
-                createForm.setFieldsValue({ invoiceType: 'NORMAL' });
-                setCreateOpen(true);
-              }
-            : undefined
+        primaryActionText={
+          access.canCreateFinanceInvoices ? '从账单创建开票' : undefined
         }
+        primaryActionIcon={<PlusOutlined />}
+        onPrimaryAction={() => {
+          setSelectedIDs([]);
+          setSelectedBills([]);
+          setAvailableProfiles([]);
+          setSelectedProfile(undefined);
+          createForm.resetFields();
+          setCreateOpen(true);
+        }}
         request={async (p) => {
           const r = await settlementServiceListInvoices({
             page: p.current,
@@ -476,22 +477,15 @@ export default function FinanceInvoicesPage() {
             status: p.status,
           });
           const list = r.data || [];
-          let recTotal = 0;
-          let payTotal = 0;
-          let issued = 0;
-          for (const item of list) {
-            const amount = Number(item.totalAmount || 0);
-            if (item.direction === 'RECEIVABLE') {
-              recTotal += amount;
-            } else if (item.direction === 'PAYABLE') {
-              payTotal += amount;
-            }
-            if (item.status === 'ISSUED') {
-              issued += 1;
-            }
-          }
+          const recTotal = list
+            .filter((x) => x.direction === 'RECEIVABLE')
+            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
+          const payTotal = list
+            .filter((x) => x.direction === 'PAYABLE')
+            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
+          const issued = list.filter((x) => x.status === 'ISSUED').length;
           setMetricStats({
-            totalCount: Number(r.total || 0),
+            totalCount: Number(r.total || list.length),
             receivableTotal: recTotal,
             payableTotal: payTotal,
             issuedCount: issued,
@@ -503,362 +497,44 @@ export default function FinanceInvoicesPage() {
           };
         }}
       />
-      <Modal
-        title="从已确认账单创建开票记录"
+
+      <InvoiceCreateModal
         open={createOpen}
-        width={1050}
-        confirmLoading={submitting}
         onCancel={() => setCreateOpen(false)}
-        onOk={() => void createInvoice()}
-      >
-        <Form form={createForm} layout="inline" style={{ marginBottom: 12 }}>
-          <Form.Item
-            name="invoiceProfileId"
-            label="开票抬头"
-            rules={[{ required: true, message: '请选择开票抬头' }]}
-          >
-            <Select
-              style={{ width: 300 }}
-              placeholder={
-                selectedBills[0] ? '请选择该客户的开票抬头' : '请先选择账单'
-              }
-              disabled={!selectedBills[0]}
-              options={availableProfiles.map((item) => ({
-                value: item.id,
-                label: `${item.invoiceTitle}${item.isDefault ? '（默认）' : ''}`,
-              }))}
-              onChange={(id) => {
-                const profile = availableProfiles.find(
-                  (item) => item.id === id,
-                );
-                setSelectedProfile(profile);
-                if (profile?.defaultInvoiceType) {
-                  createForm.setFieldValue(
-                    'invoiceType',
-                    profile.defaultInvoiceType,
-                  );
-                }
-              }}
-            />
-          </Form.Item>
-          <Form.Item
-            name="invoiceType"
-            label="发票类型"
-            rules={[{ required: true }]}
-          >
-            <Select
-              style={{ width: 150 }}
-              options={[
-                { value: 'NORMAL', label: '普通发票' },
-                { value: 'SPECIAL', label: '专用发票' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item name="note" label="备注">
-            <Input style={{ width: 360 }} maxLength={500} />
-          </Form.Item>
-        </Form>
-        {selectedBills[0] && (
-          <Descriptions
-            bordered
-            size="small"
-            column={3}
-            style={{ marginBottom: 12 }}
-          >
-            <Descriptions.Item label="已选开票抬头" span={2}>
-              {selectedProfile?.invoiceTitle || (
-                <Text type="danger">未配置</Text>
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="默认票种">
-              {selectedProfile?.defaultInvoiceType === 'SPECIAL'
-                ? '专用发票'
-                : selectedProfile
-                  ? '普通发票'
-                  : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="纳税人识别号" span={3}>
-              {selectedProfile?.taxpayerIdentificationNo || '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-        <ProTable<API.FinanceBill>
-          rowKey="id"
-          options={false}
-          size="small"
-          bordered
-          columns={[
-            { title: '账单编号', dataIndex: 'billNo' },
-            {
-              title: '方向',
-              dataIndex: 'direction',
-              renderText: (v) => (v === 'RECEIVABLE' ? '销项' : '进项'),
-            },
-            { title: '结算单位', dataIndex: 'settlementPartyName' },
-            {
-              title: '金额',
-              render: (_, r) => `${r.totalAmount} ${r.currency}`,
-            },
-            { title: '税额', dataIndex: 'taxAmount' },
-          ]}
-          rowSelection={{
-            selectedRowKeys: selectedIDs,
-            preserveSelectedRowKeys: true,
-            onChange: (keys, rows) => {
-              const m = new Map(selectedBills.map((x) => [x.id, x]));
-              rows.forEach((x) => {
-                m.set(x.id, x);
-              });
-              setSelectedIDs(keys);
-              setSelectedBills(
-                keys
-                  .map((k) => m.get(String(k)))
-                  .filter(Boolean) as API.FinanceBill[],
-              );
-              const first = keys.map((key) => m.get(String(key))).find(Boolean);
-              if (
-                first?.settlementPartyId !== selectedBills[0]?.settlementPartyId
-              ) {
-                void loadSelectedProfiles(first?.settlementPartyId);
-              } else if (!first) {
-                void loadSelectedProfiles(undefined);
-              }
-            },
-            getCheckboxProps: (r) => {
-              const f = selectedBills[0];
-              return {
-                disabled:
-                  Boolean(f) &&
-                  (r.direction !== f.direction ||
-                    r.settlementPartyId !== f.settlementPartyId ||
-                    r.currency !== f.currency),
-              };
-            },
-          }}
-          request={async (p) => {
-            const r = await settlementServiceListBills({
-              page: p.current,
-              pageSize: p.pageSize,
-              status: 'CONFIRMED',
-            });
-            return {
-              data: r.data || [],
-              total: Number(r.total || 0),
-              success: r.success ?? true,
-            };
-          }}
-        />
-      </Modal>
-      <Modal
-        title="确认开具发票"
+        submitting={submitting}
+        createForm={createForm}
+        selectedBills={selectedBills}
+        selectedIDs={selectedIDs}
+        setSelectedIDs={setSelectedIDs}
+        setSelectedBills={setSelectedBills}
+        availableProfiles={availableProfiles}
+        selectedProfile={selectedProfile}
+        setSelectedProfile={setSelectedProfile}
+        loadSelectedProfiles={loadSelectedProfiles}
+        onOk={createInvoice}
+      />
+
+      <InvoiceIssueModal
         open={Boolean(issueTarget)}
-        confirmLoading={submitting}
+        submitting={submitting}
+        issueForm={issueForm}
         onCancel={() => setIssueTarget(undefined)}
-        onOk={() => void issueInvoice()}
-      >
-        <Form form={issueForm} layout="vertical">
-          <Form.Item
-            name="taxInvoiceNo"
-            label="税务发票号码"
-            rules={[{ required: true, message: '请输入税务发票号码' }]}
-          >
-            <Input maxLength={100} />
-          </Form.Item>
-          <Form.Item
-            name="invoiceDate"
-            label="开票日期"
-            rules={[{ required: true, message: '请选择开票日期' }]}
-          >
-            <DatePicker />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal
-        title={`红冲发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
+        onOk={issueInvoice}
+      />
+
+      <InvoiceRedFlushModal
         open={Boolean(redFlushTarget)}
-        confirmLoading={submitting}
-        okButtonProps={{ danger: true }}
-        okText="确认红冲"
+        submitting={submitting}
+        redFlushTarget={redFlushTarget}
+        redFlushForm={redFlushForm}
         onCancel={() => setRedFlushTarget(undefined)}
-        onOk={() => void redFlushInvoice()}
-      >
-        <Form form={redFlushForm} layout="vertical">
-          <Form.Item
-            name="redInvoiceNo"
-            label="红字发票号码"
-            rules={[{ required: true, message: '请输入红字发票号码' }]}
-          >
-            <Input maxLength={100} />
-          </Form.Item>
-          <Form.Item
-            name="redInvoiceDate"
-            label="红冲日期"
-            rules={[{ required: true, message: '请选择红冲日期' }]}
-          >
-            <DatePicker />
-          </Form.Item>
-          <Form.Item
-            name="reason"
-            label="红冲原因"
-            rules={[{ required: true, message: '请输入红冲原因' }]}
-          >
-            <Input.TextArea maxLength={500} rows={3} />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Drawer
-        title={`开票详情 ${detail?.recordNo || ''}`}
-        open={Boolean(detail)}
-        size={760}
+        onOk={redFlushInvoice}
+      />
+
+      <InvoiceDetailDrawer
+        detail={detail}
         onClose={() => setDetail(undefined)}
-      >
-        {detail && (
-          <>
-            <Descriptions bordered size="small" column={2}>
-              <Descriptions.Item label="状态">
-                <Tag color={states[detail.status || 'DRAFT'].color}>
-                  {states[detail.status || 'DRAFT'].text}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="税务发票号">
-                {detail.taxInvoiceNo || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="结算单位">
-                {detail.settlementPartyName}
-              </Descriptions.Item>
-              <Descriptions.Item label="发票抬头">
-                {detail.invoiceTitle || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="纳税人识别号" span={2}>
-                {detail.taxpayerIdentificationNo || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="注册地址">
-                {detail.registeredAddress || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="注册电话">
-                {detail.registeredPhone || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="开户银行">
-                {detail.bankName || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="银行账号">
-                {detail.bankAccount || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="开票日期">
-                {detail.invoiceDate || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="未税金额">
-                {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="税额汇总">
-                {detail.taxAmount ? `${detail.taxAmount} ${detail.currency}` : '0.00'}
-              </Descriptions.Item>
-              <Descriptions.Item label="含税总额">
-                <strong style={{ color: '#262626' }}>
-                  {detail.totalAmount} {detail.currency}
-                </strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="开票汇率">
-                {detail.exchangeRate ? (
-                  <Space size={4}>
-                    <span>{detail.exchangeRate}</span>
-                    <Tag
-                      color={
-                        detail.exchangeRateSource === 'MANUAL'
-                          ? 'purple'
-                          : detail.exchangeRateSource === 'BASE_CURRENCY'
-                          ? 'default'
-                          : 'blue'
-                      }
-                    >
-                      {detail.exchangeRateSource === 'MANUAL'
-                        ? '手工'
-                        : detail.exchangeRateSource === 'BASE_CURRENCY'
-                        ? '本币'
-                        : '系统'}
-                    </Tag>
-                  </Space>
-                ) : (
-                  <span style={{ color: '#8c8c8c' }}>草稿（开票时固化）</span>
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="发票折本币">
-                {detail.baseCurrencyAmount ? (
-                  <strong style={{ color: '#1677ff' }}>
-                    {detail.baseCurrencyAmount} {detail.baseCurrency}
-                  </strong>
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="汇率生效日期">
-                {detail.exchangeRateDate || detail.invoiceDate || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="备注" span={2}>
-                {detail.note || '-'}
-              </Descriptions.Item>
-              {detail.cancellationReason && (
-                <Descriptions.Item label="取消原因" span={2}>
-                  {detail.cancellationReason}
-                </Descriptions.Item>
-              )}
-              {detail.redInvoiceNo && (
-                <>
-                  <Descriptions.Item label="红字发票号">
-                    {detail.redInvoiceNo}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="红冲日期">
-                    {detail.redInvoiceDate}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="红冲原因" span={2}>
-                    {detail.redFlushReason}
-                  </Descriptions.Item>
-                </>
-              )}
-            </Descriptions>
-            <Table<API.FinanceInvoiceLine>
-              rowKey="id"
-              size="small"
-              bordered
-              pagination={false}
-              style={{ marginTop: 16 }}
-              dataSource={detail.lines || []}
-              columns={[
-                { title: '行号', dataIndex: 'lineNo', width: 65 },
-                { title: '费用代码', dataIndex: 'itemCode', width: 110 },
-                { title: '开票项目', dataIndex: 'itemName' },
-                {
-                  title: '税率',
-                  dataIndex: 'taxRate',
-                  align: 'right',
-                  render: (value) => `${Number(value)}%`,
-                },
-                { title: '未税金额', dataIndex: 'netAmount', align: 'right' },
-                { title: '税额', dataIndex: 'taxAmount', align: 'right' },
-                { title: '含税金额', dataIndex: 'totalAmount', align: 'right' },
-                { title: '来源行数', dataIndex: 'sourceLineCount', width: 90 },
-              ]}
-            />
-            <Table
-              rowKey="id"
-              size="small"
-              pagination={false}
-              style={{ marginTop: 16 }}
-              dataSource={detail.billLinks || []}
-              columns={[
-                { title: '账单编号', dataIndex: 'billNo' },
-                { title: '金额', dataIndex: 'amount', align: 'right' },
-                { title: '税额', dataIndex: 'taxAmount', align: 'right' },
-                {
-                  title: '关联',
-                  render: (_, r: API.FinanceInvoiceBill) =>
-                    r.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
-                },
-              ]}
-            />
-          </>
-        )}
-      </Drawer>
+      />
     </>
   );
 }
