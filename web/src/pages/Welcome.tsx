@@ -2,7 +2,6 @@ import {
   ApartmentOutlined,
   ContactsOutlined,
   DatabaseOutlined,
-  KeyOutlined,
   OrderedListOutlined,
   RightOutlined,
   SafetyCertificateOutlined,
@@ -11,7 +10,7 @@ import {
 } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
-import { Avatar, Button, Descriptions, Empty, Space, Tag, Typography } from 'antd';
+import { Avatar, Button, Descriptions, Space, Tag, Typography } from 'antd';
 import React from 'react';
 
 const { Text, Title, Paragraph } = Typography;
@@ -228,55 +227,6 @@ export default function Welcome() {
               </ProCard>
             ))}
           </ProCard>
-        </ProCard>
-
-        {/* Permissions Matrix */}
-        <ProCard
-          title={
-            <Space size={8}>
-              <KeyOutlined style={{ color: '#fa8c16' }} />
-              <span>当前已授权功能权限</span>
-              {user?.permissions?.length ? (
-                <Tag color="blue" variant="filled">
-                  共 {user.permissions.length} 项
-                </Tag>
-              ) : null}
-            </Space>
-          }
-          headerBordered
-          variant="outlined"
-        >
-          {user?.permissions && user.permissions.length > 0 ? (
-            <Space wrap size={[6, 8]}>
-              {user.permissions.map((permission) => (
-                <Tag
-                  key={permission}
-                  variant="filled"
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    padding: '2px 8px',
-                    fontFamily: 'monospace',
-                    backgroundColor: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1px solid #dbeafe',
-                  }}
-                >
-                  <KeyOutlined style={{ marginRight: 4, fontSize: 11 }} />
-                  {permission}
-                </Tag>
-              ))}
-            </Space>
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="当前账号或所属角色尚未配置具体功能权限"
-              style={{ margin: '24px 0' }}
-            />
-          )}
-          <Paragraph type="secondary" style={{ marginTop: 16, marginBottom: 0, fontSize: 12 }}>
-            权限清单由后端安全策略与当前组织角色矩阵动态计算生成，决定各菜单入口及按钮操作的可见与可用性。
-          </Paragraph>
         </ProCard>
       </Space>
     </PageContainer>
