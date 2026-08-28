@@ -1,6 +1,5 @@
 import {
   ArrowLeftOutlined,
-  EditOutlined,
   FileDoneOutlined,
   LockOutlined,
   PlusOutlined,
@@ -19,7 +18,6 @@ import {
   Card,
   Empty,
   Input,
-  Popconfirm,
   Space,
   Spin,
   Tabs,
@@ -33,6 +31,7 @@ import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
+import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
@@ -53,35 +52,15 @@ import {
   quantityOrPricePattern,
   trimExactDecimal,
 } from './order-fee-decimal';
-
-const RECEIVABLE = 1;
-const PAYABLE = 2;
-const FEE_DRAFT = 1;
-const FEE_CONFIRMED = 2;
-const FEE_BILLED = 3;
-const FEE_CANCELLED = 4;
-
-const FEE_STATUS_CODES: Record<string, number> = {
-  ORDER_FEE_STATUS_DRAFT: FEE_DRAFT,
-  ORDER_FEE_STATUS_CONFIRMED: FEE_CONFIRMED,
-  ORDER_FEE_STATUS_BILLED: FEE_BILLED,
-  ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
-};
-
-const FEE_DIRECTION_CODES: Record<string, number> = {
-  ORDER_FEE_DIRECTION_RECEIVABLE: RECEIVABLE,
-  ORDER_FEE_DIRECTION_PAYABLE: PAYABLE,
-};
-
-function feeDirectionCode(direction: unknown): number {
-  if (typeof direction === 'number') return direction;
-  return FEE_DIRECTION_CODES[String(direction)] ?? 0;
-}
-
-function feeStatusCode(status: unknown): number {
-  if (typeof status === 'number') return status;
-  return FEE_STATUS_CODES[String(status)] ?? 0;
-}
+import {
+  FEE_BILLED,
+  FEE_CANCELLED,
+  FEE_CONFIRMED,
+  PAYABLE,
+  RECEIVABLE,
+  feeDirectionCode,
+  feeStatusCode,
+} from './components/fees/feeConstants';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -474,166 +453,15 @@ export default function OrderFeesPage() {
     });
   };
 
-  const getTableColumns = (direction: number): ProColumns<API.OrderFee>[] => [
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 90,
-      render: (_, record) => {
-        if (feeStatusCode(record.status) === FEE_CONFIRMED)
-          return <Tag color="green">已确认</Tag>;
-        if (feeStatusCode(record.status) === FEE_BILLED)
-          return <Tag color="blue">已进账单</Tag>;
-        if (feeStatusCode(record.status) === FEE_CANCELLED)
-          return <Tag>已作废</Tag>;
-        return <Tag color="gold">草稿</Tag>;
-      },
-    },
-    {
-      title: '费用代码',
-      dataIndex: 'feeCode',
-      width: 120,
-      copyable: true,
-      render: (_, record) => record.feeCode || '-',
-    },
-    {
-      title: '费用名称',
-      dataIndex: 'feeName',
-      width: 140,
-      render: (_, record) => record.feeName || '-',
-    },
-    {
-      title: '结算单位',
-      dataIndex: 'settlementPartyName',
-      width: 180,
-      ellipsis: true,
-      render: (_, record) => record.settlementPartyName || '-',
-    },
-    {
-      title: '币种',
-      dataIndex: 'currency',
-      width: 80,
-      render: (_, record) => <Tag color="blue">{record.currency}</Tag>,
-    },
-    {
-      title: '单价',
-      dataIndex: 'unitPrice',
-      width: 100,
-      align: 'right',
-      render: (_, record) => trimExactDecimal(record.unitPrice),
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 80,
-      align: 'right',
-      render: (_, record) => trimExactDecimal(record.quantity),
-    },
-    {
-      title: '计费单位',
-      dataIndex: 'billingUnit',
-      width: 90,
-      render: (_, record) => record.billingUnit || '-',
-    },
-    {
-      title: '总金额',
-      dataIndex: 'totalAmount',
-      width: 130,
-      align: 'right',
-      render: (_, record) => (
-        <span
-          style={{
-            fontWeight: 600,
-            color: direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
-          }}
-        >
-          {trimExactDecimal(record.totalAmount)} {record.currency}
-        </span>
-      ),
-    },
-    {
-      title: '汇率',
-      dataIndex: 'exchangeRate',
-      width: 100,
-      align: 'right',
-      render: (_, record) => (
-        <Space size={4}>
-          <span>{trimExactDecimal(record.exchangeRate)}</span>
-          {record.exchangeRateSource === 'MANUAL' && (
-            <Tag color="gold">手工</Tag>
-          )}
-          {record.exchangeRateSource === 'SYSTEM' && (
-            <Tag color="blue">系统</Tag>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: '发生日期',
-      dataIndex: 'expenseDate',
-      width: 220,
-      render: (_, record) => record.expenseDate || '-',
-    },
-    {
-      title: '备注',
-      dataIndex: 'note',
-      ellipsis: true,
-      render: (_, record) => record.note || '-',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 110,
-      fixed: 'right',
-      render: (_, record) => financeLocked ? [] : [
-        (feeStatusCode(record.status) === FEE_DRAFT ||
-          feeStatusCode(record.status) === FEE_BILLED) && (
-          <Button
-            key="edit"
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openFeeModal(direction, record)}
-          >
-            编辑
-          </Button>
-        ),
-        feeStatusCode(record.status) === FEE_DRAFT && (
-          <Popconfirm
-            key="confirm"
-            title="确认后该费用才能进入账单，确定继续？"
-            onConfirm={() => handleConfirmFee(record)}
-          >
-            <Button type="link" size="small">
-              确认
-            </Button>
-          </Popconfirm>
-        ),
-        feeStatusCode(record.status) === FEE_CONFIRMED && (
-          <Button
-            key="reopen"
-            type="link"
-            size="small"
-            onClick={() => handleReopenFee(record)}
-          >
-            撤回
-          </Button>
-        ),
-        (feeStatusCode(record.status) === FEE_DRAFT ||
-          feeStatusCode(record.status) === FEE_CONFIRMED) && (
-          <Button
-            key="cancel"
-            type="link"
-            size="small"
-            danger
-            onClick={() => handleCancelFee(record)}
-          >
-            作废
-          </Button>
-        ),
-      ],
-    },
-  ];
+  const getTableColumns = (direction: number): ProColumns<API.OrderFee>[] =>
+    getOrderFeeTableColumns({
+      direction,
+      financeLocked,
+      onOpenModal: openFeeModal,
+      onConfirmFee: handleConfirmFee,
+      onReopenFee: handleReopenFee,
+      onCancelFee: handleCancelFee,
+    });
 
   if (loading) {
     return (
