@@ -823,16 +823,36 @@ func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(items, func(i, j int) bool {
-		if items[i].Group == items[j].Group {
+	manifestItems := access.Manifest()
+	requiresByKey := make(map[string][]string, len(manifestItems))
+	sequence := make(map[string]int, len(manifestItems))
+	groupRank := make(map[string]int)
+	for index, definition := range manifestItems {
+		requiresByKey[definition.Key] = definition.Requires
+		sequence[definition.Key] = index
+		if _, ok := groupRank[definition.Group]; !ok {
+			groupRank[definition.Group] = len(groupRank)
+		}
+	}
+	// 分组与组内条目均按 Manifest 声明顺序展示，组内不再按权限码字母序打乱；
+	// 清单外的历史权限统一排在末尾。
+	sort.SliceStable(items, func(i, j int) bool {
+		indexI, knownI := sequence[items[i].Key]
+		indexJ, knownJ := sequence[items[j].Key]
+		if knownI != knownJ {
+			return knownJ
+		}
+		if !knownI {
+			if items[i].Group != items[j].Group {
+				return items[i].Group < items[j].Group
+			}
 			return items[i].Key < items[j].Key
 		}
-		return items[i].Group < items[j].Group
+		if groupRank[manifestItems[indexI].Group] != groupRank[manifestItems[indexJ].Group] {
+			return groupRank[manifestItems[indexI].Group] < groupRank[manifestItems[indexJ].Group]
+		}
+		return indexI < indexJ
 	})
-	requiresByKey := make(map[string][]string, len(access.Manifest()))
-	for _, definition := range access.Manifest() {
-		requiresByKey[definition.Key] = definition.Requires
-	}
 	result := make([]*biz.AdminPermission, 0, len(items))
 	for _, item := range items {
 		result = append(result, &biz.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description, Requires: requiresByKey[item.Key]})
