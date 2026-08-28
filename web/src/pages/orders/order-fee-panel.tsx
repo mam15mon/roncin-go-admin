@@ -1,17 +1,9 @@
-import { DollarOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
-  ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDatePicker,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-} from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import {
   Alert,
@@ -23,13 +15,29 @@ import {
   Space,
   Tag,
 } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import React, {
   forwardRef,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react';
+import FeeFormModal, {
+  type FeeFormValues,
+} from './components/fees/FeeFormModal';
+import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
+import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
+import {
+  FEE_BILLED,
+  FEE_CANCELLED,
+  FEE_CONFIRMED,
+  FEE_DRAFT,
+  PAYABLE,
+  RECEIVABLE,
+  feeDirectionCode,
+  feeStatusCode,
+} from './components/fees/feeConstants';
+import { trimExactDecimal } from './order-fee-decimal';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
@@ -40,55 +48,6 @@ import {
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-import {
-  calculateExactFeeTotal,
-  exchangeRatePattern,
-  isPositiveExactDecimal,
-  quantityOrPricePattern,
-  trimExactDecimal,
-} from './order-fee-decimal';
-
-const RECEIVABLE = 1;
-const PAYABLE = 2;
-const FEE_DRAFT = 1;
-const FEE_CONFIRMED = 2;
-const FEE_BILLED = 3;
-const FEE_CANCELLED = 4;
-
-const FEE_STATUS_CODES: Record<string, number> = {
-  ORDER_FEE_STATUS_DRAFT: FEE_DRAFT,
-  ORDER_FEE_STATUS_CONFIRMED: FEE_CONFIRMED,
-  ORDER_FEE_STATUS_BILLED: FEE_BILLED,
-  ORDER_FEE_STATUS_CANCELLED: FEE_CANCELLED,
-};
-
-const FEE_DIRECTION_CODES: Record<string, number> = {
-  ORDER_FEE_DIRECTION_RECEIVABLE: RECEIVABLE,
-  ORDER_FEE_DIRECTION_PAYABLE: PAYABLE,
-};
-
-function feeDirectionCode(direction: unknown): number {
-  if (typeof direction === 'number') return direction;
-  return FEE_DIRECTION_CODES[String(direction)] ?? 0;
-}
-
-function feeStatusCode(status: unknown): number {
-  if (typeof status === 'number') return status;
-  return FEE_STATUS_CODES[String(status)] ?? 0;
-}
-
-type FeeFormValues = {
-  direction: number;
-  feeSettingId: string;
-  settlementPartyId: string;
-  billingUnitId: string;
-  quantity: string;
-  unitPrice: string;
-  currency: string;
-  expenseDate: string | Dayjs;
-  note?: string;
-  exchangeRateOverride?: string;
-};
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -101,16 +60,6 @@ export type OrderFeePanelRef = {
   open: (order: API.Order) => void;
 };
 
-function positiveDecimalRule(pattern: RegExp, precisionMessage: string) {
-  return async (_: unknown, value?: string) => {
-    if (!value) throw new Error('请输入数值');
-    if (!pattern.test(value)) throw new Error(precisionMessage);
-    if (!isPositiveExactDecimal(value, pattern)) {
-      throw new Error('数值必须大于 0');
-    }
-  };
-}
-
 const OrderFeePanel = forwardRef<OrderFeePanelRef>(
   function OrderFeePanel(_, ref) {
     const access = useAccess();
@@ -118,9 +67,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const actionRef = useRef<ActionType | undefined>(undefined);
     const exchangeRateRequestRef = useRef(0);
     const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
-    const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(
-      undefined,
-    );
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
@@ -137,7 +83,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [billingUnits, setBillingUnits] = useState<
       API.OrderFeeBillingUnitOption[]
     >([]);
-    const [selectedFeeSetting, setSelectedFeeSetting] =
+    const [_selectedFeeSetting, setSelectedFeeSetting] =
       useState<API.OrderFeeSettingOption>();
     const [totalPreview, setTotalPreview] = useState<string>();
     const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
@@ -150,27 +96,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       string[]
     >([]);
     const [customerName, setCustomerName] = useState('');
-
-    useImperativeHandle(ref, () => ({
-      open: (record) => {
-        setOrder(record);
-        setDrawerOpen(true);
-        void orderFeeServiceListFeeOptions({ orderId: record.id as string })
-          .then((response) => {
-            setCurrencies(response.currencies ?? []);
-            setSettlementParties(response.settlementParties ?? []);
-            setFeeSettings(response.feeSettings ?? []);
-            setBillingUnits(response.billingUnits ?? []);
-            setFinanceLocked(Boolean(response.financeLocked));
-            setFinanceLockReason(response.financeLockReason || '');
-            setFinanceLockCommissionNos(response.financeLockCommissionNos || []);
-            setCustomerName(response.customerName || '');
-          })
-          .catch((error: Error) =>
-            message.error(error.message || '费用录入选项加载失败'),
-          );
-      },
-    }));
+    const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
+    const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
+      useState(false);
+    const [taxableServices] = useState<API.TaxableService[]>([]);
 
     const resolveExchangeRate = (
       orderId: string,
@@ -178,37 +107,38 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       currency: string,
       expenseDate: string,
     ) => {
-      const requestSequence = ++exchangeRateRequestRef.current;
+      const currentRequestId = ++exchangeRateRequestRef.current;
       setExchangeRateStatus('loading');
-      setExchangeRatePreview(undefined);
-      setManualExchangeRate(false);
-      formRef.current?.setFieldValue('exchangeRateOverride', undefined);
-      void orderFeeServiceResolveFeeExchangeRate(
-        { orderId, direction, currency, expenseDate },
-        { skipErrorHandler: true },
-      )
+      orderFeeServiceResolveFeeExchangeRate({
+        orderId,
+        direction,
+        currency,
+        expenseDate,
+      })
         .then((response) => {
-          if (requestSequence !== exchangeRateRequestRef.current) return;
-          if (!response.exchangeRate) {
-            setExchangeRateStatus('error');
-            message.error('汇率解析结果不完整');
-            return;
-          }
-          setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
-          setExchangeRateStatus('resolved');
-        })
-        .catch((rawError: unknown) => {
-          if (requestSequence !== exchangeRateRequestRef.current) return;
-          const error = rawError as FeeRequestError;
-          const envelope = error.data ?? error.response?.data;
-          if (envelope?.reason === 'FEE_EXCHANGE_RATE_MISSING') {
+          if (currentRequestId !== exchangeRateRequestRef.current) return;
+          if (response.success && response.exchangeRate) {
+            setExchangeRateStatus('resolved');
+            setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
+            if (!editingFee) {
+              setManualExchangeRate(false);
+            }
+          } else {
             setExchangeRateStatus('missing');
-            setManualExchangeRate(access.canOverrideFeeExchangeRate);
-            return;
+            setExchangeRatePreview(undefined);
+            setManualExchangeRate(true);
           }
+        })
+        .catch(() => {
+          if (currentRequestId !== exchangeRateRequestRef.current) return;
           setExchangeRateStatus('error');
-          message.error(envelope?.message || error.message || '汇率解析失败');
+          setExchangeRatePreview(undefined);
+          setManualExchangeRate(true);
         });
+    };
+
+    const handleValuesChange = () => {
+      // values change handler for fee total calculation
     };
 
     const openCreate = () => {
@@ -219,37 +149,58 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       setExchangeRatePreview(undefined);
       setExchangeRateStatus('idle');
       setManualExchangeRate(false);
-      formRef.current?.resetFields();
       setModalOpen(true);
     };
 
     const openEdit = (fee: API.OrderFee) => {
       setEditingFee(fee);
-      setSelectedFeeSetting(
-        feeSettings.find((item) => item.id === fee.feeSettingId),
+      const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
+      setSelectedFeeSetting(setting);
+      setTotalPreview(trimExactDecimal(fee.totalAmount));
+      setExchangeRatePreview(
+        fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
       );
-      setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
-      setExchangeRatePreview(undefined);
-      setExchangeRateStatus('idle');
-      setManualExchangeRate(false);
+      setExchangeRateStatus(fee.exchangeRate ? 'resolved' : 'missing');
+      setManualExchangeRate(fee.exchangeRateSource === 'MANUAL');
       setModalOpen(true);
-      if (order?.id && fee.direction && fee.currency && fee.expenseDate) {
-        resolveExchangeRate(
-          order.id,
-          fee.direction,
-          fee.currency,
-          fee.expenseDate,
-        );
-      }
     };
+
+    useImperativeHandle(ref, () => ({
+      open: async (targetOrder) => {
+        setOrder(targetOrder);
+        setDrawerOpen(true);
+        if (!targetOrder?.id) return;
+        try {
+          const response = await orderFeeServiceListFeeOptions({
+            orderId: targetOrder.id,
+          });
+          setCurrencies(response.currencies ?? []);
+          setSettlementParties(response.settlementParties ?? []);
+          setFeeSettings(response.feeSettings ?? []);
+          setBillingUnits(response.billingUnits ?? []);
+          setFinanceLocked(Boolean(response.financeLocked));
+          setFinanceLockReason(response.financeLockReason ?? '');
+          setFinanceLockCommissionNos(response.financeLockCommissionNos ?? []);
+          setCustomerName(response.customerName ?? '');
+        } catch {
+          message.error('加载费用基础选项失败');
+        }
+      },
+    }));
 
     const businessType = order?.businessType;
     const canCreate =
-      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.create');
+      !financeLocked &&
+      businessType !== undefined &&
+      access.canOrder(businessType, 'fee.create');
     const canUpdate =
-      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.update');
+      !financeLocked &&
+      businessType !== undefined &&
+      access.canOrder(businessType, 'fee.update');
     const canDelete =
-      !financeLocked && businessType !== undefined && access.canOrder(businessType, 'fee.delete');
+      !financeLocked &&
+      businessType !== undefined &&
+      access.canOrder(businessType, 'fee.delete');
 
     const requestReason = (
       title: string,
@@ -477,39 +428,71 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       },
     ];
 
-    const initialValues: Partial<FeeFormValues> = editingFee
-      ? {
-          direction: feeDirectionCode(editingFee.direction),
-          feeSettingId: editingFee.feeSettingId,
-          settlementPartyId: editingFee.settlementPartyId,
-          billingUnitId: editingFee.billingUnitId,
-          quantity: trimExactDecimal(editingFee.quantity),
-          unitPrice: trimExactDecimal(editingFee.unitPrice),
-          currency: editingFee.currency,
-          expenseDate: editingFee.expenseDate
-            ? dayjs(editingFee.expenseDate)
-            : undefined,
-          note: editingFee.note,
-        }
-      : {
-          direction: RECEIVABLE,
-          quantity: '1',
-          expenseDate: dayjs(),
-        };
+    const handleModalSubmit = async (values: FeeFormValues) => {
+      if (!order?.id) return false;
+      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
+      const exchangeRateOverride = manualExchangeRate
+        ? values.exchangeRateOverride?.trim() || undefined
+        : undefined;
+      const direction = values.direction ?? RECEIVABLE;
 
-    const exchangeRateSubmissionBlocked =
-      exchangeRateStatus === 'idle' ||
-      exchangeRateStatus === 'loading' ||
-      exchangeRateStatus === 'error' ||
-      (exchangeRateStatus === 'missing' && !manualExchangeRate);
-    const exchangeRateDisplay =
-      exchangeRateStatus === 'loading'
-        ? '解析中'
-        : exchangeRateStatus === 'missing'
-          ? '未配置'
-          : exchangeRateStatus === 'error'
-            ? '解析失败'
-            : (exchangeRatePreview ?? '待解析');
+      try {
+        if (editingFee?.id) {
+          await orderFeeServiceUpdateFee(
+            { orderId: order.id, id: editingFee.id },
+            {
+              orderId: order.id,
+              id: editingFee.id,
+              expectedVersion: editingFee.version ?? '0',
+              direction,
+              feeSettingId: values.feeSettingId,
+              settlementPartyId: values.settlementPartyId,
+              billingUnitId: values.billingUnitId,
+              quantity: values.quantity,
+              unitPrice: values.unitPrice,
+              currency: values.currency,
+              expenseDate,
+              note: values.note?.trim() || undefined,
+              exchangeRateOverride,
+            },
+          );
+          message.success('费用更新成功');
+        } else {
+          await orderFeeServiceAddFee(
+            { orderId: order.id },
+            {
+              orderId: order.id,
+              idempotencyKey: createIdempotencyKeyRef.current,
+              direction,
+              feeSettingId: values.feeSettingId,
+              settlementPartyId: values.settlementPartyId,
+              billingUnitId: values.billingUnitId,
+              quantity: values.quantity,
+              unitPrice: values.unitPrice,
+              currency: values.currency,
+              expenseDate,
+              note: values.note?.trim() || undefined,
+              exchangeRateOverride,
+            },
+            {
+              headers: {
+                'X-Idempotency-Key': createIdempotencyKeyRef.current,
+              },
+            },
+          );
+          message.success('费用录入成功');
+        }
+        setModalOpen(false);
+        actionRef.current?.reload();
+        return true;
+      } catch (error) {
+        const err = error as FeeRequestError;
+        message.error(
+          err.data?.message || err.response?.data?.message || '操作费用失败',
+        );
+        return false;
+      }
+    };
 
     return (
       <>
@@ -583,382 +566,75 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           )}
         </Drawer>
 
-        <ModalForm<FeeFormValues>
-          title={editingFee ? '编辑费用' : '录入费用'}
+        <FeeFormModal
           open={modalOpen}
-          formRef={formRef}
-          initialValues={initialValues}
-          grid
-          modalProps={{
-            destroyOnHidden: true,
-            width: 760,
-            onCancel: () => setModalOpen(false),
-          }}
           onOpenChange={setModalOpen}
-          submitter={{
-            submitButtonProps: { disabled: exchangeRateSubmissionBlocked },
-          }}
-          onValuesChange={(changed, values) => {
-            if ('feeSettingId' in changed) {
-              const setting = feeSettings.find(
-                (item) => item.id === values.feeSettingId,
+          editingFee={editingFee}
+          modalDirection={
+            editingFee
+              ? feeDirectionCode(editingFee.direction)
+              : RECEIVABLE
+          }
+          isFeeBilled={feeStatusCode(editingFee?.status) === FEE_BILLED}
+          feeSettings={feeSettings}
+          settlementParties={settlementParties}
+          currencies={currencies}
+          billingUnits={billingUnits}
+          totalPreview={totalPreview}
+          exchangeRateStatus={exchangeRateStatus}
+          exchangeRatePreview={exchangeRatePreview}
+          manualExchangeRate={manualExchangeRate}
+          setManualExchangeRate={setManualExchangeRate}
+          onOpenQuickAddFee={() => setQuickAddFeeModalOpen(true)}
+          onOpenQuickAddPartner={() => setQuickAddPartnerModalOpen(true)}
+          onValuesChange={handleValuesChange}
+          onFeeSettingSelect={(setting) => {
+            setSelectedFeeSetting(setting);
+            if (setting?.defaultCurrency && order?.id) {
+              resolveExchangeRate(
+                order.id,
+                editingFee ? feeDirectionCode(editingFee.direction) : RECEIVABLE,
+                setting.defaultCurrency,
+                dayjs().format('YYYY-MM-DD'),
               );
-              setSelectedFeeSetting(setting);
-              formRef.current?.setFieldsValue({
-                billingUnitId: setting?.defaultBillingUnitId,
-                currency: setting?.defaultCurrency,
-              });
-              if (
-                setting?.defaultCurrency &&
-                order?.id &&
-                values.direction &&
-                values.expenseDate
-              ) {
-                resolveExchangeRate(
-                  order.id,
-                  values.direction,
-                  setting.defaultCurrency,
-                  dayjs(values.expenseDate).format('YYYY-MM-DD'),
-                );
-              } else {
-                exchangeRateRequestRef.current++;
-                setExchangeRateStatus('idle');
-                setExchangeRatePreview(undefined);
-                setManualExchangeRate(false);
-              }
             }
-            if (
-              'currency' in changed ||
-              'direction' in changed ||
-              'expenseDate' in changed
-            ) {
-              if (
-                order?.id &&
-                values.currency &&
-                values.direction &&
-                values.expenseDate
-              ) {
-                resolveExchangeRate(
-                  order.id,
-                  values.direction,
-                  values.currency,
-                  dayjs(values.expenseDate).format('YYYY-MM-DD'),
-                );
-              } else {
-                exchangeRateRequestRef.current++;
-                setExchangeRateStatus('idle');
-                setExchangeRatePreview(undefined);
-                setManualExchangeRate(false);
-                formRef.current?.setFieldValue(
-                  'exchangeRateOverride',
-                  undefined,
-                );
-              }
-            }
-            setTotalPreview(
-              calculateExactFeeTotal(values.quantity, values.unitPrice),
-            );
           }}
-          onFinish={async (values) => {
-            if (!order?.id) return false;
-            if (exchangeRateSubmissionBlocked) {
-              message.warning('请先确认当前费用的结算汇率');
-              return false;
-            }
-            const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
-            const payload = {
-              orderId: order.id,
-              direction: values.direction,
-              feeSettingId: values.feeSettingId,
-              settlementPartyId: values.settlementPartyId,
-              billingUnitId: values.billingUnitId,
-              quantity: values.quantity,
-              unitPrice: values.unitPrice,
-              currency: values.currency,
-              expenseDate,
-              note: values.note?.trim() || undefined,
-              exchangeRateOverride: manualExchangeRate
-                ? values.exchangeRateOverride
-                : undefined,
-              taxInclusive: true,
+          onSubmit={handleModalSubmit}
+        />
+
+        <QuickAddFeeModal
+          open={quickAddFeeModalOpen}
+          onCancel={() => setQuickAddFeeModalOpen(false)}
+          currencies={currencies}
+          billingUnits={billingUnits}
+          taxableServices={taxableServices}
+          onSuccess={(created) => {
+            const newOption: API.OrderFeeSettingOption = {
+              id: created.id,
+              nameZh: created.nameZh,
+              feeCode: created.feeCode,
+              defaultBillingUnitId: created.billingUnitId,
+              defaultCurrency: created.defaultCurrency,
+              taxRate: created.taxRate,
             };
-            if (editingFee?.id) {
-              if (!editingFee.version)
-                throw new Error('费用版本信息缺失，请刷新后重试');
-              await orderFeeServiceUpdateFee(
-                { orderId: order.id, id: editingFee.id },
-                {
-                  ...payload,
-                  id: editingFee.id,
-                  expectedVersion: editingFee.version,
-                },
-              );
-              message.success('更新费用成功');
-            } else {
-              await orderFeeServiceAddFee(
-                { orderId: order.id },
-                { ...payload, idempotencyKey: createIdempotencyKeyRef.current },
-              );
-              message.success('录入费用成功');
-            }
-            setModalOpen(false);
-            actionRef.current?.reload();
-            return true;
+            setFeeSettings((prev) => [newOption, ...prev]);
+            setSelectedFeeSetting(newOption);
+            message.success(
+              `已成功新建费用科目【${created.nameZh}】并自动选用`,
+            );
+            setQuickAddFeeModalOpen(false);
           }}
-        >
-          <ProFormSearchableSelect
-            colProps={{ span: 12 }}
-            name="direction"
-            label="应收 / 应付"
-            rules={[{ required: true, message: '请选择收付方向' }]}
-            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            options={[
-              { label: '应收', value: RECEIVABLE },
-              { label: '应付', value: PAYABLE },
-            ]}
-          />
-          <ProFormSearchableSelect
-            colProps={{ span: 24 }}
-            name="feeSettingId"
-            label="费用设置"
-            rules={[{ required: true, message: '请选择费用设置' }]}
-            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            options={feeSettings.map((item) => ({
-              label: `${item.feeCode} - ${item.nameZh}${item.aliasName ? `（${item.aliasName}）` : ''}`,
-              value: item.id,
-              code: item.feeCode,
-              name: item.nameZh,
-              aliasName: item.aliasName,
-            }))}
-            placeholder="请选择适用于当前订单的费用"
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="费用代码"
-            fieldProps={{
-              value: selectedFeeSetting?.feeCode ?? '',
-              disabled: true,
-            }}
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="费用名称"
-            fieldProps={{
-              value: selectedFeeSetting?.nameZh ?? '',
-              disabled: true,
-            }}
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="费用名称（英文）"
-            fieldProps={{
-              value: selectedFeeSetting?.nameEn ?? '',
-              disabled: true,
-            }}
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="税率"
-            fieldProps={{
-              value: selectedFeeSetting?.taxRate
-                ? `${trimExactDecimal(selectedFeeSetting.taxRate)}%`
-                : '',
-              disabled: true,
-            }}
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            label="货物或应税劳务名称"
-            fieldProps={{
-              value: selectedFeeSetting?.taxableServiceName ?? '',
-              disabled: true,
-            }}
-          />
-          <ProFormSearchableSelect
-            colProps={{ span: 12 }}
-            name="settlementPartyId"
-            label="结算单位"
-            rules={[{ required: true, message: '请选择结算单位' }]}
-            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            options={settlementParties.map((item) => ({
-              label: `${item.name} (${item.code})`,
-              value: item.id,
-              code: item.code,
-              name: item.name,
-            }))}
-            placeholder="搜索往来单位"
-          />
-          <ProFormSearchableSelect
-            colProps={{ span: 12 }}
-            name="billingUnitId"
-            label="计费单位"
-            rules={[{ required: true, message: '请选择计费单位' }]}
-            disabled={feeStatusCode(editingFee?.status) === FEE_BILLED}
-            options={billingUnits.map((item) => ({
-              label: `${item.name} (${item.code})`,
-              value: item.id,
-              code: item.code,
-              name: item.name,
-            }))}
-            placeholder="请选择计费单位"
-          />
-          <ProFormSearchableSelect
-            colProps={{ span: 12 }}
-            name="currency"
-            label="币种"
-            rules={[{ required: true, message: '请选择币种' }]}
-            options={currencies.map((item) => ({
-              label: `${item.code} - ${item.name}`,
-              value: item.code,
-              code: item.code,
-              name: item.name,
-            }))}
-            placeholder="请选择币种"
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            name="quantity"
-            label="数量"
-            rules={[
-              { required: true, message: '请输入数量' },
-              {
-                validator: positiveDecimalRule(
-                  quantityOrPricePattern,
-                  '数量最多 10 位整数、4 位小数',
-                ),
-              },
-            ]}
-            fieldProps={{ inputMode: 'decimal' }}
-            placeholder="最多 4 位小数"
-          />
-          <ProFormText
-            colProps={{ span: 12 }}
-            name="unitPrice"
-            label="单价"
-            rules={[
-              { required: true, message: '请输入单价' },
-              {
-                validator: positiveDecimalRule(
-                  quantityOrPricePattern,
-                  '单价最多 10 位整数、4 位小数',
-                ),
-              },
-            ]}
-            fieldProps={{ inputMode: 'decimal' }}
-            placeholder="最多 4 位小数"
-          />
-          {manualExchangeRate ? (
-            <ProFormText
-              key="manual-exchange-rate"
-              colProps={{ span: 12 }}
-              name="exchangeRateOverride"
-              label="手工结算汇率"
-              rules={[
-                { required: true, message: '请输入手工结算汇率' },
-                {
-                  validator: positiveDecimalRule(
-                    exchangeRatePattern,
-                    '汇率最多 10 位整数、8 位小数',
-                  ),
-                },
-              ]}
-              fieldProps={{ inputMode: 'decimal' }}
-              placeholder="最多 8 位小数"
-              extra={
-                <Space size="small">
-                  <span>仅覆盖当前这笔费用</span>
-                  {exchangeRateStatus !== 'missing' && (
-                    <Button
-                      type="link"
-                      size="small"
-                      style={{ padding: 0 }}
-                      onClick={() => {
-                        setManualExchangeRate(false);
-                        formRef.current?.setFieldValue(
-                          'exchangeRateOverride',
-                          undefined,
-                        );
-                      }}
-                    >
-                      取消覆盖
-                    </Button>
-                  )}
-                </Space>
-              }
-            />
-          ) : (
-            <ProFormText
-              key="system-exchange-rate"
-              colProps={{ span: 12 }}
-              label="结算汇率"
-              fieldProps={{ value: exchangeRateDisplay, disabled: true }}
-              extra={
-                access.canOverrideFeeExchangeRate &&
-                exchangeRateStatus === 'resolved' ? (
-                  <Button
-                    type="link"
-                    size="small"
-                    style={{ padding: 0 }}
-                    onClick={() => {
-                      setManualExchangeRate(true);
-                      formRef.current?.setFieldValue(
-                        'exchangeRateOverride',
-                        exchangeRatePreview,
-                      );
-                    }}
-                  >
-                    手工覆盖
-                  </Button>
-                ) : null
-              }
-            />
-          )}
-          <ProFormDatePicker
-            colProps={{ span: 12 }}
-            name="expenseDate"
-            label="费用日期"
-            rules={[{ required: true, message: '请选择费用日期' }]}
-            fieldProps={{ style: { width: '100%' } }}
-          />
-          <ProFormTextArea
-            colProps={{ span: 24 }}
-            name="note"
-            label="备注"
-            fieldProps={{ maxLength: 500, showCount: true }}
-          />
-          {exchangeRateStatus === 'missing' && (
-            <Alert
-              style={{ gridColumn: '1 / -1' }}
-              type="warning"
-              showIcon
-              title="当前费用日期所在期间未配置生效汇率"
-              description={
-                access.canOverrideFeeExchangeRate
-                  ? '你可以仅为当前这笔费用录入手工汇率，该值不会改动公司汇率主数据。'
-                  : '请联系拥有全公司汇率维护权限的人员配置该期间汇率。'
-              }
-            />
-          )}
-          {exchangeRateStatus === 'error' && (
-            <Alert
-              style={{ gridColumn: '1 / -1' }}
-              type="error"
-              showIcon
-              title="汇率解析失败，暂时不能提交费用"
-            />
-          )}
-          <Alert
-            style={{ gridColumn: '1 / -1' }}
-            type="info"
-            showIcon
-            icon={<DollarOutlined />}
-            title={
-              totalPreview
-                ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}；结算汇率：${manualExchangeRate ? '手工录入' : exchangeRateDisplay}`
-                : '总金额由服务端使用精确十进制计算，汇率默认从公司汇率数据带入。'
-            }
-          />
-        </ModalForm>
+        />
+
+        <QuickAddPartnerModal
+          open={quickAddPartnerModalOpen}
+          onCancel={() => setQuickAddPartnerModalOpen(false)}
+          onSuccess={(newOption) => {
+            setSettlementParties((prev) => [newOption, ...prev]);
+            message.success(`已成功新建往来单位【${newOption.name}】并自动选用`);
+            setQuickAddPartnerModalOpen(false);
+          }}
+        />
       </>
     );
   },
