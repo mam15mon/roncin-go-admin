@@ -20708,6 +20708,9 @@
           },
           "recipientDisplayName": {
             "type": "string"
+          },
+          "recipientUserId": {
+            "type": "string"
           }
         },
         "description": "BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。"

@@ -67,11 +67,12 @@ func backgroundTaskRows(id, orgID uuid.UUID, kind, status string, attempts, maxA
 
 func TestBackgroundTaskToBizIncludesNotificationRecipient(t *testing.T) {
 	recipientDisplayName := "张冠楠"
+	recipientUserID := uuid.New()
 	value := backgroundTaskToBiz(&ent.BackgroundTask{
 		Edges: ent.BackgroundTaskEdges{
 			NotificationDelivery: &ent.NotificationDelivery{
 				Edges: ent.NotificationDeliveryEdges{
-					RecipientUser: &ent.User{DisplayName: recipientDisplayName},
+					RecipientUser: &ent.User{ID: recipientUserID, DisplayName: recipientDisplayName},
 				},
 			},
 		},
@@ -79,6 +80,9 @@ func TestBackgroundTaskToBizIncludesNotificationRecipient(t *testing.T) {
 
 	if value.RecipientDisplayName == nil || *value.RecipientDisplayName != recipientDisplayName {
 		t.Fatalf("expected recipient display name %q, got %v", recipientDisplayName, value.RecipientDisplayName)
+	}
+	if value.RecipientUserID == nil || *value.RecipientUserID != recipientUserID {
+		t.Fatalf("expected recipient user ID %q, got %v", recipientUserID, value.RecipientUserID)
 	}
 }
 

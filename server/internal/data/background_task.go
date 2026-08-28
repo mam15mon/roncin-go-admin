@@ -396,9 +396,12 @@ func backgroundTaskToBiz(item *ent.BackgroundTask) *biz.BackgroundTask {
 		return nil
 	}
 	var recipientDisplayName *string
+	var recipientUserID *uuid.UUID
 	if delivery := item.Edges.NotificationDelivery; delivery != nil && delivery.Edges.RecipientUser != nil {
 		name := delivery.Edges.RecipientUser.DisplayName
+		userID := delivery.Edges.RecipientUser.ID
 		recipientDisplayName = &name
+		recipientUserID = &userID
 	}
 	return &biz.BackgroundTask{
 		ID:                   item.ID,
@@ -415,6 +418,7 @@ func backgroundTaskToBiz(item *ent.BackgroundTask) *biz.BackgroundTask {
 		LeaseExpiresAt:       item.LeaseExpiresAt,
 		LastError:            item.LastError,
 		RecipientDisplayName: recipientDisplayName,
+		RecipientUserID:      recipientUserID,
 	}
 }
 

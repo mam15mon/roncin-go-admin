@@ -66,6 +66,7 @@ message BackgroundTask {
   string created_at = 9;
   string updated_at = 10;
   optional string recipient_display_name = 11;
+  optional string recipient_user_id = 12;
 }
 
 // ListBackgroundTasksRequest 查询后台任务列表请求，枚举为零值时不过滤。

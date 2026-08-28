@@ -59,6 +59,7 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 	updatedAt := time.Date(2026, 8, 20, 9, 30, 0, 0, time.UTC)
 	lastError := "import failed"
 	recipientDisplayName := "张冠楠"
+	recipientUserID := uuid.New()
 	value := &biz.BackgroundTask{
 		ID:                   uuid.New(),
 		OrganizationID:       uuid.New(),
@@ -73,6 +74,7 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 		CreatedAt:            createdAt,
 		UpdatedAt:            updatedAt,
 		RecipientDisplayName: &recipientDisplayName,
+		RecipientUserID:      &recipientUserID,
 	}
 	apiTask := backgroundTaskToAPI(value)
 	if apiTask.GetKind() != taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT {
@@ -92,6 +94,9 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 	}
 	if apiTask.GetRecipientDisplayName() != recipientDisplayName {
 		t.Fatalf("expected recipient display name %q, got %q", recipientDisplayName, apiTask.GetRecipientDisplayName())
+	}
+	if apiTask.GetRecipientUserId() != recipientUserID.String() {
+		t.Fatalf("expected recipient user ID %q, got %q", recipientUserID, apiTask.GetRecipientUserId())
 	}
 }
 

@@ -354,6 +354,7 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     recipientDisplayName?: string;
+    recipientUserId?: string;
   };
 
   type BackgroundTaskServiceGetBackgroundTaskParams = {

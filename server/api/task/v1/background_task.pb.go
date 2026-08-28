@@ -155,6 +155,7 @@ type BackgroundTask struct {
 	CreatedAt            string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt            string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	RecipientDisplayName *string                `protobuf:"bytes,11,opt,name=recipient_display_name,json=recipientDisplayName,proto3,oneof" json:"recipient_display_name,omitempty"`
+	RecipientUserId      *string                `protobuf:"bytes,12,opt,name=recipient_user_id,json=recipientUserId,proto3,oneof" json:"recipient_user_id,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -262,6 +263,13 @@ func (x *BackgroundTask) GetUpdatedAt() string {
 func (x *BackgroundTask) GetRecipientDisplayName() string {
 	if x != nil && x.RecipientDisplayName != nil {
 		return *x.RecipientDisplayName
+	}
+	return ""
+}
+
+func (x *BackgroundTask) GetRecipientUserId() string {
+	if x != nil && x.RecipientUserId != nil {
+		return *x.RecipientUserId
 	}
 	return ""
 }
@@ -699,7 +707,7 @@ var File_task_v1_background_task_proto protoreflect.FileDescriptor
 
 const file_task_v1_background_task_proto_rawDesc = "" +
 	"\n" +
-	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xd7\x03\n" +
+	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x9e\x04\n" +
 	"\x0eBackgroundTask\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x1b.task.v1.BackgroundTaskKindR\x04kind\x12'\n" +
@@ -715,9 +723,11 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\n" +
 	" \x01(\tR\tupdatedAt\x129\n" +
-	"\x16recipient_display_name\x18\v \x01(\tH\x01R\x14recipientDisplayName\x88\x01\x01B\r\n" +
+	"\x16recipient_display_name\x18\v \x01(\tH\x01R\x14recipientDisplayName\x88\x01\x01\x12/\n" +
+	"\x11recipient_user_id\x18\f \x01(\tH\x02R\x0frecipientUserId\x88\x01\x01B\r\n" +
 	"\v_last_errorB\x19\n" +
-	"\x17_recipient_display_name\"\xef\x01\n" +
+	"\x17_recipient_display_nameB\x14\n" +
+	"\x12_recipient_user_id\"\xef\x01\n" +
 	"\x1aListBackgroundTasksRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x125\n" +

@@ -81,6 +81,7 @@ type BackgroundTask struct {
 	LeaseExpiresAt       *time.Time
 	LastError            *string
 	RecipientDisplayName *string
+	RecipientUserID      *uuid.UUID
 }
 
 type BackgroundTaskListOptions struct {

@@ -90,11 +90,22 @@ export default function BackgroundTasksPanel() {
     {
       title: '通知对象',
       dataIndex: 'recipientDisplayName',
-      width: 120,
+      width: 320,
       search: false,
       render: (_, record) =>
         record.recipientDisplayName ? (
-          <Text strong>{record.recipientDisplayName}</Text>
+          <div>
+            <Text strong>{record.recipientDisplayName}</Text>
+            {record.recipientUserId ? (
+              <Text
+                type="secondary"
+                copyable={{ text: record.recipientUserId }}
+                style={{ display: 'block', marginTop: 4, fontSize: 12 }}
+              >
+                用户 ID：{record.recipientUserId}
+              </Text>
+            ) : null}
+          </div>
         ) : (
           <Text type="secondary">-</Text>
         ),
