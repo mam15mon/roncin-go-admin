@@ -92,10 +92,12 @@ export default function RolesPanel() {
   );
 
   // Construct permission tree by group
-  const { fullTreeData, allGroupKeys, allLeafKeys } = useMemo(() => {
+  const { fullTreeData, allGroupKeys, allLeafKeys, requiresByPermission, permissionNameByKey } = useMemo(() => {
     const groupMap = new Map<string, API.AdminPermission[]>();
     const leafKeys: string[] = [];
     const groupKeys: string[] = [];
+    const requires: Record<string, string[]> = {};
+    const names: Record<string, string> = {};
 
     (permissions ?? []).forEach((p) => {
       const groupName = p.group || '其他功能权限';
@@ -104,7 +106,11 @@ export default function RolesPanel() {
         groupKeys.push(`group:${groupName}`);
       }
       groupMap.get(groupName)?.push(p);
-      if (p.key) leafKeys.push(p.key);
+      if (p.key) {
+        leafKeys.push(p.key);
+        requires[p.key] = p.requires ?? [];
+        names[p.key] = p.name ?? p.key;
+      }
     });
 
     const tree: PermissionGroupNode[] = Array.from(groupMap.entries()).map(
@@ -119,12 +125,13 @@ export default function RolesPanel() {
           name: p.name ?? p.key ?? '',
           group: groupName,
           description: p.description,
+          requires: p.requires ?? [],
           isLeaf: true,
         })),
       }),
     );
 
-    return { fullTreeData: tree, allGroupKeys: groupKeys, allLeafKeys: leafKeys };
+    return { fullTreeData: tree, allGroupKeys: groupKeys, allLeafKeys: leafKeys, requiresByPermission: requires, permissionNameByKey: names };
   }, [permissions]);
 
   // Filter permission tree by search keyword
@@ -419,6 +426,8 @@ export default function RolesPanel() {
         allLeafKeys={allLeafKeys}
         allGroupKeys={allGroupKeys}
         filteredTreeData={filteredTreeData}
+        requiresByPermission={requiresByPermission}
+        permissionNameByKey={permissionNameByKey}
         selectedPermissionKeys={selectedPermissionKeys}
         setSelectedPermissionKeys={setSelectedPermissionKeys}
         orderOrganizationAccesses={orderOrganizationAccesses}

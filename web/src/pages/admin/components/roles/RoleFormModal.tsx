@@ -23,6 +23,7 @@ import {
   Select,
   Space,
   Tag,
+  Tooltip,
   Tree,
   Typography,
 } from 'antd';
@@ -32,6 +33,7 @@ import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
 } from '@/services/roncin/adminService';
+import { applyPermissionLinkage } from './permissionLinkage';
 import {
   type OrderOrganizationAccess,
   type PermissionGroupNode,
@@ -51,6 +53,8 @@ interface RoleFormModalProps {
   allLeafKeys: string[];
   allGroupKeys: string[];
   filteredTreeData: PermissionGroupNode[];
+  requiresByPermission: Record<string, string[]>;
+  permissionNameByKey: Record<string, string>;
   selectedPermissionKeys: string[];
   setSelectedPermissionKeys: (keys: string[]) => void;
   orderOrganizationAccesses: OrderOrganizationAccess[];
@@ -75,6 +79,8 @@ export default function RoleFormModal({
   allLeafKeys,
   allGroupKeys,
   filteredTreeData,
+  requiresByPermission,
+  permissionNameByKey,
   selectedPermissionKeys,
   setSelectedPermissionKeys,
   orderOrganizationAccesses,
@@ -114,7 +120,10 @@ export default function RoleFormModal({
     const leafKeys = (checkedKeys as string[]).filter(
       (key) => !key.startsWith('group:'),
     );
-    setSelectedPermissionKeys(leafKeys);
+    // 勾选联动：勾选操作权限连带补齐其依赖；取消基础权限级联移除依赖它的权限。
+    setSelectedPermissionKeys(
+      applyPermissionLinkage(selectedPermissionKeys, leafKeys, requiresByPermission),
+    );
   };
 
   return (
@@ -469,6 +478,28 @@ export default function RoleFormModal({
                       >
                         {leaf.key}
                       </Tag>
+                      {leaf.requires && leaf.requires.length > 0 && (
+                        <Tooltip
+                          title={`需先选：${leaf.requires
+                            .map((key) => permissionNameByKey[key] ?? key)
+                            .join('、')}`}
+                        >
+                          <Tag
+                            variant="filled"
+                            style={{
+                              margin: 0,
+                              fontSize: 10,
+                              lineHeight: '16px',
+                              padding: '0 4px',
+                              backgroundColor: '#eff6ff',
+                              color: '#3b82f6',
+                              cursor: 'help',
+                            }}
+                          >
+                            需配套
+                          </Tag>
+                        </Tooltip>
+                      )}
                       {leaf.description && (
                         <span
                           style={{

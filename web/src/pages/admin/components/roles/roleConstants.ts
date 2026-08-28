@@ -43,6 +43,7 @@ export type PermissionLeafNode = {
   name: string;
   group: string;
   description?: string;
+  requires?: string[];
   isLeaf: boolean;
 };
 
