@@ -77,24 +77,36 @@ export const loadingTermsOptions = [
   { label: 'DOOR-DOOR', value: 'DOOR-DOOR' },
 ];
 
-export const seaServiceTypeNames = [
-  '订舱',
-  '拖车',
-  '内装',
-  '报关',
-  '清关',
-  '海外段',
-  '保险',
-  '租箱',
-  '熏蒸',
-  '买单',
-  '办证',
-  '制单',
-  '危险品',
-  '超重',
-  '仓储',
-  '买箱',
+export const seaServiceTypes = [
+  { code: 'BOOKING', name: '订舱' },
+  { code: 'TRUCKING', name: '拖车' },
+  { code: 'STUFFING', name: '内装' },
+  { code: 'CUSTOMS_EXPORT', name: '报关' },
+  { code: 'CUSTOMS_IMPORT', name: '清关' },
+  { code: 'OVERSEA_SEGMENT', name: '海外段' },
+  { code: 'INSURANCE', name: '保险' },
+  { code: 'CONTAINER_LEASE', name: '租箱' },
+  { code: 'FUMIGATION', name: '熏蒸' },
+  { code: 'DOC_BUY', name: '买单' },
+  { code: 'CERTIFICATE', name: '办证' },
+  { code: 'DOC_PREP', name: '制单' },
+  { code: 'DANGEROUS_SERVICE', name: '危险品' },
+  { code: 'OVERWEIGHT_SERVICE', name: '超重' },
+  { code: 'WAREHOUSING', name: '仓储' },
+  { code: 'CONTAINER_PURCHASE', name: '买箱' },
 ] as const;
+
+export function requireSeaServiceTypeOptions<
+  T extends { code?: string; label: string; value: string | number },
+>(options: T[]): T[] {
+  return seaServiceTypes.map(({ code, name }) => {
+    const option = options.find((item) => item.code === code);
+    if (!option) {
+      throw new Error(`缺少海运服务类型主数据：${name}（${code}）`);
+    }
+    return option;
+  });
+}
 
 export const orderPersonnelRoleOptions = [
   { label: '创建人 (CREATOR)', value: 1 },

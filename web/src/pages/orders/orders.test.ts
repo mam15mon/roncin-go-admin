@@ -6,7 +6,8 @@ import {
   businessTypeOptions,
   isMasterDataKind,
   parseOrderKind,
-  seaServiceTypeNames,
+  requireSeaServiceTypeOptions,
+  seaServiceTypes,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeDirectionOptions,
@@ -44,24 +45,25 @@ describe('orders common and config', () => {
       { label: '拼箱', value: 2 },
       { label: '散杂', value: 3 },
     ]);
-    expect(seaServiceTypeNames).toEqual([
-      '订舱',
-      '拖车',
-      '内装',
-      '报关',
-      '清关',
-      '海外段',
-      '保险',
-      '租箱',
-      '熏蒸',
-      '买单',
-      '办证',
-      '制单',
-      '危险品',
-      '超重',
-      '仓储',
-      '买箱',
-    ]);
+    expect(seaServiceTypes[0]).toEqual({ code: 'BOOKING', name: '订舱' });
+    expect(seaServiceTypes).toHaveLength(16);
+  });
+
+  it('按业务编码解析海运服务类型', () => {
+    const options = seaServiceTypes.map(({ code, name }, index) => ({
+      code,
+      label: code === 'BOOKING' ? '自定义订舱名称' : name,
+      value: `id-${index}`,
+    }));
+
+    expect(requireSeaServiceTypeOptions(options)[0]).toEqual({
+      code: 'BOOKING',
+      label: '自定义订舱名称',
+      value: 'id-0',
+    });
+    expect(() => requireSeaServiceTypeOptions(options.slice(1))).toThrow(
+      '缺少海运服务类型主数据：订舱（BOOKING）',
+    );
   });
 
   it('按 REST 枚举名称识别订单主数据类型', () => {

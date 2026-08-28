@@ -44,8 +44,8 @@ import {
   MASTER_DATA_KINDS,
   PARTNER_ROLES,
   parseOrderKind,
+  requireSeaServiceTypeOptions,
   searchPartnersByRole,
-  seaServiceTypeNames,
 } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
@@ -153,12 +153,7 @@ export default function OrderDetailPage() {
 
       const nextServiceTypeOptions =
         config.category === 'sea'
-          ? seaServiceTypeNames.map((name) => {
-              const option = masterData.serviceTypeOptions.find(
-                (item) => item.label === name,
-              );
-              return option || { label: name, value: name };
-            })
+          ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
           : masterData.serviceTypeOptions;
 
       setServiceTypeOptions(nextServiceTypeOptions);
