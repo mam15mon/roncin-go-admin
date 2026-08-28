@@ -1,52 +1,14 @@
 import {
   ApartmentOutlined,
-  ContactsOutlined,
-  DatabaseOutlined,
-  OrderedListOutlined,
-  RightOutlined,
   SafetyCertificateOutlined,
-  SettingOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { history, useModel } from '@umijs/max';
-import { Avatar, Button, Descriptions, Space, Tag, Typography } from 'antd';
+import { useModel } from '@umijs/max';
+import { Avatar, Descriptions, Space, Tag, Typography } from 'antd';
 import React from 'react';
 
 const { Text, Title, Paragraph } = Typography;
-
-const quickLinks = [
-  {
-    title: '订单管理',
-    desc: '全流程跟踪海运、空运及多式联运货代订单，协同单证、集装箱与异常处理',
-    icon: <OrderedListOutlined style={{ fontSize: 24, color: '#1677ff' }} />,
-    path: '/orders',
-  },
-  {
-    title: '往来单位',
-    desc: '统一维护客户、供应商、车队、船东及国外代理档案，管理银行账户与合同条款',
-    icon: <ContactsOutlined style={{ fontSize: 24, color: '#52c41a' }} />,
-    path: '/partners/customers',
-  },
-  {
-    title: '参数设置',
-    desc: '定制业务单据编号规则、费用科目字典、财务汇率基准与订单履约里程碑',
-    icon: <SettingOutlined style={{ fontSize: 24, color: '#1677ff' }} />,
-    path: '/settings',
-  },
-  {
-    title: '主数据中心',
-    desc: '配置全球港口五字码、机场三字码、航司二字码、船司 SCAC 与国家城市',
-    icon: <DatabaseOutlined style={{ fontSize: 24, color: '#fa8c16' }} />,
-    path: '/master-data',
-  },
-  {
-    title: '系统与安全',
-    desc: '维护多级组织架构、分配人员角色权限、审计追踪操作日志与后台异步任务',
-    icon: <SafetyCertificateOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
-    path: '/admin',
-  },
-];
 
 export default function Welcome() {
   const { initialState } = useModel('@@initialState');
@@ -170,62 +132,6 @@ export default function Welcome() {
                 <Text strong>{user?.roleScopes?.length ?? 0} 个</Text>
               </div>
             </Space>
-          </ProCard>
-        </ProCard>
-
-        {/* Quick Navigation Cards */}
-        <ProCard
-          title={
-            <Space size={8}>
-              <OrderedListOutlined style={{ color: '#1677ff' }} />
-              <span>业务模块快速导航</span>
-            </Space>
-          }
-          headerBordered
-          variant="outlined"
-        >
-          <ProCard gutter={[16, 16]} wrap ghost>
-            {quickLinks.map((item) => (
-              <ProCard
-                key={item.path}
-                colSpan={{ xs: 24, sm: 12, lg: 6 }}
-                variant="outlined"
-                hoverable
-                style={{ height: '100%' }}
-                onClick={() => history.push(item.path)}
-              >
-                <Space vertical size={12} style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ padding: 8, borderRadius: 8, background: '#f8fafc' }}>
-                      {item.icon}
-                    </div>
-                    <Button
-                      type="link"
-                      size="small"
-                      style={{ padding: 0 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        history.push(item.path);
-                      }}
-                    >
-                      进入 <RightOutlined style={{ fontSize: 10 }} />
-                    </Button>
-                  </div>
-                  <div>
-                    <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 4 }}>
-                      {item.title}
-                    </Text>
-                    <Paragraph
-                      type="secondary"
-                      ellipsis={{ rows: 2 }}
-                      style={{ fontSize: 12, marginBottom: 0, minHeight: 36 }}
-                    >
-                      {item.desc}
-                    </Paragraph>
-                  </div>
-                </Space>
-              </ProCard>
-            ))}
           </ProCard>
         </ProCard>
       </Space>
