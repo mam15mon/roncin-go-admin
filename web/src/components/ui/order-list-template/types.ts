@@ -1,6 +1,40 @@
 import type { ProColumns } from '@ant-design/pro-components';
 
-export type OrderKind = 'sea-export' | 'sea-import' | 'air-export' | 'air-import' | 'rail' | 'truck' | 'customs';
+export type OrderKind =
+  | 'sea-export'
+  | 'sea-import'
+  | 'air-export'
+  | 'air-import'
+  | 'rail'
+  | 'truck'
+  | 'customs';
+
+export interface OrderSelectOption {
+  label: string;
+  value: string;
+}
+
+export interface OrderPersonnelFilterOption {
+  userId: string;
+  displayName: string;
+  organizationId: string;
+  organizationName: string;
+}
+
+export interface OrderListFilterOptions {
+  ports?: OrderSelectOption[];
+  airports?: OrderSelectOption[];
+  shippingLines?: OrderSelectOption[];
+  airlines?: OrderSelectOption[];
+  partners?: OrderSelectOption[];
+  users?: OrderSelectOption[];
+  departments?: OrderSelectOption[];
+  tags?: OrderSelectOption[];
+  loadPorts?: (keyword?: string) => Promise<OrderSelectOption[]>;
+  loadPartners?: (keyword?: string) => Promise<OrderSelectOption[]>;
+  loadCarriers?: (keyword?: string) => Promise<OrderSelectOption[]>;
+  loadPersonnel?: (keyword?: string) => Promise<OrderPersonnelFilterOption[]>;
+}
 
 /** 筛选面板字段参数定义 */
 export interface OrderListFilterParams {
@@ -12,8 +46,9 @@ export interface OrderListFilterParams {
   statusTimeRange?: [string, string];
 
   // 单号与业务实体类
-  keyword?: string; // 订单/主单号/加拼主单号
-  shippingLineId?: string; // 船公司/航司
+  numberType?: 'order' | 'master' | 'consolidated_master';
+  numberKeyword?: string;
+  carrierId?: string; // 船公司/航司
   originLocationId?: string; // 起运港
   destinationLocationId?: string; // 目的港
   customerId?: string; // 委托单位
@@ -35,6 +70,7 @@ export interface OrderListFilterParams {
   shareStatus?: 'all' | 'shared' | 'unshared'; // 分享状态
   isLocked?: 'all' | 'locked' | 'unlocked'; // 是否锁定
   tags?: string[]; // 订单标签
+  tagMatchMode?: 'fuzzy_or' | 'exact_and';
 
   // 分页与排序
   page?: number;
@@ -167,7 +203,10 @@ export interface OrderListTemplateProps {
   /** 批量导出单证 */
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
   /** 批量操作触发 */
-  onBatchAction?: (actionKey: BatchActionKey, selectedRows: OrderListItem[]) => void;
+  onBatchAction?: (
+    actionKey: BatchActionKey,
+    selectedRows: OrderListItem[],
+  ) => void;
   /** 点击查看订单详情 */
   onViewDetail?: (record: OrderListItem) => void;
   /** 点击编辑订单 */
@@ -194,15 +233,7 @@ export interface OrderListTemplateProps {
   onTransitionStatus?: (record: OrderListItem) => void;
 
   /** 基础主数据选项（用于筛选器下拉） */
-  options?: {
-    ports?: { label: string; value: string }[];
-    airports?: { label: string; value: string }[];
-    shippingLines?: { label: string; value: string }[];
-    airlines?: { label: string; value: string }[];
-    partners?: { label: string; value: string }[];
-    users?: { label: string; value: string }[];
-    departments?: { label: string; value: string }[];
-  };
+  options?: OrderListFilterOptions;
 
   /** 是否只读（无编辑/操作权限） */
   readonly?: boolean;

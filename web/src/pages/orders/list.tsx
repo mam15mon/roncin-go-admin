@@ -66,6 +66,7 @@ import {
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
 import {
+  orderServiceListPersonnelOptions,
   orderServiceListOrderConsolidations,
   orderServiceListOrders,
   orderServiceTransitionOrderStatus,
@@ -237,6 +238,8 @@ const lifecycleFiltersByStage: Record<
   terminated: { terminationStatus: 3 },
   completed: { closureStatus: 2 },
   abnormal: { hasActiveException: true },
+  unreturned: { terminationStatus: 1, closureStatus: 1 },
+  returned: { terminationStatus: 3 },
 };
 
 export default function OrderListPage() {
@@ -312,7 +315,6 @@ export default function OrderListPage() {
   const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
   const [ports, setPorts] = useState<API.Port[]>([]);
   const [airports, setAirports] = useState<API.Airport[]>([]);
-  const [partners, setPartners] = useState<API.Partner[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -333,7 +335,6 @@ export default function OrderListPage() {
           setPorts(portsResponse.data ?? []);
           setAirports(airportsResponse.data ?? []);
           const partnerList = partnersResponse.data ?? [];
-          setPartners(partnerList);
           setCustomerMap((prev) => {
             const next = { ...prev };
             for (const p of partnerList) {
@@ -444,9 +445,71 @@ export default function OrderListPage() {
       return next;
     });
     return partners.map((p) => ({
-      label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id,
+      label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
       value: p.id ?? '',
     }));
+  };
+
+  const searchOrderPorts = async (keyword?: string) => {
+    const response = await masterDataServiceListPorts({
+      page: 1,
+      pageSize: 50,
+      keyword,
+      enabled: true,
+    });
+    const result = response.data ?? [];
+    setPorts((current) => {
+      const merged = new Map(
+        current.filter((item) => item.id).map((item) => [item.id, item]),
+      );
+      for (const item of result) {
+        if (item.id) merged.set(item.id, item);
+      }
+      return [...merged.values()];
+    });
+    return result.map((item) => ({
+      label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
+      value: item.id ?? '',
+    }));
+  };
+
+  const searchOrderCarriers = async (keyword?: string) => {
+    const response = await partnerServiceListPartners({
+      role: 4,
+      page: 1,
+      pageSize: 50,
+      keyword,
+      enabled: true,
+    });
+    return (response.data ?? []).map((item) => ({
+      label: item.legalName
+        ? `${item.legalName} (${item.code})`
+        : item.code || item.id || '',
+      value: item.id ?? '',
+    }));
+  };
+
+  const searchOrderPersonnel = async (keyword?: string) => {
+    const response = await orderServiceListPersonnelOptions({
+      businessType: config?.businessType ?? 1,
+      keyword,
+      page: 1,
+      pageSize: 50,
+    });
+    return (response.data ?? [])
+      .filter(
+        (item) =>
+          item.userId &&
+          item.displayName &&
+          item.organizationId &&
+          item.organizationName,
+      )
+      .map((item) => ({
+        userId: item.userId as string,
+        displayName: item.displayName as string,
+        organizationId: item.organizationId as string,
+        organizationName: item.organizationName as string,
+      }));
   };
 
   const openEdit = (record: API.Order) => {
@@ -757,8 +820,7 @@ export default function OrderListPage() {
       valueType: 'option',
       width: 160,
       render: (_, record) => {
-        if (!access.canOrder(config.businessType, 'update'))
-          return null;
+        if (!access.canOrder(config.businessType, 'update')) return null;
         return (
           <Space size="small">
             <Button
@@ -1204,20 +1266,10 @@ export default function OrderListPage() {
         subTitle={`统一维护${config.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         statusTabs={seStatusTabs}
         options={{
-          ports: ports.map((p) => ({
-            label: `${p.nameZh ? `${p.nameZh} / ` : ''}${p.nameEn} (${p.unLocode})`,
-            value: p.id ?? '',
-          })),
-          airports: airports.map((a) => ({
-            label: `${a.nameZh ? `${a.nameZh} / ` : ''}${a.nameEn} (${a.iataCode})`,
-            value: a.id ?? '',
-          })),
-          partners: partners.map((p) => ({
-            label: p.legalName
-              ? `${p.legalName} (${p.code})`
-              : p.code || (p.id ?? ''),
-            value: p.id ?? '',
-          })),
+          loadPorts: searchOrderPorts,
+          loadPartners: searchCustomers,
+          loadCarriers: searchOrderCarriers,
+          loadPersonnel: searchOrderPersonnel,
         }}
         queryOrders={async (params) => {
           const lifecycleFilters =
@@ -1225,10 +1277,60 @@ export default function OrderListPage() {
           const response = await orderServiceListOrders({
             page: params.page,
             pageSize: params.pageSize,
-            keyword: params.keyword,
+            numberType:
+              params.numberType === 'order'
+                ? 1
+                : params.numberType === 'master'
+                  ? 2
+                  : params.numberType === 'consolidated_master'
+                    ? 3
+                    : undefined,
+            numberKeyword: params.numberKeyword,
             ...lifecycleFilters,
             businessType: config.businessType,
             customerId: params.customerId,
+            createdAtFrom: params.createdAtRange?.[0],
+            createdAtTo: params.createdAtRange?.[1],
+            etdFrom: params.etdRange?.[0],
+            etdTo: params.etdRange?.[1],
+            etaFrom: params.etaRange?.[0],
+            etaTo: params.etaRange?.[1],
+            statusTimeFrom: params.statusTimeRange?.[0],
+            statusTimeTo: params.statusTimeRange?.[1],
+            lockedAtFrom: params.lockedAtRange?.[0],
+            lockedAtTo: params.lockedAtRange?.[1],
+            originLocationId: params.originLocationId,
+            destinationLocationId: params.destinationLocationId,
+            carrierId: params.carrierId,
+            consigneeShortName: params.consignee,
+            shipperShortName: params.shipper,
+            operatorId: params.operatorId,
+            operatorOrganizationId: params.operatorDeptId,
+            salesId: params.salesId,
+            salesOrganizationId: params.salesDeptId,
+            customerServiceId: params.customerServiceId,
+            customerServiceOrganizationId: params.customerServiceDeptId,
+            creatorId: params.creatorId,
+            creatorOrganizationId: params.creatorDeptId,
+            tags: params.tags,
+            tagMatchMode:
+              params.tagMatchMode === 'fuzzy_or'
+                ? 1
+                : params.tagMatchMode === 'exact_and'
+                  ? 2
+                  : undefined,
+            isLocked:
+              params.isLocked === 'locked'
+                ? true
+                : params.isLocked === 'unlocked'
+                  ? false
+                  : undefined,
+            isShared:
+              params.shareStatus === 'shared'
+                ? true
+                : params.shareStatus === 'unshared'
+                  ? false
+                  : undefined,
           });
 
           const items: OrderListItem[] = (response.data ?? []).map((order) => {
@@ -1299,6 +1401,11 @@ export default function OrderListPage() {
                 (o) => o.value === order.tradeTerm,
               )?.label,
               contractNo: order.contractNo,
+              shipperName: order.shipperShortName,
+              consigneeName: order.consigneeShortName,
+              lockedAt: order.lockedAt,
+              isLocked: Boolean(order.lockedAt),
+              tags: order.tags,
               notes: order.notes,
               statusName:
                 seFlowStatusLabels[order.flowStatus ?? 0] ?? '未知状态',
@@ -2392,10 +2499,7 @@ export default function OrderListPage() {
               };
             }}
             toolBarRender={() => [
-              access.canOrder(
-                config.businessType,
-                'update',
-              ) && (
+              access.canOrder(config.businessType, 'update') && (
                 <Button
                   key="create"
                   type="primary"

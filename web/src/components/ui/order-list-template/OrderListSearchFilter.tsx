@@ -1,12 +1,11 @@
 import {
   ClearOutlined,
   DownOutlined,
-  SaveOutlined,
   SearchOutlined,
-  SettingOutlined,
   UpOutlined,
 } from '@ant-design/icons';
 import {
+  App,
   Button,
   Card,
   Col,
@@ -17,25 +16,166 @@ import {
   Select,
   Space,
 } from 'antd';
-import React, { useState } from 'react';
+import type { SelectProps } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
-import type { OrderListFilterParams } from './types';
+import type {
+  OrderListFilterOptions,
+  OrderListFilterParams,
+  OrderPersonnelFilterOption,
+  OrderSelectOption,
+} from './types';
 
 const { RangePicker } = DatePicker;
 
 export interface OrderListSearchFilterProps {
   onSearch: (values: OrderListFilterParams) => void;
   onReset: () => void;
-  options?: {
-    ports?: { label: string; value: string }[];
-    airports?: { label: string; value: string }[];
-    shippingLines?: { label: string; value: string }[];
-    airlines?: { label: string; value: string }[];
-    partners?: { label: string; value: string }[];
-    users?: { label: string; value: string }[];
-    departments?: { label: string; value: string }[];
-  };
+  options?: OrderListFilterOptions;
   loading?: boolean;
+}
+
+interface RemoteSelectProps extends Omit<SelectProps<string>, 'options'> {
+  options?: OrderSelectOption[];
+  loadOptions?: (keyword?: string) => Promise<OrderSelectOption[]>;
+}
+
+function RemoteSelect({
+  options = [],
+  loadOptions,
+  ...props
+}: RemoteSelectProps) {
+  const { message } = App.useApp();
+  const [remoteOptions, setRemoteOptions] =
+    useState<OrderSelectOption[]>(options);
+  const [loading, setLoading] = useState(false);
+  const loaderRef = useRef(loadOptions);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const requestRef = useRef(0);
+
+  useEffect(() => {
+    loaderRef.current = loadOptions;
+  }, [loadOptions]);
+
+  useEffect(() => {
+    if (!loaderRef.current) setRemoteOptions(options);
+  }, [options]);
+
+  const requestOptions = async (keyword = '') => {
+    if (!loaderRef.current) return;
+    const requestID = ++requestRef.current;
+    setLoading(true);
+    try {
+      const result = await loaderRef.current(keyword);
+      if (requestID === requestRef.current) setRemoteOptions(result);
+    } catch (error) {
+      if (requestID === requestRef.current) {
+        message.error(
+          error instanceof Error ? error.message : '筛选候选项加载失败',
+        );
+      }
+    } finally {
+      if (requestID === requestRef.current) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void requestOptions();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      requestRef.current += 1;
+    };
+  }, []);
+
+  return (
+    <Select<string>
+      {...props}
+      allowClear
+      loading={loading}
+      options={loadOptions ? remoteOptions : options}
+      showSearch={{
+        filterOption: loadOptions
+          ? false
+          : (input, option) =>
+              String(option?.label ?? '')
+                .toLowerCase()
+                .includes(input.toLowerCase()),
+        onSearch: loadOptions
+          ? (keyword) => {
+              if (timerRef.current) clearTimeout(timerRef.current);
+              timerRef.current = setTimeout(
+                () => void requestOptions(keyword),
+                250,
+              );
+            }
+          : undefined,
+      }}
+    />
+  );
+}
+
+interface PersonnelDepartmentFilterProps {
+  form: ReturnType<typeof Form.useForm>[0];
+  label: string;
+  userField: keyof OrderListFilterParams;
+  organizationField: keyof OrderListFilterParams;
+  loadUsers?: (keyword?: string) => Promise<OrderSelectOption[]>;
+  personnel: OrderPersonnelFilterOption[];
+}
+
+function PersonnelDepartmentFilter({
+  form,
+  label,
+  userField,
+  organizationField,
+  loadUsers,
+  personnel,
+}: PersonnelDepartmentFilterProps) {
+  const userID = Form.useWatch(userField, form) as string | undefined;
+  const organizationOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return personnel
+      .filter((item) => item.userId === userID)
+      .filter((item) => {
+        if (seen.has(item.organizationId)) return false;
+        seen.add(item.organizationId);
+        return true;
+      })
+      .map((item) => ({
+        label: item.organizationName,
+        value: item.organizationId,
+      }));
+  }, [personnel, userID]);
+
+  useEffect(() => {
+    if (organizationOptions.length === 1) {
+      form.setFieldValue(organizationField, organizationOptions[0].value);
+    }
+  }, [form, organizationField, organizationOptions]);
+
+  return (
+    <Form.Item label={label}>
+      <Space.Compact block>
+        <Form.Item name={userField} noStyle>
+          <RemoteSelect
+            style={{ width: '58%' }}
+            placeholder="选择员工"
+            loadOptions={loadUsers}
+            onChange={() => form.setFieldValue(organizationField, undefined)}
+          />
+        </Form.Item>
+        <Form.Item name={organizationField} noStyle>
+          <Select
+            allowClear
+            disabled={!userID}
+            style={{ width: '42%' }}
+            placeholder="所属部门"
+            options={organizationOptions}
+          />
+        </Form.Item>
+      </Space.Compact>
+    </Form.Item>
+  );
 }
 
 export function OrderListSearchFilter({
@@ -46,238 +186,258 @@ export function OrderListSearchFilter({
 }: OrderListSearchFilterProps) {
   const [form] = Form.useForm();
   const [collapsed, setCollapsed] = useState(true);
+  const [personnel, setPersonnel] = useState<OrderPersonnelFilterOption[]>([]);
+  const personnelCacheRef = useRef(
+    new Map<string, Promise<OrderPersonnelFilterOption[]>>(),
+  );
 
-  const handleFinish = (rawValues: any) => {
+  const personnelLoader = options.loadPersonnel;
+  const loadPersonnelUsers = personnelLoader
+    ? async (keyword = '') => {
+        let request = personnelCacheRef.current.get(keyword);
+        if (!request) {
+          request = personnelLoader(keyword);
+          personnelCacheRef.current.set(keyword, request);
+        }
+        const result = await request;
+        setPersonnel((current) => {
+          const merged = new Map(
+            current.map((item) => [
+              `${item.userId}:${item.organizationId}`,
+              item,
+            ]),
+          );
+          for (const item of result) {
+            merged.set(`${item.userId}:${item.organizationId}`, item);
+          }
+          return [...merged.values()];
+        });
+        const seen = new Set<string>();
+        return result
+          .filter((item) => {
+            if (seen.has(item.userId)) return false;
+            seen.add(item.userId);
+            return true;
+          })
+          .map((item) => ({ label: item.displayName, value: item.userId }));
+      }
+    : undefined;
+
+  const handleFinish = (rawValues: Record<string, any>) => {
     const formatRange = (range?: any[]) =>
       range?.[0] && range[1]
-        ? [range[0].format('YYYY-MM-DD'), range[1].format('YYYY-MM-DD')] as [string, string]
+        ? ([range[0].format('YYYY-MM-DD'), range[1].format('YYYY-MM-DD')] as [
+            string,
+            string,
+          ])
         : undefined;
+    const tags = (rawValues.tags as string[] | undefined)?.filter(Boolean);
+    const numberKeyword = rawValues.numberKeyword?.trim() || undefined;
 
-    const values: OrderListFilterParams = {
-      keyword: rawValues.keyword?.trim() || undefined,
+    onSearch({
+      numberType: numberKeyword ? rawValues.numberType || 'order' : undefined,
+      numberKeyword,
       customerId: rawValues.customerId || undefined,
-      shippingLineId: rawValues.shippingLineId || undefined,
+      carrierId: rawValues.carrierId || undefined,
       originLocationId: rawValues.originLocationId || undefined,
       destinationLocationId: rawValues.destinationLocationId || undefined,
       consignee: rawValues.consignee?.trim() || undefined,
       shipper: rawValues.shipper?.trim() || undefined,
-
       createdAtRange: formatRange(rawValues.createdAtRange),
       etaRange: formatRange(rawValues.etaRange),
       etdRange: formatRange(rawValues.etdRange),
       lockedAtRange: formatRange(rawValues.lockedAtRange),
       statusTimeRange: formatRange(rawValues.statusTimeRange),
-
       operatorId: rawValues.operatorId || undefined,
+      operatorDeptId: rawValues.operatorDeptId || undefined,
       salesId: rawValues.salesId || undefined,
+      salesDeptId: rawValues.salesDeptId || undefined,
       customerServiceId: rawValues.customerServiceId || undefined,
+      customerServiceDeptId: rawValues.customerServiceDeptId || undefined,
       creatorId: rawValues.creatorId || undefined,
-
-      stage: rawValues.stage || undefined,
-      shareStatus: rawValues.shareStatus || undefined,
-      isLocked: rawValues.isLocked || undefined,
-      tags: rawValues.tags || undefined,
-    };
-
-    onSearch(values);
+      creatorDeptId: rawValues.creatorDeptId || undefined,
+      stage: rawValues.stage === 'all' ? undefined : rawValues.stage,
+      shareStatus:
+        rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
+      isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
+      tagMatchMode: tags?.length
+        ? rawValues.tagMatchMode || 'fuzzy_or'
+        : undefined,
+      tags: tags?.length ? tags : undefined,
+    });
   };
 
-  const handleReset = () => {
-    form.resetFields();
-    onReset();
-  };
+  const filterRows = [
+    ['操作人员', 'operatorId', 'operatorDeptId'],
+    ['业务人员', 'salesId', 'salesDeptId'],
+    ['客服人员', 'customerServiceId', 'customerServiceDeptId'],
+    ['订单创建人员', 'creatorId', 'creatorDeptId'],
+  ] as const;
 
   return (
     <Card
       variant="borderless"
-      style={{
-        borderRadius: 8,
-        border: '1px solid #f0f0f0',
-        backgroundColor: '#ffffff',
-        marginBottom: 12,
-      }}
+      style={{ borderRadius: 8, border: '1px solid #f0f0f0', marginBottom: 12 }}
       styles={{ body: { padding: '14px 16px 8px' } }}
     >
-      <Form form={form} layout="vertical" onFinish={handleFinish}>
-        {/* 第一行：最常用高频搜索字段 */}
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleFinish}
+        initialValues={{
+          numberType: 'order',
+          tagMatchMode: 'fuzzy_or',
+          shareStatus: 'all',
+          isLocked: 'all',
+        }}
+      >
         <Row gutter={[12, 0]}>
-          <Col xs={24} sm={12} md={6} lg={5}>
-            <Form.Item name="keyword" label="单号/主单号/加拼主单号">
-              <Input
-                placeholder="输入订单号/提单号/柜号"
-                allowClear
-                prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              />
+          <Col xs={24} sm={12} lg={6}>
+            <Form.Item label="复合单号">
+              <Space.Compact block>
+                <Form.Item name="numberType" noStyle>
+                  <Select
+                    style={{ width: 112 }}
+                    options={[
+                      { label: '订单号', value: 'order' },
+                      { label: '主单号', value: 'master' },
+                      { label: '加拼主单号', value: 'consolidated_master' },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item name="numberKeyword" noStyle>
+                  <Input
+                    allowClear
+                    prefix={<SearchOutlined />}
+                    placeholder="输入单号"
+                  />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={6} lg={5}>
+          <Col xs={24} sm={12} lg={5}>
             <Form.Item name="customerId" label="委托单位">
-              <Select
-                showSearch={{
-                  filterOption: (input, option) =>
-                    String(option?.label ?? '')
-                      .toLowerCase()
-                      .includes(input.toLowerCase()),
-                }}
-                allowClear
-                placeholder="选择/搜索委托客户"
+              <RemoteSelect
+                placeholder="输入代码、名称或别名检索"
                 options={options.partners}
+                loadOptions={options.loadPartners}
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Form.Item name="originLocationId" label="起运港 (POL)">
-              <Select
-                showSearch={{
-                  filterOption: (input, option) =>
-                    String(option?.label ?? '')
-                      .toLowerCase()
-                      .includes(input.toLowerCase()),
-                }}
-                allowClear
-                placeholder="选择起运港"
+          <Col xs={24} sm={12} lg={4}>
+            <Form.Item name="originLocationId" label="起运港">
+              <RemoteSelect
+                placeholder="输入港口代码或名称"
                 options={options.ports || options.airports}
+                loadOptions={options.loadPorts}
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <Form.Item name="destinationLocationId" label="目的港 (POD)">
-              <Select
-                showSearch={{
-                  filterOption: (input, option) =>
-                    String(option?.label ?? '')
-                      .toLowerCase()
-                      .includes(input.toLowerCase()),
-                }}
-                allowClear
-                placeholder="选择目的港"
+          <Col xs={24} sm={12} lg={4}>
+            <Form.Item name="destinationLocationId" label="目的港">
+              <RemoteSelect
+                placeholder="输入港口代码或名称"
                 options={options.ports || options.airports}
+                loadOptions={options.loadPorts}
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={24} md={12} lg={6}>
-            <Form.Item name="etdRange" label="ETD (预计离港日期)">
-              <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
+          <Col xs={24} sm={12} lg={5}>
+            <Form.Item name="etdRange" label="ETD（预计开船时间）">
+              <RangePicker
+                presets={standardDateRangePresets}
+                style={{ width: '100%' }}
+              />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* 展开的更多专业筛选字段 */}
         {!collapsed && (
           <>
-            {/* 时间与节点类 */}
             <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="createdAtRange" label="创建时间">
-                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="etaRange" label="ETA (预计到达日期)">
-                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="lockedAtRange" label="订单锁定时间">
-                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="statusTimeRange" label="订单状态时间">
-                  <RangePicker presets={standardDateRangePresets} style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
+              {[
+                ['创建时间', 'createdAtRange'],
+                ['ETA（预计到港时间）', 'etaRange'],
+                ['订单状态时间', 'statusTimeRange'],
+                ['订单锁定时间', 'lockedAtRange'],
+              ].map(([label, name]) => (
+                <Col xs={24} sm={12} lg={6} key={name}>
+                  <Form.Item name={name} label={label}>
+                    <RangePicker
+                      presets={standardDateRangePresets}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
+                </Col>
+              ))}
             </Row>
 
-            {/* 业务实体与单证类 */}
             <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="shippingLineId" label="船公司/航空公司">
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择船司或航司"
-                    options={options.shippingLines || options.airlines}
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item name="carrierId" label="船公司">
+                  <RemoteSelect
+                    placeholder="输入船公司代码或名称"
+                    options={options.shippingLines}
+                    loadOptions={options.loadCarriers}
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item name="shipper" label="发货人简称">
                   <Input placeholder="输入发货人简称" allowClear />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item name="consignee" label="收货人简称">
                   <Input placeholder="输入收货人简称" allowClear />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="stage" label="业务进程">
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item name="stage" label="进程">
                   <Select
                     allowClear
                     placeholder="全部进程"
                     options={[
-                      { label: '全部进程', value: 'all' },
-                      { label: '未退关 (进行中)', value: 'unreturned' },
-                      { label: '已完结 (已归档)', value: 'completed' },
-                      { label: '已退关 (已撤单)', value: 'returned' },
+                      { label: '全部', value: 'all' },
+                      { label: '未退关', value: 'unreturned' },
+                      { label: '已退关', value: 'returned' },
+                      { label: '已完结', value: 'completed' },
                     ]}
                   />
                 </Form.Item>
               </Col>
             </Row>
 
-            {/* 人员与组织架构类 */}
             <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="operatorId" label="操作人员">
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择操作责任人"
-                    options={options.users}
+              {filterRows.map(([label, userField, organizationField]) => (
+                <Col xs={24} sm={12} lg={6} key={userField}>
+                  <PersonnelDepartmentFilter
+                    form={form}
+                    label={label}
+                    userField={userField}
+                    organizationField={organizationField}
+                    loadUsers={loadPersonnelUsers}
+                    personnel={personnel}
                   />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="salesId" label="业务人员 (销售)">
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择业务人员"
-                    options={options.users}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="customerServiceId" label="客服人员">
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择客服人员"
-                    options={options.users}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="creatorId" label="订单创建人员">
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="选择创建人"
-                    options={options.users}
-                  />
-                </Form.Item>
-              </Col>
+                </Col>
+              ))}
             </Row>
 
-            {/* 状态与标记类 */}
             <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} lg={4}>
+                <Form.Item name="isLocked" label="是否锁定">
+                  <Select
+                    options={[
+                      { label: '全部', value: 'all' },
+                      { label: '是', value: 'locked' },
+                      { label: '否', value: 'unlocked' },
+                    ]}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} lg={4}>
                 <Form.Item name="shareStatus" label="分享状态">
                   <Select
-                    allowClear
-                    placeholder="全部状态"
                     options={[
                       { label: '全部', value: 'all' },
                       { label: '已分享', value: 'shared' },
@@ -286,31 +446,24 @@ export function OrderListSearchFilter({
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item name="isLocked" label="是否锁定">
+              <Col xs={24} sm={12} lg={5}>
+                <Form.Item name="tagMatchMode" label="标签匹配模式">
                   <Select
-                    allowClear
-                    placeholder="全部"
                     options={[
-                      { label: '全部', value: 'all' },
-                      { label: '已锁定', value: 'locked' },
-                      { label: '未锁定', value: 'unlocked' },
+                      { label: '模糊（或）', value: 'fuzzy_or' },
+                      { label: '精确（且）', value: 'exact_and' },
                     ]}
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={24} md={12}>
+              <Col xs={24} sm={12} lg={11}>
                 <Form.Item name="tags" label="订单标签">
                   <Select
                     mode="tags"
                     allowClear
-                    placeholder="输入或选择标签（如：VIP、高货值、电商快船）"
-                    options={[
-                      { label: 'VIP 客户', value: 'VIP' },
-                      { label: '高货值', value: 'HIGH_VALUE' },
-                      { label: '危险品 DG', value: 'DG' },
-                      { label: '快船专线', value: 'EXPRESS' },
-                    ]}
+                    tokenSeparators={[',', '，']}
+                    placeholder="选择或输入多个标签"
+                    options={options.tags}
                   />
                 </Form.Item>
               </Col>
@@ -318,32 +471,20 @@ export function OrderListSearchFilter({
           </>
         )}
 
-        {/* 筛选操作控制栏 */}
-        <Row justify="space-between" align="middle" style={{ marginTop: 4, marginBottom: 4 }}>
-          <Col>
-            <Space size="middle">
-              <Button
-                type="link"
-                size="small"
-                icon={<SettingOutlined />}
-                style={{ paddingLeft: 0 }}
-                onClick={() => {}}
-              >
-                查询设置
-              </Button>
-              <Button
-                type="link"
-                size="small"
-                icon={<SaveOutlined />}
-                onClick={() => {}}
-              >
-                设为默认
-              </Button>
-            </Space>
-          </Col>
+        <Row
+          justify="end"
+          align="middle"
+          style={{ marginTop: 4, marginBottom: 4 }}
+        >
           <Col>
             <Space size="small">
-              <Button icon={<ClearOutlined />} onClick={handleReset}>
+              <Button
+                icon={<ClearOutlined />}
+                onClick={() => {
+                  form.resetFields();
+                  onReset();
+                }}
+              >
                 重置
               </Button>
               <Button
@@ -356,7 +497,7 @@ export function OrderListSearchFilter({
               </Button>
               <Button
                 type="link"
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={() => setCollapsed((value) => !value)}
                 icon={collapsed ? <DownOutlined /> : <UpOutlined />}
               >
                 {collapsed ? '展开更多筛选' : '收起筛选'}

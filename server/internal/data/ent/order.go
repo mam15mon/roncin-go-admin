@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -34,6 +35,10 @@ type Order struct {
 	CustomerReferenceNo string `json:"customer_reference_no,omitempty"`
 	// InternalReferenceNo holds the value of the "internal_reference_no" field.
 	InternalReferenceNo string `json:"internal_reference_no,omitempty"`
+	// ShipperShortName holds the value of the "shipper_short_name" field.
+	ShipperShortName string `json:"shipper_short_name,omitempty"`
+	// ConsigneeShortName holds the value of the "consignee_short_name" field.
+	ConsigneeShortName string `json:"consignee_short_name,omitempty"`
 	// CarrierID holds the value of the "carrier_id" field.
 	CarrierID *uuid.UUID `json:"carrier_id,omitempty"`
 	// BookingAgentID holds the value of the "booking_agent_id" field.
@@ -100,6 +105,12 @@ type Order struct {
 	ClosedAt *time.Time `json:"closed_at,omitempty"`
 	// ClosedBy holds the value of the "closed_by" field.
 	ClosedBy *uuid.UUID `json:"closed_by,omitempty"`
+	// LockedAt holds the value of the "locked_at" field.
+	LockedAt *time.Time `json:"locked_at,omitempty"`
+	// IsShared holds the value of the "is_shared" field.
+	IsShared bool `json:"is_shared,omitempty"`
+	// Tags holds the value of the "tags" field.
+	Tags []string `json:"tags,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// OriginLocationID holds the value of the "origin_location_id" field.
@@ -379,13 +390,17 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case order.FieldTags:
+			values[i] = new([]byte)
+		case order.FieldIsShared:
+			values[i] = new(sql.NullBool)
 		case order.FieldTotalGrossWeightKg, order.FieldTotalVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case order.FieldVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldLoadingTerms, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
-		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt:
+		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
 		case order.FieldID, order.FieldOrganizationID, order.FieldCustomerID:
 			values[i] = new(uuid.UUID)
@@ -451,6 +466,18 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field internal_reference_no", values[i])
 			} else if value.Valid {
 				_m.InternalReferenceNo = value.String
+			}
+		case order.FieldShipperShortName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field shipper_short_name", values[i])
+			} else if value.Valid {
+				_m.ShipperShortName = value.String
+			}
+		case order.FieldConsigneeShortName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field consignee_short_name", values[i])
+			} else if value.Valid {
+				_m.ConsigneeShortName = value.String
 			}
 		case order.FieldCarrierID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -663,6 +690,27 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ClosedBy = new(uuid.UUID)
 				*_m.ClosedBy = *value.S.(*uuid.UUID)
+			}
+		case order.FieldLockedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field locked_at", values[i])
+			} else if value.Valid {
+				_m.LockedAt = new(time.Time)
+				*_m.LockedAt = value.Time
+			}
+		case order.FieldIsShared:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_shared", values[i])
+			} else if value.Valid {
+				_m.IsShared = value.Bool
+			}
+		case order.FieldTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Tags); err != nil {
+					return fmt.Errorf("unmarshal field tags: %w", err)
+				}
 			}
 		case order.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -961,6 +1009,12 @@ func (_m *Order) String() string {
 	builder.WriteString("internal_reference_no=")
 	builder.WriteString(_m.InternalReferenceNo)
 	builder.WriteString(", ")
+	builder.WriteString("shipper_short_name=")
+	builder.WriteString(_m.ShipperShortName)
+	builder.WriteString(", ")
+	builder.WriteString("consignee_short_name=")
+	builder.WriteString(_m.ConsigneeShortName)
+	builder.WriteString(", ")
 	if v := _m.CarrierID; v != nil {
 		builder.WriteString("carrier_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -1087,6 +1141,17 @@ func (_m *Order) String() string {
 		builder.WriteString("closed_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	if v := _m.LockedAt; v != nil {
+		builder.WriteString("locked_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("is_shared=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsShared))
+	builder.WriteString(", ")
+	builder.WriteString("tags=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

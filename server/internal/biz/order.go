@@ -198,6 +198,39 @@ func (v OrderReferenceType) Valid() bool {
 	return v == OrderReferenceCustomer || v == OrderReferenceInternal
 }
 
+type OrderNumberFilterType string
+
+const (
+	OrderNumberFilterOrder              OrderNumberFilterType = "order"
+	OrderNumberFilterMaster             OrderNumberFilterType = "master"
+	OrderNumberFilterConsolidatedMaster OrderNumberFilterType = "consolidated_master"
+)
+
+func (v OrderNumberFilterType) Valid() bool {
+	return v == OrderNumberFilterOrder || v == OrderNumberFilterMaster || v == OrderNumberFilterConsolidatedMaster
+}
+
+type OrderTagMatchMode string
+
+const (
+	OrderTagMatchFuzzyOr  OrderTagMatchMode = "fuzzy_or"
+	OrderTagMatchExactAnd OrderTagMatchMode = "exact_and"
+)
+
+func (v OrderTagMatchMode) Valid() bool {
+	return v == OrderTagMatchFuzzyOr || v == OrderTagMatchExactAnd
+}
+
+type OrderDateRange struct {
+	From        *time.Time
+	ToExclusive *time.Time
+}
+
+type OrderPersonnelFilter struct {
+	UserID         *uuid.UUID
+	OrganizationID *uuid.UUID
+}
+
 type Order struct {
 	ID                    uuid.UUID
 	OrganizationID        uuid.UUID
@@ -206,6 +239,8 @@ type Order struct {
 	CustomerID            uuid.UUID
 	CustomerReferenceNo   string
 	InternalReferenceNo   string
+	ShipperShortName      string
+	ConsigneeShortName    string
 	CarrierID             *uuid.UUID
 	BookingAgentID        *uuid.UUID
 	ForeignAgentID        *uuid.UUID
@@ -239,6 +274,9 @@ type Order struct {
 	ClosureReason         string
 	ClosedAt              *time.Time
 	ClosedBy              *uuid.UUID
+	LockedAt              *time.Time
+	IsShared              bool
+	Tags                  []string
 	Version               uint64
 	HasActiveException    bool
 	ActiveExceptionCount  int
@@ -285,16 +323,36 @@ type OrderContainerRequest struct {
 }
 
 type OrderListOptions struct {
-	Page               int
-	PageSize           int
-	Keyword            string
-	FlowStatus         OrderFlowStatus
-	TerminationStatus  OrderTerminationStatus
-	ClosureStatus      OrderClosureStatus
-	HasActiveException *bool
-	BusinessType       OrderBusinessType
-	BusinessTypes      []OrderBusinessType
-	CustomerID         *uuid.UUID
+	Page                  int
+	PageSize              int
+	Keyword               string
+	FlowStatus            OrderFlowStatus
+	TerminationStatus     OrderTerminationStatus
+	ClosureStatus         OrderClosureStatus
+	HasActiveException    *bool
+	BusinessType          OrderBusinessType
+	BusinessTypes         []OrderBusinessType
+	CustomerID            *uuid.UUID
+	NumberType            OrderNumberFilterType
+	NumberKeyword         string
+	CreatedAtRange        OrderDateRange
+	ETDRange              OrderDateRange
+	ETARange              OrderDateRange
+	StatusTimeRange       OrderDateRange
+	LockedAtRange         OrderDateRange
+	OriginLocationID      *uuid.UUID
+	DestinationLocationID *uuid.UUID
+	CarrierID             *uuid.UUID
+	ConsigneeShortName    string
+	ShipperShortName      string
+	Operator              OrderPersonnelFilter
+	Sales                 OrderPersonnelFilter
+	CustomerService       OrderPersonnelFilter
+	Creator               OrderPersonnelFilter
+	Tags                  []string
+	TagMatchMode          OrderTagMatchMode
+	IsLocked              *bool
+	IsShared              *bool
 }
 
 type OrderList struct {
@@ -401,6 +459,24 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 		}
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
+	options.NumberKeyword = strings.TrimSpace(options.NumberKeyword)
+	options.ConsigneeShortName = strings.TrimSpace(options.ConsigneeShortName)
+	options.ShipperShortName = strings.TrimSpace(options.ShipperShortName)
+	if options.NumberKeyword != "" && !options.NumberType.Valid() || options.NumberKeyword == "" && options.NumberType != "" {
+		return nil, ErrOrderInvalidArgument
+	}
+	if len(options.Tags) > 0 && !options.TagMatchMode.Valid() || len(options.Tags) == 0 && options.TagMatchMode != "" {
+		return nil, ErrOrderInvalidArgument
+	}
+	cleanTags := make([]string, 0, len(options.Tags))
+	for _, tag := range options.Tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" || utf8.RuneCountInString(tag) > 64 {
+			return nil, ErrOrderInvalidArgument
+		}
+		cleanTags = append(cleanTags, tag)
+	}
+	options.Tags = cleanTags
 	if options.FlowStatus != "" && !options.FlowStatus.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
@@ -495,6 +571,8 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	output := *input
 	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)
 	output.InternalReferenceNo = strings.TrimSpace(output.InternalReferenceNo)
+	output.ShipperShortName = strings.TrimSpace(output.ShipperShortName)
+	output.ConsigneeShortName = strings.TrimSpace(output.ConsigneeShortName)
 	output.ContractNo = strings.TrimSpace(output.ContractNo)
 	output.CargoValue = strings.TrimSpace(output.CargoValue)
 	output.CargoCurrency = strings.ToUpper(strings.TrimSpace(output.CargoCurrency))
@@ -525,9 +603,23 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if output.OrderDate == "" && creating {
 		output.OrderDate = time.Now().UTC().Format(time.RFC3339)
 	}
-	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
+	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
+	cleanTags := make([]string, 0, len(output.Tags))
+	seenTags := make(map[string]struct{}, len(output.Tags))
+	for _, tag := range output.Tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" || utf8.RuneCountInString(tag) > 64 {
+			return nil, ErrOrderInvalidArgument
+		}
+		if _, exists := seenTags[tag]; exists {
+			continue
+		}
+		seenTags[tag] = struct{}{}
+		cleanTags = append(cleanTags, tag)
+	}
+	output.Tags = cleanTags
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
 	for _, assignment := range output.PersonnelAssignments {
 		if assignment == nil || !assignment.Role.Valid() || assignment.Role == OrderPersonnelRoleCreator || assignment.UserID == uuid.Nil || assignment.OrganizationID == uuid.Nil {

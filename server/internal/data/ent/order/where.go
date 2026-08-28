@@ -91,6 +91,16 @@ func InternalReferenceNo(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldInternalReferenceNo, v))
 }
 
+// ShipperShortName applies equality check predicate on the "shipper_short_name" field. It's identical to ShipperShortNameEQ.
+func ShipperShortName(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShipperShortName, v))
+}
+
+// ConsigneeShortName applies equality check predicate on the "consignee_short_name" field. It's identical to ConsigneeShortNameEQ.
+func ConsigneeShortName(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldConsigneeShortName, v))
+}
+
 // CarrierID applies equality check predicate on the "carrier_id" field. It's identical to CarrierIDEQ.
 func CarrierID(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCarrierID, v))
@@ -199,6 +209,16 @@ func ClosedAt(v time.Time) predicate.Order {
 // ClosedBy applies equality check predicate on the "closed_by" field. It's identical to ClosedByEQ.
 func ClosedBy(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldClosedBy, v))
+}
+
+// LockedAt applies equality check predicate on the "locked_at" field. It's identical to LockedAtEQ.
+func LockedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockedAt, v))
+}
+
+// IsShared applies equality check predicate on the "is_shared" field. It's identical to IsSharedEQ.
+func IsShared(v bool) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldIsShared, v))
 }
 
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
@@ -649,6 +669,156 @@ func InternalReferenceNoEqualFold(v string) predicate.Order {
 // InternalReferenceNoContainsFold applies the ContainsFold predicate on the "internal_reference_no" field.
 func InternalReferenceNoContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldInternalReferenceNo, v))
+}
+
+// ShipperShortNameEQ applies the EQ predicate on the "shipper_short_name" field.
+func ShipperShortNameEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShipperShortName, v))
+}
+
+// ShipperShortNameNEQ applies the NEQ predicate on the "shipper_short_name" field.
+func ShipperShortNameNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldShipperShortName, v))
+}
+
+// ShipperShortNameIn applies the In predicate on the "shipper_short_name" field.
+func ShipperShortNameIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldShipperShortName, vs...))
+}
+
+// ShipperShortNameNotIn applies the NotIn predicate on the "shipper_short_name" field.
+func ShipperShortNameNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldShipperShortName, vs...))
+}
+
+// ShipperShortNameGT applies the GT predicate on the "shipper_short_name" field.
+func ShipperShortNameGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldShipperShortName, v))
+}
+
+// ShipperShortNameGTE applies the GTE predicate on the "shipper_short_name" field.
+func ShipperShortNameGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldShipperShortName, v))
+}
+
+// ShipperShortNameLT applies the LT predicate on the "shipper_short_name" field.
+func ShipperShortNameLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldShipperShortName, v))
+}
+
+// ShipperShortNameLTE applies the LTE predicate on the "shipper_short_name" field.
+func ShipperShortNameLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldShipperShortName, v))
+}
+
+// ShipperShortNameContains applies the Contains predicate on the "shipper_short_name" field.
+func ShipperShortNameContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldShipperShortName, v))
+}
+
+// ShipperShortNameHasPrefix applies the HasPrefix predicate on the "shipper_short_name" field.
+func ShipperShortNameHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldShipperShortName, v))
+}
+
+// ShipperShortNameHasSuffix applies the HasSuffix predicate on the "shipper_short_name" field.
+func ShipperShortNameHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldShipperShortName, v))
+}
+
+// ShipperShortNameIsNil applies the IsNil predicate on the "shipper_short_name" field.
+func ShipperShortNameIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldShipperShortName))
+}
+
+// ShipperShortNameNotNil applies the NotNil predicate on the "shipper_short_name" field.
+func ShipperShortNameNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldShipperShortName))
+}
+
+// ShipperShortNameEqualFold applies the EqualFold predicate on the "shipper_short_name" field.
+func ShipperShortNameEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldShipperShortName, v))
+}
+
+// ShipperShortNameContainsFold applies the ContainsFold predicate on the "shipper_short_name" field.
+func ShipperShortNameContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldShipperShortName, v))
+}
+
+// ConsigneeShortNameEQ applies the EQ predicate on the "consignee_short_name" field.
+func ConsigneeShortNameEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameNEQ applies the NEQ predicate on the "consignee_short_name" field.
+func ConsigneeShortNameNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameIn applies the In predicate on the "consignee_short_name" field.
+func ConsigneeShortNameIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldConsigneeShortName, vs...))
+}
+
+// ConsigneeShortNameNotIn applies the NotIn predicate on the "consignee_short_name" field.
+func ConsigneeShortNameNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldConsigneeShortName, vs...))
+}
+
+// ConsigneeShortNameGT applies the GT predicate on the "consignee_short_name" field.
+func ConsigneeShortNameGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameGTE applies the GTE predicate on the "consignee_short_name" field.
+func ConsigneeShortNameGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameLT applies the LT predicate on the "consignee_short_name" field.
+func ConsigneeShortNameLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameLTE applies the LTE predicate on the "consignee_short_name" field.
+func ConsigneeShortNameLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameContains applies the Contains predicate on the "consignee_short_name" field.
+func ConsigneeShortNameContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameHasPrefix applies the HasPrefix predicate on the "consignee_short_name" field.
+func ConsigneeShortNameHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameHasSuffix applies the HasSuffix predicate on the "consignee_short_name" field.
+func ConsigneeShortNameHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameIsNil applies the IsNil predicate on the "consignee_short_name" field.
+func ConsigneeShortNameIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldConsigneeShortName))
+}
+
+// ConsigneeShortNameNotNil applies the NotNil predicate on the "consignee_short_name" field.
+func ConsigneeShortNameNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldConsigneeShortName))
+}
+
+// ConsigneeShortNameEqualFold applies the EqualFold predicate on the "consignee_short_name" field.
+func ConsigneeShortNameEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldConsigneeShortName, v))
+}
+
+// ConsigneeShortNameContainsFold applies the ContainsFold predicate on the "consignee_short_name" field.
+func ConsigneeShortNameContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldConsigneeShortName, v))
 }
 
 // CarrierIDEQ applies the EQ predicate on the "carrier_id" field.
@@ -2359,6 +2529,66 @@ func ClosedByIsNil() predicate.Order {
 // ClosedByNotNil applies the NotNil predicate on the "closed_by" field.
 func ClosedByNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldClosedBy))
+}
+
+// LockedAtEQ applies the EQ predicate on the "locked_at" field.
+func LockedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldLockedAt, v))
+}
+
+// LockedAtNEQ applies the NEQ predicate on the "locked_at" field.
+func LockedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldLockedAt, v))
+}
+
+// LockedAtIn applies the In predicate on the "locked_at" field.
+func LockedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldLockedAt, vs...))
+}
+
+// LockedAtNotIn applies the NotIn predicate on the "locked_at" field.
+func LockedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldLockedAt, vs...))
+}
+
+// LockedAtGT applies the GT predicate on the "locked_at" field.
+func LockedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldLockedAt, v))
+}
+
+// LockedAtGTE applies the GTE predicate on the "locked_at" field.
+func LockedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldLockedAt, v))
+}
+
+// LockedAtLT applies the LT predicate on the "locked_at" field.
+func LockedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldLockedAt, v))
+}
+
+// LockedAtLTE applies the LTE predicate on the "locked_at" field.
+func LockedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldLockedAt, v))
+}
+
+// LockedAtIsNil applies the IsNil predicate on the "locked_at" field.
+func LockedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldLockedAt))
+}
+
+// LockedAtNotNil applies the NotNil predicate on the "locked_at" field.
+func LockedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldLockedAt))
+}
+
+// IsSharedEQ applies the EQ predicate on the "is_shared" field.
+func IsSharedEQ(v bool) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldIsShared, v))
+}
+
+// IsSharedNEQ applies the NEQ predicate on the "is_shared" field.
+func IsSharedNEQ(v bool) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldIsShared, v))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

@@ -2104,6 +2104,8 @@ var (
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "customer_reference_no", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "internal_reference_no", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "shipper_short_name", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "consignee_short_name", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "carrier_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "booking_agent_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "foreign_agent_id", Type: field.TypeUUID, Nullable: true},
@@ -2137,6 +2139,9 @@ var (
 		{Name: "closure_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "closed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "closed_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "locked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "is_shared", Type: field.TypeBool, Default: false},
+		{Name: "tags", Type: field.TypeJSON},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
@@ -2171,13 +2176,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[62]},
+				Columns:    []*schema.Column{OrdersColumns[67]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[63]},
+				Columns:    []*schema.Column{OrdersColumns[68]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2191,32 +2196,65 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_flow_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[29]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[31]},
 			},
 			{
 				Name:    "order_organization_id_termination_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[30]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[32]},
 			},
 			{
 				Name:    "order_organization_id_closure_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[35]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[37]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[22]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[24]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[62], OrdersColumns[63]},
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[68]},
+			},
+			{
+				Name:    "order_organization_id_carrier_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[8]},
+			},
+			{
+				Name:    "order_organization_id_origin_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[45]},
+			},
+			{
+				Name:    "order_organization_id_destination_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[46]},
+			},
+			{
+				Name:    "order_organization_id_locked_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[41]},
+			},
+			{
+				Name:    "order_organization_id_is_shared",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[42]},
+			},
+			{
+				Name:    "order_tags_gin",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[43]},
+				Annotation: &entsql.IndexAnnotation{
+					Type: "GIN",
+				},
 			},
 		},
 	}

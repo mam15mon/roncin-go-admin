@@ -14,16 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import {
-  Badge,
-  Button,
-  Card,
-  Dropdown,
-  Space,
-  Tabs,
-  Tag,
-  Tooltip,
-} from 'antd';
+import { Badge, Button, Card, Dropdown, Space, Tabs, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
@@ -77,7 +68,7 @@ export function OrderListTemplate({
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [currentFilter, setCurrentFilter] = useState<OrderListFilterParams>({});
+  const currentFilterRef = useRef<OrderListFilterParams>({});
   const [currentTab, setCurrentTab] = useState<string>(activeStatusTab);
   const [filterVisible, setFilterVisible] = useState(false);
 
@@ -98,9 +89,19 @@ export function OrderListTemplate({
         width: 90,
         sorter: true,
         render: (_, record) => {
-          const val = record.stage || (record.status === 'COMPLETED' ? '已完结' : record.status === 'CANCELLED' ? '已退关' : '未退关');
+          const val =
+            record.stage ||
+            (record.status === 'COMPLETED'
+              ? '已完结'
+              : record.status === 'CANCELLED'
+                ? '已退关'
+                : '未退关');
           const color =
-            val === '已完结' ? 'success' : val === '已退关' ? 'error' : 'processing';
+            val === '已完结'
+              ? 'success'
+              : val === '已退关'
+                ? 'error'
+                : 'processing';
           return <Tag color={color}>{val}</Tag>;
         },
       },
@@ -143,7 +144,11 @@ export function OrderListTemplate({
             truck: '内陆拖车',
             customs: '报关业务',
           };
-          return kindMap[record.orderKind || orderKind] || record.businessType || '海运出口';
+          return (
+            kindMap[record.orderKind || orderKind] ||
+            record.businessType ||
+            '海运出口'
+          );
         },
       },
       // 5. 委托单位
@@ -360,7 +365,9 @@ export function OrderListTemplate({
         align: 'center',
         render: (_, record) => (
           <Space size={2}>
-            <PaperClipOutlined style={{ color: record.attachmentCount ? '#1677ff' : '#bfbfbf' }} />
+            <PaperClipOutlined
+              style={{ color: record.attachmentCount ? '#1677ff' : '#bfbfbf' }}
+            />
             <span>{record.attachmentCount || 0}</span>
           </Space>
         ),
@@ -596,11 +603,11 @@ export function OrderListTemplate({
         <OrderListSearchFilter
           options={options}
           onSearch={(values) => {
-            setCurrentFilter(values);
+            currentFilterRef.current = values;
             actionRef.current?.reload();
           }}
           onReset={() => {
-            setCurrentFilter({});
+            currentFilterRef.current = {};
             actionRef.current?.reload();
           }}
         />
@@ -652,6 +659,7 @@ export function OrderListTemplate({
           request={async (params, sorter) => {
             const sorterField = Object.keys(sorter)[0];
             const sorterOrder = sorterField ? sorter[sorterField] : undefined;
+            const currentFilter = currentFilterRef.current;
 
             const res = await queryOrders({
               ...currentFilter,

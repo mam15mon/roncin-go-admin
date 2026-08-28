@@ -6,6 +6,7 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -29,6 +30,7 @@ import (
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
+	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -63,6 +65,42 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
+	if options.NumberKeyword != "" {
+		switch options.NumberType {
+		case biz.OrderNumberFilterOrder:
+			query.Where(orderent.OrderNoContainsFold(options.NumberKeyword))
+		case biz.OrderNumberFilterMaster:
+			query.Where(orderent.HasShippingDocumentsWith(
+				ordershippingdocumentent.HasConsolidationWith(orderconsolidationent.MasterNoContainsFold(options.NumberKeyword)),
+			))
+		case biz.OrderNumberFilterConsolidatedMaster:
+			query.Where(orderConsolidatedMasterContainsFold(options.NumberKeyword))
+		}
+	}
+	if options.CreatedAtRange.From != nil {
+		query.Where(orderent.CreatedAtGTE(*options.CreatedAtRange.From))
+	}
+	if options.CreatedAtRange.ToExclusive != nil {
+		query.Where(orderent.CreatedAtLT(*options.CreatedAtRange.ToExclusive))
+	}
+	applyOrderStringDateRange(query, orderent.FieldEtd, options.ETDRange)
+	applyOrderStringDateRange(query, orderent.FieldEta, options.ETARange)
+	if options.StatusTimeRange.From != nil || options.StatusTimeRange.ToExclusive != nil {
+		predicates := make([]entpredicate.OrderLifecycleEvent, 0, 2)
+		if options.StatusTimeRange.From != nil {
+			predicates = append(predicates, orderlifecycleeventent.ChangedAtGTE(*options.StatusTimeRange.From))
+		}
+		if options.StatusTimeRange.ToExclusive != nil {
+			predicates = append(predicates, orderlifecycleeventent.ChangedAtLT(*options.StatusTimeRange.ToExclusive))
+		}
+		query.Where(orderent.HasLifecycleEventsWith(predicates...))
+	}
+	if options.LockedAtRange.From != nil {
+		query.Where(orderent.LockedAtGTE(*options.LockedAtRange.From))
+	}
+	if options.LockedAtRange.ToExclusive != nil {
+		query.Where(orderent.LockedAtLT(*options.LockedAtRange.ToExclusive))
+	}
 	if options.FlowStatus != "" {
 		query.Where(orderent.FlowStatusEQ(orderent.FlowStatus(options.FlowStatus)))
 	}
@@ -92,6 +130,54 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	if options.CustomerID != nil {
 		query.Where(orderent.CustomerIDEQ(*options.CustomerID))
 	}
+	if options.OriginLocationID != nil {
+		query.Where(orderent.OriginLocationIDEQ(*options.OriginLocationID))
+	}
+	if options.DestinationLocationID != nil {
+		query.Where(orderent.DestinationLocationIDEQ(*options.DestinationLocationID))
+	}
+	if options.CarrierID != nil {
+		query.Where(orderent.CarrierIDEQ(*options.CarrierID))
+	}
+	if options.ConsigneeShortName != "" {
+		query.Where(orderent.ConsigneeShortNameContainsFold(options.ConsigneeShortName))
+	}
+	if options.ShipperShortName != "" {
+		query.Where(orderent.ShipperShortNameContainsFold(options.ShipperShortName))
+	}
+	applyOrderPersonnelFilter(query, orderpersonnelent.RoleOPERATOR, options.Operator)
+	applyOrderPersonnelFilter(query, orderpersonnelent.RoleSALES, options.Sales)
+	applyOrderPersonnelFilter(query, orderpersonnelent.RoleCUSTOMER_SERVICE, options.CustomerService)
+	applyOrderPersonnelFilter(query, orderpersonnelent.RoleCREATOR, options.Creator)
+	if options.IsLocked != nil {
+		if *options.IsLocked {
+			query.Where(orderent.LockedAtNotNil())
+		} else {
+			query.Where(orderent.LockedAtIsNil())
+		}
+	}
+	if options.IsShared != nil {
+		query.Where(orderent.IsSharedEQ(*options.IsShared))
+	}
+	if len(options.Tags) > 0 {
+		if options.TagMatchMode == biz.OrderTagMatchExactAnd {
+			for _, tag := range options.Tags {
+				tag := tag
+				query.Where(entpredicate.Order(func(selector *entsql.Selector) {
+					selector.Where(sqljson.ValueContains(selector.C(orderent.FieldTags), tag))
+				}))
+			}
+		} else {
+			tags := append([]string(nil), options.Tags...)
+			query.Where(entpredicate.Order(func(selector *entsql.Selector) {
+				predicates := make([]*entsql.Predicate, 0, len(tags))
+				for _, tag := range tags {
+					predicates = append(predicates, sqljson.StringContains(selector.C(orderent.FieldTags), tag))
+				}
+				selector.Where(entsql.Or(predicates...))
+			}))
+		}
+	}
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, err
@@ -109,6 +195,46 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 		result = append(result, orderToBiz(item))
 	}
 	return &biz.OrderList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func orderConsolidatedMasterContainsFold(keyword string) entpredicate.Order {
+	return entpredicate.Order(func(selector *entsql.Selector) {
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			builder.WriteString(`EXISTS (SELECT 1 FROM "order_shipping_documents" AS "filter_document" JOIN "order_consolidations" AS "filter_consolidation" ON "filter_consolidation"."id" = "filter_document"."consolidation_id" WHERE "filter_document"."order_id" = `).
+				Ident(selector.C(orderent.FieldID)).
+				WriteString(` AND LOWER("filter_consolidation"."master_no") LIKE `).
+				Arg("%" + strings.ToLower(keyword) + "%").
+				WriteString(` GROUP BY "filter_consolidation"."id" HAVING COUNT(DISTINCT "filter_document"."order_id") > 1)`)
+		}))
+	})
+}
+
+func applyOrderStringDateRange(query *ent.OrderQuery, fieldName string, dateRange biz.OrderDateRange) {
+	if dateRange.From == nil && dateRange.ToExclusive == nil {
+		return
+	}
+	query.Where(entpredicate.Order(func(selector *entsql.Selector) {
+		if dateRange.From != nil {
+			selector.Where(entsql.GTE(selector.C(fieldName), dateRange.From.Format("2006-01-02")))
+		}
+		if dateRange.ToExclusive != nil {
+			selector.Where(entsql.LT(selector.C(fieldName), dateRange.ToExclusive.Format("2006-01-02")))
+		}
+	}))
+}
+
+func applyOrderPersonnelFilter(query *ent.OrderQuery, role orderpersonnelent.Role, filter biz.OrderPersonnelFilter) {
+	if filter.UserID == nil {
+		return
+	}
+	predicates := []entpredicate.OrderPersonnel{
+		orderpersonnelent.RoleEQ(role),
+		orderpersonnelent.UserIDEQ(*filter.UserID),
+	}
+	if filter.OrganizationID != nil {
+		predicates = append(predicates, orderpersonnelent.OrganizationIDEQ(*filter.OrganizationID))
+	}
+	query.Where(orderent.HasPersonnelWith(predicates...))
 }
 
 func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID uuid.UUID, check biz.OrderReferenceCheck) (*biz.OrderReferenceMatch, error) {
@@ -284,6 +410,9 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetCustomerID(input.CustomerID).
 		SetCustomerReferenceNo(input.CustomerReferenceNo).
 		SetInternalReferenceNo(input.InternalReferenceNo).
+		SetShipperShortName(input.ShipperShortName).
+		SetConsigneeShortName(input.ConsigneeShortName).
+		SetTags(input.Tags).
 		SetNillableCarrierID(input.CarrierID).
 		SetNillableBookingAgentID(input.BookingAgentID).
 		SetNillableForeignAgentID(input.ForeignAgentID).
@@ -442,6 +571,9 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetCustomerID(input.CustomerID).
 		SetCustomerReferenceNo(input.CustomerReferenceNo).
 		SetInternalReferenceNo(input.InternalReferenceNo).
+		SetShipperShortName(input.ShipperShortName).
+		SetConsigneeShortName(input.ConsigneeShortName).
+		SetTags(input.Tags).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
 		SetInsurancePremium(input.InsurancePremium).
@@ -1043,6 +1175,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		ID: item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
 		CarrierID: item.CarrierID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
+		ShipperShortName: item.ShipperShortName, ConsigneeShortName: item.ConsigneeShortName, LockedAt: item.LockedAt, IsShared: item.IsShared, Tags: append([]string(nil), item.Tags...),
 		InsurancePremium: item.InsurancePremium, InsuranceCurrency: item.InsuranceCurrency, UNNumber: item.UnNumber, HazardClass: item.HazardClass, FactoryName: item.FactoryName, CargoReadyAt: item.CargoReadyAt, LoadingTerms: item.LoadingTerms,
 		DeclarationCutoffAt: item.DeclarationCutoffAt, ReceivedAt: item.ReceivedAt,
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), TradeTerm: biz.OrderTradeTerm(item.TradeTerm), PaymentTerm: biz.OrderPaymentTerm(item.PaymentTerm),

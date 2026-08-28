@@ -956,6 +956,9 @@ declare namespace API {
     declarationCutoffAt?: string;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
+    shipperShortName?: string;
+    consigneeShortName?: string;
+    tags?: OrderTagsInput;
   };
 
   type CreateOrderResponse = {
@@ -2733,6 +2736,11 @@ declare namespace API {
     hasActiveException?: boolean;
     activeExceptionCount?: number;
     allowedActions?: number[];
+    shipperShortName?: string;
+    consigneeShortName?: string;
+    lockedAt?: string;
+    isShared?: boolean;
+    tags?: string[];
   };
 
   type OrderAbnormalCase = {
@@ -3133,6 +3141,35 @@ declare namespace API {
     terminationStatus?: number;
     closureStatus?: number;
     hasActiveException?: boolean;
+    numberType?: number;
+    numberKeyword?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    etdFrom?: string;
+    etdTo?: string;
+    etaFrom?: string;
+    etaTo?: string;
+    statusTimeFrom?: string;
+    statusTimeTo?: string;
+    lockedAtFrom?: string;
+    lockedAtTo?: string;
+    originLocationId?: string;
+    destinationLocationId?: string;
+    carrierId?: string;
+    consigneeShortName?: string;
+    shipperShortName?: string;
+    operatorId?: string;
+    operatorOrganizationId?: string;
+    salesId?: string;
+    salesOrganizationId?: string;
+    customerServiceId?: string;
+    customerServiceOrganizationId?: string;
+    creatorId?: string;
+    creatorOrganizationId?: string;
+    tags?: string[];
+    tagMatchMode?: number;
+    isLocked?: boolean;
+    isShared?: boolean;
   };
 
   type OrderServiceListPersonnelOptionsParams = {
@@ -3206,6 +3243,10 @@ declare namespace API {
   type OrderShippingDocumentServiceUpdateShippingDocumentParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderTagsInput = {
+    values?: string[];
   };
 
   type Organization = {
@@ -4610,6 +4651,9 @@ declare namespace API {
     declarationCutoffAt?: string;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
+    shipperShortName?: string;
+    consigneeShortName?: string;
+    tags?: OrderTagsInput;
   };
 
   type UpdateOrderResponse = {

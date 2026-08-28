@@ -30,6 +30,10 @@ const (
 	FieldCustomerReferenceNo = "customer_reference_no"
 	// FieldInternalReferenceNo holds the string denoting the internal_reference_no field in the database.
 	FieldInternalReferenceNo = "internal_reference_no"
+	// FieldShipperShortName holds the string denoting the shipper_short_name field in the database.
+	FieldShipperShortName = "shipper_short_name"
+	// FieldConsigneeShortName holds the string denoting the consignee_short_name field in the database.
+	FieldConsigneeShortName = "consignee_short_name"
 	// FieldCarrierID holds the string denoting the carrier_id field in the database.
 	FieldCarrierID = "carrier_id"
 	// FieldBookingAgentID holds the string denoting the booking_agent_id field in the database.
@@ -96,6 +100,12 @@ const (
 	FieldClosedAt = "closed_at"
 	// FieldClosedBy holds the string denoting the closed_by field in the database.
 	FieldClosedBy = "closed_by"
+	// FieldLockedAt holds the string denoting the locked_at field in the database.
+	FieldLockedAt = "locked_at"
+	// FieldIsShared holds the string denoting the is_shared field in the database.
+	FieldIsShared = "is_shared"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
@@ -327,6 +337,8 @@ var Columns = []string{
 	FieldCustomerID,
 	FieldCustomerReferenceNo,
 	FieldInternalReferenceNo,
+	FieldShipperShortName,
+	FieldConsigneeShortName,
 	FieldCarrierID,
 	FieldBookingAgentID,
 	FieldForeignAgentID,
@@ -360,6 +372,9 @@ var Columns = []string{
 	FieldClosureReason,
 	FieldClosedAt,
 	FieldClosedBy,
+	FieldLockedAt,
+	FieldIsShared,
+	FieldTags,
 	FieldVersion,
 	FieldOriginLocationID,
 	FieldDestinationLocationID,
@@ -408,6 +423,10 @@ var (
 	CustomerReferenceNoValidator func(string) error
 	// InternalReferenceNoValidator is a validator for the "internal_reference_no" field. It is called by the builders before save.
 	InternalReferenceNoValidator func(string) error
+	// ShipperShortNameValidator is a validator for the "shipper_short_name" field. It is called by the builders before save.
+	ShipperShortNameValidator func(string) error
+	// ConsigneeShortNameValidator is a validator for the "consignee_short_name" field. It is called by the builders before save.
+	ConsigneeShortNameValidator func(string) error
 	// ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.
 	ContractNoValidator func(string) error
 	// CargoValueValidator is a validator for the "cargo_value" field. It is called by the builders before save.
@@ -436,6 +455,10 @@ var (
 	TerminationReasonValidator func(string) error
 	// ClosureReasonValidator is a validator for the "closure_reason" field. It is called by the builders before save.
 	ClosureReasonValidator func(string) error
+	// DefaultIsShared holds the default value on creation for the "is_shared" field.
+	DefaultIsShared bool
+	// DefaultTags holds the default value on creation for the "tags" field.
+	DefaultTags []string
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
@@ -805,6 +828,16 @@ func ByInternalReferenceNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInternalReferenceNo, opts...).ToFunc()
 }
 
+// ByShipperShortName orders the results by the shipper_short_name field.
+func ByShipperShortName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShipperShortName, opts...).ToFunc()
+}
+
+// ByConsigneeShortName orders the results by the consignee_short_name field.
+func ByConsigneeShortName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConsigneeShortName, opts...).ToFunc()
+}
+
 // ByCarrierID orders the results by the carrier_id field.
 func ByCarrierID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCarrierID, opts...).ToFunc()
@@ -968,6 +1001,16 @@ func ByClosedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByClosedBy orders the results by the closed_by field.
 func ByClosedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClosedBy, opts...).ToFunc()
+}
+
+// ByLockedAt orders the results by the locked_at field.
+func ByLockedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockedAt, opts...).ToFunc()
+}
+
+// ByIsShared orders the results by the is_shared field.
+func ByIsShared(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsShared, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

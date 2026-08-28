@@ -11,6 +11,61 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
+func TestOrderDateRangeFromAPIUsesInclusiveEndDate(t *testing.T) {
+	result, err := orderDateRangeFromAPI("2026-08-01", "2026-08-31")
+	if err != nil {
+		t.Fatalf("orderDateRangeFromAPI() error = %v", err)
+	}
+	if result.From == nil || result.From.Format("2006-01-02") != "2026-08-01" {
+		t.Fatalf("from = %v", result.From)
+	}
+	if result.ToExclusive == nil || result.ToExclusive.Format("2006-01-02") != "2026-09-01" {
+		t.Fatalf("toExclusive = %v", result.ToExclusive)
+	}
+	if _, err := orderDateRangeFromAPI("2026-09-02", "2026-09-01"); err == nil {
+		t.Fatal("倒置日期范围应返回参数错误")
+	}
+	if _, err := orderDateRangeFromAPI("2026/09/01", ""); err == nil {
+		t.Fatal("非法日期格式应返回参数错误")
+	}
+}
+
+func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
+	userID := uuid.New()
+	organizationID := uuid.New()
+	result, err := orderPersonnelFilterFromAPI(userID.String(), organizationID.String())
+	if err != nil {
+		t.Fatalf("orderPersonnelFilterFromAPI() error = %v", err)
+	}
+	if result.UserID == nil || *result.UserID != userID || result.OrganizationID == nil || *result.OrganizationID != organizationID {
+		t.Fatalf("personnel filter = %#v", result)
+	}
+	if _, err := orderPersonnelFilterFromAPI("", organizationID.String()); err == nil {
+		t.Fatal("仅传部门时应返回参数错误")
+	}
+}
+
+func TestMergeOrderUpdateRequestDistinguishesOmittedAndClearedTags(t *testing.T) {
+	existing := &biz.Order{Tags: []string{"VIP", "高货值"}}
+	merged, err := mergeOrderUpdateRequest(existing, &v1.UpdateOrderRequest{})
+	if err != nil {
+		t.Fatalf("mergeOrderUpdateRequest() error = %v", err)
+	}
+	if !slices.Equal(merged.Tags, existing.Tags) {
+		t.Fatalf("省略 tags 后得到 %v，期望保留 %v", merged.Tags, existing.Tags)
+	}
+
+	merged, err = mergeOrderUpdateRequest(existing, &v1.UpdateOrderRequest{
+		Tags: &v1.OrderTagsInput{},
+	})
+	if err != nil {
+		t.Fatalf("mergeOrderUpdateRequest(clear tags) error = %v", err)
+	}
+	if len(merged.Tags) != 0 {
+		t.Fatalf("明确清空 tags 后得到 %v", merged.Tags)
+	}
+}
+
 func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
@@ -54,6 +109,8 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 	loadingTerms := "CY-CY"
 	receivedAt := "2026-08-23T10:00:00+08:00"
 	declarationCutoffAt := "2026-08-22T16:00:00+08:00"
+	shipperShortName := "华东发货人"
+	consigneeShortName := "美西收货人"
 
 	order, err := orderFromCreateRequest(&v1.CreateOrderRequest{
 		CustomerId:   customerID.String(),
@@ -66,16 +123,18 @@ func TestOrderBusinessFieldsRoundTrip(t *testing.T) {
 		UnNumber: &unNumber, HazardClass: &hazardClass, FactoryName: &factoryName,
 		CargoReadyAt: &cargoReadyAt, LoadingTerms: &loadingTerms,
 		DeclarationCutoffAt: &declarationCutoffAt, ReceivedAt: &receivedAt,
+		ShipperShortName: &shipperShortName, ConsigneeShortName: &consigneeShortName,
+		Tags: &v1.OrderTagsInput{Values: []string{"VIP", "高货值", "VIP"}},
 	})
 	if err != nil {
 		t.Fatalf("orderFromCreateRequest() error = %v", err)
 	}
-	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.LoadingTerms != loadingTerms || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt {
+	if order.CustomerReferenceNo != referenceNo || order.InternalReferenceNo != internalReferenceNo || order.ForeignAgentID == nil || *order.ForeignAgentID != foreignAgentID || order.ShippingAgentID == nil || *order.ShippingAgentID != shippingAgentID || order.ContractNo != contractNo || order.CargoValue != cargoValue || order.CargoCurrency != cargoCurrency || order.InsurancePremium != insurancePremium || order.InsuranceCurrency != insuranceCurrency || order.UNNumber != unNumber || order.HazardClass != hazardClass || order.FactoryName != factoryName || order.CargoReadyAt != cargoReadyAt || order.LoadingTerms != loadingTerms || order.DeclarationCutoffAt != declarationCutoffAt || order.ReceivedAt != receivedAt || order.ShipperShortName != shipperShortName || order.ConsigneeShortName != consigneeShortName || !slices.Equal(order.Tags, []string{"VIP", "高货值"}) {
 		t.Fatalf("converted order business fields = %#v", order)
 	}
 
 	apiOrder := orderToAPI(order)
-	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetLoadingTerms() != loadingTerms || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt {
+	if apiOrder.GetCustomerReferenceNo() != referenceNo || apiOrder.GetInternalReferenceNo() != internalReferenceNo || apiOrder.GetForeignAgentId() != foreignAgentIDString || apiOrder.GetShippingAgentId() != shippingAgentIDString || apiOrder.GetContractNo() != contractNo || apiOrder.GetCargoValue() != cargoValue || apiOrder.GetCargoCurrency() != cargoCurrency || apiOrder.GetInsurancePremium() != insurancePremium || apiOrder.GetInsuranceCurrency() != insuranceCurrency || apiOrder.GetUnNumber() != unNumber || apiOrder.GetHazardClass() != hazardClass || apiOrder.GetFactoryName() != factoryName || apiOrder.GetCargoReadyAt() != cargoReadyAt || apiOrder.GetLoadingTerms() != loadingTerms || apiOrder.GetDeclarationCutoffAt() != declarationCutoffAt || apiOrder.GetReceivedAt() != receivedAt || apiOrder.GetShipperShortName() != shipperShortName || apiOrder.GetConsigneeShortName() != consigneeShortName || !slices.Equal(apiOrder.GetTags(), []string{"VIP", "高货值"}) {
 		t.Fatalf("orderToAPI() business fields = %#v", apiOrder)
 	}
 }

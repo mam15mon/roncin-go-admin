@@ -1,7 +1,14 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderListTemplate } from './OrderListTemplate';
+import { OrderListSearchFilter } from './OrderListSearchFilter';
 import type { OrderListItem } from './types';
 
 // Mock matchMedia
@@ -95,5 +102,69 @@ describe('OrderListTemplate', () => {
 
     fireEvent.click(screen.getByText('待订舱'));
     expect(onStatusTabChange).toHaveBeenCalledWith('booking');
+  });
+});
+
+describe('OrderListSearchFilter', () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it('提交复合单号类型和关键词', async () => {
+    const onSearch = vi.fn();
+    render(<OrderListSearchFilter onSearch={onSearch} onReset={vi.fn()} />);
+
+    fireEvent.change(screen.getByPlaceholderText('输入单号'), {
+      target: { value: 'SE202608280001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /查询/ }));
+
+    await waitFor(() => {
+      expect(onSearch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          numberType: 'order',
+          numberKeyword: 'SE202608280001',
+        }),
+      );
+    });
+  });
+
+  it('展开全量筛选并按服务端方式加载动态候选项', async () => {
+    const loadPorts = vi.fn().mockResolvedValue([]);
+    const loadPartners = vi.fn().mockResolvedValue([]);
+    const loadCarriers = vi.fn().mockResolvedValue([]);
+    const loadPersonnel = vi.fn().mockResolvedValue([]);
+    render(
+      <OrderListSearchFilter
+        onSearch={vi.fn()}
+        onReset={vi.fn()}
+        options={{ loadPorts, loadPartners, loadCarriers, loadPersonnel }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(loadPorts).toHaveBeenCalled();
+      expect(loadPartners).toHaveBeenCalled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /展开更多筛选/ }));
+
+    expect(screen.getByText('创建时间')).toBeInTheDocument();
+    expect(screen.getByText('ETA（预计到港时间）')).toBeInTheDocument();
+    expect(screen.getByText('订单状态时间')).toBeInTheDocument();
+    expect(screen.getByText('订单锁定时间')).toBeInTheDocument();
+    expect(screen.getByText('船公司')).toBeInTheDocument();
+    expect(screen.getByText('操作人员')).toBeInTheDocument();
+    expect(screen.getByText('业务人员')).toBeInTheDocument();
+    expect(screen.getByText('客服人员')).toBeInTheDocument();
+    expect(screen.getByText('订单创建人员')).toBeInTheDocument();
+    expect(screen.getByText('标签匹配模式')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(loadPorts).toHaveBeenCalled();
+      expect(loadPartners).toHaveBeenCalled();
+      expect(loadCarriers).toHaveBeenCalled();
+      expect(loadPersonnel).toHaveBeenCalledTimes(1);
+    });
   });
 });

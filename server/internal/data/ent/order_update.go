@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
@@ -119,6 +120,46 @@ func (_u *OrderUpdate) SetNillableInternalReferenceNo(v *string) *OrderUpdate {
 // ClearInternalReferenceNo clears the value of the "internal_reference_no" field.
 func (_u *OrderUpdate) ClearInternalReferenceNo() *OrderUpdate {
 	_u.mutation.ClearInternalReferenceNo()
+	return _u
+}
+
+// SetShipperShortName sets the "shipper_short_name" field.
+func (_u *OrderUpdate) SetShipperShortName(v string) *OrderUpdate {
+	_u.mutation.SetShipperShortName(v)
+	return _u
+}
+
+// SetNillableShipperShortName sets the "shipper_short_name" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableShipperShortName(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetShipperShortName(*v)
+	}
+	return _u
+}
+
+// ClearShipperShortName clears the value of the "shipper_short_name" field.
+func (_u *OrderUpdate) ClearShipperShortName() *OrderUpdate {
+	_u.mutation.ClearShipperShortName()
+	return _u
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (_u *OrderUpdate) SetConsigneeShortName(v string) *OrderUpdate {
+	_u.mutation.SetConsigneeShortName(v)
+	return _u
+}
+
+// SetNillableConsigneeShortName sets the "consignee_short_name" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableConsigneeShortName(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetConsigneeShortName(*v)
+	}
+	return _u
+}
+
+// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
+func (_u *OrderUpdate) ClearConsigneeShortName() *OrderUpdate {
+	_u.mutation.ClearConsigneeShortName()
 	return _u
 }
 
@@ -737,6 +778,52 @@ func (_u *OrderUpdate) SetNillableClosedBy(v *uuid.UUID) *OrderUpdate {
 // ClearClosedBy clears the value of the "closed_by" field.
 func (_u *OrderUpdate) ClearClosedBy() *OrderUpdate {
 	_u.mutation.ClearClosedBy()
+	return _u
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (_u *OrderUpdate) SetLockedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetLockedAt(v)
+	return _u
+}
+
+// SetNillableLockedAt sets the "locked_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableLockedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetLockedAt(*v)
+	}
+	return _u
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (_u *OrderUpdate) ClearLockedAt() *OrderUpdate {
+	_u.mutation.ClearLockedAt()
+	return _u
+}
+
+// SetIsShared sets the "is_shared" field.
+func (_u *OrderUpdate) SetIsShared(v bool) *OrderUpdate {
+	_u.mutation.SetIsShared(v)
+	return _u
+}
+
+// SetNillableIsShared sets the "is_shared" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableIsShared(v *bool) *OrderUpdate {
+	if v != nil {
+		_u.SetIsShared(*v)
+	}
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *OrderUpdate) SetTags(v []string) *OrderUpdate {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *OrderUpdate) AppendTags(v []string) *OrderUpdate {
+	_u.mutation.AppendTags(v)
 	return _u
 }
 
@@ -1909,6 +1996,16 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "internal_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.internal_reference_no": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ShipperShortName(); ok {
+		if err := order.ShipperShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "shipper_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.shipper_short_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ConsigneeShortName(); ok {
+		if err := order.ConsigneeShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "consignee_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.consignee_short_name": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ContractNo(); ok {
 		if err := order.ContractNoValidator(v); err != nil {
 			return &ValidationError{Name: "contract_no", err: fmt.Errorf(`ent: validator failed for field "Order.contract_no": %w`, err)}
@@ -2155,6 +2252,18 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.InternalReferenceNoCleared() {
 		_spec.ClearField(order.FieldInternalReferenceNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.ShipperShortName(); ok {
+		_spec.SetField(order.FieldShipperShortName, field.TypeString, value)
+	}
+	if _u.mutation.ShipperShortNameCleared() {
+		_spec.ClearField(order.FieldShipperShortName, field.TypeString)
+	}
+	if value, ok := _u.mutation.ConsigneeShortName(); ok {
+		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
+	}
+	if _u.mutation.ConsigneeShortNameCleared() {
+		_spec.ClearField(order.FieldConsigneeShortName, field.TypeString)
+	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 	}
@@ -2331,6 +2440,23 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ClosedByCleared() {
 		_spec.ClearField(order.FieldClosedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.LockedAt(); ok {
+		_spec.SetField(order.FieldLockedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LockedAtCleared() {
+		_spec.ClearField(order.FieldLockedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsShared(); ok {
+		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(order.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, order.FieldTags, value)
+		})
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
@@ -3396,6 +3522,46 @@ func (_u *OrderUpdateOne) ClearInternalReferenceNo() *OrderUpdateOne {
 	return _u
 }
 
+// SetShipperShortName sets the "shipper_short_name" field.
+func (_u *OrderUpdateOne) SetShipperShortName(v string) *OrderUpdateOne {
+	_u.mutation.SetShipperShortName(v)
+	return _u
+}
+
+// SetNillableShipperShortName sets the "shipper_short_name" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableShipperShortName(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetShipperShortName(*v)
+	}
+	return _u
+}
+
+// ClearShipperShortName clears the value of the "shipper_short_name" field.
+func (_u *OrderUpdateOne) ClearShipperShortName() *OrderUpdateOne {
+	_u.mutation.ClearShipperShortName()
+	return _u
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (_u *OrderUpdateOne) SetConsigneeShortName(v string) *OrderUpdateOne {
+	_u.mutation.SetConsigneeShortName(v)
+	return _u
+}
+
+// SetNillableConsigneeShortName sets the "consignee_short_name" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableConsigneeShortName(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetConsigneeShortName(*v)
+	}
+	return _u
+}
+
+// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
+func (_u *OrderUpdateOne) ClearConsigneeShortName() *OrderUpdateOne {
+	_u.mutation.ClearConsigneeShortName()
+	return _u
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (_u *OrderUpdateOne) SetCarrierID(v uuid.UUID) *OrderUpdateOne {
 	_u.mutation.SetCarrierID(v)
@@ -4011,6 +4177,52 @@ func (_u *OrderUpdateOne) SetNillableClosedBy(v *uuid.UUID) *OrderUpdateOne {
 // ClearClosedBy clears the value of the "closed_by" field.
 func (_u *OrderUpdateOne) ClearClosedBy() *OrderUpdateOne {
 	_u.mutation.ClearClosedBy()
+	return _u
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (_u *OrderUpdateOne) SetLockedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetLockedAt(v)
+	return _u
+}
+
+// SetNillableLockedAt sets the "locked_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableLockedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetLockedAt(*v)
+	}
+	return _u
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (_u *OrderUpdateOne) ClearLockedAt() *OrderUpdateOne {
+	_u.mutation.ClearLockedAt()
+	return _u
+}
+
+// SetIsShared sets the "is_shared" field.
+func (_u *OrderUpdateOne) SetIsShared(v bool) *OrderUpdateOne {
+	_u.mutation.SetIsShared(v)
+	return _u
+}
+
+// SetNillableIsShared sets the "is_shared" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableIsShared(v *bool) *OrderUpdateOne {
+	if v != nil {
+		_u.SetIsShared(*v)
+	}
+	return _u
+}
+
+// SetTags sets the "tags" field.
+func (_u *OrderUpdateOne) SetTags(v []string) *OrderUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
+}
+
+// AppendTags appends value to the "tags" field.
+func (_u *OrderUpdateOne) AppendTags(v []string) *OrderUpdateOne {
+	_u.mutation.AppendTags(v)
 	return _u
 }
 
@@ -5196,6 +5408,16 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "internal_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.internal_reference_no": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ShipperShortName(); ok {
+		if err := order.ShipperShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "shipper_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.shipper_short_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ConsigneeShortName(); ok {
+		if err := order.ConsigneeShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "consignee_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.consignee_short_name": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ContractNo(); ok {
 		if err := order.ContractNoValidator(v); err != nil {
 			return &ValidationError{Name: "contract_no", err: fmt.Errorf(`ent: validator failed for field "Order.contract_no": %w`, err)}
@@ -5459,6 +5681,18 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if _u.mutation.InternalReferenceNoCleared() {
 		_spec.ClearField(order.FieldInternalReferenceNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.ShipperShortName(); ok {
+		_spec.SetField(order.FieldShipperShortName, field.TypeString, value)
+	}
+	if _u.mutation.ShipperShortNameCleared() {
+		_spec.ClearField(order.FieldShipperShortName, field.TypeString)
+	}
+	if value, ok := _u.mutation.ConsigneeShortName(); ok {
+		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
+	}
+	if _u.mutation.ConsigneeShortNameCleared() {
+		_spec.ClearField(order.FieldConsigneeShortName, field.TypeString)
+	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 	}
@@ -5635,6 +5869,23 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.ClosedByCleared() {
 		_spec.ClearField(order.FieldClosedBy, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.LockedAt(); ok {
+		_spec.SetField(order.FieldLockedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LockedAtCleared() {
+		_spec.ClearField(order.FieldLockedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsShared(); ok {
+		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Tags(); ok {
+		_spec.SetField(order.FieldTags, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, order.FieldTags, value)
+		})
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)

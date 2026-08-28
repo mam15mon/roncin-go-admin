@@ -46883,6 +46883,8 @@ type OrderMutation struct {
 	order_no                              *string
 	customer_reference_no                 *string
 	internal_reference_no                 *string
+	shipper_short_name                    *string
+	consignee_short_name                  *string
 	carrier_id                            *uuid.UUID
 	booking_agent_id                      *uuid.UUID
 	foreign_agent_id                      *uuid.UUID
@@ -46916,6 +46918,10 @@ type OrderMutation struct {
 	closure_reason                        *string
 	closed_at                             *time.Time
 	closed_by                             *uuid.UUID
+	locked_at                             *time.Time
+	is_shared                             *bool
+	tags                                  *[]string
+	appendtags                            []string
 	version                               *uint64
 	addversion                            *int64
 	origin_location_id                    *uuid.UUID
@@ -47384,6 +47390,104 @@ func (m *OrderMutation) InternalReferenceNoCleared() bool {
 func (m *OrderMutation) ResetInternalReferenceNo() {
 	m.internal_reference_no = nil
 	delete(m.clearedFields, order.FieldInternalReferenceNo)
+}
+
+// SetShipperShortName sets the "shipper_short_name" field.
+func (m *OrderMutation) SetShipperShortName(s string) {
+	m.shipper_short_name = &s
+}
+
+// ShipperShortName returns the value of the "shipper_short_name" field in the mutation.
+func (m *OrderMutation) ShipperShortName() (r string, exists bool) {
+	v := m.shipper_short_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShipperShortName returns the old "shipper_short_name" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldShipperShortName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShipperShortName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShipperShortName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShipperShortName: %w", err)
+	}
+	return oldValue.ShipperShortName, nil
+}
+
+// ClearShipperShortName clears the value of the "shipper_short_name" field.
+func (m *OrderMutation) ClearShipperShortName() {
+	m.shipper_short_name = nil
+	m.clearedFields[order.FieldShipperShortName] = struct{}{}
+}
+
+// ShipperShortNameCleared returns if the "shipper_short_name" field was cleared in this mutation.
+func (m *OrderMutation) ShipperShortNameCleared() bool {
+	_, ok := m.clearedFields[order.FieldShipperShortName]
+	return ok
+}
+
+// ResetShipperShortName resets all changes to the "shipper_short_name" field.
+func (m *OrderMutation) ResetShipperShortName() {
+	m.shipper_short_name = nil
+	delete(m.clearedFields, order.FieldShipperShortName)
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (m *OrderMutation) SetConsigneeShortName(s string) {
+	m.consignee_short_name = &s
+}
+
+// ConsigneeShortName returns the value of the "consignee_short_name" field in the mutation.
+func (m *OrderMutation) ConsigneeShortName() (r string, exists bool) {
+	v := m.consignee_short_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsigneeShortName returns the old "consignee_short_name" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldConsigneeShortName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsigneeShortName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsigneeShortName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsigneeShortName: %w", err)
+	}
+	return oldValue.ConsigneeShortName, nil
+}
+
+// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
+func (m *OrderMutation) ClearConsigneeShortName() {
+	m.consignee_short_name = nil
+	m.clearedFields[order.FieldConsigneeShortName] = struct{}{}
+}
+
+// ConsigneeShortNameCleared returns if the "consignee_short_name" field was cleared in this mutation.
+func (m *OrderMutation) ConsigneeShortNameCleared() bool {
+	_, ok := m.clearedFields[order.FieldConsigneeShortName]
+	return ok
+}
+
+// ResetConsigneeShortName resets all changes to the "consignee_short_name" field.
+func (m *OrderMutation) ResetConsigneeShortName() {
+	m.consignee_short_name = nil
+	delete(m.clearedFields, order.FieldConsigneeShortName)
 }
 
 // SetCarrierID sets the "carrier_id" field.
@@ -48910,6 +49014,142 @@ func (m *OrderMutation) ClosedByCleared() bool {
 func (m *OrderMutation) ResetClosedBy() {
 	m.closed_by = nil
 	delete(m.clearedFields, order.FieldClosedBy)
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (m *OrderMutation) SetLockedAt(t time.Time) {
+	m.locked_at = &t
+}
+
+// LockedAt returns the value of the "locked_at" field in the mutation.
+func (m *OrderMutation) LockedAt() (r time.Time, exists bool) {
+	v := m.locked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockedAt returns the old "locked_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldLockedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockedAt: %w", err)
+	}
+	return oldValue.LockedAt, nil
+}
+
+// ClearLockedAt clears the value of the "locked_at" field.
+func (m *OrderMutation) ClearLockedAt() {
+	m.locked_at = nil
+	m.clearedFields[order.FieldLockedAt] = struct{}{}
+}
+
+// LockedAtCleared returns if the "locked_at" field was cleared in this mutation.
+func (m *OrderMutation) LockedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldLockedAt]
+	return ok
+}
+
+// ResetLockedAt resets all changes to the "locked_at" field.
+func (m *OrderMutation) ResetLockedAt() {
+	m.locked_at = nil
+	delete(m.clearedFields, order.FieldLockedAt)
+}
+
+// SetIsShared sets the "is_shared" field.
+func (m *OrderMutation) SetIsShared(b bool) {
+	m.is_shared = &b
+}
+
+// IsShared returns the value of the "is_shared" field in the mutation.
+func (m *OrderMutation) IsShared() (r bool, exists bool) {
+	v := m.is_shared
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsShared returns the old "is_shared" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldIsShared(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsShared is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsShared requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsShared: %w", err)
+	}
+	return oldValue.IsShared, nil
+}
+
+// ResetIsShared resets all changes to the "is_shared" field.
+func (m *OrderMutation) ResetIsShared() {
+	m.is_shared = nil
+}
+
+// SetTags sets the "tags" field.
+func (m *OrderMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *OrderMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *OrderMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *OrderMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *OrderMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
 }
 
 // SetVersion sets the "version" field.
@@ -51115,7 +51355,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 63)
+	fields := make([]string, 0, 68)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -51136,6 +51376,12 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.internal_reference_no != nil {
 		fields = append(fields, order.FieldInternalReferenceNo)
+	}
+	if m.shipper_short_name != nil {
+		fields = append(fields, order.FieldShipperShortName)
+	}
+	if m.consignee_short_name != nil {
+		fields = append(fields, order.FieldConsigneeShortName)
 	}
 	if m.carrier_id != nil {
 		fields = append(fields, order.FieldCarrierID)
@@ -51236,6 +51482,15 @@ func (m *OrderMutation) Fields() []string {
 	if m.closed_by != nil {
 		fields = append(fields, order.FieldClosedBy)
 	}
+	if m.locked_at != nil {
+		fields = append(fields, order.FieldLockedAt)
+	}
+	if m.is_shared != nil {
+		fields = append(fields, order.FieldIsShared)
+	}
+	if m.tags != nil {
+		fields = append(fields, order.FieldTags)
+	}
 	if m.version != nil {
 		fields = append(fields, order.FieldVersion)
 	}
@@ -51327,6 +51582,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.CustomerReferenceNo()
 	case order.FieldInternalReferenceNo:
 		return m.InternalReferenceNo()
+	case order.FieldShipperShortName:
+		return m.ShipperShortName()
+	case order.FieldConsigneeShortName:
+		return m.ConsigneeShortName()
 	case order.FieldCarrierID:
 		return m.CarrierID()
 	case order.FieldBookingAgentID:
@@ -51393,6 +51652,12 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.ClosedAt()
 	case order.FieldClosedBy:
 		return m.ClosedBy()
+	case order.FieldLockedAt:
+		return m.LockedAt()
+	case order.FieldIsShared:
+		return m.IsShared()
+	case order.FieldTags:
+		return m.Tags()
 	case order.FieldVersion:
 		return m.Version()
 	case order.FieldOriginLocationID:
@@ -51462,6 +51727,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCustomerReferenceNo(ctx)
 	case order.FieldInternalReferenceNo:
 		return m.OldInternalReferenceNo(ctx)
+	case order.FieldShipperShortName:
+		return m.OldShipperShortName(ctx)
+	case order.FieldConsigneeShortName:
+		return m.OldConsigneeShortName(ctx)
 	case order.FieldCarrierID:
 		return m.OldCarrierID(ctx)
 	case order.FieldBookingAgentID:
@@ -51528,6 +51797,12 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldClosedAt(ctx)
 	case order.FieldClosedBy:
 		return m.OldClosedBy(ctx)
+	case order.FieldLockedAt:
+		return m.OldLockedAt(ctx)
+	case order.FieldIsShared:
+		return m.OldIsShared(ctx)
+	case order.FieldTags:
+		return m.OldTags(ctx)
 	case order.FieldVersion:
 		return m.OldVersion(ctx)
 	case order.FieldOriginLocationID:
@@ -51631,6 +51906,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInternalReferenceNo(v)
+		return nil
+	case order.FieldShipperShortName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShipperShortName(v)
+		return nil
+	case order.FieldConsigneeShortName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsigneeShortName(v)
 		return nil
 	case order.FieldCarrierID:
 		v, ok := value.(uuid.UUID)
@@ -51862,6 +52151,27 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClosedBy(v)
+		return nil
+	case order.FieldLockedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockedAt(v)
+		return nil
+	case order.FieldIsShared:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsShared(v)
+		return nil
+	case order.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	case order.FieldVersion:
 		v, ok := value.(uint64)
@@ -52111,6 +52421,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldInternalReferenceNo) {
 		fields = append(fields, order.FieldInternalReferenceNo)
 	}
+	if m.FieldCleared(order.FieldShipperShortName) {
+		fields = append(fields, order.FieldShipperShortName)
+	}
+	if m.FieldCleared(order.FieldConsigneeShortName) {
+		fields = append(fields, order.FieldConsigneeShortName)
+	}
 	if m.FieldCleared(order.FieldCarrierID) {
 		fields = append(fields, order.FieldCarrierID)
 	}
@@ -52188,6 +52504,9 @@ func (m *OrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(order.FieldClosedBy) {
 		fields = append(fields, order.FieldClosedBy)
+	}
+	if m.FieldCleared(order.FieldLockedAt) {
+		fields = append(fields, order.FieldLockedAt)
 	}
 	if m.FieldCleared(order.FieldOriginLocationID) {
 		fields = append(fields, order.FieldOriginLocationID)
@@ -52275,6 +52594,12 @@ func (m *OrderMutation) ClearField(name string) error {
 	case order.FieldInternalReferenceNo:
 		m.ClearInternalReferenceNo()
 		return nil
+	case order.FieldShipperShortName:
+		m.ClearShipperShortName()
+		return nil
+	case order.FieldConsigneeShortName:
+		m.ClearConsigneeShortName()
+		return nil
 	case order.FieldCarrierID:
 		m.ClearCarrierID()
 		return nil
@@ -52352,6 +52677,9 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldClosedBy:
 		m.ClearClosedBy()
+		return nil
+	case order.FieldLockedAt:
+		m.ClearLockedAt()
 		return nil
 	case order.FieldOriginLocationID:
 		m.ClearOriginLocationID()
@@ -52447,6 +52775,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldInternalReferenceNo:
 		m.ResetInternalReferenceNo()
+		return nil
+	case order.FieldShipperShortName:
+		m.ResetShipperShortName()
+		return nil
+	case order.FieldConsigneeShortName:
+		m.ResetConsigneeShortName()
 		return nil
 	case order.FieldCarrierID:
 		m.ResetCarrierID()
@@ -52546,6 +52880,15 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldClosedBy:
 		m.ResetClosedBy()
+		return nil
+	case order.FieldLockedAt:
+		m.ResetLockedAt()
+		return nil
+	case order.FieldIsShared:
+		m.ResetIsShared()
+		return nil
+	case order.FieldTags:
+		m.ResetTags()
 		return nil
 	case order.FieldVersion:
 		m.ResetVersion()

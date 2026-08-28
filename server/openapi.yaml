@@ -2734,6 +2734,126 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: numberType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: numberKeyword
+                  in: query
+                  schema:
+                    type: string
+                - name: createdAtFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: createdAtTo
+                  in: query
+                  schema:
+                    type: string
+                - name: etdFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: etdTo
+                  in: query
+                  schema:
+                    type: string
+                - name: etaFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: etaTo
+                  in: query
+                  schema:
+                    type: string
+                - name: statusTimeFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: statusTimeTo
+                  in: query
+                  schema:
+                    type: string
+                - name: lockedAtFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: lockedAtTo
+                  in: query
+                  schema:
+                    type: string
+                - name: originLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: destinationLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: carrierId
+                  in: query
+                  schema:
+                    type: string
+                - name: consigneeShortName
+                  in: query
+                  schema:
+                    type: string
+                - name: shipperShortName
+                  in: query
+                  schema:
+                    type: string
+                - name: operatorId
+                  in: query
+                  schema:
+                    type: string
+                - name: operatorOrganizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: salesId
+                  in: query
+                  schema:
+                    type: string
+                - name: salesOrganizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: customerServiceId
+                  in: query
+                  schema:
+                    type: string
+                - name: customerServiceOrganizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: creatorId
+                  in: query
+                  schema:
+                    type: string
+                - name: creatorOrganizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: tags
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: tagMatchMode
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: isLocked
+                  in: query
+                  schema:
+                    type: boolean
+                - name: isShared
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -9916,6 +10036,12 @@ components:
                 totalVolumeCbm:
                     type: number
                     format: double
+                shipperShortName:
+                    type: string
+                consigneeShortName:
+                    type: string
+                tags:
+                    $ref: '#/components/schemas/order.v1.OrderTagsInput'
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -10408,6 +10534,18 @@ components:
                     items:
                         type: integer
                         format: enum
+                shipperShortName:
+                    type: string
+                consigneeShortName:
+                    type: string
+                lockedAt:
+                    type: string
+                isShared:
+                    type: boolean
+                tags:
+                    type: array
+                    items:
+                        type: string
             description: Order 订单核心信息。
         order.v1.OrderAbnormalCase:
             type: object
@@ -10886,6 +11024,14 @@ components:
                 masterReleaseMethod:
                     type: string
             description: OrderShippingDocumentInput 订单表单中的主分单输入。
+        order.v1.OrderTagsInput:
+            type: object
+            properties:
+                values:
+                    type: array
+                    items:
+                        type: string
+            description: OrderTagsInput 订单标签写入值；消息存在但 values 为空表示明确清空标签。
         order.v1.RegisterAttachmentRequest:
             required:
                 - orderId
@@ -11577,6 +11723,12 @@ components:
                 totalVolumeCbm:
                     type: number
                     format: double
+                shipperShortName:
+                    type: string
+                consigneeShortName:
+                    type: string
+                tags:
+                    $ref: '#/components/schemas/order.v1.OrderTagsInput'
             description: UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
         order.v1.UpdateOrderResponse:
             type: object

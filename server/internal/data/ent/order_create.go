@@ -114,6 +114,34 @@ func (_c *OrderCreate) SetNillableInternalReferenceNo(v *string) *OrderCreate {
 	return _c
 }
 
+// SetShipperShortName sets the "shipper_short_name" field.
+func (_c *OrderCreate) SetShipperShortName(v string) *OrderCreate {
+	_c.mutation.SetShipperShortName(v)
+	return _c
+}
+
+// SetNillableShipperShortName sets the "shipper_short_name" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableShipperShortName(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetShipperShortName(*v)
+	}
+	return _c
+}
+
+// SetConsigneeShortName sets the "consignee_short_name" field.
+func (_c *OrderCreate) SetConsigneeShortName(v string) *OrderCreate {
+	_c.mutation.SetConsigneeShortName(v)
+	return _c
+}
+
+// SetNillableConsigneeShortName sets the "consignee_short_name" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableConsigneeShortName(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetConsigneeShortName(*v)
+	}
+	return _c
+}
+
 // SetCarrierID sets the "carrier_id" field.
 func (_c *OrderCreate) SetCarrierID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetCarrierID(v)
@@ -541,6 +569,40 @@ func (_c *OrderCreate) SetNillableClosedBy(v *uuid.UUID) *OrderCreate {
 	if v != nil {
 		_c.SetClosedBy(*v)
 	}
+	return _c
+}
+
+// SetLockedAt sets the "locked_at" field.
+func (_c *OrderCreate) SetLockedAt(v time.Time) *OrderCreate {
+	_c.mutation.SetLockedAt(v)
+	return _c
+}
+
+// SetNillableLockedAt sets the "locked_at" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableLockedAt(v *time.Time) *OrderCreate {
+	if v != nil {
+		_c.SetLockedAt(*v)
+	}
+	return _c
+}
+
+// SetIsShared sets the "is_shared" field.
+func (_c *OrderCreate) SetIsShared(v bool) *OrderCreate {
+	_c.mutation.SetIsShared(v)
+	return _c
+}
+
+// SetNillableIsShared sets the "is_shared" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableIsShared(v *bool) *OrderCreate {
+	if v != nil {
+		_c.SetIsShared(*v)
+	}
+	return _c
+}
+
+// SetTags sets the "tags" field.
+func (_c *OrderCreate) SetTags(v []string) *OrderCreate {
+	_c.mutation.SetTags(v)
 	return _c
 }
 
@@ -1200,6 +1262,14 @@ func (_c *OrderCreate) defaults() {
 		v := order.DefaultClosureStatus
 		_c.mutation.SetClosureStatus(v)
 	}
+	if _, ok := _c.mutation.IsShared(); !ok {
+		v := order.DefaultIsShared
+		_c.mutation.SetIsShared(v)
+	}
+	if _, ok := _c.mutation.Tags(); !ok {
+		v := order.DefaultTags
+		_c.mutation.SetTags(v)
+	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := order.DefaultVersion
 		_c.mutation.SetVersion(v)
@@ -1240,6 +1310,16 @@ func (_c *OrderCreate) check() error {
 	if v, ok := _c.mutation.InternalReferenceNo(); ok {
 		if err := order.InternalReferenceNoValidator(v); err != nil {
 			return &ValidationError{Name: "internal_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.internal_reference_no": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ShipperShortName(); ok {
+		if err := order.ShipperShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "shipper_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.shipper_short_name": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ConsigneeShortName(); ok {
+		if err := order.ConsigneeShortNameValidator(v); err != nil {
+			return &ValidationError{Name: "consignee_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.consignee_short_name": %w`, err)}
 		}
 	}
 	if v, ok := _c.mutation.ContractNo(); ok {
@@ -1387,6 +1467,12 @@ func (_c *OrderCreate) check() error {
 		if err := order.ClosureReasonValidator(v); err != nil {
 			return &ValidationError{Name: "closure_reason", err: fmt.Errorf(`ent: validator failed for field "Order.closure_reason": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IsShared(); !ok {
+		return &ValidationError{Name: "is_shared", err: errors.New(`ent: missing required field "Order.is_shared"`)}
+	}
+	if _, ok := _c.mutation.Tags(); !ok {
+		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required field "Order.tags"`)}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Order.version"`)}
@@ -1537,6 +1623,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldInternalReferenceNo, field.TypeString, value)
 		_node.InternalReferenceNo = value
 	}
+	if value, ok := _c.mutation.ShipperShortName(); ok {
+		_spec.SetField(order.FieldShipperShortName, field.TypeString, value)
+		_node.ShipperShortName = value
+	}
+	if value, ok := _c.mutation.ConsigneeShortName(); ok {
+		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
+		_node.ConsigneeShortName = value
+	}
 	if value, ok := _c.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
 		_node.CarrierID = &value
@@ -1668,6 +1762,18 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ClosedBy(); ok {
 		_spec.SetField(order.FieldClosedBy, field.TypeUUID, value)
 		_node.ClosedBy = &value
+	}
+	if value, ok := _c.mutation.LockedAt(); ok {
+		_spec.SetField(order.FieldLockedAt, field.TypeTime, value)
+		_node.LockedAt = &value
+	}
+	if value, ok := _c.mutation.IsShared(); ok {
+		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
+		_node.IsShared = value
+	}
+	if value, ok := _c.mutation.Tags(); ok {
+		_spec.SetField(order.FieldTags, field.TypeJSON, value)
+		_node.Tags = value
 	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)

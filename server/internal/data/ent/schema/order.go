@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -20,6 +21,8 @@ func (Order) Fields() []ent.Field {
 		field.UUID("customer_id", uuid.Nil),
 		field.String("customer_reference_no").Optional().MaxLen(100),
 		field.String("internal_reference_no").Optional().MaxLen(100),
+		field.String("shipper_short_name").Optional().MaxLen(200),
+		field.String("consignee_short_name").Optional().MaxLen(200),
 		field.UUID("carrier_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("booking_agent_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("foreign_agent_id", uuid.Nil).Optional().Nillable(),
@@ -53,6 +56,9 @@ func (Order) Fields() []ent.Field {
 		field.String("closure_reason").Optional().Nillable().MaxLen(500),
 		field.Time("closed_at").Optional().Nillable(),
 		field.UUID("closed_by", uuid.Nil).Optional().Nillable(),
+		field.Time("locked_at").Optional().Nillable(),
+		field.Bool("is_shared").Default(false),
+		field.JSON("tags", []string{}).Default([]string{}),
 		field.Uint64("version").Default(1),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("destination_location_id", uuid.Nil).Optional().Nillable(),
@@ -111,5 +117,11 @@ func (Order) Indexes() []ent.Index {
 		index.Fields("organization_id", "closure_status"),
 		index.Fields("organization_id", "business_type"),
 		index.Fields("organization_id", "customer_id"),
+		index.Fields("organization_id", "carrier_id"),
+		index.Fields("organization_id", "origin_location_id"),
+		index.Fields("organization_id", "destination_location_id"),
+		index.Fields("organization_id", "locked_at"),
+		index.Fields("organization_id", "is_shared"),
+		index.Fields("tags").StorageKey("order_tags_gin").Annotations(entsql.IndexType("GIN")),
 	}
 }
