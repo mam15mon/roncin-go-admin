@@ -99,3 +99,56 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 		t.Fatalf("重复同步不是幂等操作: %+v", third)
 	}
 }
+
+func TestCreateDefaultOrderOptionsPostgres(t *testing.T) {
+	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
+	if source == "" {
+		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
+	}
+	ctx := context.Background()
+	db, err := sql.Open("pgx", source)
+	if err != nil {
+		t.Fatalf("打开集成测试数据库: %v", err)
+	}
+	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
+	defer client.Close()
+	if err := client.Schema.Create(ctx); err != nil {
+		t.Fatalf("初始化集成测试 Schema: %v", err)
+	}
+
+	tx, err := client.Tx(ctx)
+	if err != nil {
+		t.Fatalf("开启测试事务: %v", err)
+	}
+	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:8]
+	organization, err := tx.Organization.Create().
+		SetCode("ORDER-CREATE-" + suffix).
+		SetName("订单种子创建测试组织").
+		SetKind("headquarters").
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		t.Fatalf("创建测试组织: %v", err)
+	}
+	if err := CreateDefaultOrderOptions(ctx, tx, organization.ID); err != nil {
+		_ = tx.Rollback()
+		t.Fatalf("创建默认订单主数据: %v", err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatalf("提交测试事务: %v", err)
+	}
+	defer client.Organization.DeleteOneID(organization.ID).Exec(ctx)
+
+	containerSpec, err := client.MasterDataItem.Query().Where(
+		masterdataent.OrganizationIDEQ(organization.ID),
+		masterdataent.KindEQ(masterdataent.KindContainerSpec),
+		masterdataent.CodeEQ("20GP"),
+	).Only(ctx)
+	if err != nil {
+		t.Fatalf("查询 20GP 箱型: %v", err)
+	}
+	if containerSpec.TeuFactor == nil || *containerSpec.TeuFactor != "1" {
+		t.Fatalf("20GP TEU 系数 = %v, want 1", containerSpec.TeuFactor)
+	}
+}

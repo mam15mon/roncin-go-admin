@@ -38,6 +38,7 @@ func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx, organizationID u
 			SetKind(masterdataent.Kind(item.Kind)).
 			SetCode(item.Code).
 			SetName(item.Name).
+			SetNillableTeuFactor(item.TEUFactor).
 			SetSource(item.Source).
 			SetSortOrder(item.SortOrder).
 			SetEnabled(true).
