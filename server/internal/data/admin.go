@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -14,10 +13,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	roleorderorganizationaccess "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -120,38 +121,35 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 }
 
 func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
+	predicates := []predicate.Membership{
+		membership.OrganizationIDEQ(organizationID),
+		membership.EnabledEQ(true),
+	}
+	if options.Keyword != "" {
+		predicates = append(predicates, membership.HasUserWith(userent.Or(
+			userent.UsernameContainsFold(options.Keyword),
+			userent.DisplayNameContainsFold(options.Keyword),
+			userent.SearchKeywordsContainsFold(options.Keyword),
+		)))
+	}
 	query := r.data.db.Membership.Query().
-		Where(membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).
+		Where(predicates...).
 		WithUser().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
-	items, err := query.All(ctx)
+	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(items, func(i, j int) bool { return items[i].Edges.User.Username < items[j].Edges.User.Username })
-	keyword := strings.ToLower(options.Keyword)
-	filtered := make([]*ent.Membership, 0, len(items))
+	items, err := query.
+		Order(membership.ByUserField(userent.FieldUsername), membership.ByID()).
+		Offset((options.Page - 1) * options.PageSize).
+		Limit(options.PageSize).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*biz.AdminUser, 0, len(items))
 	for _, item := range items {
-		account, edgeErr := item.Edges.UserOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		if keyword != "" && !strings.Contains(strings.ToLower(account.Username), keyword) && !strings.Contains(strings.ToLower(account.DisplayName), keyword) && !strings.Contains(strings.ToLower(account.SearchKeywords), keyword) {
-			continue
-		}
-		filtered = append(filtered, item)
-	}
-	total := len(filtered)
-	start := (options.Page - 1) * options.PageSize
-	if start > total {
-		start = total
-	}
-	end := start + options.PageSize
-	if end > total {
-		end = total
-	}
-	result := make([]*biz.AdminUser, 0, end-start)
-	for _, item := range filtered[start:end] {
 		result = append(result, membershipToUser(item))
 	}
 	return &biz.AdminUserList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
