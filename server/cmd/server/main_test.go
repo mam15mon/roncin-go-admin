@@ -65,6 +65,28 @@ func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 	}
 }
 
+func TestProductionConfigUsesSafeDefaults(t *testing.T) {
+	t.Setenv("DATABASE_SOURCE", "postgres://example.invalid/roncin")
+	c := newRuntimeConfig("../../configs/config.production.yaml")
+	t.Cleanup(func() { _ = c.Close() })
+	if err := c.Load(); err != nil {
+		t.Fatalf("加载生产配置失败: %v", err)
+	}
+	var bootstrap conf.Bootstrap
+	if err := c.Scan(&bootstrap); err != nil {
+		t.Fatalf("解析生产配置失败: %v", err)
+	}
+	if bootstrap.GetData().GetDatabase().GetDebug() {
+		t.Fatal("生产配置不得启用数据库调试日志")
+	}
+	if !bootstrap.GetSecurity().GetSession().GetSecure() {
+		t.Fatal("生产配置必须启用 Secure 会话 Cookie")
+	}
+	if bootstrap.GetTelemetry().GetInsecure() {
+		t.Fatal("生产配置不得默认使用不安全的 OTLP 连接")
+	}
+}
+
 func loadWeComConfig(t *testing.T) *conf.Security_WeCom {
 	t.Helper()
 	configPath := filepath.Join(t.TempDir(), "config.yaml")

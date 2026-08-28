@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -318,7 +319,7 @@ func openStore() (*data.IndustryReferenceSyncStore, func(), error) {
 	if databaseSource == "" {
 		return nil, nil, errors.New("DATABASE_SOURCE 不能为空")
 	}
-	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: databaseSource}})
+	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: databaseSource}}, slog.Default())
 	if err != nil {
 		return nil, nil, err
 	}

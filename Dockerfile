@@ -25,4 +25,4 @@ COPY server/configs /app/configs
 
 EXPOSE 8000 9000
 ENTRYPOINT ["/app/roncin-server"]
-CMD ["-conf", "/app/configs"]
+CMD ["-conf", "/app/configs/config.production.yaml"]

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
@@ -32,7 +34,7 @@ func (d *Data) Ping(ctx context.Context) error {
 }
 
 // NewData opens the database client and returns it with a cleanup function.
-func NewData(c *conf.Data) (*Data, func(), error) {
+func NewData(c *conf.Data, logger *slog.Logger) (*Data, func(), error) {
 	dc := c.GetDatabase()
 	if dc.GetDriver() != dialect.Postgres {
 		return nil, nil, fmt.Errorf("unsupported database driver %q: expected postgres", dc.GetDriver())
@@ -59,7 +61,12 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 		sqlDB.Close()
 		return nil, nil, fmt.Errorf("connect database: %w", err)
 	}
-	db := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
+	db := ent.NewClient(
+		ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)),
+		ent.Log(func(values ...any) {
+			logger.Debug("ent query", slog.String("statement", redactEntDebugMessage(fmt.Sprint(values...))))
+		}),
+	)
 	if dc.GetDebug() {
 		db = db.Debug()
 	}
@@ -78,4 +85,11 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 		}
 	}
 	return &Data{db: db, sqlDB: sqlDB}, cleanup, nil
+}
+
+func redactEntDebugMessage(message string) string {
+	if index := strings.Index(message, " args="); index >= 0 {
+		return message[:index] + " args=[REDACTED]"
+	}
+	return message
 }
