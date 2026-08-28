@@ -33,7 +33,10 @@ import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
 } from '@/services/roncin/adminService';
-import { applyPermissionLinkage } from './permissionLinkage';
+import {
+  applyPermissionLinkage,
+  mergeVisiblePermissionSelection,
+} from './permissionLinkage';
 import {
   type OrderOrganizationAccess,
   type PermissionGroupNode,
@@ -120,9 +123,21 @@ export default function RoleFormModal({
     const leafKeys = (checkedKeys as string[]).filter(
       (key) => !key.startsWith('group:'),
     );
+    const visibleKeys = filteredTreeData.flatMap((group) =>
+      group.children.map((leaf) => leaf.key),
+    );
+    const mergedKeys = mergeVisiblePermissionSelection(
+      selectedPermissionKeys,
+      visibleKeys,
+      leafKeys,
+    );
     // 勾选联动：勾选操作权限连带补齐其依赖；取消基础权限级联移除依赖它的权限。
     setSelectedPermissionKeys(
-      applyPermissionLinkage(selectedPermissionKeys, leafKeys, requiresByPermission),
+      applyPermissionLinkage(
+        selectedPermissionKeys,
+        mergedKeys,
+        requiresByPermission,
+      ),
     );
   };
 
@@ -286,9 +301,7 @@ export default function RoleFormModal({
               setOrderOrganizationAccesses((previous) =>
                 previous.map((access) => ({
                   ...access,
-                  writable: writableOrganizationIDs.has(
-                    access.organizationId,
-                  ),
+                  writable: writableOrganizationIDs.has(access.organizationId),
                 })),
               );
             }}
@@ -307,10 +320,7 @@ export default function RoleFormModal({
           }}
         >
           <Space size={8}>
-            <Text
-              strong
-              style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}
-            >
+            <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
               功能权限配置
             </Text>
             <Tag color="blue" variant="filled">
@@ -359,9 +369,7 @@ export default function RoleFormModal({
         >
           <Input
             placeholder="搜索权限名称、权限码或说明..."
-            prefix={
-              <SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
-            }
+            prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
             allowClear
             size="small"
             value={permissionKeyword}
@@ -427,8 +435,7 @@ export default function RoleFormModal({
                           style={{
                             fontSize: 11,
                             fontWeight: 400,
-                            color:
-                              checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
+                            color: checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
                           }}
                         >
                           ({checkedInGroup}/{groupLeaves.length})
@@ -522,9 +529,7 @@ export default function RoleFormModal({
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
-                  permissionKeyword
-                    ? '未找到匹配的权限项'
-                    : '暂无可用权限'
+                  permissionKeyword ? '未找到匹配的权限项' : '暂无可用权限'
                 }
                 style={{ margin: '20px 0' }}
               />

@@ -1,4 +1,7 @@
-import type { ManifestPermissionKey } from '@/permissions.generated';
+import type {
+  ManifestPermissionKey,
+  OrderPermissionOperation,
+} from '@/permissions.generated';
 
 // 键值必须命中后端权限清单生成的前缀类型：后端权限码改名或删除后，这里的旧
 // 键名会在 `pnpm --dir web tsc` 时直接报错，避免按钮权限静默失效。
@@ -110,9 +113,14 @@ const orderBusinessCodes: Record<number | string, string | undefined> = {
   AI: 'ai',
 };
 
-function orderPermission(businessType: number | string, operation: string) {
+function orderPermission(
+  businessType: number | string,
+  operation: OrderPermissionOperation,
+): ManifestPermissionKey | '' {
   const businessCode = orderBusinessCodes[businessType];
-  return businessCode ? `business.order.${businessCode}.${operation}` : '';
+  return businessCode
+    ? (`business.order.${businessCode}.${operation}` as ManifestPermissionKey)
+    : '';
 }
 
 export default function access(
@@ -135,7 +143,10 @@ export default function access(
   };
   const inOrganization = hasScope('organization');
   const inAll = hasScope('all');
-  const canOrder = (businessType: number | string, operation: string) => {
+  const canOrder = (
+    businessType: number | string,
+    operation: OrderPermissionOperation,
+  ) => {
     const permission = orderPermission(businessType, operation);
     return permission !== '' && has(permission) && inOrganization;
   };

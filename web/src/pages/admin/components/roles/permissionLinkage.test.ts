@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { applyPermissionLinkage } from './permissionLinkage';
+import {
+  applyPermissionLinkage,
+  mergeVisiblePermissionSelection,
+} from './permissionLinkage';
 
 const requiresByPermission: Record<string, string[]> = {
   'business.partner.read': [],
@@ -87,8 +90,38 @@ describe('applyPermissionLinkage', () => {
       'business.order.se.cargo_item.read',
       'business.order.se.read',
     ];
-    expect(applyPermissionLinkage(source, source, requiresByPermission)).toEqual(
-      source,
+    expect(
+      applyPermissionLinkage(source, source, requiresByPermission),
+    ).toEqual(source);
+  });
+});
+
+describe('mergeVisiblePermissionSelection', () => {
+  it('搜索过滤后勾选可见权限时保留隐藏权限', () => {
+    const previous = [
+      'business.partner.read',
+      'business.order.se.read',
+      'business.order.se.cargo_item.read',
+    ];
+    const merged = mergeVisiblePermissionSelection(
+      previous,
+      ['business.partner.read', 'business.partner.update'],
+      ['business.partner.read', 'business.partner.update'],
     );
+    expect(merged).toEqual([
+      'business.order.se.read',
+      'business.order.se.cargo_item.read',
+      'business.partner.read',
+      'business.partner.update',
+    ]);
+  });
+
+  it('取消可见权限时只移除当前过滤树中的权限', () => {
+    const merged = mergeVisiblePermissionSelection(
+      ['business.partner.read', 'business.order.se.read'],
+      ['business.partner.read'],
+      [],
+    );
+    expect(merged).toEqual(['business.order.se.read']);
   });
 });

@@ -14,6 +14,7 @@
     "bootstrap:admin": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/bootstrap-admin",
     "generate:web-client": "pnpm --dir web openapi",
     "generate:permission-keys": "node scripts/generate-permission-keys.mjs",
+    "check:permission-keys": "node scripts/generate-permission-keys.mjs --check",
     "migrate:server": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/migrate -dir migrations",
     "sync:regions": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-regions -apply",
     "sync:airports": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs go -C server run ./cmd/sync-airports -apply",
@@ -24,12 +25,12 @@
     "acceptance:finance-ui": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs pnpm --dir web test:e2e",
     "acceptance:fee-ledger-preference": "node --env-file-if-exists=.env.local scripts/acceptance-fee-ledger-preference.mjs",
     "acceptance:finance": "pnpm run acceptance:finance-bill-batch -- --apply && pnpm run acceptance:finance-payable -- --apply && pnpm run acceptance:finance-ui",
-    "check:web": "pnpm --dir web lint && pnpm --dir web test",
+    "check:web": "pnpm run check:permission-keys && pnpm --dir web lint && pnpm --dir web test",
     "lint:proto": "buf lint server",
     "check:server:vuln": "go -C server tool govulncheck ./...",
     "check:server": "pnpm run lint:proto && go -C server test ./... && go -C server vet ./... && pnpm run check:server:vuln",
     "check": "pnpm run check:web && pnpm run check:server",
-    "build:web": "pnpm --dir web build && node scripts/stage-web-assets.mjs",
+    "build:web": "pnpm run check:permission-keys && pnpm --dir web build && node scripts/stage-web-assets.mjs",
     "build:server": "go -C server build -o bin/roncin-server ./cmd/server",
     "build": "pnpm run build:web && pnpm run build:server"
   }

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,8 +30,24 @@ ${keys.map((key) => `  '${key}',`).join('\n')}
 ] as const;
 
 export type ManifestPermissionKey = (typeof manifestPermissionKeys)[number];
+
+type ExtractOrderPermissionOperation<Key> =
+  Key extends \`business.order.\${'se' | 'si' | 'ae' | 'ai'}.\${infer Operation}\`
+    ? Operation
+    : never;
+
+export type OrderPermissionOperation = ExtractOrderPermissionOperation<ManifestPermissionKey>;
 `;
 
 const outputPath = join(repoRoot, 'web/src/permissions.generated.ts');
+if (process.argv.includes('--check')) {
+  const current = readFileSync(outputPath, 'utf8');
+  if (current !== content) {
+    console.error('权限键名生成物已过期，请执行 pnpm run generate:permission-keys');
+    process.exit(1);
+  }
+  console.log(`[generate-permission-keys] 已验证 ${keys.length} 个权限键名常量`);
+  process.exit(0);
+}
 writeFileSync(outputPath, content);
 console.log(`[generate-permission-keys] 已生成 ${keys.length} 个权限键名常量`);

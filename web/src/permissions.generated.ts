@@ -222,3 +222,10 @@ export const manifestPermissionKeys = [
 ] as const;
 
 export type ManifestPermissionKey = (typeof manifestPermissionKeys)[number];
+
+type ExtractOrderPermissionOperation<Key> =
+  Key extends `business.order.${'se' | 'si' | 'ae' | 'ai'}.${infer Operation}`
+    ? Operation
+    : never;
+
+export type OrderPermissionOperation = ExtractOrderPermissionOperation<ManifestPermissionKey>;

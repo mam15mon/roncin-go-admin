@@ -30,7 +30,11 @@ export function applyPermissionLinkage(
   while (changed) {
     changed = false;
     for (const key of result) {
-      if ((requiresByPermission[key] ?? []).some((required) => !result.has(required))) {
+      if (
+        (requiresByPermission[key] ?? []).some(
+          (required) => !result.has(required),
+        )
+      ) {
         result.delete(key);
         changed = true;
         break;
@@ -39,4 +43,18 @@ export function applyPermissionLinkage(
   }
 
   return [...result];
+}
+
+// 权限树搜索时只渲染匹配节点，Tree.onCheck 返回的也是当前树中的键。合并本次
+// 可见选择前，先保留过滤后不可见的既有权限，避免搜索状态下误删其他权限。
+export function mergeVisiblePermissionSelection(
+  previousKeys: string[],
+  visibleKeys: string[],
+  nextVisibleKeys: string[],
+): string[] {
+  const visible = new Set(visibleKeys);
+  return [
+    ...previousKeys.filter((key) => !visible.has(key)),
+    ...nextVisibleKeys,
+  ];
 }
