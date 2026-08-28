@@ -28,6 +28,7 @@ type adminRepoStub struct {
 	actorRoleProfiles []*AdminRoleProfile
 	roleProfiles      []*AdminRoleProfile
 	currentRole       *AdminRole
+	notification      *NotificationIntent
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -105,9 +106,10 @@ func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizat
 	return input, nil
 }
 
-func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, notification *NotificationIntent) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
+	s.notification = notification
 	return input, nil
 }
 
@@ -216,6 +218,23 @@ func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
 	}
 	if _, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing roles error = %v", err)
+	}
+}
+
+func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	userID := uuid.New()
+
+	authorized, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []uuid.UUID{uuid.New()})
+	if err != nil {
+		t.Fatalf("AuthorizeDingTalkUser() error = %v", err)
+	}
+	if !authorized.Enabled {
+		t.Fatal("授权完成后用户应启用")
+	}
+	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateUserAuthorized {
+		t.Fatalf("授权完成通知意图 = %#v", repo.notification)
 	}
 }
 

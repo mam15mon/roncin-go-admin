@@ -56,6 +56,40 @@ func enqueueOrderPersonnelNotification(ctx context.Context, tx *ent.Tx, organiza
 	return nil
 }
 
+func enqueueDingTalkUserAuthorizedNotification(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, recipient *ent.User, intent *biz.NotificationIntent) error {
+	if recipient == nil || recipient.DingtalkUserid == nil || strings.TrimSpace(*recipient.DingtalkUserid) == "" {
+		return fmt.Errorf("钉钉授权完成通知缺少收件人")
+	}
+	if intent == nil || intent.ID == uuid.Nil || intent.RecipientUserID != recipient.ID || intent.Channel != biz.NotificationChannelDingTalk || intent.Template != biz.NotificationTemplateUserAuthorized {
+		return fmt.Errorf("钉钉授权完成通知意图不合法")
+	}
+	now := time.Now()
+	if _, err := tx.BackgroundTask.Create().
+		SetID(intent.ID).
+		SetOrganizationID(organizationID).
+		SetKind(backgroundtaskent.KindDINGTALK_NOTIFICATION).
+		SetIdempotencyKey("user-authorized:" + intent.ID.String()).
+		SetStatus(backgroundtaskent.StatusPENDING).
+		SetAttempts(0).
+		SetMaxAttempts(5).
+		SetNextRunAt(now).
+		Save(ctx); err != nil {
+		return err
+	}
+	if _, err := tx.NotificationDelivery.Create().
+		SetBackgroundTaskID(intent.ID).
+		SetRecipientUserID(recipient.ID).
+		SetChannel(notificationent.ChannelDINGTALK).
+		SetTemplate(notificationent.TemplateUSER_AUTHORIZED).
+		SetResourceType("USER").
+		SetResourceID(recipient.ID).
+		SetReferenceCode("ACCOUNT_AUTHORIZED").
+		Save(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *notificationRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (*biz.NotificationDelivery, error) {
 	item, err := r.data.db.NotificationDelivery.Query().
 		Where(notificationent.BackgroundTaskIDEQ(taskID)).
@@ -76,14 +110,15 @@ func (r *notificationRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (
 		dingTalkUserID = strings.TrimSpace(*recipient.DingtalkUserid)
 	}
 	return &biz.NotificationDelivery{
-		RecipientUserID: item.RecipientUserID,
-		DingTalkUserID:  dingTalkUserID,
-		Channel:         string(item.Channel),
-		Template:        string(item.Template),
-		ResourceType:    item.ResourceType,
-		ResourceID:      item.ResourceID,
-		ReferenceCode:   item.ReferenceCode,
-		Parameter:       item.Parameter,
+		RecipientUserID:      item.RecipientUserID,
+		RecipientDisplayName: recipient.DisplayName,
+		DingTalkUserID:       dingTalkUserID,
+		Channel:              string(item.Channel),
+		Template:             string(item.Template),
+		ResourceType:         item.ResourceType,
+		ResourceID:           item.ResourceID,
+		ReferenceCode:        item.ReferenceCode,
+		Parameter:            item.Parameter,
 	}, nil
 }
 

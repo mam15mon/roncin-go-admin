@@ -16,6 +16,7 @@ var ErrNotificationNotFound = errors.NotFound("NOTIFICATION_NOT_FOUND", "通知�
 const (
 	NotificationChannelDingTalk              = "DINGTALK"
 	NotificationTemplateOrderPersonnelAssign = "ORDER_PERSONNEL_ASSIGNED"
+	NotificationTemplateUserAuthorized       = "USER_AUTHORIZED"
 )
 
 // NotificationIntent 是业务用例交给仓储、并与业务写入同事务落库的通知意图。
@@ -28,15 +29,16 @@ type NotificationIntent struct {
 
 // NotificationDelivery 是通知 Worker 执行一次发送所需的最小业务快照。
 type NotificationDelivery struct {
-	Task            *BackgroundTask
-	RecipientUserID uuid.UUID
-	DingTalkUserID  string
-	Channel         string
-	Template        string
-	ResourceType    string
-	ResourceID      uuid.UUID
-	ReferenceCode   string
-	Parameter       string
+	Task                 *BackgroundTask
+	RecipientUserID      uuid.UUID
+	RecipientDisplayName string
+	DingTalkUserID       string
+	Channel              string
+	Template             string
+	ResourceType         string
+	ResourceID           uuid.UUID
+	ReferenceCode        string
+	Parameter            string
 }
 
 type NotificationRepo interface {
@@ -65,6 +67,15 @@ func NewOrderPersonnelNotification(recipientUserID uuid.UUID) *NotificationInten
 		RecipientUserID: recipientUserID,
 		Channel:         NotificationChannelDingTalk,
 		Template:        NotificationTemplateOrderPersonnelAssign,
+	}
+}
+
+func NewDingTalkUserAuthorizedNotification(recipientUserID uuid.UUID) *NotificationIntent {
+	return &NotificationIntent{
+		ID:              uuid.Must(uuid.NewV7()),
+		RecipientUserID: recipientUserID,
+		Channel:         NotificationChannelDingTalk,
+		Template:        NotificationTemplateUserAuthorized,
 	}
 }
 
@@ -116,14 +127,28 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 	if delivery == nil || strings.TrimSpace(delivery.DingTalkUserID) == "" || delivery.ResourceID == uuid.Nil || strings.TrimSpace(delivery.ReferenceCode) == "" {
 		return "", fmt.Errorf("通知明细不完整")
 	}
-	if delivery.Channel != NotificationChannelDingTalk || delivery.Template != NotificationTemplateOrderPersonnelAssign || delivery.ResourceType != "ORDER" {
+	if delivery.Channel != NotificationChannelDingTalk {
 		return "", fmt.Errorf("通知渠道或模板不受支持")
 	}
-	roleLabel, ok := orderPersonnelRoleLabel(OrderPersonnelRole(delivery.Parameter))
-	if !ok {
-		return "", fmt.Errorf("订单人员角色不受支持")
+	switch delivery.Template {
+	case NotificationTemplateOrderPersonnelAssign:
+		if delivery.ResourceType != "ORDER" {
+			return "", fmt.Errorf("通知渠道或模板不受支持")
+		}
+		roleLabel, ok := orderPersonnelRoleLabel(OrderPersonnelRole(delivery.Parameter))
+		if !ok {
+			return "", fmt.Errorf("订单人员角色不受支持")
+		}
+		return fmt.Sprintf("【海运出口订单协作提醒】\n订单：%s\n您已被分配为：%s\n请登录 Roncin 系统查看并处理。", delivery.ReferenceCode, roleLabel), nil
+	case NotificationTemplateUserAuthorized:
+		displayName := strings.TrimSpace(delivery.RecipientDisplayName)
+		if delivery.ResourceType != "USER" || displayName == "" {
+			return "", fmt.Errorf("通知明细不完整")
+		}
+		return fmt.Sprintf("【Roncin 账号授权完成】\n%s，您的所属组织和角色已完成授权。\n现在可以使用钉钉扫码登录 Roncin 系统。", displayName), nil
+	default:
+		return "", fmt.Errorf("通知渠道或模板不受支持")
 	}
-	return fmt.Sprintf("【海运出口订单协作提醒】\n订单：%s\n您已被分配为：%s\n请登录 Roncin 系统查看并处理。", delivery.ReferenceCode, roleLabel), nil
 }
 
 func orderPersonnelRoleLabel(role OrderPersonnelRole) (string, bool) {

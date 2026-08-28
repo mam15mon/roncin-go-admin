@@ -190,7 +190,7 @@ type AdminRepo interface {
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID) error
 	TerminateUser(context.Context, uuid.UUID, uuid.UUID) error
 	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
-	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *NotificationIntent) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	GetRole(context.Context, uuid.UUID, uuid.UUID) (*AdminRole, error)
@@ -518,7 +518,8 @@ func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganiz
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
+	notification := NewDingTalkUserAuthorizedNotification(normalized.ID)
+	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, notification)
 	if err != nil {
 		return nil, err
 	}

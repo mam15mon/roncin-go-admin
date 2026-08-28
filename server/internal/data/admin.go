@@ -517,18 +517,18 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 }
 
 func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, nil, func(account *ent.User) bool {
 		return account.WecomUserid != nil
 	})
 }
 
-func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
-		return account.DingtalkUnionid != nil
+func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, notification, func(account *ent.User) bool {
+		return account.DingtalkUnionid != nil && account.DingtalkUserid != nil && strings.TrimSpace(*account.DingtalkUserid) != ""
 	})
 }
 
-func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
+func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -603,6 +603,12 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 	if err := replaceRoleAssignments(ctx, tx, targetMembership.ID, roles); err != nil {
 		_ = tx.Rollback()
 		return nil, err
+	}
+	if notification != nil {
+		if err := enqueueDingTalkUserAuthorizedNotification(ctx, tx, targetOrganizationID, account, notification); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
 	}
 	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(input.ID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
 		_ = tx.Rollback()

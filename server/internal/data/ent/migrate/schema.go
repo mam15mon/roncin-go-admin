@@ -2023,7 +2023,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "channel", Type: field.TypeEnum, Enums: []string{"DINGTALK"}},
-		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED"}},
+		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED"}},
 		{Name: "resource_type", Type: field.TypeString, Size: 64},
 		{Name: "resource_id", Type: field.TypeUUID},
 		{Name: "reference_code", Type: field.TypeString, Size: 64},

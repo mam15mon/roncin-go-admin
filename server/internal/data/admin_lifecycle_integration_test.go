@@ -10,7 +10,9 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	notificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -139,10 +141,11 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
+	notification := biz.NewDingTalkUserAuthorizedNotification(account.ID)
 	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID})
+	}, []uuid.UUID{role.ID}, notification)
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}
@@ -151,6 +154,14 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 	if exists, err := data.db.User.Query().Where(userent.IDEQ(account.ID), userent.EnabledEQ(true)).Exist(ctx); err != nil || !exists {
 		t.Fatalf("返聘账号未恢复在职，exists=%v error=%v", exists, err)
+	}
+	task, err := data.db.BackgroundTask.Query().Where(backgroundtaskent.IDEQ(notification.ID)).Only(ctx)
+	if err != nil || task.Kind != backgroundtaskent.KindDINGTALK_NOTIFICATION || task.Status != backgroundtaskent.StatusPENDING {
+		t.Fatalf("授权通知任务 = %#v, error = %v", task, err)
+	}
+	delivery, err := data.db.NotificationDelivery.Query().Where(notificationent.BackgroundTaskIDEQ(notification.ID)).Only(ctx)
+	if err != nil || delivery.RecipientUserID != account.ID || delivery.Template != notificationent.TemplateUSER_AUTHORIZED || delivery.ResourceType != "USER" || delivery.ResourceID != account.ID {
+		t.Fatalf("授权通知明细 = %#v, error = %v", delivery, err)
 	}
 
 	backupUsername := "backup.user"

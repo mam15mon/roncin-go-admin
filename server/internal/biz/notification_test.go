@@ -59,6 +59,31 @@ func TestNotificationProcessNextCompletesDingTalkTask(t *testing.T) {
 	}
 }
 
+func TestNotificationProcessNextSendsUserAuthorizedMessage(t *testing.T) {
+	organizationID := uuid.New()
+	taskID := uuid.New()
+	leaseToken := "lease-token"
+	taskRepo := &backgroundTaskRepoStub{claimTask: &BackgroundTask{
+		ID: taskID, OrganizationID: organizationID, Kind: BackgroundTaskKindDingTalkNotice,
+		Status: BackgroundTaskStatusRunning, LeaseToken: &leaseToken,
+	}}
+	sender := &dingTalkNotificationSenderStub{enabled: true}
+	usecase := NewNotificationUsecase(NewBackgroundTaskUsecase(taskRepo), &notificationRepoStub{delivery: &NotificationDelivery{
+		RecipientUserID: uuid.New(), RecipientDisplayName: "张冠楠", DingTalkUserID: "ding-user-id", Channel: NotificationChannelDingTalk,
+		Template: NotificationTemplateUserAuthorized, ResourceType: "USER", ResourceID: uuid.New(), ReferenceCode: "ACCOUNT_AUTHORIZED",
+	}}, sender)
+
+	if err := usecase.ProcessNext(context.Background(), 30*time.Second); err != nil {
+		t.Fatalf("ProcessNext() error = %v", err)
+	}
+	if sender.userID != "ding-user-id" || !strings.Contains(sender.content, "张冠楠") || !strings.Contains(sender.content, "账号授权完成") || !strings.Contains(sender.content, "钉钉扫码登录") {
+		t.Fatalf("发送内容错误: userID=%q content=%q", sender.userID, sender.content)
+	}
+	if taskRepo.completeID != taskID || taskRepo.completeLeaseToken != leaseToken {
+		t.Fatalf("任务完成参数错误: %#v", taskRepo)
+	}
+}
+
 func TestNotificationProcessNextRecordsRetryOnSendFailure(t *testing.T) {
 	organizationID := uuid.New()
 	taskID := uuid.New()
