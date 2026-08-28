@@ -908,20 +908,26 @@ func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissi
 	}
 	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) ListCommissionEmployees(ctx context.Context, _ *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
+func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
-	items, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID)
+	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	result, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID, biz.SelectorListOptions{
+		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
+	})
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*v1.CommissionEmployeeOption, 0, len(items))
-	for _, item := range items {
+	data := make([]*v1.CommissionEmployeeOption, 0, len(result.Items))
+	for _, item := range result.Items {
 		data = append(data, &v1.CommissionEmployeeOption{Id: item.ID.String(), DisplayName: item.DisplayName})
 	}
-	return &v1.ListCommissionEmployeesResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListCommissionEmployeesResponse{
+		Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx),
+		Total: int64(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize),
+	}, nil
 }
 func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionCandidateSummariesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
@@ -951,7 +957,10 @@ func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.
 	for _, item := range result.Items {
 		data = append(data, commissionCandidateSummaryToAPI(item))
 	}
-	return &v1.ListCommissionCandidateSummariesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListCommissionCandidateSummariesResponse{
+		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+		Page: int32(result.Page), PageSize: int32(result.PageSize),
+	}, nil
 }
 func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListCommissionRulesRequest) (*v1.ListCommissionRulesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)

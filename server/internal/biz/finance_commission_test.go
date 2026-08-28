@@ -10,7 +10,13 @@ import (
 
 type commissionAdjustmentRepoStub struct {
 	CommissionRepo
-	created *FinanceCommissionAdjustment
+	created         *FinanceCommissionAdjustment
+	employeeOptions SelectorListOptions
+}
+
+func (r *commissionAdjustmentRepoStub) ListEmployees(_ context.Context, _ uuid.UUID, options SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error) {
+	r.employeeOptions = options
+	return &PagedList[*CommissionEmployeeOption]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *commissionAdjustmentRepoStub) GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error) {
@@ -49,6 +55,23 @@ func TestCalculateCommissionAmount(t *testing.T) {
 				t.Fatalf("CalculateCommissionAmount() base=%s amount=%s", base.StringFixed(8), amount.StringFixed(8))
 			}
 		})
+	}
+}
+
+func TestListCommissionEmployeesNormalizesAndValidatesPagination(t *testing.T) {
+	repo := &commissionAdjustmentRepoStub{}
+	usecase := NewCommissionUsecase(repo, nil)
+	_, err := usecase.ListEmployees(context.Background(), uuid.New(), SelectorListOptions{
+		Page: 1, PageSize: MaxListPageSize, Keyword: "  张三  ",
+	})
+	if err != nil {
+		t.Fatalf("查询提成员工失败: %v", err)
+	}
+	if repo.employeeOptions.Keyword != "张三" || repo.employeeOptions.PageSize != MaxListPageSize {
+		t.Fatalf("提成员工查询参数未正确归一化: %#v", repo.employeeOptions)
+	}
+	if _, err := usecase.ListEmployees(context.Background(), uuid.New(), SelectorListOptions{Page: 1, PageSize: MaxListPageSize + 1}); err != ErrCommissionInvalid {
+		t.Fatalf("超出统一分页上限的错误 = %v，期望 ErrCommissionInvalid", err)
 	}
 }
 

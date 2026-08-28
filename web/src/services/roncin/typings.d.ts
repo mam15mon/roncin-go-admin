@@ -1999,6 +1999,8 @@ declare namespace API {
     data?: CommissionCandidateSummary[];
     total?: string;
     traceId?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListCommissionEmployeesResponse = {
@@ -2007,6 +2009,9 @@ declare namespace API {
     message?: string;
     data?: CommissionEmployeeOption[];
     traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type ListCommissionRulesResponse = {
@@ -3938,6 +3943,12 @@ declare namespace API {
   type SettlementServiceListCommissionCandidatesParams = {
     verificationId?: string;
     ruleId?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
+  type SettlementServiceListCommissionEmployeesParams = {
     page?: number;
     pageSize?: number;
     keyword?: string;

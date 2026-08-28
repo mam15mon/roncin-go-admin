@@ -7224,6 +7224,9 @@ func (x *GetCommissionRequest) GetId() string {
 
 type ListCommissionEmployeesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7256,6 +7259,27 @@ func (x *ListCommissionEmployeesRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListCommissionEmployeesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionEmployeesRequest) Descriptor() ([]byte, []int) {
 	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *ListCommissionEmployeesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListCommissionEmployeesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListCommissionEmployeesRequest) GetKeyword() string {
+	if x != nil && x.Keyword != nil {
+		return *x.Keyword
+	}
+	return ""
 }
 
 type ListCommissionCandidatesRequest struct {
@@ -7393,6 +7417,9 @@ type ListCommissionEmployeesResponse struct {
 	Message       string                      `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data          []*CommissionEmployeeOption `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	TraceId       string                      `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int64                       `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                       `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                       `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7460,6 +7487,27 @@ func (x *ListCommissionEmployeesResponse) GetTraceId() string {
 		return x.TraceId
 	}
 	return ""
+}
+
+func (x *ListCommissionEmployeesResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListCommissionEmployeesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListCommissionEmployeesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 type ListCommissionRulesRequest struct {
@@ -9234,6 +9282,8 @@ type ListCommissionCandidateSummariesResponse struct {
 	Data          []*CommissionCandidateSummary `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
 	Total         int64                         `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
 	TraceId       string                        `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Page          int32                         `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                         `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9308,6 +9358,20 @@ func (x *ListCommissionCandidateSummariesResponse) GetTraceId() string {
 		return x.TraceId
 	}
 	return ""
+}
+
+func (x *ListCommissionCandidateSummariesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListCommissionCandidateSummariesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 type FinanceCommissionAdjustment struct {
@@ -11043,8 +11107,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\b_keywordB\t\n" +
 	"\a_status\"+\n" +
 	"\x14GetCommissionRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\" \n" +
-	"\x1eListCommissionEmployeesRequest\"\xc9\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"|\n" +
+	"\x1eListCommissionEmployeesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01B\n" +
+	"\n" +
+	"\b_keyword\"\xc9\x01\n" +
 	"\x1fListCommissionCandidatesRequest\x12,\n" +
 	"\x0fverification_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0everificationId\x12\x1c\n" +
 	"\arule_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06ruleId\x12\x12\n" +
@@ -11055,13 +11124,16 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\b_keyword\"M\n" +
 	"\x18CommissionEmployeeOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"\xbe\x01\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"\x85\x02\n" +
 	"\x1fListCommissionEmployeesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
 	"\x04data\x18\x04 \x03(\v2$.finance.v1.CommissionEmployeeOptionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe2\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xe2\x01\n" +
 	"\x1aListCommissionRulesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -11247,14 +11319,16 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\frate_percent\x18\f \x01(\tR\vratePercent\x12+\n" +
 	"\x11commission_amount\x18\r \x01(\tR\x10commissionAmount\x12\x12\n" +
 	"\x02id\x18\x0e \x01(\tB\x02\x18\x01R\x02id\x12%\n" +
-	"\fdisplay_name\x18\x0f \x01(\tB\x02\x18\x01R\vdisplayName\"\xdf\x01\n" +
+	"\fdisplay_name\x18\x0f \x01(\tB\x02\x18\x01R\vdisplayName\"\x90\x02\n" +
 	"(ListCommissionCandidateSummariesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12:\n" +
 	"\x04data\x18\x04 \x03(\v2&.finance.v1.CommissionCandidateSummaryR\x04data\x12\x14\n" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xfe\x06\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xfe\x06\n" +
 	"\x1bFinanceCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12#\n" +
@@ -11744,6 +11818,7 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[69].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[72].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[76].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[78].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[79].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[82].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[83].OneofWrappers = []any{}

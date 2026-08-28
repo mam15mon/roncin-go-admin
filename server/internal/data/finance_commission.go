@@ -15,7 +15,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
-	billline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
@@ -35,8 +34,28 @@ type commissionRepo struct{ data *Data }
 
 func NewCommissionRepo(data *Data) biz.CommissionRepo { return &commissionRepo{data: data} }
 
-func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID) ([]*biz.CommissionEmployeeOption, error) {
-	xs, err := r.data.db.User.Query().Where(user.EnabledEQ(true), user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true))).Order(user.ByDisplayName()).All(ctx)
+func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.CommissionEmployeeOption], error) {
+	predicates := []predicate.User{
+		user.EnabledEQ(true),
+		user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true)),
+	}
+	if options.Keyword != "" {
+		predicates = append(predicates, user.Or(
+			user.UsernameContainsFold(options.Keyword),
+			user.DisplayNameContainsFold(options.Keyword),
+			user.SearchKeywordsContainsFold(options.Keyword),
+		))
+	}
+	query := r.data.db.User.Query().Where(predicates...)
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	xs, err := query.
+		Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).
+		Offset((options.Page - 1) * options.PageSize).
+		Limit(options.PageSize).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,99 +63,86 @@ func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID) ([]*b
 	for _, x := range xs {
 		result = append(result, &biz.CommissionEmployeeOption{ID: x.ID, DisplayName: x.DisplayName})
 	}
-	return result, nil
+	return &biz.PagedList[*biz.CommissionEmployeeOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
 func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
-	ruleItem, err := r.data.db.FinanceCommissionRule.Query().Where(rule.IDEQ(f.RuleID), rule.OrganizationIDEQ(org), rule.EnabledEQ(true)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrCommissionRuleNotFound
-	}
+	store := commissionStoreFromClient(r.data.db)
+	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, f.RuleID, false)
 	if err != nil {
 		return nil, err
 	}
-	verificationItem, err := r.data.db.FinanceVerification.Query().Where(verification.IDEQ(f.VerificationID), verification.OrganizationIDEQ(org), verification.StatusEQ(verification.StatusACTIVE), verification.DirectionEQ(verification.DirectionRECEIVABLE)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) {
-		q.Where(allocation.ActiveEQ(true))
-	}).Only(ctx)
-	if ent.IsNotFound(err) || (err == nil && len(verificationItem.Edges.Allocations) == 0) {
-		return nil, biz.ErrCommissionSource
-	}
+	employeePredicates := commissionCandidateEmployeePredicates(org, source, f.Keyword)
+	employeeQuery := r.data.db.User.Query().Where(employeePredicates...)
+	total, err := employeeQuery.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if (ruleItem.EffectiveFrom != nil && verificationItem.VerificationDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && verificationItem.VerificationDate > *ruleItem.EffectiveTo) {
-		return nil, biz.ErrCommissionRuleInvalid
-	}
-	billIDs := make([]uuid.UUID, 0, len(verificationItem.Edges.Allocations))
-	for _, item := range verificationItem.Edges.Allocations {
-		billIDs = append(billIDs, item.BillID)
-	}
-	billLines, err := r.data.db.FinanceBillLine.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true)).All(ctx)
+	employees, err := employeeQuery.
+		Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).
+		Offset((f.Page - 1) * f.PageSize).
+		Limit(f.PageSize).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orderIDs := make([]uuid.UUID, 0, len(billLines))
-	seenOrders := make(map[uuid.UUID]struct{}, len(billLines))
-	for _, item := range billLines {
-		if _, exists := seenOrders[item.OrderID]; !exists {
-			seenOrders[item.OrderID] = struct{}{}
-			orderIDs = append(orderIDs, item.OrderID)
-		}
+	result := &biz.CommissionCandidateListResult{
+		Items: make([]*biz.CommissionCalculation, 0, len(employees)), Total: int64(total), Page: f.Page, PageSize: f.PageSize,
 	}
-	if len(orderIDs) == 0 {
-		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}}, nil
+	if len(employees) == 0 {
+		return result, nil
 	}
-	orders, err := r.data.db.Order.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).All(ctx)
+	employeeIDs := make([]uuid.UUID, 0, len(employees))
+	for _, employee := range employees {
+		employeeIDs = append(employeeIDs, employee.ID)
+	}
+	attributions, err := r.data.db.OrderCommissionAttribution.Query().Where(
+		attribution.OrganizationIDEQ(org),
+		attribution.OrderIDIn(source.orderIDs...),
+		attribution.EmployeeIDIn(employeeIDs...),
+		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
+	).Order(attribution.ByAttributedAt(), attribution.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(orders) == 0 {
-		return &biz.CommissionCandidateListResult{Items: []*biz.CommissionCalculation{}}, nil
+	attributionsByEmployee := make(map[uuid.UUID][]*ent.OrderCommissionAttribution, len(employees))
+	for _, item := range attributions {
+		attributionsByEmployee[item.EmployeeID] = append(attributionsByEmployee[item.EmployeeID], item)
 	}
-	predicates := []predicate.OrderCommissionAttribution{
-		attribution.OrganizationIDEQ(org), attribution.OrderIDIn(orderIDs...), attribution.PersonnelRoleEQ(attribution.PersonnelRole(ruleItem.PersonnelRole)),
-	}
-	if f.Keyword != "" {
-		predicates = append(predicates, attribution.Or(attribution.EmployeeNameContainsFold(f.Keyword), attribution.HasEmployeeWith(user.Or(user.UsernameContainsFold(f.Keyword), user.DisplayNameContainsFold(f.Keyword), user.SearchKeywordsContainsFold(f.Keyword)))))
-	}
-	items, err := r.data.db.OrderCommissionAttribution.Query().Where(predicates...).Order(attribution.ByEmployeeName(), attribution.ByEmployeeID()).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	employeeIDs := make([]uuid.UUID, 0, len(items))
-	seenUsers := make(map[uuid.UUID]struct{}, len(items))
-	for _, item := range items {
-		if _, ok := seenUsers[item.EmployeeID]; ok {
-			continue
-		}
-		seenUsers[item.EmployeeID] = struct{}{}
-		employeeIDs = append(employeeIDs, item.EmployeeID)
-	}
-	result := &biz.CommissionCandidateListResult{Items: make([]*biz.CommissionCalculation, 0, len(employeeIDs))}
-	for _, employeeID := range employeeIDs {
-		calculation, calculateErr := calculateCommission(ctx, commissionStoreFromClient(r.data.db), org, f.VerificationID, employeeID, f.RuleID, false)
-		if calculateErr == biz.ErrCommissionSource || calculateErr == biz.ErrCommissionEmployeeRole {
-			continue
-		}
+	for _, employee := range employees {
+		calculation, calculateErr := calculateCommissionFromSource(source, employee, attributionsByEmployee[employee.ID])
 		if calculateErr != nil {
 			return nil, calculateErr
 		}
 		calculation.Lines = nil
 		result.Items = append(result.Items, calculation)
 	}
-	sort.Slice(result.Items, func(i, j int) bool { return result.Items[i].EmployeeName < result.Items[j].EmployeeName })
-	result.Total = int64(len(result.Items))
-	start := (f.Page - 1) * f.PageSize
-	if start >= len(result.Items) {
-		result.Items = []*biz.CommissionCalculation{}
-		return result, nil
-	}
-	end := start + f.PageSize
-	if end > len(result.Items) {
-		end = len(result.Items)
-	}
-	result.Items = result.Items[start:end]
 	return result, nil
+}
+
+func commissionCandidateEmployeePredicates(org uuid.UUID, source *commissionCalculationSource, keyword string) []predicate.User {
+	attributionPredicates := []predicate.OrderCommissionAttribution{
+		attribution.OrganizationIDEQ(org),
+		attribution.OrderIDIn(source.orderIDs...),
+		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
+		attribution.HasOrderWith(orderent.HasFeesWith(
+			fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED),
+			fee.DirectionEQ(fee.DirectionRECEIVABLE),
+			fee.BaseCurrencyAmountGT("0"),
+		)),
+	}
+	employeePredicates := []predicate.User{
+		user.EnabledEQ(true),
+		user.HasOrderCommissionAttributionsWith(attributionPredicates...),
+	}
+	if keyword != "" {
+		employeePredicates = append(employeePredicates, user.Or(
+			user.UsernameContainsFold(keyword),
+			user.DisplayNameContainsFold(keyword),
+			user.SearchKeywordsContainsFold(keyword),
+		))
+	}
+	return employeePredicates
 }
 
 func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
@@ -305,7 +311,52 @@ func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, emplo
 	return calculateCommission(ctx, commissionStoreFromClient(r.data.db), org, verificationID, employeeID, ruleID, false)
 }
 
+type commissionCalculationSource struct {
+	organizationID  uuid.UUID
+	verification    *ent.FinanceVerification
+	rule            *ent.FinanceCommissionRule
+	rate            decimal.Decimal
+	baseCurrency    string
+	orderIDs        []uuid.UUID
+	orderRealized   map[uuid.UUID]decimal.Decimal
+	orderByID       map[uuid.UUID]*ent.Order
+	feesByOrder     map[uuid.UUID][]*ent.OrderFee
+	fingerprintBase []string
+}
+
 func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, employeeID, ruleID uuid.UUID, lock bool) (*biz.CommissionCalculation, error) {
+	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, ruleID, lock)
+	if err != nil {
+		return nil, err
+	}
+	uq := store.users.Query().Where(user.IDEQ(employeeID))
+	if lock {
+		uq.ForUpdate()
+	}
+	employee, err := uq.Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, biz.ErrCommissionInvalid
+	}
+	if err != nil {
+		return nil, err
+	}
+	aq := store.attributions.Query().Where(
+		attribution.OrganizationIDEQ(org),
+		attribution.OrderIDIn(source.orderIDs...),
+		attribution.EmployeeIDEQ(employeeID),
+		attribution.PersonnelRoleEQ(attribution.PersonnelRole(source.rule.PersonnelRole)),
+	).Order(attribution.ByAttributedAt(), attribution.ByID())
+	if lock {
+		aq.ForUpdate()
+	}
+	attributions, err := aq.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return calculateCommissionFromSource(source, employee, attributions)
+}
+
+func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, ruleID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
 	vq := store.verifications.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) {
 		q.Where(allocation.ActiveEQ(true))
 	})
@@ -337,22 +388,10 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	if err != nil {
 		return nil, err
 	}
-	uq := store.users.Query().Where(user.IDEQ(employeeID))
-	if lock {
-		uq.ForUpdate()
-	}
-	employee, err := uq.Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrCommissionInvalid
-	}
-	if err != nil {
-		return nil, err
-	}
 	fingerprintParts := []string{
 		fmt.Sprintf("calculation|%s", biz.CommissionCalculationVersion),
 		fmt.Sprintf("verification|%s|%s|%s|%s|%s|%d", v.ID, v.VerificationNo, v.Status, v.Direction, v.VerificationDate, v.Version),
 		fmt.Sprintf("rule|%s|%s|%s|%s|%s|%d|%t|%s|%s", ruleItem.ID, ruleItem.Name, ruleItem.PersonnelRole, ruleItem.CalculationBasis, ruleItem.RatePercent, ruleItem.Version, ruleItem.Enabled, optionalStringValue(ruleItem.EffectiveFrom), optionalStringValue(ruleItem.EffectiveTo)),
-		fmt.Sprintf("employee|%s|%s|%t", employee.ID, employee.DisplayName, employee.Enabled),
 	}
 	if len(v.Edges.Allocations) == 0 {
 		return nil, biz.ErrCommissionSource
@@ -384,7 +423,6 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		return nil, biz.ErrCommissionSource
 	}
 	orderRealized := make(map[uuid.UUID]decimal.Decimal)
-	orderNos := make(map[uuid.UUID]string)
 	baseCurrency := ""
 	for _, billItem := range bills {
 		total, parseErr := decimal.NewFromString(billItem.TotalAmount)
@@ -407,7 +445,6 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 				return nil, biz.ErrCommissionSource
 			}
 			orderRealized[billLine.OrderID] = orderRealized[billLine.OrderID].Add(base.Mul(ratio))
-			orderNos[billLine.OrderID] = billLine.OrderNo
 			fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill_line|%s|%s|%s|%s|%s|%t", billLine.ID, billLine.OrderFeeID, billLine.OrderID, billLine.BaseCurrencyAmount, billLine.BaseCurrency, billLine.Active))
 		}
 	}
@@ -435,34 +472,7 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		orderByID[item.ID] = item
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order|%s|%s|%s|%s|%d", item.ID, item.OrderNo, item.CustomerID, item.OrderDate, item.Version))
 	}
-	aq := store.attributions.Query().Where(
-		attribution.OrganizationIDEQ(org), attribution.OrderIDIn(orderIDs...), attribution.EmployeeIDEQ(employeeID), attribution.PersonnelRoleEQ(attribution.PersonnelRole(ruleItem.PersonnelRole)),
-	).Order(attribution.ByAttributedAt(), attribution.ByID())
-	if lock {
-		aq.ForUpdate()
-	}
-	attributions, err := aq.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(attributions) == 0 {
-		return nil, biz.ErrCommissionEmployeeRole
-	}
-	attributionByOrder := make(map[uuid.UUID]*ent.OrderCommissionAttribution, len(attributions))
-	for _, item := range attributions {
-		attributionByOrder[item.OrderID] = item
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order_attribution|%s|%s|%s|%s|%s|%s|%s|%s", item.ID, item.OrderID, item.CustomerID, item.EmployeeID, item.PersonnelRole, item.SourceAssignmentID, item.EmployeeName, item.AttributedAt.UTC().Format(time.RFC3339Nano)))
-	}
-	eligibleOrderIDs := make([]uuid.UUID, 0, len(orderIDs))
-	for _, id := range orderIDs {
-		if _, eligible := attributionByOrder[id]; eligible {
-			eligibleOrderIDs = append(eligibleOrderIDs, id)
-		}
-	}
-	if len(eligibleOrderIDs) == 0 {
-		return nil, biz.ErrCommissionEmployeeRole
-	}
-	fq := store.fees.Query().Where(fee.OrderIDIn(eligibleOrderIDs...), fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED)).WithSettlementParty().Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
+	fq := store.fees.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED)).WithSettlementParty().Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
 	if lock {
 		fq.ForUpdate()
 	}
@@ -474,18 +484,45 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 	for _, item := range fees {
 		feesByOrder[item.OrderID] = append(feesByOrder[item.OrderID], item)
 	}
+	return &commissionCalculationSource{
+		organizationID: org, verification: v, rule: ruleItem, rate: rate, baseCurrency: baseCurrency,
+		orderIDs: orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
+		fingerprintBase: fingerprintParts,
+	}, nil
+}
+
+func calculateCommissionFromSource(source *commissionCalculationSource, employee *ent.User, attributions []*ent.OrderCommissionAttribution) (*biz.CommissionCalculation, error) {
+	if len(attributions) == 0 {
+		return nil, biz.ErrCommissionEmployeeRole
+	}
+	fingerprintParts := append([]string(nil), source.fingerprintBase...)
+	fingerprintParts = append(fingerprintParts, fmt.Sprintf("employee|%s|%s|%t", employee.ID, employee.DisplayName, employee.Enabled))
+	attributionByOrder := make(map[uuid.UUID]*ent.OrderCommissionAttribution, len(attributions))
+	for _, item := range attributions {
+		attributionByOrder[item.OrderID] = item
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order_attribution|%s|%s|%s|%s|%s|%s|%s|%s", item.ID, item.OrderID, item.CustomerID, item.EmployeeID, item.PersonnelRole, item.SourceAssignmentID, item.EmployeeName, item.AttributedAt.UTC().Format(time.RFC3339Nano)))
+	}
+	eligibleOrderIDs := make([]uuid.UUID, 0, len(source.orderIDs))
+	for _, id := range source.orderIDs {
+		if _, eligible := attributionByOrder[id]; eligible {
+			eligibleOrderIDs = append(eligibleOrderIDs, id)
+		}
+	}
+	if len(eligibleOrderIDs) == 0 {
+		return nil, biz.ErrCommissionEmployeeRole
+	}
 	result := &biz.CommissionCalculation{
-		VerificationID: verificationID, VerificationNo: v.VerificationNo,
-		EmployeeID: employeeID, EmployeeName: attributions[0].EmployeeName,
-		RuleID: ruleID, RuleName: ruleItem.Name, PersonnelRole: biz.CommissionPersonnelRole(ruleItem.PersonnelRole),
-		CalculationBasis: biz.CommissionCalculationBasis(ruleItem.CalculationBasis), RuleVersion: ruleItem.Version,
-		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: baseCurrency, RatePercent: rate,
+		VerificationID: source.verification.ID, VerificationNo: source.verification.VerificationNo,
+		EmployeeID: employee.ID, EmployeeName: attributions[0].EmployeeName,
+		RuleID: source.rule.ID, RuleName: source.rule.Name, PersonnelRole: biz.CommissionPersonnelRole(source.rule.PersonnelRole),
+		CalculationBasis: biz.CommissionCalculationBasis(source.rule.CalculationBasis), RuleVersion: source.rule.Version,
+		CalculationVersion: biz.CommissionCalculationVersion, BaseCurrency: source.baseCurrency, RatePercent: source.rate,
 		Lines: make([]*biz.FinanceCommissionLine, 0, len(eligibleOrderIDs)),
 	}
 	customersWithFees := make(map[uuid.UUID]struct{})
 	for _, orderID := range eligibleOrderIDs {
-		orderItem := orderByID[orderID]
-		orderFees := feesByOrder[orderItem.ID]
+		orderItem := source.orderByID[orderID]
+		orderFees := source.feesByOrder[orderItem.ID]
 		customer, edgeErr := orderItem.Edges.CustomerOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr
@@ -495,8 +532,8 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 			OrderID: orderItem.ID, OrderNo: orderItem.OrderNo, OrderDate: orderItem.OrderDate,
 			CustomerID: customer.ID, CustomerCode: customer.Code, CustomerName: customer.LegalName,
 			CustomerAssignmentID: attributionItem.SourceAssignmentID, CustomerAssignmentOrganizationID: attributionItem.OrganizationID, CustomerAssignedAt: attributionItem.AttributedAt,
-			EmployeeID: employeeID, EmployeeName: attributionItem.EmployeeName, PersonnelRole: result.PersonnelRole,
-			CalculationBasis: result.CalculationBasis, RatePercent: rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
+			EmployeeID: employee.ID, EmployeeName: attributionItem.EmployeeName, PersonnelRole: result.PersonnelRole,
+			CalculationBasis: result.CalculationBasis, RatePercent: source.rate, Fees: make([]*biz.CommissionFeeDetail, 0, len(orderFees)),
 		}
 		for _, feeItem := range orderFees {
 			party, partyErr := feeItem.Edges.SettlementPartyOrErr()
@@ -535,8 +572,8 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		line.FeeCount = len(line.Fees)
 		totalReceivable := line.RealizedRevenue.Round(8)
 		totalPayable := line.AllocatedCost.Round(8)
-		realized := orderRealized[orderID].Round(8)
-		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, rate, result.CalculationBasis)
+		realized := source.orderRealized[orderID].Round(8)
+		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, source.rate, result.CalculationBasis)
 		if calculateErr != nil {
 			return nil, calculateErr
 		}

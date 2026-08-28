@@ -1200,6 +1200,21 @@ paths:
             tags:
                 - SettlementService
             operationId: SettlementService_ListCommissionEmployees
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -7353,6 +7368,12 @@ components:
                     type: string
                 traceId:
                     type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.ListCommissionEmployeesResponse:
             type: object
             properties:
@@ -7369,6 +7390,14 @@ components:
                         $ref: '#/components/schemas/finance.v1.CommissionEmployeeOption'
                 traceId:
                     type: string
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.ListCommissionRulesResponse:
             type: object
             properties:

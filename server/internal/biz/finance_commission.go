@@ -226,8 +226,9 @@ type CommissionCandidateFilter struct {
 	VerificationID, RuleID uuid.UUID
 }
 type CommissionCandidateListResult struct {
-	Items []*CommissionCalculation
-	Total int64
+	Items          []*CommissionCalculation
+	Total          int64
+	Page, PageSize int
 }
 type FinanceCommissionRule struct {
 	ID, OrganizationID               uuid.UUID
@@ -281,7 +282,7 @@ type CreateCommissionAdjustmentInput struct {
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
-	ListEmployees(context.Context, uuid.UUID) ([]*CommissionEmployeeOption, error)
+	ListEmployees(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
 	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
@@ -295,11 +296,12 @@ type CommissionRepo interface {
 	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }
 
-func (u *CommissionUsecase) ListEmployees(ctx context.Context, org uuid.UUID) ([]*CommissionEmployeeOption, error) {
-	if org == uuid.Nil {
+func (u *CommissionUsecase) ListEmployees(ctx context.Context, org uuid.UUID, options SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error) {
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	if org == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) || utf8.RuneCountInString(options.Keyword) > 100 {
 		return nil, ErrCommissionInvalid
 	}
-	return u.repo.ListEmployees(ctx, org)
+	return u.repo.ListEmployees(ctx, org, options)
 }
 func (u *CommissionUsecase) ListCandidates(ctx context.Context, org uuid.UUID, f CommissionCandidateFilter) (*CommissionCandidateListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
