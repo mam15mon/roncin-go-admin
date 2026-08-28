@@ -70,7 +70,7 @@ type MasterDataServiceClient interface {
 	CreateShippingLine(ctx context.Context, in *CreateShippingLineRequest, opts ...grpc.CallOption) (*CreateShippingLineResponse, error)
 	UpdateShippingLine(ctx context.Context, in *UpdateShippingLineRequest, opts ...grpc.CallOption) (*UpdateShippingLineResponse, error)
 	ListCurrencies(ctx context.Context, in *ListCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error)
-	SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error)
+	SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*SearchCurrenciesResponse, error)
 	ListAdministrativeRegions(ctx context.Context, in *ListAdministrativeRegionsRequest, opts ...grpc.CallOption) (*ListAdministrativeRegionsResponse, error)
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error)
 	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error)
@@ -269,9 +269,9 @@ func (c *masterDataServiceClient) ListCurrencies(ctx context.Context, in *ListCu
 	return out, nil
 }
 
-func (c *masterDataServiceClient) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*ListCurrenciesResponse, error) {
+func (c *masterDataServiceClient) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...grpc.CallOption) (*SearchCurrenciesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCurrenciesResponse)
+	out := new(SearchCurrenciesResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_SearchCurrencies_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -381,7 +381,7 @@ type MasterDataServiceServer interface {
 	CreateShippingLine(context.Context, *CreateShippingLineRequest) (*CreateShippingLineResponse, error)
 	UpdateShippingLine(context.Context, *UpdateShippingLineRequest) (*UpdateShippingLineResponse, error)
 	ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error)
-	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error)
+	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*SearchCurrenciesResponse, error)
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
@@ -454,7 +454,7 @@ func (UnimplementedMasterDataServiceServer) UpdateShippingLine(context.Context, 
 func (UnimplementedMasterDataServiceServer) ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCurrencies not implemented")
 }
-func (UnimplementedMasterDataServiceServer) SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error) {
+func (UnimplementedMasterDataServiceServer) SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*SearchCurrenciesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchCurrencies not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error) {

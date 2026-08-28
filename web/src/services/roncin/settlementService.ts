@@ -246,7 +246,7 @@ export async function settlementServiceCancelCommissionAdjustment(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionAdjustmentResponse>(
+  return request<API.CancelCommissionAdjustmentResponse>(
     `/api/v1/finance/commission-adjustments/${param0}/cancel`,
     {
       method: "POST",
@@ -264,11 +264,11 @@ export async function settlementServiceCancelCommissionAdjustment(
 export async function settlementServiceConfirmCommissionAdjustment(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SettlementServiceConfirmCommissionAdjustmentParams,
-  body: API.CommissionAdjustmentTransitionRequest,
+  body: API.ConfirmCommissionAdjustmentRequest,
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionAdjustmentResponse>(
+  return request<API.ConfirmCommissionAdjustmentResponse>(
     `/api/v1/finance/commission-adjustments/${param0}/confirm`,
     {
       method: "POST",
@@ -286,11 +286,11 @@ export async function settlementServiceConfirmCommissionAdjustment(
 export async function settlementServiceMarkCommissionAdjustmentPaid(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SettlementServiceMarkCommissionAdjustmentPaidParams,
-  body: API.CommissionAdjustmentTransitionRequest,
+  body: API.MarkCommissionAdjustmentPaidRequest,
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionAdjustmentResponse>(
+  return request<API.MarkCommissionAdjustmentPaidResponse>(
     `/api/v1/finance/commission-adjustments/${param0}/paid`,
     {
       method: "POST",
@@ -327,7 +327,7 @@ export async function settlementServiceCreateCommissionRule(
   body: API.CreateCommissionRuleRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.CommissionRuleResponse>(
+  return request<API.CreateCommissionRuleResponse>(
     "/api/v1/finance/commission-rules",
     {
       method: "POST",
@@ -348,7 +348,7 @@ export async function settlementServiceUpdateCommissionRule(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionRuleResponse>(
+  return request<API.UpdateCommissionRuleResponse>(
     `/api/v1/finance/commission-rules/${param0}`,
     {
       method: "PUT",
@@ -399,7 +399,7 @@ export async function settlementServiceGetCommission(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionResponse>(
+  return request<API.GetCommissionResponse>(
     `/api/v1/finance/commissions/${param0}`,
     {
       method: "GET",
@@ -417,7 +417,7 @@ export async function settlementServiceCreateCommissionAdjustment(
   options?: { [key: string]: any }
 ) {
   const { commissionId: param0, ...queryParams } = params;
-  return request<API.CommissionAdjustmentResponse>(
+  return request<API.CreateCommissionAdjustmentResponse>(
     `/api/v1/finance/commissions/${param0}/adjustments`,
     {
       method: "POST",
@@ -439,7 +439,7 @@ export async function settlementServiceCancelCommission(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionResponse>(
+  return request<API.CancelCommissionResponse>(
     `/api/v1/finance/commissions/${param0}/cancel`,
     {
       method: "POST",
@@ -457,11 +457,11 @@ export async function settlementServiceCancelCommission(
 export async function settlementServiceConfirmCommission(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SettlementServiceConfirmCommissionParams,
-  body: API.CommissionTransitionRequest,
+  body: API.ConfirmCommissionRequest,
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionResponse>(
+  return request<API.ConfirmCommissionResponse>(
     `/api/v1/finance/commissions/${param0}/confirm`,
     {
       method: "POST",
@@ -479,11 +479,11 @@ export async function settlementServiceConfirmCommission(
 export async function settlementServiceMarkCommissionPaid(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.SettlementServiceMarkCommissionPaidParams,
-  body: API.CommissionTransitionRequest,
+  body: API.MarkCommissionPaidRequest,
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.CommissionResponse>(
+  return request<API.MarkCommissionPaidResponse>(
     `/api/v1/finance/commissions/${param0}/paid`,
     {
       method: "POST",
@@ -503,7 +503,7 @@ export async function settlementServiceListCommissionCandidates(
   params: API.SettlementServiceListCommissionCandidatesParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListCommissionCandidateSummariesResponse>(
+  return request<API.ListCommissionCandidatesResponse>(
     "/api/v1/finance/commissions/candidates",
     {
       method: "GET",

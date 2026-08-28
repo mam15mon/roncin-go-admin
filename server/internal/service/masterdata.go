@@ -49,7 +49,7 @@ func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurren
 	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(len(data)), Page: 1, PageSize: int32(biz.MaxListPageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.SearchCurrenciesRequest) (*v1.ListCurrenciesResponse, error) {
+func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.SearchCurrenciesRequest) (*v1.SearchCurrenciesResponse, error) {
 	if _, err := requirePrincipal(ctx); err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.Se
 	for _, item := range result.Items {
 		data = append(data, &v1.Currency{Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol, MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano)})
 	}
-	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.SearchCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, request *v1.ListAdministrativeRegionsRequest) (*v1.ListAdministrativeRegionsResponse, error) {
@@ -404,7 +404,6 @@ func (s *MasterDataService) UpdateNumberRule(ctx context.Context, request *v1.Up
 		TraceId: requestmeta.TraceID(ctx),
 	}, nil
 }
-
 
 func (s *MasterDataService) ListMilestoneTemplates(ctx context.Context, request *v1.ListMilestoneTemplatesRequest) (*v1.ListMilestoneTemplatesResponse, error) {
 	principal, err := requirePrincipal(ctx)
@@ -909,7 +908,6 @@ func numberRuleToAPI(item *biz.NumberRule) *v1.NumberRule {
 		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
 	}
 }
-
 
 func milestoneTemplatesToAPI(items []*biz.MilestoneTemplate) []*v1.MilestoneTemplate {
 	result := make([]*v1.MilestoneTemplate, 0, len(items))

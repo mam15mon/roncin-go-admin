@@ -20,28 +20,36 @@ func NewFeeCatalogService(usecase *biz.FeeCatalogUsecase) *FeeCatalogService {
 }
 
 func (s *FeeCatalogService) ListFeeSettings(ctx context.Context, _ *v1.ListFeeSettingsRequest) (*v1.ListFeeSettingsResponse, error) {
-	return s.listFeeSettings(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	data, total, page, pageSize, err := s.listFeeSettings(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListFeeSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.SearchFeeCatalogRequest) (*v1.ListFeeSettingsResponse, error) {
+func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.SearchFeeSettingsRequest) (*v1.SearchFeeSettingsResponse, error) {
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
-	return s.listFeeSettings(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	data, total, resultPage, resultPageSize, err := s.listFeeSettings(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SearchFeeSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) listFeeSettings(ctx context.Context, options biz.FeeCatalogListOptions) (*v1.ListFeeSettingsResponse, error) {
+func (s *FeeCatalogService) listFeeSettings(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.FeeSetting, int32, int32, int32, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return nil, 0, 0, 0, biz.ErrSessionRequired
 	}
 	result, err := s.usecase.ListFeeSettings(ctx, principal.Organization.ID, options)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, 0, err
 	}
 	data := make([]*v1.FeeSetting, 0, len(result.Items))
 	for _, item := range result.Items {
 		data = append(data, feeSettingToAPI(item))
 	}
-	return &v1.ListFeeSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil
 }
 
 func (s *FeeCatalogService) CreateFeeSetting(ctx context.Context, request *v1.CreateFeeSettingRequest) (*v1.CreateFeeSettingResponse, error) {
@@ -81,28 +89,36 @@ func (s *FeeCatalogService) UpdateFeeSetting(ctx context.Context, request *v1.Up
 }
 
 func (s *FeeCatalogService) ListBillingUnits(ctx context.Context, _ *v1.ListBillingUnitsRequest) (*v1.ListBillingUnitsResponse, error) {
-	return s.listBillingUnits(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	data, total, page, pageSize, err := s.listBillingUnits(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListBillingUnitsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.SearchFeeCatalogRequest) (*v1.ListBillingUnitsResponse, error) {
+func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.SearchBillingUnitsRequest) (*v1.SearchBillingUnitsResponse, error) {
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
-	return s.listBillingUnits(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	data, total, resultPage, resultPageSize, err := s.listBillingUnits(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SearchBillingUnitsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) listBillingUnits(ctx context.Context, options biz.FeeCatalogListOptions) (*v1.ListBillingUnitsResponse, error) {
+func (s *FeeCatalogService) listBillingUnits(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.BillingUnit, int32, int32, int32, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return nil, 0, 0, 0, biz.ErrSessionRequired
 	}
 	result, err := s.usecase.ListBillingUnits(ctx, principal.Organization.ID, options)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, 0, err
 	}
 	data := make([]*v1.BillingUnit, 0, len(result.Items))
 	for _, item := range result.Items {
 		data = append(data, billingUnitToAPI(item))
 	}
-	return &v1.ListBillingUnitsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil
 }
 
 func (s *FeeCatalogService) CreateBillingUnit(ctx context.Context, request *v1.CreateBillingUnitRequest) (*v1.CreateBillingUnitResponse, error) {
@@ -134,28 +150,36 @@ func (s *FeeCatalogService) UpdateBillingUnit(ctx context.Context, request *v1.U
 }
 
 func (s *FeeCatalogService) ListTaxableServices(ctx context.Context, _ *v1.ListTaxableServicesRequest) (*v1.ListTaxableServicesResponse, error) {
-	return s.listTaxableServices(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	data, total, page, pageSize, err := s.listTaxableServices(ctx, biz.FeeCatalogListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListTaxableServicesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *v1.SearchFeeCatalogRequest) (*v1.ListTaxableServicesResponse, error) {
+func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *v1.SearchTaxableServicesRequest) (*v1.SearchTaxableServicesResponse, error) {
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
-	return s.listTaxableServices(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	data, total, resultPage, resultPageSize, err := s.listTaxableServices(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SearchTaxableServicesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *FeeCatalogService) listTaxableServices(ctx context.Context, options biz.FeeCatalogListOptions) (*v1.ListTaxableServicesResponse, error) {
+func (s *FeeCatalogService) listTaxableServices(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.TaxableService, int32, int32, int32, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return nil, 0, 0, 0, biz.ErrSessionRequired
 	}
 	result, err := s.usecase.ListTaxableServices(ctx, principal.Organization.ID, options)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, 0, err
 	}
 	data := make([]*v1.TaxableService, 0, len(result.Items))
 	for _, item := range result.Items {
 		data = append(data, taxableServiceToAPI(item))
 	}
-	return &v1.ListTaxableServicesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil
 }
 
 func (s *FeeCatalogService) CreateTaxableService(ctx context.Context, request *v1.CreateTaxableServiceRequest) (*v1.CreateTaxableServiceResponse, error) {

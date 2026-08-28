@@ -133,22 +133,30 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 }
 
 func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
-	return s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	data, total, page, pageSize, err := s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Page: 1, PageSize: biz.MaxListPageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, request *v1.SearchPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
+func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, request *v1.SearchPartnerAssignmentOptionsRequest) (*v1.SearchPartnerAssignmentOptionsResponse, error) {
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
-	return s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	data, total, resultPage, resultPageSize, err := s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SearchPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, options biz.SelectorListOptions) (*v1.ListPartnerAssignmentOptionsResponse, error) {
+func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, options biz.SelectorListOptions) ([]*v1.PartnerAssignmentOption, int32, int32, int32, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return nil, 0, 0, 0, biz.ErrSessionRequired
 	}
 	result, err := s.usecase.ListAssignmentOptions(ctx, principal.Organization.ID, options)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, 0, err
 	}
 	data := make([]*v1.PartnerAssignmentOption, 0, len(result.Items))
 	for _, item := range result.Items {
@@ -158,7 +166,7 @@ func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, optio
 			MembershipEnabled: item.MembershipEnabled,
 		})
 	}
-	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil
 }
 
 func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.CreatePartnerResponse, error) {

@@ -460,7 +460,7 @@ export async function masterDataServiceSearchCurrencies(
   params: API.MasterDataServiceSearchCurrenciesParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListCurrenciesResponse>(
+  return request<API.SearchCurrenciesResponse>(
     "/api/v1/reference/currencies/search",
     {
       method: "GET",

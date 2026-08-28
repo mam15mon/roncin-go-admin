@@ -1109,7 +1109,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListBillingUnitsResponse"
+                  "$ref": "#/components/schemas/finance.v1.SearchBillingUnitsResponse"
                 }
               }
             }
@@ -1633,7 +1633,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentResponse"
+                  "$ref": "#/components/schemas/finance.v1.CancelCommissionAdjustmentResponse"
                 }
               }
             }
@@ -1661,7 +1661,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest"
+                "$ref": "#/components/schemas/finance.v1.ConfirmCommissionAdjustmentRequest"
               }
             }
           },
@@ -1673,7 +1673,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentResponse"
+                  "$ref": "#/components/schemas/finance.v1.ConfirmCommissionAdjustmentResponse"
                 }
               }
             }
@@ -1701,7 +1701,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest"
+                "$ref": "#/components/schemas/finance.v1.MarkCommissionAdjustmentPaidRequest"
               }
             }
           },
@@ -1713,7 +1713,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentResponse"
+                  "$ref": "#/components/schemas/finance.v1.MarkCommissionAdjustmentPaidResponse"
                 }
               }
             }
@@ -1800,7 +1800,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionRuleResponse"
+                  "$ref": "#/components/schemas/finance.v1.CreateCommissionRuleResponse"
                 }
               }
             }
@@ -1840,7 +1840,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionRuleResponse"
+                  "$ref": "#/components/schemas/finance.v1.UpdateCommissionRuleResponse"
                 }
               }
             }
@@ -1979,7 +1979,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListCommissionCandidateSummariesResponse"
+                  "$ref": "#/components/schemas/finance.v1.ListCommissionCandidatesResponse"
                 }
               }
             }
@@ -2094,7 +2094,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionAdjustmentResponse"
+                  "$ref": "#/components/schemas/finance.v1.CreateCommissionAdjustmentResponse"
                 }
               }
             }
@@ -2124,7 +2124,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionResponse"
+                  "$ref": "#/components/schemas/finance.v1.GetCommissionResponse"
                 }
               }
             }
@@ -2164,7 +2164,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionResponse"
+                  "$ref": "#/components/schemas/finance.v1.CancelCommissionResponse"
                 }
               }
             }
@@ -2192,7 +2192,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/finance.v1.CommissionTransitionRequest"
+                "$ref": "#/components/schemas/finance.v1.ConfirmCommissionRequest"
               }
             }
           },
@@ -2204,7 +2204,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionResponse"
+                  "$ref": "#/components/schemas/finance.v1.ConfirmCommissionResponse"
                 }
               }
             }
@@ -2232,7 +2232,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/finance.v1.CommissionTransitionRequest"
+                "$ref": "#/components/schemas/finance.v1.MarkCommissionPaidRequest"
               }
             }
           },
@@ -2244,7 +2244,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CommissionResponse"
+                  "$ref": "#/components/schemas/finance.v1.MarkCommissionPaidResponse"
                 }
               }
             }
@@ -2726,7 +2726,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFeeSettingsResponse"
+                  "$ref": "#/components/schemas/finance.v1.SearchFeeSettingsResponse"
                 }
               }
             }
@@ -3297,7 +3297,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListTaxableServicesResponse"
+                  "$ref": "#/components/schemas/finance.v1.SearchTaxableServicesResponse"
                 }
               }
             }
@@ -6352,7 +6352,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse"
+                  "$ref": "#/components/schemas/partner.v1.SearchPartnerAssignmentOptionsResponse"
                 }
               }
             }
@@ -7498,7 +7498,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/masterdata.v1.ListCurrenciesResponse"
+                  "$ref": "#/components/schemas/masterdata.v1.SearchCurrenciesResponse"
                 }
               }
             }
@@ -8873,6 +8873,27 @@
           }
         }
       },
+      "finance.v1.CancelCommissionAdjustmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.CancelCommissionRequest": {
         "required": [
           "id",
@@ -8888,6 +8909,27 @@
             "type": "string"
           },
           "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CancelCommissionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommission"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -8928,42 +8970,6 @@
             "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
           },
           "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.CommissionAdjustmentResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.CommissionAdjustmentTransitionRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "expectedVersion": {
             "type": "string"
           }
         }
@@ -9150,27 +9156,6 @@
           }
         }
       },
-      "finance.v1.CommissionResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.FinanceCommission"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "finance.v1.CommissionRuleInput": {
         "required": [
           "name",
@@ -9202,42 +9187,6 @@
             "type": "boolean"
           },
           "note": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.CommissionRuleResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.CommissionTransitionRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "expectedVersion": {
             "type": "string"
           }
         }
@@ -9347,6 +9296,78 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceCashflow"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmCommissionAdjustmentRequest": {
+        "required": [
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmCommissionAdjustmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmCommissionRequest": {
+        "required": [
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ConfirmCommissionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommission"
           },
           "traceId": {
             "type": "string"
@@ -9680,6 +9701,27 @@
           }
         }
       },
+      "finance.v1.CreateCommissionAdjustmentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.CreateCommissionRequest": {
         "required": [
           "verificationId",
@@ -9735,6 +9777,27 @@
         "properties": {
           "rule": {
             "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
+          }
+        }
+      },
+      "finance.v1.CreateCommissionRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -11473,6 +11536,27 @@
           }
         }
       },
+      "finance.v1.GetCommissionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommission"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.GetExchangeRateCustomSettingResponse": {
         "type": "object",
         "properties": {
@@ -11691,7 +11775,7 @@
           }
         }
       },
-      "finance.v1.ListCommissionCandidateSummariesResponse": {
+      "finance.v1.ListCommissionCandidatesResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -12022,6 +12106,78 @@
           }
         }
       },
+      "finance.v1.MarkCommissionAdjustmentPaidRequest": {
+        "required": [
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.MarkCommissionAdjustmentPaidResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionAdjustment"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.MarkCommissionPaidRequest": {
+        "required": [
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.MarkCommissionPaidResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommission"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.PreviewBillBatchRequest": {
         "required": [
           "feeIds",
@@ -12256,6 +12412,114 @@
           }
         }
       },
+      "finance.v1.SearchBillingUnitsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillingUnit"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "finance.v1.SearchFeeSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeSetting"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "finance.v1.SearchTaxableServicesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.TaxableService"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "finance.v1.TaxableService": {
         "type": "object",
         "properties": {
@@ -12448,6 +12712,27 @@
             "$ref": "#/components/schemas/finance.v1.CommissionRuleInput"
           },
           "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.UpdateCommissionRuleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -14076,6 +14361,42 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "masterdata.v1.SearchCurrenciesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/masterdata.v1.Currency"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -19206,6 +19527,42 @@
           },
           "traceId": {
             "type": "string"
+          }
+        }
+      },
+      "partner.v1.SearchPartnerAssignmentOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerAssignmentOption"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

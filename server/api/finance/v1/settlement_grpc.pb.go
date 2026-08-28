@@ -106,21 +106,21 @@ type SettlementServiceClient interface {
 	CreateVerification(ctx context.Context, in *CreateVerificationRequest, opts ...grpc.CallOption) (*CreateVerificationResponse, error)
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
-	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
+	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
-	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidateSummariesResponse, error)
+	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidatesResponse, error)
 	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
-	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
-	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error)
+	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CreateCommissionRuleResponse, error)
+	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*UpdateCommissionRuleResponse, error)
 	PreviewCommission(ctx context.Context, in *PreviewCommissionRequest, opts ...grpc.CallOption) (*PreviewCommissionResponse, error)
 	CreateCommission(ctx context.Context, in *CreateCommissionRequest, opts ...grpc.CallOption) (*CreateCommissionResponse, error)
-	ConfirmCommission(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
-	MarkCommissionPaid(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
-	CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error)
-	CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
-	ConfirmCommissionAdjustment(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
-	MarkCommissionAdjustmentPaid(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
-	CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error)
+	ConfirmCommission(ctx context.Context, in *ConfirmCommissionRequest, opts ...grpc.CallOption) (*ConfirmCommissionResponse, error)
+	MarkCommissionPaid(ctx context.Context, in *MarkCommissionPaidRequest, opts ...grpc.CallOption) (*MarkCommissionPaidResponse, error)
+	CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CancelCommissionResponse, error)
+	CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CreateCommissionAdjustmentResponse, error)
+	ConfirmCommissionAdjustment(ctx context.Context, in *ConfirmCommissionAdjustmentRequest, opts ...grpc.CallOption) (*ConfirmCommissionAdjustmentResponse, error)
+	MarkCommissionAdjustmentPaid(ctx context.Context, in *MarkCommissionAdjustmentPaidRequest, opts ...grpc.CallOption) (*MarkCommissionAdjustmentPaidResponse, error)
+	CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CancelCommissionAdjustmentResponse, error)
 }
 
 type settlementServiceClient struct {
@@ -421,9 +421,9 @@ func (c *settlementServiceClient) ListCommissions(ctx context.Context, in *ListC
 	return out, nil
 }
 
-func (c *settlementServiceClient) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error) {
+func (c *settlementServiceClient) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionResponse)
+	out := new(GetCommissionResponse)
 	err := c.cc.Invoke(ctx, SettlementService_GetCommission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -441,9 +441,9 @@ func (c *settlementServiceClient) ListCommissionEmployees(ctx context.Context, i
 	return out, nil
 }
 
-func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidateSummariesResponse, error) {
+func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCommissionCandidateSummariesResponse)
+	out := new(ListCommissionCandidatesResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListCommissionCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -461,9 +461,9 @@ func (c *settlementServiceClient) ListCommissionRules(ctx context.Context, in *L
 	return out, nil
 }
 
-func (c *settlementServiceClient) CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error) {
+func (c *settlementServiceClient) CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CreateCommissionRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionRuleResponse)
+	out := new(CreateCommissionRuleResponse)
 	err := c.cc.Invoke(ctx, SettlementService_CreateCommissionRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -471,9 +471,9 @@ func (c *settlementServiceClient) CreateCommissionRule(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *settlementServiceClient) UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*CommissionRuleResponse, error) {
+func (c *settlementServiceClient) UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*UpdateCommissionRuleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionRuleResponse)
+	out := new(UpdateCommissionRuleResponse)
 	err := c.cc.Invoke(ctx, SettlementService_UpdateCommissionRule_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -501,9 +501,9 @@ func (c *settlementServiceClient) CreateCommission(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *settlementServiceClient) ConfirmCommission(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error) {
+func (c *settlementServiceClient) ConfirmCommission(ctx context.Context, in *ConfirmCommissionRequest, opts ...grpc.CallOption) (*ConfirmCommissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionResponse)
+	out := new(ConfirmCommissionResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ConfirmCommission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -511,9 +511,9 @@ func (c *settlementServiceClient) ConfirmCommission(ctx context.Context, in *Com
 	return out, nil
 }
 
-func (c *settlementServiceClient) MarkCommissionPaid(ctx context.Context, in *CommissionTransitionRequest, opts ...grpc.CallOption) (*CommissionResponse, error) {
+func (c *settlementServiceClient) MarkCommissionPaid(ctx context.Context, in *MarkCommissionPaidRequest, opts ...grpc.CallOption) (*MarkCommissionPaidResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionResponse)
+	out := new(MarkCommissionPaidResponse)
 	err := c.cc.Invoke(ctx, SettlementService_MarkCommissionPaid_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -521,9 +521,9 @@ func (c *settlementServiceClient) MarkCommissionPaid(ctx context.Context, in *Co
 	return out, nil
 }
 
-func (c *settlementServiceClient) CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CommissionResponse, error) {
+func (c *settlementServiceClient) CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CancelCommissionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionResponse)
+	out := new(CancelCommissionResponse)
 	err := c.cc.Invoke(ctx, SettlementService_CancelCommission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -531,9 +531,9 @@ func (c *settlementServiceClient) CancelCommission(ctx context.Context, in *Canc
 	return out, nil
 }
 
-func (c *settlementServiceClient) CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+func (c *settlementServiceClient) CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CreateCommissionAdjustmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionAdjustmentResponse)
+	out := new(CreateCommissionAdjustmentResponse)
 	err := c.cc.Invoke(ctx, SettlementService_CreateCommissionAdjustment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -541,9 +541,9 @@ func (c *settlementServiceClient) CreateCommissionAdjustment(ctx context.Context
 	return out, nil
 }
 
-func (c *settlementServiceClient) ConfirmCommissionAdjustment(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+func (c *settlementServiceClient) ConfirmCommissionAdjustment(ctx context.Context, in *ConfirmCommissionAdjustmentRequest, opts ...grpc.CallOption) (*ConfirmCommissionAdjustmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionAdjustmentResponse)
+	out := new(ConfirmCommissionAdjustmentResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ConfirmCommissionAdjustment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -551,9 +551,9 @@ func (c *settlementServiceClient) ConfirmCommissionAdjustment(ctx context.Contex
 	return out, nil
 }
 
-func (c *settlementServiceClient) MarkCommissionAdjustmentPaid(ctx context.Context, in *CommissionAdjustmentTransitionRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+func (c *settlementServiceClient) MarkCommissionAdjustmentPaid(ctx context.Context, in *MarkCommissionAdjustmentPaidRequest, opts ...grpc.CallOption) (*MarkCommissionAdjustmentPaidResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionAdjustmentResponse)
+	out := new(MarkCommissionAdjustmentPaidResponse)
 	err := c.cc.Invoke(ctx, SettlementService_MarkCommissionAdjustmentPaid_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -561,9 +561,9 @@ func (c *settlementServiceClient) MarkCommissionAdjustmentPaid(ctx context.Conte
 	return out, nil
 }
 
-func (c *settlementServiceClient) CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CommissionAdjustmentResponse, error) {
+func (c *settlementServiceClient) CancelCommissionAdjustment(ctx context.Context, in *CancelCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CancelCommissionAdjustmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommissionAdjustmentResponse)
+	out := new(CancelCommissionAdjustmentResponse)
 	err := c.cc.Invoke(ctx, SettlementService_CancelCommissionAdjustment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -612,21 +612,21 @@ type SettlementServiceServer interface {
 	CreateVerification(context.Context, *CreateVerificationRequest) (*CreateVerificationResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
-	GetCommission(context.Context, *GetCommissionRequest) (*CommissionResponse, error)
+	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
-	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidateSummariesResponse, error)
+	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
-	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error)
-	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error)
+	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error)
+	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error)
-	ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
-	MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error)
-	CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error)
-	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
-	ConfirmCommissionAdjustment(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
-	MarkCommissionAdjustmentPaid(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error)
-	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error)
+	ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error)
+	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
+	CancelCommission(context.Context, *CancelCommissionRequest) (*CancelCommissionResponse, error)
+	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CreateCommissionAdjustmentResponse, error)
+	ConfirmCommissionAdjustment(context.Context, *ConfirmCommissionAdjustmentRequest) (*ConfirmCommissionAdjustmentResponse, error)
+	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
+	CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CancelCommissionAdjustmentResponse, error)
 	mustEmbedUnimplementedSettlementServiceServer()
 }
 
@@ -724,22 +724,22 @@ func (UnimplementedSettlementServiceServer) ReverseVerification(context.Context,
 func (UnimplementedSettlementServiceServer) ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissions not implemented")
 }
-func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*CommissionResponse, error) {
+func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCommission not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionEmployees not implemented")
 }
-func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidateSummariesResponse, error) {
+func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionRules not implemented")
 }
-func (UnimplementedSettlementServiceServer) CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CommissionRuleResponse, error) {
+func (UnimplementedSettlementServiceServer) CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCommissionRule not implemented")
 }
-func (UnimplementedSettlementServiceServer) UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*CommissionRuleResponse, error) {
+func (UnimplementedSettlementServiceServer) UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateCommissionRule not implemented")
 }
 func (UnimplementedSettlementServiceServer) PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error) {
@@ -748,25 +748,25 @@ func (UnimplementedSettlementServiceServer) PreviewCommission(context.Context, *
 func (UnimplementedSettlementServiceServer) CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCommission not implemented")
 }
-func (UnimplementedSettlementServiceServer) ConfirmCommission(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error) {
+func (UnimplementedSettlementServiceServer) ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ConfirmCommission not implemented")
 }
-func (UnimplementedSettlementServiceServer) MarkCommissionPaid(context.Context, *CommissionTransitionRequest) (*CommissionResponse, error) {
+func (UnimplementedSettlementServiceServer) MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkCommissionPaid not implemented")
 }
-func (UnimplementedSettlementServiceServer) CancelCommission(context.Context, *CancelCommissionRequest) (*CommissionResponse, error) {
+func (UnimplementedSettlementServiceServer) CancelCommission(context.Context, *CancelCommissionRequest) (*CancelCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCommission not implemented")
 }
-func (UnimplementedSettlementServiceServer) CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error) {
+func (UnimplementedSettlementServiceServer) CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CreateCommissionAdjustmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCommissionAdjustment not implemented")
 }
-func (UnimplementedSettlementServiceServer) ConfirmCommissionAdjustment(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error) {
+func (UnimplementedSettlementServiceServer) ConfirmCommissionAdjustment(context.Context, *ConfirmCommissionAdjustmentRequest) (*ConfirmCommissionAdjustmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ConfirmCommissionAdjustment not implemented")
 }
-func (UnimplementedSettlementServiceServer) MarkCommissionAdjustmentPaid(context.Context, *CommissionAdjustmentTransitionRequest) (*CommissionAdjustmentResponse, error) {
+func (UnimplementedSettlementServiceServer) MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkCommissionAdjustmentPaid not implemented")
 }
-func (UnimplementedSettlementServiceServer) CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CommissionAdjustmentResponse, error) {
+func (UnimplementedSettlementServiceServer) CancelCommissionAdjustment(context.Context, *CancelCommissionAdjustmentRequest) (*CancelCommissionAdjustmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCommissionAdjustment not implemented")
 }
 func (UnimplementedSettlementServiceServer) mustEmbedUnimplementedSettlementServiceServer() {}
@@ -1457,7 +1457,7 @@ func _SettlementService_CreateCommission_Handler(srv interface{}, ctx context.Co
 }
 
 func _SettlementService_ConfirmCommission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommissionTransitionRequest)
+	in := new(ConfirmCommissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1469,13 +1469,13 @@ func _SettlementService_ConfirmCommission_Handler(srv interface{}, ctx context.C
 		FullMethod: SettlementService_ConfirmCommission_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ConfirmCommission(ctx, req.(*CommissionTransitionRequest))
+		return srv.(SettlementServiceServer).ConfirmCommission(ctx, req.(*ConfirmCommissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _SettlementService_MarkCommissionPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommissionTransitionRequest)
+	in := new(MarkCommissionPaidRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1487,7 +1487,7 @@ func _SettlementService_MarkCommissionPaid_Handler(srv interface{}, ctx context.
 		FullMethod: SettlementService_MarkCommissionPaid_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).MarkCommissionPaid(ctx, req.(*CommissionTransitionRequest))
+		return srv.(SettlementServiceServer).MarkCommissionPaid(ctx, req.(*MarkCommissionPaidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1529,7 +1529,7 @@ func _SettlementService_CreateCommissionAdjustment_Handler(srv interface{}, ctx 
 }
 
 func _SettlementService_ConfirmCommissionAdjustment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommissionAdjustmentTransitionRequest)
+	in := new(ConfirmCommissionAdjustmentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1541,13 +1541,13 @@ func _SettlementService_ConfirmCommissionAdjustment_Handler(srv interface{}, ctx
 		FullMethod: SettlementService_ConfirmCommissionAdjustment_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ConfirmCommissionAdjustment(ctx, req.(*CommissionAdjustmentTransitionRequest))
+		return srv.(SettlementServiceServer).ConfirmCommissionAdjustment(ctx, req.(*ConfirmCommissionAdjustmentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _SettlementService_MarkCommissionAdjustmentPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommissionAdjustmentTransitionRequest)
+	in := new(MarkCommissionAdjustmentPaidRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1559,7 +1559,7 @@ func _SettlementService_MarkCommissionAdjustmentPaid_Handler(srv interface{}, ct
 		FullMethod: SettlementService_MarkCommissionAdjustmentPaid_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).MarkCommissionAdjustmentPaid(ctx, req.(*CommissionAdjustmentTransitionRequest))
+		return srv.(SettlementServiceServer).MarkCommissionAdjustmentPaid(ctx, req.(*MarkCommissionAdjustmentPaidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

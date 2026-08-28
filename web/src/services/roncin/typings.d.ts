@@ -415,10 +415,26 @@ declare namespace API {
     reason: string;
   };
 
+  type CancelCommissionAdjustmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment;
+    traceId?: string;
+  };
+
   type CancelCommissionRequest = {
     id: string;
     expectedVersion: string;
     reason: string;
+  };
+
+  type CancelCommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
+    traceId?: string;
   };
 
   type CancelInvoiceRequest = {
@@ -441,19 +457,6 @@ declare namespace API {
     message?: string;
     data?: OrderReferenceCheck;
     traceId?: string;
-  };
-
-  type CommissionAdjustmentResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceCommissionAdjustment;
-    traceId?: string;
-  };
-
-  type CommissionAdjustmentTransitionRequest = {
-    id: string;
-    expectedVersion: string;
   };
 
   type CommissionCalculation = {
@@ -519,14 +522,6 @@ declare namespace API {
     status?: string;
   };
 
-  type CommissionResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceCommission;
-    traceId?: string;
-  };
-
   type CommissionRuleInput = {
     name: string;
     personnelRole: string;
@@ -536,19 +531,6 @@ declare namespace API {
     effectiveTo?: string;
     enabled?: boolean;
     note?: string;
-  };
-
-  type CommissionRuleResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceCommissionRule;
-    traceId?: string;
-  };
-
-  type CommissionTransitionRequest = {
-    id: string;
-    expectedVersion: string;
   };
 
   type ConfirmBillBatchRequest = {
@@ -587,6 +569,32 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCashflow;
+    traceId?: string;
+  };
+
+  type ConfirmCommissionAdjustmentRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmCommissionAdjustmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment;
+    traceId?: string;
+  };
+
+  type ConfirmCommissionRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ConfirmCommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
     traceId?: string;
   };
 
@@ -748,6 +756,14 @@ declare namespace API {
     idempotencyKey: string;
   };
 
+  type CreateCommissionAdjustmentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment;
+    traceId?: string;
+  };
+
   type CreateCommissionRequest = {
     verificationId: string;
     employeeId: string;
@@ -766,6 +782,14 @@ declare namespace API {
 
   type CreateCommissionRuleRequest = {
     rule: CommissionRuleInput;
+  };
+
+  type CreateCommissionRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule;
+    traceId?: string;
   };
 
   type CreateExchangeRateSettingRequest = {
@@ -1773,6 +1797,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetCommissionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
+    traceId?: string;
+  };
+
   type GetDingTalkLoginConfigResponse = {
     success?: boolean;
     code?: number;
@@ -1992,7 +2024,7 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListCommissionCandidateSummariesResponse = {
+  type ListCommissionCandidatesResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -2418,6 +2450,32 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderAbnormalCase;
+    traceId?: string;
+  };
+
+  type MarkCommissionAdjustmentPaidRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type MarkCommissionAdjustmentPaidResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionAdjustment;
+    traceId?: string;
+  };
+
+  type MarkCommissionPaidRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type MarkCommissionPaidResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommission;
     traceId?: string;
   };
 
@@ -3815,6 +3873,61 @@ declare namespace API {
     dataScope?: string;
   };
 
+  type SearchBillingUnitsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: BillingUnit[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SearchCurrenciesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Currency[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SearchFeeSettingsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSetting[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SearchPartnerAssignmentOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PartnerAssignmentOption[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SearchTaxableServicesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: TaxableService[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
   type SetDefaultMilestoneTemplateRequest = {
     id: string;
   };
@@ -4259,6 +4372,14 @@ declare namespace API {
     id: string;
     rule: CommissionRuleInput;
     expectedVersion: string;
+  };
+
+  type UpdateCommissionRuleResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionRule;
+    traceId?: string;
   };
 
   type UpdateContainerRequest = {

@@ -61,7 +61,7 @@ export async function feeCatalogServiceSearchBillingUnits(
   params: API.FeeCatalogServiceSearchBillingUnitsParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListBillingUnitsResponse>(
+  return request<API.SearchBillingUnitsResponse>(
     "/api/v1/finance/billing-units/search",
     {
       method: "GET",
@@ -126,7 +126,7 @@ export async function feeCatalogServiceSearchFeeSettings(
   params: API.FeeCatalogServiceSearchFeeSettingsParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListFeeSettingsResponse>(
+  return request<API.SearchFeeSettingsResponse>(
     "/api/v1/finance/fee-settings/search",
     {
       method: "GET",
@@ -197,7 +197,7 @@ export async function feeCatalogServiceSearchTaxableServices(
   params: API.FeeCatalogServiceSearchTaxableServicesParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListTaxableServicesResponse>(
+  return request<API.SearchTaxableServicesResponse>(
     "/api/v1/finance/taxable-services/search",
     {
       method: "GET",

@@ -543,7 +543,7 @@ func (*ListTaxableServicesRequest) Descriptor() ([]byte, []int) {
 	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{5}
 }
 
-type SearchFeeCatalogRequest struct {
+type SearchFeeSettingsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
 	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
@@ -552,20 +552,20 @@ type SearchFeeCatalogRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SearchFeeCatalogRequest) Reset() {
-	*x = SearchFeeCatalogRequest{}
+func (x *SearchFeeSettingsRequest) Reset() {
+	*x = SearchFeeSettingsRequest{}
 	mi := &file_finance_v1_fee_catalog_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SearchFeeCatalogRequest) String() string {
+func (x *SearchFeeSettingsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SearchFeeCatalogRequest) ProtoMessage() {}
+func (*SearchFeeSettingsRequest) ProtoMessage() {}
 
-func (x *SearchFeeCatalogRequest) ProtoReflect() protoreflect.Message {
+func (x *SearchFeeSettingsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_v1_fee_catalog_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -577,26 +577,146 @@ func (x *SearchFeeCatalogRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SearchFeeCatalogRequest.ProtoReflect.Descriptor instead.
-func (*SearchFeeCatalogRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SearchFeeSettingsRequest.ProtoReflect.Descriptor instead.
+func (*SearchFeeSettingsRequest) Descriptor() ([]byte, []int) {
 	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *SearchFeeCatalogRequest) GetKeyword() string {
+func (x *SearchFeeSettingsRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
 	}
 	return ""
 }
 
-func (x *SearchFeeCatalogRequest) GetPage() int32 {
+func (x *SearchFeeSettingsRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *SearchFeeCatalogRequest) GetPageSize() int32 {
+func (x *SearchFeeSettingsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type SearchBillingUnitsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchBillingUnitsRequest) Reset() {
+	*x = SearchBillingUnitsRequest{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchBillingUnitsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchBillingUnitsRequest) ProtoMessage() {}
+
+func (x *SearchBillingUnitsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchBillingUnitsRequest.ProtoReflect.Descriptor instead.
+func (*SearchBillingUnitsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SearchBillingUnitsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchBillingUnitsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchBillingUnitsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type SearchTaxableServicesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchTaxableServicesRequest) Reset() {
+	*x = SearchTaxableServicesRequest{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchTaxableServicesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchTaxableServicesRequest) ProtoMessage() {}
+
+func (x *SearchTaxableServicesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchTaxableServicesRequest.ProtoReflect.Descriptor instead.
+func (*SearchTaxableServicesRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SearchTaxableServicesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchTaxableServicesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchTaxableServicesRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
@@ -622,7 +742,7 @@ type CreateFeeSettingRequest struct {
 
 func (x *CreateFeeSettingRequest) Reset() {
 	*x = CreateFeeSettingRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[7]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +754,7 @@ func (x *CreateFeeSettingRequest) String() string {
 func (*CreateFeeSettingRequest) ProtoMessage() {}
 
 func (x *CreateFeeSettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[7]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +767,7 @@ func (x *CreateFeeSettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFeeSettingRequest.ProtoReflect.Descriptor instead.
 func (*CreateFeeSettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{7}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreateFeeSettingRequest) GetFeeCode() string {
@@ -748,7 +868,7 @@ type UpdateFeeSettingRequest struct {
 
 func (x *UpdateFeeSettingRequest) Reset() {
 	*x = UpdateFeeSettingRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[8]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +880,7 @@ func (x *UpdateFeeSettingRequest) String() string {
 func (*UpdateFeeSettingRequest) ProtoMessage() {}
 
 func (x *UpdateFeeSettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[8]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -773,7 +893,7 @@ func (x *UpdateFeeSettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFeeSettingRequest.ProtoReflect.Descriptor instead.
 func (*UpdateFeeSettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{8}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateFeeSettingRequest) GetId() string {
@@ -879,7 +999,7 @@ type CreateBillingUnitRequest struct {
 
 func (x *CreateBillingUnitRequest) Reset() {
 	*x = CreateBillingUnitRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[9]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -891,7 +1011,7 @@ func (x *CreateBillingUnitRequest) String() string {
 func (*CreateBillingUnitRequest) ProtoMessage() {}
 
 func (x *CreateBillingUnitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[9]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -904,7 +1024,7 @@ func (x *CreateBillingUnitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillingUnitRequest.ProtoReflect.Descriptor instead.
 func (*CreateBillingUnitRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{9}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CreateBillingUnitRequest) GetCode() string {
@@ -949,7 +1069,7 @@ type UpdateBillingUnitRequest struct {
 
 func (x *UpdateBillingUnitRequest) Reset() {
 	*x = UpdateBillingUnitRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[10]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1081,7 @@ func (x *UpdateBillingUnitRequest) String() string {
 func (*UpdateBillingUnitRequest) ProtoMessage() {}
 
 func (x *UpdateBillingUnitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[10]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1094,7 @@ func (x *UpdateBillingUnitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateBillingUnitRequest.ProtoReflect.Descriptor instead.
 func (*UpdateBillingUnitRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{10}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpdateBillingUnitRequest) GetId() string {
@@ -1031,7 +1151,7 @@ type CreateTaxableServiceRequest struct {
 
 func (x *CreateTaxableServiceRequest) Reset() {
 	*x = CreateTaxableServiceRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[11]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +1163,7 @@ func (x *CreateTaxableServiceRequest) String() string {
 func (*CreateTaxableServiceRequest) ProtoMessage() {}
 
 func (x *CreateTaxableServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[11]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1056,7 +1176,7 @@ func (x *CreateTaxableServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTaxableServiceRequest.ProtoReflect.Descriptor instead.
 func (*CreateTaxableServiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{11}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateTaxableServiceRequest) GetName() string {
@@ -1101,7 +1221,7 @@ type UpdateTaxableServiceRequest struct {
 
 func (x *UpdateTaxableServiceRequest) Reset() {
 	*x = UpdateTaxableServiceRequest{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[12]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1113,7 +1233,7 @@ func (x *UpdateTaxableServiceRequest) String() string {
 func (*UpdateTaxableServiceRequest) ProtoMessage() {}
 
 func (x *UpdateTaxableServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[12]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1126,7 +1246,7 @@ func (x *UpdateTaxableServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaxableServiceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTaxableServiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{12}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateTaxableServiceRequest) GetId() string {
@@ -1187,7 +1307,7 @@ type ListFeeSettingsResponse struct {
 
 func (x *ListFeeSettingsResponse) Reset() {
 	*x = ListFeeSettingsResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[13]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1199,7 +1319,7 @@ func (x *ListFeeSettingsResponse) String() string {
 func (*ListFeeSettingsResponse) ProtoMessage() {}
 
 func (x *ListFeeSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[13]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,7 +1332,7 @@ func (x *ListFeeSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFeeSettingsResponse.ProtoReflect.Descriptor instead.
 func (*ListFeeSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{13}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListFeeSettingsResponse) GetSuccess() bool {
@@ -1271,6 +1391,106 @@ func (x *ListFeeSettingsResponse) GetPageSize() int32 {
 	return 0
 }
 
+type SearchFeeSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*FeeSetting          `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchFeeSettingsResponse) Reset() {
+	*x = SearchFeeSettingsResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchFeeSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchFeeSettingsResponse) ProtoMessage() {}
+
+func (x *SearchFeeSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchFeeSettingsResponse.ProtoReflect.Descriptor instead.
+func (*SearchFeeSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SearchFeeSettingsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SearchFeeSettingsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SearchFeeSettingsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SearchFeeSettingsResponse) GetData() []*FeeSetting {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SearchFeeSettingsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *SearchFeeSettingsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SearchFeeSettingsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchFeeSettingsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type ListBillingUnitsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1287,7 +1507,7 @@ type ListBillingUnitsResponse struct {
 
 func (x *ListBillingUnitsResponse) Reset() {
 	*x = ListBillingUnitsResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[14]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1519,7 @@ func (x *ListBillingUnitsResponse) String() string {
 func (*ListBillingUnitsResponse) ProtoMessage() {}
 
 func (x *ListBillingUnitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[14]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1532,7 @@ func (x *ListBillingUnitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBillingUnitsResponse.ProtoReflect.Descriptor instead.
 func (*ListBillingUnitsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{14}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListBillingUnitsResponse) GetSuccess() bool {
@@ -1371,6 +1591,106 @@ func (x *ListBillingUnitsResponse) GetPageSize() int32 {
 	return 0
 }
 
+type SearchBillingUnitsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*BillingUnit         `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchBillingUnitsResponse) Reset() {
+	*x = SearchBillingUnitsResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchBillingUnitsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchBillingUnitsResponse) ProtoMessage() {}
+
+func (x *SearchBillingUnitsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchBillingUnitsResponse.ProtoReflect.Descriptor instead.
+func (*SearchBillingUnitsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *SearchBillingUnitsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SearchBillingUnitsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SearchBillingUnitsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SearchBillingUnitsResponse) GetData() []*BillingUnit {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SearchBillingUnitsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *SearchBillingUnitsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SearchBillingUnitsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchBillingUnitsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type ListTaxableServicesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1387,7 +1707,7 @@ type ListTaxableServicesResponse struct {
 
 func (x *ListTaxableServicesResponse) Reset() {
 	*x = ListTaxableServicesResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[15]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1399,7 +1719,7 @@ func (x *ListTaxableServicesResponse) String() string {
 func (*ListTaxableServicesResponse) ProtoMessage() {}
 
 func (x *ListTaxableServicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[15]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1412,7 +1732,7 @@ func (x *ListTaxableServicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTaxableServicesResponse.ProtoReflect.Descriptor instead.
 func (*ListTaxableServicesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{15}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListTaxableServicesResponse) GetSuccess() bool {
@@ -1471,6 +1791,106 @@ func (x *ListTaxableServicesResponse) GetPageSize() int32 {
 	return 0
 }
 
+type SearchTaxableServicesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*TaxableService      `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchTaxableServicesResponse) Reset() {
+	*x = SearchTaxableServicesResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchTaxableServicesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchTaxableServicesResponse) ProtoMessage() {}
+
+func (x *SearchTaxableServicesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchTaxableServicesResponse.ProtoReflect.Descriptor instead.
+func (*SearchTaxableServicesResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *SearchTaxableServicesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SearchTaxableServicesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SearchTaxableServicesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SearchTaxableServicesResponse) GetData() []*TaxableService {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SearchTaxableServicesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *SearchTaxableServicesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SearchTaxableServicesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchTaxableServicesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type CreateFeeSettingResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1484,7 +1904,7 @@ type CreateFeeSettingResponse struct {
 
 func (x *CreateFeeSettingResponse) Reset() {
 	*x = CreateFeeSettingResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[16]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1496,7 +1916,7 @@ func (x *CreateFeeSettingResponse) String() string {
 func (*CreateFeeSettingResponse) ProtoMessage() {}
 
 func (x *CreateFeeSettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[16]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1509,7 +1929,7 @@ func (x *CreateFeeSettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateFeeSettingResponse.ProtoReflect.Descriptor instead.
 func (*CreateFeeSettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{16}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateFeeSettingResponse) GetSuccess() bool {
@@ -1560,7 +1980,7 @@ type UpdateFeeSettingResponse struct {
 
 func (x *UpdateFeeSettingResponse) Reset() {
 	*x = UpdateFeeSettingResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[17]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1992,7 @@ func (x *UpdateFeeSettingResponse) String() string {
 func (*UpdateFeeSettingResponse) ProtoMessage() {}
 
 func (x *UpdateFeeSettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[17]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +2005,7 @@ func (x *UpdateFeeSettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFeeSettingResponse.ProtoReflect.Descriptor instead.
 func (*UpdateFeeSettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{17}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateFeeSettingResponse) GetSuccess() bool {
@@ -1636,7 +2056,7 @@ type CreateBillingUnitResponse struct {
 
 func (x *CreateBillingUnitResponse) Reset() {
 	*x = CreateBillingUnitResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[18]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1648,7 +2068,7 @@ func (x *CreateBillingUnitResponse) String() string {
 func (*CreateBillingUnitResponse) ProtoMessage() {}
 
 func (x *CreateBillingUnitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[18]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1661,7 +2081,7 @@ func (x *CreateBillingUnitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillingUnitResponse.ProtoReflect.Descriptor instead.
 func (*CreateBillingUnitResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{18}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateBillingUnitResponse) GetSuccess() bool {
@@ -1712,7 +2132,7 @@ type UpdateBillingUnitResponse struct {
 
 func (x *UpdateBillingUnitResponse) Reset() {
 	*x = UpdateBillingUnitResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[19]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1724,7 +2144,7 @@ func (x *UpdateBillingUnitResponse) String() string {
 func (*UpdateBillingUnitResponse) ProtoMessage() {}
 
 func (x *UpdateBillingUnitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[19]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1737,7 +2157,7 @@ func (x *UpdateBillingUnitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateBillingUnitResponse.ProtoReflect.Descriptor instead.
 func (*UpdateBillingUnitResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{19}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateBillingUnitResponse) GetSuccess() bool {
@@ -1788,7 +2208,7 @@ type CreateTaxableServiceResponse struct {
 
 func (x *CreateTaxableServiceResponse) Reset() {
 	*x = CreateTaxableServiceResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[20]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1800,7 +2220,7 @@ func (x *CreateTaxableServiceResponse) String() string {
 func (*CreateTaxableServiceResponse) ProtoMessage() {}
 
 func (x *CreateTaxableServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[20]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,7 +2233,7 @@ func (x *CreateTaxableServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTaxableServiceResponse.ProtoReflect.Descriptor instead.
 func (*CreateTaxableServiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{20}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateTaxableServiceResponse) GetSuccess() bool {
@@ -1864,7 +2284,7 @@ type UpdateTaxableServiceResponse struct {
 
 func (x *UpdateTaxableServiceResponse) Reset() {
 	*x = UpdateTaxableServiceResponse{}
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[21]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1876,7 +2296,7 @@ func (x *UpdateTaxableServiceResponse) String() string {
 func (*UpdateTaxableServiceResponse) ProtoMessage() {}
 
 func (x *UpdateTaxableServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_fee_catalog_proto_msgTypes[21]
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1889,7 +2309,7 @@ func (x *UpdateTaxableServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaxableServiceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTaxableServiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{21}
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateTaxableServiceResponse) GetSuccess() bool {
@@ -1998,8 +2418,16 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x13_abnormal_case_name\"\x18\n" +
 	"\x16ListFeeSettingsRequest\"\x19\n" +
 	"\x17ListBillingUnitsRequest\"\x1c\n" +
-	"\x1aListTaxableServicesRequest\"d\n" +
-	"\x17SearchFeeCatalogRequest\x12\x18\n" +
+	"\x1aListTaxableServicesRequest\"e\n" +
+	"\x18SearchFeeSettingsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"f\n" +
+	"\x19SearchBillingUnitsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"i\n" +
+	"\x1cSearchTaxableServicesRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x88\x04\n" +
@@ -2088,7 +2516,25 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf1\x01\n" +
+	"\x19SearchFeeSettingsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12*\n" +
+	"\x04data\x18\x04 \x03(\v2\x16.finance.v1.FeeSettingR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf1\x01\n" +
 	"\x18ListBillingUnitsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x04 \x03(\v2\x17.finance.v1.BillingUnitR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf3\x01\n" +
+	"\x1aSearchBillingUnitsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
@@ -2098,6 +2544,15 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf7\x01\n" +
 	"\x1bListTaxableServicesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
+	"\x04data\x18\x04 \x03(\v2\x1a.finance.v1.TaxableServiceR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xf9\x01\n" +
+	"\x1dSearchTaxableServicesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
@@ -2141,18 +2596,18 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x01(\v2\x1a.finance.v1.TaxableServiceR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xcb\x11\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd9\x11\n" +
 	"\x11FeeCatalogService\x12\xa9\x01\n" +
-	"\x0fListFeeSettings\x12\".finance.v1.ListFeeSettingsRequest\x1a#.finance.v1.ListFeeSettingsResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/finance/fee-settings\x12\xb3\x01\n" +
-	"\x11SearchFeeSettings\x12#.finance.v1.SearchFeeCatalogRequest\x1a#.finance.v1.ListFeeSettingsResponse\"T\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/finance/fee-settings/search\x12\xb1\x01\n" +
+	"\x0fListFeeSettings\x12\".finance.v1.ListFeeSettingsRequest\x1a#.finance.v1.ListFeeSettingsResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/finance/fee-settings\x12\xb6\x01\n" +
+	"\x11SearchFeeSettings\x12$.finance.v1.SearchFeeSettingsRequest\x1a%.finance.v1.SearchFeeSettingsResponse\"T\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/finance/fee-settings/search\x12\xb1\x01\n" +
 	"\x10CreateFeeSetting\x12#.finance.v1.CreateFeeSettingRequest\x1a$.finance.v1.CreateFeeSettingResponse\"R\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/finance/fee-settings\x12\xb6\x01\n" +
 	"\x10UpdateFeeSetting\x12#.finance.v1.UpdateFeeSettingRequest\x1a$.finance.v1.UpdateFeeSettingResponse\"W\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/finance/fee-settings/{id}\x12\xad\x01\n" +
-	"\x10ListBillingUnits\x12#.finance.v1.ListBillingUnitsRequest\x1a$.finance.v1.ListBillingUnitsResponse\"N\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/finance/billing-units\x12\xb6\x01\n" +
-	"\x12SearchBillingUnits\x12#.finance.v1.SearchFeeCatalogRequest\x1a$.finance.v1.ListBillingUnitsResponse\"U\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/finance/billing-units/search\x12\xb5\x01\n" +
+	"\x10ListBillingUnits\x12#.finance.v1.ListBillingUnitsRequest\x1a$.finance.v1.ListBillingUnitsResponse\"N\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/finance/billing-units\x12\xba\x01\n" +
+	"\x12SearchBillingUnits\x12%.finance.v1.SearchBillingUnitsRequest\x1a&.finance.v1.SearchBillingUnitsResponse\"U\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/finance/billing-units/search\x12\xb5\x01\n" +
 	"\x11CreateBillingUnit\x12$.finance.v1.CreateBillingUnitRequest\x1a%.finance.v1.CreateBillingUnitResponse\"S\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.create \x02\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/finance/billing-units\x12\xba\x01\n" +
 	"\x11UpdateBillingUnit\x12$.finance.v1.UpdateBillingUnitRequest\x1a%.finance.v1.UpdateBillingUnitResponse\"X\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.update \x02\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/finance/billing-units/{id}\x12\xb9\x01\n" +
-	"\x13ListTaxableServices\x12&.finance.v1.ListTaxableServicesRequest\x1a'.finance.v1.ListTaxableServicesResponse\"Q\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/taxable-services\x12\xbf\x01\n" +
-	"\x15SearchTaxableServices\x12#.finance.v1.SearchFeeCatalogRequest\x1a'.finance.v1.ListTaxableServicesResponse\"X\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/finance/taxable-services/search\x12\xc1\x01\n" +
+	"\x13ListTaxableServices\x12&.finance.v1.ListTaxableServicesRequest\x1a'.finance.v1.ListTaxableServicesResponse\"Q\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/taxable-services\x12\xc6\x01\n" +
+	"\x15SearchTaxableServices\x12(.finance.v1.SearchTaxableServicesRequest\x1a).finance.v1.SearchTaxableServicesResponse\"X\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/finance/taxable-services/search\x12\xc1\x01\n" +
 	"\x14CreateTaxableService\x12'.finance.v1.CreateTaxableServiceRequest\x1a(.finance.v1.CreateTaxableServiceResponse\"V\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.create \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/finance/taxable-services\x12\xc6\x01\n" +
 	"\x14UpdateTaxableService\x12'.finance.v1.UpdateTaxableServiceRequest\x1a(.finance.v1.UpdateTaxableServiceResponse\"[\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.update \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/finance/taxable-services/{id}B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
@@ -2168,70 +2623,78 @@ func file_finance_v1_fee_catalog_proto_rawDescGZIP() []byte {
 	return file_finance_v1_fee_catalog_proto_rawDescData
 }
 
-var file_finance_v1_fee_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_finance_v1_fee_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_finance_v1_fee_catalog_proto_goTypes = []any{
-	(*BillingUnit)(nil),                  // 0: finance.v1.BillingUnit
-	(*TaxableService)(nil),               // 1: finance.v1.TaxableService
-	(*FeeSetting)(nil),                   // 2: finance.v1.FeeSetting
-	(*ListFeeSettingsRequest)(nil),       // 3: finance.v1.ListFeeSettingsRequest
-	(*ListBillingUnitsRequest)(nil),      // 4: finance.v1.ListBillingUnitsRequest
-	(*ListTaxableServicesRequest)(nil),   // 5: finance.v1.ListTaxableServicesRequest
-	(*SearchFeeCatalogRequest)(nil),      // 6: finance.v1.SearchFeeCatalogRequest
-	(*CreateFeeSettingRequest)(nil),      // 7: finance.v1.CreateFeeSettingRequest
-	(*UpdateFeeSettingRequest)(nil),      // 8: finance.v1.UpdateFeeSettingRequest
-	(*CreateBillingUnitRequest)(nil),     // 9: finance.v1.CreateBillingUnitRequest
-	(*UpdateBillingUnitRequest)(nil),     // 10: finance.v1.UpdateBillingUnitRequest
-	(*CreateTaxableServiceRequest)(nil),  // 11: finance.v1.CreateTaxableServiceRequest
-	(*UpdateTaxableServiceRequest)(nil),  // 12: finance.v1.UpdateTaxableServiceRequest
-	(*ListFeeSettingsResponse)(nil),      // 13: finance.v1.ListFeeSettingsResponse
-	(*ListBillingUnitsResponse)(nil),     // 14: finance.v1.ListBillingUnitsResponse
-	(*ListTaxableServicesResponse)(nil),  // 15: finance.v1.ListTaxableServicesResponse
-	(*CreateFeeSettingResponse)(nil),     // 16: finance.v1.CreateFeeSettingResponse
-	(*UpdateFeeSettingResponse)(nil),     // 17: finance.v1.UpdateFeeSettingResponse
-	(*CreateBillingUnitResponse)(nil),    // 18: finance.v1.CreateBillingUnitResponse
-	(*UpdateBillingUnitResponse)(nil),    // 19: finance.v1.UpdateBillingUnitResponse
-	(*CreateTaxableServiceResponse)(nil), // 20: finance.v1.CreateTaxableServiceResponse
-	(*UpdateTaxableServiceResponse)(nil), // 21: finance.v1.UpdateTaxableServiceResponse
+	(*BillingUnit)(nil),                   // 0: finance.v1.BillingUnit
+	(*TaxableService)(nil),                // 1: finance.v1.TaxableService
+	(*FeeSetting)(nil),                    // 2: finance.v1.FeeSetting
+	(*ListFeeSettingsRequest)(nil),        // 3: finance.v1.ListFeeSettingsRequest
+	(*ListBillingUnitsRequest)(nil),       // 4: finance.v1.ListBillingUnitsRequest
+	(*ListTaxableServicesRequest)(nil),    // 5: finance.v1.ListTaxableServicesRequest
+	(*SearchFeeSettingsRequest)(nil),      // 6: finance.v1.SearchFeeSettingsRequest
+	(*SearchBillingUnitsRequest)(nil),     // 7: finance.v1.SearchBillingUnitsRequest
+	(*SearchTaxableServicesRequest)(nil),  // 8: finance.v1.SearchTaxableServicesRequest
+	(*CreateFeeSettingRequest)(nil),       // 9: finance.v1.CreateFeeSettingRequest
+	(*UpdateFeeSettingRequest)(nil),       // 10: finance.v1.UpdateFeeSettingRequest
+	(*CreateBillingUnitRequest)(nil),      // 11: finance.v1.CreateBillingUnitRequest
+	(*UpdateBillingUnitRequest)(nil),      // 12: finance.v1.UpdateBillingUnitRequest
+	(*CreateTaxableServiceRequest)(nil),   // 13: finance.v1.CreateTaxableServiceRequest
+	(*UpdateTaxableServiceRequest)(nil),   // 14: finance.v1.UpdateTaxableServiceRequest
+	(*ListFeeSettingsResponse)(nil),       // 15: finance.v1.ListFeeSettingsResponse
+	(*SearchFeeSettingsResponse)(nil),     // 16: finance.v1.SearchFeeSettingsResponse
+	(*ListBillingUnitsResponse)(nil),      // 17: finance.v1.ListBillingUnitsResponse
+	(*SearchBillingUnitsResponse)(nil),    // 18: finance.v1.SearchBillingUnitsResponse
+	(*ListTaxableServicesResponse)(nil),   // 19: finance.v1.ListTaxableServicesResponse
+	(*SearchTaxableServicesResponse)(nil), // 20: finance.v1.SearchTaxableServicesResponse
+	(*CreateFeeSettingResponse)(nil),      // 21: finance.v1.CreateFeeSettingResponse
+	(*UpdateFeeSettingResponse)(nil),      // 22: finance.v1.UpdateFeeSettingResponse
+	(*CreateBillingUnitResponse)(nil),     // 23: finance.v1.CreateBillingUnitResponse
+	(*UpdateBillingUnitResponse)(nil),     // 24: finance.v1.UpdateBillingUnitResponse
+	(*CreateTaxableServiceResponse)(nil),  // 25: finance.v1.CreateTaxableServiceResponse
+	(*UpdateTaxableServiceResponse)(nil),  // 26: finance.v1.UpdateTaxableServiceResponse
 }
 var file_finance_v1_fee_catalog_proto_depIdxs = []int32{
 	2,  // 0: finance.v1.ListFeeSettingsResponse.data:type_name -> finance.v1.FeeSetting
-	0,  // 1: finance.v1.ListBillingUnitsResponse.data:type_name -> finance.v1.BillingUnit
-	1,  // 2: finance.v1.ListTaxableServicesResponse.data:type_name -> finance.v1.TaxableService
-	2,  // 3: finance.v1.CreateFeeSettingResponse.data:type_name -> finance.v1.FeeSetting
-	2,  // 4: finance.v1.UpdateFeeSettingResponse.data:type_name -> finance.v1.FeeSetting
-	0,  // 5: finance.v1.CreateBillingUnitResponse.data:type_name -> finance.v1.BillingUnit
-	0,  // 6: finance.v1.UpdateBillingUnitResponse.data:type_name -> finance.v1.BillingUnit
-	1,  // 7: finance.v1.CreateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
-	1,  // 8: finance.v1.UpdateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
-	3,  // 9: finance.v1.FeeCatalogService.ListFeeSettings:input_type -> finance.v1.ListFeeSettingsRequest
-	6,  // 10: finance.v1.FeeCatalogService.SearchFeeSettings:input_type -> finance.v1.SearchFeeCatalogRequest
-	7,  // 11: finance.v1.FeeCatalogService.CreateFeeSetting:input_type -> finance.v1.CreateFeeSettingRequest
-	8,  // 12: finance.v1.FeeCatalogService.UpdateFeeSetting:input_type -> finance.v1.UpdateFeeSettingRequest
-	4,  // 13: finance.v1.FeeCatalogService.ListBillingUnits:input_type -> finance.v1.ListBillingUnitsRequest
-	6,  // 14: finance.v1.FeeCatalogService.SearchBillingUnits:input_type -> finance.v1.SearchFeeCatalogRequest
-	9,  // 15: finance.v1.FeeCatalogService.CreateBillingUnit:input_type -> finance.v1.CreateBillingUnitRequest
-	10, // 16: finance.v1.FeeCatalogService.UpdateBillingUnit:input_type -> finance.v1.UpdateBillingUnitRequest
-	5,  // 17: finance.v1.FeeCatalogService.ListTaxableServices:input_type -> finance.v1.ListTaxableServicesRequest
-	6,  // 18: finance.v1.FeeCatalogService.SearchTaxableServices:input_type -> finance.v1.SearchFeeCatalogRequest
-	11, // 19: finance.v1.FeeCatalogService.CreateTaxableService:input_type -> finance.v1.CreateTaxableServiceRequest
-	12, // 20: finance.v1.FeeCatalogService.UpdateTaxableService:input_type -> finance.v1.UpdateTaxableServiceRequest
-	13, // 21: finance.v1.FeeCatalogService.ListFeeSettings:output_type -> finance.v1.ListFeeSettingsResponse
-	13, // 22: finance.v1.FeeCatalogService.SearchFeeSettings:output_type -> finance.v1.ListFeeSettingsResponse
-	16, // 23: finance.v1.FeeCatalogService.CreateFeeSetting:output_type -> finance.v1.CreateFeeSettingResponse
-	17, // 24: finance.v1.FeeCatalogService.UpdateFeeSetting:output_type -> finance.v1.UpdateFeeSettingResponse
-	14, // 25: finance.v1.FeeCatalogService.ListBillingUnits:output_type -> finance.v1.ListBillingUnitsResponse
-	14, // 26: finance.v1.FeeCatalogService.SearchBillingUnits:output_type -> finance.v1.ListBillingUnitsResponse
-	18, // 27: finance.v1.FeeCatalogService.CreateBillingUnit:output_type -> finance.v1.CreateBillingUnitResponse
-	19, // 28: finance.v1.FeeCatalogService.UpdateBillingUnit:output_type -> finance.v1.UpdateBillingUnitResponse
-	15, // 29: finance.v1.FeeCatalogService.ListTaxableServices:output_type -> finance.v1.ListTaxableServicesResponse
-	15, // 30: finance.v1.FeeCatalogService.SearchTaxableServices:output_type -> finance.v1.ListTaxableServicesResponse
-	20, // 31: finance.v1.FeeCatalogService.CreateTaxableService:output_type -> finance.v1.CreateTaxableServiceResponse
-	21, // 32: finance.v1.FeeCatalogService.UpdateTaxableService:output_type -> finance.v1.UpdateTaxableServiceResponse
-	21, // [21:33] is the sub-list for method output_type
-	9,  // [9:21] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 1: finance.v1.SearchFeeSettingsResponse.data:type_name -> finance.v1.FeeSetting
+	0,  // 2: finance.v1.ListBillingUnitsResponse.data:type_name -> finance.v1.BillingUnit
+	0,  // 3: finance.v1.SearchBillingUnitsResponse.data:type_name -> finance.v1.BillingUnit
+	1,  // 4: finance.v1.ListTaxableServicesResponse.data:type_name -> finance.v1.TaxableService
+	1,  // 5: finance.v1.SearchTaxableServicesResponse.data:type_name -> finance.v1.TaxableService
+	2,  // 6: finance.v1.CreateFeeSettingResponse.data:type_name -> finance.v1.FeeSetting
+	2,  // 7: finance.v1.UpdateFeeSettingResponse.data:type_name -> finance.v1.FeeSetting
+	0,  // 8: finance.v1.CreateBillingUnitResponse.data:type_name -> finance.v1.BillingUnit
+	0,  // 9: finance.v1.UpdateBillingUnitResponse.data:type_name -> finance.v1.BillingUnit
+	1,  // 10: finance.v1.CreateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
+	1,  // 11: finance.v1.UpdateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
+	3,  // 12: finance.v1.FeeCatalogService.ListFeeSettings:input_type -> finance.v1.ListFeeSettingsRequest
+	6,  // 13: finance.v1.FeeCatalogService.SearchFeeSettings:input_type -> finance.v1.SearchFeeSettingsRequest
+	9,  // 14: finance.v1.FeeCatalogService.CreateFeeSetting:input_type -> finance.v1.CreateFeeSettingRequest
+	10, // 15: finance.v1.FeeCatalogService.UpdateFeeSetting:input_type -> finance.v1.UpdateFeeSettingRequest
+	4,  // 16: finance.v1.FeeCatalogService.ListBillingUnits:input_type -> finance.v1.ListBillingUnitsRequest
+	7,  // 17: finance.v1.FeeCatalogService.SearchBillingUnits:input_type -> finance.v1.SearchBillingUnitsRequest
+	11, // 18: finance.v1.FeeCatalogService.CreateBillingUnit:input_type -> finance.v1.CreateBillingUnitRequest
+	12, // 19: finance.v1.FeeCatalogService.UpdateBillingUnit:input_type -> finance.v1.UpdateBillingUnitRequest
+	5,  // 20: finance.v1.FeeCatalogService.ListTaxableServices:input_type -> finance.v1.ListTaxableServicesRequest
+	8,  // 21: finance.v1.FeeCatalogService.SearchTaxableServices:input_type -> finance.v1.SearchTaxableServicesRequest
+	13, // 22: finance.v1.FeeCatalogService.CreateTaxableService:input_type -> finance.v1.CreateTaxableServiceRequest
+	14, // 23: finance.v1.FeeCatalogService.UpdateTaxableService:input_type -> finance.v1.UpdateTaxableServiceRequest
+	15, // 24: finance.v1.FeeCatalogService.ListFeeSettings:output_type -> finance.v1.ListFeeSettingsResponse
+	16, // 25: finance.v1.FeeCatalogService.SearchFeeSettings:output_type -> finance.v1.SearchFeeSettingsResponse
+	21, // 26: finance.v1.FeeCatalogService.CreateFeeSetting:output_type -> finance.v1.CreateFeeSettingResponse
+	22, // 27: finance.v1.FeeCatalogService.UpdateFeeSetting:output_type -> finance.v1.UpdateFeeSettingResponse
+	17, // 28: finance.v1.FeeCatalogService.ListBillingUnits:output_type -> finance.v1.ListBillingUnitsResponse
+	18, // 29: finance.v1.FeeCatalogService.SearchBillingUnits:output_type -> finance.v1.SearchBillingUnitsResponse
+	23, // 30: finance.v1.FeeCatalogService.CreateBillingUnit:output_type -> finance.v1.CreateBillingUnitResponse
+	24, // 31: finance.v1.FeeCatalogService.UpdateBillingUnit:output_type -> finance.v1.UpdateBillingUnitResponse
+	19, // 32: finance.v1.FeeCatalogService.ListTaxableServices:output_type -> finance.v1.ListTaxableServicesResponse
+	20, // 33: finance.v1.FeeCatalogService.SearchTaxableServices:output_type -> finance.v1.SearchTaxableServicesResponse
+	25, // 34: finance.v1.FeeCatalogService.CreateTaxableService:output_type -> finance.v1.CreateTaxableServiceResponse
+	26, // 35: finance.v1.FeeCatalogService.UpdateTaxableService:output_type -> finance.v1.UpdateTaxableServiceResponse
+	24, // [24:36] is the sub-list for method output_type
+	12, // [12:24] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_fee_catalog_proto_init() }
@@ -2241,17 +2704,17 @@ func file_finance_v1_fee_catalog_proto_init() {
 	}
 	file_finance_v1_fee_catalog_proto_msgTypes[1].OneofWrappers = []any{}
 	file_finance_v1_fee_catalog_proto_msgTypes[2].OneofWrappers = []any{}
-	file_finance_v1_fee_catalog_proto_msgTypes[7].OneofWrappers = []any{}
-	file_finance_v1_fee_catalog_proto_msgTypes[8].OneofWrappers = []any{}
-	file_finance_v1_fee_catalog_proto_msgTypes[11].OneofWrappers = []any{}
-	file_finance_v1_fee_catalog_proto_msgTypes[12].OneofWrappers = []any{}
+	file_finance_v1_fee_catalog_proto_msgTypes[9].OneofWrappers = []any{}
+	file_finance_v1_fee_catalog_proto_msgTypes[10].OneofWrappers = []any{}
+	file_finance_v1_fee_catalog_proto_msgTypes[13].OneofWrappers = []any{}
+	file_finance_v1_fee_catalog_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_fee_catalog_proto_rawDesc), len(file_finance_v1_fee_catalog_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

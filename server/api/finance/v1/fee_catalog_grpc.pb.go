@@ -40,15 +40,15 @@ const (
 // FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
 type FeeCatalogServiceClient interface {
 	ListFeeSettings(ctx context.Context, in *ListFeeSettingsRequest, opts ...grpc.CallOption) (*ListFeeSettingsResponse, error)
-	SearchFeeSettings(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListFeeSettingsResponse, error)
+	SearchFeeSettings(ctx context.Context, in *SearchFeeSettingsRequest, opts ...grpc.CallOption) (*SearchFeeSettingsResponse, error)
 	CreateFeeSetting(ctx context.Context, in *CreateFeeSettingRequest, opts ...grpc.CallOption) (*CreateFeeSettingResponse, error)
 	UpdateFeeSetting(ctx context.Context, in *UpdateFeeSettingRequest, opts ...grpc.CallOption) (*UpdateFeeSettingResponse, error)
 	ListBillingUnits(ctx context.Context, in *ListBillingUnitsRequest, opts ...grpc.CallOption) (*ListBillingUnitsResponse, error)
-	SearchBillingUnits(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListBillingUnitsResponse, error)
+	SearchBillingUnits(ctx context.Context, in *SearchBillingUnitsRequest, opts ...grpc.CallOption) (*SearchBillingUnitsResponse, error)
 	CreateBillingUnit(ctx context.Context, in *CreateBillingUnitRequest, opts ...grpc.CallOption) (*CreateBillingUnitResponse, error)
 	UpdateBillingUnit(ctx context.Context, in *UpdateBillingUnitRequest, opts ...grpc.CallOption) (*UpdateBillingUnitResponse, error)
 	ListTaxableServices(ctx context.Context, in *ListTaxableServicesRequest, opts ...grpc.CallOption) (*ListTaxableServicesResponse, error)
-	SearchTaxableServices(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListTaxableServicesResponse, error)
+	SearchTaxableServices(ctx context.Context, in *SearchTaxableServicesRequest, opts ...grpc.CallOption) (*SearchTaxableServicesResponse, error)
 	CreateTaxableService(ctx context.Context, in *CreateTaxableServiceRequest, opts ...grpc.CallOption) (*CreateTaxableServiceResponse, error)
 	UpdateTaxableService(ctx context.Context, in *UpdateTaxableServiceRequest, opts ...grpc.CallOption) (*UpdateTaxableServiceResponse, error)
 }
@@ -71,9 +71,9 @@ func (c *feeCatalogServiceClient) ListFeeSettings(ctx context.Context, in *ListF
 	return out, nil
 }
 
-func (c *feeCatalogServiceClient) SearchFeeSettings(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListFeeSettingsResponse, error) {
+func (c *feeCatalogServiceClient) SearchFeeSettings(ctx context.Context, in *SearchFeeSettingsRequest, opts ...grpc.CallOption) (*SearchFeeSettingsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFeeSettingsResponse)
+	out := new(SearchFeeSettingsResponse)
 	err := c.cc.Invoke(ctx, FeeCatalogService_SearchFeeSettings_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -111,9 +111,9 @@ func (c *feeCatalogServiceClient) ListBillingUnits(ctx context.Context, in *List
 	return out, nil
 }
 
-func (c *feeCatalogServiceClient) SearchBillingUnits(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListBillingUnitsResponse, error) {
+func (c *feeCatalogServiceClient) SearchBillingUnits(ctx context.Context, in *SearchBillingUnitsRequest, opts ...grpc.CallOption) (*SearchBillingUnitsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListBillingUnitsResponse)
+	out := new(SearchBillingUnitsResponse)
 	err := c.cc.Invoke(ctx, FeeCatalogService_SearchBillingUnits_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -151,9 +151,9 @@ func (c *feeCatalogServiceClient) ListTaxableServices(ctx context.Context, in *L
 	return out, nil
 }
 
-func (c *feeCatalogServiceClient) SearchTaxableServices(ctx context.Context, in *SearchFeeCatalogRequest, opts ...grpc.CallOption) (*ListTaxableServicesResponse, error) {
+func (c *feeCatalogServiceClient) SearchTaxableServices(ctx context.Context, in *SearchTaxableServicesRequest, opts ...grpc.CallOption) (*SearchTaxableServicesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTaxableServicesResponse)
+	out := new(SearchTaxableServicesResponse)
 	err := c.cc.Invoke(ctx, FeeCatalogService_SearchTaxableServices_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -188,15 +188,15 @@ func (c *feeCatalogServiceClient) UpdateTaxableService(ctx context.Context, in *
 // FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
 type FeeCatalogServiceServer interface {
 	ListFeeSettings(context.Context, *ListFeeSettingsRequest) (*ListFeeSettingsResponse, error)
-	SearchFeeSettings(context.Context, *SearchFeeCatalogRequest) (*ListFeeSettingsResponse, error)
+	SearchFeeSettings(context.Context, *SearchFeeSettingsRequest) (*SearchFeeSettingsResponse, error)
 	CreateFeeSetting(context.Context, *CreateFeeSettingRequest) (*CreateFeeSettingResponse, error)
 	UpdateFeeSetting(context.Context, *UpdateFeeSettingRequest) (*UpdateFeeSettingResponse, error)
 	ListBillingUnits(context.Context, *ListBillingUnitsRequest) (*ListBillingUnitsResponse, error)
-	SearchBillingUnits(context.Context, *SearchFeeCatalogRequest) (*ListBillingUnitsResponse, error)
+	SearchBillingUnits(context.Context, *SearchBillingUnitsRequest) (*SearchBillingUnitsResponse, error)
 	CreateBillingUnit(context.Context, *CreateBillingUnitRequest) (*CreateBillingUnitResponse, error)
 	UpdateBillingUnit(context.Context, *UpdateBillingUnitRequest) (*UpdateBillingUnitResponse, error)
 	ListTaxableServices(context.Context, *ListTaxableServicesRequest) (*ListTaxableServicesResponse, error)
-	SearchTaxableServices(context.Context, *SearchFeeCatalogRequest) (*ListTaxableServicesResponse, error)
+	SearchTaxableServices(context.Context, *SearchTaxableServicesRequest) (*SearchTaxableServicesResponse, error)
 	CreateTaxableService(context.Context, *CreateTaxableServiceRequest) (*CreateTaxableServiceResponse, error)
 	UpdateTaxableService(context.Context, *UpdateTaxableServiceRequest) (*UpdateTaxableServiceResponse, error)
 	mustEmbedUnimplementedFeeCatalogServiceServer()
@@ -212,7 +212,7 @@ type UnimplementedFeeCatalogServiceServer struct{}
 func (UnimplementedFeeCatalogServiceServer) ListFeeSettings(context.Context, *ListFeeSettingsRequest) (*ListFeeSettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFeeSettings not implemented")
 }
-func (UnimplementedFeeCatalogServiceServer) SearchFeeSettings(context.Context, *SearchFeeCatalogRequest) (*ListFeeSettingsResponse, error) {
+func (UnimplementedFeeCatalogServiceServer) SearchFeeSettings(context.Context, *SearchFeeSettingsRequest) (*SearchFeeSettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchFeeSettings not implemented")
 }
 func (UnimplementedFeeCatalogServiceServer) CreateFeeSetting(context.Context, *CreateFeeSettingRequest) (*CreateFeeSettingResponse, error) {
@@ -224,7 +224,7 @@ func (UnimplementedFeeCatalogServiceServer) UpdateFeeSetting(context.Context, *U
 func (UnimplementedFeeCatalogServiceServer) ListBillingUnits(context.Context, *ListBillingUnitsRequest) (*ListBillingUnitsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBillingUnits not implemented")
 }
-func (UnimplementedFeeCatalogServiceServer) SearchBillingUnits(context.Context, *SearchFeeCatalogRequest) (*ListBillingUnitsResponse, error) {
+func (UnimplementedFeeCatalogServiceServer) SearchBillingUnits(context.Context, *SearchBillingUnitsRequest) (*SearchBillingUnitsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchBillingUnits not implemented")
 }
 func (UnimplementedFeeCatalogServiceServer) CreateBillingUnit(context.Context, *CreateBillingUnitRequest) (*CreateBillingUnitResponse, error) {
@@ -236,7 +236,7 @@ func (UnimplementedFeeCatalogServiceServer) UpdateBillingUnit(context.Context, *
 func (UnimplementedFeeCatalogServiceServer) ListTaxableServices(context.Context, *ListTaxableServicesRequest) (*ListTaxableServicesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTaxableServices not implemented")
 }
-func (UnimplementedFeeCatalogServiceServer) SearchTaxableServices(context.Context, *SearchFeeCatalogRequest) (*ListTaxableServicesResponse, error) {
+func (UnimplementedFeeCatalogServiceServer) SearchTaxableServices(context.Context, *SearchTaxableServicesRequest) (*SearchTaxableServicesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchTaxableServices not implemented")
 }
 func (UnimplementedFeeCatalogServiceServer) CreateTaxableService(context.Context, *CreateTaxableServiceRequest) (*CreateTaxableServiceResponse, error) {
@@ -285,7 +285,7 @@ func _FeeCatalogService_ListFeeSettings_Handler(srv interface{}, ctx context.Con
 }
 
 func _FeeCatalogService_SearchFeeSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchFeeCatalogRequest)
+	in := new(SearchFeeSettingsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func _FeeCatalogService_SearchFeeSettings_Handler(srv interface{}, ctx context.C
 		FullMethod: FeeCatalogService_SearchFeeSettings_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeeCatalogServiceServer).SearchFeeSettings(ctx, req.(*SearchFeeCatalogRequest))
+		return srv.(FeeCatalogServiceServer).SearchFeeSettings(ctx, req.(*SearchFeeSettingsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -357,7 +357,7 @@ func _FeeCatalogService_ListBillingUnits_Handler(srv interface{}, ctx context.Co
 }
 
 func _FeeCatalogService_SearchBillingUnits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchFeeCatalogRequest)
+	in := new(SearchBillingUnitsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -369,7 +369,7 @@ func _FeeCatalogService_SearchBillingUnits_Handler(srv interface{}, ctx context.
 		FullMethod: FeeCatalogService_SearchBillingUnits_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeeCatalogServiceServer).SearchBillingUnits(ctx, req.(*SearchFeeCatalogRequest))
+		return srv.(FeeCatalogServiceServer).SearchBillingUnits(ctx, req.(*SearchBillingUnitsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -429,7 +429,7 @@ func _FeeCatalogService_ListTaxableServices_Handler(srv interface{}, ctx context
 }
 
 func _FeeCatalogService_SearchTaxableServices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchFeeCatalogRequest)
+	in := new(SearchTaxableServicesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -441,7 +441,7 @@ func _FeeCatalogService_SearchTaxableServices_Handler(srv interface{}, ctx conte
 		FullMethod: FeeCatalogService_SearchTaxableServices_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeeCatalogServiceServer).SearchTaxableServices(ctx, req.(*SearchFeeCatalogRequest))
+		return srv.(FeeCatalogServiceServer).SearchTaxableServices(ctx, req.(*SearchTaxableServicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

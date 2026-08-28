@@ -55,7 +55,7 @@ type PartnerServiceClient interface {
 	GetPartner(ctx context.Context, in *GetPartnerRequest, opts ...grpc.CallOption) (*GetPartnerResponse, error)
 	ListPartners(ctx context.Context, in *ListPartnersRequest, opts ...grpc.CallOption) (*ListPartnersResponse, error)
 	ListPartnerAssignmentOptions(ctx context.Context, in *ListPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error)
-	SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error)
+	SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*SearchPartnerAssignmentOptionsResponse, error)
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*CreatePartnerResponse, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*UpdatePartnerResponse, error)
 	ListPartnerInvoiceProfiles(ctx context.Context, in *ListPartnerInvoiceProfilesRequest, opts ...grpc.CallOption) (*ListPartnerInvoiceProfilesResponse, error)
@@ -119,9 +119,9 @@ func (c *partnerServiceClient) ListPartnerAssignmentOptions(ctx context.Context,
 	return out, nil
 }
 
-func (c *partnerServiceClient) SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
+func (c *partnerServiceClient) SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*SearchPartnerAssignmentOptionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListPartnerAssignmentOptionsResponse)
+	out := new(SearchPartnerAssignmentOptionsResponse)
 	err := c.cc.Invoke(ctx, PartnerService_SearchPartnerAssignmentOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -366,7 +366,7 @@ type PartnerServiceServer interface {
 	GetPartner(context.Context, *GetPartnerRequest) (*GetPartnerResponse, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
 	ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
-	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
+	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*SearchPartnerAssignmentOptionsResponse, error)
 	CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
 	ListPartnerInvoiceProfiles(context.Context, *ListPartnerInvoiceProfilesRequest) (*ListPartnerInvoiceProfilesResponse, error)
@@ -409,7 +409,7 @@ func (UnimplementedPartnerServiceServer) ListPartners(context.Context, *ListPart
 func (UnimplementedPartnerServiceServer) ListPartnerAssignmentOptions(context.Context, *ListPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerAssignmentOptions not implemented")
 }
-func (UnimplementedPartnerServiceServer) SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error) {
+func (UnimplementedPartnerServiceServer) SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*SearchPartnerAssignmentOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchPartnerAssignmentOptions not implemented")
 }
 func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error) {

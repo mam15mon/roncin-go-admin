@@ -21,7 +21,7 @@ export async function partnerServiceSearchPartnerAssignmentOptions(
   params: API.PartnerServiceSearchPartnerAssignmentOptionsParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListPartnerAssignmentOptionsResponse>(
+  return request<API.SearchPartnerAssignmentOptionsResponse>(
     "/api/v1/partner-assignment-options/search",
     {
       method: "GET",

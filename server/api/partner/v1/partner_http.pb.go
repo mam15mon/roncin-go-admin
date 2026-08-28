@@ -65,7 +65,7 @@ type PartnerServiceHTTPServer interface {
 	ListPartnerShippingPresets(context.Context, *ListPartnerShippingPresetsRequest) (*ListPartnerShippingPresetsResponse, error)
 	ListPartners(context.Context, *ListPartnersRequest) (*ListPartnersResponse, error)
 	RegisterPartnerAttachment(context.Context, *RegisterPartnerAttachmentRequest) (*RegisterPartnerAttachmentResponse, error)
-	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*ListPartnerAssignmentOptionsResponse, error)
+	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*SearchPartnerAssignmentOptionsResponse, error)
 	SetSupplierBlacklist(context.Context, *SetSupplierBlacklistRequest) (*SetSupplierBlacklistResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
@@ -180,7 +180,7 @@ func _PartnerService_SearchPartnerAssignmentOptions0_HTTP_Handler(srv PartnerSer
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListPartnerAssignmentOptionsResponse)
+		reply := out.(*SearchPartnerAssignmentOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -702,7 +702,7 @@ type PartnerServiceHTTPClient interface {
 	ListPartnerShippingPresets(ctx context.Context, req *ListPartnerShippingPresetsRequest, opts ...http.CallOption) (rsp *ListPartnerShippingPresetsResponse, err error)
 	ListPartners(ctx context.Context, req *ListPartnersRequest, opts ...http.CallOption) (rsp *ListPartnersResponse, err error)
 	RegisterPartnerAttachment(ctx context.Context, req *RegisterPartnerAttachmentRequest, opts ...http.CallOption) (rsp *RegisterPartnerAttachmentResponse, err error)
-	SearchPartnerAssignmentOptions(ctx context.Context, req *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *ListPartnerAssignmentOptionsResponse, err error)
+	SearchPartnerAssignmentOptions(ctx context.Context, req *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (rsp *SearchPartnerAssignmentOptionsResponse, err error)
 	SetSupplierBlacklist(ctx context.Context, req *SetSupplierBlacklistRequest, opts ...http.CallOption) (rsp *SetSupplierBlacklistResponse, err error)
 	UpdatePartner(ctx context.Context, req *UpdatePartnerRequest, opts ...http.CallOption) (rsp *UpdatePartnerResponse, err error)
 	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *UpdatePartnerAccountResponse, err error)
@@ -1032,8 +1032,8 @@ func (c *PartnerServiceHTTPClientImpl) RegisterPartnerAttachment(ctx context.Con
 	return &out, nil
 }
 
-func (c *PartnerServiceHTTPClientImpl) SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*ListPartnerAssignmentOptionsResponse, error) {
-	var out ListPartnerAssignmentOptionsResponse
+func (c *PartnerServiceHTTPClientImpl) SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...http.CallOption) (*SearchPartnerAssignmentOptionsResponse, error) {
+	var out SearchPartnerAssignmentOptionsResponse
 	pattern := "/api/v1/partner-assignment-options/search"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{

@@ -897,7 +897,7 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 	}
 	return &v1.ListCommissionsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissionRequest) (*v1.CommissionResponse, error) {
+func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissionRequest) (*v1.GetCommissionResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -906,7 +906,7 @@ func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.GetCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
@@ -929,7 +929,7 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request
 		Total: int64(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize),
 	}, nil
 }
-func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionCandidateSummariesResponse, error) {
+func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionCandidatesResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -957,7 +957,7 @@ func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.
 	for _, item := range result.Items {
 		data = append(data, commissionCandidateSummaryToAPI(item))
 	}
-	return &v1.ListCommissionCandidateSummariesResponse{
+	return &v1.ListCommissionCandidatesResponse{
 		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
 		Page: int32(result.Page), PageSize: int32(result.PageSize),
 	}, nil
@@ -984,7 +984,7 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 	}
 	return &v1.ListCommissionRulesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CommissionRuleResponse, error) {
+func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CreateCommissionRuleResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -997,9 +997,9 @@ func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.Crea
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.CreateCommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.UpdateCommissionRuleRequest) (*v1.CommissionRuleResponse, error) {
+func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.UpdateCommissionRuleRequest) (*v1.UpdateCommissionRuleResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1012,7 +1012,7 @@ func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.Upda
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.UpdateCommissionRuleResponse{Success: true, Message: "OK", Data: commissionRuleToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func commissionRuleInputFromAPI(r *v1.CommissionRuleInput) (biz.CreateCommissionRuleInput, error) {
 	if r == nil {
@@ -1076,7 +1076,7 @@ func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCo
 	}
 	return &v1.CreateCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.CommissionTransitionRequest) (*v1.CommissionResponse, error) {
+func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.ConfirmCommissionRequest) (*v1.ConfirmCommissionResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1085,9 +1085,9 @@ func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.Commiss
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ConfirmCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.CommissionTransitionRequest) (*v1.CommissionResponse, error) {
+func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.MarkCommissionPaidRequest) (*v1.MarkCommissionPaidResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1096,9 +1096,9 @@ func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.Commis
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.MarkCommissionPaidResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCommissionRequest) (*v1.CommissionResponse, error) {
+func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCommissionRequest) (*v1.CancelCommissionResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1107,9 +1107,9 @@ func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCo
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.CancelCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v1.CreateCommissionAdjustmentRequest) (*v1.CommissionAdjustmentResponse, error) {
+func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v1.CreateCommissionAdjustmentRequest) (*v1.CreateCommissionAdjustmentResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -1133,10 +1133,10 @@ func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.CreateCommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *SettlementService) ConfirmCommissionAdjustment(ctx context.Context, r *v1.CommissionAdjustmentTransitionRequest) (*v1.CommissionAdjustmentResponse, error) {
+func (s *SettlementService) ConfirmCommissionAdjustment(ctx context.Context, r *v1.ConfirmCommissionAdjustmentRequest) (*v1.ConfirmCommissionAdjustmentResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1145,10 +1145,10 @@ func (s *SettlementService) ConfirmCommissionAdjustment(ctx context.Context, r *
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ConfirmCommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *SettlementService) MarkCommissionAdjustmentPaid(ctx context.Context, r *v1.CommissionAdjustmentTransitionRequest) (*v1.CommissionAdjustmentResponse, error) {
+func (s *SettlementService) MarkCommissionAdjustmentPaid(ctx context.Context, r *v1.MarkCommissionAdjustmentPaidRequest) (*v1.MarkCommissionAdjustmentPaidResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1157,10 +1157,10 @@ func (s *SettlementService) MarkCommissionAdjustmentPaid(ctx context.Context, r 
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.MarkCommissionAdjustmentPaidResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v1.CancelCommissionAdjustmentRequest) (*v1.CommissionAdjustmentResponse, error) {
+func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v1.CancelCommissionAdjustmentRequest) (*v1.CancelCommissionAdjustmentResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
 		return nil, err
@@ -1169,7 +1169,7 @@ func (s *SettlementService) CancelCommissionAdjustment(ctx context.Context, r *v
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.CancelCommissionAdjustmentResponse{Success: true, Message: "OK", Data: commissionAdjustmentToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {

@@ -674,7 +674,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.ListBillingUnitsResponse'
+                                $ref: '#/components/schemas/finance.v1.SearchBillingUnitsResponse'
     /api/v1/finance/billing-units/{id}:
         put:
             tags:
@@ -987,7 +987,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+                                $ref: '#/components/schemas/finance.v1.CancelCommissionAdjustmentResponse'
     /api/v1/finance/commission-adjustments/{id}/confirm:
         post:
             tags:
@@ -1003,7 +1003,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest'
+                            $ref: '#/components/schemas/finance.v1.ConfirmCommissionAdjustmentRequest'
                 required: true
             responses:
                 "200":
@@ -1011,7 +1011,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+                                $ref: '#/components/schemas/finance.v1.ConfirmCommissionAdjustmentResponse'
     /api/v1/finance/commission-adjustments/{id}/paid:
         post:
             tags:
@@ -1027,7 +1027,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/finance.v1.CommissionAdjustmentTransitionRequest'
+                            $ref: '#/components/schemas/finance.v1.MarkCommissionAdjustmentPaidRequest'
                 required: true
             responses:
                 "200":
@@ -1035,7 +1035,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+                                $ref: '#/components/schemas/finance.v1.MarkCommissionAdjustmentPaidResponse'
     /api/v1/finance/commission-rules:
         get:
             tags:
@@ -1087,7 +1087,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionRuleResponse'
+                                $ref: '#/components/schemas/finance.v1.CreateCommissionRuleResponse'
     /api/v1/finance/commission-rules/{id}:
         put:
             tags:
@@ -1111,7 +1111,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionRuleResponse'
+                                $ref: '#/components/schemas/finance.v1.UpdateCommissionRuleResponse'
     /api/v1/finance/commissions:
         get:
             tags:
@@ -1194,7 +1194,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.ListCommissionCandidateSummariesResponse'
+                                $ref: '#/components/schemas/finance.v1.ListCommissionCandidatesResponse'
     /api/v1/finance/commissions/employees:
         get:
             tags:
@@ -1263,7 +1263,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionAdjustmentResponse'
+                                $ref: '#/components/schemas/finance.v1.CreateCommissionAdjustmentResponse'
     /api/v1/finance/commissions/{id}:
         get:
             tags:
@@ -1281,7 +1281,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+                                $ref: '#/components/schemas/finance.v1.GetCommissionResponse'
     /api/v1/finance/commissions/{id}/cancel:
         post:
             tags:
@@ -1305,7 +1305,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+                                $ref: '#/components/schemas/finance.v1.CancelCommissionResponse'
     /api/v1/finance/commissions/{id}/confirm:
         post:
             tags:
@@ -1321,7 +1321,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/finance.v1.CommissionTransitionRequest'
+                            $ref: '#/components/schemas/finance.v1.ConfirmCommissionRequest'
                 required: true
             responses:
                 "200":
@@ -1329,7 +1329,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+                                $ref: '#/components/schemas/finance.v1.ConfirmCommissionResponse'
     /api/v1/finance/commissions/{id}/paid:
         post:
             tags:
@@ -1345,7 +1345,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/finance.v1.CommissionTransitionRequest'
+                            $ref: '#/components/schemas/finance.v1.MarkCommissionPaidRequest'
                 required: true
             responses:
                 "200":
@@ -1353,7 +1353,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.CommissionResponse'
+                                $ref: '#/components/schemas/finance.v1.MarkCommissionPaidResponse'
     /api/v1/finance/custom-settings/billed-fee-edit-policy:
         get:
             tags:
@@ -1646,7 +1646,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.ListFeeSettingsResponse'
+                                $ref: '#/components/schemas/finance.v1.SearchFeeSettingsResponse'
     /api/v1/finance/fee-settings/{id}:
         put:
             tags:
@@ -1988,7 +1988,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.ListTaxableServicesResponse'
+                                $ref: '#/components/schemas/finance.v1.SearchTaxableServicesResponse'
     /api/v1/finance/taxable-services/{id}:
         put:
             tags:
@@ -3844,7 +3844,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/partner.v1.ListPartnerAssignmentOptionsResponse'
+                                $ref: '#/components/schemas/partner.v1.SearchPartnerAssignmentOptionsResponse'
     /api/v1/partners:
         get:
             tags:
@@ -4536,7 +4536,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/masterdata.v1.ListCurrenciesResponse'
+                                $ref: '#/components/schemas/masterdata.v1.SearchCurrenciesResponse'
 components:
     schemas:
         admin.v1.AdminAuditLog:
@@ -5452,6 +5452,20 @@ components:
                     type: string
                 reason:
                     type: string
+        finance.v1.CancelCommissionAdjustmentResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                traceId:
+                    type: string
         finance.v1.CancelCommissionRequest:
             required:
                 - id
@@ -5464,6 +5478,20 @@ components:
                 expectedVersion:
                     type: string
                 reason:
+                    type: string
+        finance.v1.CancelCommissionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
+                traceId:
                     type: string
         finance.v1.CancelInvoiceRequest:
             required:
@@ -5491,30 +5519,6 @@ components:
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
                 traceId:
-                    type: string
-        finance.v1.CommissionAdjustmentResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
-                traceId:
-                    type: string
-        finance.v1.CommissionAdjustmentTransitionRequest:
-            required:
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                id:
-                    type: string
-                expectedVersion:
                     type: string
         finance.v1.CommissionCalculation:
             type: object
@@ -5638,20 +5642,6 @@ components:
                     type: string
                 status:
                     type: string
-        finance.v1.CommissionResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
-                traceId:
-                    type: string
         finance.v1.CommissionRuleInput:
             required:
                 - name
@@ -5675,30 +5665,6 @@ components:
                 enabled:
                     type: boolean
                 note:
-                    type: string
-        finance.v1.CommissionRuleResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
-                traceId:
-                    type: string
-        finance.v1.CommissionTransitionRequest:
-            required:
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                id:
-                    type: string
-                expectedVersion:
                     type: string
         finance.v1.ConfirmBillBatchRequest:
             required:
@@ -5772,6 +5738,54 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflow'
+                traceId:
+                    type: string
+        finance.v1.ConfirmCommissionAdjustmentRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.ConfirmCommissionAdjustmentResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                traceId:
+                    type: string
+        finance.v1.ConfirmCommissionRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.ConfirmCommissionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
                 traceId:
                     type: string
         finance.v1.ConfirmExchangeRateImportRequest:
@@ -5998,6 +6012,20 @@ components:
                     type: string
                 idempotencyKey:
                     type: string
+        finance.v1.CreateCommissionAdjustmentResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                traceId:
+                    type: string
         finance.v1.CreateCommissionRequest:
             required:
                 - verificationId
@@ -6037,6 +6065,20 @@ components:
             properties:
                 rule:
                     $ref: '#/components/schemas/finance.v1.CommissionRuleInput'
+        finance.v1.CreateCommissionRuleResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                traceId:
+                    type: string
         finance.v1.CreateExchangeRateSettingRequest:
             required:
                 - rateType
@@ -7203,6 +7245,20 @@ components:
                     $ref: '#/components/schemas/finance.v1.BilledFeeEditPolicy'
                 traceId:
                     type: string
+        finance.v1.GetCommissionResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
+                traceId:
+                    type: string
         finance.v1.GetExchangeRateCustomSettingResponse:
             type: object
             properties:
@@ -7350,7 +7406,7 @@ components:
                     type: string
                 traceId:
                     type: string
-        finance.v1.ListCommissionCandidateSummariesResponse:
+        finance.v1.ListCommissionCandidatesResponse:
             type: object
             properties:
                 success:
@@ -7574,6 +7630,54 @@ components:
                     type: string
                 traceId:
                     type: string
+        finance.v1.MarkCommissionAdjustmentPaidRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.MarkCommissionAdjustmentPaidResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                traceId:
+                    type: string
+        finance.v1.MarkCommissionPaidRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.MarkCommissionPaidResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommission'
+                traceId:
+                    type: string
         finance.v1.PreviewBillBatchRequest:
             required:
                 - feeIds
@@ -7732,6 +7836,81 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceVerification'
                 traceId:
                     type: string
+        finance.v1.SearchBillingUnitsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BillingUnit'
+                traceId:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        finance.v1.SearchFeeSettingsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeSetting'
+                traceId:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        finance.v1.SearchTaxableServicesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.TaxableService'
+                traceId:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         finance.v1.TaxableService:
             type: object
             properties:
@@ -7863,6 +8042,20 @@ components:
                 rule:
                     $ref: '#/components/schemas/finance.v1.CommissionRuleInput'
                 expectedVersion:
+                    type: string
+        finance.v1.UpdateCommissionRuleResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
+                traceId:
                     type: string
         finance.v1.UpdateExchangeRateCustomSettingRequest:
             required:
@@ -8974,6 +9167,31 @@ components:
                     $ref: '#/components/schemas/masterdata.v1.MilestoneTemplate'
                 traceId:
                     type: string
+        masterdata.v1.SearchCurrenciesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.Currency'
+                traceId:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         masterdata.v1.SetDefaultMilestoneTemplateRequest:
             required:
                 - id
@@ -12476,6 +12694,31 @@ components:
                     $ref: '#/components/schemas/partner.v1.PartnerAttachment'
                 traceId:
                     type: string
+        partner.v1.SearchPartnerAssignmentOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/partner.v1.PartnerAssignmentOption'
+                traceId:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         partner.v1.SetSupplierBlacklistRequest:
             required:
                 - id

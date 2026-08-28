@@ -65,7 +65,7 @@ type MasterDataServiceHTTPServer interface {
 	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
 	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
 	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
-	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*ListCurrenciesResponse, error)
+	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*SearchCurrenciesResponse, error)
 	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
 	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
 	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
@@ -477,7 +477,7 @@ func _MasterDataService_SearchCurrencies0_HTTP_Handler(srv MasterDataServiceHTTP
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListCurrenciesResponse)
+		reply := out.(*SearchCurrenciesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -663,7 +663,7 @@ type MasterDataServiceHTTPClient interface {
 	ListPorts(ctx context.Context, req *ListPortsRequest, opts ...http.CallOption) (rsp *ListPortsResponse, err error)
 	ListShippingLines(ctx context.Context, req *ListShippingLinesRequest, opts ...http.CallOption) (rsp *ListShippingLinesResponse, err error)
 	PublishMilestoneTemplate(ctx context.Context, req *PublishMilestoneTemplateRequest, opts ...http.CallOption) (rsp *PublishMilestoneTemplateResponse, err error)
-	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *ListCurrenciesResponse, err error)
+	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *SearchCurrenciesResponse, err error)
 	SetDefaultMilestoneTemplate(ctx context.Context, req *SetDefaultMilestoneTemplateRequest, opts ...http.CallOption) (rsp *SetDefaultMilestoneTemplateResponse, err error)
 	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
 	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *UpdateAirportResponse, err error)
@@ -994,8 +994,8 @@ func (c *MasterDataServiceHTTPClientImpl) PublishMilestoneTemplate(ctx context.C
 	return &out, nil
 }
 
-func (c *MasterDataServiceHTTPClientImpl) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...http.CallOption) (*ListCurrenciesResponse, error) {
-	var out ListCurrenciesResponse
+func (c *MasterDataServiceHTTPClientImpl) SearchCurrencies(ctx context.Context, in *SearchCurrenciesRequest, opts ...http.CallOption) (*SearchCurrenciesResponse, error) {
+	var out SearchCurrenciesResponse
 	pattern := "/api/v1/reference/currencies/search"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{

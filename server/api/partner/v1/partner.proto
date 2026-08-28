@@ -24,7 +24,7 @@ service PartnerService {
     option (google.api.http) = {get: "/api/v1/partner-assignment-options"};
   }
 
-  rpc SearchPartnerAssignmentOptions(SearchPartnerAssignmentOptionsRequest) returns (ListPartnerAssignmentOptionsResponse) {
+  rpc SearchPartnerAssignmentOptions(SearchPartnerAssignmentOptionsRequest) returns (SearchPartnerAssignmentOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.assignment_option.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partner-assignment-options/search"};
   }
@@ -291,6 +291,17 @@ message ListPartnerAssignmentOptionsRequest {}
 message SearchPartnerAssignmentOptionsRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
 
 message ListPartnerAssignmentOptionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated PartnerAssignmentOption data = 4;
+  string trace_id = 5;
+  int32 total = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+
+message SearchPartnerAssignmentOptionsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

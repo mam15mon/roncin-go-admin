@@ -108,7 +108,7 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/reference/currencies"};
   }
 
-  rpc SearchCurrencies(SearchCurrenciesRequest) returns (ListCurrenciesResponse) {
+  rpc SearchCurrencies(SearchCurrenciesRequest) returns (SearchCurrenciesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.currency.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/reference/currencies/search"};
   }
@@ -675,6 +675,17 @@ message Currency {
 }
 
 message ListCurrenciesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Currency data = 4;
+  string trace_id = 5;
+  int32 total = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+
+message SearchCurrenciesResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
