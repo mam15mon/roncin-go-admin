@@ -62,6 +62,7 @@ type AdminUser struct {
 	WeComUserID     *string
 	WeComName       *string
 	DingTalkUnionID *string
+	DingTalkUserID  *string
 	DingTalkName    *string
 	Enabled         bool
 	HasPassword     bool

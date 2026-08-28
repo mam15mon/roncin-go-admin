@@ -48,6 +48,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -160,6 +161,8 @@ type Client struct {
 	MilestoneTemplate *MilestoneTemplateClient
 	// MilestoneTemplateItem is the client for interacting with the MilestoneTemplateItem builders.
 	MilestoneTemplateItem *MilestoneTemplateItemClient
+	// NotificationDelivery is the client for interacting with the NotificationDelivery builders.
+	NotificationDelivery *NotificationDeliveryClient
 	// NumberRule is the client for interacting with the NumberRule builders.
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
@@ -285,6 +288,7 @@ func (c *Client) init() {
 	c.Membership = NewMembershipClient(c.config)
 	c.MilestoneTemplate = NewMilestoneTemplateClient(c.config)
 	c.MilestoneTemplateItem = NewMilestoneTemplateItemClient(c.config)
+	c.NotificationDelivery = NewNotificationDeliveryClient(c.config)
 	c.NumberRule = NewNumberRuleClient(c.config)
 	c.NumberSequence = NewNumberSequenceClient(c.config)
 	c.Order = NewOrderClient(c.config)
@@ -450,6 +454,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Membership:                    NewMembershipClient(cfg),
 		MilestoneTemplate:             NewMilestoneTemplateClient(cfg),
 		MilestoneTemplateItem:         NewMilestoneTemplateItemClient(cfg),
+		NotificationDelivery:          NewNotificationDeliveryClient(cfg),
 		NumberRule:                    NewNumberRuleClient(cfg),
 		NumberSequence:                NewNumberSequenceClient(cfg),
 		Order:                         NewOrderClient(cfg),
@@ -542,6 +547,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Membership:                    NewMembershipClient(cfg),
 		MilestoneTemplate:             NewMilestoneTemplateClient(cfg),
 		MilestoneTemplateItem:         NewMilestoneTemplateItemClient(cfg),
+		NotificationDelivery:          NewNotificationDeliveryClient(cfg),
 		NumberRule:                    NewNumberRuleClient(cfg),
 		NumberSequence:                NewNumberSequenceClient(cfg),
 		Order:                         NewOrderClient(cfg),
@@ -621,17 +627,17 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
 		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
 		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.MilestoneTemplateItem, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -650,17 +656,17 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
 		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
 		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.MilestoneTemplate,
-		c.MilestoneTemplateItem, c.NumberRule, c.NumberSequence, c.Order,
-		c.OrderAbnormalCase, c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.MilestoneTemplateItem, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -733,6 +739,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MilestoneTemplate.mutate(ctx, m)
 	case *MilestoneTemplateItemMutation:
 		return c.MilestoneTemplateItem.mutate(ctx, m)
+	case *NotificationDeliveryMutation:
+		return c.NotificationDelivery.mutate(ctx, m)
 	case *NumberRuleMutation:
 		return c.NumberRule.mutate(ctx, m)
 	case *NumberSequenceMutation:
@@ -1504,6 +1512,22 @@ func (c *BackgroundTaskClient) QueryOrganization(_m *BackgroundTask) *Organizati
 			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
 			sqlgraph.To(organization.Table, organization.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, backgroundtask.OrganizationTable, backgroundtask.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNotificationDelivery queries the notification_delivery edge of a BackgroundTask.
+func (c *BackgroundTaskClient) QueryNotificationDelivery(_m *BackgroundTask) *NotificationDeliveryQuery {
+	query := (&NotificationDeliveryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
+			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.NotificationDeliveryTable, backgroundtask.NotificationDeliveryColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -6488,6 +6512,171 @@ func (c *MilestoneTemplateItemClient) mutate(ctx context.Context, m *MilestoneTe
 		return (&MilestoneTemplateItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown MilestoneTemplateItem mutation op: %q", m.Op())
+	}
+}
+
+// NotificationDeliveryClient is a client for the NotificationDelivery schema.
+type NotificationDeliveryClient struct {
+	config
+}
+
+// NewNotificationDeliveryClient returns a client for the NotificationDelivery from the given config.
+func NewNotificationDeliveryClient(c config) *NotificationDeliveryClient {
+	return &NotificationDeliveryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationdelivery.Hooks(f(g(h())))`.
+func (c *NotificationDeliveryClient) Use(hooks ...Hook) {
+	c.hooks.NotificationDelivery = append(c.hooks.NotificationDelivery, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationdelivery.Intercept(f(g(h())))`.
+func (c *NotificationDeliveryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationDelivery = append(c.inters.NotificationDelivery, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationDelivery entity.
+func (c *NotificationDeliveryClient) Create() *NotificationDeliveryCreate {
+	mutation := newNotificationDeliveryMutation(c.config, OpCreate)
+	return &NotificationDeliveryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationDelivery entities.
+func (c *NotificationDeliveryClient) CreateBulk(builders ...*NotificationDeliveryCreate) *NotificationDeliveryCreateBulk {
+	return &NotificationDeliveryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationDeliveryClient) MapCreateBulk(slice any, setFunc func(*NotificationDeliveryCreate, int)) *NotificationDeliveryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationDeliveryCreateBulk{err: fmt.Errorf("calling to NotificationDeliveryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationDeliveryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationDeliveryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationDelivery.
+func (c *NotificationDeliveryClient) Update() *NotificationDeliveryUpdate {
+	mutation := newNotificationDeliveryMutation(c.config, OpUpdate)
+	return &NotificationDeliveryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationDeliveryClient) UpdateOne(_m *NotificationDelivery) *NotificationDeliveryUpdateOne {
+	mutation := newNotificationDeliveryMutation(c.config, OpUpdateOne, withNotificationDelivery(_m))
+	return &NotificationDeliveryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationDeliveryClient) UpdateOneID(id uuid.UUID) *NotificationDeliveryUpdateOne {
+	mutation := newNotificationDeliveryMutation(c.config, OpUpdateOne, withNotificationDeliveryID(id))
+	return &NotificationDeliveryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationDelivery.
+func (c *NotificationDeliveryClient) Delete() *NotificationDeliveryDelete {
+	mutation := newNotificationDeliveryMutation(c.config, OpDelete)
+	return &NotificationDeliveryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationDeliveryClient) DeleteOne(_m *NotificationDelivery) *NotificationDeliveryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationDeliveryClient) DeleteOneID(id uuid.UUID) *NotificationDeliveryDeleteOne {
+	builder := c.Delete().Where(notificationdelivery.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationDeliveryDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationDelivery.
+func (c *NotificationDeliveryClient) Query() *NotificationDeliveryQuery {
+	return &NotificationDeliveryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationDelivery},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationDelivery entity by its id.
+func (c *NotificationDeliveryClient) Get(ctx context.Context, id uuid.UUID) (*NotificationDelivery, error) {
+	return c.Query().Where(notificationdelivery.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationDeliveryClient) GetX(ctx context.Context, id uuid.UUID) *NotificationDelivery {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBackgroundTask queries the background_task edge of a NotificationDelivery.
+func (c *NotificationDeliveryClient) QueryBackgroundTask(_m *NotificationDelivery) *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notificationdelivery.Table, notificationdelivery.FieldID, id),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, notificationdelivery.BackgroundTaskTable, notificationdelivery.BackgroundTaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecipientUser queries the recipient_user edge of a NotificationDelivery.
+func (c *NotificationDeliveryClient) QueryRecipientUser(_m *NotificationDelivery) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(notificationdelivery.Table, notificationdelivery.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, notificationdelivery.RecipientUserTable, notificationdelivery.RecipientUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationDeliveryClient) Hooks() []Hook {
+	return c.hooks.NotificationDelivery
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationDeliveryClient) Interceptors() []Interceptor {
+	return c.inters.NotificationDelivery
+}
+
+func (c *NotificationDeliveryClient) mutate(ctx context.Context, m *NotificationDeliveryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationDeliveryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationDeliveryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationDeliveryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationDeliveryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NotificationDelivery mutation op: %q", m.Op())
 	}
 }
 
@@ -14213,6 +14402,22 @@ func (c *UserClient) QueryOrderPersonnel(_m *User) *OrderPersonnelQuery {
 	return query
 }
 
+// QueryNotificationDeliveries queries the notification_deliveries edge of a User.
+func (c *UserClient) QueryNotificationDeliveries(_m *User) *NotificationDeliveryQuery {
+	query := (&NotificationDeliveryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationDeliveriesTable, user.NotificationDeliveriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryPartnerAssignments queries the partner_assignments edge of a User.
 func (c *UserClient) QueryPartnerAssignments(_m *User) *PartnerAssignmentQuery {
 	query := (&PartnerAssignmentClient{config: c.config}).Query()
@@ -14618,16 +14823,17 @@ type (
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
 		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
-		ShippingLine, ShippingLineContainerPrefix, TaxableService, User []ent.Hook
+		Membership, MilestoneTemplate, MilestoneTemplateItem, NotificationDelivery,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
+		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderFee,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -14638,16 +14844,16 @@ type (
 		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
 		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, MilestoneTemplate, MilestoneTemplateItem, NumberRule,
-		NumberSequence, Order, OrderAbnormalCase, OrderAttachment, OrderCargoCategory,
-		OrderCargoItem, OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PartnerShippingPreset,
-		Permission, Port, Role, RoleAssignment, RoleOrderOrganizationAccess, Session,
-		ShippingLine, ShippingLineContainerPrefix, TaxableService,
-		User []ent.Interceptor
+		Membership, MilestoneTemplate, MilestoneTemplateItem, NotificationDelivery,
+		NumberRule, NumberSequence, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
+		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderFee,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, PartnerShippingPreset, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

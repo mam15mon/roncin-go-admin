@@ -45,6 +45,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -131,6 +132,7 @@ const (
 	TypeMembership                    = "Membership"
 	TypeMilestoneTemplate             = "MilestoneTemplate"
 	TypeMilestoneTemplateItem         = "MilestoneTemplateItem"
+	TypeNotificationDelivery          = "NotificationDelivery"
 	TypeNumberRule                    = "NumberRule"
 	TypeNumberSequence                = "NumberSequence"
 	TypeOrder                         = "Order"
@@ -4738,28 +4740,30 @@ func (m *AuditLogMutation) ResetEdge(name string) error {
 // BackgroundTaskMutation represents an operation that mutates the BackgroundTask nodes in the graph.
 type BackgroundTaskMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	kind                *backgroundtask.Kind
-	idempotency_key     *string
-	status              *backgroundtask.Status
-	attempts            *int
-	addattempts         *int
-	max_attempts        *int
-	addmax_attempts     *int
-	next_run_at         *time.Time
-	lease_token         *string
-	lease_expires_at    *time.Time
-	last_error          *string
-	clearedFields       map[string]struct{}
-	organization        *uuid.UUID
-	clearedorganization bool
-	done                bool
-	oldValue            func(context.Context) (*BackgroundTask, error)
-	predicates          []predicate.BackgroundTask
+	op                           Op
+	typ                          string
+	id                           *uuid.UUID
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	kind                         *backgroundtask.Kind
+	idempotency_key              *string
+	status                       *backgroundtask.Status
+	attempts                     *int
+	addattempts                  *int
+	max_attempts                 *int
+	addmax_attempts              *int
+	next_run_at                  *time.Time
+	lease_token                  *string
+	lease_expires_at             *time.Time
+	last_error                   *string
+	clearedFields                map[string]struct{}
+	organization                 *uuid.UUID
+	clearedorganization          bool
+	notification_delivery        *uuid.UUID
+	clearednotification_delivery bool
+	done                         bool
+	oldValue                     func(context.Context) (*BackgroundTask, error)
+	predicates                   []predicate.BackgroundTask
 }
 
 var _ ent.Mutation = (*BackgroundTaskMutation)(nil)
@@ -5404,6 +5408,45 @@ func (m *BackgroundTaskMutation) ResetOrganization() {
 	m.clearedorganization = false
 }
 
+// SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by id.
+func (m *BackgroundTaskMutation) SetNotificationDeliveryID(id uuid.UUID) {
+	m.notification_delivery = &id
+}
+
+// ClearNotificationDelivery clears the "notification_delivery" edge to the NotificationDelivery entity.
+func (m *BackgroundTaskMutation) ClearNotificationDelivery() {
+	m.clearednotification_delivery = true
+}
+
+// NotificationDeliveryCleared reports if the "notification_delivery" edge to the NotificationDelivery entity was cleared.
+func (m *BackgroundTaskMutation) NotificationDeliveryCleared() bool {
+	return m.clearednotification_delivery
+}
+
+// NotificationDeliveryID returns the "notification_delivery" edge ID in the mutation.
+func (m *BackgroundTaskMutation) NotificationDeliveryID() (id uuid.UUID, exists bool) {
+	if m.notification_delivery != nil {
+		return *m.notification_delivery, true
+	}
+	return
+}
+
+// NotificationDeliveryIDs returns the "notification_delivery" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NotificationDeliveryID instead. It exists only for internal usage by the builders.
+func (m *BackgroundTaskMutation) NotificationDeliveryIDs() (ids []uuid.UUID) {
+	if id := m.notification_delivery; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNotificationDelivery resets all changes to the "notification_delivery" edge.
+func (m *BackgroundTaskMutation) ResetNotificationDelivery() {
+	m.notification_delivery = nil
+	m.clearednotification_delivery = false
+}
+
 // Where appends a list predicates to the BackgroundTaskMutation builder.
 func (m *BackgroundTaskMutation) Where(ps ...predicate.BackgroundTask) {
 	m.predicates = append(m.predicates, ps...)
@@ -5772,9 +5815,12 @@ func (m *BackgroundTaskMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *BackgroundTaskMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.organization != nil {
 		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	if m.notification_delivery != nil {
+		edges = append(edges, backgroundtask.EdgeNotificationDelivery)
 	}
 	return edges
 }
@@ -5787,13 +5833,17 @@ func (m *BackgroundTaskMutation) AddedIDs(name string) []ent.Value {
 		if id := m.organization; id != nil {
 			return []ent.Value{*id}
 		}
+	case backgroundtask.EdgeNotificationDelivery:
+		if id := m.notification_delivery; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *BackgroundTaskMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -5805,9 +5855,12 @@ func (m *BackgroundTaskMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *BackgroundTaskMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedorganization {
 		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	if m.clearednotification_delivery {
+		edges = append(edges, backgroundtask.EdgeNotificationDelivery)
 	}
 	return edges
 }
@@ -5818,6 +5871,8 @@ func (m *BackgroundTaskMutation) EdgeCleared(name string) bool {
 	switch name {
 	case backgroundtask.EdgeOrganization:
 		return m.clearedorganization
+	case backgroundtask.EdgeNotificationDelivery:
+		return m.clearednotification_delivery
 	}
 	return false
 }
@@ -5829,6 +5884,9 @@ func (m *BackgroundTaskMutation) ClearEdge(name string) error {
 	case backgroundtask.EdgeOrganization:
 		m.ClearOrganization()
 		return nil
+	case backgroundtask.EdgeNotificationDelivery:
+		m.ClearNotificationDelivery()
+		return nil
 	}
 	return fmt.Errorf("unknown BackgroundTask unique edge %s", name)
 }
@@ -5839,6 +5897,9 @@ func (m *BackgroundTaskMutation) ResetEdge(name string) error {
 	switch name {
 	case backgroundtask.EdgeOrganization:
 		m.ResetOrganization()
+		return nil
+	case backgroundtask.EdgeNotificationDelivery:
+		m.ResetNotificationDelivery()
 		return nil
 	}
 	return fmt.Errorf("unknown BackgroundTask edge %s", name)
@@ -45293,6 +45354,1019 @@ func (m *MilestoneTemplateItemMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown MilestoneTemplateItem edge %s", name)
+}
+
+// NotificationDeliveryMutation represents an operation that mutates the NotificationDelivery nodes in the graph.
+type NotificationDeliveryMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *uuid.UUID
+	created_at             *time.Time
+	updated_at             *time.Time
+	channel                *notificationdelivery.Channel
+	template               *notificationdelivery.Template
+	resource_type          *string
+	resource_id            *uuid.UUID
+	reference_code         *string
+	parameter              *string
+	external_message_id    *string
+	clearedFields          map[string]struct{}
+	background_task        *uuid.UUID
+	clearedbackground_task bool
+	recipient_user         *uuid.UUID
+	clearedrecipient_user  bool
+	done                   bool
+	oldValue               func(context.Context) (*NotificationDelivery, error)
+	predicates             []predicate.NotificationDelivery
+}
+
+var _ ent.Mutation = (*NotificationDeliveryMutation)(nil)
+
+// notificationdeliveryOption allows management of the mutation configuration using functional options.
+type notificationdeliveryOption func(*NotificationDeliveryMutation)
+
+// newNotificationDeliveryMutation creates new mutation for the NotificationDelivery entity.
+func newNotificationDeliveryMutation(c config, op Op, opts ...notificationdeliveryOption) *NotificationDeliveryMutation {
+	m := &NotificationDeliveryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotificationDelivery,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotificationDeliveryID sets the ID field of the mutation.
+func withNotificationDeliveryID(id uuid.UUID) notificationdeliveryOption {
+	return func(m *NotificationDeliveryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NotificationDelivery
+		)
+		m.oldValue = func(ctx context.Context) (*NotificationDelivery, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NotificationDelivery.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotificationDelivery sets the old NotificationDelivery of the mutation.
+func withNotificationDelivery(node *NotificationDelivery) notificationdeliveryOption {
+	return func(m *NotificationDeliveryMutation) {
+		m.oldValue = func(context.Context) (*NotificationDelivery, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotificationDeliveryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotificationDeliveryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of NotificationDelivery entities.
+func (m *NotificationDeliveryMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotificationDeliveryMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotificationDeliveryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NotificationDelivery.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NotificationDeliveryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NotificationDeliveryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NotificationDeliveryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NotificationDeliveryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NotificationDeliveryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NotificationDeliveryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetBackgroundTaskID sets the "background_task_id" field.
+func (m *NotificationDeliveryMutation) SetBackgroundTaskID(u uuid.UUID) {
+	m.background_task = &u
+}
+
+// BackgroundTaskID returns the value of the "background_task_id" field in the mutation.
+func (m *NotificationDeliveryMutation) BackgroundTaskID() (r uuid.UUID, exists bool) {
+	v := m.background_task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBackgroundTaskID returns the old "background_task_id" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldBackgroundTaskID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBackgroundTaskID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBackgroundTaskID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBackgroundTaskID: %w", err)
+	}
+	return oldValue.BackgroundTaskID, nil
+}
+
+// ResetBackgroundTaskID resets all changes to the "background_task_id" field.
+func (m *NotificationDeliveryMutation) ResetBackgroundTaskID() {
+	m.background_task = nil
+}
+
+// SetRecipientUserID sets the "recipient_user_id" field.
+func (m *NotificationDeliveryMutation) SetRecipientUserID(u uuid.UUID) {
+	m.recipient_user = &u
+}
+
+// RecipientUserID returns the value of the "recipient_user_id" field in the mutation.
+func (m *NotificationDeliveryMutation) RecipientUserID() (r uuid.UUID, exists bool) {
+	v := m.recipient_user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecipientUserID returns the old "recipient_user_id" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldRecipientUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecipientUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecipientUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecipientUserID: %w", err)
+	}
+	return oldValue.RecipientUserID, nil
+}
+
+// ResetRecipientUserID resets all changes to the "recipient_user_id" field.
+func (m *NotificationDeliveryMutation) ResetRecipientUserID() {
+	m.recipient_user = nil
+}
+
+// SetChannel sets the "channel" field.
+func (m *NotificationDeliveryMutation) SetChannel(n notificationdelivery.Channel) {
+	m.channel = &n
+}
+
+// Channel returns the value of the "channel" field in the mutation.
+func (m *NotificationDeliveryMutation) Channel() (r notificationdelivery.Channel, exists bool) {
+	v := m.channel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannel returns the old "channel" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldChannel(ctx context.Context) (v notificationdelivery.Channel, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannel: %w", err)
+	}
+	return oldValue.Channel, nil
+}
+
+// ResetChannel resets all changes to the "channel" field.
+func (m *NotificationDeliveryMutation) ResetChannel() {
+	m.channel = nil
+}
+
+// SetTemplate sets the "template" field.
+func (m *NotificationDeliveryMutation) SetTemplate(n notificationdelivery.Template) {
+	m.template = &n
+}
+
+// Template returns the value of the "template" field in the mutation.
+func (m *NotificationDeliveryMutation) Template() (r notificationdelivery.Template, exists bool) {
+	v := m.template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplate returns the old "template" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldTemplate(ctx context.Context) (v notificationdelivery.Template, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplate: %w", err)
+	}
+	return oldValue.Template, nil
+}
+
+// ResetTemplate resets all changes to the "template" field.
+func (m *NotificationDeliveryMutation) ResetTemplate() {
+	m.template = nil
+}
+
+// SetResourceType sets the "resource_type" field.
+func (m *NotificationDeliveryMutation) SetResourceType(s string) {
+	m.resource_type = &s
+}
+
+// ResourceType returns the value of the "resource_type" field in the mutation.
+func (m *NotificationDeliveryMutation) ResourceType() (r string, exists bool) {
+	v := m.resource_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceType returns the old "resource_type" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldResourceType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceType: %w", err)
+	}
+	return oldValue.ResourceType, nil
+}
+
+// ResetResourceType resets all changes to the "resource_type" field.
+func (m *NotificationDeliveryMutation) ResetResourceType() {
+	m.resource_type = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *NotificationDeliveryMutation) SetResourceID(u uuid.UUID) {
+	m.resource_id = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *NotificationDeliveryMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *NotificationDeliveryMutation) ResetResourceID() {
+	m.resource_id = nil
+}
+
+// SetReferenceCode sets the "reference_code" field.
+func (m *NotificationDeliveryMutation) SetReferenceCode(s string) {
+	m.reference_code = &s
+}
+
+// ReferenceCode returns the value of the "reference_code" field in the mutation.
+func (m *NotificationDeliveryMutation) ReferenceCode() (r string, exists bool) {
+	v := m.reference_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReferenceCode returns the old "reference_code" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldReferenceCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReferenceCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReferenceCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReferenceCode: %w", err)
+	}
+	return oldValue.ReferenceCode, nil
+}
+
+// ResetReferenceCode resets all changes to the "reference_code" field.
+func (m *NotificationDeliveryMutation) ResetReferenceCode() {
+	m.reference_code = nil
+}
+
+// SetParameter sets the "parameter" field.
+func (m *NotificationDeliveryMutation) SetParameter(s string) {
+	m.parameter = &s
+}
+
+// Parameter returns the value of the "parameter" field in the mutation.
+func (m *NotificationDeliveryMutation) Parameter() (r string, exists bool) {
+	v := m.parameter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameter returns the old "parameter" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldParameter(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameter: %w", err)
+	}
+	return oldValue.Parameter, nil
+}
+
+// ClearParameter clears the value of the "parameter" field.
+func (m *NotificationDeliveryMutation) ClearParameter() {
+	m.parameter = nil
+	m.clearedFields[notificationdelivery.FieldParameter] = struct{}{}
+}
+
+// ParameterCleared returns if the "parameter" field was cleared in this mutation.
+func (m *NotificationDeliveryMutation) ParameterCleared() bool {
+	_, ok := m.clearedFields[notificationdelivery.FieldParameter]
+	return ok
+}
+
+// ResetParameter resets all changes to the "parameter" field.
+func (m *NotificationDeliveryMutation) ResetParameter() {
+	m.parameter = nil
+	delete(m.clearedFields, notificationdelivery.FieldParameter)
+}
+
+// SetExternalMessageID sets the "external_message_id" field.
+func (m *NotificationDeliveryMutation) SetExternalMessageID(s string) {
+	m.external_message_id = &s
+}
+
+// ExternalMessageID returns the value of the "external_message_id" field in the mutation.
+func (m *NotificationDeliveryMutation) ExternalMessageID() (r string, exists bool) {
+	v := m.external_message_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalMessageID returns the old "external_message_id" field's value of the NotificationDelivery entity.
+// If the NotificationDelivery object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationDeliveryMutation) OldExternalMessageID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExternalMessageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExternalMessageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalMessageID: %w", err)
+	}
+	return oldValue.ExternalMessageID, nil
+}
+
+// ClearExternalMessageID clears the value of the "external_message_id" field.
+func (m *NotificationDeliveryMutation) ClearExternalMessageID() {
+	m.external_message_id = nil
+	m.clearedFields[notificationdelivery.FieldExternalMessageID] = struct{}{}
+}
+
+// ExternalMessageIDCleared returns if the "external_message_id" field was cleared in this mutation.
+func (m *NotificationDeliveryMutation) ExternalMessageIDCleared() bool {
+	_, ok := m.clearedFields[notificationdelivery.FieldExternalMessageID]
+	return ok
+}
+
+// ResetExternalMessageID resets all changes to the "external_message_id" field.
+func (m *NotificationDeliveryMutation) ResetExternalMessageID() {
+	m.external_message_id = nil
+	delete(m.clearedFields, notificationdelivery.FieldExternalMessageID)
+}
+
+// ClearBackgroundTask clears the "background_task" edge to the BackgroundTask entity.
+func (m *NotificationDeliveryMutation) ClearBackgroundTask() {
+	m.clearedbackground_task = true
+	m.clearedFields[notificationdelivery.FieldBackgroundTaskID] = struct{}{}
+}
+
+// BackgroundTaskCleared reports if the "background_task" edge to the BackgroundTask entity was cleared.
+func (m *NotificationDeliveryMutation) BackgroundTaskCleared() bool {
+	return m.clearedbackground_task
+}
+
+// BackgroundTaskIDs returns the "background_task" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BackgroundTaskID instead. It exists only for internal usage by the builders.
+func (m *NotificationDeliveryMutation) BackgroundTaskIDs() (ids []uuid.UUID) {
+	if id := m.background_task; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBackgroundTask resets all changes to the "background_task" edge.
+func (m *NotificationDeliveryMutation) ResetBackgroundTask() {
+	m.background_task = nil
+	m.clearedbackground_task = false
+}
+
+// ClearRecipientUser clears the "recipient_user" edge to the User entity.
+func (m *NotificationDeliveryMutation) ClearRecipientUser() {
+	m.clearedrecipient_user = true
+	m.clearedFields[notificationdelivery.FieldRecipientUserID] = struct{}{}
+}
+
+// RecipientUserCleared reports if the "recipient_user" edge to the User entity was cleared.
+func (m *NotificationDeliveryMutation) RecipientUserCleared() bool {
+	return m.clearedrecipient_user
+}
+
+// RecipientUserIDs returns the "recipient_user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecipientUserID instead. It exists only for internal usage by the builders.
+func (m *NotificationDeliveryMutation) RecipientUserIDs() (ids []uuid.UUID) {
+	if id := m.recipient_user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecipientUser resets all changes to the "recipient_user" edge.
+func (m *NotificationDeliveryMutation) ResetRecipientUser() {
+	m.recipient_user = nil
+	m.clearedrecipient_user = false
+}
+
+// Where appends a list predicates to the NotificationDeliveryMutation builder.
+func (m *NotificationDeliveryMutation) Where(ps ...predicate.NotificationDelivery) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotificationDeliveryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotificationDeliveryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NotificationDelivery, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotificationDeliveryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotificationDeliveryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NotificationDelivery).
+func (m *NotificationDeliveryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotificationDeliveryMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, notificationdelivery.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notificationdelivery.FieldUpdatedAt)
+	}
+	if m.background_task != nil {
+		fields = append(fields, notificationdelivery.FieldBackgroundTaskID)
+	}
+	if m.recipient_user != nil {
+		fields = append(fields, notificationdelivery.FieldRecipientUserID)
+	}
+	if m.channel != nil {
+		fields = append(fields, notificationdelivery.FieldChannel)
+	}
+	if m.template != nil {
+		fields = append(fields, notificationdelivery.FieldTemplate)
+	}
+	if m.resource_type != nil {
+		fields = append(fields, notificationdelivery.FieldResourceType)
+	}
+	if m.resource_id != nil {
+		fields = append(fields, notificationdelivery.FieldResourceID)
+	}
+	if m.reference_code != nil {
+		fields = append(fields, notificationdelivery.FieldReferenceCode)
+	}
+	if m.parameter != nil {
+		fields = append(fields, notificationdelivery.FieldParameter)
+	}
+	if m.external_message_id != nil {
+		fields = append(fields, notificationdelivery.FieldExternalMessageID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotificationDeliveryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notificationdelivery.FieldCreatedAt:
+		return m.CreatedAt()
+	case notificationdelivery.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case notificationdelivery.FieldBackgroundTaskID:
+		return m.BackgroundTaskID()
+	case notificationdelivery.FieldRecipientUserID:
+		return m.RecipientUserID()
+	case notificationdelivery.FieldChannel:
+		return m.Channel()
+	case notificationdelivery.FieldTemplate:
+		return m.Template()
+	case notificationdelivery.FieldResourceType:
+		return m.ResourceType()
+	case notificationdelivery.FieldResourceID:
+		return m.ResourceID()
+	case notificationdelivery.FieldReferenceCode:
+		return m.ReferenceCode()
+	case notificationdelivery.FieldParameter:
+		return m.Parameter()
+	case notificationdelivery.FieldExternalMessageID:
+		return m.ExternalMessageID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotificationDeliveryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notificationdelivery.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notificationdelivery.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case notificationdelivery.FieldBackgroundTaskID:
+		return m.OldBackgroundTaskID(ctx)
+	case notificationdelivery.FieldRecipientUserID:
+		return m.OldRecipientUserID(ctx)
+	case notificationdelivery.FieldChannel:
+		return m.OldChannel(ctx)
+	case notificationdelivery.FieldTemplate:
+		return m.OldTemplate(ctx)
+	case notificationdelivery.FieldResourceType:
+		return m.OldResourceType(ctx)
+	case notificationdelivery.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case notificationdelivery.FieldReferenceCode:
+		return m.OldReferenceCode(ctx)
+	case notificationdelivery.FieldParameter:
+		return m.OldParameter(ctx)
+	case notificationdelivery.FieldExternalMessageID:
+		return m.OldExternalMessageID(ctx)
+	}
+	return nil, fmt.Errorf("unknown NotificationDelivery field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationDeliveryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notificationdelivery.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notificationdelivery.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case notificationdelivery.FieldBackgroundTaskID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBackgroundTaskID(v)
+		return nil
+	case notificationdelivery.FieldRecipientUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecipientUserID(v)
+		return nil
+	case notificationdelivery.FieldChannel:
+		v, ok := value.(notificationdelivery.Channel)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannel(v)
+		return nil
+	case notificationdelivery.FieldTemplate:
+		v, ok := value.(notificationdelivery.Template)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplate(v)
+		return nil
+	case notificationdelivery.FieldResourceType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceType(v)
+		return nil
+	case notificationdelivery.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case notificationdelivery.FieldReferenceCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReferenceCode(v)
+		return nil
+	case notificationdelivery.FieldParameter:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameter(v)
+		return nil
+	case notificationdelivery.FieldExternalMessageID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalMessageID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationDelivery field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotificationDeliveryMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotificationDeliveryMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationDeliveryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NotificationDelivery numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotificationDeliveryMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(notificationdelivery.FieldParameter) {
+		fields = append(fields, notificationdelivery.FieldParameter)
+	}
+	if m.FieldCleared(notificationdelivery.FieldExternalMessageID) {
+		fields = append(fields, notificationdelivery.FieldExternalMessageID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotificationDeliveryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotificationDeliveryMutation) ClearField(name string) error {
+	switch name {
+	case notificationdelivery.FieldParameter:
+		m.ClearParameter()
+		return nil
+	case notificationdelivery.FieldExternalMessageID:
+		m.ClearExternalMessageID()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationDelivery nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotificationDeliveryMutation) ResetField(name string) error {
+	switch name {
+	case notificationdelivery.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notificationdelivery.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case notificationdelivery.FieldBackgroundTaskID:
+		m.ResetBackgroundTaskID()
+		return nil
+	case notificationdelivery.FieldRecipientUserID:
+		m.ResetRecipientUserID()
+		return nil
+	case notificationdelivery.FieldChannel:
+		m.ResetChannel()
+		return nil
+	case notificationdelivery.FieldTemplate:
+		m.ResetTemplate()
+		return nil
+	case notificationdelivery.FieldResourceType:
+		m.ResetResourceType()
+		return nil
+	case notificationdelivery.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case notificationdelivery.FieldReferenceCode:
+		m.ResetReferenceCode()
+		return nil
+	case notificationdelivery.FieldParameter:
+		m.ResetParameter()
+		return nil
+	case notificationdelivery.FieldExternalMessageID:
+		m.ResetExternalMessageID()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationDelivery field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotificationDeliveryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.background_task != nil {
+		edges = append(edges, notificationdelivery.EdgeBackgroundTask)
+	}
+	if m.recipient_user != nil {
+		edges = append(edges, notificationdelivery.EdgeRecipientUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotificationDeliveryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case notificationdelivery.EdgeBackgroundTask:
+		if id := m.background_task; id != nil {
+			return []ent.Value{*id}
+		}
+	case notificationdelivery.EdgeRecipientUser:
+		if id := m.recipient_user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotificationDeliveryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotificationDeliveryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotificationDeliveryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedbackground_task {
+		edges = append(edges, notificationdelivery.EdgeBackgroundTask)
+	}
+	if m.clearedrecipient_user {
+		edges = append(edges, notificationdelivery.EdgeRecipientUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotificationDeliveryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case notificationdelivery.EdgeBackgroundTask:
+		return m.clearedbackground_task
+	case notificationdelivery.EdgeRecipientUser:
+		return m.clearedrecipient_user
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotificationDeliveryMutation) ClearEdge(name string) error {
+	switch name {
+	case notificationdelivery.EdgeBackgroundTask:
+		m.ClearBackgroundTask()
+		return nil
+	case notificationdelivery.EdgeRecipientUser:
+		m.ClearRecipientUser()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationDelivery unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotificationDeliveryMutation) ResetEdge(name string) error {
+	switch name {
+	case notificationdelivery.EdgeBackgroundTask:
+		m.ResetBackgroundTask()
+		return nil
+	case notificationdelivery.EdgeRecipientUser:
+		m.ResetRecipientUser()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationDelivery edge %s", name)
 }
 
 // NumberRuleMutation represents an operation that mutates the NumberRule nodes in the graph.
@@ -93960,6 +95034,7 @@ type UserMutation struct {
 	wecom_userid                                    *string
 	wecom_name                                      *string
 	dingtalk_unionid                                *string
+	dingtalk_userid                                 *string
 	dingtalk_name                                   *string
 	enabled                                         *bool
 	search_keywords                                 *string
@@ -93973,6 +95048,9 @@ type UserMutation struct {
 	order_personnel                                 map[uuid.UUID]struct{}
 	removedorder_personnel                          map[uuid.UUID]struct{}
 	clearedorder_personnel                          bool
+	notification_deliveries                         map[uuid.UUID]struct{}
+	removednotification_deliveries                  map[uuid.UUID]struct{}
+	clearednotification_deliveries                  bool
 	partner_assignments                             map[uuid.UUID]struct{}
 	removedpartner_assignments                      map[uuid.UUID]struct{}
 	clearedpartner_assignments                      bool
@@ -94602,6 +95680,55 @@ func (m *UserMutation) ResetDingtalkUnionid() {
 	delete(m.clearedFields, user.FieldDingtalkUnionid)
 }
 
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (m *UserMutation) SetDingtalkUserid(s string) {
+	m.dingtalk_userid = &s
+}
+
+// DingtalkUserid returns the value of the "dingtalk_userid" field in the mutation.
+func (m *UserMutation) DingtalkUserid() (r string, exists bool) {
+	v := m.dingtalk_userid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkUserid returns the old "dingtalk_userid" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkUserid(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkUserid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkUserid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkUserid: %w", err)
+	}
+	return oldValue.DingtalkUserid, nil
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (m *UserMutation) ClearDingtalkUserid() {
+	m.dingtalk_userid = nil
+	m.clearedFields[user.FieldDingtalkUserid] = struct{}{}
+}
+
+// DingtalkUseridCleared returns if the "dingtalk_userid" field was cleared in this mutation.
+func (m *UserMutation) DingtalkUseridCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkUserid]
+	return ok
+}
+
+// ResetDingtalkUserid resets all changes to the "dingtalk_userid" field.
+func (m *UserMutation) ResetDingtalkUserid() {
+	m.dingtalk_userid = nil
+	delete(m.clearedFields, user.FieldDingtalkUserid)
+}
+
 // SetDingtalkName sets the "dingtalk_name" field.
 func (m *UserMutation) SetDingtalkName(s string) {
 	m.dingtalk_name = &s
@@ -94883,6 +96010,60 @@ func (m *UserMutation) ResetOrderPersonnel() {
 	m.order_personnel = nil
 	m.clearedorder_personnel = false
 	m.removedorder_personnel = nil
+}
+
+// AddNotificationDeliveryIDs adds the "notification_deliveries" edge to the NotificationDelivery entity by ids.
+func (m *UserMutation) AddNotificationDeliveryIDs(ids ...uuid.UUID) {
+	if m.notification_deliveries == nil {
+		m.notification_deliveries = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.notification_deliveries[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNotificationDeliveries clears the "notification_deliveries" edge to the NotificationDelivery entity.
+func (m *UserMutation) ClearNotificationDeliveries() {
+	m.clearednotification_deliveries = true
+}
+
+// NotificationDeliveriesCleared reports if the "notification_deliveries" edge to the NotificationDelivery entity was cleared.
+func (m *UserMutation) NotificationDeliveriesCleared() bool {
+	return m.clearednotification_deliveries
+}
+
+// RemoveNotificationDeliveryIDs removes the "notification_deliveries" edge to the NotificationDelivery entity by IDs.
+func (m *UserMutation) RemoveNotificationDeliveryIDs(ids ...uuid.UUID) {
+	if m.removednotification_deliveries == nil {
+		m.removednotification_deliveries = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.notification_deliveries, ids[i])
+		m.removednotification_deliveries[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNotificationDeliveries returns the removed IDs of the "notification_deliveries" edge to the NotificationDelivery entity.
+func (m *UserMutation) RemovedNotificationDeliveriesIDs() (ids []uuid.UUID) {
+	for id := range m.removednotification_deliveries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NotificationDeliveriesIDs returns the "notification_deliveries" edge IDs in the mutation.
+func (m *UserMutation) NotificationDeliveriesIDs() (ids []uuid.UUID) {
+	for id := range m.notification_deliveries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNotificationDeliveries resets all changes to the "notification_deliveries" edge.
+func (m *UserMutation) ResetNotificationDeliveries() {
+	m.notification_deliveries = nil
+	m.clearednotification_deliveries = false
+	m.removednotification_deliveries = nil
 }
 
 // AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by ids.
@@ -96161,7 +97342,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -96191,6 +97372,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.dingtalk_unionid != nil {
 		fields = append(fields, user.FieldDingtalkUnionid)
+	}
+	if m.dingtalk_userid != nil {
+		fields = append(fields, user.FieldDingtalkUserid)
 	}
 	if m.dingtalk_name != nil {
 		fields = append(fields, user.FieldDingtalkName)
@@ -96229,6 +97413,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.WecomName()
 	case user.FieldDingtalkUnionid:
 		return m.DingtalkUnionid()
+	case user.FieldDingtalkUserid:
+		return m.DingtalkUserid()
 	case user.FieldDingtalkName:
 		return m.DingtalkName()
 	case user.FieldEnabled:
@@ -96264,6 +97450,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldWecomName(ctx)
 	case user.FieldDingtalkUnionid:
 		return m.OldDingtalkUnionid(ctx)
+	case user.FieldDingtalkUserid:
+		return m.OldDingtalkUserid(ctx)
 	case user.FieldDingtalkName:
 		return m.OldDingtalkName(ctx)
 	case user.FieldEnabled:
@@ -96349,6 +97537,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDingtalkUnionid(v)
 		return nil
+	case user.FieldDingtalkUserid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkUserid(v)
+		return nil
 	case user.FieldDingtalkName:
 		v, ok := value.(string)
 		if !ok {
@@ -96421,6 +97616,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDingtalkUnionid) {
 		fields = append(fields, user.FieldDingtalkUnionid)
 	}
+	if m.FieldCleared(user.FieldDingtalkUserid) {
+		fields = append(fields, user.FieldDingtalkUserid)
+	}
 	if m.FieldCleared(user.FieldDingtalkName) {
 		fields = append(fields, user.FieldDingtalkName)
 	}
@@ -96458,6 +97656,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDingtalkUnionid:
 		m.ClearDingtalkUnionid()
+		return nil
+	case user.FieldDingtalkUserid:
+		m.ClearDingtalkUserid()
 		return nil
 	case user.FieldDingtalkName:
 		m.ClearDingtalkName()
@@ -96500,6 +97701,9 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldDingtalkUnionid:
 		m.ResetDingtalkUnionid()
 		return nil
+	case user.FieldDingtalkUserid:
+		m.ResetDingtalkUserid()
+		return nil
 	case user.FieldDingtalkName:
 		m.ResetDingtalkName()
 		return nil
@@ -96515,7 +97719,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -96524,6 +97728,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.order_personnel != nil {
 		edges = append(edges, user.EdgeOrderPersonnel)
+	}
+	if m.notification_deliveries != nil {
+		edges = append(edges, user.EdgeNotificationDeliveries)
 	}
 	if m.partner_assignments != nil {
 		edges = append(edges, user.EdgePartnerAssignments)
@@ -96616,6 +97823,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	case user.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.order_personnel))
 		for id := range m.order_personnel {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationDeliveries:
+		ids := make([]ent.Value, 0, len(m.notification_deliveries))
+		for id := range m.notification_deliveries {
 			ids = append(ids, id)
 		}
 		return ids
@@ -96763,7 +97976,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -96772,6 +97985,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_personnel != nil {
 		edges = append(edges, user.EdgeOrderPersonnel)
+	}
+	if m.removednotification_deliveries != nil {
+		edges = append(edges, user.EdgeNotificationDeliveries)
 	}
 	if m.removedpartner_assignments != nil {
 		edges = append(edges, user.EdgePartnerAssignments)
@@ -96864,6 +98080,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	case user.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.removedorder_personnel))
 		for id := range m.removedorder_personnel {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeNotificationDeliveries:
+		ids := make([]ent.Value, 0, len(m.removednotification_deliveries))
+		for id := range m.removednotification_deliveries {
 			ids = append(ids, id)
 		}
 		return ids
@@ -97011,7 +98233,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 26)
+	edges := make([]string, 0, 27)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -97020,6 +98242,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedorder_personnel {
 		edges = append(edges, user.EdgeOrderPersonnel)
+	}
+	if m.clearednotification_deliveries {
+		edges = append(edges, user.EdgeNotificationDeliveries)
 	}
 	if m.clearedpartner_assignments {
 		edges = append(edges, user.EdgePartnerAssignments)
@@ -97103,6 +98328,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedsessions
 	case user.EdgeOrderPersonnel:
 		return m.clearedorder_personnel
+	case user.EdgeNotificationDeliveries:
+		return m.clearednotification_deliveries
 	case user.EdgePartnerAssignments:
 		return m.clearedpartner_assignments
 	case user.EdgeCancelledOrderFees:
@@ -97173,6 +98400,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeOrderPersonnel:
 		m.ResetOrderPersonnel()
+		return nil
+	case user.EdgeNotificationDeliveries:
+		m.ResetNotificationDeliveries()
 		return nil
 	case user.EdgePartnerAssignments:
 		m.ResetPartnerAssignments()

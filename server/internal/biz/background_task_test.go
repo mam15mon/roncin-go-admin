@@ -17,6 +17,8 @@ type backgroundTaskRepoStub struct {
 	claimKinds []BackgroundTaskKind
 	claimLease time.Duration
 	claimNow   time.Time
+	claimTask  *BackgroundTask
+	claimError error
 
 	completeOrgID      uuid.UUID
 	completeID         uuid.UUID
@@ -59,6 +61,19 @@ func (s *backgroundTaskRepoStub) Claim(_ context.Context, organizationID uuid.UU
 		OrganizationID: organizationID,
 		Status:         BackgroundTaskStatusRunning,
 	}, nil
+}
+
+func (s *backgroundTaskRepoStub) ClaimAny(_ context.Context, kinds []BackgroundTaskKind, leaseDuration time.Duration, now time.Time) (*BackgroundTask, error) {
+	s.claimKinds = kinds
+	s.claimLease = leaseDuration
+	s.claimNow = now
+	if s.claimError != nil {
+		return nil, s.claimError
+	}
+	if s.claimTask != nil {
+		return s.claimTask, nil
+	}
+	return &BackgroundTask{ID: uuid.New(), OrganizationID: uuid.New(), Status: BackgroundTaskStatusRunning}, nil
 }
 
 func (s *backgroundTaskRepoStub) Complete(_ context.Context, organizationID, id uuid.UUID, leaseToken string) (*BackgroundTask, error) {
@@ -136,6 +151,7 @@ func TestBackgroundTaskKindValid(t *testing.T) {
 		BackgroundTaskKindUnlocodeImport,
 		BackgroundTaskKindOrderReminder,
 		BackgroundTaskKindIntegration,
+		BackgroundTaskKindDingTalkNotice,
 	}
 	for _, k := range validKinds {
 		if !k.Valid() {

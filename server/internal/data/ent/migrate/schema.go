@@ -226,7 +226,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION"}},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER"}, Default: "PENDING"},
 		{Name: "attempts", Type: field.TypeInt, Default: 0},
@@ -2014,6 +2014,63 @@ var (
 				Name:    "milestonetemplateitem_template_id_sort_order",
 				Unique:  false,
 				Columns: []*schema.Column{MilestoneTemplateItemsColumns[10], MilestoneTemplateItemsColumns[7]},
+			},
+		},
+	}
+	// NotificationDeliveriesColumns holds the columns for the "notification_deliveries" table.
+	NotificationDeliveriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "channel", Type: field.TypeEnum, Enums: []string{"DINGTALK"}},
+		{Name: "template", Type: field.TypeEnum, Enums: []string{"ORDER_PERSONNEL_ASSIGNED"}},
+		{Name: "resource_type", Type: field.TypeString, Size: 64},
+		{Name: "resource_id", Type: field.TypeUUID},
+		{Name: "reference_code", Type: field.TypeString, Size: 64},
+		{Name: "parameter", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "external_message_id", Type: field.TypeString, Nullable: true, Size: 256},
+		{Name: "background_task_id", Type: field.TypeUUID, Unique: true},
+		{Name: "recipient_user_id", Type: field.TypeUUID},
+	}
+	// NotificationDeliveriesTable holds the schema information for the "notification_deliveries" table.
+	NotificationDeliveriesTable = &schema.Table{
+		Name:       "notification_deliveries",
+		Columns:    NotificationDeliveriesColumns,
+		PrimaryKey: []*schema.Column{NotificationDeliveriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "notification_deliveries_background_tasks_notification_delivery",
+				Columns:    []*schema.Column{NotificationDeliveriesColumns[10]},
+				RefColumns: []*schema.Column{BackgroundTasksColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "notification_deliveries_users_notification_deliveries",
+				Columns:    []*schema.Column{NotificationDeliveriesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationdelivery_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationDeliveriesColumns[2]},
+			},
+			{
+				Name:    "notificationdelivery_background_task_id",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationDeliveriesColumns[10]},
+			},
+			{
+				Name:    "notificationdelivery_recipient_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationDeliveriesColumns[11], NotificationDeliveriesColumns[1]},
+			},
+			{
+				Name:    "notificationdelivery_resource_type_resource_id",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationDeliveriesColumns[5], NotificationDeliveriesColumns[6]},
 			},
 		},
 	}
@@ -4100,6 +4157,7 @@ var (
 		{Name: "wecom_userid", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "wecom_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "dingtalk_unionid", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "dingtalk_userid", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "dingtalk_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -4137,6 +4195,11 @@ var (
 				Name:    "user_dingtalk_unionid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[10]},
+			},
+			{
+				Name:    "user_dingtalk_userid",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[11]},
 			},
 		},
 	}
@@ -4199,6 +4262,7 @@ var (
 		MembershipsTable,
 		MilestoneTemplatesTable,
 		MilestoneTemplateItemsTable,
+		NotificationDeliveriesTable,
 		NumberRulesTable,
 		NumberSequencesTable,
 		OrdersTable,
@@ -4313,6 +4377,8 @@ func init() {
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	MilestoneTemplatesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MilestoneTemplateItemsTable.ForeignKeys[0].RefTable = MilestoneTemplatesTable
+	NotificationDeliveriesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
+	NotificationDeliveriesTable.ForeignKeys[1].RefTable = UsersTable
 	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
 	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable

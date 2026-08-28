@@ -41,6 +41,14 @@ func (r *backgroundTaskRepo) Enqueue(ctx context.Context, organizationID uuid.UU
 }
 
 func (r *backgroundTaskRepo) Claim(ctx context.Context, organizationID uuid.UUID, kinds []biz.BackgroundTaskKind, leaseDuration time.Duration, now time.Time) (*biz.BackgroundTask, error) {
+	return r.claim(ctx, &organizationID, kinds, leaseDuration, now)
+}
+
+func (r *backgroundTaskRepo) ClaimAny(ctx context.Context, kinds []biz.BackgroundTaskKind, leaseDuration time.Duration, now time.Time) (*biz.BackgroundTask, error) {
+	return r.claim(ctx, nil, kinds, leaseDuration, now)
+}
+
+func (r *backgroundTaskRepo) claim(ctx context.Context, organizationID *uuid.UUID, kinds []biz.BackgroundTaskKind, leaseDuration time.Duration, now time.Time) (*biz.BackgroundTask, error) {
 	if now.IsZero() {
 		now = time.Now()
 	}
@@ -62,11 +70,10 @@ func (r *backgroundTaskRepo) Claim(ctx context.Context, organizationID uuid.UUID
 
 	hasDeadLettered := false
 	for {
-		query := tx.BackgroundTask.Query().
-			Where(
-				backgroundtaskent.OrganizationIDEQ(organizationID),
-				runnablePred,
-			)
+		query := tx.BackgroundTask.Query().Where(runnablePred)
+		if organizationID != nil {
+			query = query.Where(backgroundtaskent.OrganizationIDEQ(*organizationID))
+		}
 
 		if len(kinds) > 0 {
 			entKinds := make([]backgroundtaskent.Kind, len(kinds))

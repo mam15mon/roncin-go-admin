@@ -38,6 +38,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -3305,6 +3306,71 @@ func init() {
 	milestonetemplateitemDescID := milestonetemplateitemMixinFields0[0].Descriptor()
 	// milestonetemplateitem.DefaultID holds the default value on creation for the id field.
 	milestonetemplateitem.DefaultID = milestonetemplateitemDescID.Default.(func() uuid.UUID)
+	notificationdeliveryMixin := schema.NotificationDelivery{}.Mixin()
+	notificationdeliveryMixinFields0 := notificationdeliveryMixin[0].Fields()
+	_ = notificationdeliveryMixinFields0
+	notificationdeliveryMixinFields1 := notificationdeliveryMixin[1].Fields()
+	_ = notificationdeliveryMixinFields1
+	notificationdeliveryFields := schema.NotificationDelivery{}.Fields()
+	_ = notificationdeliveryFields
+	// notificationdeliveryDescCreatedAt is the schema descriptor for created_at field.
+	notificationdeliveryDescCreatedAt := notificationdeliveryMixinFields1[0].Descriptor()
+	// notificationdelivery.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationdelivery.DefaultCreatedAt = notificationdeliveryDescCreatedAt.Default.(func() time.Time)
+	// notificationdeliveryDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationdeliveryDescUpdatedAt := notificationdeliveryMixinFields1[1].Descriptor()
+	// notificationdelivery.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationdelivery.DefaultUpdatedAt = notificationdeliveryDescUpdatedAt.Default.(func() time.Time)
+	// notificationdelivery.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationdelivery.UpdateDefaultUpdatedAt = notificationdeliveryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationdeliveryDescResourceType is the schema descriptor for resource_type field.
+	notificationdeliveryDescResourceType := notificationdeliveryFields[4].Descriptor()
+	// notificationdelivery.ResourceTypeValidator is a validator for the "resource_type" field. It is called by the builders before save.
+	notificationdelivery.ResourceTypeValidator = func() func(string) error {
+		validators := notificationdeliveryDescResourceType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(resource_type string) error {
+			for _, fn := range fns {
+				if err := fn(resource_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// notificationdeliveryDescReferenceCode is the schema descriptor for reference_code field.
+	notificationdeliveryDescReferenceCode := notificationdeliveryFields[6].Descriptor()
+	// notificationdelivery.ReferenceCodeValidator is a validator for the "reference_code" field. It is called by the builders before save.
+	notificationdelivery.ReferenceCodeValidator = func() func(string) error {
+		validators := notificationdeliveryDescReferenceCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(reference_code string) error {
+			for _, fn := range fns {
+				if err := fn(reference_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// notificationdeliveryDescParameter is the schema descriptor for parameter field.
+	notificationdeliveryDescParameter := notificationdeliveryFields[7].Descriptor()
+	// notificationdelivery.ParameterValidator is a validator for the "parameter" field. It is called by the builders before save.
+	notificationdelivery.ParameterValidator = notificationdeliveryDescParameter.Validators[0].(func(string) error)
+	// notificationdeliveryDescExternalMessageID is the schema descriptor for external_message_id field.
+	notificationdeliveryDescExternalMessageID := notificationdeliveryFields[8].Descriptor()
+	// notificationdelivery.ExternalMessageIDValidator is a validator for the "external_message_id" field. It is called by the builders before save.
+	notificationdelivery.ExternalMessageIDValidator = notificationdeliveryDescExternalMessageID.Validators[0].(func(string) error)
+	// notificationdeliveryDescID is the schema descriptor for id field.
+	notificationdeliveryDescID := notificationdeliveryMixinFields0[0].Descriptor()
+	// notificationdelivery.DefaultID holds the default value on creation for the id field.
+	notificationdelivery.DefaultID = notificationdeliveryDescID.Default.(func() uuid.UUID)
 	numberruleMixin := schema.NumberRule{}.Mixin()
 	numberruleMixinFields0 := numberruleMixin[0].Fields()
 	_ = numberruleMixinFields0
@@ -6006,16 +6072,20 @@ func init() {
 	userDescDingtalkUnionid := userFields[7].Descriptor()
 	// user.DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
 	user.DingtalkUnionidValidator = userDescDingtalkUnionid.Validators[0].(func(string) error)
+	// userDescDingtalkUserid is the schema descriptor for dingtalk_userid field.
+	userDescDingtalkUserid := userFields[8].Descriptor()
+	// user.DingtalkUseridValidator is a validator for the "dingtalk_userid" field. It is called by the builders before save.
+	user.DingtalkUseridValidator = userDescDingtalkUserid.Validators[0].(func(string) error)
 	// userDescDingtalkName is the schema descriptor for dingtalk_name field.
-	userDescDingtalkName := userFields[8].Descriptor()
+	userDescDingtalkName := userFields[9].Descriptor()
 	// user.DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
 	user.DingtalkNameValidator = userDescDingtalkName.Validators[0].(func(string) error)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[9].Descriptor()
+	userDescEnabled := userFields[10].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescSearchKeywords is the schema descriptor for search_keywords field.
-	userDescSearchKeywords := userFields[10].Descriptor()
+	userDescSearchKeywords := userFields[11].Descriptor()
 	// user.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	user.DefaultSearchKeywords = userDescSearchKeywords.Default.(string)
 	// userDescID is the schema descriptor for id field.

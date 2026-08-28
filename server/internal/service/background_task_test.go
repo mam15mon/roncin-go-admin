@@ -15,6 +15,7 @@ func TestBackgroundTaskKindRoundTrip(t *testing.T) {
 		biz.BackgroundTaskKindUnlocodeImport,
 		biz.BackgroundTaskKindOrderReminder,
 		biz.BackgroundTaskKindIntegration,
+		biz.BackgroundTaskKindDingTalkNotice,
 	}
 	for _, kind := range kinds {
 		apiKind, err := backgroundTaskKindFromAPI(backgroundTaskKindToAPI(kind))

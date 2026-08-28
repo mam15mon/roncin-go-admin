@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -183,6 +184,25 @@ func (_c *BackgroundTaskCreate) SetNillableID(v *uuid.UUID) *BackgroundTaskCreat
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *BackgroundTaskCreate) SetOrganization(v *Organization) *BackgroundTaskCreate {
 	return _c.SetOrganizationID(v.ID)
+}
+
+// SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
+func (_c *BackgroundTaskCreate) SetNotificationDeliveryID(id uuid.UUID) *BackgroundTaskCreate {
+	_c.mutation.SetNotificationDeliveryID(id)
+	return _c
+}
+
+// SetNillableNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID if the given value is not nil.
+func (_c *BackgroundTaskCreate) SetNillableNotificationDeliveryID(id *uuid.UUID) *BackgroundTaskCreate {
+	if id != nil {
+		_c = _c.SetNotificationDeliveryID(*id)
+	}
+	return _c
+}
+
+// SetNotificationDelivery sets the "notification_delivery" edge to the NotificationDelivery entity.
+func (_c *BackgroundTaskCreate) SetNotificationDelivery(v *NotificationDelivery) *BackgroundTaskCreate {
+	return _c.SetNotificationDeliveryID(v.ID)
 }
 
 // Mutation returns the BackgroundTaskMutation object of the builder.
@@ -411,6 +431,22 @@ func (_c *BackgroundTaskCreate) createSpec() (*BackgroundTask, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NotificationDeliveryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.NotificationDeliveryTable,
+			Columns: []string{backgroundtask.NotificationDeliveryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

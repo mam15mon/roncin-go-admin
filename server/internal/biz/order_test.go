@@ -123,10 +123,12 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	customerID := uuid.New()
+	personnelUserID := uuid.New()
 	created, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: customerID, BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
+		PersonnelAssignments: []*OrderPersonnel{{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator}},
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
@@ -136,6 +138,9 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "order.create" || audit.events[0].Details["order.no"] != "SE0007" {
 		t.Fatalf("audit events = %#v", audit.events)
+	}
+	if len(repo.created.PersonnelAssignments) != 1 || repo.created.PersonnelAssignments[0].Notification == nil || repo.created.PersonnelAssignments[0].Notification.RecipientUserID != personnelUserID {
+		t.Fatalf("personnel notification = %#v", repo.created.PersonnelAssignments)
 	}
 }
 

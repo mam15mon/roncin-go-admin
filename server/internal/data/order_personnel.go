@@ -49,12 +49,22 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole) (*biz.OrderPersonnel, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent) (*biz.OrderPersonnel, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
 		return nil, err
 	}
-	organizations, err := r.data.db.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	orderRecord, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderPersonnelNotFound
+		}
+		return nil, err
+	}
+	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
@@ -62,9 +72,10 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		parentByID[organization.ID] = organization.ParentID
 	}
 	if !organizationWithinRoot(parentByID, organizationID, memberOrganizationID) {
+		_ = tx.Rollback()
 		return nil, biz.ErrOrderPersonnelUserInvalid
 	}
-	m, err := r.data.db.Membership.Query().
+	m, err := tx.Membership.Query().
 		Where(
 			membership.OrganizationIDEQ(memberOrganizationID),
 			membership.UserIDEQ(userID),
@@ -73,6 +84,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		WithUser().
 		Only(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrOrderPersonnelUserInvalid
 		}
@@ -80,18 +92,27 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 	}
 	user, err := m.Edges.UserOrErr()
 	if err != nil || !user.Enabled {
+		_ = tx.Rollback()
 		return nil, biz.ErrOrderPersonnelUserInvalid
 	}
-	created, err := r.data.db.OrderPersonnel.Create().
+	created, err := tx.OrderPersonnel.Create().
 		SetOrderID(orderID).
 		SetUserID(userID).
 		SetOrganizationID(memberOrganizationID).
 		SetRole(orderpersonnelent.Role(role)).
 		Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_personnel_order_id_role") {
 			return nil, biz.ErrOrderPersonnelExists
 		}
+		return nil, err
+	}
+	if err := enqueueOrderPersonnelNotification(ctx, tx, organizationID, orderID, orderRecord.OrderNo, role, user, notification); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderPersonnelToBiz(created), nil

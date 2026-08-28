@@ -486,7 +486,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 	personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)
 	personnel = append(personnel, &biz.OrderPersonnel{UserID: actorID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCreator})
 	personnel = append(personnel, input.PersonnelAssignments...)
-	if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, personnel); err != nil {
+	if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, created.OrderNo, personnel); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -955,7 +955,7 @@ func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, 
 	return nil
 }
 
-func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, orderID uuid.UUID, assignments []*biz.OrderPersonnel) error {
+func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, orderID uuid.UUID, orderNo string, assignments []*biz.OrderPersonnel) error {
 	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
 	if err != nil {
 		return err
@@ -968,17 +968,21 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 		if !organizationWithinRoot(parentByID, rootOrganizationID, assignment.OrganizationID) {
 			return biz.ErrOrderPersonnelUserInvalid
 		}
-		validMembership, err := tx.Membership.Query().Where(
+		membership, err := tx.Membership.Query().Where(
 			membershipent.UserIDEQ(assignment.UserID),
 			membershipent.OrganizationIDEQ(assignment.OrganizationID),
 			membershipent.EnabledEQ(true),
 			membershipent.HasUserWith(userent.EnabledEQ(true)),
-		).Exist(ctx)
+		).WithUser().Only(ctx)
 		if err != nil {
+			if ent.IsNotFound(err) {
+				return biz.ErrOrderPersonnelUserInvalid
+			}
 			return err
 		}
-		if !validMembership {
-			return biz.ErrOrderPersonnelUserInvalid
+		user, err := membership.Edges.UserOrErr()
+		if err != nil {
+			return err
 		}
 		if _, err := tx.OrderPersonnel.Create().
 			SetOrderID(orderID).
@@ -986,6 +990,9 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 			SetOrganizationID(assignment.OrganizationID).
 			SetRole(orderpersonnelent.Role(assignment.Role)).
 			Save(ctx); err != nil {
+			return err
+		}
+		if err := enqueueOrderPersonnelNotification(ctx, tx, rootOrganizationID, orderID, orderNo, assignment.Role, user, assignment.Notification); err != nil {
 			return err
 		}
 	}

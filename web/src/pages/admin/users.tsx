@@ -287,10 +287,29 @@ export default function UsersPanel() {
               {record.dingtalkName || '-'}
             </div>
             <Text
-              type="secondary"
-              style={{ fontSize: 11, fontFamily: 'monospace' }}
+              copyable={
+                record.dingtalkUserid ? { text: record.dingtalkUserid } : false
+              }
+              type={record.dingtalkUserid ? undefined : 'warning'}
+              style={{
+                display: 'block',
+                fontSize: 11,
+                fontFamily: 'monospace',
+              }}
             >
-              {record.dingtalkUnionid}
+              {record.dingtalkUserid || '待重新登录绑定 userId'}
+            </Text>
+            <Text
+              type="secondary"
+              ellipsis={{ tooltip: record.dingtalkUnionid }}
+              style={{
+                display: 'block',
+                maxWidth: 190,
+                fontSize: 10,
+                fontFamily: 'monospace',
+              }}
+            >
+              unionId: {record.dingtalkUnionid}
             </Text>
           </div>
         ) : (

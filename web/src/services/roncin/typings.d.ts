@@ -236,6 +236,7 @@ declare namespace API {
     dingtalkName?: string;
     avatarUrl?: string;
     hasPassword?: boolean;
+    dingtalkUserid?: string;
   };
 
   type AdminUserMembership = {

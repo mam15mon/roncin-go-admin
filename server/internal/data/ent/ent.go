@@ -44,6 +44,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplateitem"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -177,6 +178,7 @@ func checkColumn(t, c string) error {
 			membership.Table:                    membership.ValidColumn,
 			milestonetemplate.Table:             milestonetemplate.ValidColumn,
 			milestonetemplateitem.Table:         milestonetemplateitem.ValidColumn,
+			notificationdelivery.Table:          notificationdelivery.ValidColumn,
 			numberrule.Table:                    numberrule.ValidColumn,
 			numbersequence.Table:                numbersequence.ValidColumn,
 			order.Table:                         order.ValidColumn,

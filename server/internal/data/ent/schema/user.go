@@ -23,6 +23,7 @@ func (User) Fields() []ent.Field {
 		field.String("wecom_userid").MaxLen(64).Optional().Nillable(),
 		field.String("wecom_name").MaxLen(100).Optional().Nillable(),
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
+		field.String("dingtalk_userid").MaxLen(64).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 		searchKeywordsField(),
@@ -38,6 +39,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("memberships", Membership.Type),
 		edge.To("sessions", Session.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
+		edge.To("notification_deliveries", NotificationDelivery.Type),
 		edge.To("partner_assignments", PartnerAssignment.Type),
 		edge.To("cancelled_order_fees", OrderFee.Type),
 		edge.To("confirmed_finance_bills", FinanceBill.Type),
@@ -70,5 +72,6 @@ func (User) Indexes() []ent.Index {
 		index.Fields("email"),
 		index.Fields("wecom_userid").Unique(),
 		index.Fields("dingtalk_unionid").Unique(),
+		index.Fields("dingtalk_userid").Unique(),
 	}
 }

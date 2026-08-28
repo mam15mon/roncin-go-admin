@@ -36,6 +36,8 @@ const (
 	FieldWecomName = "wecom_name"
 	// FieldDingtalkUnionid holds the string denoting the dingtalk_unionid field in the database.
 	FieldDingtalkUnionid = "dingtalk_unionid"
+	// FieldDingtalkUserid holds the string denoting the dingtalk_userid field in the database.
+	FieldDingtalkUserid = "dingtalk_userid"
 	// FieldDingtalkName holds the string denoting the dingtalk_name field in the database.
 	FieldDingtalkName = "dingtalk_name"
 	// FieldEnabled holds the string denoting the enabled field in the database.
@@ -48,6 +50,8 @@ const (
 	EdgeSessions = "sessions"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
+	// EdgeNotificationDeliveries holds the string denoting the notification_deliveries edge name in mutations.
+	EdgeNotificationDeliveries = "notification_deliveries"
 	// EdgePartnerAssignments holds the string denoting the partner_assignments edge name in mutations.
 	EdgePartnerAssignments = "partner_assignments"
 	// EdgeCancelledOrderFees holds the string denoting the cancelled_order_fees edge name in mutations.
@@ -117,6 +121,13 @@ const (
 	OrderPersonnelInverseTable = "order_personnels"
 	// OrderPersonnelColumn is the table column denoting the order_personnel relation/edge.
 	OrderPersonnelColumn = "user_id"
+	// NotificationDeliveriesTable is the table that holds the notification_deliveries relation/edge.
+	NotificationDeliveriesTable = "notification_deliveries"
+	// NotificationDeliveriesInverseTable is the table name for the NotificationDelivery entity.
+	// It exists in this package in order to avoid circular dependency with the "notificationdelivery" package.
+	NotificationDeliveriesInverseTable = "notification_deliveries"
+	// NotificationDeliveriesColumn is the table column denoting the notification_deliveries relation/edge.
+	NotificationDeliveriesColumn = "recipient_user_id"
 	// PartnerAssignmentsTable is the table that holds the partner_assignments relation/edge.
 	PartnerAssignmentsTable = "partner_assignments"
 	// PartnerAssignmentsInverseTable is the table name for the PartnerAssignment entity.
@@ -293,6 +304,7 @@ var Columns = []string{
 	FieldWecomUserid,
 	FieldWecomName,
 	FieldDingtalkUnionid,
+	FieldDingtalkUserid,
 	FieldDingtalkName,
 	FieldEnabled,
 	FieldSearchKeywords,
@@ -335,6 +347,8 @@ var (
 	WecomNameValidator func(string) error
 	// DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
 	DingtalkUnionidValidator func(string) error
+	// DingtalkUseridValidator is a validator for the "dingtalk_userid" field. It is called by the builders before save.
+	DingtalkUseridValidator func(string) error
 	// DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
 	DingtalkNameValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
@@ -403,6 +417,11 @@ func ByDingtalkUnionid(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDingtalkUnionid, opts...).ToFunc()
 }
 
+// ByDingtalkUserid orders the results by the dingtalk_userid field.
+func ByDingtalkUserid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkUserid, opts...).ToFunc()
+}
+
 // ByDingtalkName orders the results by the dingtalk_name field.
 func ByDingtalkName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDingtalkName, opts...).ToFunc()
@@ -457,6 +476,20 @@ func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 func ByOrderPersonnel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderPersonnelStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNotificationDeliveriesCount orders the results by notification_deliveries count.
+func ByNotificationDeliveriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNotificationDeliveriesStep(), opts...)
+	}
+}
+
+// ByNotificationDeliveries orders the results by notification_deliveries terms.
+func ByNotificationDeliveries(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationDeliveriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -800,6 +833,13 @@ func newOrderPersonnelStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderPersonnelInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderPersonnelTable, OrderPersonnelColumn),
+	)
+}
+func newNotificationDeliveriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationDeliveriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NotificationDeliveriesTable, NotificationDeliveriesColumn),
 	)
 }
 func newPartnerAssignmentsStep() *sqlgraph.Step {

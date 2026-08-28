@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -53,9 +54,11 @@ type BackgroundTask struct {
 type BackgroundTaskEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// NotificationDelivery holds the value of the notification_delivery edge.
+	NotificationDelivery *NotificationDelivery `json:"notification_delivery,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -67,6 +70,17 @@ func (e BackgroundTaskEdges) OrganizationOrErr() (*Organization, error) {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "organization"}
+}
+
+// NotificationDeliveryOrErr returns the NotificationDelivery value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e BackgroundTaskEdges) NotificationDeliveryOrErr() (*NotificationDelivery, error) {
+	if e.NotificationDelivery != nil {
+		return e.NotificationDelivery, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: notificationdelivery.Label}
+	}
+	return nil, &NotLoadedError{edge: "notification_delivery"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -194,6 +208,11 @@ func (_m *BackgroundTask) Value(name string) (ent.Value, error) {
 // QueryOrganization queries the "organization" edge of the BackgroundTask entity.
 func (_m *BackgroundTask) QueryOrganization() *OrganizationQuery {
 	return NewBackgroundTaskClient(_m.config).QueryOrganization(_m)
+}
+
+// QueryNotificationDelivery queries the "notification_delivery" edge of the BackgroundTask entity.
+func (_m *BackgroundTask) QueryNotificationDelivery() *NotificationDeliveryQuery {
+	return NewBackgroundTaskClient(_m.config).QueryNotificationDelivery(_m)
 }
 
 // Update returns a builder for updating this BackgroundTask.

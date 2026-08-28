@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -213,6 +214,25 @@ func (_u *BackgroundTaskUpdate) SetOrganization(v *Organization) *BackgroundTask
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
+func (_u *BackgroundTaskUpdate) SetNotificationDeliveryID(id uuid.UUID) *BackgroundTaskUpdate {
+	_u.mutation.SetNotificationDeliveryID(id)
+	return _u
+}
+
+// SetNillableNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdate) SetNillableNotificationDeliveryID(id *uuid.UUID) *BackgroundTaskUpdate {
+	if id != nil {
+		_u = _u.SetNotificationDeliveryID(*id)
+	}
+	return _u
+}
+
+// SetNotificationDelivery sets the "notification_delivery" edge to the NotificationDelivery entity.
+func (_u *BackgroundTaskUpdate) SetNotificationDelivery(v *NotificationDelivery) *BackgroundTaskUpdate {
+	return _u.SetNotificationDeliveryID(v.ID)
+}
+
 // Mutation returns the BackgroundTaskMutation object of the builder.
 func (_u *BackgroundTaskUpdate) Mutation() *BackgroundTaskMutation {
 	return _u.mutation
@@ -221,6 +241,12 @@ func (_u *BackgroundTaskUpdate) Mutation() *BackgroundTaskMutation {
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *BackgroundTaskUpdate) ClearOrganization() *BackgroundTaskUpdate {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearNotificationDelivery clears the "notification_delivery" edge to the NotificationDelivery entity.
+func (_u *BackgroundTaskUpdate) ClearNotificationDelivery() *BackgroundTaskUpdate {
+	_u.mutation.ClearNotificationDelivery()
 	return _u
 }
 
@@ -382,6 +408,35 @@ func (_u *BackgroundTaskUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NotificationDeliveryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.NotificationDeliveryTable,
+			Columns: []string{backgroundtask.NotificationDeliveryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NotificationDeliveryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.NotificationDeliveryTable,
+			Columns: []string{backgroundtask.NotificationDeliveryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -592,6 +647,25 @@ func (_u *BackgroundTaskUpdateOne) SetOrganization(v *Organization) *BackgroundT
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
+func (_u *BackgroundTaskUpdateOne) SetNotificationDeliveryID(id uuid.UUID) *BackgroundTaskUpdateOne {
+	_u.mutation.SetNotificationDeliveryID(id)
+	return _u
+}
+
+// SetNillableNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdateOne) SetNillableNotificationDeliveryID(id *uuid.UUID) *BackgroundTaskUpdateOne {
+	if id != nil {
+		_u = _u.SetNotificationDeliveryID(*id)
+	}
+	return _u
+}
+
+// SetNotificationDelivery sets the "notification_delivery" edge to the NotificationDelivery entity.
+func (_u *BackgroundTaskUpdateOne) SetNotificationDelivery(v *NotificationDelivery) *BackgroundTaskUpdateOne {
+	return _u.SetNotificationDeliveryID(v.ID)
+}
+
 // Mutation returns the BackgroundTaskMutation object of the builder.
 func (_u *BackgroundTaskUpdateOne) Mutation() *BackgroundTaskMutation {
 	return _u.mutation
@@ -600,6 +674,12 @@ func (_u *BackgroundTaskUpdateOne) Mutation() *BackgroundTaskMutation {
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *BackgroundTaskUpdateOne) ClearOrganization() *BackgroundTaskUpdateOne {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearNotificationDelivery clears the "notification_delivery" edge to the NotificationDelivery entity.
+func (_u *BackgroundTaskUpdateOne) ClearNotificationDelivery() *BackgroundTaskUpdateOne {
+	_u.mutation.ClearNotificationDelivery()
 	return _u
 }
 
@@ -791,6 +871,35 @@ func (_u *BackgroundTaskUpdateOne) sqlSave(ctx context.Context) (_node *Backgrou
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NotificationDeliveryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.NotificationDeliveryTable,
+			Columns: []string{backgroundtask.NotificationDeliveryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NotificationDeliveryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.NotificationDeliveryTable,
+			Columns: []string{backgroundtask.NotificationDeliveryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

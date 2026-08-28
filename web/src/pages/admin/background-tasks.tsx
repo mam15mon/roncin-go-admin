@@ -1,4 +1,8 @@
-import { ClockCircleOutlined, ReloadOutlined, RedoOutlined } from '@ant-design/icons';
+import {
+  ClockCircleOutlined,
+  ReloadOutlined,
+  RedoOutlined,
+} from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
@@ -25,6 +29,7 @@ const kindTagMap: Record<number, { label: string; color: string }> = {
   2: { label: 'UNLOCODE 导入', color: 'cyan' },
   3: { label: '订单提醒', color: 'orange' },
   4: { label: '外部系统集成', color: 'purple' },
+  5: { label: '钉钉通知', color: 'geekblue' },
 };
 
 export default function BackgroundTasksPanel() {
@@ -58,6 +63,7 @@ export default function BackgroundTasksPanel() {
         2: { text: 'UNLOCODE 导入' },
         3: { text: '订单提醒' },
         4: { text: '外部系统集成' },
+        5: { text: '钉钉通知' },
       },
       render: (_, record) => {
         const config = record.kind ? kindTagMap[record.kind] : undefined;
@@ -107,7 +113,10 @@ export default function BackgroundTasksPanel() {
         const maxAttempts = record.maxAttempts ?? 0;
         const hasFailed = attempts >= maxAttempts && maxAttempts > 0;
         return (
-          <Tag color={hasFailed ? 'error' : attempts > 0 ? 'warning' : 'default'} variant="filled">
+          <Tag
+            color={hasFailed ? 'error' : attempts > 0 ? 'warning' : 'default'}
+            variant="filled"
+          >
             {attempts} / {maxAttempts}
           </Tag>
         );
@@ -203,8 +212,12 @@ export default function BackgroundTasksPanel() {
             params.kind !== undefined && params.kind !== ''
               ? Number(params.kind)
               : undefined,
-          startTime: range?.[0] ? dayjs(range[0]).startOf('day').toISOString() : undefined,
-          endTime: range?.[1] ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString() : undefined,
+          startTime: range?.[0]
+            ? dayjs(range[0]).startOf('day').toISOString()
+            : undefined,
+          endTime: range?.[1]
+            ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
+            : undefined,
         });
         return {
           data: response.data ?? [],
@@ -213,7 +226,11 @@ export default function BackgroundTasksPanel() {
         };
       }}
       toolBarRender={() => [
-        <Button key="refresh" icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>
+        <Button
+          key="refresh"
+          icon={<ReloadOutlined />}
+          onClick={() => actionRef.current?.reload()}
+        >
           刷新
         </Button>,
       ]}

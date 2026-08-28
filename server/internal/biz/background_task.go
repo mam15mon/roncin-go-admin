@@ -27,6 +27,7 @@ const (
 	BackgroundTaskKindUnlocodeImport   BackgroundTaskKind = "UNLOCODE_IMPORT"
 	BackgroundTaskKindOrderReminder    BackgroundTaskKind = "ORDER_REMINDER"
 	BackgroundTaskKindIntegration      BackgroundTaskKind = "INTEGRATION"
+	BackgroundTaskKindDingTalkNotice   BackgroundTaskKind = "DINGTALK_NOTIFICATION"
 )
 
 func (k BackgroundTaskKind) Valid() bool {
@@ -34,7 +35,8 @@ func (k BackgroundTaskKind) Valid() bool {
 	case BackgroundTaskKindMasterDataImport,
 		BackgroundTaskKindUnlocodeImport,
 		BackgroundTaskKindOrderReminder,
-		BackgroundTaskKindIntegration:
+		BackgroundTaskKindIntegration,
+		BackgroundTaskKindDingTalkNotice:
 		return true
 	default:
 		return false
@@ -99,6 +101,7 @@ type BackgroundTaskList struct {
 type BackgroundTaskRepo interface {
 	Enqueue(context.Context, uuid.UUID, *BackgroundTask) (*BackgroundTask, error)
 	Claim(context.Context, uuid.UUID, []BackgroundTaskKind, time.Duration, time.Time) (*BackgroundTask, error)
+	ClaimAny(context.Context, []BackgroundTaskKind, time.Duration, time.Time) (*BackgroundTask, error)
 	Complete(context.Context, uuid.UUID, uuid.UUID, string) (*BackgroundTask, error)
 	Fail(context.Context, uuid.UUID, uuid.UUID, string, string, time.Time) (*BackgroundTask, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*BackgroundTask, error)
@@ -161,6 +164,18 @@ func (uc *BackgroundTaskUsecase) Claim(ctx context.Context, organizationID uuid.
 	}
 	now := uc.now()
 	return uc.repo.Claim(ctx, organizationID, kinds, leaseDuration, now)
+}
+
+func (uc *BackgroundTaskUsecase) ClaimAny(ctx context.Context, kinds []BackgroundTaskKind, leaseDuration time.Duration) (*BackgroundTask, error) {
+	if leaseDuration <= 0 {
+		return nil, ErrBackgroundTaskInvalidArgument
+	}
+	for _, kind := range kinds {
+		if !kind.Valid() {
+			return nil, ErrBackgroundTaskInvalidArgument
+		}
+	}
+	return uc.repo.ClaimAny(ctx, kinds, leaseDuration, uc.now())
 }
 
 func (uc *BackgroundTaskUsecase) Complete(ctx context.Context, organizationID, id uuid.UUID, leaseToken string) (*BackgroundTask, error) {

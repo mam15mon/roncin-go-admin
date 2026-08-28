@@ -144,7 +144,7 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 }
 
 func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, error) {
-	if identity == nil || strings.TrimSpace(identity.UnionID) == "" {
+	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
 	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
@@ -162,10 +162,11 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 }
 
 func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, bool, error) {
-	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.Name) == "" {
+	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrDingTalkLoginFailed
 	}
 	unionID := strings.TrimSpace(identity.UnionID)
+	dingTalkUserID := strings.TrimSpace(identity.UserID)
 	dingtalkName := strings.TrimSpace(identity.Name)
 	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
 	if err == nil {
@@ -189,7 +190,7 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 		_ = tx.Rollback()
 		return nil, false, err
 	}
-	create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkName(dingtalkName).SetEnabled(false)
+	create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkUserid(dingTalkUserID).SetDingtalkName(dingtalkName).SetEnabled(false)
 	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
 		create.SetEmail(strings.TrimSpace(*identity.Email))
 	}
@@ -220,6 +221,11 @@ func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz
 	update := account.Update()
 	changed := false
 	dingtalkName := strings.TrimSpace(identity.Name)
+	dingTalkUserID := strings.TrimSpace(identity.UserID)
+	if dingTalkUserID != "" && (account.DingtalkUserid == nil || *account.DingtalkUserid != dingTalkUserID) {
+		update.SetDingtalkUserid(dingTalkUserID)
+		changed = true
+	}
 	if dingtalkName != "" && (account.DingtalkName == nil || *account.DingtalkName != dingtalkName) {
 		update.SetDingtalkName(dingtalkName)
 		changed = true

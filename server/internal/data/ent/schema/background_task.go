@@ -18,7 +18,7 @@ func (BackgroundTask) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 func (BackgroundTask) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("kind").Values("MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION"),
+		field.Enum("kind").Values("MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION"),
 		field.String("idempotency_key").NotEmpty().MaxLen(128),
 		field.Enum("status").Values("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER").Default("PENDING"),
 		field.Int("attempts").Default(0).NonNegative(),
@@ -33,6 +33,7 @@ func (BackgroundTask) Fields() []ent.Field {
 func (BackgroundTask) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("background_tasks").Field("organization_id").Unique().Required(),
+		edge.To("notification_delivery", NotificationDelivery.Type).Unique(),
 	}
 }
 

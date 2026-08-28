@@ -1462,6 +1462,7 @@ type AdminUser struct {
 	DingtalkName    *string                `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
 	AvatarUrl       *string                `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
 	HasPassword     bool                   `protobuf:"varint,15,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	DingtalkUserid  *string                `protobuf:"bytes,16,opt,name=dingtalk_userid,json=dingtalkUserid,proto3,oneof" json:"dingtalk_userid,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1599,6 +1600,13 @@ func (x *AdminUser) GetHasPassword() bool {
 		return x.HasPassword
 	}
 	return false
+}
+
+func (x *AdminUser) GetDingtalkUserid() string {
+	if x != nil && x.DingtalkUserid != nil {
+		return *x.DingtalkUserid
+	}
+	return ""
 }
 
 type AdminUserMembership struct {
@@ -3795,7 +3803,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xd4\x04\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\x96\x05\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -3817,13 +3825,15 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\rdingtalk_name\x18\r \x01(\tH\x04R\fdingtalkName\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01\x12!\n" +
-	"\fhas_password\x18\x0f \x01(\bR\vhasPasswordB\b\n" +
+	"\fhas_password\x18\x0f \x01(\bR\vhasPassword\x12,\n" +
+	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x06R\x0edingtalkUserid\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +
 	"\x11_dingtalk_unionidB\x10\n" +
 	"\x0e_dingtalk_nameB\r\n" +
-	"\v_avatar_url\"\xd5\x03\n" +
+	"\v_avatar_urlB\x12\n" +
+	"\x10_dingtalk_userid\"\xd5\x03\n" +
 	"\x13AdminUserMembership\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12'\n" +

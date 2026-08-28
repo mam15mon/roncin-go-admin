@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	_ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
@@ -20,7 +21,13 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, NewDingTalkIdentityProvider, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewPartnerInvoiceProfileRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewSettlementRepo, NewFeeLedgerPreferenceRepo, NewFinanceCustomSettingRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewVerificationRepo, NewCommissionRepo, NewBackgroundTaskRepo)
+var dingTalkProviderSet = wire.NewSet(
+	NewDingTalkIdentityProvider,
+	wire.Bind(new(biz.DingTalkIdentityProvider), new(*dingTalkIdentityProvider)),
+	wire.Bind(new(biz.DingTalkNotificationSender), new(*dingTalkIdentityProvider)),
+)
+
+var ProviderSet = wire.NewSet(NewData, NewAuthRepo, NewAuditRepo, NewWeComIdentityProvider, dingTalkProviderSet, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewPartnerInvoiceProfileRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewMilestoneConfigRepo, NewOrderRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewSettlementRepo, NewFeeLedgerPreferenceRepo, NewFinanceCustomSettingRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewVerificationRepo, NewCommissionRepo, NewBackgroundTaskRepo, NewNotificationRepo)
 
 // Data holds the long-lived storage clients shared by repos.
 type Data struct {

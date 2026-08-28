@@ -393,6 +393,18 @@ func (f MilestoneTemplateItemFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MilestoneTemplateItemMutation", m)
 }
 
+// The NotificationDeliveryFunc type is an adapter to allow the use of ordinary
+// function as NotificationDelivery mutator.
+type NotificationDeliveryFunc func(context.Context, *ent.NotificationDeliveryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationDeliveryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationDeliveryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationDeliveryMutation", m)
+}
+
 // The NumberRuleFunc type is an adapter to allow the use of ordinary
 // function as NumberRule mutator.
 type NumberRuleFunc func(context.Context, *ent.NumberRuleMutation) (ent.Value, error)

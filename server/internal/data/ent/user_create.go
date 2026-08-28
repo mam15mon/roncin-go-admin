@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -169,6 +170,20 @@ func (_c *UserCreate) SetNillableDingtalkUnionid(v *string) *UserCreate {
 	return _c
 }
 
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (_c *UserCreate) SetDingtalkUserid(v string) *UserCreate {
+	_c.mutation.SetDingtalkUserid(v)
+	return _c
+}
+
+// SetNillableDingtalkUserid sets the "dingtalk_userid" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkUserid(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkUserid(*v)
+	}
+	return _c
+}
+
 // SetDingtalkName sets the "dingtalk_name" field.
 func (_c *UserCreate) SetDingtalkName(v string) *UserCreate {
 	_c.mutation.SetDingtalkName(v)
@@ -268,6 +283,21 @@ func (_c *UserCreate) AddOrderPersonnel(v ...*OrderPersonnel) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderPersonnelIDs(ids...)
+}
+
+// AddNotificationDeliveryIDs adds the "notification_deliveries" edge to the NotificationDelivery entity by IDs.
+func (_c *UserCreate) AddNotificationDeliveryIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddNotificationDeliveryIDs(ids...)
+	return _c
+}
+
+// AddNotificationDeliveries adds the "notification_deliveries" edges to the NotificationDelivery entity.
+func (_c *UserCreate) AddNotificationDeliveries(v ...*NotificationDelivery) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNotificationDeliveryIDs(ids...)
 }
 
 // AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
@@ -730,6 +760,11 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.DingtalkUserid(); ok {
+		if err := user.DingtalkUseridValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_userid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_userid": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.DingtalkName(); ok {
 		if err := user.DingtalkNameValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
@@ -816,6 +851,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
 		_node.DingtalkUnionid = &value
 	}
+	if value, ok := _c.mutation.DingtalkUserid(); ok {
+		_spec.SetField(user.FieldDingtalkUserid, field.TypeString, value)
+		_node.DingtalkUserid = &value
+	}
 	if value, ok := _c.mutation.DingtalkName(); ok {
 		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
 		_node.DingtalkName = &value
@@ -869,6 +908,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NotificationDeliveriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

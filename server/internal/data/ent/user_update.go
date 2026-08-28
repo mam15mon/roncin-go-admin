@@ -23,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -185,6 +186,26 @@ func (_u *UserUpdate) ClearDingtalkUnionid() *UserUpdate {
 	return _u
 }
 
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (_u *UserUpdate) SetDingtalkUserid(v string) *UserUpdate {
+	_u.mutation.SetDingtalkUserid(v)
+	return _u
+}
+
+// SetNillableDingtalkUserid sets the "dingtalk_userid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkUserid(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkUserid(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (_u *UserUpdate) ClearDingtalkUserid() *UserUpdate {
+	_u.mutation.ClearDingtalkUserid()
+	return _u
+}
+
 // SetDingtalkName sets the "dingtalk_name" field.
 func (_u *UserUpdate) SetDingtalkName(v string) *UserUpdate {
 	_u.mutation.SetDingtalkName(v)
@@ -276,6 +297,21 @@ func (_u *UserUpdate) AddOrderPersonnel(v ...*OrderPersonnel) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderPersonnelIDs(ids...)
+}
+
+// AddNotificationDeliveryIDs adds the "notification_deliveries" edge to the NotificationDelivery entity by IDs.
+func (_u *UserUpdate) AddNotificationDeliveryIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddNotificationDeliveryIDs(ids...)
+	return _u
+}
+
+// AddNotificationDeliveries adds the "notification_deliveries" edges to the NotificationDelivery entity.
+func (_u *UserUpdate) AddNotificationDeliveries(v ...*NotificationDelivery) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNotificationDeliveryIDs(ids...)
 }
 
 // AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
@@ -689,6 +725,27 @@ func (_u *UserUpdate) RemoveOrderPersonnel(v ...*OrderPersonnel) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderPersonnelIDs(ids...)
+}
+
+// ClearNotificationDeliveries clears all "notification_deliveries" edges to the NotificationDelivery entity.
+func (_u *UserUpdate) ClearNotificationDeliveries() *UserUpdate {
+	_u.mutation.ClearNotificationDeliveries()
+	return _u
+}
+
+// RemoveNotificationDeliveryIDs removes the "notification_deliveries" edge to NotificationDelivery entities by IDs.
+func (_u *UserUpdate) RemoveNotificationDeliveryIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveNotificationDeliveryIDs(ids...)
+	return _u
+}
+
+// RemoveNotificationDeliveries removes "notification_deliveries" edges to NotificationDelivery entities.
+func (_u *UserUpdate) RemoveNotificationDeliveries(v ...*NotificationDelivery) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNotificationDeliveryIDs(ids...)
 }
 
 // ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
@@ -1248,6 +1305,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkUserid(); ok {
+		if err := user.DingtalkUseridValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_userid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_userid": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DingtalkName(); ok {
 		if err := user.DingtalkNameValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
@@ -1312,6 +1374,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DingtalkUnionidCleared() {
 		_spec.ClearField(user.FieldDingtalkUnionid, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkUserid(); ok {
+		_spec.SetField(user.FieldDingtalkUserid, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkUseridCleared() {
+		_spec.ClearField(user.FieldDingtalkUserid, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkName(); ok {
 		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
@@ -1453,6 +1521,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NotificationDeliveriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNotificationDeliveriesIDs(); len(nodes) > 0 && !_u.mutation.NotificationDeliveriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NotificationDeliveriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -2655,6 +2768,26 @@ func (_u *UserUpdateOne) ClearDingtalkUnionid() *UserUpdateOne {
 	return _u
 }
 
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (_u *UserUpdateOne) SetDingtalkUserid(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkUserid(v)
+	return _u
+}
+
+// SetNillableDingtalkUserid sets the "dingtalk_userid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkUserid(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkUserid(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkUserid clears the value of the "dingtalk_userid" field.
+func (_u *UserUpdateOne) ClearDingtalkUserid() *UserUpdateOne {
+	_u.mutation.ClearDingtalkUserid()
+	return _u
+}
+
 // SetDingtalkName sets the "dingtalk_name" field.
 func (_u *UserUpdateOne) SetDingtalkName(v string) *UserUpdateOne {
 	_u.mutation.SetDingtalkName(v)
@@ -2746,6 +2879,21 @@ func (_u *UserUpdateOne) AddOrderPersonnel(v ...*OrderPersonnel) *UserUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderPersonnelIDs(ids...)
+}
+
+// AddNotificationDeliveryIDs adds the "notification_deliveries" edge to the NotificationDelivery entity by IDs.
+func (_u *UserUpdateOne) AddNotificationDeliveryIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddNotificationDeliveryIDs(ids...)
+	return _u
+}
+
+// AddNotificationDeliveries adds the "notification_deliveries" edges to the NotificationDelivery entity.
+func (_u *UserUpdateOne) AddNotificationDeliveries(v ...*NotificationDelivery) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddNotificationDeliveryIDs(ids...)
 }
 
 // AddPartnerAssignmentIDs adds the "partner_assignments" edge to the PartnerAssignment entity by IDs.
@@ -3159,6 +3307,27 @@ func (_u *UserUpdateOne) RemoveOrderPersonnel(v ...*OrderPersonnel) *UserUpdateO
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderPersonnelIDs(ids...)
+}
+
+// ClearNotificationDeliveries clears all "notification_deliveries" edges to the NotificationDelivery entity.
+func (_u *UserUpdateOne) ClearNotificationDeliveries() *UserUpdateOne {
+	_u.mutation.ClearNotificationDeliveries()
+	return _u
+}
+
+// RemoveNotificationDeliveryIDs removes the "notification_deliveries" edge to NotificationDelivery entities by IDs.
+func (_u *UserUpdateOne) RemoveNotificationDeliveryIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveNotificationDeliveryIDs(ids...)
+	return _u
+}
+
+// RemoveNotificationDeliveries removes "notification_deliveries" edges to NotificationDelivery entities.
+func (_u *UserUpdateOne) RemoveNotificationDeliveries(v ...*NotificationDelivery) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveNotificationDeliveryIDs(ids...)
 }
 
 // ClearPartnerAssignments clears all "partner_assignments" edges to the PartnerAssignment entity.
@@ -3731,6 +3900,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkUserid(); ok {
+		if err := user.DingtalkUseridValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_userid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_userid": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DingtalkName(); ok {
 		if err := user.DingtalkNameValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
@@ -3812,6 +3986,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.DingtalkUnionidCleared() {
 		_spec.ClearField(user.FieldDingtalkUnionid, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkUserid(); ok {
+		_spec.SetField(user.FieldDingtalkUserid, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkUseridCleared() {
+		_spec.ClearField(user.FieldDingtalkUserid, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkName(); ok {
 		_spec.SetField(user.FieldDingtalkName, field.TypeString, value)
@@ -3953,6 +4133,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderpersonnel.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.NotificationDeliveriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedNotificationDeliveriesIDs(); len(nodes) > 0 && !_u.mutation.NotificationDeliveriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.NotificationDeliveriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.NotificationDeliveriesTable,
+			Columns: []string{user.NotificationDeliveriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -654,6 +654,29 @@ func HasOrganizationWith(preds ...predicate.Organization) predicate.BackgroundTa
 	})
 }
 
+// HasNotificationDelivery applies the HasEdge predicate on the "notification_delivery" edge.
+func HasNotificationDelivery() predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, NotificationDeliveryTable, NotificationDeliveryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNotificationDeliveryWith applies the HasEdge predicate on the "notification_delivery" edge with a given conditions (other predicates).
+func HasNotificationDeliveryWith(preds ...predicate.NotificationDelivery) predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := newNotificationDeliveryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.BackgroundTask) predicate.BackgroundTask {
 	return predicate.BackgroundTask(sql.AndPredicates(predicates...))

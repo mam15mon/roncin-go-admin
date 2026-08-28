@@ -76,6 +76,8 @@ type Tx struct {
 	MilestoneTemplate *MilestoneTemplateClient
 	// MilestoneTemplateItem is the client for interacting with the MilestoneTemplateItem builders.
 	MilestoneTemplateItem *MilestoneTemplateItemClient
+	// NotificationDelivery is the client for interacting with the NotificationDelivery builders.
+	NotificationDelivery *NotificationDeliveryClient
 	// NumberRule is the client for interacting with the NumberRule builders.
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
@@ -321,6 +323,7 @@ func (tx *Tx) init() {
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)
 	tx.MilestoneTemplateItem = NewMilestoneTemplateItemClient(tx.config)
+	tx.NotificationDelivery = NewNotificationDeliveryClient(tx.config)
 	tx.NumberRule = NewNumberRuleClient(tx.config)
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)

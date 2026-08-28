@@ -4904,6 +4904,8 @@ components:
                     type: string
                 hasPassword:
                     type: boolean
+                dingtalkUserid:
+                    type: string
         admin.v1.AdminUserMembership:
             type: object
             properties:

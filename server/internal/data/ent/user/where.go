@@ -106,6 +106,11 @@ func DingtalkUnionid(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkUnionid, v))
 }
 
+// DingtalkUserid applies equality check predicate on the "dingtalk_userid" field. It's identical to DingtalkUseridEQ.
+func DingtalkUserid(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkUserid, v))
+}
+
 // DingtalkName applies equality check predicate on the "dingtalk_name" field. It's identical to DingtalkNameEQ.
 func DingtalkName(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
@@ -791,6 +796,81 @@ func DingtalkUnionidContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldDingtalkUnionid, v))
 }
 
+// DingtalkUseridEQ applies the EQ predicate on the "dingtalk_userid" field.
+func DingtalkUseridEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridNEQ applies the NEQ predicate on the "dingtalk_userid" field.
+func DingtalkUseridNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridIn applies the In predicate on the "dingtalk_userid" field.
+func DingtalkUseridIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDingtalkUserid, vs...))
+}
+
+// DingtalkUseridNotIn applies the NotIn predicate on the "dingtalk_userid" field.
+func DingtalkUseridNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDingtalkUserid, vs...))
+}
+
+// DingtalkUseridGT applies the GT predicate on the "dingtalk_userid" field.
+func DingtalkUseridGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridGTE applies the GTE predicate on the "dingtalk_userid" field.
+func DingtalkUseridGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridLT applies the LT predicate on the "dingtalk_userid" field.
+func DingtalkUseridLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridLTE applies the LTE predicate on the "dingtalk_userid" field.
+func DingtalkUseridLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridContains applies the Contains predicate on the "dingtalk_userid" field.
+func DingtalkUseridContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridHasPrefix applies the HasPrefix predicate on the "dingtalk_userid" field.
+func DingtalkUseridHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridHasSuffix applies the HasSuffix predicate on the "dingtalk_userid" field.
+func DingtalkUseridHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridIsNil applies the IsNil predicate on the "dingtalk_userid" field.
+func DingtalkUseridIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDingtalkUserid))
+}
+
+// DingtalkUseridNotNil applies the NotNil predicate on the "dingtalk_userid" field.
+func DingtalkUseridNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDingtalkUserid))
+}
+
+// DingtalkUseridEqualFold applies the EqualFold predicate on the "dingtalk_userid" field.
+func DingtalkUseridEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldDingtalkUserid, v))
+}
+
+// DingtalkUseridContainsFold applies the ContainsFold predicate on the "dingtalk_userid" field.
+func DingtalkUseridContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldDingtalkUserid, v))
+}
+
 // DingtalkNameEQ applies the EQ predicate on the "dingtalk_name" field.
 func DingtalkNameEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkName, v))
@@ -1002,6 +1082,29 @@ func HasOrderPersonnel() predicate.User {
 func HasOrderPersonnelWith(preds ...predicate.OrderPersonnel) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newOrderPersonnelStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNotificationDeliveries applies the HasEdge predicate on the "notification_deliveries" edge.
+func HasNotificationDeliveries() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NotificationDeliveriesTable, NotificationDeliveriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNotificationDeliveriesWith applies the HasEdge predicate on the "notification_deliveries" edge with a given conditions (other predicates).
+func HasNotificationDeliveriesWith(preds ...predicate.NotificationDelivery) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newNotificationDeliveriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

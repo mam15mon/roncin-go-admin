@@ -42,6 +42,8 @@ const (
 	FieldLastError = "last_error"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeNotificationDelivery holds the string denoting the notification_delivery edge name in mutations.
+	EdgeNotificationDelivery = "notification_delivery"
 	// Table holds the table name of the backgroundtask in the database.
 	Table = "background_tasks"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -51,6 +53,13 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// NotificationDeliveryTable is the table that holds the notification_delivery relation/edge.
+	NotificationDeliveryTable = "notification_deliveries"
+	// NotificationDeliveryInverseTable is the table name for the NotificationDelivery entity.
+	// It exists in this package in order to avoid circular dependency with the "notificationdelivery" package.
+	NotificationDeliveryInverseTable = "notification_deliveries"
+	// NotificationDeliveryColumn is the table column denoting the notification_delivery relation/edge.
+	NotificationDeliveryColumn = "background_task_id"
 )
 
 // Columns holds all SQL columns for backgroundtask fields.
@@ -112,10 +121,11 @@ type Kind string
 
 // Kind values.
 const (
-	KindMASTER_DATA_IMPORT Kind = "MASTER_DATA_IMPORT"
-	KindUNLOCODE_IMPORT    Kind = "UNLOCODE_IMPORT"
-	KindORDER_REMINDER     Kind = "ORDER_REMINDER"
-	KindINTEGRATION        Kind = "INTEGRATION"
+	KindMASTER_DATA_IMPORT    Kind = "MASTER_DATA_IMPORT"
+	KindUNLOCODE_IMPORT       Kind = "UNLOCODE_IMPORT"
+	KindORDER_REMINDER        Kind = "ORDER_REMINDER"
+	KindINTEGRATION           Kind = "INTEGRATION"
+	KindDINGTALK_NOTIFICATION Kind = "DINGTALK_NOTIFICATION"
 )
 
 func (k Kind) String() string {
@@ -125,7 +135,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION:
+	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION:
 		return nil
 	default:
 		return fmt.Errorf("backgroundtask: invalid enum value for kind field: %q", k)
@@ -235,10 +245,24 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByNotificationDeliveryField orders the results by notification_delivery field.
+func ByNotificationDeliveryField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNotificationDeliveryStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newNotificationDeliveryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NotificationDeliveryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, NotificationDeliveryTable, NotificationDeliveryColumn),
 	)
 }

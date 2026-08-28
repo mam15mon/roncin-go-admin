@@ -86,6 +86,7 @@ type WeComIdentityProvider interface {
 
 type DingTalkIdentity struct {
 	UnionID   string
+	UserID    string
 	CorpID    string
 	Name      string
 	Email     *string

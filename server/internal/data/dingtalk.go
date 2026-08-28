@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -20,6 +21,9 @@ const (
 	dingTalkAuthorizeURL = "https://login.dingtalk.com/oauth2/auth"
 	dingTalkTokenURL     = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
 	dingTalkProfileURL   = "https://api.dingtalk.com/v1.0/contact/users/me"
+	dingTalkAppTokenURL  = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
+	dingTalkUserIDURL    = "https://oapi.dingtalk.com/topapi/user/getbyunionid"
+	dingTalkRobotURL     = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
 )
 
 type dingTalkTokenResponse struct {
@@ -34,6 +38,23 @@ type dingTalkProfileResponse struct {
 	AvatarURL *string `json:"avatarUrl"`
 }
 
+type dingTalkAppTokenResponse struct {
+	AccessToken string `json:"accessToken"`
+	ExpireIn    int64  `json:"expireIn"`
+}
+
+type dingTalkUserIDResponse struct {
+	ErrorCode    int    `json:"errcode"`
+	ErrorMessage string `json:"errmsg"`
+	Result       struct {
+		UserID string `json:"userid"`
+	} `json:"result"`
+}
+
+type dingTalkRobotResponse struct {
+	ProcessQueryKey string `json:"processQueryKey"`
+}
+
 type dingTalkIdentityProvider struct {
 	enabled      bool
 	clientID     string
@@ -41,9 +62,12 @@ type dingTalkIdentityProvider struct {
 	redirectURI  string
 	corpID       string
 	client       *http.Client
+	tokenMu      sync.Mutex
+	appToken     string
+	appTokenTill time.Time
 }
 
-func NewDingTalkIdentityProvider(security *conf.Security) (biz.DingTalkIdentityProvider, error) {
+func NewDingTalkIdentityProvider(security *conf.Security) (*dingTalkIdentityProvider, error) {
 	provider := &dingTalkIdentityProvider{client: &http.Client{Timeout: 5 * time.Second}}
 	if security == nil || security.Dingtalk == nil || !security.Dingtalk.Enabled {
 		return provider, nil
@@ -113,7 +137,90 @@ func (p *dingTalkIdentityProvider) ResolveIdentity(ctx context.Context, authCode
 	if unionID == "" || name == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	return &biz.DingTalkIdentity{UnionID: unionID, CorpID: corpID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
+	userID, err := p.resolveEnterpriseUserID(ctx, unionID)
+	if err != nil {
+		return nil, err
+	}
+	return &biz.DingTalkIdentity{UnionID: unionID, UserID: userID, CorpID: corpID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
+}
+
+func (p *dingTalkIdentityProvider) resolveEnterpriseUserID(ctx context.Context, unionID string) (string, error) {
+	accessToken, err := p.enterpriseAccessToken(ctx)
+	if err != nil {
+		return "", biz.ErrDingTalkPermissionDenied
+	}
+	endpoint := dingTalkUserIDURL + "?access_token=" + url.QueryEscape(accessToken)
+	var response dingTalkUserIDResponse
+	status, err := p.requestJSON(ctx, http.MethodPost, endpoint, map[string]string{"unionid": unionID}, "", &response)
+	if err != nil || status == http.StatusForbidden || response.ErrorCode != 0 {
+		return "", biz.ErrDingTalkPermissionDenied
+	}
+	userID := strings.TrimSpace(response.Result.UserID)
+	if userID == "" {
+		return "", biz.ErrDingTalkPermissionDenied
+	}
+	return userID, nil
+}
+
+func (p *dingTalkIdentityProvider) enterpriseAccessToken(ctx context.Context) (string, error) {
+	p.tokenMu.Lock()
+	defer p.tokenMu.Unlock()
+	if p.appToken != "" && time.Now().Before(p.appTokenTill) {
+		return p.appToken, nil
+	}
+	var response dingTalkAppTokenResponse
+	_, err := p.requestJSON(ctx, http.MethodPost, dingTalkAppTokenURL, map[string]string{
+		"appKey":    p.clientID,
+		"appSecret": p.clientSecret,
+	}, "", &response)
+	if err != nil {
+		return "", err
+	}
+	accessToken := strings.TrimSpace(response.AccessToken)
+	if accessToken == "" || response.ExpireIn <= 0 {
+		return "", fmt.Errorf("钉钉企业访问令牌响应不完整")
+	}
+	refreshAdvance := 5 * time.Minute
+	lifetime := time.Duration(response.ExpireIn) * time.Second
+	if lifetime <= refreshAdvance {
+		refreshAdvance = lifetime / 10
+	}
+	p.appToken = accessToken
+	p.appTokenTill = time.Now().Add(lifetime - refreshAdvance)
+	return accessToken, nil
+}
+
+func (p *dingTalkIdentityProvider) SendText(ctx context.Context, userID, content string) error {
+	if !p.enabled {
+		return biz.ErrDingTalkDisabled
+	}
+	userID = strings.TrimSpace(userID)
+	content = strings.TrimSpace(content)
+	if userID == "" || content == "" {
+		return fmt.Errorf("钉钉通知收件人或内容为空")
+	}
+	accessToken, err := p.enterpriseAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("获取钉钉企业访问令牌: %w", err)
+	}
+	messageParameter, err := json.Marshal(map[string]string{"content": content})
+	if err != nil {
+		return err
+	}
+	payload := map[string]any{
+		"robotCode": p.clientID,
+		"userIds":   []string{userID},
+		"msgKey":    "sampleText",
+		"msgParam":  string(messageParameter),
+	}
+	var response dingTalkRobotResponse
+	if _, err := p.requestJSON(ctx, http.MethodPost, dingTalkRobotURL, payload, accessToken, &response); err != nil {
+		return err
+	}
+	if strings.TrimSpace(response.ProcessQueryKey) == "" {
+		return fmt.Errorf("钉钉机器人发送响应不完整")
+	}
+	return nil
 }
 
 func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endpoint string, payload any, bearerToken string, target any) (int, error) {
@@ -151,3 +258,4 @@ func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endp
 }
 
 var _ biz.DingTalkIdentityProvider = (*dingTalkIdentityProvider)(nil)
+var _ biz.DingTalkNotificationSender = (*dingTalkIdentityProvider)(nil)

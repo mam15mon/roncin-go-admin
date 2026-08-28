@@ -8102,6 +8102,9 @@
           },
           "hasPassword": {
             "type": "boolean"
+          },
+          "dingtalkUserid": {
+            "type": "string"
           }
         }
       },

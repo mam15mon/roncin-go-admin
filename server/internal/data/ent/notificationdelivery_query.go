@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -16,59 +15,59 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
-// BackgroundTaskQuery is the builder for querying BackgroundTask entities.
-type BackgroundTaskQuery struct {
+// NotificationDeliveryQuery is the builder for querying NotificationDelivery entities.
+type NotificationDeliveryQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []backgroundtask.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.BackgroundTask
-	withOrganization         *OrganizationQuery
-	withNotificationDelivery *NotificationDeliveryQuery
-	modifiers                []func(*sql.Selector)
+	ctx                *QueryContext
+	order              []notificationdelivery.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.NotificationDelivery
+	withBackgroundTask *BackgroundTaskQuery
+	withRecipientUser  *UserQuery
+	modifiers          []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the BackgroundTaskQuery builder.
-func (_q *BackgroundTaskQuery) Where(ps ...predicate.BackgroundTask) *BackgroundTaskQuery {
+// Where adds a new predicate for the NotificationDeliveryQuery builder.
+func (_q *NotificationDeliveryQuery) Where(ps ...predicate.NotificationDelivery) *NotificationDeliveryQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *BackgroundTaskQuery) Limit(limit int) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) Limit(limit int) *NotificationDeliveryQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *BackgroundTaskQuery) Offset(offset int) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) Offset(offset int) *NotificationDeliveryQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *BackgroundTaskQuery) Unique(unique bool) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) Unique(unique bool) *NotificationDeliveryQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *BackgroundTaskQuery) Order(o ...backgroundtask.OrderOption) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) Order(o ...notificationdelivery.OrderOption) *NotificationDeliveryQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryOrganization chains the current query on the "organization" edge.
-func (_q *BackgroundTaskQuery) QueryOrganization() *OrganizationQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
+// QueryBackgroundTask chains the current query on the "background_task" edge.
+func (_q *NotificationDeliveryQuery) QueryBackgroundTask() *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -78,9 +77,9 @@ func (_q *BackgroundTaskQuery) QueryOrganization() *OrganizationQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, backgroundtask.OrganizationTable, backgroundtask.OrganizationColumn),
+			sqlgraph.From(notificationdelivery.Table, notificationdelivery.FieldID, selector),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, notificationdelivery.BackgroundTaskTable, notificationdelivery.BackgroundTaskColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,9 +87,9 @@ func (_q *BackgroundTaskQuery) QueryOrganization() *OrganizationQuery {
 	return query
 }
 
-// QueryNotificationDelivery chains the current query on the "notification_delivery" edge.
-func (_q *BackgroundTaskQuery) QueryNotificationDelivery() *NotificationDeliveryQuery {
-	query := (&NotificationDeliveryClient{config: _q.config}).Query()
+// QueryRecipientUser chains the current query on the "recipient_user" edge.
+func (_q *NotificationDeliveryQuery) QueryRecipientUser() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,9 +99,9 @@ func (_q *BackgroundTaskQuery) QueryNotificationDelivery() *NotificationDelivery
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
-			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.NotificationDeliveryTable, backgroundtask.NotificationDeliveryColumn),
+			sqlgraph.From(notificationdelivery.Table, notificationdelivery.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, notificationdelivery.RecipientUserTable, notificationdelivery.RecipientUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -110,21 +109,21 @@ func (_q *BackgroundTaskQuery) QueryNotificationDelivery() *NotificationDelivery
 	return query
 }
 
-// First returns the first BackgroundTask entity from the query.
-// Returns a *NotFoundError when no BackgroundTask was found.
-func (_q *BackgroundTaskQuery) First(ctx context.Context) (*BackgroundTask, error) {
+// First returns the first NotificationDelivery entity from the query.
+// Returns a *NotFoundError when no NotificationDelivery was found.
+func (_q *NotificationDeliveryQuery) First(ctx context.Context) (*NotificationDelivery, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{backgroundtask.Label}
+		return nil, &NotFoundError{notificationdelivery.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) FirstX(ctx context.Context) *BackgroundTask {
+func (_q *NotificationDeliveryQuery) FirstX(ctx context.Context) *NotificationDelivery {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,22 +131,22 @@ func (_q *BackgroundTaskQuery) FirstX(ctx context.Context) *BackgroundTask {
 	return node
 }
 
-// FirstID returns the first BackgroundTask ID from the query.
-// Returns a *NotFoundError when no BackgroundTask ID was found.
-func (_q *BackgroundTaskQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first NotificationDelivery ID from the query.
+// Returns a *NotFoundError when no NotificationDelivery ID was found.
+func (_q *NotificationDeliveryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{backgroundtask.Label}
+		err = &NotFoundError{notificationdelivery.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (_q *NotificationDeliveryQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -155,10 +154,10 @@ func (_q *BackgroundTaskQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single BackgroundTask entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one BackgroundTask entity is found.
-// Returns a *NotFoundError when no BackgroundTask entities are found.
-func (_q *BackgroundTaskQuery) Only(ctx context.Context) (*BackgroundTask, error) {
+// Only returns a single NotificationDelivery entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one NotificationDelivery entity is found.
+// Returns a *NotFoundError when no NotificationDelivery entities are found.
+func (_q *NotificationDeliveryQuery) Only(ctx context.Context) (*NotificationDelivery, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -167,14 +166,14 @@ func (_q *BackgroundTaskQuery) Only(ctx context.Context) (*BackgroundTask, error
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{backgroundtask.Label}
+		return nil, &NotFoundError{notificationdelivery.Label}
 	default:
-		return nil, &NotSingularError{backgroundtask.Label}
+		return nil, &NotSingularError{notificationdelivery.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) OnlyX(ctx context.Context) *BackgroundTask {
+func (_q *NotificationDeliveryQuery) OnlyX(ctx context.Context) *NotificationDelivery {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -182,10 +181,10 @@ func (_q *BackgroundTaskQuery) OnlyX(ctx context.Context) *BackgroundTask {
 	return node
 }
 
-// OnlyID is like Only, but returns the only BackgroundTask ID in the query.
-// Returns a *NotSingularError when more than one BackgroundTask ID is found.
+// OnlyID is like Only, but returns the only NotificationDelivery ID in the query.
+// Returns a *NotSingularError when more than one NotificationDelivery ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *BackgroundTaskQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *NotificationDeliveryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -194,15 +193,15 @@ func (_q *BackgroundTaskQuery) OnlyID(ctx context.Context) (id uuid.UUID, err er
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{backgroundtask.Label}
+		err = &NotFoundError{notificationdelivery.Label}
 	default:
-		err = &NotSingularError{backgroundtask.Label}
+		err = &NotSingularError{notificationdelivery.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (_q *NotificationDeliveryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -210,18 +209,18 @@ func (_q *BackgroundTaskQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of BackgroundTasks.
-func (_q *BackgroundTaskQuery) All(ctx context.Context) ([]*BackgroundTask, error) {
+// All executes the query and returns a list of NotificationDeliveries.
+func (_q *NotificationDeliveryQuery) All(ctx context.Context) ([]*NotificationDelivery, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*BackgroundTask, *BackgroundTaskQuery]()
-	return withInterceptors[[]*BackgroundTask](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*NotificationDelivery, *NotificationDeliveryQuery]()
+	return withInterceptors[[]*NotificationDelivery](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) AllX(ctx context.Context) []*BackgroundTask {
+func (_q *NotificationDeliveryQuery) AllX(ctx context.Context) []*NotificationDelivery {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -229,20 +228,20 @@ func (_q *BackgroundTaskQuery) AllX(ctx context.Context) []*BackgroundTask {
 	return nodes
 }
 
-// IDs executes the query and returns a list of BackgroundTask IDs.
-func (_q *BackgroundTaskQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+// IDs executes the query and returns a list of NotificationDelivery IDs.
+func (_q *NotificationDeliveryQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(backgroundtask.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(notificationdelivery.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (_q *NotificationDeliveryQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -251,16 +250,16 @@ func (_q *BackgroundTaskQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (_q *BackgroundTaskQuery) Count(ctx context.Context) (int, error) {
+func (_q *NotificationDeliveryQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*BackgroundTaskQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*NotificationDeliveryQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) CountX(ctx context.Context) int {
+func (_q *NotificationDeliveryQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -269,7 +268,7 @@ func (_q *BackgroundTaskQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *BackgroundTaskQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *NotificationDeliveryQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -282,7 +281,7 @@ func (_q *BackgroundTaskQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *BackgroundTaskQuery) ExistX(ctx context.Context) bool {
+func (_q *NotificationDeliveryQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -290,45 +289,45 @@ func (_q *BackgroundTaskQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the BackgroundTaskQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the NotificationDeliveryQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *BackgroundTaskQuery) Clone() *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) Clone() *NotificationDeliveryQuery {
 	if _q == nil {
 		return nil
 	}
-	return &BackgroundTaskQuery{
-		config:                   _q.config,
-		ctx:                      _q.ctx.Clone(),
-		order:                    append([]backgroundtask.OrderOption{}, _q.order...),
-		inters:                   append([]Interceptor{}, _q.inters...),
-		predicates:               append([]predicate.BackgroundTask{}, _q.predicates...),
-		withOrganization:         _q.withOrganization.Clone(),
-		withNotificationDelivery: _q.withNotificationDelivery.Clone(),
+	return &NotificationDeliveryQuery{
+		config:             _q.config,
+		ctx:                _q.ctx.Clone(),
+		order:              append([]notificationdelivery.OrderOption{}, _q.order...),
+		inters:             append([]Interceptor{}, _q.inters...),
+		predicates:         append([]predicate.NotificationDelivery{}, _q.predicates...),
+		withBackgroundTask: _q.withBackgroundTask.Clone(),
+		withRecipientUser:  _q.withRecipientUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithOrganization tells the query-builder to eager-load the nodes that are connected to
-// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BackgroundTaskQuery) WithOrganization(opts ...func(*OrganizationQuery)) *BackgroundTaskQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
+// WithBackgroundTask tells the query-builder to eager-load the nodes that are connected to
+// the "background_task" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NotificationDeliveryQuery) WithBackgroundTask(opts ...func(*BackgroundTaskQuery)) *NotificationDeliveryQuery {
+	query := (&BackgroundTaskClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withOrganization = query
+	_q.withBackgroundTask = query
 	return _q
 }
 
-// WithNotificationDelivery tells the query-builder to eager-load the nodes that are connected to
-// the "notification_delivery" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *BackgroundTaskQuery) WithNotificationDelivery(opts ...func(*NotificationDeliveryQuery)) *BackgroundTaskQuery {
-	query := (&NotificationDeliveryClient{config: _q.config}).Query()
+// WithRecipientUser tells the query-builder to eager-load the nodes that are connected to
+// the "recipient_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NotificationDeliveryQuery) WithRecipientUser(opts ...func(*UserQuery)) *NotificationDeliveryQuery {
+	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withNotificationDelivery = query
+	_q.withRecipientUser = query
 	return _q
 }
 
@@ -342,15 +341,15 @@ func (_q *BackgroundTaskQuery) WithNotificationDelivery(opts ...func(*Notificati
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.BackgroundTask.Query().
-//		GroupBy(backgroundtask.FieldCreatedAt).
+//	client.NotificationDelivery.Query().
+//		GroupBy(notificationdelivery.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *BackgroundTaskQuery) GroupBy(field string, fields ...string) *BackgroundTaskGroupBy {
+func (_q *NotificationDeliveryQuery) GroupBy(field string, fields ...string) *NotificationDeliveryGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &BackgroundTaskGroupBy{build: _q}
+	grbuild := &NotificationDeliveryGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = backgroundtask.Label
+	grbuild.label = notificationdelivery.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -364,23 +363,23 @@ func (_q *BackgroundTaskQuery) GroupBy(field string, fields ...string) *Backgrou
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.BackgroundTask.Query().
-//		Select(backgroundtask.FieldCreatedAt).
+//	client.NotificationDelivery.Query().
+//		Select(notificationdelivery.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *BackgroundTaskQuery) Select(fields ...string) *BackgroundTaskSelect {
+func (_q *NotificationDeliveryQuery) Select(fields ...string) *NotificationDeliverySelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &BackgroundTaskSelect{BackgroundTaskQuery: _q}
-	sbuild.label = backgroundtask.Label
+	sbuild := &NotificationDeliverySelect{NotificationDeliveryQuery: _q}
+	sbuild.label = notificationdelivery.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a BackgroundTaskSelect configured with the given aggregations.
-func (_q *BackgroundTaskQuery) Aggregate(fns ...AggregateFunc) *BackgroundTaskSelect {
+// Aggregate returns a NotificationDeliverySelect configured with the given aggregations.
+func (_q *NotificationDeliveryQuery) Aggregate(fns ...AggregateFunc) *NotificationDeliverySelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *BackgroundTaskQuery) prepareQuery(ctx context.Context) error {
+func (_q *NotificationDeliveryQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -392,7 +391,7 @@ func (_q *BackgroundTaskQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !backgroundtask.ValidColumn(f) {
+		if !notificationdelivery.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -406,20 +405,20 @@ func (_q *BackgroundTaskQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*BackgroundTask, error) {
+func (_q *NotificationDeliveryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NotificationDelivery, error) {
 	var (
-		nodes       = []*BackgroundTask{}
+		nodes       = []*NotificationDelivery{}
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
-			_q.withOrganization != nil,
-			_q.withNotificationDelivery != nil,
+			_q.withBackgroundTask != nil,
+			_q.withRecipientUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*BackgroundTask).scanValues(nil, columns)
+		return (*NotificationDelivery).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &BackgroundTask{config: _q.config}
+		node := &NotificationDelivery{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -436,26 +435,26 @@ func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withOrganization; query != nil {
-		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *BackgroundTask, e *Organization) { n.Edges.Organization = e }); err != nil {
+	if query := _q.withBackgroundTask; query != nil {
+		if err := _q.loadBackgroundTask(ctx, query, nodes, nil,
+			func(n *NotificationDelivery, e *BackgroundTask) { n.Edges.BackgroundTask = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withNotificationDelivery; query != nil {
-		if err := _q.loadNotificationDelivery(ctx, query, nodes, nil,
-			func(n *BackgroundTask, e *NotificationDelivery) { n.Edges.NotificationDelivery = e }); err != nil {
+	if query := _q.withRecipientUser; query != nil {
+		if err := _q.loadRecipientUser(ctx, query, nodes, nil,
+			func(n *NotificationDelivery, e *User) { n.Edges.RecipientUser = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *BackgroundTaskQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*BackgroundTask, init func(*BackgroundTask), assign func(*BackgroundTask, *Organization)) error {
+func (_q *NotificationDeliveryQuery) loadBackgroundTask(ctx context.Context, query *BackgroundTaskQuery, nodes []*NotificationDelivery, init func(*NotificationDelivery), assign func(*NotificationDelivery, *BackgroundTask)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*BackgroundTask)
+	nodeids := make(map[uuid.UUID][]*NotificationDelivery)
 	for i := range nodes {
-		fk := nodes[i].OrganizationID
+		fk := nodes[i].BackgroundTaskID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -464,7 +463,7 @@ func (_q *BackgroundTaskQuery) loadOrganization(ctx context.Context, query *Orga
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(organization.IDIn(ids...))
+	query.Where(backgroundtask.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -472,7 +471,7 @@ func (_q *BackgroundTaskQuery) loadOrganization(ctx context.Context, query *Orga
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "background_task_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -480,35 +479,37 @@ func (_q *BackgroundTaskQuery) loadOrganization(ctx context.Context, query *Orga
 	}
 	return nil
 }
-func (_q *BackgroundTaskQuery) loadNotificationDelivery(ctx context.Context, query *NotificationDeliveryQuery, nodes []*BackgroundTask, init func(*BackgroundTask), assign func(*BackgroundTask, *NotificationDelivery)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*BackgroundTask)
+func (_q *NotificationDeliveryQuery) loadRecipientUser(ctx context.Context, query *UserQuery, nodes []*NotificationDelivery, init func(*NotificationDelivery), assign func(*NotificationDelivery, *User)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*NotificationDelivery)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+		fk := nodes[i].RecipientUserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(notificationdelivery.FieldBackgroundTaskID)
+	if len(ids) == 0 {
+		return nil
 	}
-	query.Where(predicate.NotificationDelivery(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(backgroundtask.NotificationDeliveryColumn), fks...))
-	}))
+	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.BackgroundTaskID
-		node, ok := nodeids[fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "background_task_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "recipient_user_id" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
 
-func (_q *BackgroundTaskQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *NotificationDeliveryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	if len(_q.modifiers) > 0 {
 		_spec.Modifiers = _q.modifiers
@@ -520,8 +521,8 @@ func (_q *BackgroundTaskQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *BackgroundTaskQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(backgroundtask.Table, backgroundtask.Columns, sqlgraph.NewFieldSpec(backgroundtask.FieldID, field.TypeUUID))
+func (_q *NotificationDeliveryQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(notificationdelivery.Table, notificationdelivery.Columns, sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -530,14 +531,17 @@ func (_q *BackgroundTaskQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, backgroundtask.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, notificationdelivery.FieldID)
 		for i := range fields {
-			if fields[i] != backgroundtask.FieldID {
+			if fields[i] != notificationdelivery.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
-		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(backgroundtask.FieldOrganizationID)
+		if _q.withBackgroundTask != nil {
+			_spec.Node.AddColumnOnce(notificationdelivery.FieldBackgroundTaskID)
+		}
+		if _q.withRecipientUser != nil {
+			_spec.Node.AddColumnOnce(notificationdelivery.FieldRecipientUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -563,12 +567,12 @@ func (_q *BackgroundTaskQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *BackgroundTaskQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *NotificationDeliveryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(backgroundtask.Table)
+	t1 := builder.Table(notificationdelivery.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = backgroundtask.Columns
+		columns = notificationdelivery.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -601,7 +605,7 @@ func (_q *BackgroundTaskQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ForUpdate locks the selected rows against concurrent updates, and prevent them from being
 // updated, deleted or "selected ... for update" by other sessions, until the transaction is
 // either committed or rolled-back.
-func (_q *BackgroundTaskQuery) ForUpdate(opts ...sql.LockOption) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) ForUpdate(opts ...sql.LockOption) *NotificationDeliveryQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -614,7 +618,7 @@ func (_q *BackgroundTaskQuery) ForUpdate(opts ...sql.LockOption) *BackgroundTask
 // ForShare behaves similarly to ForUpdate, except that it acquires a shared mode lock
 // on any rows that are read. Other sessions can read the rows, but cannot modify them
 // until your transaction commits.
-func (_q *BackgroundTaskQuery) ForShare(opts ...sql.LockOption) *BackgroundTaskQuery {
+func (_q *NotificationDeliveryQuery) ForShare(opts ...sql.LockOption) *NotificationDeliveryQuery {
 	if _q.driver.Dialect() == dialect.Postgres {
 		_q.Unique(false)
 	}
@@ -624,28 +628,28 @@ func (_q *BackgroundTaskQuery) ForShare(opts ...sql.LockOption) *BackgroundTaskQ
 	return _q
 }
 
-// BackgroundTaskGroupBy is the group-by builder for BackgroundTask entities.
-type BackgroundTaskGroupBy struct {
+// NotificationDeliveryGroupBy is the group-by builder for NotificationDelivery entities.
+type NotificationDeliveryGroupBy struct {
 	selector
-	build *BackgroundTaskQuery
+	build *NotificationDeliveryQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *BackgroundTaskGroupBy) Aggregate(fns ...AggregateFunc) *BackgroundTaskGroupBy {
+func (_g *NotificationDeliveryGroupBy) Aggregate(fns ...AggregateFunc) *NotificationDeliveryGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *BackgroundTaskGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *NotificationDeliveryGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*BackgroundTaskQuery, *BackgroundTaskGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*NotificationDeliveryQuery, *NotificationDeliveryGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *BackgroundTaskGroupBy) sqlScan(ctx context.Context, root *BackgroundTaskQuery, v any) error {
+func (_g *NotificationDeliveryGroupBy) sqlScan(ctx context.Context, root *NotificationDeliveryQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -672,28 +676,28 @@ func (_g *BackgroundTaskGroupBy) sqlScan(ctx context.Context, root *BackgroundTa
 	return sql.ScanSlice(rows, v)
 }
 
-// BackgroundTaskSelect is the builder for selecting fields of BackgroundTask entities.
-type BackgroundTaskSelect struct {
-	*BackgroundTaskQuery
+// NotificationDeliverySelect is the builder for selecting fields of NotificationDelivery entities.
+type NotificationDeliverySelect struct {
+	*NotificationDeliveryQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *BackgroundTaskSelect) Aggregate(fns ...AggregateFunc) *BackgroundTaskSelect {
+func (_s *NotificationDeliverySelect) Aggregate(fns ...AggregateFunc) *NotificationDeliverySelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *BackgroundTaskSelect) Scan(ctx context.Context, v any) error {
+func (_s *NotificationDeliverySelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*BackgroundTaskQuery, *BackgroundTaskSelect](ctx, _s.BackgroundTaskQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*NotificationDeliveryQuery, *NotificationDeliverySelect](ctx, _s.NotificationDeliveryQuery, _s, _s.inters, v)
 }
 
-func (_s *BackgroundTaskSelect) sqlScan(ctx context.Context, root *BackgroundTaskQuery, v any) error {
+func (_s *NotificationDeliverySelect) sqlScan(ctx context.Context, root *NotificationDeliveryQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

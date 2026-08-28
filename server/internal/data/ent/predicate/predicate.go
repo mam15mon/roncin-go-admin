@@ -102,6 +102,9 @@ type MilestoneTemplate func(*sql.Selector)
 // MilestoneTemplateItem is the predicate function for milestonetemplateitem builders.
 type MilestoneTemplateItem func(*sql.Selector)
 
+// NotificationDelivery is the predicate function for notificationdelivery builders.
+type NotificationDelivery func(*sql.Selector)
+
 // NumberRule is the predicate function for numberrule builders.
 type NumberRule func(*sql.Selector)
 

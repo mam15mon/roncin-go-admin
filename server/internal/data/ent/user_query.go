@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -44,6 +45,7 @@ type UserQuery struct {
 	withMemberships                           *MembershipQuery
 	withSessions                              *SessionQuery
 	withOrderPersonnel                        *OrderPersonnelQuery
+	withNotificationDeliveries                *NotificationDeliveryQuery
 	withPartnerAssignments                    *PartnerAssignmentQuery
 	withCancelledOrderFees                    *OrderFeeQuery
 	withConfirmedFinanceBills                 *FinanceBillQuery
@@ -163,6 +165,28 @@ func (_q *UserQuery) QueryOrderPersonnel() *OrderPersonnelQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(orderpersonnel.Table, orderpersonnel.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderPersonnelTable, user.OrderPersonnelColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNotificationDeliveries chains the current query on the "notification_deliveries" edge.
+func (_q *UserQuery) QueryNotificationDeliveries() *NotificationDeliveryQuery {
+	query := (&NotificationDeliveryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.NotificationDeliveriesTable, user.NotificationDeliveriesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -871,6 +895,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withMemberships:                           _q.withMemberships.Clone(),
 		withSessions:                              _q.withSessions.Clone(),
 		withOrderPersonnel:                        _q.withOrderPersonnel.Clone(),
+		withNotificationDeliveries:                _q.withNotificationDeliveries.Clone(),
 		withPartnerAssignments:                    _q.withPartnerAssignments.Clone(),
 		withCancelledOrderFees:                    _q.withCancelledOrderFees.Clone(),
 		withConfirmedFinanceBills:                 _q.withConfirmedFinanceBills.Clone(),
@@ -930,6 +955,17 @@ func (_q *UserQuery) WithOrderPersonnel(opts ...func(*OrderPersonnelQuery)) *Use
 		opt(query)
 	}
 	_q.withOrderPersonnel = query
+	return _q
+}
+
+// WithNotificationDeliveries tells the query-builder to eager-load the nodes that are connected to
+// the "notification_deliveries" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNotificationDeliveries(opts ...func(*NotificationDeliveryQuery)) *UserQuery {
+	query := (&NotificationDeliveryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNotificationDeliveries = query
 	return _q
 }
 
@@ -1264,10 +1300,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [26]bool{
+		loadedTypes = [27]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
+			_q.withNotificationDeliveries != nil,
 			_q.withPartnerAssignments != nil,
 			_q.withCancelledOrderFees != nil,
 			_q.withConfirmedFinanceBills != nil,
@@ -1332,6 +1369,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadOrderPersonnel(ctx, query, nodes,
 			func(n *User) { n.Edges.OrderPersonnel = []*OrderPersonnel{} },
 			func(n *User, e *OrderPersonnel) { n.Edges.OrderPersonnel = append(n.Edges.OrderPersonnel, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNotificationDeliveries; query != nil {
+		if err := _q.loadNotificationDeliveries(ctx, query, nodes,
+			func(n *User) { n.Edges.NotificationDeliveries = []*NotificationDelivery{} },
+			func(n *User, e *NotificationDelivery) {
+				n.Edges.NotificationDeliveries = append(n.Edges.NotificationDeliveries, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1628,6 +1674,36 @@ func (_q *UserQuery) loadOrderPersonnel(ctx context.Context, query *OrderPersonn
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadNotificationDeliveries(ctx context.Context, query *NotificationDeliveryQuery, nodes []*User, init func(*User), assign func(*User, *NotificationDelivery)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(notificationdelivery.FieldRecipientUserID)
+	}
+	query.Where(predicate.NotificationDelivery(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.NotificationDeliveriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RecipientUserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "recipient_user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

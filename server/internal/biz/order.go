@@ -621,6 +621,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	}
 	output.Tags = cleanTags
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
+	normalizedPersonnel := make([]*OrderPersonnel, 0, len(output.PersonnelAssignments))
 	for _, assignment := range output.PersonnelAssignments {
 		if assignment == nil || !assignment.Role.Valid() || assignment.Role == OrderPersonnelRoleCreator || assignment.UserID == uuid.Nil || assignment.OrganizationID == uuid.Nil {
 			return nil, ErrOrderInvalidArgument
@@ -629,7 +630,15 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		if roleCounts[assignment.Role] > 1 {
 			return nil, ErrOrderInvalidArgument
 		}
+		normalizedAssignment := *assignment
+		if creating {
+			normalizedAssignment.Notification = NewOrderPersonnelNotification(assignment.UserID)
+		} else {
+			normalizedAssignment.Notification = nil
+		}
+		normalizedPersonnel = append(normalizedPersonnel, &normalizedAssignment)
 	}
+	output.PersonnelAssignments = normalizedPersonnel
 	houseNumbers := make(map[string]struct{}, len(output.ShippingDocuments))
 	masterAttributes := make(map[string][2]string, len(output.ShippingDocuments))
 	for index, document := range output.ShippingDocuments {

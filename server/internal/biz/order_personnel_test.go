@@ -9,8 +9,9 @@ import (
 )
 
 type orderPersonnelRepoStub struct {
-	assigned *OrderPersonnel
-	removed  bool
+	assigned     *OrderPersonnel
+	notification *NotificationIntent
+	removed      bool
 }
 
 func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error) {
@@ -25,7 +26,8 @@ func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, order
 	}, nil
 }
 
-func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
+func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent) (*OrderPersonnel, error) {
+	s.notification = notification
 	s.assigned = &OrderPersonnel{
 		ID:             uuid.New(),
 		OrderID:        orderID,
@@ -105,6 +107,9 @@ func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
 	}
 	if created == nil || created.Role != OrderPersonnelRoleSales || created.OrderID != orderID || created.UserID != userID || created.OrganizationID != memberOrganizationID {
 		t.Fatalf("unexpected created personnel: %#v", created)
+	}
+	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateOrderPersonnelAssign {
+		t.Fatalf("unexpected notification intent: %#v", repo.notification)
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "order.personnel.assign" {
 		t.Fatalf("unexpected audit events: %#v", audit.events)
