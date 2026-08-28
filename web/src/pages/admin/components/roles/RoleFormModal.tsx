@@ -176,7 +176,8 @@ export default function RoleFormModal({
             message.success('角色已成功更新');
           } else {
             await adminServiceCreateRole({
-              code: values.code?.trim() ?? '',
+              // 编码由后端自动生成；契约中该字段必填，传空串即可。
+              code: '',
               name: values.name?.trim() ?? '',
               dataScope: values.dataScope ?? 2,
               permissionKeys: selectedPermissionKeys,
@@ -194,21 +195,6 @@ export default function RoleFormModal({
       }}
     >
       <Row gutter={16}>
-        <Col span={12}>
-          <ProFormText
-            name="code"
-            label="角色编码"
-            placeholder="例如：ROLE_OPS_LEAD"
-            disabled={Boolean(editing)}
-            rules={[
-              { required: true, message: '请输入角色编码' },
-              {
-                pattern: /^[A-Za-z0-9_-]+$/,
-                message: '编码仅支持英文字母、数字、下划线及连字符',
-              },
-            ]}
-          />
-        </Col>
         <Col span={12}>
           <ProFormText
             name="name"

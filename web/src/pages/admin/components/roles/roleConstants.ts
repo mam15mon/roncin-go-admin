@@ -30,7 +30,6 @@ export const dataScopeMap = new Map(
 );
 
 export type RoleFormValues = {
-  code?: string;
   name?: string;
   dataScope?: number;
   permissionKeys?: string[];

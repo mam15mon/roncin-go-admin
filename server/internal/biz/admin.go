@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"regexp"
 	"strings"
@@ -565,6 +566,13 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, err
 	}
+	if normalized.Code == "" {
+		generated, generateErr := generateRoleCode()
+		if generateErr != nil {
+			return nil, generateErr
+		}
+		normalized.Code = generated
+	}
 	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
 		return nil, err
 	}
@@ -700,10 +708,25 @@ func normalizeRole(input *AdminRole) (*AdminRole, error) {
 	output := *input
 	output.Code = strings.ToLower(strings.TrimSpace(output.Code))
 	output.Name = strings.TrimSpace(output.Name)
-	if output.Name == "" || (output.ID == uuid.Nil && output.Code == "") || !output.DataScope.Valid() {
+	if output.Name == "" || !output.DataScope.Valid() {
 		return nil, ErrAdminInvalidArgument
 	}
 	return &output, nil
+}
+
+// generateRoleCode 为未指定编码的角色生成机器标识，仅用于审计与调试对照；
+// 组织内唯一性由 (organization_id, code) 唯一索引兜底。
+func generateRoleCode() (string, error) {
+	const alphabet = "23456789abcdefghjkmnpqrstuvwxyz"
+	raw := make([]byte, 10)
+	if _, err := rand.Read(raw); err != nil {
+		return "", fmt.Errorf("generate role code: %w", err)
+	}
+	out := make([]byte, len(raw))
+	for index, value := range raw {
+		out[index] = alphabet[int(value)%len(alphabet)]
+	}
+	return "role_" + string(out), nil
 }
 
 func (uc *AdminUsecase) validateOrderOrganizationAccesses(ctx context.Context, sourceOrganizationID uuid.UUID, accesses []OrderOrganizationAccess) error {

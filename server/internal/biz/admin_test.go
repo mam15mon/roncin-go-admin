@@ -426,6 +426,38 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 	}
 }
 
+func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	first, err := usecase.CreateRole(
+		context.Background(),
+		uuid.New(),
+		uuid.New(),
+		&AdminRole{Name: "操作员", DataScope: DataScopeOrganization},
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("CreateRole() error = %v", err)
+	}
+	if !strings.HasPrefix(first.Code, "role_") || len(first.Code) != len("role_")+10 {
+		t.Fatalf("generated code = %q, want role_ 前缀加 10 位随机字符", first.Code)
+	}
+	second, err := usecase.CreateRole(
+		context.Background(),
+		uuid.New(),
+		uuid.New(),
+		&AdminRole{Name: "财务专员", DataScope: DataScopeOrganization},
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("CreateRole() error = %v", err)
+	}
+	if first.Code == second.Code {
+		t.Fatalf("两次生成的角色编码相同: %q", first.Code)
+	}
+}
+
 func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
 	audit := &auditRepoStub{}
