@@ -1,4 +1,5 @@
 import {
+  ApartmentOutlined,
   DeleteOutlined,
   EditOutlined,
   KeyOutlined,
@@ -16,20 +17,24 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
-import { Alert, App, Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
+import { Alert, App, Avatar, Button, Popconfirm, Space, Table, Tag, Typography } from 'antd';
 import { useAccess, useModel } from '@umijs/max';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   adminServiceAuthorizeDingTalkUser,
   adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
+  adminServiceCreateUserMembership,
   adminServiceDeleteUser,
+  adminServiceDeleteUserMembership,
   adminServiceListOrganizationRoles,
   adminServiceListOrganizations,
   adminServiceListRoles,
+  adminServiceListUserMemberships,
   adminServiceListUsers,
   adminServiceResetUserPassword,
   adminServiceUpdateUser,
+  adminServiceUpdateUserMembership,
 } from '@/services/roncin/adminService';
 
 const { Text } = Typography;
@@ -42,6 +47,20 @@ type UserFormValues = {
   enabled?: boolean;
   roleIds?: string[];
   organizationId?: string;
+};
+
+type UserMembershipFormValues = {
+  organizationId?: string;
+  roleIds?: string[];
+  enabled?: boolean;
+  primary?: boolean;
+};
+
+const organizationKindLabels: Record<number, string> = {
+  1: '总部',
+  2: '公司',
+  3: '部门',
+  4: '组',
 };
 
 function pendingExternalProvider(
@@ -60,6 +79,7 @@ function hasExternalIdentity(user: API.AdminUser): boolean {
 export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const membershipFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
   const { initialState } = useModel('@@initialState');
@@ -69,6 +89,11 @@ export default function UsersPanel() {
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
   const [approvalRoles, setApprovalRoles] = useState<API.AdminRole[]>([]);
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
+  const [memberships, setMemberships] = useState<API.AdminUserMembership[]>([]);
+  const [membershipsLoading, setMembershipsLoading] = useState(false);
+  const [membershipModalOpen, setMembershipModalOpen] = useState(false);
+  const [membershipEditing, setMembershipEditing] = useState<API.AdminUserMembership>();
+  const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
   const pendingProvider = pendingExternalProvider(editing);
 
   useEffect(() => {
@@ -78,16 +103,52 @@ export default function UsersPanel() {
 
   const openCreate = () => {
     setEditing(undefined);
+    setMemberships([]);
     formRef.current?.resetFields();
     setModalOpen(true);
   };
 
+  const loadMemberships = async (userId: string) => {
+    setMembershipsLoading(true);
+    try {
+      const response = await adminServiceListUserMemberships({ userId });
+      setMemberships(response.data ?? []);
+    } finally {
+      setMembershipsLoading(false);
+    }
+  };
+
   const openEdit = (user: API.AdminUser) => {
     setEditing(user);
-    if (pendingExternalProvider(user)) {
+    const provider = pendingExternalProvider(user);
+    if (provider) {
       setApprovalRoles(roles);
+      setMemberships([]);
+    } else if (user.id && access.canReadAllUserMemberships) {
+      void loadMemberships(user.id);
+    } else {
+      setMemberships([]);
     }
     setModalOpen(true);
+  };
+
+  const openCreateMembership = () => {
+    setMembershipEditing(undefined);
+    setMembershipRoles([]);
+    membershipFormRef.current?.resetFields();
+    setMembershipModalOpen(true);
+  };
+
+  const openEditMembership = async (membership: API.AdminUserMembership) => {
+    setMembershipEditing(membership);
+    setMembershipRoles([]);
+    setMembershipModalOpen(true);
+    if (membership.organizationId) {
+      const response = await adminServiceListOrganizationRoles({
+        organizationId: membership.organizationId,
+      });
+      setMembershipRoles(response.data ?? []);
+    }
   };
 
   const columns: ProColumns<API.AdminUser>[] = [
@@ -268,24 +329,28 @@ export default function UsersPanel() {
       fixed: 'right',
       render: (_, record) => (
         <Space size={8}>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            style={{ padding: 0 }}
-            onClick={() => openEdit(record)}
-          >
-            编辑
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<KeyOutlined />}
-            style={{ padding: 0, color: '#f59e0b' }}
-            onClick={() => setResetting(record)}
-          >
-            重置密码
-          </Button>
+          {access.canUpdateUsers && (
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              style={{ padding: 0 }}
+              onClick={() => openEdit(record)}
+            >
+              编辑
+            </Button>
+          )}
+          {access.canResetUserPasswords && (
+            <Button
+              type="link"
+              size="small"
+              icon={<KeyOutlined />}
+              style={{ padding: 0, color: '#f59e0b' }}
+              onClick={() => setResetting(record)}
+            >
+              重置密码
+            </Button>
+          )}
           {access.canDeleteUsers &&
             record.id !== initialState?.currentUser?.id && (
               <Popconfirm
@@ -341,14 +406,16 @@ export default function UsersPanel() {
             >
               刷新
             </Button>
-            <Button
-              key="create"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={openCreate}
-            >
-              新增用户
-            </Button>
+            {access.canCreateUsers && (
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                新增用户
+              </Button>
+            )}
           </Space>
         }
       />
@@ -399,7 +466,7 @@ export default function UsersPanel() {
         }
         modalProps={{
           destroyOnClose: true,
-          width: 560,
+          width: editing && !pendingProvider && access.canReadAllUserMemberships ? 880 : 560,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -513,7 +580,7 @@ export default function UsersPanel() {
         />
         <ProFormSearchableSelect
           name="roleIds"
-          label="分配角色"
+          label={editing && !pendingProvider ? '当前组织角色' : '分配角色'}
           mode="multiple"
           placeholder="请选择角色"
           options={(pendingProvider ? approvalRoles : roles).map((role) => ({
@@ -528,11 +595,249 @@ export default function UsersPanel() {
               : undefined
           }
         />
+        {editing && !pendingProvider && access.canReadAllUserMemberships && (
+          <div style={{ marginTop: 8 }}>
+            <Space
+              align="center"
+              style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}
+            >
+              <div>
+                <Space size={6}>
+                  <ApartmentOutlined style={{ color: '#1677ff' }} />
+                  <Text strong>组织成员关系</Text>
+                </Space>
+                <div>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    同一账号可加入多个组织，并在每个组织中独立配置角色和状态。
+                  </Text>
+                </div>
+              </div>
+              {access.canManageUserMemberships && (
+                <Button size="small" icon={<PlusOutlined />} onClick={openCreateMembership}>
+                  加入组织
+                </Button>
+              )}
+            </Space>
+            <Table<API.AdminUserMembership>
+              rowKey="id"
+              size="small"
+              loading={membershipsLoading}
+              pagination={false}
+              dataSource={memberships}
+              columns={[
+                {
+                  title: '组织',
+                  key: 'organization',
+                  render: (_, membership) => (
+                    <div>
+                      <Space size={6}>
+                        <Text strong>{membership.organizationName || '-'}</Text>
+                        {membership.primary && <Tag color="blue">主要</Tag>}
+                      </Space>
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {organizationKindLabels[membership.organizationKind ?? 0] ?? '组织'} ·{' '}
+                          {membership.organizationCode || '-'}
+                        </Text>
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  title: '角色',
+                  dataIndex: 'roleNames',
+                  render: (_, membership) =>
+                    membership.roleNames?.length ? (
+                      <Space wrap size={[4, 4]}>
+                        {membership.roleNames.map((name) => (
+                          <Tag key={name}>{name}</Tag>
+                        ))}
+                      </Space>
+                    ) : (
+                      <Text type="secondary">未分配</Text>
+                    ),
+                },
+                {
+                  title: '状态',
+                  dataIndex: 'enabled',
+                  width: 72,
+                  render: (enabled) =>
+                    enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+                },
+                {
+                  title: '操作',
+                  key: 'actions',
+                  width: 110,
+                  align: 'right',
+                  render: (_, membership) =>
+                    access.canManageUserMemberships ? (
+                      <Space size={4}>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => void openEditMembership(membership)}
+                        >
+                          编辑
+                        </Button>
+                        <Popconfirm
+                          title={`确定从“${membership.organizationName || '该组织'}”移除？`}
+                          description="移除后会撤销该组织中的在线会话，其他组织关系不受影响。"
+                          okText="移除"
+                          cancelText="取消"
+                          okButtonProps={{ danger: true }}
+                          disabled={editing.id === initialState?.currentUser?.id}
+                          onConfirm={async () => {
+                            if (!editing.id || !membership.id) return;
+                            await adminServiceDeleteUserMembership({
+                              userId: editing.id,
+                              id: membership.id,
+                            });
+                            message.success('已从组织移除该用户');
+                            await loadMemberships(editing.id);
+                          }}
+                        >
+                          <Button
+                            type="link"
+                            danger
+                            size="small"
+                            disabled={editing.id === initialState?.currentUser?.id}
+                          >
+                            移除
+                          </Button>
+                        </Popconfirm>
+                      </Space>
+                    ) : null,
+                },
+              ]}
+            />
+          </div>
+        )}
         {editing && !pendingProvider && (
           <ProFormSwitch
             name="enabled"
             label="账号状态"
             extra="停用后用户将无法登录系统或调用业务接口"
+          />
+        )}
+      </ModalForm>
+
+      <ModalForm<UserMembershipFormValues>
+        title={membershipEditing ? '编辑组织成员关系' : '加入其他组织'}
+        open={membershipModalOpen}
+        formRef={membershipFormRef}
+        initialValues={
+          membershipEditing
+            ? {
+                organizationId: membershipEditing.organizationId,
+                roleIds: membershipEditing.roleIds ?? [],
+                enabled: membershipEditing.enabled ?? true,
+                primary: membershipEditing.primary ?? false,
+              }
+            : { enabled: true, primary: memberships.length === 0 }
+        }
+        modalProps={{
+          destroyOnClose: true,
+          width: 520,
+          onCancel: () => setMembershipModalOpen(false),
+        }}
+        onOpenChange={setMembershipModalOpen}
+        onFinish={async (values) => {
+          if (!editing?.id) return false;
+          if (membershipEditing?.id) {
+            await adminServiceUpdateUserMembership(
+              { userId: editing.id, id: membershipEditing.id },
+              {
+                userId: editing.id,
+                id: membershipEditing.id,
+                roleIds: values.roleIds ?? [],
+                enabled: values.enabled ?? true,
+                primary: values.primary ?? false,
+              },
+            );
+            message.success('组织成员关系已更新');
+          } else {
+            await adminServiceCreateUserMembership(
+              { userId: editing.id },
+              {
+                userId: editing.id,
+                organizationId: values.organizationId ?? '',
+                roleIds: values.roleIds ?? [],
+                primary: values.primary ?? false,
+              },
+            );
+            message.success('用户已加入组织');
+          }
+          setMembershipModalOpen(false);
+          await loadMemberships(editing.id);
+          return true;
+        }}
+      >
+        <Alert
+          showIcon
+          type="info"
+          title="各组织的角色和状态相互独立"
+          description="设为主要组织后，用户下次登录将默认进入该组织；停用会立即撤销该组织中的在线会话。"
+          style={{ marginBottom: 16 }}
+        />
+        <ProFormSearchableSelect
+          name="organizationId"
+          label="所属组织"
+          placeholder="请选择公司、部门或组"
+          disabled={Boolean(membershipEditing)}
+          options={organizations
+            .filter(
+              (organization) =>
+                membershipEditing?.organizationId === organization.id ||
+                !memberships.some(
+                  (membership) => membership.organizationId === organization.id,
+                ),
+            )
+            .map((organization) => ({
+              label: `${organization.name} (${organization.code})`,
+              value: organization.id,
+              code: organization.code,
+              name: organization.name,
+            }))}
+          rules={[{ required: true, message: '请选择所属组织' }]}
+          fieldProps={{
+            onChange: async (organizationId: string) => {
+              membershipFormRef.current?.setFieldValue('roleIds', []);
+              const response = await adminServiceListOrganizationRoles({ organizationId });
+              setMembershipRoles(response.data ?? []);
+            },
+          }}
+        />
+        <ProFormSearchableSelect
+          name="roleIds"
+          label="组织角色"
+          mode="multiple"
+          placeholder="请选择该组织中的角色"
+          options={membershipRoles.map((role) => ({
+            label: `${role.name} (${role.code})`,
+            value: role.id,
+            code: role.code,
+            name: role.name,
+          }))}
+        />
+        <ProFormSwitch
+          name="primary"
+          label="主要组织"
+          extra={
+            membershipEditing?.primary
+              ? '如需更换主要组织，请在另一条启用的成员关系中将其设为主要组织。'
+              : '开启后会自动取消原主要组织，用户下次登录将默认进入这里。'
+          }
+          disabled={membershipEditing?.primary}
+        />
+        {membershipEditing && (
+          <ProFormSwitch
+            name="enabled"
+            label="成员关系状态"
+            extra="停用后用户不能进入该组织，但不会影响其在其他组织中的访问。"
+            disabled={
+              editing?.id === initialState?.currentUser?.id &&
+              membershipEditing.enabled
+            }
           />
         )}
       </ModalForm>

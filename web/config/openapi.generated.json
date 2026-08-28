@@ -573,6 +573,158 @@
         }
       }
     },
+    "/api/v1/admin/users/{userId}/memberships": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_ListUserMemberships",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.ListUserMembershipsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_CreateUserMembership",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.CreateUserMembershipRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.CreateUserMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{userId}/memberships/{id}": {
+      "put": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_UpdateUserMembership",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.UpdateUserMembershipRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.UpdateUserMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_DeleteUserMembership",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.DeleteUserMembershipResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/dingtalk/login": {
       "post": {
         "tags": [
@@ -7900,6 +8052,60 @@
           }
         }
       },
+      "admin.v1.AdminUserMembership": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "organizationCode": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "organizationKind": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roleCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roleNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.AuthorizeDingTalkUserRequest": {
         "required": [
           "id",
@@ -8101,6 +8307,51 @@
           }
         }
       },
+      "admin.v1.CreateUserMembershipRequest": {
+        "required": [
+          "userId",
+          "organizationId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "primary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "admin.v1.CreateUserMembershipResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUserMembership"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.CreateUserRequest": {
         "required": [
           "username",
@@ -8144,6 +8395,24 @@
           },
           "data": {
             "$ref": "#/components/schemas/admin.v1.AdminUser"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.DeleteUserMembershipResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"
@@ -8293,6 +8562,30 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/admin.v1.AdminRole"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.ListUserMembershipsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.AdminUserMembership"
             }
           },
           "traceId": {
@@ -8475,6 +8768,54 @@
           },
           "data": {
             "$ref": "#/components/schemas/admin.v1.AdminRole"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.UpdateUserMembershipRequest": {
+        "required": [
+          "userId",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "primary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "admin.v1.UpdateUserMembershipResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.AdminUserMembership"
           },
           "traceId": {
             "type": "string"

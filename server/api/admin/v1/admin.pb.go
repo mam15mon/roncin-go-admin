@@ -913,6 +913,246 @@ func (x *UpdateUserRequest) GetRoleIds() []string {
 	return nil
 }
 
+type ListUserMembershipsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserMembershipsRequest) Reset() {
+	*x = ListUserMembershipsRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserMembershipsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserMembershipsRequest) ProtoMessage() {}
+
+func (x *ListUserMembershipsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserMembershipsRequest.ProtoReflect.Descriptor instead.
+func (*ListUserMembershipsRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListUserMembershipsRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type CreateUserMembershipRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	RoleIds        []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	Primary        bool                   `protobuf:"varint,4,opt,name=primary,proto3" json:"primary,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateUserMembershipRequest) Reset() {
+	*x = CreateUserMembershipRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserMembershipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserMembershipRequest) ProtoMessage() {}
+
+func (x *CreateUserMembershipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserMembershipRequest.ProtoReflect.Descriptor instead.
+func (*CreateUserMembershipRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateUserMembershipRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *CreateUserMembershipRequest) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *CreateUserMembershipRequest) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
+}
+
+func (x *CreateUserMembershipRequest) GetPrimary() bool {
+	if x != nil {
+		return x.Primary
+	}
+	return false
+}
+
+type UpdateUserMembershipRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	RoleIds       []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Primary       bool                   `protobuf:"varint,5,opt,name=primary,proto3" json:"primary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserMembershipRequest) Reset() {
+	*x = UpdateUserMembershipRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserMembershipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserMembershipRequest) ProtoMessage() {}
+
+func (x *UpdateUserMembershipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserMembershipRequest.ProtoReflect.Descriptor instead.
+func (*UpdateUserMembershipRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UpdateUserMembershipRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateUserMembershipRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateUserMembershipRequest) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
+}
+
+func (x *UpdateUserMembershipRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *UpdateUserMembershipRequest) GetPrimary() bool {
+	if x != nil {
+		return x.Primary
+	}
+	return false
+}
+
+type DeleteUserMembershipRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserMembershipRequest) Reset() {
+	*x = DeleteUserMembershipRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserMembershipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserMembershipRequest) ProtoMessage() {}
+
+func (x *DeleteUserMembershipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserMembershipRequest.ProtoReflect.Descriptor instead.
+func (*DeleteUserMembershipRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *DeleteUserMembershipRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DeleteUserMembershipRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -922,7 +1162,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -934,7 +1174,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -947,7 +1187,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{11}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteUserRequest) GetId() string {
@@ -970,7 +1210,7 @@ type AuthorizeWeComUserRequest struct {
 
 func (x *AuthorizeWeComUserRequest) Reset() {
 	*x = AuthorizeWeComUserRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -982,7 +1222,7 @@ func (x *AuthorizeWeComUserRequest) String() string {
 func (*AuthorizeWeComUserRequest) ProtoMessage() {}
 
 func (x *AuthorizeWeComUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -995,7 +1235,7 @@ func (x *AuthorizeWeComUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeWeComUserRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeWeComUserRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{12}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *AuthorizeWeComUserRequest) GetId() string {
@@ -1046,7 +1286,7 @@ type AuthorizeDingTalkUserRequest struct {
 
 func (x *AuthorizeDingTalkUserRequest) Reset() {
 	*x = AuthorizeDingTalkUserRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1298,7 @@ func (x *AuthorizeDingTalkUserRequest) String() string {
 func (*AuthorizeDingTalkUserRequest) ProtoMessage() {}
 
 func (x *AuthorizeDingTalkUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1311,7 @@ func (x *AuthorizeDingTalkUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeDingTalkUserRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeDingTalkUserRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{13}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AuthorizeDingTalkUserRequest) GetId() string {
@@ -1119,7 +1359,7 @@ type ResetUserPasswordRequest struct {
 
 func (x *ResetUserPasswordRequest) Reset() {
 	*x = ResetUserPasswordRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1131,7 +1371,7 @@ func (x *ResetUserPasswordRequest) String() string {
 func (*ResetUserPasswordRequest) ProtoMessage() {}
 
 func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1144,7 +1384,7 @@ func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{14}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ResetUserPasswordRequest) GetId() string {
@@ -1170,7 +1410,7 @@ type ListOrganizationRolesRequest struct {
 
 func (x *ListOrganizationRolesRequest) Reset() {
 	*x = ListOrganizationRolesRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	mi := &file_admin_v1_admin_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1182,7 +1422,7 @@ func (x *ListOrganizationRolesRequest) String() string {
 func (*ListOrganizationRolesRequest) ProtoMessage() {}
 
 func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	mi := &file_admin_v1_admin_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1195,7 +1435,7 @@ func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{15}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListOrganizationRolesRequest) GetOrganizationId() string {
@@ -1227,7 +1467,7 @@ type AdminUser struct {
 
 func (x *AdminUser) Reset() {
 	*x = AdminUser{}
-	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	mi := &file_admin_v1_admin_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1239,7 +1479,7 @@ func (x *AdminUser) String() string {
 func (*AdminUser) ProtoMessage() {}
 
 func (x *AdminUser) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	mi := &file_admin_v1_admin_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1252,7 +1492,7 @@ func (x *AdminUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminUser.ProtoReflect.Descriptor instead.
 func (*AdminUser) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AdminUser) GetId() string {
@@ -1353,6 +1593,146 @@ func (x *AdminUser) GetAvatarUrl() string {
 	return ""
 }
 
+type AdminUserMembership struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId           string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OrganizationId   string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrganizationCode string                 `protobuf:"bytes,4,opt,name=organization_code,json=organizationCode,proto3" json:"organization_code,omitempty"`
+	OrganizationName string                 `protobuf:"bytes,5,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	OrganizationKind OrganizationKind       `protobuf:"varint,6,opt,name=organization_kind,json=organizationKind,proto3,enum=admin.v1.OrganizationKind" json:"organization_kind,omitempty"`
+	Primary          bool                   `protobuf:"varint,7,opt,name=primary,proto3" json:"primary,omitempty"`
+	Enabled          bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	RoleIds          []string               `protobuf:"bytes,9,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	RoleCodes        []string               `protobuf:"bytes,10,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
+	RoleNames        []string               `protobuf:"bytes,11,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
+	CreatedAt        string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt        string                 `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *AdminUserMembership) Reset() {
+	*x = AdminUserMembership{}
+	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminUserMembership) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminUserMembership) ProtoMessage() {}
+
+func (x *AdminUserMembership) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminUserMembership.ProtoReflect.Descriptor instead.
+func (*AdminUserMembership) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *AdminUserMembership) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetOrganizationCode() string {
+	if x != nil {
+		return x.OrganizationCode
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetOrganizationKind() OrganizationKind {
+	if x != nil {
+		return x.OrganizationKind
+	}
+	return OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
+}
+
+func (x *AdminUserMembership) GetPrimary() bool {
+	if x != nil {
+		return x.Primary
+	}
+	return false
+}
+
+func (x *AdminUserMembership) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *AdminUserMembership) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
+}
+
+func (x *AdminUserMembership) GetRoleCodes() []string {
+	if x != nil {
+		return x.RoleCodes
+	}
+	return nil
+}
+
+func (x *AdminUserMembership) GetRoleNames() []string {
+	if x != nil {
+		return x.RoleNames
+	}
+	return nil
+}
+
+func (x *AdminUserMembership) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *AdminUserMembership) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 type ListUsersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1369,7 +1749,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	mi := &file_admin_v1_admin_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1761,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	mi := &file_admin_v1_admin_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1394,7 +1774,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListUsersResponse) GetSuccess() bool {
@@ -1466,7 +1846,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	mi := &file_admin_v1_admin_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1478,7 +1858,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	mi := &file_admin_v1_admin_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1491,7 +1871,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{18}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateUserResponse) GetSuccess() bool {
@@ -1542,7 +1922,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[19]
+	mi := &file_admin_v1_admin_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1554,7 +1934,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[19]
+	mi := &file_admin_v1_admin_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1567,7 +1947,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{19}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateUserResponse) GetSuccess() bool {
@@ -1605,6 +1985,302 @@ func (x *UpdateUserResponse) GetTraceId() string {
 	return ""
 }
 
+type ListUserMembershipsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*AdminUserMembership `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserMembershipsResponse) Reset() {
+	*x = ListUserMembershipsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserMembershipsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserMembershipsResponse) ProtoMessage() {}
+
+func (x *ListUserMembershipsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserMembershipsResponse.ProtoReflect.Descriptor instead.
+func (*ListUserMembershipsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListUserMembershipsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListUserMembershipsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListUserMembershipsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListUserMembershipsResponse) GetData() []*AdminUserMembership {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListUserMembershipsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type CreateUserMembershipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *AdminUserMembership   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserMembershipResponse) Reset() {
+	*x = CreateUserMembershipResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserMembershipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserMembershipResponse) ProtoMessage() {}
+
+func (x *CreateUserMembershipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserMembershipResponse.ProtoReflect.Descriptor instead.
+func (*CreateUserMembershipResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CreateUserMembershipResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateUserMembershipResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateUserMembershipResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateUserMembershipResponse) GetData() *AdminUserMembership {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateUserMembershipResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateUserMembershipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *AdminUserMembership   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserMembershipResponse) Reset() {
+	*x = UpdateUserMembershipResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserMembershipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserMembershipResponse) ProtoMessage() {}
+
+func (x *UpdateUserMembershipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserMembershipResponse.ProtoReflect.Descriptor instead.
+func (*UpdateUserMembershipResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *UpdateUserMembershipResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateUserMembershipResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateUserMembershipResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateUserMembershipResponse) GetData() *AdminUserMembership {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateUserMembershipResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type DeleteUserMembershipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserMembershipResponse) Reset() {
+	*x = DeleteUserMembershipResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserMembershipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserMembershipResponse) ProtoMessage() {}
+
+func (x *DeleteUserMembershipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserMembershipResponse.ProtoReflect.Descriptor instead.
+func (*DeleteUserMembershipResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DeleteUserMembershipResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeleteUserMembershipResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *DeleteUserMembershipResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *DeleteUserMembershipResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type DeleteUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -1617,7 +2293,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[20]
+	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1629,7 +2305,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[20]
+	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1642,7 +2318,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{20}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DeleteUserResponse) GetSuccess() bool {
@@ -1686,7 +2362,7 @@ type AuthorizeWeComUserResponse struct {
 
 func (x *AuthorizeWeComUserResponse) Reset() {
 	*x = AuthorizeWeComUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	mi := &file_admin_v1_admin_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1698,7 +2374,7 @@ func (x *AuthorizeWeComUserResponse) String() string {
 func (*AuthorizeWeComUserResponse) ProtoMessage() {}
 
 func (x *AuthorizeWeComUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	mi := &file_admin_v1_admin_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1711,7 +2387,7 @@ func (x *AuthorizeWeComUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeWeComUserResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeWeComUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{21}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AuthorizeWeComUserResponse) GetSuccess() bool {
@@ -1762,7 +2438,7 @@ type AuthorizeDingTalkUserResponse struct {
 
 func (x *AuthorizeDingTalkUserResponse) Reset() {
 	*x = AuthorizeDingTalkUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[22]
+	mi := &file_admin_v1_admin_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1774,7 +2450,7 @@ func (x *AuthorizeDingTalkUserResponse) String() string {
 func (*AuthorizeDingTalkUserResponse) ProtoMessage() {}
 
 func (x *AuthorizeDingTalkUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[22]
+	mi := &file_admin_v1_admin_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1787,7 +2463,7 @@ func (x *AuthorizeDingTalkUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeDingTalkUserResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeDingTalkUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{22}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AuthorizeDingTalkUserResponse) GetSuccess() bool {
@@ -1833,7 +2509,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[23]
+	mi := &file_admin_v1_admin_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1845,7 +2521,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[23]
+	mi := &file_admin_v1_admin_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1858,7 +2534,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{23}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{32}
 }
 
 type CreateRoleRequest struct {
@@ -1874,7 +2550,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[24]
+	mi := &file_admin_v1_admin_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1886,7 +2562,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[24]
+	mi := &file_admin_v1_admin_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1899,7 +2575,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{24}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CreateRoleRequest) GetCode() string {
@@ -1951,7 +2627,7 @@ type UpdateRoleRequest struct {
 
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	mi := &file_admin_v1_admin_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1963,7 +2639,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	mi := &file_admin_v1_admin_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1976,7 +2652,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{25}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *UpdateRoleRequest) GetId() string {
@@ -2031,7 +2707,7 @@ type OrderOrganizationAccess struct {
 
 func (x *OrderOrganizationAccess) Reset() {
 	*x = OrderOrganizationAccess{}
-	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2043,7 +2719,7 @@ func (x *OrderOrganizationAccess) String() string {
 func (*OrderOrganizationAccess) ProtoMessage() {}
 
 func (x *OrderOrganizationAccess) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2056,7 +2732,7 @@ func (x *OrderOrganizationAccess) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderOrganizationAccess.ProtoReflect.Descriptor instead.
 func (*OrderOrganizationAccess) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{26}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *OrderOrganizationAccess) GetOrganizationId() string {
@@ -2091,7 +2767,7 @@ type AdminRole struct {
 
 func (x *AdminRole) Reset() {
 	*x = AdminRole{}
-	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	mi := &file_admin_v1_admin_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2103,7 +2779,7 @@ func (x *AdminRole) String() string {
 func (*AdminRole) ProtoMessage() {}
 
 func (x *AdminRole) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	mi := &file_admin_v1_admin_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2116,7 +2792,7 @@ func (x *AdminRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminRole.ProtoReflect.Descriptor instead.
 func (*AdminRole) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{27}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *AdminRole) GetId() string {
@@ -2202,7 +2878,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	mi := &file_admin_v1_admin_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2214,7 +2890,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	mi := &file_admin_v1_admin_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2227,7 +2903,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{28}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListRolesResponse) GetSuccess() bool {
@@ -2278,7 +2954,7 @@ type ListOrganizationRolesResponse struct {
 
 func (x *ListOrganizationRolesResponse) Reset() {
 	*x = ListOrganizationRolesResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[29]
+	mi := &file_admin_v1_admin_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2290,7 +2966,7 @@ func (x *ListOrganizationRolesResponse) String() string {
 func (*ListOrganizationRolesResponse) ProtoMessage() {}
 
 func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[29]
+	mi := &file_admin_v1_admin_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2303,7 +2979,7 @@ func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{29}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListOrganizationRolesResponse) GetSuccess() bool {
@@ -2354,7 +3030,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[30]
+	mi := &file_admin_v1_admin_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2366,7 +3042,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[30]
+	mi := &file_admin_v1_admin_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2379,7 +3055,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{30}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CreateRoleResponse) GetSuccess() bool {
@@ -2430,7 +3106,7 @@ type UpdateRoleResponse struct {
 
 func (x *UpdateRoleResponse) Reset() {
 	*x = UpdateRoleResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[31]
+	mi := &file_admin_v1_admin_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2442,7 +3118,7 @@ func (x *UpdateRoleResponse) String() string {
 func (*UpdateRoleResponse) ProtoMessage() {}
 
 func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[31]
+	mi := &file_admin_v1_admin_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2455,7 +3131,7 @@ func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{31}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *UpdateRoleResponse) GetSuccess() bool {
@@ -2501,7 +3177,7 @@ type ListPermissionsRequest struct {
 
 func (x *ListPermissionsRequest) Reset() {
 	*x = ListPermissionsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[32]
+	mi := &file_admin_v1_admin_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2513,7 +3189,7 @@ func (x *ListPermissionsRequest) String() string {
 func (*ListPermissionsRequest) ProtoMessage() {}
 
 func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[32]
+	mi := &file_admin_v1_admin_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2526,7 +3202,7 @@ func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{32}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{41}
 }
 
 type AdminPermission struct {
@@ -2541,7 +3217,7 @@ type AdminPermission struct {
 
 func (x *AdminPermission) Reset() {
 	*x = AdminPermission{}
-	mi := &file_admin_v1_admin_proto_msgTypes[33]
+	mi := &file_admin_v1_admin_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2553,7 +3229,7 @@ func (x *AdminPermission) String() string {
 func (*AdminPermission) ProtoMessage() {}
 
 func (x *AdminPermission) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[33]
+	mi := &file_admin_v1_admin_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2566,7 +3242,7 @@ func (x *AdminPermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminPermission.ProtoReflect.Descriptor instead.
 func (*AdminPermission) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{33}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AdminPermission) GetKey() string {
@@ -2610,7 +3286,7 @@ type ListPermissionsResponse struct {
 
 func (x *ListPermissionsResponse) Reset() {
 	*x = ListPermissionsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[34]
+	mi := &file_admin_v1_admin_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2622,7 +3298,7 @@ func (x *ListPermissionsResponse) String() string {
 func (*ListPermissionsResponse) ProtoMessage() {}
 
 func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[34]
+	mi := &file_admin_v1_admin_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2635,7 +3311,7 @@ func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{34}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListPermissionsResponse) GetSuccess() bool {
@@ -2689,7 +3365,7 @@ type ListAuditLogsRequest struct {
 
 func (x *ListAuditLogsRequest) Reset() {
 	*x = ListAuditLogsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[35]
+	mi := &file_admin_v1_admin_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2701,7 +3377,7 @@ func (x *ListAuditLogsRequest) String() string {
 func (*ListAuditLogsRequest) ProtoMessage() {}
 
 func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[35]
+	mi := &file_admin_v1_admin_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2714,7 +3390,7 @@ func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{35}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListAuditLogsRequest) GetPage() int32 {
@@ -2793,7 +3469,7 @@ type AdminAuditLog struct {
 
 func (x *AdminAuditLog) Reset() {
 	*x = AdminAuditLog{}
-	mi := &file_admin_v1_admin_proto_msgTypes[36]
+	mi := &file_admin_v1_admin_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2805,7 +3481,7 @@ func (x *AdminAuditLog) String() string {
 func (*AdminAuditLog) ProtoMessage() {}
 
 func (x *AdminAuditLog) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[36]
+	mi := &file_admin_v1_admin_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2818,7 +3494,7 @@ func (x *AdminAuditLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminAuditLog.ProtoReflect.Descriptor instead.
 func (*AdminAuditLog) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{36}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AdminAuditLog) GetId() string {
@@ -2921,7 +3597,7 @@ type ListAuditLogsResponse struct {
 
 func (x *ListAuditLogsResponse) Reset() {
 	*x = ListAuditLogsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[37]
+	mi := &file_admin_v1_admin_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2933,7 +3609,7 @@ func (x *ListAuditLogsResponse) String() string {
 func (*ListAuditLogsResponse) ProtoMessage() {}
 
 func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[37]
+	mi := &file_admin_v1_admin_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2946,7 +3622,7 @@ func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{37}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListAuditLogsResponse) GetSuccess() bool {
@@ -3074,7 +3750,23 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x19\n" +
 	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\b\n" +
-	"\x06_email\"(\n" +
+	"\x06_email\":\n" +
+	"\x1aListUserMembershipsRequest\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\"\x9e\x01\n" +
+	"\x1bCreateUserMembershipRequest\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12,\n" +
+	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x19\n" +
+	"\brole_ids\x18\x03 \x03(\tR\aroleIds\x12\x18\n" +
+	"\aprimary\x18\x04 \x01(\bR\aprimary\"\x9f\x01\n" +
+	"\x1bUpdateUserMembershipRequest\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12\x19\n" +
+	"\brole_ids\x18\x03 \x03(\tR\aroleIds\x12\x18\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x18\n" +
+	"\aprimary\x18\x05 \x01(\bR\aprimary\"P\n" +
+	"\x1bDeleteUserMembershipRequest\x12\x1c\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"(\n" +
 	"\x11DeleteUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xcb\x01\n" +
 	"\x19AuthorizeWeComUserRequest\x12\x13\n" +
@@ -3122,7 +3814,26 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\v_wecom_nameB\x13\n" +
 	"\x11_dingtalk_unionidB\x10\n" +
 	"\x0e_dingtalk_nameB\r\n" +
-	"\v_avatar_url\"\xe6\x01\n" +
+	"\v_avatar_url\"\xd5\x03\n" +
+	"\x13AdminUserMembership\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12'\n" +
+	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\x12+\n" +
+	"\x11organization_code\x18\x04 \x01(\tR\x10organizationCode\x12+\n" +
+	"\x11organization_name\x18\x05 \x01(\tR\x10organizationName\x12G\n" +
+	"\x11organization_kind\x18\x06 \x01(\x0e2\x1a.admin.v1.OrganizationKindR\x10organizationKind\x12\x18\n" +
+	"\aprimary\x18\a \x01(\bR\aprimary\x12\x18\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\x12\x19\n" +
+	"\brole_ids\x18\t \x03(\tR\aroleIds\x12\x1d\n" +
+	"\n" +
+	"role_codes\x18\n" +
+	" \x03(\tR\troleCodes\x12\x1d\n" +
+	"\n" +
+	"role_names\x18\v \x03(\tR\troleNames\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAt\"\xe6\x01\n" +
 	"\x11ListUsersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -3143,7 +3854,30 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminUserR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"w\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\x1bListUserMembershipsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x03(\v2\x1d.admin.v1.AdminUserMembershipR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1cCreateUserMembershipResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.admin.v1.AdminUserMembershipR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1cUpdateUserMembershipResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x121\n" +
+	"\x04data\x18\x04 \x01(\v2\x1d.admin.v1.AdminUserMembershipR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x01\n" +
+	"\x1cDeleteUserMembershipResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"w\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -3288,7 +4022,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xe7\x13\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xce\x19\n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -3297,7 +4031,11 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"CreateUser\x12\x1b.admin.v1.CreateUserRequest\x1a\x1c.admin.v1.CreateUserResponse\":\x82\xb5\x18\x18\b\x03\x12\x12system.user.create \x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/users\x12\x88\x01\n" +
 	"\n" +
-	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x1c.admin.v1.UpdateUserResponse\"?\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/users/{id}\x12\x85\x01\n" +
+	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x1c.admin.v1.UpdateUserResponse\"?\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/users/{id}\x12\xaf\x01\n" +
+	"\x13ListUserMemberships\x12$.admin.v1.ListUserMembershipsRequest\x1a%.admin.v1.ListUserMembershipsResponse\"K\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x01\x82\xd3\xe4\x93\x02+\x12)/api/v1/admin/users/{user_id}/memberships\x12\xb7\x01\n" +
+	"\x14CreateUserMembership\x12%.admin.v1.CreateUserMembershipRequest\x1a&.admin.v1.CreateUserMembershipResponse\"P\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/admin/users/{user_id}/memberships\x12\xbc\x01\n" +
+	"\x14UpdateUserMembership\x12%.admin.v1.UpdateUserMembershipRequest\x1a&.admin.v1.UpdateUserMembershipResponse\"U\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x023:\x01*\x1a./api/v1/admin/users/{user_id}/memberships/{id}\x12\xb9\x01\n" +
+	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x85\x01\n" +
 	"\n" +
 	"DeleteUser\x12\x1b.admin.v1.DeleteUserRequest\x1a\x1c.admin.v1.DeleteUserResponse\"<\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/admin/users/{id}\x12\xbd\x01\n" +
 	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a$.admin.v1.AuthorizeWeComUserResponse\"\\\x82\xb5\x18!\b\x03\x12\x1bsystem.user.authorize_wecom \x01\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\xcc\x01\n" +
@@ -3325,7 +4063,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(DataScope)(0),                        // 0: admin.v1.DataScope
 	(OrganizationKind)(0),                 // 1: admin.v1.OrganizationKind
@@ -3340,34 +4078,43 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*ListUsersRequest)(nil),              // 10: admin.v1.ListUsersRequest
 	(*CreateUserRequest)(nil),             // 11: admin.v1.CreateUserRequest
 	(*UpdateUserRequest)(nil),             // 12: admin.v1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),             // 13: admin.v1.DeleteUserRequest
-	(*AuthorizeWeComUserRequest)(nil),     // 14: admin.v1.AuthorizeWeComUserRequest
-	(*AuthorizeDingTalkUserRequest)(nil),  // 15: admin.v1.AuthorizeDingTalkUserRequest
-	(*ResetUserPasswordRequest)(nil),      // 16: admin.v1.ResetUserPasswordRequest
-	(*ListOrganizationRolesRequest)(nil),  // 17: admin.v1.ListOrganizationRolesRequest
-	(*AdminUser)(nil),                     // 18: admin.v1.AdminUser
-	(*ListUsersResponse)(nil),             // 19: admin.v1.ListUsersResponse
-	(*CreateUserResponse)(nil),            // 20: admin.v1.CreateUserResponse
-	(*UpdateUserResponse)(nil),            // 21: admin.v1.UpdateUserResponse
-	(*DeleteUserResponse)(nil),            // 22: admin.v1.DeleteUserResponse
-	(*AuthorizeWeComUserResponse)(nil),    // 23: admin.v1.AuthorizeWeComUserResponse
-	(*AuthorizeDingTalkUserResponse)(nil), // 24: admin.v1.AuthorizeDingTalkUserResponse
-	(*ListRolesRequest)(nil),              // 25: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),             // 26: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),             // 27: admin.v1.UpdateRoleRequest
-	(*OrderOrganizationAccess)(nil),       // 28: admin.v1.OrderOrganizationAccess
-	(*AdminRole)(nil),                     // 29: admin.v1.AdminRole
-	(*ListRolesResponse)(nil),             // 30: admin.v1.ListRolesResponse
-	(*ListOrganizationRolesResponse)(nil), // 31: admin.v1.ListOrganizationRolesResponse
-	(*CreateRoleResponse)(nil),            // 32: admin.v1.CreateRoleResponse
-	(*UpdateRoleResponse)(nil),            // 33: admin.v1.UpdateRoleResponse
-	(*ListPermissionsRequest)(nil),        // 34: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),               // 35: admin.v1.AdminPermission
-	(*ListPermissionsResponse)(nil),       // 36: admin.v1.ListPermissionsResponse
-	(*ListAuditLogsRequest)(nil),          // 37: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),                 // 38: admin.v1.AdminAuditLog
-	(*ListAuditLogsResponse)(nil),         // 39: admin.v1.ListAuditLogsResponse
-	nil,                                   // 40: admin.v1.AdminAuditLog.DetailsEntry
+	(*ListUserMembershipsRequest)(nil),    // 13: admin.v1.ListUserMembershipsRequest
+	(*CreateUserMembershipRequest)(nil),   // 14: admin.v1.CreateUserMembershipRequest
+	(*UpdateUserMembershipRequest)(nil),   // 15: admin.v1.UpdateUserMembershipRequest
+	(*DeleteUserMembershipRequest)(nil),   // 16: admin.v1.DeleteUserMembershipRequest
+	(*DeleteUserRequest)(nil),             // 17: admin.v1.DeleteUserRequest
+	(*AuthorizeWeComUserRequest)(nil),     // 18: admin.v1.AuthorizeWeComUserRequest
+	(*AuthorizeDingTalkUserRequest)(nil),  // 19: admin.v1.AuthorizeDingTalkUserRequest
+	(*ResetUserPasswordRequest)(nil),      // 20: admin.v1.ResetUserPasswordRequest
+	(*ListOrganizationRolesRequest)(nil),  // 21: admin.v1.ListOrganizationRolesRequest
+	(*AdminUser)(nil),                     // 22: admin.v1.AdminUser
+	(*AdminUserMembership)(nil),           // 23: admin.v1.AdminUserMembership
+	(*ListUsersResponse)(nil),             // 24: admin.v1.ListUsersResponse
+	(*CreateUserResponse)(nil),            // 25: admin.v1.CreateUserResponse
+	(*UpdateUserResponse)(nil),            // 26: admin.v1.UpdateUserResponse
+	(*ListUserMembershipsResponse)(nil),   // 27: admin.v1.ListUserMembershipsResponse
+	(*CreateUserMembershipResponse)(nil),  // 28: admin.v1.CreateUserMembershipResponse
+	(*UpdateUserMembershipResponse)(nil),  // 29: admin.v1.UpdateUserMembershipResponse
+	(*DeleteUserMembershipResponse)(nil),  // 30: admin.v1.DeleteUserMembershipResponse
+	(*DeleteUserResponse)(nil),            // 31: admin.v1.DeleteUserResponse
+	(*AuthorizeWeComUserResponse)(nil),    // 32: admin.v1.AuthorizeWeComUserResponse
+	(*AuthorizeDingTalkUserResponse)(nil), // 33: admin.v1.AuthorizeDingTalkUserResponse
+	(*ListRolesRequest)(nil),              // 34: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),             // 35: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),             // 36: admin.v1.UpdateRoleRequest
+	(*OrderOrganizationAccess)(nil),       // 37: admin.v1.OrderOrganizationAccess
+	(*AdminRole)(nil),                     // 38: admin.v1.AdminRole
+	(*ListRolesResponse)(nil),             // 39: admin.v1.ListRolesResponse
+	(*ListOrganizationRolesResponse)(nil), // 40: admin.v1.ListOrganizationRolesResponse
+	(*CreateRoleResponse)(nil),            // 41: admin.v1.CreateRoleResponse
+	(*UpdateRoleResponse)(nil),            // 42: admin.v1.UpdateRoleResponse
+	(*ListPermissionsRequest)(nil),        // 43: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),               // 44: admin.v1.AdminPermission
+	(*ListPermissionsResponse)(nil),       // 45: admin.v1.ListPermissionsResponse
+	(*ListAuditLogsRequest)(nil),          // 46: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),                 // 47: admin.v1.AdminAuditLog
+	(*ListAuditLogsResponse)(nil),         // 48: admin.v1.ListAuditLogsResponse
+	nil,                                   // 49: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
@@ -3375,61 +4122,73 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	5,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
 	5,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
 	5,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	18, // 5: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	18, // 6: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	18, // 7: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	18, // 8: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
-	18, // 9: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 10: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	28, // 11: admin.v1.CreateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	0,  // 12: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	28, // 13: admin.v1.UpdateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	0,  // 14: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	28, // 15: admin.v1.AdminRole.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	29, // 16: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	29, // 17: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	29, // 18: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	29, // 19: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	35, // 20: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	40, // 21: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	38, // 22: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	2,  // 23: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	3,  // 24: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	4,  // 25: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	10, // 26: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	11, // 27: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	12, // 28: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	13, // 29: admin.v1.AdminService.DeleteUser:input_type -> admin.v1.DeleteUserRequest
-	14, // 30: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
-	15, // 31: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	16, // 32: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	25, // 33: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	17, // 34: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	26, // 35: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	27, // 36: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	34, // 37: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	37, // 38: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	6,  // 39: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	8,  // 40: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	9,  // 41: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	19, // 42: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	20, // 43: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	21, // 44: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	22, // 45: admin.v1.AdminService.DeleteUser:output_type -> admin.v1.DeleteUserResponse
-	23, // 46: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
-	24, // 47: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	7,  // 48: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	30, // 49: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	31, // 50: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	32, // 51: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	33, // 52: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	36, // 53: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	39, // 54: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	39, // [39:55] is the sub-list for method output_type
-	23, // [23:39] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	1,  // 5: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
+	22, // 6: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	22, // 7: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	22, // 8: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 9: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	23, // 10: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	23, // 11: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	22, // 12: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
+	22, // 13: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	0,  // 14: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	37, // 15: admin.v1.CreateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	0,  // 16: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	37, // 17: admin.v1.UpdateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	0,  // 18: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	37, // 19: admin.v1.AdminRole.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	38, // 20: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	38, // 21: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	38, // 22: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	38, // 23: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	44, // 24: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	49, // 25: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	47, // 26: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	2,  // 27: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	3,  // 28: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	4,  // 29: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	10, // 30: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	11, // 31: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	12, // 32: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	13, // 33: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	14, // 34: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
+	15, // 35: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	16, // 36: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	17, // 37: admin.v1.AdminService.DeleteUser:input_type -> admin.v1.DeleteUserRequest
+	18, // 38: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
+	19, // 39: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	20, // 40: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	34, // 41: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	21, // 42: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	35, // 43: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	36, // 44: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	43, // 45: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	46, // 46: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	6,  // 47: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	8,  // 48: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	9,  // 49: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	24, // 50: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	25, // 51: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	26, // 52: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	27, // 53: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	28, // 54: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
+	29, // 55: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	30, // 56: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	31, // 57: admin.v1.AdminService.DeleteUser:output_type -> admin.v1.DeleteUserResponse
+	32, // 58: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
+	33, // 59: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	7,  // 60: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	39, // 61: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	40, // 62: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	41, // 63: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	42, // 64: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	45, // 65: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	48, // 66: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	47, // [47:67] is the sub-list for method output_type
+	27, // [27:47] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -3442,17 +4201,17 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[3].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[9].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[12].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[13].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[16].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[36].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[17].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[20].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[45].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   39,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

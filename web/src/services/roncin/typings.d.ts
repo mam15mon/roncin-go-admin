@@ -161,6 +161,15 @@ declare namespace API {
     id: string;
   };
 
+  type AdminServiceCreateUserMembershipParams = {
+    userId: string;
+  };
+
+  type AdminServiceDeleteUserMembershipParams = {
+    userId: string;
+    id: string;
+  };
+
   type AdminServiceDeleteUserParams = {
     id: string;
   };
@@ -180,6 +189,10 @@ declare namespace API {
     organizationId: string;
   };
 
+  type AdminServiceListUserMembershipsParams = {
+    userId: string;
+  };
+
   type AdminServiceListUsersParams = {
     page?: number;
     pageSize?: number;
@@ -195,6 +208,11 @@ declare namespace API {
   };
 
   type AdminServiceUpdateRoleParams = {
+    id: string;
+  };
+
+  type AdminServiceUpdateUserMembershipParams = {
+    userId: string;
     id: string;
   };
 
@@ -217,6 +235,22 @@ declare namespace API {
     dingtalkUnionid?: string;
     dingtalkName?: string;
     avatarUrl?: string;
+  };
+
+  type AdminUserMembership = {
+    id?: string;
+    userId?: string;
+    organizationId?: string;
+    organizationCode?: string;
+    organizationName?: string;
+    organizationKind?: number;
+    primary?: boolean;
+    enabled?: boolean;
+    roleIds?: string[];
+    roleCodes?: string[];
+    roleNames?: string[];
+    createdAt?: string;
+    updatedAt?: string;
   };
 
   type Airline = {
@@ -1157,6 +1191,21 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateUserMembershipRequest = {
+    userId: string;
+    organizationId: string;
+    roleIds?: string[];
+    primary?: boolean;
+  };
+
+  type CreateUserMembershipResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUserMembership;
+    traceId?: string;
+  };
+
   type CreateUserRequest = {
     username: string;
     displayName: string;
@@ -1209,6 +1258,13 @@ declare namespace API {
     permissions?: string[];
     roleScopes?: RoleScope[];
     avatarUrl?: string;
+  };
+
+  type DeleteUserMembershipResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
   };
 
   type DeleteUserResponse = {
@@ -2399,6 +2455,14 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListUserMembershipsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUserMembership[];
+    traceId?: string;
   };
 
   type ListUsersResponse = {
@@ -4896,6 +4960,22 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: TaxableService;
+    traceId?: string;
+  };
+
+  type UpdateUserMembershipRequest = {
+    userId: string;
+    id: string;
+    roleIds?: string[];
+    enabled?: boolean;
+    primary?: boolean;
+  };
+
+  type UpdateUserMembershipResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AdminUserMembership;
     traceId?: string;
   };
 

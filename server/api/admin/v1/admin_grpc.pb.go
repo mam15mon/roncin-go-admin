@@ -25,6 +25,10 @@ const (
 	AdminService_ListUsers_FullMethodName             = "/admin.v1.AdminService/ListUsers"
 	AdminService_CreateUser_FullMethodName            = "/admin.v1.AdminService/CreateUser"
 	AdminService_UpdateUser_FullMethodName            = "/admin.v1.AdminService/UpdateUser"
+	AdminService_ListUserMemberships_FullMethodName   = "/admin.v1.AdminService/ListUserMemberships"
+	AdminService_CreateUserMembership_FullMethodName  = "/admin.v1.AdminService/CreateUserMembership"
+	AdminService_UpdateUserMembership_FullMethodName  = "/admin.v1.AdminService/UpdateUserMembership"
+	AdminService_DeleteUserMembership_FullMethodName  = "/admin.v1.AdminService/DeleteUserMembership"
 	AdminService_DeleteUser_FullMethodName            = "/admin.v1.AdminService/DeleteUser"
 	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
 	AdminService_AuthorizeDingTalkUser_FullMethodName = "/admin.v1.AdminService/AuthorizeDingTalkUser"
@@ -47,6 +51,10 @@ type AdminServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
+	ListUserMemberships(ctx context.Context, in *ListUserMembershipsRequest, opts ...grpc.CallOption) (*ListUserMembershipsResponse, error)
+	CreateUserMembership(ctx context.Context, in *CreateUserMembershipRequest, opts ...grpc.CallOption) (*CreateUserMembershipResponse, error)
+	UpdateUserMembership(ctx context.Context, in *UpdateUserMembershipRequest, opts ...grpc.CallOption) (*UpdateUserMembershipResponse, error)
+	DeleteUserMembership(ctx context.Context, in *DeleteUserMembershipRequest, opts ...grpc.CallOption) (*DeleteUserMembershipResponse, error)
 	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
@@ -122,6 +130,46 @@ func (c *adminServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListUserMemberships(ctx context.Context, in *ListUserMembershipsRequest, opts ...grpc.CallOption) (*ListUserMembershipsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserMembershipsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListUserMemberships_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) CreateUserMembership(ctx context.Context, in *CreateUserMembershipRequest, opts ...grpc.CallOption) (*CreateUserMembershipResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUserMembershipResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreateUserMembership_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) UpdateUserMembership(ctx context.Context, in *UpdateUserMembershipRequest, opts ...grpc.CallOption) (*UpdateUserMembershipResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateUserMembershipResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdateUserMembership_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeleteUserMembership(ctx context.Context, in *DeleteUserMembershipRequest, opts ...grpc.CallOption) (*DeleteUserMembershipResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserMembershipResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteUserMembership_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -238,6 +286,10 @@ type AdminServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error)
+	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
+	UpdateUserMembership(context.Context, *UpdateUserMembershipRequest) (*UpdateUserMembershipResponse, error)
+	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
@@ -276,6 +328,18 @@ func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRe
 }
 func (UnimplementedAdminServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedAdminServiceServer) ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUserMemberships not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateUserMembership not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdateUserMembership(context.Context, *UpdateUserMembershipRequest) (*UpdateUserMembershipResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateUserMembership not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUserMembership not implemented")
 }
 func (UnimplementedAdminServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
@@ -432,6 +496,78 @@ func _AdminService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListUserMemberships_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserMembershipsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListUserMemberships(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListUserMemberships_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListUserMemberships(ctx, req.(*ListUserMembershipsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_CreateUserMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateUserMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateUserMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateUserMembership(ctx, req.(*CreateUserMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_UpdateUserMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdateUserMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdateUserMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdateUserMembership(ctx, req.(*UpdateUserMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeleteUserMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteUserMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteUserMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteUserMembership(ctx, req.(*DeleteUserMembershipRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -646,6 +782,22 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUser",
 			Handler:    _AdminService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "ListUserMemberships",
+			Handler:    _AdminService_ListUserMemberships_Handler,
+		},
+		{
+			MethodName: "CreateUserMembership",
+			Handler:    _AdminService_CreateUserMembership_Handler,
+		},
+		{
+			MethodName: "UpdateUserMembership",
+			Handler:    _AdminService_UpdateUserMembership_Handler,
+		},
+		{
+			MethodName: "DeleteUserMembership",
+			Handler:    _AdminService_DeleteUserMembership_Handler,
 		},
 		{
 			MethodName: "DeleteUser",

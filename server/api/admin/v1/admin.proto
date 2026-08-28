@@ -51,6 +51,32 @@ service AdminService {
     };
   }
 
+  rpc ListUserMemberships(ListUserMembershipsRequest) returns (ListUserMembershipsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.read" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {get: "/api/v1/admin/users/{user_id}/memberships"};
+  }
+
+  rpc CreateUserMembership(CreateUserMembershipRequest) returns (CreateUserMembershipResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {
+      post: "/api/v1/admin/users/{user_id}/memberships"
+      body: "*"
+    };
+  }
+
+  rpc UpdateUserMembership(UpdateUserMembershipRequest) returns (UpdateUserMembershipResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/memberships/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteUserMembership(DeleteUserMembershipRequest) returns (DeleteUserMembershipResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {delete: "/api/v1/admin/users/{user_id}/memberships/{id}"};
+  }
+
   // DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.delete" scope: DATA_SCOPE_ORGANIZATION};
@@ -214,6 +240,30 @@ message UpdateUserRequest {
   repeated string role_ids = 5;
 }
 
+message ListUserMembershipsRequest {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CreateUserMembershipRequest {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string role_ids = 3;
+  bool primary = 4;
+}
+
+message UpdateUserMembershipRequest {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string role_ids = 3;
+  bool enabled = 4;
+  bool primary = 5;
+}
+
+message DeleteUserMembershipRequest {
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
 message DeleteUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
@@ -260,6 +310,22 @@ message AdminUser {
   optional string avatar_url = 14;
 }
 
+message AdminUserMembership {
+  string id = 1;
+  string user_id = 2;
+  string organization_id = 3;
+  string organization_code = 4;
+  string organization_name = 5;
+  OrganizationKind organization_kind = 6;
+  bool primary = 7;
+  bool enabled = 8;
+  repeated string role_ids = 9;
+  repeated string role_codes = 10;
+  repeated string role_names = 11;
+  string created_at = 12;
+  string updated_at = 13;
+}
+
 message ListUsersResponse {
   bool success = 1;
   int32 code = 2;
@@ -285,6 +351,37 @@ message UpdateUserResponse {
   string message = 3;
   AdminUser data = 4;
   string trace_id = 5;
+}
+
+message ListUserMembershipsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AdminUserMembership data = 4;
+  string trace_id = 5;
+}
+
+message CreateUserMembershipResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminUserMembership data = 4;
+  string trace_id = 5;
+}
+
+message UpdateUserMembershipResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AdminUserMembership data = 4;
+  string trace_id = 5;
+}
+
+message DeleteUserMembershipResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
 }
 
 message DeleteUserResponse {

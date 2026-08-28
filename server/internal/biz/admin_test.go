@@ -20,6 +20,10 @@ type adminRepoStub struct {
 	resetPassword     string
 	deletedUserID     uuid.UUID
 	deleteOrgID       uuid.UUID
+	memberships       []*AdminUserMembership
+	membershipInput   *AdminUserMembership
+	membershipRoleIDs []uuid.UUID
+	deletedMembership uuid.UUID
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -56,6 +60,29 @@ func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminU
 
 func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	return input, nil
+}
+
+func (s *adminRepoStub) ListUserMemberships(_ context.Context, _ uuid.UUID) ([]*AdminUserMembership, error) {
+	return s.memberships, nil
+}
+
+func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+	s.membershipInput = input
+	s.membershipRoleIDs = roleIDs
+	input.ID = uuid.New()
+	return input, nil
+}
+
+func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+	s.membershipInput = input
+	s.membershipRoleIDs = roleIDs
+	input.OrganizationID = uuid.New()
+	return input, nil
+}
+
+func (s *adminRepoStub) DeleteUserMembership(_ context.Context, _ uuid.UUID, membershipID uuid.UUID) error {
+	s.deletedMembership = membershipID
+	return nil
 }
 
 func (s *adminRepoStub) DeleteUser(_ context.Context, organizationID, id uuid.UUID) error {
@@ -372,6 +399,66 @@ func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
 	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminInvalidArgument", err)
+	}
+}
+
+func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
+	repo := &adminRepoStub{}
+	audit := &auditRepoStub{}
+	usecase := NewAdminUsecase(repo, audit)
+	actorID := uuid.New()
+	userID := uuid.New()
+	organizationID := uuid.New()
+	roleID := uuid.New()
+
+	if _, err := usecase.CreateUserMembership(context.Background(), actorID, userID, uuid.Nil, false, nil); err != ErrAdminInvalidArgument {
+		t.Fatalf("CreateUserMembership() missing organization error = %v", err)
+	}
+	created, err := usecase.CreateUserMembership(context.Background(), actorID, userID, organizationID, true, []uuid.UUID{roleID})
+	if err != nil {
+		t.Fatalf("CreateUserMembership() error = %v", err)
+	}
+	if created.OrganizationID != organizationID || !created.Enabled || !created.Primary {
+		t.Fatalf("created membership = %#v", created)
+	}
+	if len(repo.membershipRoleIDs) != 1 || repo.membershipRoleIDs[0] != roleID {
+		t.Fatalf("membership role IDs = %#v", repo.membershipRoleIDs)
+	}
+	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.membership.create" {
+		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestAdminUsecaseUpdateUserMembershipRejectsDisabledPrimary(t *testing.T) {
+	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), uuid.New(), uuid.New(), false, true, nil); err != ErrAdminInvalidArgument {
+		t.Fatalf("UpdateUserMembership() error = %v, want ErrAdminInvalidArgument", err)
+	}
+	actorID := uuid.New()
+	if _, err := usecase.UpdateUserMembership(context.Background(), actorID, actorID, uuid.New(), false, false, nil); err != ErrAdminUserSelfDelete {
+		t.Fatalf("UpdateUserMembership() self-disable error = %v, want ErrAdminUserSelfDelete", err)
+	}
+}
+
+func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
+	repo := &adminRepoStub{}
+	audit := &auditRepoStub{}
+	usecase := NewAdminUsecase(repo, audit)
+	actorID := uuid.New()
+	membershipID := uuid.New()
+
+	if err := usecase.DeleteUserMembership(context.Background(), actorID, actorID, membershipID); err != ErrAdminUserSelfDelete {
+		t.Fatalf("DeleteUserMembership() self error = %v", err)
+	}
+	userID := uuid.New()
+	if err := usecase.DeleteUserMembership(context.Background(), actorID, userID, membershipID); err != nil {
+		t.Fatalf("DeleteUserMembership() error = %v", err)
+	}
+	if repo.deletedMembership != membershipID {
+		t.Fatalf("deleted membership = %s, want %s", repo.deletedMembership, membershipID)
+	}
+	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.membership.delete" {
+		t.Fatalf("audit events = %#v", audit.events)
 	}
 }
 

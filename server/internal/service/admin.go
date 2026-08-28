@@ -127,6 +127,92 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	return &v1.UpdateUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
+func (s *AdminService) ListUserMemberships(ctx context.Context, request *v1.ListUserMembershipsRequest) (*v1.ListUserMembershipsResponse, error) {
+	if _, err := requirePrincipal(ctx); err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetUserId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	items, err := s.usecase.ListUserMemberships(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.AdminUserMembership, 0, len(items))
+	for _, item := range items {
+		data = append(data, userMembershipToAPI(item))
+	}
+	return &v1.ListUserMembershipsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.CreateUserMembershipRequest) (*v1.CreateUserMembershipResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetUserId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	organizationID, err := uuid.Parse(request.GetOrganizationId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	roleIDs, err := parseUUIDs(request.GetRoleIds())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	created, err := s.usecase.CreateUserMembership(ctx, principal.UserID, userID, organizationID, request.GetPrimary(), roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CreateUserMembershipResponse{Success: true, Code: 0, Message: "OK", Data: userMembershipToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.UpdateUserMembershipRequest) (*v1.UpdateUserMembershipResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetUserId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	membershipID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	roleIDs, err := parseUUIDs(request.GetRoleIds())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	updated, err := s.usecase.UpdateUserMembership(ctx, principal.UserID, userID, membershipID, request.GetEnabled(), request.GetPrimary(), roleIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateUserMembershipResponse{Success: true, Code: 0, Message: "OK", Data: userMembershipToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *AdminService) DeleteUserMembership(ctx context.Context, request *v1.DeleteUserMembershipRequest) (*v1.DeleteUserMembershipResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID, err := uuid.Parse(request.GetUserId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	membershipID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	if err := s.usecase.DeleteUserMembership(ctx, principal.UserID, userID, membershipID); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteUserMembershipResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *AdminService) DeleteUser(ctx context.Context, request *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -446,6 +532,24 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 
 func userToAPI(value *biz.AdminUser) *v1.AdminUser {
 	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+}
+
+func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership {
+	return &v1.AdminUserMembership{
+		Id:               value.ID.String(),
+		UserId:           value.UserID.String(),
+		OrganizationId:   value.OrganizationID.String(),
+		OrganizationCode: value.OrganizationCode,
+		OrganizationName: value.OrganizationName,
+		OrganizationKind: organizationKindToAPI(value.OrganizationKind),
+		Primary:          value.Primary,
+		Enabled:          value.Enabled,
+		RoleIds:          uuidStrings(value.RoleIDs),
+		RoleCodes:        value.RoleCodes,
+		RoleNames:        value.RoleNames,
+		CreatedAt:        value.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:        value.UpdatedAt.Format(time.RFC3339),
+	}
 }
 
 func roleToAPI(value *biz.AdminRole) *v1.AdminRole {

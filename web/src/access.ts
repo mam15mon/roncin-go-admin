@@ -146,6 +146,8 @@ export default function access(
     canCreateUsers: has(permissions.userCreate) && inOrganization,
     canUpdateUsers: has(permissions.userUpdate) && inOrganization,
     canDeleteUsers: has(permissions.userDelete) && inOrganization,
+    canReadAllUserMemberships: has(permissions.userRead) && inAll,
+    canManageUserMemberships: has(permissions.userUpdate) && inAll,
     canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom) && inAll,
     canAuthorizeDingTalkUsers: has(permissions.userAuthorizeDingTalk) && inAll,
     canResetUserPasswords: has(permissions.userResetPassword) && inOrganization,

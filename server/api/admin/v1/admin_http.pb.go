@@ -22,17 +22,21 @@ const OperationAdminServiceAuthorizeWeComUser = "/admin.v1.AdminService/Authoriz
 const OperationAdminServiceCreateOrganization = "/admin.v1.AdminService/CreateOrganization"
 const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
 const OperationAdminServiceCreateUser = "/admin.v1.AdminService/CreateUser"
+const OperationAdminServiceCreateUserMembership = "/admin.v1.AdminService/CreateUserMembership"
 const OperationAdminServiceDeleteUser = "/admin.v1.AdminService/DeleteUser"
+const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/DeleteUserMembership"
 const OperationAdminServiceListAuditLogs = "/admin.v1.AdminService/ListAuditLogs"
 const OperationAdminServiceListOrganizationRoles = "/admin.v1.AdminService/ListOrganizationRoles"
 const OperationAdminServiceListOrganizations = "/admin.v1.AdminService/ListOrganizations"
 const OperationAdminServiceListPermissions = "/admin.v1.AdminService/ListPermissions"
 const OperationAdminServiceListRoles = "/admin.v1.AdminService/ListRoles"
+const OperationAdminServiceListUserMemberships = "/admin.v1.AdminService/ListUserMemberships"
 const OperationAdminServiceListUsers = "/admin.v1.AdminService/ListUsers"
 const OperationAdminServiceResetUserPassword = "/admin.v1.AdminService/ResetUserPassword"
 const OperationAdminServiceUpdateOrganization = "/admin.v1.AdminService/UpdateOrganization"
 const OperationAdminServiceUpdateRole = "/admin.v1.AdminService/UpdateRole"
 const OperationAdminServiceUpdateUser = "/admin.v1.AdminService/UpdateUser"
+const OperationAdminServiceUpdateUserMembership = "/admin.v1.AdminService/UpdateUserMembership"
 
 type AdminServiceHTTPServer interface {
 	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
@@ -40,18 +44,22 @@ type AdminServiceHTTPServer interface {
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
 	// DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
+	UpdateUserMembership(context.Context, *UpdateUserMembershipRequest) (*UpdateUserMembershipResponse, error)
 }
 
 func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) {
@@ -62,6 +70,10 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/admin/users", _AdminService_ListUsers0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users", _AdminService_CreateUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{id}", _AdminService_UpdateUser0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/admin/users/{user_id}/memberships", _AdminService_ListUserMemberships0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/admin/users/{user_id}/memberships", _AdminService_CreateUserMembership0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_UpdateUserMembership0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_DeleteUserMembership0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/admin/users/{id}", _AdminService_DeleteUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/wecom-authorization", _AdminService_AuthorizeWeComUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/dingtalk-authorization", _AdminService_AuthorizeDingTalkUser0_HTTP_Handler(srv))
@@ -190,6 +202,94 @@ func _AdminService_UpdateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx
 			return err
 		}
 		reply := out.(*UpdateUserResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_ListUserMemberships0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListUserMembershipsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceListUserMemberships)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListUserMemberships(ctx, req.(*ListUserMembershipsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListUserMembershipsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_CreateUserMembership0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateUserMembershipRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceCreateUserMembership)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateUserMembership(ctx, req.(*CreateUserMembershipRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateUserMembershipResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_UpdateUserMembership0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserMembershipRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceUpdateUserMembership)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUserMembership(ctx, req.(*UpdateUserMembershipRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateUserMembershipResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_DeleteUserMembership0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteUserMembershipRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceDeleteUserMembership)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteUserMembership(ctx, req.(*DeleteUserMembershipRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteUserMembershipResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -408,18 +508,22 @@ type AdminServiceHTTPClient interface {
 	CreateOrganization(ctx context.Context, req *CreateOrganizationRequest, opts ...http.CallOption) (rsp *CreateOrganizationResponse, err error)
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserResponse, err error)
+	CreateUserMembership(ctx context.Context, req *CreateUserMembershipRequest, opts ...http.CallOption) (rsp *CreateUserMembershipResponse, err error)
 	// DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserResponse, err error)
+	DeleteUserMembership(ctx context.Context, req *DeleteUserMembershipRequest, opts ...http.CallOption) (rsp *DeleteUserMembershipResponse, err error)
 	ListAuditLogs(ctx context.Context, req *ListAuditLogsRequest, opts ...http.CallOption) (rsp *ListAuditLogsResponse, err error)
 	ListOrganizationRoles(ctx context.Context, req *ListOrganizationRolesRequest, opts ...http.CallOption) (rsp *ListOrganizationRolesResponse, err error)
 	ListOrganizations(ctx context.Context, req *ListOrganizationsRequest, opts ...http.CallOption) (rsp *ListOrganizationsResponse, err error)
 	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *ListPermissionsResponse, err error)
 	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *ListRolesResponse, err error)
+	ListUserMemberships(ctx context.Context, req *ListUserMembershipsRequest, opts ...http.CallOption) (rsp *ListUserMembershipsResponse, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersResponse, err error)
 	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *ResetUserPasswordResponse, err error)
 	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *UpdateOrganizationResponse, err error)
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *UpdateRoleResponse, err error)
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UpdateUserResponse, err error)
+	UpdateUserMembership(ctx context.Context, req *UpdateUserMembershipRequest, opts ...http.CallOption) (rsp *UpdateUserMembershipResponse, err error)
 }
 
 type AdminServiceHTTPClientImpl struct {
@@ -515,6 +619,23 @@ func (c *AdminServiceHTTPClientImpl) CreateUser(ctx context.Context, in *CreateU
 	return &out, nil
 }
 
+func (c *AdminServiceHTTPClientImpl) CreateUserMembership(ctx context.Context, in *CreateUserMembershipRequest, opts ...http.CallOption) (*CreateUserMembershipResponse, error) {
+	var out CreateUserMembershipResponse
+	pattern := "/api/v1/admin/users/{user_id}/memberships"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceCreateUserMembership),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
 func (c *AdminServiceHTTPClientImpl) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...http.CallOption) (*DeleteUserResponse, error) {
 	var out DeleteUserResponse
@@ -523,6 +644,22 @@ func (c *AdminServiceHTTPClientImpl) DeleteUser(ctx context.Context, in *DeleteU
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAdminServiceDeleteUser),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AdminServiceHTTPClientImpl) DeleteUserMembership(ctx context.Context, in *DeleteUserMembershipRequest, opts ...http.CallOption) (*DeleteUserMembershipResponse, error) {
+	var out DeleteUserMembershipResponse
+	pattern := "/api/v1/admin/users/{user_id}/memberships/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceDeleteUserMembership),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
@@ -612,6 +749,22 @@ func (c *AdminServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRole
 	return &out, nil
 }
 
+func (c *AdminServiceHTTPClientImpl) ListUserMemberships(ctx context.Context, in *ListUserMembershipsRequest, opts ...http.CallOption) (*ListUserMembershipsResponse, error) {
+	var out ListUserMembershipsResponse
+	pattern := "/api/v1/admin/users/{user_id}/memberships"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceListUserMemberships),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...http.CallOption) (*ListUsersResponse, error) {
 	var out ListUsersResponse
 	pattern := "/api/v1/admin/users"
@@ -687,6 +840,23 @@ func (c *AdminServiceHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateU
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAdminServiceUpdateUser),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AdminServiceHTTPClientImpl) UpdateUserMembership(ctx context.Context, in *UpdateUserMembershipRequest, opts ...http.CallOption) (*UpdateUserMembershipResponse, error) {
+	var out UpdateUserMembershipResponse
+	pattern := "/api/v1/admin/users/{user_id}/memberships/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceUpdateUserMembership),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
