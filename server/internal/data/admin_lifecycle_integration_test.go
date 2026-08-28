@@ -127,7 +127,11 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if err != nil || assignments != 0 {
 		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
 	}
-	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, uuid.Nil, account.ID, &biz.AdminUser{
+	pendingUsername := "pending.user"
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername); err != biz.ErrAdminUserNotFound {
+		t.Fatalf("待审批账号设置密码 error = %v, want ErrAdminUserNotFound", err)
+	}
+	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, account.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 		Enabled:     true,
@@ -135,7 +139,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
-	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, uuid.Nil, &biz.AdminUser{
+	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 	}, []uuid.UUID{role.ID})
@@ -147,5 +151,50 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 	if exists, err := data.db.User.Query().Where(userent.IDEQ(account.ID), userent.EnabledEQ(true)).Exist(ctx); err != nil || !exists {
 		t.Fatalf("返聘账号未恢复在职，exists=%v error=%v", exists, err)
+	}
+
+	backupUsername := "backup.user"
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername); err != nil {
+		t.Fatalf("为在职账号设置备用账密: %v", err)
+	}
+	activeAccount, err := data.db.User.Get(ctx, account.ID)
+	if err != nil || activeAccount.Username != backupUsername || activeAccount.PasswordHash == nil || *activeAccount.PasswordHash != "active-password-hash" {
+		t.Fatalf("备用账密保存结果 = %#v, error = %v", activeAccount, err)
+	}
+	actorRoles, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID)
+	if err != nil || len(actorRoles) != 1 || actorRoles[0].Code != "operator" {
+		t.Fatalf("在职账号角色能力 = %#v, error = %v", actorRoles, err)
+	}
+
+	company, err := data.db.Organization.Create().
+		SetCode("COMPANY").
+		SetName("分公司").
+		SetKind("company").
+		SetParentID(headquarters.ID).
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建分公司: %v", err)
+	}
+	if _, err := data.db.Membership.Create().
+		SetUserID(account.ID).
+		SetOrganizationID(company.ID).
+		SetEnabled(true).
+		Save(ctx); err != nil {
+		t.Fatalf("加入分公司: %v", err)
+	}
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID); err != nil {
+		t.Fatalf("移出总部: %v", err)
+	}
+	replacementUsername := "replacement.user"
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername); err != biz.ErrAdminUserNotFound {
+		t.Fatalf("历史组织重置全局密码 error = %v, want ErrAdminUserNotFound", err)
+	}
+	retainedAccount, err := data.db.User.Get(ctx, account.ID)
+	if err != nil || !retainedAccount.Enabled || retainedAccount.Username != backupUsername || retainedAccount.PasswordHash == nil || *retainedAccount.PasswordHash != "active-password-hash" {
+		t.Fatalf("移出组织后的账号结果 = %#v, error = %v", retainedAccount, err)
+	}
+	if _, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID); err != biz.ErrAdminPrivilegeEscalation {
+		t.Fatalf("历史组织读取操作者能力 error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
 }

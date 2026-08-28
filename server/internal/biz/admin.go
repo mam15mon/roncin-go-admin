@@ -26,7 +26,6 @@ var (
 	ErrAdminUserLastMembership         = errors.BadRequest("ADMIN_USER_LAST_MEMBERSHIP", "在职用户必须保留至少一个有效组织；请先加入新组织或办理离职")
 	ErrAdminUserTerminationRequired    = errors.BadRequest("ADMIN_USER_TERMINATION_REQUIRED", "停用员工请使用办理离职")
 	ErrAdminUserAuthorizationRequired  = errors.BadRequest("ADMIN_USER_AUTHORIZATION_REQUIRED", "外部身份账号必须通过身份授权流程启用")
-	ErrAdminUserPasswordUnavailable    = errors.BadRequest("ADMIN_USER_PASSWORD_UNAVAILABLE", "该用户未启用密码登录，不能重置密码")
 	ErrAdminUserMembershipNotFound     = errors.NotFound("ADMIN_USER_MEMBERSHIP_NOT_FOUND", "用户组织成员关系不存在")
 	ErrAdminUserMembershipExists       = errors.Conflict("ADMIN_USER_MEMBERSHIP_EXISTS", "用户已属于该组织")
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
@@ -162,27 +161,45 @@ type AdminAuditLogList struct {
 	PageSize int
 }
 
+type AdminPrivilegeProfile struct {
+	IsSuperAdmin              bool
+	Permissions               map[string]DataScope
+	OrderOrganizationAccesses map[uuid.UUID]bool
+}
+
+type AdminRoleProfile struct {
+	ID                        uuid.UUID
+	Code                      string
+	DataScope                 DataScope
+	PermissionKeys            []string
+	OrderOrganizationAccesses []OrderOrganizationAccess
+}
+
 type AdminRepo interface {
 	ListOrganizations(context.Context) ([]*AdminOrganization, error)
 	GetOrganization(context.Context, uuid.UUID) (*AdminOrganization, error)
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
 	UpdateOrganization(context.Context, uuid.UUID, *AdminOrganization) (*AdminOrganization, error)
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
-	CreateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
-	UpdateUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
+	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ListUserMemberships(context.Context, uuid.UUID) ([]*AdminUserMembership, error)
-	CreateUserMembership(context.Context, uuid.UUID, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
-	UpdateUserMembership(context.Context, uuid.UUID, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
+	GetUserMembership(context.Context, uuid.UUID, uuid.UUID) (*AdminUserMembership, error)
+	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
+	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID) error
 	TerminateUser(context.Context, uuid.UUID, uuid.UUID) error
-	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
-	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
+	GetRole(context.Context, uuid.UUID, uuid.UUID) (*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	ListPermissions(context.Context) ([]*AdminPermission, error)
 	ListAuditLogs(context.Context, uuid.UUID, AdminAuditLogListOptions) (*AdminAuditLogList, error)
+	GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error)
+	GetRolesPrivilegeProfiles(context.Context, uuid.UUID, []uuid.UUID) ([]*AdminRoleProfile, error)
 }
 
 type AdminUsecase struct {
@@ -271,7 +288,96 @@ func (uc *AdminUsecase) ListUsers(ctx context.Context, organizationID uuid.UUID,
 	return uc.repo.ListUsers(ctx, organizationID, options)
 }
 
+func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganizationID, actorID, targetOrganizationID uuid.UUID, roleIDs []uuid.UUID) error {
+	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || targetOrganizationID == uuid.Nil {
+		return ErrAdminPrivilegeEscalation
+	}
+	if len(roleIDs) == 0 {
+		return nil
+	}
+	profile, err := uc.getActorPrivilegeProfile(ctx, actorOrganizationID, actorID)
+	if err != nil {
+		return err
+	}
+	roleProfiles, err := uc.repo.GetRolesPrivilegeProfiles(ctx, targetOrganizationID, roleIDs)
+	if err != nil {
+		return err
+	}
+	for _, roleProfile := range roleProfiles {
+		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.OrderOrganizationAccesses, roleProfile.Code == "administrator"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizationID, actorID uuid.UUID) (*AdminPrivilegeProfile, error) {
+	roles, err := uc.repo.GetActorRolesPrivilegeProfiles(ctx, organizationID, actorID)
+	if err != nil {
+		return nil, err
+	}
+	profile := &AdminPrivilegeProfile{
+		Permissions:               make(map[string]DataScope),
+		OrderOrganizationAccesses: make(map[uuid.UUID]bool),
+	}
+	for _, role := range roles {
+		if role == nil {
+			continue
+		}
+		if role.Code == "administrator" {
+			profile.IsSuperAdmin = true
+		}
+		for _, key := range role.PermissionKeys {
+			currentScope, exists := profile.Permissions[key]
+			if !exists || role.DataScope.rank() > currentScope.rank() {
+				profile.Permissions[key] = role.DataScope
+			}
+		}
+		for _, access := range role.OrderOrganizationAccesses {
+			profile.OrderOrganizationAccesses[access.OrganizationID] = profile.OrderOrganizationAccesses[access.OrganizationID] || access.Writable
+		}
+	}
+	return profile, nil
+}
+
+func checkPrivilegeEscalation(profile *AdminPrivilegeProfile, targetDataScope DataScope, permissionKeys []string, accesses []OrderOrganizationAccess, isAdministratorRole bool) error {
+	if profile == nil {
+		return ErrAdminPrivilegeEscalation
+	}
+	if profile.IsSuperAdmin {
+		return nil
+	}
+	if isAdministratorRole {
+		return ErrAdminPrivilegeEscalation
+	}
+	for _, key := range permissionKeys {
+		scope, ok := profile.Permissions[key]
+		if !ok {
+			return ErrAdminPrivilegeEscalation
+		}
+		if targetDataScope.rank() > scope.rank() {
+			return ErrAdminPrivilegeEscalation
+		}
+	}
+	for _, access := range accesses {
+		writable, ok := profile.OrderOrganizationAccesses[access.OrganizationID]
+		if !ok {
+			return ErrAdminPrivilegeEscalation
+		}
+		if access.Writable && !writable {
+			return ErrAdminPrivilegeEscalation
+		}
+	}
+	return nil
+}
+
 func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID uuid.UUID, input *AdminUser, plainPassword string, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrAdminInvalidArgument
+	}
+	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, organizationID, roleIDs); err != nil {
+		return nil, err
+	}
 	normalized, err := normalizeUser(input)
 	if err != nil || len(strings.TrimSpace(plainPassword)) < 12 {
 		return nil, ErrAdminInvalidArgument
@@ -280,7 +386,7 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, fmt.Errorf("hash admin password: %w", err)
 	}
-	created, err := uc.repo.CreateUser(ctx, organizationID, actorID, normalized, hash, roleIDs)
+	created, err := uc.repo.CreateUser(ctx, organizationID, normalized, hash, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -288,14 +394,17 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 }
 
 func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
-	if id == uuid.Nil {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
+	}
+	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, organizationID, roleIDs); err != nil {
+		return nil, err
 	}
 	normalized, err := normalizeUser(input)
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateUser(ctx, organizationID, actorID, id, normalized, roleIDs)
+	updated, err := uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -309,11 +418,14 @@ func (uc *AdminUsecase) ListUserMemberships(ctx context.Context, userID uuid.UUI
 	return uc.repo.ListUserMemberships(ctx, userID)
 }
 
-func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorID, userID, organizationID uuid.UUID, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
-	if actorID == uuid.Nil || userID == uuid.Nil || organizationID == uuid.Nil {
+func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, organizationID uuid.UUID, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || userID == uuid.Nil || organizationID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	created, err := uc.repo.CreateUserMembership(ctx, actorID, &AdminUserMembership{
+	if err := uc.validateRolesPrivilege(ctx, actorOrganizationID, actorID, organizationID, roleIDs); err != nil {
+		return nil, err
+	}
+	created, err := uc.repo.CreateUserMembership(ctx, &AdminUserMembership{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		Primary:        primary,
@@ -325,14 +437,21 @@ func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorID, userI
 	return created, uc.writeAudit(ctx, actorID, &userID, "admin.user.membership.create", created.OrganizationID.String())
 }
 
-func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorID, userID, membershipID uuid.UUID, enabled, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
-	if actorID == uuid.Nil || userID == uuid.Nil || membershipID == uuid.Nil || primary && !enabled {
+func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, membershipID uuid.UUID, enabled, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || userID == uuid.Nil || membershipID == uuid.Nil || (primary && !enabled) {
 		return nil, ErrAdminInvalidArgument
 	}
 	if actorID == userID && !enabled {
 		return nil, ErrAdminUserSelfDelete
 	}
-	updated, err := uc.repo.UpdateUserMembership(ctx, actorID, &AdminUserMembership{
+	currentMembership, err := uc.repo.GetUserMembership(ctx, userID, membershipID)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.validateRolesPrivilege(ctx, actorOrganizationID, actorID, currentMembership.OrganizationID, roleIDs); err != nil {
+		return nil, err
+	}
+	updated, err := uc.repo.UpdateUserMembership(ctx, &AdminUserMembership{
 		ID:      membershipID,
 		UserID:  userID,
 		Enabled: enabled,
@@ -371,14 +490,17 @@ func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actor
 }
 
 func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
-	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || len(roleIDs) == 0 {
+	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
 		return nil, ErrAdminInvalidArgument
+	}
+	if err := uc.validateRolesPrivilege(ctx, sourceOrganizationID, actorID, targetOrganizationID, roleIDs); err != nil {
+		return nil, err
 	}
 	normalized, err := normalizeUser(input)
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, normalized, roleIDs)
+	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -386,14 +508,17 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 }
 
 func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
-	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || len(roleIDs) == 0 {
+	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
 		return nil, ErrAdminInvalidArgument
+	}
+	if err := uc.validateRolesPrivilege(ctx, sourceOrganizationID, actorID, targetOrganizationID, roleIDs); err != nil {
+		return nil, err
 	}
 	normalized, err := normalizeUser(input)
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, normalized, roleIDs)
+	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -401,20 +526,22 @@ func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganiz
 }
 
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
-	if organizationID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
 		return ErrAdminInvalidArgument
 	}
+	var normalizedUsername *string
 	if username != nil {
-		trimmed := strings.TrimSpace(*username)
+		trimmed := strings.ToLower(strings.TrimSpace(*username))
 		if !validUsername(trimmed) {
 			return ErrAdminInvalidArgument
 		}
+		normalizedUsername = &trimmed
 	}
 	hash, err := password.Hash(plainPassword)
 	if err != nil {
 		return fmt.Errorf("hash reset password: %w", err)
 	}
-	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash, username); err != nil {
+	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash, normalizedUsername); err != nil {
 		return err
 	}
 	return uc.writeAudit(ctx, actorID, &id, "admin.user.password.reset", "")
@@ -428,11 +555,21 @@ func (uc *AdminUsecase) ListRoles(ctx context.Context, organizationID uuid.UUID)
 }
 
 func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID uuid.UUID, input *AdminRole, permissionKeys []string) (*AdminRole, error) {
+	if organizationID == uuid.Nil || actorID == uuid.Nil {
+		return nil, ErrAdminInvalidArgument
+	}
 	normalized, err := normalizeRole(input)
 	if err != nil {
 		return nil, err
 	}
 	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
+		return nil, err
+	}
+	profile, err := uc.getActorPrivilegeProfile(ctx, organizationID, actorID)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, normalizeKeys(permissionKeys), normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	created, err := uc.repo.CreateRole(ctx, organizationID, normalized, normalizeKeys(permissionKeys))
@@ -443,7 +580,7 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 }
 
 func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminRole, permissionKeys []string) (*AdminRole, error) {
-	if id == uuid.Nil {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
 	normalized, err := normalizeRole(input)
@@ -451,6 +588,20 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 		return nil, err
 	}
 	if err := uc.validateOrderOrganizationAccesses(ctx, organizationID, normalized.OrderOrganizationAccesses); err != nil {
+		return nil, err
+	}
+	currentRole, err := uc.repo.GetRole(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	profile, err := uc.getActorPrivilegeProfile(ctx, organizationID, actorID)
+	if err != nil {
+		return nil, err
+	}
+	if currentRole.Code == "administrator" && !profile.IsSuperAdmin {
+		return nil, ErrAdminPrivilegeEscalation
+	}
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, normalizeKeys(permissionKeys), normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	updated, err := uc.repo.UpdateRole(ctx, organizationID, id, normalized, normalizeKeys(permissionKeys))
@@ -510,7 +661,7 @@ func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error)
 	return &output, nil
 }
 
-var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+var usernamePattern = regexp.MustCompile(`^[a-z0-9_.-]+$`)
 
 func validOrganizationCurrency(value string) bool {
 	return currencyPattern.MatchString(value)
@@ -521,13 +672,13 @@ func validUsername(value string) bool {
 }
 
 func normalizeUser(input *AdminUser) (*AdminUser, error) {
-	if input == nil || input.ID == uuid.Nil && strings.TrimSpace(input.Username) == "" {
+	if input == nil || (input.ID == uuid.Nil && strings.TrimSpace(input.Username) == "") {
 		return nil, ErrAdminInvalidArgument
 	}
 	output := *input
 	output.Username = strings.ToLower(strings.TrimSpace(output.Username))
 	output.DisplayName = strings.TrimSpace(output.DisplayName)
-	if output.DisplayName == "" || (output.ID == uuid.Nil && output.Username == "") {
+	if output.DisplayName == "" || (output.ID == uuid.Nil && !validUsername(output.Username)) {
 		return nil, ErrAdminInvalidArgument
 	}
 	if output.Email != nil {

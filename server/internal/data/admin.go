@@ -2,8 +2,6 @@ package data
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"sort"
 	"strings"
@@ -161,13 +159,9 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 	return &biz.AdminUserList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *adminRepo) CreateUser(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if err := ensureNoPrivilegeEscalation(ctx, tx, actorID, organizationID, roleIDs); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	roles, err := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
@@ -202,13 +196,9 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID, actorID uuid
 	return r.findUser(ctx, organizationID, account.ID)
 }
 
-func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if err := ensureNoPrivilegeEscalation(ctx, tx, actorID, organizationID, roleIDs); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	account, err := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
@@ -287,13 +277,13 @@ func (r *adminRepo) ListUserMemberships(ctx context.Context, userID uuid.UUID) (
 	return result, nil
 }
 
-func (r *adminRepo) CreateUserMembership(ctx context.Context, actorID uuid.UUID, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
+func (r *adminRepo) GetUserMembership(ctx context.Context, userID, membershipID uuid.UUID) (*biz.AdminUserMembership, error) {
+	return r.findUserMembership(ctx, userID, membershipID)
+}
+
+func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if err := ensureNoPrivilegeEscalation(ctx, tx, actorID, input.OrganizationID, roleIDs); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	if _, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx); queryErr != nil {
@@ -354,7 +344,7 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, actorID uuid.UUID,
 	return r.findUserMembership(ctx, input.UserID, created.ID)
 }
 
-func (r *adminRepo) UpdateUserMembership(ctx context.Context, actorID uuid.UUID, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
+func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -375,10 +365,6 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, actorID uuid.UUID,
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrAdminUserMembershipNotFound
 		}
-		return nil, err
-	}
-	if err := ensureNoPrivilegeEscalation(ctx, tx, actorID, current.OrganizationID, roleIDs); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	if account.Enabled && current.Enabled && !input.Enabled {
@@ -530,25 +516,21 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 	return tx.Commit()
 }
 
-func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, input, roleIDs, func(account *ent.User) bool {
+func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
 		return account.WecomUserid != nil
 	})
 }
 
-func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, input, roleIDs, func(account *ent.User) bool {
+func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, func(account *ent.User) bool {
 		return account.DingtalkUnionid != nil
 	})
 }
 
-func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
+func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if err := ensureNoPrivilegeEscalation(ctx, tx, actorID, targetOrganizationID, roleIDs); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 	account, err := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
@@ -637,14 +619,10 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 	if err != nil {
 		return err
 	}
-	if exists, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID)).Exist(ctx); queryErr != nil {
-		_ = tx.Rollback()
-		return queryErr
-	} else if !exists {
-		_ = tx.Rollback()
-		return biz.ErrAdminUserNotFound
-	}
-	targetUser, err := tx.User.Get(ctx, id)
+	targetUser, err := tx.User.Query().
+		Where(userent.IDEQ(id), userent.EnabledEQ(true)).
+		ForUpdate().
+		Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
@@ -652,17 +630,24 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 		}
 		return err
 	}
+	if exists, queryErr := tx.Membership.Query().Where(
+		membership.UserIDEQ(id),
+		membership.OrganizationIDEQ(organizationID),
+		membership.EnabledEQ(true),
+		membership.HasOrganizationWith(organization.EnabledEQ(true)),
+	).Exist(ctx); queryErr != nil {
+		_ = tx.Rollback()
+		return queryErr
+	} else if !exists {
+		_ = tx.Rollback()
+		return biz.ErrAdminUserNotFound
+	}
 	userUpdate := tx.User.UpdateOneID(id).SetPasswordHash(passwordHash)
 	if username != nil && strings.TrimSpace(*username) != "" {
 		userUpdate.SetUsername(strings.TrimSpace(*username))
 	} else if targetUser.Username == "" {
-		if targetUser.DingtalkUnionid != nil && *targetUser.DingtalkUnionid != "" {
-			digest := sha256.Sum256([]byte(*targetUser.DingtalkUnionid))
-			userUpdate.SetUsername("dt_" + hex.EncodeToString(digest[:8]))
-		} else if targetUser.WecomUserid != nil && *targetUser.WecomUserid != "" {
-			digest := sha256.Sum256([]byte(*targetUser.WecomUserid))
-			userUpdate.SetUsername("wecom_" + hex.EncodeToString(digest[:8]))
-		}
+		_ = tx.Rollback()
+		return biz.ErrAdminInvalidArgument
 	}
 	if _, err := userUpdate.Save(ctx); err != nil {
 		_ = tx.Rollback()
@@ -692,6 +677,76 @@ func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]
 		result = append(result, roleToBiz(item))
 	}
 	return result, nil
+}
+
+func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (*biz.AdminRole, error) {
+	item, err := r.data.db.Role.Query().
+		Where(role.IDEQ(id), role.OrganizationIDEQ(organizationID)).
+		WithPermissions().
+		WithOrderOrganizationAccesses().
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminRoleNotFound
+		}
+		return nil, err
+	}
+	return roleToBiz(item), nil
+}
+
+func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organizationID, actorID uuid.UUID) ([]*biz.AdminRoleProfile, error) {
+	actorMembership, err := r.data.db.Membership.Query().
+		Where(
+			membership.UserIDEQ(actorID),
+			membership.OrganizationIDEQ(organizationID),
+			membership.EnabledEQ(true),
+			membership.HasUserWith(userent.EnabledEQ(true)),
+			membership.HasOrganizationWith(organization.EnabledEQ(true)),
+		).
+		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) {
+			query.WithRole(func(roleQuery *ent.RoleQuery) {
+				roleQuery.Where(role.EnabledEQ(true)).WithPermissions().WithOrderOrganizationAccesses()
+			})
+		}).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminPrivilegeEscalation
+		}
+		return nil, err
+	}
+
+	profiles := make([]*biz.AdminRoleProfile, 0, len(actorMembership.Edges.RoleAssignments))
+	for _, assignment := range actorMembership.Edges.RoleAssignments {
+		assignedRole := assignment.Edges.Role
+		if assignedRole == nil {
+			continue
+		}
+		profiles = append(profiles, roleProfileToBiz(assignedRole))
+	}
+	return profiles, nil
+}
+
+func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationID uuid.UUID, roleIDs []uuid.UUID) ([]*biz.AdminRoleProfile, error) {
+	if len(roleIDs) == 0 {
+		return nil, nil
+	}
+	items, err := r.data.db.Role.Query().
+		Where(role.OrganizationIDEQ(organizationID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
+		WithPermissions().
+		WithOrderOrganizationAccesses().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != len(uniqueUUIDs(roleIDs)) {
+		return nil, biz.ErrAdminRoleNotFound
+	}
+	profiles := make([]*biz.AdminRoleProfile, 0, len(items))
+	for _, item := range items {
+		profiles = append(profiles, roleProfileToBiz(item))
+	}
+	return profiles, nil
 }
 
 func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, input *biz.AdminRole, permissionKeys []string) (*biz.AdminRole, error) {
@@ -1101,6 +1156,17 @@ func roleToBiz(item *ent.Role) *biz.AdminRole {
 	return result
 }
 
+func roleProfileToBiz(item *ent.Role) *biz.AdminRoleProfile {
+	result := &biz.AdminRoleProfile{ID: item.ID, Code: item.Code, DataScope: biz.DataScope(item.DataScope)}
+	for _, permissionItem := range item.Edges.Permissions {
+		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
+	}
+	for _, access := range item.Edges.OrderOrganizationAccesses {
+		result.OrderOrganizationAccesses = append(result.OrderOrganizationAccesses, biz.OrderOrganizationAccess{OrganizationID: access.OrganizationID, Writable: access.Writable})
+	}
+	return result
+}
+
 func replaceRoleOrderOrganizationAccesses(ctx context.Context, tx *ent.Tx, roleID uuid.UUID, accesses []biz.OrderOrganizationAccess) error {
 	if _, err := tx.RoleOrderOrganizationAccess.Delete().Where(roleorderorganizationaccess.RoleIDEQ(roleID)).Exec(ctx); err != nil {
 		return err
@@ -1113,86 +1179,4 @@ func replaceRoleOrderOrganizationAccesses(ctx context.Context, tx *ent.Tx, roleI
 	return nil
 }
 
-func ensureNoPrivilegeEscalation(ctx context.Context, tx *ent.Tx, actorID, organizationID uuid.UUID, roleIDs []uuid.UUID) error {
-	if actorID == uuid.Nil || len(roleIDs) == 0 {
-		return nil
-	}
-	actorMembership, err := tx.Membership.Query().
-		Where(
-			membership.UserIDEQ(actorID),
-			membership.OrganizationIDEQ(organizationID),
-			membership.EnabledEQ(true),
-		).
-		WithRoleAssignments(func(q *ent.RoleAssignmentQuery) {
-			q.WithRole(func(rq *ent.RoleQuery) {
-				rq.WithPermissions()
-			})
-		}).
-		Only(ctx)
-	if err != nil {
-		headquarters, hqErr := tx.Organization.Query().
-			Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).
-			Only(ctx)
-		if hqErr == nil && headquarters.ID != organizationID {
-			hqMembership, hqMemberErr := tx.Membership.Query().
-				Where(
-					membership.UserIDEQ(actorID),
-					membership.OrganizationIDEQ(headquarters.ID),
-					membership.EnabledEQ(true),
-				).
-				WithRoleAssignments(func(q *ent.RoleAssignmentQuery) {
-					q.WithRole(func(rq *ent.RoleQuery) {
-						rq.WithPermissions()
-					})
-				}).
-				Only(ctx)
-			if hqMemberErr == nil {
-				actorMembership = hqMembership
-			}
-		}
-		if actorMembership == nil {
-			return nil
-		}
-	}
-
-	actorPermSet := make(map[uuid.UUID]struct{})
-	isSuperAdmin := false
-	for _, assignment := range actorMembership.Edges.RoleAssignments {
-		if assignment.Edges.Role == nil || !assignment.Edges.Role.Enabled {
-			continue
-		}
-		if assignment.Edges.Role.Code == "administrator" {
-			isSuperAdmin = true
-			break
-		}
-		for _, perm := range assignment.Edges.Role.Edges.Permissions {
-			actorPermSet[perm.ID] = struct{}{}
-		}
-	}
-	if isSuperAdmin {
-		return nil
-	}
-
-	targetRoles, err := tx.Role.Query().
-		Where(role.IDIn(roleIDs...)).
-		WithPermissions().
-		All(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, targetRole := range targetRoles {
-		if targetRole.Code == "administrator" {
-			return biz.ErrAdminPrivilegeEscalation
-		}
-		for _, perm := range targetRole.Edges.Permissions {
-			if _, ok := actorPermSet[perm.ID]; !ok {
-				return biz.ErrAdminPrivilegeEscalation
-			}
-		}
-	}
-	return nil
-}
-
 var _ biz.AdminRepo = (*adminRepo)(nil)
-

@@ -1,12 +1,26 @@
 package schema
 
 import (
+	"fmt"
+	"regexp"
+	"unicode/utf8"
+
 	"entgo.io/ent"
 	entsql "entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
+
+var usernamePattern = regexp.MustCompile(`^[a-z0-9_.-]+$`)
+
+func validateUsername(value string) error {
+	length := utf8.RuneCountInString(value)
+	if length < 3 || length > 64 || !usernamePattern.MatchString(value) {
+		return fmt.Errorf("用户名必须为 3 至 64 位小写字母、数字、点号、下划线或连字符")
+	}
+	return nil
+}
 
 // User 存储系统用户及其可选登录身份，密码哈希不会离开数据层。
 type User struct{ ent.Schema }
@@ -15,7 +29,7 @@ func (User) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username").MaxLen(100).Optional(),
+		field.String("username").MaxLen(100).Optional().Validate(validateUsername),
 		field.String("display_name").NotEmpty().MaxLen(100),
 		field.String("email").MaxLen(254).Optional().Nillable(),
 		field.String("avatar_url").MaxLen(2048).Optional().Nillable(),

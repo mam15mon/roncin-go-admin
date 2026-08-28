@@ -393,18 +393,20 @@ export default function UsersPanel() {
       fixed: 'right',
       render: (_, record) => (
         <Space size={8}>
-          {access.canUpdateUsers && record.status !== 3 && record.status !== 4 && (
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              style={{ padding: 0 }}
-              onClick={() => openEdit(record)}
-            >
-              编辑
-            </Button>
-          )}
-          {access.canResetUserPasswords && (
+          {access.canUpdateUsers &&
+            record.status !== 3 &&
+            record.status !== 4 && (
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                style={{ padding: 0 }}
+                onClick={() => openEdit(record)}
+              >
+                编辑
+              </Button>
+            )}
+          {access.canResetUserPasswords && record.status === 1 && (
             <Button
               type="link"
               size="small"
@@ -634,12 +636,14 @@ export default function UsersPanel() {
             name="username"
             label="用户名（密码登录账号）"
             placeholder="例如：zhangsan 或 logistics_op"
+            fieldProps={{ maxLength: 64 }}
             disabled={Boolean(editing)}
             rules={[
               { required: !editing, message: '请输入用户名' },
+              { min: 3, max: 64, message: '用户名长度需在 3 至 64 个字符之间' },
               {
-                pattern: /^[A-Za-z0-9_.-]+$/,
-                message: '用户名仅支持英文字母、数字、点号、下划线及连字符',
+                pattern: /^[a-z0-9_.-]+$/,
+                message: '用户名仅支持小写字母、数字、点号、下划线及连字符',
               },
             ]}
           />
@@ -994,11 +998,13 @@ export default function UsersPanel() {
             name="username"
             label="登录用户名"
             placeholder="例如：zhangsan 或 logistics_op"
+            fieldProps={{ maxLength: 64 }}
             rules={[
               { required: !resetting?.username, message: '请输入登录用户名' },
+              { min: 3, max: 64, message: '用户名长度需在 3 至 64 个字符之间' },
               {
-                pattern: /^[A-Za-z0-9_.-]+$/,
-                message: '用户名仅支持英文字母、数字、点号、下划线及连字符',
+                pattern: /^[a-z0-9_.-]+$/,
+                message: '用户名仅支持小写字母、数字、点号、下划线及连字符',
               },
             ]}
           />

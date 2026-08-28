@@ -164,7 +164,7 @@ func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.Cre
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	created, err := s.usecase.CreateUserMembership(ctx, principal.UserID, userID, organizationID, request.GetPrimary(), roleIDs)
+	created, err := s.usecase.CreateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, organizationID, request.GetPrimary(), roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.Upd
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	updated, err := s.usecase.UpdateUserMembership(ctx, principal.UserID, userID, membershipID, request.GetEnabled(), request.GetPrimary(), roleIDs)
+	updated, err := s.usecase.UpdateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, membershipID, request.GetEnabled(), request.GetPrimary(), roleIDs)
 	if err != nil {
 		return nil, err
 	}

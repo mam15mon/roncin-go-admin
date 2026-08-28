@@ -18,12 +18,16 @@ type adminRepoStub struct {
 	userPassword      string
 	userInput         *AdminUser
 	resetPassword     string
+	resetUsername     *string
 	deletedUserID     uuid.UUID
 	deleteOrgID       uuid.UUID
 	memberships       []*AdminUserMembership
 	membershipInput   *AdminUserMembership
 	membershipRoleIDs []uuid.UUID
 	deletedMembership uuid.UUID
+	actorRoleProfiles []*AdminRoleProfile
+	roleProfiles      []*AdminRoleProfile
+	currentRole       *AdminRole
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -52,13 +56,13 @@ func (s *adminRepoStub) ListUsers(_ context.Context, _ uuid.UUID, options AdminU
 	return &AdminUserList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID) (*AdminUser, error) {
 	s.userInput = input
 	s.userPassword = passwordHash
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	return input, nil
 }
 
@@ -66,14 +70,18 @@ func (s *adminRepoStub) ListUserMemberships(_ context.Context, _ uuid.UUID) ([]*
 	return s.memberships, nil
 }
 
-func (s *adminRepoStub) CreateUserMembership(_ context.Context, _ uuid.UUID, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) GetUserMembership(_ context.Context, userID, membershipID uuid.UUID) (*AdminUserMembership, error) {
+	return &AdminUserMembership{ID: membershipID, UserID: userID, OrganizationID: uuid.New(), Enabled: true}, nil
+}
+
+func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.ID = uuid.New()
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUserMembership(_ context.Context, _ uuid.UUID, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.OrganizationID = uuid.New()
@@ -91,25 +99,33 @@ func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid
 	return nil
 }
 
-func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
 	return input, nil
 }
 
-func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
 	return input, nil
 }
 
-func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string, _ *string) error {
+func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string, username *string) error {
 	s.resetPassword = passwordHash
+	s.resetUsername = username
 	return nil
 }
 
 func (s *adminRepoStub) ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error) {
 	return nil, nil
+}
+
+func (s *adminRepoStub) GetRole(_ context.Context, organizationID, id uuid.UUID) (*AdminRole, error) {
+	if s.currentRole != nil {
+		return s.currentRole, nil
+	}
+	return &AdminRole{ID: id, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization}, nil
 }
 
 func (s *adminRepoStub) CreateRole(_ context.Context, organizationID uuid.UUID, input *AdminRole, keys []string) (*AdminRole, error) {
@@ -128,6 +144,24 @@ func (s *adminRepoStub) ListPermissions(context.Context) ([]*AdminPermission, er
 
 func (s *adminRepoStub) ListAuditLogs(_ context.Context, _ uuid.UUID, options AdminAuditLogListOptions) (*AdminAuditLogList, error) {
 	return &AdminAuditLogList{Page: options.Page, PageSize: options.PageSize}, nil
+}
+
+func (s *adminRepoStub) GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error) {
+	if s.actorRoleProfiles != nil {
+		return s.actorRoleProfiles, nil
+	}
+	return []*AdminRoleProfile{{Code: "administrator", DataScope: DataScopeAll}}, nil
+}
+
+func (s *adminRepoStub) GetRolesPrivilegeProfiles(_ context.Context, _ uuid.UUID, roleIDs []uuid.UUID) ([]*AdminRoleProfile, error) {
+	if s.roleProfiles != nil {
+		return s.roleProfiles, nil
+	}
+	profiles := make([]*AdminRoleProfile, 0, len(roleIDs))
+	for _, roleID := range roleIDs {
+		profiles = append(profiles, &AdminRoleProfile{ID: roleID, DataScope: DataScopeOrganization})
+	}
+	return profiles, nil
 }
 
 type auditRepoStub struct {
@@ -355,15 +389,99 @@ func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password", &invalidUsername); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid username error = %v, want ErrAdminInvalidArgument", err)
 	}
-	validUser := "valid.user_01"
+	validUser := " Valid.User_01 "
 	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password", &validUser); err != nil {
 		t.Fatalf("ResetUserPassword() error = %v", err)
 	}
 	if repo.resetPassword == "" || repo.resetPassword == "new-strong-password" {
 		t.Fatal("reset password was not hashed")
 	}
+	if repo.resetUsername == nil || *repo.resetUsername != "valid.user_01" {
+		t.Fatalf("reset username = %#v, want valid.user_01", repo.resetUsername)
+	}
 	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.password.reset" {
 		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestCheckPrivilegeEscalation(t *testing.T) {
+	readOnlyOrganizationID := uuid.New()
+	writableOrganizationID := uuid.New()
+	profile := &AdminPrivilegeProfile{
+		Permissions: map[string]DataScope{
+			"system.user.update": DataScopeOrganization,
+		},
+		OrderOrganizationAccesses: map[uuid.UUID]bool{
+			readOnlyOrganizationID: false,
+			writableOrganizationID: true,
+		},
+	}
+	tests := []struct {
+		name           string
+		profile        *AdminPrivilegeProfile
+		scope          DataScope
+		permissions    []string
+		accesses       []OrderOrganizationAccess
+		administrator  bool
+		wantEscalation bool
+	}{
+		{name: "允许权限与数据范围子集", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.user.update"}, accesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		{name: "拒绝未知操作者", scope: DataScopeOrganization, permissions: []string{"system.user.update"}, wantEscalation: true},
+		{name: "拒绝管理员角色", profile: profile, scope: DataScopeOrganization, administrator: true, wantEscalation: true},
+		{name: "拒绝额外权限", profile: profile, scope: DataScopeOrganization, permissions: []string{"system.role.update"}, wantEscalation: true},
+		{name: "拒绝更大数据范围", profile: profile, scope: DataScopeAll, permissions: []string{"system.user.update"}, wantEscalation: true},
+		{name: "拒绝额外组织访问", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: uuid.New()}}, wantEscalation: true},
+		{name: "拒绝提升组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}, wantEscalation: true},
+		{name: "允许已有组织写权限", profile: profile, scope: DataScopeOrganization, accesses: []OrderOrganizationAccess{{OrganizationID: writableOrganizationID, Writable: true}}},
+		{name: "管理员允许完整授权", profile: &AdminPrivilegeProfile{IsSuperAdmin: true}, scope: DataScopeAll, permissions: []string{"system.role.update"}, accesses: []OrderOrganizationAccess{{OrganizationID: uuid.New(), Writable: true}}, administrator: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := checkPrivilegeEscalation(test.profile, test.scope, test.permissions, test.accesses, test.administrator)
+			if test.wantEscalation && err != ErrAdminPrivilegeEscalation {
+				t.Fatalf("checkPrivilegeEscalation() error = %v, want ErrAdminPrivilegeEscalation", err)
+			}
+			if !test.wantEscalation && err != nil {
+				t.Fatalf("checkPrivilegeEscalation() error = %v", err)
+			}
+		})
+	}
+}
+
+func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
+	readOnlyOrganizationID := uuid.New()
+	repo := &adminRepoStub{actorRoleProfiles: []*AdminRoleProfile{
+		{Code: "viewer", DataScope: DataScopeSelf, PermissionKeys: []string{"system.user.read"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
+		{Code: "manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.read", "system.user.update"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}},
+	}}
+	profile, err := NewAdminUsecase(repo, &auditRepoStub{}).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
+	if err != nil {
+		t.Fatalf("getActorPrivilegeProfile() error = %v", err)
+	}
+	if profile.Permissions["system.user.read"] != DataScopeOrganization || profile.Permissions["system.user.update"] != DataScopeOrganization {
+		t.Fatalf("permissions = %#v", profile.Permissions)
+	}
+	if !profile.OrderOrganizationAccesses[readOnlyOrganizationID] {
+		t.Fatalf("order organization accesses = %#v", profile.OrderOrganizationAccesses)
+	}
+}
+
+func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing.T) {
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	roleID := uuid.New()
+	repo := &adminRepoStub{
+		actorRoleProfiles: []*AdminRoleProfile{{Code: "role_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.role.update"}}},
+		currentRole:       &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
+	}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "系统管理员", DataScope: DataScopeOrganization, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
+		t.Fatalf("UpdateRole() administrator error = %v, want ErrAdminPrivilegeEscalation", err)
+	}
+
+	repo.currentRole = &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization}
+	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "操作员", DataScope: DataScopeAll, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
+		t.Fatalf("UpdateRole() scope error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
 }
 
@@ -415,10 +533,10 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 	organizationID := uuid.New()
 	roleID := uuid.New()
 
-	if _, err := usecase.CreateUserMembership(context.Background(), actorID, userID, uuid.Nil, false, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, uuid.Nil, false, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("CreateUserMembership() missing organization error = %v", err)
 	}
-	created, err := usecase.CreateUserMembership(context.Background(), actorID, userID, organizationID, true, []uuid.UUID{roleID})
+	created, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, organizationID, true, []uuid.UUID{roleID})
 	if err != nil {
 		t.Fatalf("CreateUserMembership() error = %v", err)
 	}
@@ -435,11 +553,11 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 
 func TestAdminUsecaseUpdateUserMembershipRejectsDisabledPrimary(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
-	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), uuid.New(), uuid.New(), false, true, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), false, true, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUserMembership() error = %v, want ErrAdminInvalidArgument", err)
 	}
 	actorID := uuid.New()
-	if _, err := usecase.UpdateUserMembership(context.Background(), actorID, actorID, uuid.New(), false, false, nil); err != ErrAdminUserSelfDelete {
+	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), actorID, actorID, uuid.New(), false, false, nil); err != ErrAdminUserSelfDelete {
 		t.Fatalf("UpdateUserMembership() self-disable error = %v, want ErrAdminUserSelfDelete", err)
 	}
 }
