@@ -30,6 +30,23 @@ generate:
 	go generate ./...
 	go mod tidy
 
+.PHONY: lint
+# 检查 Protobuf 契约
+lint:
+	buf lint
+
+.PHONY: vuln
+# 扫描可达的 Go 漏洞
+vuln:
+	go tool govulncheck ./...
+
+.PHONY: check
+# 检查服务端源码与依赖
+check: lint
+	go test ./...
+	go vet ./...
+	$(MAKE) vuln
+
 .PHONY: all
 # generate all
 all:

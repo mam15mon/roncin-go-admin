@@ -8,7 +8,7 @@ RUN pnpm install --frozen-lockfile
 COPY web web
 RUN pnpm --dir web build
 
-FROM golang:1.25.7-bookworm AS server-builder
+FROM golang:1.25.14-bookworm AS server-builder
 
 WORKDIR /src
 COPY server/go.mod server/go.sum ./server/
