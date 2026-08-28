@@ -8,7 +8,7 @@ import {
   UserOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
-import { Helmet, useModel } from '@umijs/max';
+import { Helmet, Link, useModel } from '@umijs/max';
 import { App, Button, Checkbox, Divider, Form, Input, Modal, Spin } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import {
@@ -56,16 +56,22 @@ export default function Login() {
   const handleSubmit = async (values: API.LoginRequest) => {
     setLoading(true);
     try {
-      const response = await authServiceLogin(values, { skipErrorHandler: true });
+      const response = await authServiceLogin(values, {
+        skipErrorHandler: true,
+      });
       if (!response.data) return;
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: response.data }));
       });
       message.success('登录成功');
-      const redirect = new URL(window.location.href).searchParams.get('redirect');
+      const redirect = new URL(window.location.href).searchParams.get(
+        'redirect',
+      );
       window.location.href = safeRedirect(redirect);
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '登录失败，请稍后重试');
+      message.error(
+        error instanceof Error ? error.message : '登录失败，请稍后重试',
+      );
     } finally {
       setLoading(false);
     }
@@ -82,12 +88,16 @@ export default function Login() {
         message.warning('企业微信登录暂未启用');
         return;
       }
-      const redirect = new URL(window.location.href).searchParams.get('redirect');
+      const redirect = new URL(window.location.href).searchParams.get(
+        'redirect',
+      );
       sessionStorage.setItem('wecom_login_redirect', safeRedirect(redirect));
       setWecomAuthUrl(response.data.authorizeUrl);
       setWecomModalOpen(true);
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '企业微信登录启动失败');
+      message.error(
+        error instanceof Error ? error.message : '企业微信登录启动失败',
+      );
     } finally {
       setWecomLoading(false);
     }
@@ -106,6 +116,7 @@ export default function Login() {
       const redirect = new URL(window.location.href).searchParams.get(
         'redirect',
       );
+      sessionStorage.setItem('dingtalk_auth_mode', 'login');
       sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
       window.location.assign(response.data.authorizeUrl);
     } catch (error) {
@@ -156,9 +167,20 @@ export default function Login() {
         <div className={styles.formCard}>
           {/* 移动端 Logo 展示 */}
           <div className={styles.mobileLogo}>
-            <img src="/logo.svg" alt="Roncin" style={{ height: 32, width: 'auto' }} />
+            <img
+              src="/logo.svg"
+              alt="Roncin"
+              style={{ height: 32, width: 'auto' }}
+            />
             <div>
-              <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '0.08em', color: '#0f172a' }}>
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: 18,
+                  letterSpacing: '0.08em',
+                  color: '#0f172a',
+                }}
+              >
                 RONCIN
               </span>
             </div>
@@ -191,7 +213,11 @@ export default function Login() {
                   id="login_username"
                   size="large"
                   placeholder="用户名 / 邮箱"
-                  prefix={<UserOutlined style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }} />}
+                  prefix={
+                    <UserOutlined
+                      style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }}
+                    />
+                  }
                   className={styles.pillInput}
                   disabled={loading}
                   onFocus={() => setIsTyping(true)}
@@ -214,7 +240,11 @@ export default function Login() {
                   id="login_password"
                   size="large"
                   placeholder="请输入密码"
-                  prefix={<LockOutlined style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }} />}
+                  prefix={
+                    <LockOutlined
+                      style={{ color: '#94a3b8', fontSize: 16, marginRight: 6 }}
+                    />
+                  }
                   className={styles.pillInput}
                   disabled={loading}
                   iconRender={(visible) =>
@@ -246,7 +276,11 @@ export default function Login() {
                 paddingRight: 6,
               }}
             >
-              <Checkbox defaultChecked disabled={loading} style={{ fontSize: 13, color: '#64748b' }}>
+              <Checkbox
+                defaultChecked
+                disabled={loading}
+                style={{ fontSize: 13, color: '#64748b' }}
+              >
                 保持登录
               </Checkbox>
             </div>
@@ -289,16 +323,22 @@ export default function Login() {
                   </Button>
                 )}
                 {dingtalkEnabled && (
-                  <Button
-                    block
-                    size="large"
-                    icon={<DingdingOutlined />}
-                    loading={dingtalkLoading}
-                    disabled={loading || wecomLoading || dingtalkLoading}
-                    onClick={handleDingTalkLogin}
-                  >
-                    钉钉登录
-                  </Button>
+                  <>
+                    <Button
+                      block
+                      size="large"
+                      icon={<DingdingOutlined />}
+                      loading={dingtalkLoading}
+                      disabled={loading || wecomLoading || dingtalkLoading}
+                      onClick={handleDingTalkLogin}
+                    >
+                      钉钉登录
+                    </Button>
+                    <div style={{ textAlign: 'center', fontSize: 13 }}>
+                      首次使用？
+                      <Link to="/user/register">使用钉钉扫码注册</Link>
+                    </div>
+                  </>
                 )}
               </div>
             </>

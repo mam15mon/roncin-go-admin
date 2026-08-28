@@ -4092,7 +4092,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "username", Type: field.TypeString, Size: 100},
+		{Name: "username", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "display_name", Type: field.TypeString, Size: 100},
 		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
 		{Name: "avatar_url", Type: field.TypeString, Nullable: true, Size: 2048},
@@ -4119,6 +4119,9 @@ var (
 				Name:    "user_username",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "username IS NOT NULL AND username <> ''",
+				},
 			},
 			{
 				Name:    "user_email",

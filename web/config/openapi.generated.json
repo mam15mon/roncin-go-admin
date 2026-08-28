@@ -775,6 +775,56 @@
         }
       }
     },
+    "/api/v1/auth/dingtalk/registration-config": {
+      "get": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_GetDingTalkRegistrationConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.GetDingTalkRegistrationConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/dingtalk/registrations": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_RegisterDingTalkUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.RegisterDingTalkUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.RegisterDingTalkUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -8049,6 +8099,9 @@
           },
           "avatarUrl": {
             "type": "string"
+          },
+          "hasPassword": {
+            "type": "boolean"
           }
         }
       },
@@ -8958,7 +9011,39 @@
           }
         }
       },
+      "auth.v1.DingTalkRegistration": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.GetDingTalkLoginConfigResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkLoginConfig"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.GetDingTalkRegistrationConfigResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -9092,6 +9177,42 @@
             "type": "string"
           },
           "baseCurrency": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.RegisterDingTalkUserRequest": {
+        "required": [
+          "authCode",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "authCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.RegisterDingTalkUserResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkRegistration"
+          },
+          "traceId": {
             "type": "string"
           }
         }

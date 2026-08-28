@@ -3,6 +3,7 @@ package data
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,6 +24,7 @@ const (
 
 type dingTalkTokenResponse struct {
 	AccessToken string `json:"accessToken"`
+	CorpID      string `json:"corpId"`
 }
 
 type dingTalkProfileResponse struct {
@@ -37,6 +39,7 @@ type dingTalkIdentityProvider struct {
 	clientID     string
 	clientSecret string
 	redirectURI  string
+	corpID       string
 	client       *http.Client
 }
 
@@ -50,8 +53,9 @@ func NewDingTalkIdentityProvider(security *conf.Security) (biz.DingTalkIdentityP
 	provider.clientID = strings.TrimSpace(config.ClientId)
 	provider.clientSecret = strings.TrimSpace(config.ClientSecret)
 	provider.redirectURI = strings.TrimSpace(config.RedirectUri)
-	if provider.clientID == "" || provider.clientSecret == "" || provider.redirectURI == "" {
-		return nil, fmt.Errorf("钉钉登录已启用，但 client_id、client_secret 或 redirect_uri 未配置")
+	provider.corpID = strings.TrimSpace(config.CorpId)
+	if provider.clientID == "" || provider.clientSecret == "" || provider.redirectURI == "" || provider.corpID == "" {
+		return nil, fmt.Errorf("钉钉认证已启用，但 corp_id、client_id、client_secret 或 redirect_uri 未配置")
 	}
 	if parsed, err := url.ParseRequestURI(provider.redirectURI); err != nil || parsed.Scheme == "" || parsed.Host == "" {
 		return nil, fmt.Errorf("钉钉 redirect_uri 必须是完整 URL")
@@ -69,7 +73,7 @@ func (p *dingTalkIdentityProvider) AuthorizeURL(state string) (string, error) {
 	values.Set("redirect_uri", p.redirectURI)
 	values.Set("response_type", "code")
 	values.Set("client_id", p.clientID)
-	values.Set("scope", "openid")
+	values.Set("scope", "openid corpid")
 	values.Set("state", state)
 	values.Set("prompt", "consent")
 	return dingTalkAuthorizeURL + "?" + values.Encode(), nil
@@ -92,6 +96,10 @@ func (p *dingTalkIdentityProvider) ResolveIdentity(ctx context.Context, authCode
 	if strings.TrimSpace(token.AccessToken) == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
+	corpID := strings.TrimSpace(token.CorpID)
+	if corpID == "" || subtle.ConstantTimeCompare([]byte(corpID), []byte(p.corpID)) != 1 {
+		return nil, biz.ErrDingTalkOrganizationMismatch
+	}
 
 	var profile dingTalkProfileResponse
 	if status, err := p.requestJSON(ctx, http.MethodGet, dingTalkProfileURL, nil, token.AccessToken, &profile); err != nil {
@@ -105,7 +113,7 @@ func (p *dingTalkIdentityProvider) ResolveIdentity(ctx context.Context, authCode
 	if unionID == "" || name == "" {
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	return &biz.DingTalkIdentity{UnionID: unionID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
+	return &biz.DingTalkIdentity{UnionID: unionID, CorpID: corpID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
 }
 
 func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endpoint string, payload any, bearerToken string, target any) (int, error) {

@@ -235,6 +235,7 @@ declare namespace API {
     dingtalkUnionid?: string;
     dingtalkName?: string;
     avatarUrl?: string;
+    hasPassword?: boolean;
   };
 
   type AdminUserMembership = {
@@ -1292,6 +1293,11 @@ declare namespace API {
     traceId?: string;
   };
 
+  type DingTalkRegistration = {
+    displayName?: string;
+    status?: string;
+  };
+
   type DisableExchangeRateSettingRequest = {
     id: string;
   };
@@ -1865,6 +1871,14 @@ declare namespace API {
   };
 
   type GetDingTalkLoginConfigResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetDingTalkRegistrationConfigResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -3818,6 +3832,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderAttachment;
+    traceId?: string;
+  };
+
+  type RegisterDingTalkUserRequest = {
+    authCode: string;
+    state: string;
+  };
+
+  type RegisterDingTalkUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkRegistration;
     traceId?: string;
   };
 

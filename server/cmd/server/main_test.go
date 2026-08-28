@@ -21,6 +21,7 @@ const wecomConfig = `security:
 const dingtalkConfig = `security:
   dingtalk:
     enabled: ${DINGTALK_ENABLED:false}
+    corp_id: ${DINGTALK_CORP_ID:}
     client_id: ${DINGTALK_CLIENT_ID:}
     client_secret: ${DINGTALK_CLIENT_SECRET:}
     redirect_uri: ${DINGTALK_REDIRECT_URI:}
@@ -53,6 +54,7 @@ func TestNewRuntimeConfigUsesDisabledDefault(t *testing.T) {
 
 func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 	t.Setenv("DINGTALK_ENABLED", "true")
+	t.Setenv("DINGTALK_CORP_ID", "ding-test-corp")
 	t.Setenv("DINGTALK_CLIENT_ID", "test-client")
 	t.Setenv("DINGTALK_CLIENT_SECRET", "test-secret")
 	t.Setenv("DINGTALK_REDIRECT_URI", "http://127.0.0.1:8001/user/login/dingtalk/callback")
@@ -61,7 +63,7 @@ func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 	if !dingtalk.Enabled {
 		t.Fatal("DINGTALK_ENABLED=true 未解析为启用状态")
 	}
-	if dingtalk.ClientId != "test-client" || dingtalk.ClientSecret != "test-secret" {
+	if dingtalk.CorpId != "ding-test-corp" || dingtalk.ClientId != "test-client" || dingtalk.ClientSecret != "test-secret" {
 		t.Fatal("钉钉环境变量未完整注入")
 	}
 }

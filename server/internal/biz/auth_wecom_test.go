@@ -48,7 +48,14 @@ func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(context.Context, *WeComI
 	return s.credential, s.created, nil
 }
 
-func (s *wecomAuthRepoStub) FindOrCreateDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error) {
+func (s *wecomAuthRepoStub) FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error) {
+	if s.credential == nil {
+		return nil, ErrDingTalkNotRegistered
+	}
+	return s.credential, nil
+}
+
+func (s *wecomAuthRepoStub) RegisterDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error) {
 	return s.credential, s.created, nil
 }
 

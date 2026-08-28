@@ -761,6 +761,7 @@ type Security_DingTalk struct {
 	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	ClientSecret  string                 `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
 	RedirectUri   string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	CorpId        string                 `protobuf:"bytes,5,opt,name=corp_id,json=corpId,proto3" json:"corp_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -823,6 +824,13 @@ func (x *Security_DingTalk) GetRedirectUri() string {
 	return ""
 }
 
+func (x *Security_DingTalk) GetCorpId() string {
+	if x != nil {
+		return x.CorpId
+	}
+	return ""
+}
+
 var File_conf_v1_conf_proto protoreflect.FileDescriptor
 
 const file_conf_v1_conf_proto_rawDesc = "" +
@@ -864,7 +872,7 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xd4\x04\n" +
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xed\x04\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x12-\n" +
 	"\x05wecom\x18\x02 \x01(\v2\x17.conf.v1.Security.WeComR\x05wecom\x126\n" +
@@ -880,12 +888,13 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\acorp_id\x18\x02 \x01(\tR\x06corpId\x12\x19\n" +
 	"\bagent_id\x18\x03 \x01(\x03R\aagentId\x12\x16\n" +
 	"\x06secret\x18\x04 \x01(\tR\x06secret\x12!\n" +
-	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUri\x1a\x89\x01\n" +
+	"\fredirect_uri\x18\x05 \x01(\tR\vredirectUri\x1a\xa2\x01\n" +
 	"\bDingTalk\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12#\n" +
 	"\rclient_secret\x18\x03 \x01(\tR\fclientSecret\x12!\n" +
-	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUriB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\x12\x17\n" +
+	"\acorp_id\x18\x05 \x01(\tR\x06corpIdB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_v1_conf_proto_rawDescOnce sync.Once

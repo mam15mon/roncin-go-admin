@@ -154,6 +154,10 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 		}
 		return nil, err
 	}
+	account, err = updateDingTalkProfile(ctx, account, identity)
+	if err != nil {
+		return nil, err
+	}
 	return r.credentialForAccount(ctx, account)
 }
 

@@ -30,6 +30,37 @@ export async function authServiceGetDingTalkLoginConfig(options?: {
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/auth/dingtalk/registration-config */
+export async function authServiceGetDingTalkRegistrationConfig(options?: {
+  [key: string]: any;
+}) {
+  return request<API.GetDingTalkRegistrationConfigResponse>(
+    "/api/v1/auth/dingtalk/registration-config",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/registrations */
+export async function authServiceRegisterDingTalkUser(
+  body: API.RegisterDingTalkUserRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.RegisterDingTalkUserResponse>(
+    "/api/v1/auth/dingtalk/registrations",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/auth/login */
 export async function authServiceLogin(
   body: API.LoginRequest,

@@ -16,6 +16,7 @@ import { errorConfig } from './requestErrorConfig';
 const loginPath = '/user/login';
 const publicAuthPaths = new Set([
   loginPath,
+  '/user/register',
   '/user/login/wecom/callback',
   '/user/login/dingtalk/callback',
 ]);
@@ -44,7 +45,11 @@ export async function getInitialState(): Promise<InitialState> {
 
   if (publicAuthPaths.has(history.location.pathname)) {
     if (isDevMockEnabled()) {
-      return { fetchUserInfo, currentUser: DEV_MOCK_USER, settings: layoutSettings };
+      return {
+        fetchUserInfo,
+        currentUser: DEV_MOCK_USER,
+        settings: layoutSettings,
+      };
     }
     return { fetchUserInfo, settings: layoutSettings };
   }
@@ -74,13 +79,19 @@ export async function getInitialState(): Promise<InitialState> {
 
 export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   menuHeaderRender: (logo, title) => (
-    <Link to="/welcome" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <Link
+      to="/welcome"
+      style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+    >
       {logo}
       {title}
     </Link>
   ),
   collapsedButtonRender: (_collapsed, defaultDom) => (
-    <div className="roncin-sider-bottom-trigger" title={_collapsed ? '展开侧栏' : '收起侧栏'}>
+    <div
+      className="roncin-sider-bottom-trigger"
+      title={_collapsed ? '展开侧栏' : '收起侧栏'}
+    >
       {defaultDom}
     </div>
   ),

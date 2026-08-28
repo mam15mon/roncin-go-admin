@@ -21,6 +21,7 @@ var (
 	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
 	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
 	ErrAdminUserSelfDelete             = errors.BadRequest("ADMIN_USER_SELF_DELETE", "不能删除当前登录账号")
+	ErrAdminUserPasswordUnavailable    = errors.BadRequest("ADMIN_USER_PASSWORD_UNAVAILABLE", "该用户未启用密码登录，不能重置密码")
 	ErrAdminUserMembershipNotFound     = errors.NotFound("ADMIN_USER_MEMBERSHIP_NOT_FOUND", "用户组织成员关系不存在")
 	ErrAdminUserMembershipExists       = errors.Conflict("ADMIN_USER_MEMBERSHIP_EXISTS", "用户已属于该组织")
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
@@ -63,6 +64,7 @@ type AdminUser struct {
 	DingTalkUnionID *string
 	DingTalkName    *string
 	Enabled         bool
+	HasPassword     bool
 	RoleIDs         []uuid.UUID
 	RoleCodes       []string
 	CreatedAt       time.Time

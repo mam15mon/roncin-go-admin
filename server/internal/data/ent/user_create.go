@@ -71,6 +71,14 @@ func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	return _c
 }
 
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (_c *UserCreate) SetNillableUsername(v *string) *UserCreate {
+	if v != nil {
+		_c.SetUsername(*v)
+	}
+	return _c
+}
+
 // SetDisplayName sets the "display_name" field.
 func (_c *UserCreate) SetDisplayName(v string) *UserCreate {
 	_c.mutation.SetDisplayName(v)
@@ -683,9 +691,6 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
-	}
-	if _, ok := _c.mutation.Username(); !ok {
-		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
 	if v, ok := _c.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {

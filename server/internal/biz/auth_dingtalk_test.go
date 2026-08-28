@@ -34,14 +34,46 @@ func TestAuthUsecaseStartDingTalkLogin(t *testing.T) {
 	}
 }
 
-func TestAuthUsecaseDingTalkFirstLoginWaitsForAuthorization(t *testing.T) {
+func TestAuthUsecaseDingTalkUnregisteredLoginIsRejected(t *testing.T) {
+	repo := &wecomAuthRepoStub{}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", CorpID: "ding-corp", Name: "张三"}}
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider)
+
+	_, _, _, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
+	if err != ErrDingTalkNotRegistered {
+		t.Fatalf("LoginDingTalk() error = %v, want ErrDingTalkNotRegistered", err)
+	}
+}
+
+func TestAuthUsecaseDingTalkRegistrationWaitsForAuthorization(t *testing.T) {
 	organizationID := uuid.New()
 	userID := uuid.New()
 	repo := &wecomAuthRepoStub{
-		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: false},
+		credential: &Credential{UserID: userID, DisplayName: "张三", PrimaryOrganizationID: organizationID, Enabled: false},
 		created:    true,
 	}
-	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", Name: "张三"}}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", CorpID: "ding-corp", Name: "张三"}}
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider)
+
+	registration, err := usecase.RegisterDingTalk(context.Background(), "code", "state", "state")
+	if err != nil {
+		t.Fatalf("RegisterDingTalk() error = %v", err)
+	}
+	if registration.DisplayName != "张三" || registration.Status != "PENDING" {
+		t.Fatalf("registration = %#v", registration)
+	}
+	if len(repo.auditActions) != 1 || repo.auditActions[0] != "auth.dingtalk.register" {
+		t.Fatalf("audit actions = %v", repo.auditActions)
+	}
+}
+
+func TestAuthUsecaseDingTalkPendingLoginDoesNotCreateSession(t *testing.T) {
+	organizationID := uuid.New()
+	userID := uuid.New()
+	repo := &wecomAuthRepoStub{
+		credential: &Credential{UserID: userID, DisplayName: "张三", PrimaryOrganizationID: organizationID, Enabled: false},
+	}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider)
 
 	_, _, _, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
@@ -49,10 +81,19 @@ func TestAuthUsecaseDingTalkFirstLoginWaitsForAuthorization(t *testing.T) {
 		t.Fatalf("LoginDingTalk() error = %v, want ErrDingTalkAuthorizationPending", err)
 	}
 	if repo.createdSession != nil {
-		t.Fatal("pending user should not receive a session")
+		t.Fatal("待授权账号不应创建登录会话")
 	}
-	if len(repo.auditActions) != 1 || repo.auditActions[0] != "auth.dingtalk.register" {
-		t.Fatalf("audit actions = %v", repo.auditActions)
+}
+
+func TestAuthUsecaseDingTalkRegistrationRejectsEnabledAccount(t *testing.T) {
+	repo := &wecomAuthRepoStub{
+		credential: &Credential{UserID: uuid.New(), DisplayName: "张三", PrimaryOrganizationID: uuid.New(), Enabled: true},
+	}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", CorpID: "ding-corp", Name: "张三"}}
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider)
+
+	if _, err := usecase.RegisterDingTalk(context.Background(), "code", "state", "state"); err != ErrDingTalkAlreadyRegistered {
+		t.Fatalf("RegisterDingTalk() error = %v, want ErrDingTalkAlreadyRegistered", err)
 	}
 }
 
@@ -62,7 +103,7 @@ func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSession(t *testing.T) {
 	repo := &wecomAuthRepoStub{
 		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
 	}
-	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", Name: "张三"}}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider)
 
 	_, _, _, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")

@@ -94254,9 +94254,22 @@ func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
 	return oldValue.Username, nil
 }
 
+// ClearUsername clears the value of the "username" field.
+func (m *UserMutation) ClearUsername() {
+	m.username = nil
+	m.clearedFields[user.FieldUsername] = struct{}{}
+}
+
+// UsernameCleared returns if the "username" field was cleared in this mutation.
+func (m *UserMutation) UsernameCleared() bool {
+	_, ok := m.clearedFields[user.FieldUsername]
+	return ok
+}
+
 // ResetUsername resets all changes to the "username" field.
 func (m *UserMutation) ResetUsername() {
 	m.username = nil
+	delete(m.clearedFields, user.FieldUsername)
 }
 
 // SetDisplayName sets the "display_name" field.
@@ -96387,6 +96400,9 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(user.FieldUsername) {
+		fields = append(fields, user.FieldUsername)
+	}
 	if m.FieldCleared(user.FieldEmail) {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -96422,6 +96438,9 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
 	switch name {
+	case user.FieldUsername:
+		m.ClearUsername()
+		return nil
 	case user.FieldEmail:
 		m.ClearEmail()
 		return nil

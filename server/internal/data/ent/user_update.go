@@ -1271,6 +1271,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.UsernameCleared() {
+		_spec.ClearField(user.FieldUsername, field.TypeString)
+	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(user.FieldDisplayName, field.TypeString, value)
 	}
@@ -3767,6 +3770,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.UsernameCleared() {
+		_spec.ClearField(user.FieldUsername, field.TypeString)
 	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(user.FieldDisplayName, field.TypeString, value)

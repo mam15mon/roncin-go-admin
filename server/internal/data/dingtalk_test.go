@@ -30,6 +30,9 @@ func TestDingTalkAuthorizeURL(t *testing.T) {
 	if parsed.Host != "login.dingtalk.com" || parsed.Query().Get("client_id") != "client-id" || parsed.Query().Get("state") != "state-value" {
 		t.Fatalf("授权地址参数错误: %s", authorizeURL)
 	}
+	if parsed.Query().Get("scope") != "openid corpid" {
+		t.Fatalf("授权地址未申请企业身份范围: %s", authorizeURL)
+	}
 }
 
 func TestDingTalkResolveIdentity(t *testing.T) {
@@ -37,10 +40,11 @@ func TestDingTalkResolveIdentity(t *testing.T) {
 		enabled:      true,
 		clientID:     "client-id",
 		clientSecret: "client-secret",
+		corpID:       "ding-corp",
 		client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 			switch request.URL.String() {
 			case dingTalkTokenURL:
-				return jsonResponse(http.StatusOK, `{"accessToken":"access-token"}`), nil
+				return jsonResponse(http.StatusOK, `{"accessToken":"access-token","corpId":"ding-corp"}`), nil
 			case dingTalkProfileURL:
 				if request.Header.Get("x-acs-dingtalk-access-token") != "access-token" {
 					t.Fatal("成员接口缺少钉钉访问令牌")
@@ -57,8 +61,23 @@ func TestDingTalkResolveIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ResolveIdentity() error = %v", err)
 	}
-	if identity.UnionID != "union-id" || identity.Name != "张三" || identity.Email == nil || *identity.Email != "zhangsan@example.com" || identity.AvatarURL == nil || *identity.AvatarURL != "https://example.com/avatar.png" {
+	if identity.UnionID != "union-id" || identity.CorpID != "ding-corp" || identity.Name != "张三" || identity.Email == nil || *identity.Email != "zhangsan@example.com" || identity.AvatarURL == nil || *identity.AvatarURL != "https://example.com/avatar.png" {
 		t.Fatalf("钉钉身份解析错误: %#v", identity)
+	}
+}
+
+func TestDingTalkResolveIdentityRejectsOtherOrganization(t *testing.T) {
+	provider := &dingTalkIdentityProvider{
+		enabled:      true,
+		clientID:     "client-id",
+		clientSecret: "client-secret",
+		corpID:       "ding-corp",
+		client: &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return jsonResponse(http.StatusOK, `{"accessToken":"access-token","corpId":"other-corp"}`), nil
+		})},
+	}
+	if _, err := provider.ResolveIdentity(context.Background(), "auth-code"); err != biz.ErrDingTalkOrganizationMismatch {
+		t.Fatalf("ResolveIdentity() error = %v, want ErrDingTalkOrganizationMismatch", err)
 	}
 }
 

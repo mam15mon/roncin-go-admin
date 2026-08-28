@@ -1461,6 +1461,7 @@ type AdminUser struct {
 	DingtalkUnionid *string                `protobuf:"bytes,12,opt,name=dingtalk_unionid,json=dingtalkUnionid,proto3,oneof" json:"dingtalk_unionid,omitempty"`
 	DingtalkName    *string                `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
 	AvatarUrl       *string                `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	HasPassword     bool                   `protobuf:"varint,15,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1591,6 +1592,13 @@ func (x *AdminUser) GetAvatarUrl() string {
 		return *x.AvatarUrl
 	}
 	return ""
+}
+
+func (x *AdminUser) GetHasPassword() bool {
+	if x != nil {
+		return x.HasPassword
+	}
+	return false
 }
 
 type AdminUserMembership struct {
@@ -3787,7 +3795,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xb1\x04\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xd4\x04\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -3808,7 +3816,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x10dingtalk_unionid\x18\f \x01(\tH\x03R\x0fdingtalkUnionid\x88\x01\x01\x12(\n" +
 	"\rdingtalk_name\x18\r \x01(\tH\x04R\fdingtalkName\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01B\b\n" +
+	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01\x12!\n" +
+	"\fhas_password\x18\x0f \x01(\bR\vhasPasswordB\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +

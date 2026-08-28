@@ -9,17 +9,31 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormSwitch,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
-import { Alert, App, Avatar, Button, Popconfirm, Space, Table, Tag, Typography } from 'antd';
 import { useAccess, useModel } from '@umijs/max';
+import {
+  Alert,
+  App,
+  Avatar,
+  Button,
+  Popconfirm,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { ProFormSearchableSelect, SearchFilterTemplate } from '@/components/ui';
 import {
   adminServiceAuthorizeDingTalkUser,
   adminServiceAuthorizeWeComUser,
@@ -88,17 +102,22 @@ export default function UsersPanel() {
   const [resetting, setResetting] = useState<API.AdminUser>();
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
   const [approvalRoles, setApprovalRoles] = useState<API.AdminRole[]>([]);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
+  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
+    [],
+  );
   const [memberships, setMemberships] = useState<API.AdminUserMembership[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(false);
   const [membershipModalOpen, setMembershipModalOpen] = useState(false);
-  const [membershipEditing, setMembershipEditing] = useState<API.AdminUserMembership>();
+  const [membershipEditing, setMembershipEditing] =
+    useState<API.AdminUserMembership>();
   const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
   const pendingProvider = pendingExternalProvider(editing);
 
   useEffect(() => {
     adminServiceListRoles().then((response) => setRoles(response.data ?? []));
-    adminServiceListOrganizations().then((response) => setOrganizations(response.data ?? []));
+    adminServiceListOrganizations().then((response) =>
+      setOrganizations(response.data ?? []),
+    );
   }, []);
 
   const openCreate = () => {
@@ -157,7 +176,9 @@ export default function UsersPanel() {
       dataIndex: 'displayName',
       width: 220,
       render: (_, record) => {
-        const initial = record.displayName ? record.displayName.charAt(0).toUpperCase() : 'U';
+        const initial = record.displayName
+          ? record.displayName.charAt(0).toUpperCase()
+          : 'U';
         return (
           <Space size={10} align="center">
             <Avatar
@@ -173,16 +194,28 @@ export default function UsersPanel() {
               {initial}
             </Avatar>
             <div style={{ lineHeight: 1.3 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: 'rgba(0, 0, 0, 0.88)',
+                }}
+              >
                 {record.displayName || '-'}
               </div>
-              <Text
-                copyable={{ text: record.username }}
-                type="secondary"
-                style={{ fontSize: 11, fontFamily: 'monospace' }}
-              >
-                @{record.username}
-              </Text>
+              {record.username ? (
+                <Text
+                  copyable={{ text: record.username }}
+                  type="secondary"
+                  style={{ fontSize: 11, fontFamily: 'monospace' }}
+                >
+                  @{record.username}
+                </Text>
+              ) : (
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  {record.dingtalkUnionid ? '钉钉账号' : '无密码账号'}
+                </Text>
+              )}
             </div>
           </Space>
         );
@@ -203,8 +236,13 @@ export default function UsersPanel() {
       ellipsis: true,
       render: (_, record) =>
         record.email ? (
-          <Space size={4} style={{ color: 'rgba(0, 0, 0, 0.65)', fontSize: 12 }}>
-            <MailOutlined style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12 }} />
+          <Space
+            size={4}
+            style={{ color: 'rgba(0, 0, 0, 0.65)', fontSize: 12 }}
+          >
+            <MailOutlined
+              style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12 }}
+            />
             <span>{record.email}</span>
           </Space>
         ) : (
@@ -221,8 +259,13 @@ export default function UsersPanel() {
       render: (_, record) =>
         record.wecomUserid ? (
           <div style={{ lineHeight: 1.4 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{record.wecomName || '-'}</div>
-            <Text type="secondary" style={{ fontSize: 11, fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>
+              {record.wecomName || '-'}
+            </div>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, fontFamily: 'monospace' }}
+            >
               {record.wecomUserid}
             </Text>
           </div>
@@ -289,7 +332,9 @@ export default function UsersPanel() {
                     border: '1px solid #dbeafe',
                   }}
                 >
-                  <SafetyCertificateOutlined style={{ marginRight: 3, fontSize: 11 }} />
+                  <SafetyCertificateOutlined
+                    style={{ marginRight: 3, fontSize: 11 }}
+                  />
                   {label}
                 </Tag>
               );
@@ -340,7 +385,7 @@ export default function UsersPanel() {
               编辑
             </Button>
           )}
-          {access.canResetUserPasswords && (
+          {access.canResetUserPasswords && record.hasPassword && (
             <Button
               type="link"
               size="small"
@@ -453,20 +498,29 @@ export default function UsersPanel() {
 
       {/* Create / Edit User Modal */}
       <ModalForm<UserFormValues>
-        title={editing ? `编辑用户：${editing.displayName || editing.username}` : '新增用户'}
+        title={
+          editing
+            ? `编辑用户：${editing.displayName || editing.username}`
+            : '新增用户'
+        }
         open={modalOpen}
         formRef={formRef}
         initialValues={
           editing
             ? {
                 ...editing,
-                organizationId: pendingProvider ? initialState?.currentUser?.currentOrganization?.id : undefined,
+                organizationId: pendingProvider
+                  ? initialState?.currentUser?.currentOrganization?.id
+                  : undefined,
               }
             : undefined
         }
         modalProps={{
           destroyOnClose: true,
-          width: editing && !pendingProvider && access.canReadAllUserMemberships ? 880 : 560,
+          width:
+            editing && !pendingProvider && access.canReadAllUserMemberships
+              ? 880
+              : 560,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}
@@ -540,22 +594,29 @@ export default function UsersPanel() {
             fieldProps={{
               onChange: async (organizationId: string) => {
                 formRef.current?.setFieldValue('roleIds', []);
-                const response = await adminServiceListOrganizationRoles({ organizationId });
+                const response = await adminServiceListOrganizationRoles({
+                  organizationId,
+                });
                 setApprovalRoles(response.data ?? []);
               },
             }}
           />
         )}
-        <ProFormText
-          name="username"
-          label="用户名（登录账号）"
-          placeholder="例如：zhangsan 或 logistics_op"
-          disabled={Boolean(editing)}
-          rules={[
-            { required: true, message: '请输入用户名' },
-            { pattern: /^[A-Za-z0-9_.-]+$/, message: '用户名仅支持英文字母、数字、点号、下划线及连字符' },
-          ]}
-        />
+        {(!editing || editing.username) && (
+          <ProFormText
+            name="username"
+            label="用户名（密码登录账号）"
+            placeholder="例如：zhangsan 或 logistics_op"
+            disabled={Boolean(editing)}
+            rules={[
+              { required: !editing, message: '请输入用户名' },
+              {
+                pattern: /^[A-Za-z0-9_.-]+$/,
+                message: '用户名仅支持英文字母、数字、点号、下划线及连字符',
+              },
+            ]}
+          />
+        )}
         <ProFormText
           name="displayName"
           label="显示名称（用户姓名）"
@@ -599,7 +660,11 @@ export default function UsersPanel() {
           <div style={{ marginTop: 8 }}>
             <Space
               align="center"
-              style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: 12,
+              }}
             >
               <div>
                 <Space size={6}>
@@ -613,7 +678,11 @@ export default function UsersPanel() {
                 </div>
               </div>
               {access.canManageUserMemberships && (
-                <Button size="small" icon={<PlusOutlined />} onClick={openCreateMembership}>
+                <Button
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateMembership}
+                >
                   加入组织
                 </Button>
               )}
@@ -636,8 +705,10 @@ export default function UsersPanel() {
                       </Space>
                       <div>
                         <Text type="secondary" style={{ fontSize: 11 }}>
-                          {organizationKindLabels[membership.organizationKind ?? 0] ?? '组织'} ·{' '}
-                          {membership.organizationCode || '-'}
+                          {organizationKindLabels[
+                            membership.organizationKind ?? 0
+                          ] ?? '组织'}{' '}
+                          · {membership.organizationCode || '-'}
                         </Text>
                       </div>
                     </div>
@@ -685,7 +756,9 @@ export default function UsersPanel() {
                           okText="移除"
                           cancelText="取消"
                           okButtonProps={{ danger: true }}
-                          disabled={editing.id === initialState?.currentUser?.id}
+                          disabled={
+                            editing.id === initialState?.currentUser?.id
+                          }
                           onConfirm={async () => {
                             if (!editing.id || !membership.id) return;
                             await adminServiceDeleteUserMembership({
@@ -700,7 +773,9 @@ export default function UsersPanel() {
                             type="link"
                             danger
                             size="small"
-                            disabled={editing.id === initialState?.currentUser?.id}
+                            disabled={
+                              editing.id === initialState?.currentUser?.id
+                            }
                           >
                             移除
                           </Button>
@@ -802,7 +877,9 @@ export default function UsersPanel() {
           fieldProps={{
             onChange: async (organizationId: string) => {
               membershipFormRef.current?.setFieldValue('roleIds', []);
-              const response = await adminServiceListOrganizationRoles({ organizationId });
+              const response = await adminServiceListOrganizationRoles({
+                organizationId,
+              });
               setMembershipRoles(response.data ?? []);
             },
           }}

@@ -2,19 +2,20 @@ package schema
 
 import (
 	"entgo.io/ent"
+	entsql "entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
 
-// User stores a local account. Password hashes never leave the data layer.
+// User 存储系统用户及其可选登录身份，密码哈希不会离开数据层。
 type User struct{ ent.Schema }
 
 func (User) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username").NotEmpty().MaxLen(100).Immutable(),
+		field.String("username").MaxLen(100).Optional().Immutable(),
 		field.String("display_name").NotEmpty().MaxLen(100),
 		field.String("email").MaxLen(254).Optional().Nillable(),
 		field.String("avatar_url").MaxLen(2048).Optional().Nillable(),
@@ -64,5 +65,10 @@ func (User) Edges() []ent.Edge {
 }
 
 func (User) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("username").Unique(), index.Fields("email"), index.Fields("wecom_userid").Unique(), index.Fields("dingtalk_unionid").Unique()}
+	return []ent.Index{
+		index.Fields("username").Unique().Annotations(entsql.IndexWhere("username IS NOT NULL AND username <> ''")),
+		index.Fields("email"),
+		index.Fields("wecom_userid").Unique(),
+		index.Fields("dingtalk_unionid").Unique(),
+	}
 }

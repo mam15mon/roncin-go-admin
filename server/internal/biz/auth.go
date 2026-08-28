@@ -30,12 +30,15 @@ var (
 	ErrWeComPermissionDenied        = errors.Unauthorized("AUTH_WECOM_PERMISSION_DENIED", "企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限")
 	ErrWeComStateInvalid            = errors.Unauthorized("AUTH_WECOM_STATE_INVALID", "企业微信登录状态已失效，请重新扫码")
 	ErrWeComAuthorizationPending    = errors.Forbidden("AUTH_WECOM_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
-	ErrDingTalkDisabled             = errors.ServiceUnavailable("AUTH_DINGTALK_DISABLED", "钉钉登录未启用")
+	ErrDingTalkDisabled             = errors.ServiceUnavailable("AUTH_DINGTALK_DISABLED", "钉钉认证未启用")
 	ErrDingTalkLoginFailed          = errors.Unauthorized("AUTH_DINGTALK_LOGIN_FAILED", "钉钉登录失败")
 	ErrDingTalkCodeInvalid          = errors.Unauthorized("AUTH_DINGTALK_CODE_INVALID", "钉钉登录凭证已失效，请重新扫码")
 	ErrDingTalkPermissionDenied     = errors.Unauthorized("AUTH_DINGTALK_PERMISSION_DENIED", "钉钉应用无权读取成员信息，请检查应用权限")
-	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉登录状态已失效，请重新扫码")
+	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉验证状态已失效，请重新扫码")
 	ErrDingTalkAuthorizationPending = errors.Forbidden("AUTH_DINGTALK_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
+	ErrDingTalkOrganizationMismatch = errors.Forbidden("AUTH_DINGTALK_ORGANIZATION_MISMATCH", "当前钉钉账号不属于本企业，无法继续注册")
+	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "该钉钉账号尚未注册，请先完成钉钉扫码注册")
+	ErrDingTalkAlreadyRegistered    = errors.Conflict("AUTH_DINGTALK_ALREADY_REGISTERED", "该钉钉账号已完成注册，请直接登录")
 )
 
 type DataScope string
@@ -83,6 +86,7 @@ type WeComIdentityProvider interface {
 
 type DingTalkIdentity struct {
 	UnionID   string
+	CorpID    string
 	Name      string
 	Email     *string
 	AvatarURL *string
@@ -219,13 +223,19 @@ type AuthRepo interface {
 	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error)
 	ClearLoginFailures(context.Context, string) error
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error)
-	FindOrCreateDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error)
+	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
+	RegisterDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
 	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time) error
 	RevokeSession(context.Context, string, time.Time) error
 	WriteAudit(context.Context, *AuditEvent) error
+}
+
+type DingTalkRegistration struct {
+	DisplayName string
+	Status      string
 }
 
 type AuditRepo interface {
@@ -401,19 +411,43 @@ func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expec
 	if err != nil {
 		return "", nil, time.Time{}, err
 	}
-	credential, created, err := uc.repo.FindOrCreateDingTalkCredential(ctx, identity)
+	credential, err := uc.repo.FindDingTalkCredential(ctx, identity)
 	if err != nil {
 		return "", nil, time.Time{}, err
-	}
-	if created {
-		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.dingtalk.register", Result: "success"}); err != nil {
-			return "", nil, time.Time{}, err
-		}
 	}
 	if !credential.Enabled {
 		return "", nil, time.Time{}, ErrDingTalkAuthorizationPending
 	}
 	return uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login")
+}
+
+func (uc *AuthUsecase) RegisterDingTalk(ctx context.Context, authCode, state, expectedState string) (*DingTalkRegistration, error) {
+	if !uc.dingtalk.Enabled() {
+		return nil, ErrDingTalkDisabled
+	}
+	authCode = strings.TrimSpace(authCode)
+	state = strings.TrimSpace(state)
+	expectedState = strings.TrimSpace(expectedState)
+	if authCode == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
+		return nil, ErrDingTalkStateInvalid
+	}
+	identity, err := uc.dingtalk.ResolveIdentity(ctx, authCode)
+	if err != nil {
+		return nil, err
+	}
+	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity)
+	if err != nil {
+		return nil, err
+	}
+	if !created && credential.Enabled {
+		return nil, ErrDingTalkAlreadyRegistered
+	}
+	if created {
+		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.dingtalk.register", Result: "success"}); err != nil {
+			return nil, err
+		}
+	}
+	return &DingTalkRegistration{DisplayName: credential.DisplayName, Status: "PENDING"}, nil
 }
 
 func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction string) (string, *Principal, time.Time, error) {

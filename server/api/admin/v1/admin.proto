@@ -308,6 +308,7 @@ message AdminUser {
   optional string dingtalk_unionid = 12;
   optional string dingtalk_name = 13;
   optional string avatar_url = 14;
+  bool has_password = 15;
 }
 
 message AdminUserMembership {

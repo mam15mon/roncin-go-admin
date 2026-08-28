@@ -531,7 +531,7 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 }
 
 func userToAPI(value *biz.AdminUser) *v1.AdminUser {
-	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership {
