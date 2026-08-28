@@ -11,7 +11,6 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -44,7 +43,7 @@ func main() {
 			logger.Error("sync permission manifest failed", "error", syncErr)
 			os.Exit(1)
 		}
-		logger.Info("permission manifest synced", "created", summary.created, "updated", summary.updated, "attached_to_administrator", summary.attached)
+		logger.Info("permission manifest synced", "created", summary.Created, "updated", summary.Updated, "attached_to_administrator", summary.Attached)
 		return
 	}
 	if err := bootstrap(context.Background(), config); err != nil {
@@ -165,82 +164,19 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 	return nil
 }
 
-type permissionSyncSummary struct {
-	created  int
-	updated  int
-	attached int
-}
-
 // syncPermissions 按 access.Manifest 幂等同步权限目录，并为 administrator 角色补挂
-// 缺失权限。仅面向开发阶段的增量同步：不创建或修改用户与组织，已从 Manifest
-// 删除的权限码不会被移除，需要彻底清理时重置数据库后重新执行完整 bootstrap。
-func syncPermissions(ctx context.Context, databaseSource string) (*permissionSyncSummary, error) {
+// 缺失权限。完整流程已由 cmd/migrate 在迁移后统一执行，此入口保留给开发阶段手工
+// 触发；不创建或修改用户与组织，已从 Manifest 删除的权限码不会被移除，需要彻底
+// 清理时重置数据库后重新执行完整 bootstrap。
+func syncPermissions(ctx context.Context, databaseSource string) (*data.PermissionManifestSyncSummary, error) {
 	sqlDB, err := sql.Open("pgx", databaseSource)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
+	defer sqlDB.Close()
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
-	defer client.Close()
 	if err := client.Schema.Create(ctx); err != nil {
 		return nil, fmt.Errorf("synchronize schema: %w", err)
 	}
-
-	existing, err := client.Permission.Query().All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("query permissions: %w", err)
-	}
-	existingByKey := make(map[string]*ent.Permission, len(existing))
-	for _, item := range existing {
-		existingByKey[item.Key] = item
-	}
-
-	summary := &permissionSyncSummary{}
-	manifestIDs := make(map[string]uuid.UUID, len(access.Manifest()))
-	for _, definition := range access.Manifest() {
-		if current, found := existingByKey[definition.Key]; found {
-			if current.Name != definition.Name || current.Group != definition.Group || current.Description != definition.Description {
-				if _, updateErr := client.Permission.UpdateOneID(current.ID).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx); updateErr != nil {
-					return nil, fmt.Errorf("update permission %s: %w", definition.Key, updateErr)
-				}
-				summary.updated++
-			}
-			manifestIDs[definition.Key] = current.ID
-			continue
-		}
-		created, createErr := client.Permission.Create().SetKey(definition.Key).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
-		if createErr != nil {
-			return nil, fmt.Errorf("create permission %s: %w", definition.Key, createErr)
-		}
-		manifestIDs[definition.Key] = created.ID
-		summary.created++
-	}
-
-	adminRoles, err := client.Role.Query().Where(role.CodeEQ("administrator")).All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("query administrator roles: %w", err)
-	}
-	for _, adminRole := range adminRoles {
-		granted, grantErr := adminRole.QueryPermissions().All(ctx)
-		if grantErr != nil {
-			return nil, fmt.Errorf("query permissions of role %s: %w", adminRole.Code, grantErr)
-		}
-		grantedKeys := make(map[string]struct{}, len(granted))
-		for _, item := range granted {
-			grantedKeys[item.Key] = struct{}{}
-		}
-		var missingIDs []uuid.UUID
-		for key, id := range manifestIDs {
-			if _, ok := grantedKeys[key]; !ok {
-				missingIDs = append(missingIDs, id)
-			}
-		}
-		if len(missingIDs) == 0 {
-			continue
-		}
-		if _, attachErr := client.Role.UpdateOneID(adminRole.ID).AddPermissionIDs(missingIDs...).Save(ctx); attachErr != nil {
-			return nil, fmt.Errorf("attach permissions to role %s: %w", adminRole.Code, attachErr)
-		}
-		summary.attached += len(missingIDs)
-	}
-	return summary, nil
+	return data.SyncPermissionManifest(ctx, sqlDB)
 }
