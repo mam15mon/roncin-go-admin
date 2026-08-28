@@ -13,3 +13,4 @@ export * from './quick-date-picker';
 export * from './sub-entity-drawer';
 export * from './quick-create-modal';
 export * from './exchange-rate-input';
+export * from './document-detail-layout';
