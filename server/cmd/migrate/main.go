@@ -35,11 +35,16 @@ func main() {
 		os.Exit(1)
 	}
 	var permissionSummary *data.PermissionManifestSyncSummary
+	var orderOptionsSummary *data.DefaultOrderOptionsSyncSummary
 	if err := migration.ApplyWithPostStep(ctx, db, *dir, func(conn *sql.Conn) error {
 		// 权限清单与代码中的 access.Manifest 保持同步是发版的必要步骤，在迁移锁
 		// 释放前完成，避免多实例发版时与其他迁移进程交错执行。
 		var syncErr error
 		permissionSummary, syncErr = data.SyncPermissionManifest(ctx, conn)
+		if syncErr != nil {
+			return syncErr
+		}
+		orderOptionsSummary, syncErr = data.SyncDefaultOrderOptions(ctx, conn)
 		return syncErr
 	}); err != nil {
 		fmt.Fprintf(os.Stderr, "执行数据库迁移失败: %v\n", err)
@@ -50,4 +55,5 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("权限清单已同步：新增 %d 项，更新 %d 项，移除 %d 项，补齐角色依赖 %d 项\n", permissionSummary.Created, permissionSummary.Updated, permissionSummary.Removed, permissionSummary.Attached)
+	fmt.Printf("订单主数据种子已同步：补齐 %d 项\n", orderOptionsSummary.Created)
 }
