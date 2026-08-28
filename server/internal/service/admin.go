@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
@@ -285,7 +286,12 @@ func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetU
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	if err := s.usecase.ResetUserPassword(ctx, principal.Organization.ID, principal.UserID, userID, request.GetPassword()); err != nil {
+	var username *string
+	if request.Username != nil && strings.TrimSpace(request.GetUsername()) != "" {
+		trimmed := strings.TrimSpace(request.GetUsername())
+		username = &trimmed
+	}
+	if err := s.usecase.ResetUserPassword(ctx, principal.Organization.ID, principal.UserID, userID, request.GetPassword(), username); err != nil {
 		return nil, err
 	}
 	return &v1.ResetUserPasswordResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil

@@ -52,13 +52,13 @@ func (s *adminRepoStub) ListUsers(_ context.Context, _ uuid.UUID, options AdminU
 	return &AdminUserList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID) (*AdminUser, error) {
 	s.userInput = input
 	s.userPassword = passwordHash
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	return input, nil
 }
 
@@ -66,14 +66,14 @@ func (s *adminRepoStub) ListUserMemberships(_ context.Context, _ uuid.UUID) ([]*
 	return s.memberships, nil
 }
 
-func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) CreateUserMembership(_ context.Context, _ uuid.UUID, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.ID = uuid.New()
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) UpdateUserMembership(_ context.Context, _ uuid.UUID, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.OrganizationID = uuid.New()
@@ -91,19 +91,19 @@ func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid
 	return nil
 }
 
-func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
 	return input, nil
 }
 
-func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
 	return input, nil
 }
 
-func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string) error {
+func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string, _ *string) error {
 	s.resetPassword = passwordHash
 	return nil
 }
@@ -348,11 +348,15 @@ func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	userID := uuid.New()
-
-	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "short"); err != ErrAdminInvalidArgument {
+	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "short", nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("short reset password error = %v, want ErrAdminInvalidArgument", err)
 	}
-	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password"); err != nil {
+	invalidUsername := "bad username!"
+	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password", &invalidUsername); err != ErrAdminInvalidArgument {
+		t.Fatalf("invalid username error = %v, want ErrAdminInvalidArgument", err)
+	}
+	validUser := "valid.user_01"
+	if err := usecase.ResetUserPassword(context.Background(), organizationID, actorID, userID, "new-strong-password", &validUser); err != nil {
 		t.Fatalf("ResetUserPassword() error = %v", err)
 	}
 	if repo.resetPassword == "" || repo.resetPassword == "new-strong-password" {

@@ -3949,6 +3949,7 @@ declare namespace API {
   type ResetUserPasswordRequest = {
     id: string;
     password: string;
+    username?: string;
   };
 
   type ResetUserPasswordResponse = {

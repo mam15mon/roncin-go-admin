@@ -15,7 +15,7 @@ func (User) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username").MaxLen(100).Optional().Immutable(),
+		field.String("username").MaxLen(100).Optional(),
 		field.String("display_name").NotEmpty().MaxLen(100),
 		field.String("email").MaxLen(254).Optional().Nillable(),
 		field.String("avatar_url").MaxLen(2048).Optional().Nillable(),

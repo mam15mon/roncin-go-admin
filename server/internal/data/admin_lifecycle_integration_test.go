@@ -127,7 +127,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if err != nil || assignments != 0 {
 		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
 	}
-	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, account.ID, &biz.AdminUser{
+	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, uuid.Nil, account.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 		Enabled:     true,
@@ -135,7 +135,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
-	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
+	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, uuid.Nil, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 	}, []uuid.UUID{role.ID})

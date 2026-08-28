@@ -404,15 +404,18 @@ export default function UsersPanel() {
               编辑
             </Button>
           )}
-          {access.canResetUserPasswords && record.hasPassword && (
+          {access.canResetUserPasswords && (
             <Button
               type="link"
               size="small"
               icon={<KeyOutlined />}
-              style={{ padding: 0, color: '#f59e0b' }}
+              style={{
+                padding: 0,
+                color: record.hasPassword ? '#f59e0b' : '#1677ff',
+              }}
               onClick={() => setResetting(record)}
             >
-              重置密码
+              {record.hasPassword ? '重置密码' : '设置密码'}
             </Button>
           )}
           {access.canTerminateUsers &&
@@ -936,10 +939,17 @@ export default function UsersPanel() {
         )}
       </ModalForm>
 
-      {/* Reset Password Modal */}
-      <ModalForm<{ password?: string }>
-        title={`重置登录密码：${resetting?.displayName || resetting?.username || ''}`}
+      {/* Set / Reset Password Modal */}
+      <ModalForm<{ username?: string; password?: string }>
+        title={
+          resetting?.hasPassword
+            ? `重置登录密码：${resetting?.displayName || resetting?.username || ''}`
+            : `设置登录账密：${resetting?.displayName || resetting?.dingtalkName || resetting?.wecomName || ''}`
+        }
         open={Boolean(resetting)}
+        initialValues={
+          resetting?.username ? { username: resetting.username } : undefined
+        }
         modalProps={{
           destroyOnClose: true,
           width: 500,
@@ -952,35 +962,64 @@ export default function UsersPanel() {
           if (!resetting?.id) return false;
           await adminServiceResetUserPassword(
             { id: resetting.id },
-            { id: resetting.id, password: values.password ?? '' },
+            {
+              id: resetting.id,
+              password: values.password ?? '',
+              username: values.username?.trim() || undefined,
+            },
           );
-          message.success('密码已重置，该用户现有在线会话已全部失效');
+          message.success(
+            resetting.hasPassword
+              ? '密码已重置，该用户现有在线会话已全部失效'
+              : '登录账密已设置，该用户现可使用用户名与密码登录',
+          );
           setResetting(undefined);
+          actionRef.current?.reload();
           return true;
         }}
       >
         <Alert
           showIcon
-          type="warning"
-          title="重置密码安全须知"
-          description="密码重置成功后，该用户的旧密码将立即失效，当前所有在线登录会话将被强制退出。"
+          type={resetting?.hasPassword ? 'warning' : 'info'}
+          title={resetting?.hasPassword ? '重置密码安全须知' : '设置登录账密'}
+          description={
+            resetting?.hasPassword
+              ? '密码重置成功后，该用户的旧密码将立即失效，当前所有在线登录会话将被强制退出。'
+              : '为该第三方账号设置专属登录用户名与密码后，用户可在未携带手机或扫码不便时使用账密备用登录。'
+          }
           style={{ marginBottom: 16 }}
         />
-        <div style={{ marginBottom: 12 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            目标账号：
-          </Text>
-          <Text strong style={{ marginLeft: 4, fontFamily: 'monospace' }}>
-            {resetting?.username}
-          </Text>
-        </div>
+        {(!resetting?.username || !resetting.hasPassword) && (
+          <ProFormText
+            name="username"
+            label="登录用户名"
+            placeholder="例如：zhangsan 或 logistics_op"
+            rules={[
+              { required: !resetting?.username, message: '请输入登录用户名' },
+              {
+                pattern: /^[A-Za-z0-9_.-]+$/,
+                message: '用户名仅支持英文字母、数字、点号、下划线及连字符',
+              },
+            ]}
+          />
+        )}
+        {resetting?.username && resetting.hasPassword && (
+          <div style={{ marginBottom: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              目标账号：
+            </Text>
+            <Text strong style={{ marginLeft: 4, fontFamily: 'monospace' }}>
+              {resetting?.username}
+            </Text>
+          </div>
+        )}
         <ProFormText
           name="password"
-          label="新登录密码"
+          label={resetting?.hasPassword ? '新登录密码' : '初始登录密码'}
           placeholder="请输入至少 12 位新密码"
           fieldProps={{ type: 'password' }}
-          extra="新密码至少 12 位，重置后请及时通知用户"
-          rules={[{ required: true, min: 12, message: '新密码至少 12 位' }]}
+          extra="密码至少 12 位，设置后请及时通知用户"
+          rules={[{ required: true, min: 12, message: '密码至少 12 位' }]}
         />
       </ModalForm>
     </>

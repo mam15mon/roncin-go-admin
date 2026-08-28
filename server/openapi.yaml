@@ -5315,6 +5315,8 @@ components:
                     type: string
                 password:
                     type: string
+                username:
+                    type: string
         admin.v1.ResetUserPasswordResponse:
             type: object
             properties:

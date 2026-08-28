@@ -3,10 +3,12 @@ package biz
 import (
 	"context"
 	"fmt"
-	"github.com/roncin/roncin-go-admin/server/internal/security/password"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -30,6 +32,7 @@ var (
 	ErrAdminRoleNotFound               = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
 	ErrAdminRoleCodeExists             = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
 	ErrAdminPermissionInvalid          = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
+	ErrAdminPrivilegeEscalation        = errors.Forbidden("ADMIN_PRIVILEGE_ESCALATION_DENIED", "不能分配超出自身权限范围的角色")
 	ErrAdminInvalidArgument            = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "管理参数不合法")
 )
 
@@ -165,16 +168,16 @@ type AdminRepo interface {
 	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
 	UpdateOrganization(context.Context, uuid.UUID, *AdminOrganization) (*AdminOrganization, error)
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
-	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
-	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	CreateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
+	UpdateUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ListUserMemberships(context.Context, uuid.UUID) ([]*AdminUserMembership, error)
-	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
-	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
+	CreateUserMembership(context.Context, uuid.UUID, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
+	UpdateUserMembership(context.Context, uuid.UUID, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID) error
 	TerminateUser(context.Context, uuid.UUID, uuid.UUID) error
-	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
-	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
-	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
+	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
 	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
@@ -277,7 +280,7 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, fmt.Errorf("hash admin password: %w", err)
 	}
-	created, err := uc.repo.CreateUser(ctx, organizationID, normalized, hash, roleIDs)
+	created, err := uc.repo.CreateUser(ctx, organizationID, actorID, normalized, hash, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +295,7 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs)
+	updated, err := uc.repo.UpdateUser(ctx, organizationID, actorID, id, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +313,7 @@ func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorID, userI
 	if actorID == uuid.Nil || userID == uuid.Nil || organizationID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	created, err := uc.repo.CreateUserMembership(ctx, &AdminUserMembership{
+	created, err := uc.repo.CreateUserMembership(ctx, actorID, &AdminUserMembership{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		Primary:        primary,
@@ -329,7 +332,7 @@ func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorID, userI
 	if actorID == userID && !enabled {
 		return nil, ErrAdminUserSelfDelete
 	}
-	updated, err := uc.repo.UpdateUserMembership(ctx, &AdminUserMembership{
+	updated, err := uc.repo.UpdateUserMembership(ctx, actorID, &AdminUserMembership{
 		ID:      membershipID,
 		UserID:  userID,
 		Enabled: enabled,
@@ -375,7 +378,7 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
+	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -390,22 +393,28 @@ func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganiz
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
+	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, actorID, normalized, roleIDs)
 	if err != nil {
 		return nil, err
 	}
 	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.dingtalk.authorize", authorized.Username)
 }
 
-func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string) error {
+func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
 	if organizationID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
 		return ErrAdminInvalidArgument
+	}
+	if username != nil {
+		trimmed := strings.TrimSpace(*username)
+		if !validUsername(trimmed) {
+			return ErrAdminInvalidArgument
+		}
 	}
 	hash, err := password.Hash(plainPassword)
 	if err != nil {
 		return fmt.Errorf("hash reset password: %w", err)
 	}
-	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash); err != nil {
+	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash, username); err != nil {
 		return err
 	}
 	return uc.writeAudit(ctx, actorID, &id, "admin.user.password.reset", "")
@@ -501,8 +510,14 @@ func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error)
 	return &output, nil
 }
 
+var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+
 func validOrganizationCurrency(value string) bool {
 	return currencyPattern.MatchString(value)
+}
+
+func validUsername(value string) bool {
+	return len(value) >= 3 && len(value) <= 64 && usernamePattern.MatchString(value)
 }
 
 func normalizeUser(input *AdminUser) (*AdminUser, error) {

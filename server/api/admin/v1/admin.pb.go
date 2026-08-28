@@ -1411,6 +1411,7 @@ type ResetUserPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Username      *string                `protobuf:"bytes,3,opt,name=username,proto3,oneof" json:"username,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1455,6 +1456,13 @@ func (x *ResetUserPasswordRequest) GetId() string {
 func (x *ResetUserPasswordRequest) GetPassword() string {
 	if x != nil {
 		return x.Password
+	}
+	return ""
+}
+
+func (x *ResetUserPasswordRequest) GetUsername() string {
+	if x != nil && x.Username != nil {
+		return *x.Username
 	}
 	return ""
 }
@@ -3872,10 +3880,12 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x03 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x19\n" +
 	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1e\n" +
 	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsB\b\n" +
-	"\x06_email\"P\n" +
+	"\x06_email\"~\n" +
 	"\x18ResetUserPasswordRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
-	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"L\n" +
+	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\x12\x1f\n" +
+	"\busername\x18\x03 \x01(\tH\x00R\busername\x88\x01\x01B\v\n" +
+	"\t_username\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\x87\x06\n" +
 	"\tAdminUser\x12\x0e\n" +
@@ -4306,6 +4316,7 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[16].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[17].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[18].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[20].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[45].OneofWrappers = []any{}
 	type x struct{}

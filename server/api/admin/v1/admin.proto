@@ -299,6 +299,7 @@ message AuthorizeDingTalkUserRequest {
 message ResetUserPasswordRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string username = 3;
 }
 
 message ListOrganizationRolesRequest {
