@@ -93,6 +93,14 @@ func (_c *NotificationDeliveryCreate) SetReferenceCode(v string) *NotificationDe
 	return _c
 }
 
+// SetNillableReferenceCode sets the "reference_code" field if the given value is not nil.
+func (_c *NotificationDeliveryCreate) SetNillableReferenceCode(v *string) *NotificationDeliveryCreate {
+	if v != nil {
+		_c.SetReferenceCode(*v)
+	}
+	return _c
+}
+
 // SetParameter sets the "parameter" field.
 func (_c *NotificationDeliveryCreate) SetParameter(v string) *NotificationDeliveryCreate {
 	_c.mutation.SetParameter(v)
@@ -234,9 +242,6 @@ func (_c *NotificationDeliveryCreate) check() error {
 	}
 	if _, ok := _c.mutation.ResourceID(); !ok {
 		return &ValidationError{Name: "resource_id", err: errors.New(`ent: missing required field "NotificationDelivery.resource_id"`)}
-	}
-	if _, ok := _c.mutation.ReferenceCode(); !ok {
-		return &ValidationError{Name: "reference_code", err: errors.New(`ent: missing required field "NotificationDelivery.reference_code"`)}
 	}
 	if v, ok := _c.mutation.ReferenceCode(); ok {
 		if err := notificationdelivery.ReferenceCodeValidator(v); err != nil {

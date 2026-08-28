@@ -70,7 +70,7 @@ func TestNotificationProcessNextSendsUserAuthorizedMessage(t *testing.T) {
 	sender := &dingTalkNotificationSenderStub{enabled: true}
 	usecase := NewNotificationUsecase(NewBackgroundTaskUsecase(taskRepo), &notificationRepoStub{delivery: &NotificationDelivery{
 		RecipientUserID: uuid.New(), RecipientDisplayName: "张冠楠", DingTalkUserID: "ding-user-id", Channel: NotificationChannelDingTalk,
-		Template: NotificationTemplateUserAuthorized, ResourceType: "USER", ResourceID: uuid.New(), ReferenceCode: "ACCOUNT_AUTHORIZED",
+		Template: NotificationTemplateUserAuthorized, ResourceType: "USER", ResourceID: uuid.New(),
 	}}, sender)
 
 	if err := usecase.ProcessNext(context.Background(), 30*time.Second); err != nil {
@@ -81,6 +81,20 @@ func TestNotificationProcessNextSendsUserAuthorizedMessage(t *testing.T) {
 	}
 	if taskRepo.completeID != taskID || taskRepo.completeLeaseToken != leaseToken {
 		t.Fatalf("任务完成参数错误: %#v", taskRepo)
+	}
+}
+
+func TestRenderOrderPersonnelNotificationRequiresReferenceCode(t *testing.T) {
+	_, err := renderNotification(&NotificationDelivery{
+		DingTalkUserID: "ding-user-id",
+		Channel:        NotificationChannelDingTalk,
+		Template:       NotificationTemplateOrderPersonnelAssign,
+		ResourceType:   "ORDER",
+		ResourceID:     uuid.New(),
+		Parameter:      string(OrderPersonnelRoleOperator),
+	})
+	if err == nil {
+		t.Fatal("订单人员通知缺少订单号时应失败")
 	}
 }
 

@@ -21,7 +21,7 @@ func (NotificationDelivery) Fields() []ent.Field {
 		field.Enum("template").Values("ORDER_PERSONNEL_ASSIGNED", "USER_AUTHORIZED").Immutable(),
 		field.String("resource_type").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
-		field.String("reference_code").NotEmpty().MaxLen(64).Immutable(),
+		field.String("reference_code").Optional().MaxLen(64).Immutable(),
 		field.String("parameter").Optional().MaxLen(64).Immutable(),
 		field.String("external_message_id").Optional().Nillable().MaxLen(256),
 	}

@@ -45804,9 +45804,22 @@ func (m *NotificationDeliveryMutation) OldReferenceCode(ctx context.Context) (v 
 	return oldValue.ReferenceCode, nil
 }
 
+// ClearReferenceCode clears the value of the "reference_code" field.
+func (m *NotificationDeliveryMutation) ClearReferenceCode() {
+	m.reference_code = nil
+	m.clearedFields[notificationdelivery.FieldReferenceCode] = struct{}{}
+}
+
+// ReferenceCodeCleared returns if the "reference_code" field was cleared in this mutation.
+func (m *NotificationDeliveryMutation) ReferenceCodeCleared() bool {
+	_, ok := m.clearedFields[notificationdelivery.FieldReferenceCode]
+	return ok
+}
+
 // ResetReferenceCode resets all changes to the "reference_code" field.
 func (m *NotificationDeliveryMutation) ResetReferenceCode() {
 	m.reference_code = nil
+	delete(m.clearedFields, notificationdelivery.FieldReferenceCode)
 }
 
 // SetParameter sets the "parameter" field.
@@ -46206,6 +46219,9 @@ func (m *NotificationDeliveryMutation) AddField(name string, value ent.Value) er
 // mutation.
 func (m *NotificationDeliveryMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(notificationdelivery.FieldReferenceCode) {
+		fields = append(fields, notificationdelivery.FieldReferenceCode)
+	}
 	if m.FieldCleared(notificationdelivery.FieldParameter) {
 		fields = append(fields, notificationdelivery.FieldParameter)
 	}
@@ -46226,6 +46242,9 @@ func (m *NotificationDeliveryMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *NotificationDeliveryMutation) ClearField(name string) error {
 	switch name {
+	case notificationdelivery.FieldReferenceCode:
+		m.ClearReferenceCode()
+		return nil
 	case notificationdelivery.FieldParameter:
 		m.ClearParameter()
 		return nil

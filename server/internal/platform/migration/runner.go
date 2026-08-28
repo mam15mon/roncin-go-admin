@@ -26,6 +26,9 @@ var compatibleChecksums = map[string]map[string]struct{}{
 	"20260826150000_order_fee_finance_foundation": {
 		"eec00e191b2ff7429c7469316f2b2cbc3cd77f7c98ecb2fb6373b53c4c96989a": {},
 	},
+	"20260829003000_dingtalk_user_authorized_notification": {
+		"ae50fc1578484e1ba96f67fcaee9b088fc2e0d1e579f4fe2088c35ff8aedbd1c": {},
+	},
 }
 
 type file struct {

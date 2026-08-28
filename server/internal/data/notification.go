@@ -83,7 +83,6 @@ func enqueueDingTalkUserAuthorizedNotification(ctx context.Context, tx *ent.Tx, 
 		SetTemplate(notificationent.TemplateUSER_AUTHORIZED).
 		SetResourceType("USER").
 		SetResourceID(recipient.ID).
-		SetReferenceCode("ACCOUNT_AUTHORIZED").
 		Save(ctx); err != nil {
 		return err
 	}

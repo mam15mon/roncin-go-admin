@@ -126,6 +126,9 @@ func (_u *NotificationDeliveryUpdate) sqlSave(ctx context.Context) (_node int, e
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notificationdelivery.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.ReferenceCodeCleared() {
+		_spec.ClearField(notificationdelivery.FieldReferenceCode, field.TypeString)
+	}
 	if _u.mutation.ParameterCleared() {
 		_spec.ClearField(notificationdelivery.FieldParameter, field.TypeString)
 	}
@@ -282,6 +285,9 @@ func (_u *NotificationDeliveryUpdateOne) sqlSave(ctx context.Context) (_node *No
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notificationdelivery.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReferenceCodeCleared() {
+		_spec.ClearField(notificationdelivery.FieldReferenceCode, field.TypeString)
 	}
 	if _u.mutation.ParameterCleared() {
 		_spec.ClearField(notificationdelivery.FieldParameter, field.TypeString)

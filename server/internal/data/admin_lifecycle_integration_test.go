@@ -160,7 +160,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("授权通知任务 = %#v, error = %v", task, err)
 	}
 	delivery, err := data.db.NotificationDelivery.Query().Where(notificationent.BackgroundTaskIDEQ(notification.ID)).Only(ctx)
-	if err != nil || delivery.RecipientUserID != account.ID || delivery.Template != notificationent.TemplateUSER_AUTHORIZED || delivery.ResourceType != "USER" || delivery.ResourceID != account.ID {
+	if err != nil || delivery.RecipientUserID != account.ID || delivery.Template != notificationent.TemplateUSER_AUTHORIZED || delivery.ResourceType != "USER" || delivery.ResourceID != account.ID || delivery.ReferenceCode != "" {
 		t.Fatalf("授权通知明细 = %#v, error = %v", delivery, err)
 	}
 

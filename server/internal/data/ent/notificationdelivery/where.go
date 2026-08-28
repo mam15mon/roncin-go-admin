@@ -421,6 +421,16 @@ func ReferenceCodeHasSuffix(v string) predicate.NotificationDelivery {
 	return predicate.NotificationDelivery(sql.FieldHasSuffix(FieldReferenceCode, v))
 }
 
+// ReferenceCodeIsNil applies the IsNil predicate on the "reference_code" field.
+func ReferenceCodeIsNil() predicate.NotificationDelivery {
+	return predicate.NotificationDelivery(sql.FieldIsNull(FieldReferenceCode))
+}
+
+// ReferenceCodeNotNil applies the NotNil predicate on the "reference_code" field.
+func ReferenceCodeNotNil() predicate.NotificationDelivery {
+	return predicate.NotificationDelivery(sql.FieldNotNull(FieldReferenceCode))
+}
+
 // ReferenceCodeEqualFold applies the EqualFold predicate on the "reference_code" field.
 func ReferenceCodeEqualFold(v string) predicate.NotificationDelivery {
 	return predicate.NotificationDelivery(sql.FieldEqualFold(FieldReferenceCode, v))

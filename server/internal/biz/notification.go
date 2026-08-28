@@ -124,7 +124,7 @@ func (uc *NotificationUsecase) fail(ctx context.Context, task *BackgroundTask, m
 }
 
 func renderNotification(delivery *NotificationDelivery) (string, error) {
-	if delivery == nil || strings.TrimSpace(delivery.DingTalkUserID) == "" || delivery.ResourceID == uuid.Nil || strings.TrimSpace(delivery.ReferenceCode) == "" {
+	if delivery == nil || strings.TrimSpace(delivery.DingTalkUserID) == "" || delivery.ResourceID == uuid.Nil {
 		return "", fmt.Errorf("通知明细不完整")
 	}
 	if delivery.Channel != NotificationChannelDingTalk {
@@ -134,6 +134,9 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 	case NotificationTemplateOrderPersonnelAssign:
 		if delivery.ResourceType != "ORDER" {
 			return "", fmt.Errorf("通知渠道或模板不受支持")
+		}
+		if strings.TrimSpace(delivery.ReferenceCode) == "" {
+			return "", fmt.Errorf("通知明细不完整")
 		}
 		roleLabel, ok := orderPersonnelRoleLabel(OrderPersonnelRole(delivery.Parameter))
 		if !ok {

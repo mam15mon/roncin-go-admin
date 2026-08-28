@@ -3344,21 +3344,7 @@ func init() {
 	// notificationdeliveryDescReferenceCode is the schema descriptor for reference_code field.
 	notificationdeliveryDescReferenceCode := notificationdeliveryFields[6].Descriptor()
 	// notificationdelivery.ReferenceCodeValidator is a validator for the "reference_code" field. It is called by the builders before save.
-	notificationdelivery.ReferenceCodeValidator = func() func(string) error {
-		validators := notificationdeliveryDescReferenceCode.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(reference_code string) error {
-			for _, fn := range fns {
-				if err := fn(reference_code); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	notificationdelivery.ReferenceCodeValidator = notificationdeliveryDescReferenceCode.Validators[0].(func(string) error)
 	// notificationdeliveryDescParameter is the schema descriptor for parameter field.
 	notificationdeliveryDescParameter := notificationdeliveryFields[7].Descriptor()
 	// notificationdelivery.ParameterValidator is a validator for the "parameter" field. It is called by the builders before save.
