@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
@@ -828,9 +829,13 @@ func (r *adminRepo) ListPermissions(ctx context.Context) ([]*biz.AdminPermission
 		}
 		return items[i].Group < items[j].Group
 	})
+	requiresByKey := make(map[string][]string, len(access.Manifest()))
+	for _, definition := range access.Manifest() {
+		requiresByKey[definition.Key] = definition.Requires
+	}
 	result := make([]*biz.AdminPermission, 0, len(items))
 	for _, item := range items {
-		result = append(result, &biz.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
+		result = append(result, &biz.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description, Requires: requiresByKey[item.Key]})
 	}
 	return result, nil
 }

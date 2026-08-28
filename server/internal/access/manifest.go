@@ -1,12 +1,18 @@
 package access
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Permission struct {
 	Key         string
 	Name        string
 	Group       string
 	Description string
+	// Requires 声明勾选该权限时必须同时具备的基础权限（如“编辑客户”依赖“查看客户”），
+	// 由角色保存与前端权限树联动共同消费。
+	Requires []string
 }
 
 const (
@@ -156,94 +162,94 @@ const (
 var manifest = append([]Permission{
 	{Key: PlatformAccess, Name: "访问管理后台", Group: "系统管理 · 平台", Description: "登录并访问管理后台"},
 	{Key: OrganizationRead, Name: "查看组织", Group: "系统管理 · 组织", Description: "查看公司、部门和组的组织架构"},
-	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组"},
-	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态"},
+	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组", Requires: []string{OrganizationRead}},
+	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态", Requires: []string{OrganizationRead}},
 	{Key: UserRead, Name: "查看用户", Group: "系统管理 · 用户", Description: "查看用户及其组织成员关系"},
-	{Key: UserCreate, Name: "新建用户", Group: "系统管理 · 用户", Description: "新建用户并配置初始成员关系"},
-	{Key: UserUpdate, Name: "编辑用户", Group: "系统管理 · 用户", Description: "修改用户资料、状态和成员关系"},
-	{Key: UserTerminate, Name: "办理离职", Group: "系统管理 · 用户", Description: "停用员工账号和全部组织权限，保留身份绑定与历史业务记录"},
-	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户"},
-	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "读取钉钉成员并创建或绑定系统用户"},
-	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码"},
+	{Key: UserCreate, Name: "新建用户", Group: "系统管理 · 用户", Description: "新建用户并配置初始成员关系", Requires: []string{UserRead}},
+	{Key: UserUpdate, Name: "编辑用户", Group: "系统管理 · 用户", Description: "修改用户资料、状态和成员关系", Requires: []string{UserRead}},
+	{Key: UserTerminate, Name: "办理离职", Group: "系统管理 · 用户", Description: "停用员工账号和全部组织权限，保留身份绑定与历史业务记录", Requires: []string{UserRead}},
+	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户", Requires: []string{UserRead}},
+	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "读取钉钉成员并创建或绑定系统用户", Requires: []string{UserRead}},
+	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码", Requires: []string{UserRead}},
 	{Key: RoleRead, Name: "查看角色", Group: "系统管理 · 角色", Description: "查看角色、权限和数据范围"},
-	{Key: RoleCreate, Name: "新建角色", Group: "系统管理 · 角色", Description: "新建角色并配置权限和数据范围"},
-	{Key: RoleUpdate, Name: "编辑角色", Group: "系统管理 · 角色", Description: "修改角色、权限和数据范围"},
+	{Key: RoleCreate, Name: "新建角色", Group: "系统管理 · 角色", Description: "新建角色并配置权限和数据范围", Requires: []string{RoleRead}},
+	{Key: RoleUpdate, Name: "编辑角色", Group: "系统管理 · 角色", Description: "修改角色、权限和数据范围", Requires: []string{RoleRead}},
 	{Key: PermissionRead, Name: "查看权限字典", Group: "系统管理 · 权限", Description: "查看系统功能权限字典"},
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理 · 审计", Description: "查看安全与业务操作审计"},
 	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "财务管理 · 汇率", Description: "查看组织汇率主数据和时间标准"},
-	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "财务管理 · 汇率", Description: "新建组织汇率"},
-	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织汇率和时间标准"},
-	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织汇率"},
-	{Key: FinanceExchangeRateOverride, Name: "覆盖财务汇率", Group: "财务管理 · 汇率", Description: "在订单费用或资金流水中手工覆盖系统汇率"},
+	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "财务管理 · 汇率", Description: "新建组织汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "财务管理 · 汇率", Description: "修改组织汇率和时间标准", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "财务管理 · 汇率", Description: "停用组织汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateOverride, Name: "覆盖财务汇率", Group: "财务管理 · 汇率", Description: "在订单费用或资金流水中手工覆盖系统汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "财务管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
-	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "财务管理 · 费用设置", Description: "新建费用设置及关联基础资料"},
-	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "财务管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料"},
+	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "财务管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
+	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "财务管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 集运费用明细", Description: "查看当前组织全部业务线的应收应付费用"},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
-	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单"},
-	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单"},
-	{Key: FinanceBillConfirm, Name: "确认账单", Group: "费用管理 · 账单", Description: "确认账单并锁定账单费用"},
+	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单", Requires: []string{FinanceBillRead}},
+	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
+	{Key: FinanceBillConfirm, Name: "确认账单", Group: "费用管理 · 账单", Description: "确认账单并锁定账单费用", Requires: []string{FinanceBillRead}},
 	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},
-	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额"},
-	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票"},
+	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额", Requires: []string{FinanceInvoiceRead}},
+	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票", Requires: []string{FinanceInvoiceRead}},
 	{Key: FinanceCashflowRead, Name: "查看收付", Group: "费用管理 · 收付", Description: "查看银行流水和收付款单"},
-	{Key: FinanceCashflowCreate, Name: "登记收付", Group: "费用管理 · 收付", Description: "登记银行流水和收付款单"},
-	{Key: FinanceCashflowUpdate, Name: "处理收付", Group: "费用管理 · 收付", Description: "认领、确认或冲销收付款单"},
+	{Key: FinanceCashflowCreate, Name: "登记收付", Group: "费用管理 · 收付", Description: "登记银行流水和收付款单", Requires: []string{FinanceCashflowRead}},
+	{Key: FinanceCashflowUpdate, Name: "处理收付", Group: "费用管理 · 收付", Description: "认领、确认或冲销收付款单", Requires: []string{FinanceCashflowRead}},
 	{Key: FinanceVerificationRead, Name: "查看核销", Group: "费用管理 · 核销", Description: "查看账单与收付款核销记录"},
-	{Key: FinanceVerificationCreate, Name: "执行核销", Group: "费用管理 · 核销", Description: "将收付款金额分配到应收应付账单"},
-	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配"},
+	{Key: FinanceVerificationCreate, Name: "执行核销", Group: "费用管理 · 核销", Description: "将收付款金额分配到应收应付账单", Requires: []string{FinanceVerificationRead}},
+	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配", Requires: []string{FinanceVerificationRead}},
 	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
-	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成"},
+	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成", Requires: []string{FinanceCommissionRead}},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
-	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案"},
-	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案"},
-	{Key: PartnerBlacklist, Name: "管理供应商黑名单", Group: "业务资料 · 单位档案", Description: "调整供应商黑名单状态"},
-	{Key: PartnerImport, Name: "导入往来单位", Group: "业务资料 · 单位档案", Description: "批量导入往来单位档案"},
-	{Key: PartnerExport, Name: "导出往来单位", Group: "业务资料 · 单位档案", Description: "批量导出往来单位档案"},
+	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 单位档案", Description: "新建客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
+	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 单位档案", Description: "修改客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
+	{Key: PartnerBlacklist, Name: "管理供应商黑名单", Group: "业务资料 · 单位档案", Description: "调整供应商黑名单状态", Requires: []string{PartnerRead}},
+	{Key: PartnerImport, Name: "导入往来单位", Group: "业务资料 · 单位档案", Description: "批量导入往来单位档案", Requires: []string{PartnerRead}},
+	{Key: PartnerExport, Name: "导出往来单位", Group: "业务资料 · 单位档案", Description: "批量导出往来单位档案", Requires: []string{PartnerRead}},
 	{Key: PartnerAccountRead, Name: "查看收付款账户", Group: "业务资料 · 单位账户", Description: "查看往来单位收付款账户"},
-	{Key: PartnerAccountCreate, Name: "新建收付款账户", Group: "业务资料 · 单位账户", Description: "新建往来单位收付款账户"},
-	{Key: PartnerAccountUpdate, Name: "编辑收付款账户", Group: "业务资料 · 单位账户", Description: "修改往来单位收付款账户"},
+	{Key: PartnerAccountCreate, Name: "新建收付款账户", Group: "业务资料 · 单位账户", Description: "新建往来单位收付款账户", Requires: []string{PartnerAccountRead}},
+	{Key: PartnerAccountUpdate, Name: "编辑收付款账户", Group: "业务资料 · 单位账户", Description: "修改往来单位收付款账户", Requires: []string{PartnerAccountRead}},
 	{Key: PartnerContractRead, Name: "查看合同", Group: "业务资料 · 单位合同", Description: "查看往来单位合同"},
-	{Key: PartnerContractCreate, Name: "新建合同", Group: "业务资料 · 单位合同", Description: "新建往来单位合同"},
-	{Key: PartnerContractUpdate, Name: "编辑合同", Group: "业务资料 · 单位合同", Description: "修改往来单位合同"},
+	{Key: PartnerContractCreate, Name: "新建合同", Group: "业务资料 · 单位合同", Description: "新建往来单位合同", Requires: []string{PartnerContractRead}},
+	{Key: PartnerContractUpdate, Name: "编辑合同", Group: "业务资料 · 单位合同", Description: "修改往来单位合同", Requires: []string{PartnerContractRead}},
 	{Key: PartnerSettlementRuleRead, Name: "查看结算规则", Group: "业务资料 · 结算规则", Description: "查看往来单位结算规则"},
-	{Key: PartnerSettlementRuleCreate, Name: "新建结算规则", Group: "业务资料 · 结算规则", Description: "新建往来单位结算规则"},
-	{Key: PartnerSettlementRuleUpdate, Name: "编辑结算规则", Group: "业务资料 · 结算规则", Description: "修改往来单位结算规则"},
+	{Key: PartnerSettlementRuleCreate, Name: "新建结算规则", Group: "业务资料 · 结算规则", Description: "新建往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
+	{Key: PartnerSettlementRuleUpdate, Name: "编辑结算规则", Group: "业务资料 · 结算规则", Description: "修改往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
 	{Key: PartnerAttachmentRead, Name: "查看单位附件", Group: "业务资料 · 单位附件", Description: "查看往来单位附件"},
-	{Key: PartnerAttachmentRegister, Name: "登记单位附件", Group: "业务资料 · 单位附件", Description: "登记往来单位附件元数据"},
+	{Key: PartnerAttachmentRegister, Name: "登记单位附件", Group: "业务资料 · 单位附件", Description: "登记往来单位附件元数据", Requires: []string{PartnerAttachmentRead}},
 	{Key: PartnerShippingPresetRead, Name: "查看单证预设", Group: "业务资料 · 单证预设", Description: "查看往来单位常用单证预设"},
-	{Key: PartnerShippingPresetCreate, Name: "新建单证预设", Group: "业务资料 · 单证预设", Description: "新建往来单位常用单证预设"},
-	{Key: PartnerShippingPresetUpdate, Name: "编辑单证预设", Group: "业务资料 · 单证预设", Description: "修改往来单位常用单证预设"},
+	{Key: PartnerShippingPresetCreate, Name: "新建单证预设", Group: "业务资料 · 单证预设", Description: "新建往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
+	{Key: PartnerShippingPresetUpdate, Name: "编辑单证预设", Group: "业务资料 · 单证预设", Description: "修改往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
 	{Key: PartnerAuditRead, Name: "查看单位操作记录", Group: "业务资料 · 单位审计", Description: "查看往来单位操作记录"},
 	{Key: PartnerAssignmentOptionRead, Name: "查看责任人选项", Group: "业务资料 · 责任人", Description: "查看往来单位责任人候选项"},
 	{Key: MasterDataCurrencyRead, Name: "查看币种", Group: "主数据 · 公共字典", Description: "查看币种字典"},
 	{Key: MasterDataAdministrativeRegionRead, Name: "查看行政区划", Group: "主数据 · 公共字典", Description: "查看行政区划字典"},
 	{Key: MasterDataOptionRead, Name: "查看订单选项", Group: "主数据 · 公共字典", Description: "查看订单表单的聚合选项"},
 	{Key: MasterDataItemRead, Name: "查看目录项", Group: "主数据 · 基础目录", Description: "查看主数据基础目录项"},
-	{Key: MasterDataItemCreate, Name: "新建目录项", Group: "主数据 · 基础目录", Description: "新建主数据基础目录项"},
-	{Key: MasterDataItemUpdate, Name: "编辑目录项", Group: "主数据 · 基础目录", Description: "修改主数据基础目录项"},
-	{Key: MasterDataItemImport, Name: "导入目录项", Group: "主数据 · 基础目录", Description: "批量导入主数据基础目录项"},
+	{Key: MasterDataItemCreate, Name: "新建目录项", Group: "主数据 · 基础目录", Description: "新建主数据基础目录项", Requires: []string{MasterDataItemRead}},
+	{Key: MasterDataItemUpdate, Name: "编辑目录项", Group: "主数据 · 基础目录", Description: "修改主数据基础目录项", Requires: []string{MasterDataItemRead}},
+	{Key: MasterDataItemImport, Name: "导入目录项", Group: "主数据 · 基础目录", Description: "批量导入主数据基础目录项", Requires: []string{MasterDataItemRead}},
 	{Key: MasterDataPortRead, Name: "查看港口", Group: "主数据 · 港口", Description: "查看港口资料"},
-	{Key: MasterDataPortCreate, Name: "新建港口", Group: "主数据 · 港口", Description: "新建港口资料"},
-	{Key: MasterDataPortUpdate, Name: "编辑港口", Group: "主数据 · 港口", Description: "修改港口资料"},
+	{Key: MasterDataPortCreate, Name: "新建港口", Group: "主数据 · 港口", Description: "新建港口资料", Requires: []string{MasterDataPortRead}},
+	{Key: MasterDataPortUpdate, Name: "编辑港口", Group: "主数据 · 港口", Description: "修改港口资料", Requires: []string{MasterDataPortRead}},
 	{Key: MasterDataAirportRead, Name: "查看机场", Group: "主数据 · 机场", Description: "查看机场资料"},
-	{Key: MasterDataAirportCreate, Name: "新建机场", Group: "主数据 · 机场", Description: "新建机场资料"},
-	{Key: MasterDataAirportUpdate, Name: "编辑机场", Group: "主数据 · 机场", Description: "修改机场资料"},
+	{Key: MasterDataAirportCreate, Name: "新建机场", Group: "主数据 · 机场", Description: "新建机场资料", Requires: []string{MasterDataAirportRead}},
+	{Key: MasterDataAirportUpdate, Name: "编辑机场", Group: "主数据 · 机场", Description: "修改机场资料", Requires: []string{MasterDataAirportRead}},
 	{Key: MasterDataAirlineRead, Name: "查看航空公司", Group: "主数据 · 航空公司", Description: "查看航空公司资料"},
-	{Key: MasterDataAirlineCreate, Name: "新建航空公司", Group: "主数据 · 航空公司", Description: "新建航空公司资料"},
-	{Key: MasterDataAirlineUpdate, Name: "编辑航空公司", Group: "主数据 · 航空公司", Description: "修改航空公司资料"},
+	{Key: MasterDataAirlineCreate, Name: "新建航空公司", Group: "主数据 · 航空公司", Description: "新建航空公司资料", Requires: []string{MasterDataAirlineRead}},
+	{Key: MasterDataAirlineUpdate, Name: "编辑航空公司", Group: "主数据 · 航空公司", Description: "修改航空公司资料", Requires: []string{MasterDataAirlineRead}},
 	{Key: MasterDataShippingLineRead, Name: "查看船公司", Group: "主数据 · 船公司", Description: "查看船公司资料"},
-	{Key: MasterDataShippingLineCreate, Name: "新建船公司", Group: "主数据 · 船公司", Description: "新建船公司资料"},
-	{Key: MasterDataShippingLineUpdate, Name: "编辑船公司", Group: "主数据 · 船公司", Description: "修改船公司资料"},
+	{Key: MasterDataShippingLineCreate, Name: "新建船公司", Group: "主数据 · 船公司", Description: "新建船公司资料", Requires: []string{MasterDataShippingLineRead}},
+	{Key: MasterDataShippingLineUpdate, Name: "编辑船公司", Group: "主数据 · 船公司", Description: "修改船公司资料", Requires: []string{MasterDataShippingLineRead}},
 	{Key: MasterDataNumberRuleRead, Name: "查看编号规则", Group: "主数据 · 编号规则", Description: "查看业务编号规则"},
-	{Key: MasterDataNumberRuleCreate, Name: "新建编号规则", Group: "主数据 · 编号规则", Description: "新建业务编号规则"},
-	{Key: MasterDataNumberRuleUpdate, Name: "编辑编号规则", Group: "主数据 · 编号规则", Description: "修改业务编号规则"},
+	{Key: MasterDataNumberRuleCreate, Name: "新建编号规则", Group: "主数据 · 编号规则", Description: "新建业务编号规则", Requires: []string{MasterDataNumberRuleRead}},
+	{Key: MasterDataNumberRuleUpdate, Name: "编辑编号规则", Group: "主数据 · 编号规则", Description: "修改业务编号规则", Requires: []string{MasterDataNumberRuleRead}},
 	{Key: MasterDataMilestoneTemplateRead, Name: "查看里程碑模板", Group: "主数据 · 里程碑模板", Description: "查看订单里程碑模板"},
-	{Key: MasterDataMilestoneTemplateCreate, Name: "新建里程碑模板", Group: "主数据 · 里程碑模板", Description: "新建订单里程碑模板"},
-	{Key: MasterDataMilestoneTemplatePublish, Name: "发布里程碑模板", Group: "主数据 · 里程碑模板", Description: "发布订单里程碑模板版本"},
-	{Key: MasterDataMilestoneTemplateSetDefault, Name: "设置默认里程碑模板", Group: "主数据 · 里程碑模板", Description: "设置订单默认里程碑模板"},
+	{Key: MasterDataMilestoneTemplateCreate, Name: "新建里程碑模板", Group: "主数据 · 里程碑模板", Description: "新建订单里程碑模板", Requires: []string{MasterDataMilestoneTemplateRead}},
+	{Key: MasterDataMilestoneTemplatePublish, Name: "发布里程碑模板", Group: "主数据 · 里程碑模板", Description: "发布订单里程碑模板版本", Requires: []string{MasterDataMilestoneTemplateRead}},
+	{Key: MasterDataMilestoneTemplateSetDefault, Name: "设置默认里程碑模板", Group: "主数据 · 里程碑模板", Description: "设置订单默认里程碑模板", Requires: []string{MasterDataMilestoneTemplateRead}},
 	{Key: TaskRead, Name: "查看后台任务", Group: "系统管理 · 后台任务", Description: "查看后台任务执行状态"},
-	{Key: TaskRequeue, Name: "重新入队后台任务", Group: "系统管理 · 后台任务", Description: "重新入队失败或死信后台任务"},
+	{Key: TaskRequeue, Name: "重新入队后台任务", Group: "系统管理 · 后台任务", Description: "重新入队失败或死信后台任务", Requires: []string{TaskRead}},
 }, orderManifest()...)
 
 type orderPermissionDefinition struct {
@@ -301,10 +307,55 @@ func orderManifest() []Permission {
 	items := make([]Permission, 0, len(types)*len(orderPermissionDefinitions))
 	for _, businessType := range types {
 		for _, definition := range orderPermissionDefinitions {
-			items = append(items, Permission{Key: OrderPermission(businessType, definition.operation), Name: fmt.Sprintf("%s %s", businessType.name(), definition.name), Group: fmt.Sprintf("订单管理 · %s · %s", businessType.name(), definition.resource), Description: definition.description})
+			items = append(items, Permission{Key: OrderPermission(businessType, definition.operation), Name: fmt.Sprintf("%s %s", businessType.name(), definition.name), Group: fmt.Sprintf("订单管理 · %s · %s", businessType.name(), definition.resource), Description: definition.description, Requires: orderPermissionRequires(businessType, definition.operation)})
 		}
 	}
 	return items
 }
 
+// orderPermissionRequires 推导订单权限依赖：操作权限依赖同资源读权限，子资源
+// 权限（里程碑、集装箱、费用等）还依赖该业务线的订单读权限。
+func orderPermissionRequires(businessType OrderBusinessType, operation OrderOperation) []string {
+	resource := ""
+	action := string(operation)
+	if prefix, suffix, found := strings.Cut(string(operation), "."); found {
+		resource, action = prefix, suffix
+	}
+	orderRead := OrderPermission(businessType, OrderRead)
+	switch {
+	case resource == "" && action == "read":
+		return nil
+	case resource == "", action == "read":
+		return []string{orderRead}
+	default:
+		return []string{OrderPermission(businessType, OrderOperation(resource+".read")), orderRead}
+	}
+}
+
 func Manifest() []Permission { return append([]Permission(nil), manifest...) }
+
+// ResolveDependencies 返回 granted 连同其全部传递依赖的闭包：新增依赖按深度
+// 优先追加在原键之后并去重，不在 Manifest 中的键原样保留，维持调用方语义。
+func ResolveDependencies(granted []string) []string {
+	requiresOf := make(map[string][]string, len(manifest))
+	for _, definition := range manifest {
+		requiresOf[definition.Key] = definition.Requires
+	}
+	seen := make(map[string]struct{}, len(granted))
+	result := make([]string, 0, len(granted))
+	var visit func(key string)
+	visit = func(key string) {
+		if _, ok := seen[key]; ok {
+			return
+		}
+		seen[key] = struct{}{}
+		result = append(result, key)
+		for _, required := range requiresOf[key] {
+			visit(required)
+		}
+	}
+	for _, key := range granted {
+		visit(key)
+	}
+	return result
+}

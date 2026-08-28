@@ -15,6 +15,7 @@ type adminRepoStub struct {
 	organizationInput *AdminOrganization
 	userListOptions   AdminUserListOptions
 	roleKeys          []string
+	updatedRoleKeys   []string
 	userPassword      string
 	userInput         *AdminUser
 	resetPassword     string
@@ -136,7 +137,8 @@ func (s *adminRepoStub) CreateRole(_ context.Context, organizationID uuid.UUID, 
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateRole(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminRole, _ []string) (*AdminRole, error) {
+func (s *adminRepoStub) UpdateRole(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminRole, keys []string) (*AdminRole, error) {
+	s.updatedRoleKeys = keys
 	return input, nil
 }
 
@@ -362,6 +364,65 @@ func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 	}
 	if len(audit.events) != 1 || audit.events[0].Action != "admin.role.create" || audit.events[0].UserID == nil || *audit.events[0].UserID != actorID {
 		t.Fatalf("audit events = %#v", audit.events)
+	}
+}
+
+func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	if _, err := usecase.CreateRole(
+		context.Background(),
+		uuid.New(),
+		uuid.New(),
+		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		[]string{"business.partner.update"},
+	); err != nil {
+		t.Fatalf("CreateRole() error = %v", err)
+	}
+	if len(repo.roleKeys) != 2 || repo.roleKeys[0] != "business.partner.update" || repo.roleKeys[1] != "business.partner.read" {
+		t.Fatalf("expanded permission keys = %#v, want [business.partner.update business.partner.read]", repo.roleKeys)
+	}
+}
+
+func TestAdminUsecaseUpdateRoleExpandsPermissionDependencies(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	if _, err := usecase.UpdateRole(
+		context.Background(),
+		uuid.New(),
+		uuid.New(),
+		uuid.New(),
+		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		[]string{"system.master_data.item.create"},
+	); err != nil {
+		t.Fatalf("UpdateRole() error = %v", err)
+	}
+	if len(repo.updatedRoleKeys) != 2 || repo.updatedRoleKeys[0] != "system.master_data.item.create" || repo.updatedRoleKeys[1] != "system.master_data.item.read" {
+		t.Fatalf("expanded permission keys = %#v, want [system.master_data.item.create system.master_data.item.read]", repo.updatedRoleKeys)
+	}
+}
+
+func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *testing.T) {
+	repo := &adminRepoStub{actorRoleProfiles: []*AdminRoleProfile{{
+		Code:           "manager",
+		DataScope:      DataScopeOrganization,
+		PermissionKeys: []string{"business.partner.update"},
+	}}}
+	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+
+	if _, err := usecase.CreateRole(
+		context.Background(),
+		uuid.New(),
+		uuid.New(),
+		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		[]string{"business.partner.update"},
+	); err != ErrAdminPrivilegeEscalation {
+		t.Fatalf("missing dependency privilege error = %v, want ErrAdminPrivilegeEscalation", err)
+	}
+	if repo.roleKeys != nil {
+		t.Fatalf("role was saved with keys %#v despite escalation", repo.roleKeys)
 	}
 }
 

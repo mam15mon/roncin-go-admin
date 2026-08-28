@@ -372,7 +372,7 @@ func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermission
 	}
 	data := make([]*v1.AdminPermission, 0, len(items))
 	for _, item := range items {
-		data = append(data, &v1.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description})
+		data = append(data, &v1.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description, Requires: item.Requires})
 	}
 	return &v1.ListPermissionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }

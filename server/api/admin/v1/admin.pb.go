@@ -3304,11 +3304,13 @@ func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
 }
 
 type AdminPermission struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Group         string                 `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
-	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Key         string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Group       string                 `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
+	Description string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// 勾选该权限时必须同时具备的基础权限码（如编辑类权限依赖对应查看权限）。
+	Requires      []string `protobuf:"bytes,5,rep,name=requires,proto3" json:"requires,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3369,6 +3371,13 @@ func (x *AdminPermission) GetDescription() string {
 		return x.Description
 	}
 	return ""
+}
+
+func (x *AdminPermission) GetRequires() []string {
+	if x != nil {
+		return x.Requires
+	}
+	return nil
 }
 
 type ListPermissionsResponse struct {
@@ -4058,12 +4067,13 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminRoleR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x18\n" +
-	"\x16ListPermissionsRequest\"o\n" +
+	"\x16ListPermissionsRequest\"\x8b\x01\n" +
 	"\x0fAdminPermission\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05group\x18\x03 \x01(\tR\x05group\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xab\x01\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1a\n" +
+	"\brequires\x18\x05 \x03(\tR\brequires\"\xab\x01\n" +
 	"\x17ListPermissionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

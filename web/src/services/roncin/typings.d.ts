@@ -138,6 +138,8 @@ declare namespace API {
     name?: string;
     group?: string;
     description?: string;
+    /** 勾选该权限时必须同时具备的基础权限码（如编辑类权限依赖对应查看权限）。 */
+    requires?: string[];
   };
 
   type AdminRole = {

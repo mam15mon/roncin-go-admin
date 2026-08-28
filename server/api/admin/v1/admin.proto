@@ -500,6 +500,8 @@ message AdminPermission {
   string name = 2;
   string group = 3;
   string description = 4;
+  // 勾选该权限时必须同时具备的基础权限码（如编辑类权限依赖对应查看权限）。
+  repeated string requires = 5;
 }
 
 message ListPermissionsResponse {

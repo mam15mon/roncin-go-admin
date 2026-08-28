@@ -8,6 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
 	"github.com/go-kratos/kratos/v3/errors"
@@ -128,6 +129,7 @@ type AdminPermission struct {
 	Name        string
 	Group       string
 	Description string
+	Requires    []string
 }
 
 type AdminUserListOptions struct {
@@ -570,10 +572,11 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, err
 	}
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, normalizeKeys(permissionKeys), normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
+	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.CreateRole(ctx, organizationID, normalized, normalizeKeys(permissionKeys))
+	created, err := uc.repo.CreateRole(ctx, organizationID, normalized, granted)
 	if err != nil {
 		return nil, err
 	}
@@ -602,10 +605,11 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 	if currentRole.Code == "administrator" && !profile.IsSuperAdmin {
 		return nil, ErrAdminPrivilegeEscalation
 	}
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, normalizeKeys(permissionKeys), normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
+	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
+	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateRole(ctx, organizationID, id, normalized, normalizeKeys(permissionKeys))
+	updated, err := uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted)
 	if err != nil {
 		return nil, err
 	}
