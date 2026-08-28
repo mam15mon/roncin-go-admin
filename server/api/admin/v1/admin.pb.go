@@ -133,6 +133,64 @@ func (OrganizationKind) EnumDescriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{1}
 }
 
+type AdminUserStatus int32
+
+const (
+	AdminUserStatus_ADMIN_USER_STATUS_UNSPECIFIED               AdminUserStatus = 0
+	AdminUserStatus_ADMIN_USER_STATUS_ACTIVE                    AdminUserStatus = 1
+	AdminUserStatus_ADMIN_USER_STATUS_PENDING_AUTHORIZATION     AdminUserStatus = 2
+	AdminUserStatus_ADMIN_USER_STATUS_TERMINATED                AdminUserStatus = 3
+	AdminUserStatus_ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION AdminUserStatus = 4
+	AdminUserStatus_ADMIN_USER_STATUS_DISABLED                  AdminUserStatus = 5
+)
+
+// Enum value maps for AdminUserStatus.
+var (
+	AdminUserStatus_name = map[int32]string{
+		0: "ADMIN_USER_STATUS_UNSPECIFIED",
+		1: "ADMIN_USER_STATUS_ACTIVE",
+		2: "ADMIN_USER_STATUS_PENDING_AUTHORIZATION",
+		3: "ADMIN_USER_STATUS_TERMINATED",
+		4: "ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION",
+		5: "ADMIN_USER_STATUS_DISABLED",
+	}
+	AdminUserStatus_value = map[string]int32{
+		"ADMIN_USER_STATUS_UNSPECIFIED":               0,
+		"ADMIN_USER_STATUS_ACTIVE":                    1,
+		"ADMIN_USER_STATUS_PENDING_AUTHORIZATION":     2,
+		"ADMIN_USER_STATUS_TERMINATED":                3,
+		"ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION": 4,
+		"ADMIN_USER_STATUS_DISABLED":                  5,
+	}
+)
+
+func (x AdminUserStatus) Enum() *AdminUserStatus {
+	p := new(AdminUserStatus)
+	*p = x
+	return p
+}
+
+func (x AdminUserStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AdminUserStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_admin_v1_admin_proto_enumTypes[2].Descriptor()
+}
+
+func (AdminUserStatus) Type() protoreflect.EnumType {
+	return &file_admin_v1_admin_proto_enumTypes[2]
+}
+
+func (x AdminUserStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AdminUserStatus.Descriptor instead.
+func (AdminUserStatus) EnumDescriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{2}
+}
+
 type ListOrganizationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1153,27 +1211,27 @@ func (x *DeleteUserMembershipRequest) GetId() string {
 	return ""
 }
 
-type DeleteUserRequest struct {
+type TerminateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteUserRequest) Reset() {
-	*x = DeleteUserRequest{}
+func (x *TerminateUserRequest) Reset() {
+	*x = TerminateUserRequest{}
 	mi := &file_admin_v1_admin_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteUserRequest) String() string {
+func (x *TerminateUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteUserRequest) ProtoMessage() {}
+func (*TerminateUserRequest) ProtoMessage() {}
 
-func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
+func (x *TerminateUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_v1_admin_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1185,12 +1243,12 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
-func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use TerminateUserRequest.ProtoReflect.Descriptor instead.
+func (*TerminateUserRequest) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *DeleteUserRequest) GetId() string {
+func (x *TerminateUserRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
@@ -1446,25 +1504,27 @@ func (x *ListOrganizationRolesRequest) GetOrganizationId() string {
 }
 
 type AdminUser struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Username        string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	DisplayName     string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Email           *string                `protobuf:"bytes,4,opt,name=email,proto3,oneof" json:"email,omitempty"`
-	Enabled         bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	RoleIds         []string               `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	RoleCodes       []string               `protobuf:"bytes,7,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
-	CreatedAt       string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt       string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	WecomUserid     *string                `protobuf:"bytes,10,opt,name=wecom_userid,json=wecomUserid,proto3,oneof" json:"wecom_userid,omitempty"`
-	WecomName       *string                `protobuf:"bytes,11,opt,name=wecom_name,json=wecomName,proto3,oneof" json:"wecom_name,omitempty"`
-	DingtalkUnionid *string                `protobuf:"bytes,12,opt,name=dingtalk_unionid,json=dingtalkUnionid,proto3,oneof" json:"dingtalk_unionid,omitempty"`
-	DingtalkName    *string                `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
-	AvatarUrl       *string                `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
-	HasPassword     bool                   `protobuf:"varint,15,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
-	DingtalkUserid  *string                `protobuf:"bytes,16,opt,name=dingtalk_userid,json=dingtalkUserid,proto3,oneof" json:"dingtalk_userid,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username                 string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	DisplayName              string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Email                    *string                `protobuf:"bytes,4,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Enabled                  bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	RoleIds                  []string               `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	RoleCodes                []string               `protobuf:"bytes,7,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
+	CreatedAt                string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	WecomUserid              *string                `protobuf:"bytes,10,opt,name=wecom_userid,json=wecomUserid,proto3,oneof" json:"wecom_userid,omitempty"`
+	WecomName                *string                `protobuf:"bytes,11,opt,name=wecom_name,json=wecomName,proto3,oneof" json:"wecom_name,omitempty"`
+	DingtalkUnionid          *string                `protobuf:"bytes,12,opt,name=dingtalk_unionid,json=dingtalkUnionid,proto3,oneof" json:"dingtalk_unionid,omitempty"`
+	DingtalkName             *string                `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
+	AvatarUrl                *string                `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	HasPassword              bool                   `protobuf:"varint,15,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	DingtalkUserid           *string                `protobuf:"bytes,16,opt,name=dingtalk_userid,json=dingtalkUserid,proto3,oneof" json:"dingtalk_userid,omitempty"`
+	Status                   AdminUserStatus        `protobuf:"varint,17,opt,name=status,proto3,enum=admin.v1.AdminUserStatus" json:"status,omitempty"`
+	CurrentMembershipEnabled bool                   `protobuf:"varint,18,opt,name=current_membership_enabled,json=currentMembershipEnabled,proto3" json:"current_membership_enabled,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *AdminUser) Reset() {
@@ -1607,6 +1667,20 @@ func (x *AdminUser) GetDingtalkUserid() string {
 		return *x.DingtalkUserid
 	}
 	return ""
+}
+
+func (x *AdminUser) GetStatus() AdminUserStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AdminUserStatus_ADMIN_USER_STATUS_UNSPECIFIED
+}
+
+func (x *AdminUser) GetCurrentMembershipEnabled() bool {
+	if x != nil {
+		return x.CurrentMembershipEnabled
+	}
+	return false
 }
 
 type AdminUserMembership struct {
@@ -2297,7 +2371,7 @@ func (x *DeleteUserMembershipResponse) GetTraceId() string {
 	return ""
 }
 
-type DeleteUserResponse struct {
+type TerminateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2307,20 +2381,20 @@ type DeleteUserResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteUserResponse) Reset() {
-	*x = DeleteUserResponse{}
+func (x *TerminateUserResponse) Reset() {
+	*x = TerminateUserResponse{}
 	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteUserResponse) String() string {
+func (x *TerminateUserResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteUserResponse) ProtoMessage() {}
+func (*TerminateUserResponse) ProtoMessage() {}
 
-func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
+func (x *TerminateUserResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2332,33 +2406,33 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
-func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use TerminateUserResponse.ProtoReflect.Descriptor instead.
+func (*TerminateUserResponse) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{29}
 }
 
-func (x *DeleteUserResponse) GetSuccess() bool {
+func (x *TerminateUserResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *DeleteUserResponse) GetCode() int32 {
+func (x *TerminateUserResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *DeleteUserResponse) GetMessage() string {
+func (x *TerminateUserResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *DeleteUserResponse) GetTraceId() string {
+func (x *TerminateUserResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -3782,8 +3856,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\aprimary\x18\x05 \x01(\bR\aprimary\"P\n" +
 	"\x1bDeleteUserMembershipRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"(\n" +
-	"\x11DeleteUserRequest\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"+\n" +
+	"\x14TerminateUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xcb\x01\n" +
 	"\x19AuthorizeWeComUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
@@ -3803,7 +3877,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\x96\x05\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\x87\x06\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -3826,7 +3900,9 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01\x12!\n" +
 	"\fhas_password\x18\x0f \x01(\bR\vhasPassword\x12,\n" +
-	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x06R\x0edingtalkUserid\x88\x01\x01B\b\n" +
+	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x06R\x0edingtalkUserid\x88\x01\x01\x121\n" +
+	"\x06status\x18\x11 \x01(\x0e2\x19.admin.v1.AdminUserStatusR\x06status\x12<\n" +
+	"\x1acurrent_membership_enabled\x18\x12 \x01(\bR\x18currentMembershipEnabledB\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +
@@ -3896,8 +3972,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"w\n" +
-	"\x12DeleteUserResponse\x12\x18\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"z\n" +
+	"\x15TerminateUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
@@ -4041,7 +4117,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xce\x19\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x04*\xf2\x01\n" +
+	"\x0fAdminUserStatus\x12!\n" +
+	"\x1dADMIN_USER_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18ADMIN_USER_STATUS_ACTIVE\x10\x01\x12+\n" +
+	"'ADMIN_USER_STATUS_PENDING_AUTHORIZATION\x10\x02\x12 \n" +
+	"\x1cADMIN_USER_STATUS_TERMINATED\x10\x03\x12/\n" +
+	"+ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION\x10\x04\x12\x1e\n" +
+	"\x1aADMIN_USER_STATUS_DISABLED\x10\x052\xe6\x19\n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -4054,9 +4137,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x13ListUserMemberships\x12$.admin.v1.ListUserMembershipsRequest\x1a%.admin.v1.ListUserMembershipsResponse\"K\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x01\x82\xd3\xe4\x93\x02+\x12)/api/v1/admin/users/{user_id}/memberships\x12\xb7\x01\n" +
 	"\x14CreateUserMembership\x12%.admin.v1.CreateUserMembershipRequest\x1a&.admin.v1.CreateUserMembershipResponse\"P\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/admin/users/{user_id}/memberships\x12\xbc\x01\n" +
 	"\x14UpdateUserMembership\x12%.admin.v1.UpdateUserMembershipRequest\x1a&.admin.v1.UpdateUserMembershipResponse\"U\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x023:\x01*\x1a./api/v1/admin/users/{user_id}/memberships/{id}\x12\xb9\x01\n" +
-	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x85\x01\n" +
-	"\n" +
-	"DeleteUser\x12\x1b.admin.v1.DeleteUserRequest\x1a\x1c.admin.v1.DeleteUserResponse\"<\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/admin/users/{id}\x12\xbd\x01\n" +
+	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x9d\x01\n" +
+	"\rTerminateUser\x12\x1e.admin.v1.TerminateUserRequest\x1a\x1f.admin.v1.TerminateUserResponse\"K\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/admin/users/{id}/termination\x12\xbd\x01\n" +
 	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a$.admin.v1.AuthorizeWeComUserResponse\"\\\x82\xb5\x18!\b\x03\x12\x1bsystem.user.authorize_wecom \x01\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\xcc\x01\n" +
 	"\x15AuthorizeDingTalkUser\x12&.admin.v1.AuthorizeDingTalkUserRequest\x1a'.admin.v1.AuthorizeDingTalkUserResponse\"b\x82\xb5\x18$\b\x03\x12\x1esystem.user.authorize_dingtalk \x01\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/admin/users/{id}/dingtalk-authorization\x12\xae\x01\n" +
 	"\x11ResetUserPassword\x12\".admin.v1.ResetUserPasswordRequest\x1a#.admin.v1.ResetUserPasswordResponse\"P\x82\xb5\x18 \b\x03\x12\x1asystem.user.reset_password \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/admin/users/{id}/password\x12{\n" +
@@ -4081,133 +4163,135 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(DataScope)(0),                        // 0: admin.v1.DataScope
 	(OrganizationKind)(0),                 // 1: admin.v1.OrganizationKind
-	(*ListOrganizationsRequest)(nil),      // 2: admin.v1.ListOrganizationsRequest
-	(*CreateOrganizationRequest)(nil),     // 3: admin.v1.CreateOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),     // 4: admin.v1.UpdateOrganizationRequest
-	(*AdminOrganization)(nil),             // 5: admin.v1.AdminOrganization
-	(*ListOrganizationsResponse)(nil),     // 6: admin.v1.ListOrganizationsResponse
-	(*ResetUserPasswordResponse)(nil),     // 7: admin.v1.ResetUserPasswordResponse
-	(*CreateOrganizationResponse)(nil),    // 8: admin.v1.CreateOrganizationResponse
-	(*UpdateOrganizationResponse)(nil),    // 9: admin.v1.UpdateOrganizationResponse
-	(*ListUsersRequest)(nil),              // 10: admin.v1.ListUsersRequest
-	(*CreateUserRequest)(nil),             // 11: admin.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),             // 12: admin.v1.UpdateUserRequest
-	(*ListUserMembershipsRequest)(nil),    // 13: admin.v1.ListUserMembershipsRequest
-	(*CreateUserMembershipRequest)(nil),   // 14: admin.v1.CreateUserMembershipRequest
-	(*UpdateUserMembershipRequest)(nil),   // 15: admin.v1.UpdateUserMembershipRequest
-	(*DeleteUserMembershipRequest)(nil),   // 16: admin.v1.DeleteUserMembershipRequest
-	(*DeleteUserRequest)(nil),             // 17: admin.v1.DeleteUserRequest
-	(*AuthorizeWeComUserRequest)(nil),     // 18: admin.v1.AuthorizeWeComUserRequest
-	(*AuthorizeDingTalkUserRequest)(nil),  // 19: admin.v1.AuthorizeDingTalkUserRequest
-	(*ResetUserPasswordRequest)(nil),      // 20: admin.v1.ResetUserPasswordRequest
-	(*ListOrganizationRolesRequest)(nil),  // 21: admin.v1.ListOrganizationRolesRequest
-	(*AdminUser)(nil),                     // 22: admin.v1.AdminUser
-	(*AdminUserMembership)(nil),           // 23: admin.v1.AdminUserMembership
-	(*ListUsersResponse)(nil),             // 24: admin.v1.ListUsersResponse
-	(*CreateUserResponse)(nil),            // 25: admin.v1.CreateUserResponse
-	(*UpdateUserResponse)(nil),            // 26: admin.v1.UpdateUserResponse
-	(*ListUserMembershipsResponse)(nil),   // 27: admin.v1.ListUserMembershipsResponse
-	(*CreateUserMembershipResponse)(nil),  // 28: admin.v1.CreateUserMembershipResponse
-	(*UpdateUserMembershipResponse)(nil),  // 29: admin.v1.UpdateUserMembershipResponse
-	(*DeleteUserMembershipResponse)(nil),  // 30: admin.v1.DeleteUserMembershipResponse
-	(*DeleteUserResponse)(nil),            // 31: admin.v1.DeleteUserResponse
-	(*AuthorizeWeComUserResponse)(nil),    // 32: admin.v1.AuthorizeWeComUserResponse
-	(*AuthorizeDingTalkUserResponse)(nil), // 33: admin.v1.AuthorizeDingTalkUserResponse
-	(*ListRolesRequest)(nil),              // 34: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),             // 35: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),             // 36: admin.v1.UpdateRoleRequest
-	(*OrderOrganizationAccess)(nil),       // 37: admin.v1.OrderOrganizationAccess
-	(*AdminRole)(nil),                     // 38: admin.v1.AdminRole
-	(*ListRolesResponse)(nil),             // 39: admin.v1.ListRolesResponse
-	(*ListOrganizationRolesResponse)(nil), // 40: admin.v1.ListOrganizationRolesResponse
-	(*CreateRoleResponse)(nil),            // 41: admin.v1.CreateRoleResponse
-	(*UpdateRoleResponse)(nil),            // 42: admin.v1.UpdateRoleResponse
-	(*ListPermissionsRequest)(nil),        // 43: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),               // 44: admin.v1.AdminPermission
-	(*ListPermissionsResponse)(nil),       // 45: admin.v1.ListPermissionsResponse
-	(*ListAuditLogsRequest)(nil),          // 46: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),                 // 47: admin.v1.AdminAuditLog
-	(*ListAuditLogsResponse)(nil),         // 48: admin.v1.ListAuditLogsResponse
-	nil,                                   // 49: admin.v1.AdminAuditLog.DetailsEntry
+	(AdminUserStatus)(0),                  // 2: admin.v1.AdminUserStatus
+	(*ListOrganizationsRequest)(nil),      // 3: admin.v1.ListOrganizationsRequest
+	(*CreateOrganizationRequest)(nil),     // 4: admin.v1.CreateOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),     // 5: admin.v1.UpdateOrganizationRequest
+	(*AdminOrganization)(nil),             // 6: admin.v1.AdminOrganization
+	(*ListOrganizationsResponse)(nil),     // 7: admin.v1.ListOrganizationsResponse
+	(*ResetUserPasswordResponse)(nil),     // 8: admin.v1.ResetUserPasswordResponse
+	(*CreateOrganizationResponse)(nil),    // 9: admin.v1.CreateOrganizationResponse
+	(*UpdateOrganizationResponse)(nil),    // 10: admin.v1.UpdateOrganizationResponse
+	(*ListUsersRequest)(nil),              // 11: admin.v1.ListUsersRequest
+	(*CreateUserRequest)(nil),             // 12: admin.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),             // 13: admin.v1.UpdateUserRequest
+	(*ListUserMembershipsRequest)(nil),    // 14: admin.v1.ListUserMembershipsRequest
+	(*CreateUserMembershipRequest)(nil),   // 15: admin.v1.CreateUserMembershipRequest
+	(*UpdateUserMembershipRequest)(nil),   // 16: admin.v1.UpdateUserMembershipRequest
+	(*DeleteUserMembershipRequest)(nil),   // 17: admin.v1.DeleteUserMembershipRequest
+	(*TerminateUserRequest)(nil),          // 18: admin.v1.TerminateUserRequest
+	(*AuthorizeWeComUserRequest)(nil),     // 19: admin.v1.AuthorizeWeComUserRequest
+	(*AuthorizeDingTalkUserRequest)(nil),  // 20: admin.v1.AuthorizeDingTalkUserRequest
+	(*ResetUserPasswordRequest)(nil),      // 21: admin.v1.ResetUserPasswordRequest
+	(*ListOrganizationRolesRequest)(nil),  // 22: admin.v1.ListOrganizationRolesRequest
+	(*AdminUser)(nil),                     // 23: admin.v1.AdminUser
+	(*AdminUserMembership)(nil),           // 24: admin.v1.AdminUserMembership
+	(*ListUsersResponse)(nil),             // 25: admin.v1.ListUsersResponse
+	(*CreateUserResponse)(nil),            // 26: admin.v1.CreateUserResponse
+	(*UpdateUserResponse)(nil),            // 27: admin.v1.UpdateUserResponse
+	(*ListUserMembershipsResponse)(nil),   // 28: admin.v1.ListUserMembershipsResponse
+	(*CreateUserMembershipResponse)(nil),  // 29: admin.v1.CreateUserMembershipResponse
+	(*UpdateUserMembershipResponse)(nil),  // 30: admin.v1.UpdateUserMembershipResponse
+	(*DeleteUserMembershipResponse)(nil),  // 31: admin.v1.DeleteUserMembershipResponse
+	(*TerminateUserResponse)(nil),         // 32: admin.v1.TerminateUserResponse
+	(*AuthorizeWeComUserResponse)(nil),    // 33: admin.v1.AuthorizeWeComUserResponse
+	(*AuthorizeDingTalkUserResponse)(nil), // 34: admin.v1.AuthorizeDingTalkUserResponse
+	(*ListRolesRequest)(nil),              // 35: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),             // 36: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),             // 37: admin.v1.UpdateRoleRequest
+	(*OrderOrganizationAccess)(nil),       // 38: admin.v1.OrderOrganizationAccess
+	(*AdminRole)(nil),                     // 39: admin.v1.AdminRole
+	(*ListRolesResponse)(nil),             // 40: admin.v1.ListRolesResponse
+	(*ListOrganizationRolesResponse)(nil), // 41: admin.v1.ListOrganizationRolesResponse
+	(*CreateRoleResponse)(nil),            // 42: admin.v1.CreateRoleResponse
+	(*UpdateRoleResponse)(nil),            // 43: admin.v1.UpdateRoleResponse
+	(*ListPermissionsRequest)(nil),        // 44: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),               // 45: admin.v1.AdminPermission
+	(*ListPermissionsResponse)(nil),       // 46: admin.v1.ListPermissionsResponse
+	(*ListAuditLogsRequest)(nil),          // 47: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),                 // 48: admin.v1.AdminAuditLog
+	(*ListAuditLogsResponse)(nil),         // 49: admin.v1.ListAuditLogsResponse
+	nil,                                   // 50: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
 	1,  // 1: admin.v1.AdminOrganization.kind:type_name -> admin.v1.OrganizationKind
-	5,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
-	5,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	5,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	1,  // 5: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
-	22, // 6: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	22, // 7: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	22, // 8: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	23, // 9: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	23, // 10: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	23, // 11: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	22, // 12: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
-	22, // 13: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 14: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	37, // 15: admin.v1.CreateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	0,  // 16: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	37, // 17: admin.v1.UpdateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	0,  // 18: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	37, // 19: admin.v1.AdminRole.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
-	38, // 20: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 21: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 22: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	38, // 23: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	44, // 24: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	49, // 25: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	47, // 26: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	2,  // 27: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	3,  // 28: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	4,  // 29: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	10, // 30: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	11, // 31: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	12, // 32: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	13, // 33: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	14, // 34: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
-	15, // 35: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	16, // 36: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	17, // 37: admin.v1.AdminService.DeleteUser:input_type -> admin.v1.DeleteUserRequest
-	18, // 38: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
-	19, // 39: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	20, // 40: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	34, // 41: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	21, // 42: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	35, // 43: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	36, // 44: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	43, // 45: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	46, // 46: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	6,  // 47: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	8,  // 48: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	9,  // 49: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	24, // 50: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	25, // 51: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	26, // 52: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	27, // 53: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	28, // 54: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
-	29, // 55: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	30, // 56: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	31, // 57: admin.v1.AdminService.DeleteUser:output_type -> admin.v1.DeleteUserResponse
-	32, // 58: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
-	33, // 59: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	7,  // 60: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	39, // 61: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	40, // 62: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	41, // 63: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	42, // 64: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	45, // 65: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	48, // 66: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	47, // [47:67] is the sub-list for method output_type
-	27, // [27:47] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	6,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
+	6,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	6,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	2,  // 5: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
+	1,  // 6: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
+	23, // 7: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	23, // 8: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 9: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	24, // 10: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 11: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 12: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	23, // 13: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 14: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	0,  // 15: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	38, // 16: admin.v1.CreateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	0,  // 17: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	38, // 18: admin.v1.UpdateRoleRequest.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	0,  // 19: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	38, // 20: admin.v1.AdminRole.order_organization_accesses:type_name -> admin.v1.OrderOrganizationAccess
+	39, // 21: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	39, // 22: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	39, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	39, // 24: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	45, // 25: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	50, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	48, // 27: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	3,  // 28: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	4,  // 29: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	5,  // 30: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	11, // 31: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	12, // 32: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	13, // 33: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	14, // 34: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	15, // 35: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
+	16, // 36: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	17, // 37: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	18, // 38: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	19, // 39: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
+	20, // 40: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	21, // 41: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	35, // 42: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	22, // 43: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	36, // 44: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	37, // 45: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	44, // 46: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	47, // 47: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	7,  // 48: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	9,  // 49: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	10, // 50: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	25, // 51: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	26, // 52: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	27, // 53: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	28, // 54: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	29, // 55: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
+	30, // 56: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	31, // 57: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	32, // 58: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	33, // 59: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
+	34, // 60: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	8,  // 61: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	40, // 62: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	41, // 63: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	42, // 64: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	43, // 65: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	46, // 66: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	49, // 67: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	48, // [48:68] is the sub-list for method output_type
+	28, // [28:48] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -4229,7 +4313,7 @@ func file_admin_v1_admin_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,

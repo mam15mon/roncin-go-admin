@@ -123,7 +123,6 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, options biz.AdminUserListOptions) (*biz.AdminUserList, error) {
 	predicates := []predicate.Membership{
 		membership.OrganizationIDEQ(organizationID),
-		membership.EnabledEQ(true),
 	}
 	if options.Keyword != "" {
 		predicates = append(predicates, membership.HasUserWith(userent.Or(
@@ -134,7 +133,11 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 	}
 	query := r.data.db.Membership.Query().
 		Where(predicates...).
-		WithUser().
+		WithUser(func(query *ent.UserQuery) {
+			query.WithMemberships(func(query *ent.MembershipQuery) {
+				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true)))
+			})
+		}).
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -197,6 +200,14 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 	if err != nil {
 		return nil, err
 	}
+	account, err := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
 	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -204,6 +215,14 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 			return nil, biz.ErrAdminUserNotFound
 		}
 		return nil, err
+	}
+	if account.Enabled && !input.Enabled {
+		_ = tx.Rollback()
+		return nil, biz.ErrAdminUserTerminationRequired
+	}
+	if !account.Enabled && input.Enabled && (account.WecomUserid != nil || account.DingtalkUnionid != nil) {
+		_ = tx.Rollback()
+		return nil, biz.ErrAdminUserAuthorizationRequired
 	}
 	roles, err := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
 	if err != nil {
@@ -262,12 +281,12 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 	if err != nil {
 		return nil, err
 	}
-	if exists, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).Exist(ctx); queryErr != nil {
+	if _, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx); queryErr != nil {
 		_ = tx.Rollback()
+		if ent.IsNotFound(queryErr) {
+			return nil, biz.ErrAdminUserNotFound
+		}
 		return nil, queryErr
-	} else if !exists {
-		_ = tx.Rollback()
-		return nil, biz.ErrAdminUserNotFound
 	}
 	if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
 		_ = tx.Rollback()
@@ -281,17 +300,25 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 		_ = tx.Rollback()
 		return nil, err
 	}
-	created, err := tx.Membership.Create().
-		SetUserID(input.UserID).
-		SetOrganizationID(input.OrganizationID).
-		SetEnabled(true).
-		SetPrimary(input.Primary).
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
+	created, err := tx.Membership.Query().
+		Where(membership.UserIDEQ(input.UserID), membership.OrganizationIDEQ(input.OrganizationID)).
+		Only(ctx)
+	if err == nil {
+		if created.Enabled {
+			_ = tx.Rollback()
 			return nil, biz.ErrAdminUserMembershipExists
 		}
+		created, err = tx.Membership.UpdateOneID(created.ID).SetEnabled(true).SetPrimary(input.Primary).Save(ctx)
+	} else if ent.IsNotFound(err) {
+		created, err = tx.Membership.Create().
+			SetUserID(input.UserID).
+			SetOrganizationID(input.OrganizationID).
+			SetEnabled(true).
+			SetPrimary(input.Primary).
+			Save(ctx)
+	}
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 	if err := replaceRoleAssignments(ctx, tx, created.ID, roles); err != nil {
@@ -317,6 +344,14 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 	if err != nil {
 		return nil, err
 	}
+	account, err := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		return nil, err
+	}
 	current, err := tx.Membership.Query().
 		Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID)).
 		Only(ctx)
@@ -326,6 +361,17 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 			return nil, biz.ErrAdminUserMembershipNotFound
 		}
 		return nil, err
+	}
+	if account.Enabled && current.Enabled && !input.Enabled {
+		activeCount, countErr := tx.Membership.Query().Where(membership.UserIDEQ(input.UserID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Count(ctx)
+		if countErr != nil {
+			_ = tx.Rollback()
+			return nil, countErr
+		}
+		if activeCount <= 1 {
+			_ = tx.Rollback()
+			return nil, biz.ErrAdminUserLastMembership
+		}
 	}
 	roles, err := rolesForOrganization(ctx, tx.Role.Query(), current.OrganizationID, roleIDs)
 	if err != nil {
@@ -368,6 +414,14 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 	if err != nil {
 		return err
 	}
+	account, err := tx.User.Query().Where(userent.IDEQ(userID)).ForUpdate().Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrAdminUserNotFound
+		}
+		return err
+	}
 	current, err := tx.Membership.Query().
 		Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
 		Only(ctx)
@@ -378,11 +432,22 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 		}
 		return err
 	}
+	if account.Enabled && current.Enabled {
+		activeCount, countErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Count(ctx)
+		if countErr != nil {
+			_ = tx.Rollback()
+			return countErr
+		}
+		if activeCount <= 1 {
+			_ = tx.Rollback()
+			return biz.ErrAdminUserLastMembership
+		}
+	}
 	if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(current.ID)).Exec(ctx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if err := tx.Membership.DeleteOneID(current.ID).Exec(ctx); err != nil {
+	if _, err := tx.Membership.UpdateOneID(current.ID).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -400,12 +465,19 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 	return tx.Commit()
 }
 
-func (r *adminRepo) DeleteUser(ctx context.Context, organizationID, id uuid.UUID) error {
+func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.UUID) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
 	}
-	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID)).Only(ctx)
+	if _, err := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx); err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrAdminUserNotFound
+		}
+		return err
+	}
+	_, err = tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
@@ -413,15 +485,26 @@ func (r *adminRepo) DeleteUser(ctx context.Context, organizationID, id uuid.UUID
 		}
 		return err
 	}
-	if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(membershipRecord.ID)).Exec(ctx); err != nil {
+	membershipIDs, err := tx.Membership.Query().Where(membership.UserIDEQ(id)).IDs(ctx)
+	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if err := tx.Membership.DeleteOneID(membershipRecord.ID).Exec(ctx); err != nil {
+	if len(membershipIDs) > 0 {
+		if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	if _, err := tx.Membership.Update().Where(membership.UserIDEQ(id)).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.OrganizationIDEQ(organizationID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
+	if _, err := tx.User.UpdateOneID(id).SetEnabled(false).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -445,7 +528,7 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 	if err != nil {
 		return nil, err
 	}
-	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).WithUser().Only(ctx)
+	account, err := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
@@ -453,9 +536,12 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		}
 		return nil, err
 	}
-	account, err := membershipRecord.Edges.UserOrErr()
+	_, err = tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Only(ctx)
 	if err != nil {
 		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrAdminUserNotFound
+		}
 		return nil, err
 	}
 	if !hasExternalIdentity(account) || account.Enabled {
@@ -484,11 +570,36 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		_ = tx.Rollback()
 		return nil, err
 	}
-	if _, err := tx.Membership.UpdateOneID(membershipRecord.ID).SetOrganizationID(targetOrganizationID).SetPrimary(true).Save(ctx); err != nil {
+	membershipIDs, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(ctx)
+	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
-	if err := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); err != nil {
+	if len(membershipIDs) > 0 {
+		if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+	}
+	if _, err := tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	targetMembership, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(ctx)
+	if ent.IsNotFound(err) {
+		targetMembership, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(ctx)
+	} else if err == nil {
+		targetMembership, err = tx.Membership.UpdateOneID(targetMembership.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := replaceRoleAssignments(ctx, tx, targetMembership.ID, roles); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(input.ID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -686,7 +797,15 @@ func optionalAuditString(value string) *string {
 }
 
 func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UUID) (*biz.AdminUser, error) {
-	item, err := r.data.db.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID)).WithUser().WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).Only(ctx)
+	item, err := r.data.db.Membership.Query().
+		Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID)).
+		WithUser(func(query *ent.UserQuery) {
+			query.WithMemberships(func(query *ent.MembershipQuery) {
+				query.Where(membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true)))
+			})
+		}).
+		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
+		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrAdminUserNotFound
@@ -713,7 +832,7 @@ func (r *adminRepo) findUserMembership(ctx context.Context, userID, membershipID
 
 func normalizePrimaryMembership(ctx context.Context, tx *ent.Tx, userID uuid.UUID, preferredID *uuid.UUID) error {
 	items, err := tx.Membership.Query().
-		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true)).
+		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
 		Order(membership.ByCreatedAt(), membership.ByID()).
 		All(ctx)
 	if err != nil {
@@ -873,7 +992,7 @@ func validateOrganizationCurrency(ctx context.Context, client currencyQuery, cod
 
 func membershipToUser(item *ent.Membership) *biz.AdminUser {
 	account := item.Edges.User
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CurrentMembershipEnabled: item.Enabled, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
 	for _, assignment := range item.Edges.RoleAssignments {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)
@@ -881,7 +1000,25 @@ func membershipToUser(item *ent.Membership) *biz.AdminUser {
 		}
 	}
 	sort.Strings(result.RoleCodes)
+	result.Status = adminUserStatus(account, item, len(account.Edges.Memberships) > 0)
 	return result
+}
+
+func adminUserStatus(account *ent.User, currentMembership *ent.Membership, hasActiveMembership bool) biz.AdminUserStatus {
+	if !currentMembership.Enabled && hasActiveMembership {
+		return biz.AdminUserStatusRemovedFromOrganization
+	}
+	if !account.Enabled && !hasActiveMembership {
+		return biz.AdminUserStatusTerminated
+	}
+	if account.Enabled && currentMembership.Enabled {
+		return biz.AdminUserStatusActive
+	}
+	hasExternalIdentity := account.WecomUserid != nil || account.DingtalkUnionid != nil
+	if !account.Enabled && currentMembership.Enabled && hasExternalIdentity && len(currentMembership.Edges.RoleAssignments) == 0 {
+		return biz.AdminUserStatusPendingAuthorization
+	}
+	return biz.AdminUserStatusDisabled
 }
 
 func membershipToBiz(item *ent.Membership) *biz.AdminUserMembership {

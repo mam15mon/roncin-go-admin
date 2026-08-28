@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/loginratelimitbucket"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
@@ -174,6 +175,18 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 		if err != nil {
 			return nil, false, err
 		}
+		hasActiveMembership, queryErr := r.data.db.Membership.Query().Where(
+			membership.UserIDEQ(account.ID),
+			membership.EnabledEQ(true),
+			membership.HasOrganizationWith(organization.EnabledEQ(true)),
+		).Exist(ctx)
+		if queryErr != nil {
+			return nil, false, queryErr
+		}
+		if !hasActiveMembership {
+			credential, prepareErr := r.prepareDingTalkRehire(ctx, account.ID)
+			return credential, prepareErr == nil, prepareErr
+		}
 		credential, credentialErr := r.credentialForAccount(ctx, account)
 		return credential, false, credentialErr
 	}
@@ -215,6 +228,63 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 	}
 	credential, err := r.credentialForAccount(ctx, account)
 	return credential, true, err
+}
+
+func (r *authRepo) prepareDingTalkRehire(ctx context.Context, userID uuid.UUID) (*biz.Credential, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	headquarters, err := tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	membershipIDs, err := tx.Membership.Query().Where(membership.UserIDEQ(userID)).IDs(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if len(membershipIDs) > 0 {
+		if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+	}
+	if _, err := tx.Membership.Update().Where(membership.UserIDEQ(userID)).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	intake, err := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(headquarters.ID)).Only(ctx)
+	if ent.IsNotFound(err) {
+		_, err = tx.Membership.Create().SetUserID(userID).SetOrganizationID(headquarters.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+	} else if err == nil {
+		_, err = tx.Membership.UpdateOneID(intake.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.User.UpdateOneID(userID).SetEnabled(false).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	account, err := r.data.db.User.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return r.credentialForAccount(ctx, account)
 }
 
 func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz.DingTalkIdentity) (*ent.User, error) {

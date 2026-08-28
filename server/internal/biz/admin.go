@@ -20,7 +20,10 @@ var (
 	ErrAdminOrganizationCurrency       = errors.BadRequest("ADMIN_ORGANIZATION_CURRENCY_INVALID", "组织本币必须是启用的 ISO 币种")
 	ErrAdminUserNotFound               = errors.NotFound("ADMIN_USER_NOT_FOUND", "用户不存在")
 	ErrAdminUsernameExists             = errors.Conflict("ADMIN_USERNAME_EXISTS", "用户名已存在")
-	ErrAdminUserSelfDelete             = errors.BadRequest("ADMIN_USER_SELF_DELETE", "不能删除当前登录账号")
+	ErrAdminUserSelfDelete             = errors.BadRequest("ADMIN_USER_SELF_DELETE", "不能移除当前登录账号或为其办理离职")
+	ErrAdminUserLastMembership         = errors.BadRequest("ADMIN_USER_LAST_MEMBERSHIP", "在职用户必须保留至少一个有效组织；请先加入新组织或办理离职")
+	ErrAdminUserTerminationRequired    = errors.BadRequest("ADMIN_USER_TERMINATION_REQUIRED", "停用员工请使用办理离职")
+	ErrAdminUserAuthorizationRequired  = errors.BadRequest("ADMIN_USER_AUTHORIZATION_REQUIRED", "外部身份账号必须通过身份授权流程启用")
 	ErrAdminUserPasswordUnavailable    = errors.BadRequest("ADMIN_USER_PASSWORD_UNAVAILABLE", "该用户未启用密码登录，不能重置密码")
 	ErrAdminUserMembershipNotFound     = errors.NotFound("ADMIN_USER_MEMBERSHIP_NOT_FOUND", "用户组织成员关系不存在")
 	ErrAdminUserMembershipExists       = errors.Conflict("ADMIN_USER_MEMBERSHIP_EXISTS", "用户已属于该组织")
@@ -54,23 +57,35 @@ type AdminOrganization struct {
 }
 
 type AdminUser struct {
-	ID              uuid.UUID
-	Username        string
-	DisplayName     string
-	Email           *string
-	AvatarURL       *string
-	WeComUserID     *string
-	WeComName       *string
-	DingTalkUnionID *string
-	DingTalkUserID  *string
-	DingTalkName    *string
-	Enabled         bool
-	HasPassword     bool
-	RoleIDs         []uuid.UUID
-	RoleCodes       []string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                       uuid.UUID
+	Username                 string
+	DisplayName              string
+	Email                    *string
+	AvatarURL                *string
+	WeComUserID              *string
+	WeComName                *string
+	DingTalkUnionID          *string
+	DingTalkUserID           *string
+	DingTalkName             *string
+	Enabled                  bool
+	Status                   AdminUserStatus
+	CurrentMembershipEnabled bool
+	HasPassword              bool
+	RoleIDs                  []uuid.UUID
+	RoleCodes                []string
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
 }
+
+type AdminUserStatus string
+
+const (
+	AdminUserStatusActive                  AdminUserStatus = "ACTIVE"
+	AdminUserStatusPendingAuthorization    AdminUserStatus = "PENDING_AUTHORIZATION"
+	AdminUserStatusTerminated              AdminUserStatus = "TERMINATED"
+	AdminUserStatusRemovedFromOrganization AdminUserStatus = "REMOVED_FROM_ORGANIZATION"
+	AdminUserStatusDisabled                AdminUserStatus = "DISABLED"
+)
 
 type AdminUserMembership struct {
 	ID               uuid.UUID
@@ -156,7 +171,7 @@ type AdminRepo interface {
 	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
 	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID) error
-	DeleteUser(context.Context, uuid.UUID, uuid.UUID) error
+	TerminateUser(context.Context, uuid.UUID, uuid.UUID) error
 	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string) error
@@ -339,17 +354,17 @@ func (uc *AdminUsecase) DeleteUserMembership(ctx context.Context, actorID, userI
 	return uc.writeAudit(ctx, actorID, &userID, "admin.user.membership.delete", membershipID.String())
 }
 
-func (uc *AdminUsecase) DeleteUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
+func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return ErrAdminInvalidArgument
 	}
 	if actorID == id {
 		return ErrAdminUserSelfDelete
 	}
-	if err := uc.repo.DeleteUser(ctx, organizationID, id); err != nil {
+	if err := uc.repo.TerminateUser(ctx, organizationID, id); err != nil {
 		return err
 	}
-	return uc.writeAudit(ctx, actorID, &id, "admin.user.delete", "")
+	return uc.writeAudit(ctx, actorID, &id, "admin.user.terminate", "")
 }
 
 func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {

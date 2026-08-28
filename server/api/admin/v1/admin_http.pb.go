@@ -23,7 +23,6 @@ const OperationAdminServiceCreateOrganization = "/admin.v1.AdminService/CreateOr
 const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
 const OperationAdminServiceCreateUser = "/admin.v1.AdminService/CreateUser"
 const OperationAdminServiceCreateUserMembership = "/admin.v1.AdminService/CreateUserMembership"
-const OperationAdminServiceDeleteUser = "/admin.v1.AdminService/DeleteUser"
 const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/DeleteUserMembership"
 const OperationAdminServiceListAuditLogs = "/admin.v1.AdminService/ListAuditLogs"
 const OperationAdminServiceListOrganizationRoles = "/admin.v1.AdminService/ListOrganizationRoles"
@@ -33,6 +32,7 @@ const OperationAdminServiceListRoles = "/admin.v1.AdminService/ListRoles"
 const OperationAdminServiceListUserMemberships = "/admin.v1.AdminService/ListUserMemberships"
 const OperationAdminServiceListUsers = "/admin.v1.AdminService/ListUsers"
 const OperationAdminServiceResetUserPassword = "/admin.v1.AdminService/ResetUserPassword"
+const OperationAdminServiceTerminateUser = "/admin.v1.AdminService/TerminateUser"
 const OperationAdminServiceUpdateOrganization = "/admin.v1.AdminService/UpdateOrganization"
 const OperationAdminServiceUpdateRole = "/admin.v1.AdminService/UpdateRole"
 const OperationAdminServiceUpdateUser = "/admin.v1.AdminService/UpdateUser"
@@ -45,8 +45,6 @@ type AdminServiceHTTPServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
-	// DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
@@ -56,6 +54,8 @@ type AdminServiceHTTPServer interface {
 	ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
+	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+	TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error)
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
@@ -74,7 +74,7 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/admin/users/{user_id}/memberships", _AdminService_CreateUserMembership0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_UpdateUserMembership0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_DeleteUserMembership0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/api/v1/admin/users/{id}", _AdminService_DeleteUser0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/admin/users/{id}/termination", _AdminService_TerminateUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/wecom-authorization", _AdminService_AuthorizeWeComUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/dingtalk-authorization", _AdminService_AuthorizeDingTalkUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{id}/password", _AdminService_ResetUserPassword0_HTTP_Handler(srv))
@@ -294,24 +294,24 @@ func _AdminService_DeleteUserMembership0_HTTP_Handler(srv AdminServiceHTTPServer
 	}
 }
 
-func _AdminService_DeleteUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+func _AdminService_TerminateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in DeleteUserRequest
-		if err := ctx.BindQuery(&in); err != nil {
+		var in TerminateUserRequest
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAdminServiceDeleteUser)
+		http.SetOperation(ctx, OperationAdminServiceTerminateUser)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DeleteUser(ctx, req.(*DeleteUserRequest))
+			return srv.TerminateUser(ctx, req.(*TerminateUserRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeleteUserResponse)
+		reply := out.(*TerminateUserResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -509,8 +509,6 @@ type AdminServiceHTTPClient interface {
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserResponse, err error)
 	CreateUserMembership(ctx context.Context, req *CreateUserMembershipRequest, opts ...http.CallOption) (rsp *CreateUserMembershipResponse, err error)
-	// DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserResponse, err error)
 	DeleteUserMembership(ctx context.Context, req *DeleteUserMembershipRequest, opts ...http.CallOption) (rsp *DeleteUserMembershipResponse, err error)
 	ListAuditLogs(ctx context.Context, req *ListAuditLogsRequest, opts ...http.CallOption) (rsp *ListAuditLogsResponse, err error)
 	ListOrganizationRoles(ctx context.Context, req *ListOrganizationRolesRequest, opts ...http.CallOption) (rsp *ListOrganizationRolesResponse, err error)
@@ -520,6 +518,8 @@ type AdminServiceHTTPClient interface {
 	ListUserMemberships(ctx context.Context, req *ListUserMembershipsRequest, opts ...http.CallOption) (rsp *ListUserMembershipsResponse, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersResponse, err error)
 	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *ResetUserPasswordResponse, err error)
+	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+	TerminateUser(ctx context.Context, req *TerminateUserRequest, opts ...http.CallOption) (rsp *TerminateUserResponse, err error)
 	UpdateOrganization(ctx context.Context, req *UpdateOrganizationRequest, opts ...http.CallOption) (rsp *UpdateOrganizationResponse, err error)
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *UpdateRoleResponse, err error)
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UpdateUserResponse, err error)
@@ -630,23 +630,6 @@ func (c *AdminServiceHTTPClientImpl) CreateUserMembership(ctx context.Context, i
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// DeleteUser DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-func (c *AdminServiceHTTPClientImpl) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...http.CallOption) (*DeleteUserResponse, error) {
-	var out DeleteUserResponse
-	pattern := "/api/v1/admin/users/{id}"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationAdminServiceDeleteUser),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -792,6 +775,24 @@ func (c *AdminServiceHTTPClientImpl) ResetUserPassword(ctx context.Context, in *
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+func (c *AdminServiceHTTPClientImpl) TerminateUser(ctx context.Context, in *TerminateUserRequest, opts ...http.CallOption) (*TerminateUserResponse, error) {
+	var out TerminateUserResponse
+	pattern := "/api/v1/admin/users/{id}/termination"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceTerminateUser),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

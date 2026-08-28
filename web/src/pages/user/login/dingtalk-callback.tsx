@@ -101,8 +101,8 @@ export default function DingTalkCallback() {
       {registeredName ? (
         <Result
           status="success"
-          title="注册申请已提交"
-          subTitle={`${registeredName}，企业身份验证已通过。请等待管理员分配所属组织和角色，授权完成后即可使用钉钉登录。`}
+          title="入职或返聘申请已提交"
+          subTitle={`${registeredName}，企业身份验证已通过。请等待管理员重新确认所属组织和角色，授权完成后即可使用钉钉登录。`}
           extra={
             <Button
               type="primary"

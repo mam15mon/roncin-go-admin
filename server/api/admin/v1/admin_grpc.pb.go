@@ -29,7 +29,7 @@ const (
 	AdminService_CreateUserMembership_FullMethodName  = "/admin.v1.AdminService/CreateUserMembership"
 	AdminService_UpdateUserMembership_FullMethodName  = "/admin.v1.AdminService/UpdateUserMembership"
 	AdminService_DeleteUserMembership_FullMethodName  = "/admin.v1.AdminService/DeleteUserMembership"
-	AdminService_DeleteUser_FullMethodName            = "/admin.v1.AdminService/DeleteUser"
+	AdminService_TerminateUser_FullMethodName         = "/admin.v1.AdminService/TerminateUser"
 	AdminService_AuthorizeWeComUser_FullMethodName    = "/admin.v1.AdminService/AuthorizeWeComUser"
 	AdminService_AuthorizeDingTalkUser_FullMethodName = "/admin.v1.AdminService/AuthorizeDingTalkUser"
 	AdminService_ResetUserPassword_FullMethodName     = "/admin.v1.AdminService/ResetUserPassword"
@@ -55,8 +55,8 @@ type AdminServiceClient interface {
 	CreateUserMembership(ctx context.Context, in *CreateUserMembershipRequest, opts ...grpc.CallOption) (*CreateUserMembershipResponse, error)
 	UpdateUserMembership(ctx context.Context, in *UpdateUserMembershipRequest, opts ...grpc.CallOption) (*UpdateUserMembershipResponse, error)
 	DeleteUserMembership(ctx context.Context, in *DeleteUserMembershipRequest, opts ...grpc.CallOption) (*DeleteUserMembershipResponse, error)
-	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	// TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+	TerminateUser(ctx context.Context, in *TerminateUserRequest, opts ...grpc.CallOption) (*TerminateUserResponse, error)
 	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(ctx context.Context, in *AuthorizeDingTalkUserRequest, opts ...grpc.CallOption) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
@@ -176,10 +176,10 @@ func (c *adminServiceClient) DeleteUserMembership(ctx context.Context, in *Delet
 	return out, nil
 }
 
-func (c *adminServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+func (c *adminServiceClient) TerminateUser(ctx context.Context, in *TerminateUserRequest, opts ...grpc.CallOption) (*TerminateUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteUserResponse)
-	err := c.cc.Invoke(ctx, AdminService_DeleteUser_FullMethodName, in, out, cOpts...)
+	out := new(TerminateUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_TerminateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -290,8 +290,8 @@ type AdminServiceServer interface {
 	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
 	UpdateUserMembership(context.Context, *UpdateUserMembershipRequest) (*UpdateUserMembershipResponse, error)
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
-	// DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	// TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+	TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error)
 	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
@@ -341,8 +341,8 @@ func (UnimplementedAdminServiceServer) UpdateUserMembership(context.Context, *Up
 func (UnimplementedAdminServiceServer) DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUserMembership not implemented")
 }
-func (UnimplementedAdminServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+func (UnimplementedAdminServiceServer) TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TerminateUser not implemented")
 }
 func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
@@ -572,20 +572,20 @@ func _AdminService_DeleteUserMembership_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteUserRequest)
+func _AdminService_TerminateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TerminateUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).DeleteUser(ctx, in)
+		return srv.(AdminServiceServer).TerminateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AdminService_DeleteUser_FullMethodName,
+		FullMethod: AdminService_TerminateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+		return srv.(AdminServiceServer).TerminateUser(ctx, req.(*TerminateUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -800,8 +800,8 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_DeleteUserMembership_Handler,
 		},
 		{
-			MethodName: "DeleteUser",
-			Handler:    _AdminService_DeleteUser_Handler,
+			MethodName: "TerminateUser",
+			Handler:    _AdminService_TerminateUser_Handler,
 		},
 		{
 			MethodName: "AuthorizeWeComUser",

@@ -213,7 +213,7 @@ func (s *AdminService) DeleteUserMembership(ctx context.Context, request *v1.Del
 	return &v1.DeleteUserMembershipResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AdminService) DeleteUser(ctx context.Context, request *v1.DeleteUserRequest) (*v1.DeleteUserResponse, error) {
+func (s *AdminService) TerminateUser(ctx context.Context, request *v1.TerminateUserRequest) (*v1.TerminateUserResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -222,10 +222,10 @@ func (s *AdminService) DeleteUser(ctx context.Context, request *v1.DeleteUserReq
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	if err := s.usecase.DeleteUser(ctx, principal.Organization.ID, principal.UserID, userID); err != nil {
+	if err := s.usecase.TerminateUser(ctx, principal.Organization.ID, principal.UserID, userID); err != nil {
 		return nil, err
 	}
-	return &v1.DeleteUserResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.TerminateUserResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.AuthorizeWeComUserRequest) (*v1.AuthorizeWeComUserResponse, error) {
@@ -531,7 +531,24 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 }
 
 func userToAPI(value *biz.AdminUser) *v1.AdminUser {
-	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+}
+
+func adminUserStatusToAPI(value biz.AdminUserStatus) v1.AdminUserStatus {
+	switch value {
+	case biz.AdminUserStatusActive:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_ACTIVE
+	case biz.AdminUserStatusPendingAuthorization:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_AUTHORIZATION
+	case biz.AdminUserStatusTerminated:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_TERMINATED
+	case biz.AdminUserStatusRemovedFromOrganization:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION
+	case biz.AdminUserStatusDisabled:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_DISABLED
+	default:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_UNSPECIFIED
+	}
 }
 
 func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership {

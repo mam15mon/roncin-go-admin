@@ -6,7 +6,7 @@ const permissions = {
   userRead: 'system.user.read',
   userCreate: 'system.user.create',
   userUpdate: 'system.user.update',
-  userDelete: 'system.user.delete',
+  userTerminate: 'system.user.delete',
   userAuthorizeWeCom: 'system.user.authorize_wecom',
   userAuthorizeDingTalk: 'system.user.authorize_dingtalk',
   userResetPassword: 'system.user.reset_password',
@@ -145,7 +145,7 @@ export default function access(
     canReadUsers: has(permissions.userRead) && inOrganization,
     canCreateUsers: has(permissions.userCreate) && inOrganization,
     canUpdateUsers: has(permissions.userUpdate) && inOrganization,
-    canDeleteUsers: has(permissions.userDelete) && inOrganization,
+    canTerminateUsers: has(permissions.userTerminate) && inOrganization,
     canReadAllUserMemberships: has(permissions.userRead) && inAll,
     canManageUserMemberships: has(permissions.userUpdate) && inAll,
     canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom) && inAll,
@@ -326,7 +326,7 @@ export default function access(
     canManageUsers:
       result.canCreateUsers ||
       result.canUpdateUsers ||
-      result.canDeleteUsers ||
+      result.canTerminateUsers ||
       result.canAuthorizeWeComUsers ||
       result.canAuthorizeDingTalkUsers ||
       result.canResetUserPasswords,

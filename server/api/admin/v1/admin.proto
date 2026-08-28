@@ -77,10 +77,13 @@ service AdminService {
     option (google.api.http) = {delete: "/api/v1/admin/users/{user_id}/memberships/{id}"};
   }
 
-  // DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。
-  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+  // TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
+  rpc TerminateUser(TerminateUserRequest) returns (TerminateUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.delete" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/admin/users/{id}"};
+    option (google.api.http) = {
+      post: "/api/v1/admin/users/{id}/termination"
+      body: "*"
+    };
   }
 
   rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AuthorizeWeComUserResponse) {
@@ -158,6 +161,15 @@ enum OrganizationKind {
   ORGANIZATION_KIND_COMPANY = 2;
   ORGANIZATION_KIND_DEPARTMENT = 3;
   ORGANIZATION_KIND_TEAM = 4;
+}
+
+enum AdminUserStatus {
+  ADMIN_USER_STATUS_UNSPECIFIED = 0;
+  ADMIN_USER_STATUS_ACTIVE = 1;
+  ADMIN_USER_STATUS_PENDING_AUTHORIZATION = 2;
+  ADMIN_USER_STATUS_TERMINATED = 3;
+  ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION = 4;
+  ADMIN_USER_STATUS_DISABLED = 5;
 }
 
 message ListOrganizationsRequest {}
@@ -264,7 +276,7 @@ message DeleteUserMembershipRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-message DeleteUserRequest {
+message TerminateUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -310,6 +322,8 @@ message AdminUser {
   optional string avatar_url = 14;
   bool has_password = 15;
   optional string dingtalk_userid = 16;
+  AdminUserStatus status = 17;
+  bool current_membership_enabled = 18;
 }
 
 message AdminUserMembership {
@@ -386,7 +400,7 @@ message DeleteUserMembershipResponse {
   string trace_id = 4;
 }
 
-message DeleteUserResponse {
+message TerminateUserResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;

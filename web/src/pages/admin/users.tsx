@@ -39,7 +39,6 @@ import {
   adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
   adminServiceCreateUserMembership,
-  adminServiceDeleteUser,
   adminServiceDeleteUserMembership,
   adminServiceListOrganizationRoles,
   adminServiceListOrganizations,
@@ -47,6 +46,7 @@ import {
   adminServiceListUserMemberships,
   adminServiceListUsers,
   adminServiceResetUserPassword,
+  adminServiceTerminateUser,
   adminServiceUpdateUser,
   adminServiceUpdateUserMembership,
 } from '@/services/roncin/adminService';
@@ -80,15 +80,19 @@ const organizationKindLabels: Record<number, string> = {
 function pendingExternalProvider(
   user?: API.AdminUser,
 ): 'wecom' | 'dingtalk' | undefined {
-  if (!user || user.enabled) return undefined;
+  if (user?.status !== 2) return undefined;
   if (user.wecomUserid) return 'wecom';
   if (user.dingtalkUnionid) return 'dingtalk';
   return undefined;
 }
 
-function hasExternalIdentity(user: API.AdminUser): boolean {
-  return Boolean(user.wecomUserid || user.dingtalkUnionid);
-}
+const userStatusLabels: Record<number, { text: string; color?: string }> = {
+  1: { text: '在职', color: 'success' },
+  2: { text: '待授权', color: 'warning' },
+  3: { text: '已离职', color: 'default' },
+  4: { text: '已移出本组织', color: 'default' },
+  5: { text: '已停用', color: 'default' },
+};
 
 export default function UsersPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -185,7 +189,7 @@ export default function UsersPanel() {
               size={32}
               src={record.avatarUrl}
               style={{
-                backgroundColor: record.enabled ? '#1677ff' : '#94a3b8',
+                backgroundColor: record.status === 1 ? '#1677ff' : '#94a3b8',
                 fontSize: 14,
                 fontWeight: 600,
                 flexShrink: 0,
@@ -364,20 +368,16 @@ export default function UsersPanel() {
     },
     {
       title: '状态',
-      dataIndex: 'enabled',
-      width: 100,
-      valueEnum: {
-        true: { text: '启用' },
-        false: { text: '停用' },
+      dataIndex: 'status',
+      width: 120,
+      search: false,
+      render: (_, record) => {
+        const status = userStatusLabels[record.status ?? 0] ?? {
+          text: '未知',
+          color: 'default',
+        };
+        return <Tag color={status.color}>{status.text}</Tag>;
       },
-      render: (_, record) =>
-        record.enabled ? (
-          <Tag color="success">启用</Tag>
-        ) : hasExternalIdentity(record) ? (
-          <Tag color="warning">待授权</Tag>
-        ) : (
-          <Tag color="default">停用</Tag>
-        ),
     },
     {
       title: '更新时间',
@@ -393,7 +393,7 @@ export default function UsersPanel() {
       fixed: 'right',
       render: (_, record) => (
         <Space size={8}>
-          {access.canUpdateUsers && (
+          {access.canUpdateUsers && record.status !== 3 && record.status !== 4 && (
             <Button
               type="link"
               size="small"
@@ -415,18 +415,23 @@ export default function UsersPanel() {
               重置密码
             </Button>
           )}
-          {access.canDeleteUsers &&
+          {access.canTerminateUsers &&
+            record.status === 1 &&
+            record.currentMembershipEnabled &&
             record.id !== initialState?.currentUser?.id && (
               <Popconfirm
-                title={`确定删除员工“${record.displayName || record.username}”？`}
-                description="将从当前组织移除该员工并撤销其组织会话，账号及历史业务记录仍会保留。"
-                okText="删除"
+                title={`确定为“${record.displayName || record.username}”办理离职？`}
+                description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时需重新审批角色。"
+                okText="确认离职"
                 cancelText="取消"
                 okButtonProps={{ danger: true }}
                 onConfirm={async () => {
                   if (!record.id) return;
-                  await adminServiceDeleteUser({ id: record.id });
-                  message.success('员工已从当前组织删除');
+                  await adminServiceTerminateUser(
+                    { id: record.id },
+                    { id: record.id },
+                  );
+                  message.success('离职办理完成，账号和历史记录已保留');
                   actionRef.current?.reload();
                 }}
               >
@@ -437,7 +442,7 @@ export default function UsersPanel() {
                   icon={<DeleteOutlined />}
                   style={{ padding: 0 }}
                 >
-                  删除
+                  办理离职
                 </Button>
               </Popconfirm>
             )}
@@ -569,7 +574,7 @@ export default function UsersPanel() {
                 id: editing.id,
                 displayName: values.displayName?.trim() ?? '',
                 email: values.email?.trim() || undefined,
-                enabled: values.enabled ?? true,
+                enabled: true,
                 roleIds: values.roleIds ?? [],
               },
             );
@@ -771,7 +776,7 @@ export default function UsersPanel() {
                         </Button>
                         <Popconfirm
                           title={`确定从“${membership.organizationName || '该组织'}”移除？`}
-                          description="移除后会撤销该组织中的在线会话，其他组织关系不受影响。"
+                          description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
                           okText="移除"
                           cancelText="取消"
                           okButtonProps={{ danger: true }}
@@ -805,13 +810,6 @@ export default function UsersPanel() {
               ]}
             />
           </div>
-        )}
-        {editing && !pendingProvider && (
-          <ProFormSwitch
-            name="enabled"
-            label="账号状态"
-            extra="停用后用户将无法登录系统或调用业务接口"
-          />
         )}
       </ModalForm>
 

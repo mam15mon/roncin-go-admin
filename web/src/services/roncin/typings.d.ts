@@ -170,10 +170,6 @@ declare namespace API {
     id: string;
   };
 
-  type AdminServiceDeleteUserParams = {
-    id: string;
-  };
-
   type AdminServiceListAuditLogsParams = {
     page?: number;
     pageSize?: number;
@@ -200,6 +196,10 @@ declare namespace API {
   };
 
   type AdminServiceResetUserPasswordParams = {
+    id: string;
+  };
+
+  type AdminServiceTerminateUserParams = {
     id: string;
   };
 
@@ -237,6 +237,8 @@ declare namespace API {
     avatarUrl?: string;
     hasPassword?: boolean;
     dingtalkUserid?: string;
+    status?: number;
+    currentMembershipEnabled?: boolean;
   };
 
   type AdminUserMembership = {
@@ -1263,13 +1265,6 @@ declare namespace API {
   };
 
   type DeleteUserMembershipResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type DeleteUserResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -4314,6 +4309,17 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type TerminateUserRequest = {
+    id: string;
+  };
+
+  type TerminateUserResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
   };
 
   type TransitionOrderClosureRequest = {

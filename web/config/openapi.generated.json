@@ -422,35 +422,6 @@
             }
           }
         }
-      },
-      "delete": {
-        "tags": [
-          "AdminService"
-        ],
-        "description": "DeleteUser 从当前组织移除用户，保留全局账号和历史业务记录。",
-        "operationId": "AdminService_DeleteUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/admin.v1.DeleteUserResponse"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v1/admin/users/{id}/dingtalk-authorization": {
@@ -526,6 +497,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/admin.v1.ResetUserPasswordResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/termination": {
+      "post": {
+        "tags": [
+          "AdminService"
+        ],
+        "description": "TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。",
+        "operationId": "AdminService_TerminateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.TerminateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.TerminateUserResponse"
                 }
               }
             }
@@ -8105,6 +8117,13 @@
           },
           "dingtalkUserid": {
             "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "currentMembershipEnabled": {
+            "type": "boolean"
           }
         }
       },
@@ -8475,24 +8494,6 @@
           }
         }
       },
-      "admin.v1.DeleteUserResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "admin.v1.ListAuditLogsResponse": {
         "type": "object",
         "properties": {
@@ -8715,6 +8716,35 @@
         }
       },
       "admin.v1.ResetUserPasswordResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.TerminateUserRequest": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.TerminateUserResponse": {
         "type": "object",
         "properties": {
           "success": {

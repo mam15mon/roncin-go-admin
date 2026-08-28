@@ -85,7 +85,7 @@ func (s *adminRepoStub) DeleteUserMembership(_ context.Context, _ uuid.UUID, mem
 	return nil
 }
 
-func (s *adminRepoStub) DeleteUser(_ context.Context, organizationID, id uuid.UUID) error {
+func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid.UUID) error {
 	s.deleteOrgID = organizationID
 	s.deletedUserID = id
 	return nil
@@ -363,28 +363,28 @@ func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	}
 }
 
-func TestAdminUsecaseDeleteUserRejectsSelfAndAudits(t *testing.T) {
+func TestAdminUsecaseTerminateUserRejectsSelfAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
 	audit := &auditRepoStub{}
 	usecase := NewAdminUsecase(repo, audit)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
-	if err := usecase.DeleteUser(context.Background(), organizationID, actorID, actorID); err != ErrAdminUserSelfDelete {
-		t.Fatalf("DeleteUser() self error = %v, want ErrAdminUserSelfDelete", err)
+	if err := usecase.TerminateUser(context.Background(), organizationID, actorID, actorID); err != ErrAdminUserSelfDelete {
+		t.Fatalf("TerminateUser() self error = %v, want ErrAdminUserSelfDelete", err)
 	}
 	if repo.deletedUserID != uuid.Nil {
 		t.Fatal("self deletion was sent to repository")
 	}
 
 	userID := uuid.New()
-	if err := usecase.DeleteUser(context.Background(), organizationID, actorID, userID); err != nil {
-		t.Fatalf("DeleteUser() error = %v", err)
+	if err := usecase.TerminateUser(context.Background(), organizationID, actorID, userID); err != nil {
+		t.Fatalf("TerminateUser() error = %v", err)
 	}
 	if repo.deleteOrgID != organizationID || repo.deletedUserID != userID {
 		t.Fatalf("deleted organization/user = %s/%s", repo.deleteOrgID, repo.deletedUserID)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.delete" || audit.events[0].Details["resource_id"] != userID.String() {
+	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.terminate" || audit.events[0].Details["resource_id"] != userID.String() {
 		t.Fatalf("audit events = %#v", audit.events)
 	}
 }
