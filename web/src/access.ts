@@ -1,3 +1,7 @@
+import type { ManifestPermissionKey } from '@/permissions.generated';
+
+// 键值必须命中后端权限清单生成的前缀类型：后端权限码改名或删除后，这里的旧
+// 键名会在 `pnpm --dir web tsc` 时直接报错，避免按钮权限静默失效。
 const permissions = {
   platformAccess: 'system.platform.access',
   organizationRead: 'system.organization.read',
@@ -93,7 +97,7 @@ const permissions = {
     'system.master_data.milestone_template.set_default',
   taskRead: 'system.task.read',
   taskRequeue: 'system.task.requeue',
-} as const;
+} as const satisfies Record<string, ManifestPermissionKey>;
 
 const orderBusinessCodes: Record<number | string, string | undefined> = {
   1: 'se',
