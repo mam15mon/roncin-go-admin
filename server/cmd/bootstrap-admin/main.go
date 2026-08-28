@@ -43,7 +43,7 @@ func main() {
 			logger.Error("sync permission manifest failed", "error", syncErr)
 			os.Exit(1)
 		}
-		logger.Info("permission manifest synced", "created", summary.Created, "updated", summary.Updated, "attached_to_administrator", summary.Attached)
+		logger.Info("permission manifest synced", "created", summary.Created, "updated", summary.Updated, "removed", summary.Removed, "attached", summary.Attached)
 		return
 	}
 	if err := bootstrap(context.Background(), config); err != nil {
@@ -164,19 +164,16 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 	return nil
 }
 
-// syncPermissions 按 access.Manifest 幂等同步权限目录，并为 administrator 角色补挂
-// 缺失权限。完整流程已由 cmd/migrate 在迁移后统一执行，此入口保留给开发阶段手工
-// 触发；不创建或修改用户与组织，已从 Manifest 删除的权限码不会被移除，需要彻底
-// 清理时重置数据库后重新执行完整 bootstrap。
+// syncPermissions 按 access.Manifest 幂等同步权限目录。完整流程已由 cmd/migrate
+// 在迁移后统一执行，此入口仅保留给开发阶段手工触发。
 func syncPermissions(ctx context.Context, databaseSource string) (*data.PermissionManifestSyncSummary, error) {
 	sqlDB, err := sql.Open("pgx", databaseSource)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
 	defer sqlDB.Close()
-	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
-	if err := client.Schema.Create(ctx); err != nil {
-		return nil, fmt.Errorf("synchronize schema: %w", err)
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("connect database: %w", err)
 	}
 	return data.SyncPermissionManifest(ctx, sqlDB)
 }

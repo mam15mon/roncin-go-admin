@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"os"
@@ -61,6 +62,36 @@ func TestApplyExecutesNewMigrationInTransaction(t *testing.T) {
 
 	if err := Apply(context.Background(), db, dir); err != nil {
 		t.Fatalf("Apply() error = %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestApplyWithPostStepRunsBeforeUnlock(t *testing.T) {
+	dir := t.TempDir()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_lock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta(revisionTableExistsQuery)).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(`SELECT "version", "checksum"`).WillReturnRows(sqlmock.NewRows([]string{"version", "checksum"}))
+	mock.ExpectExec("SELECT post_step").WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	called := false
+	err = ApplyWithPostStep(context.Background(), db, dir, func(conn *sql.Conn) error {
+		called = true
+		_, execErr := conn.ExecContext(context.Background(), "SELECT post_step")
+		return execErr
+	})
+	if err != nil {
+		t.Fatalf("ApplyWithPostStep() error = %v", err)
+	}
+	if !called {
+		t.Fatal("迁移后步骤未执行")
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)

@@ -40,6 +40,12 @@ type file struct {
 
 // Apply 校验并顺序执行尚未应用的 PostgreSQL 迁移。
 func Apply(ctx context.Context, db *sql.DB, dir string) error {
+	return ApplyWithPostStep(ctx, db, dir, nil)
+}
+
+// ApplyWithPostStep 在迁移锁释放前执行 postStep，用于保证依赖最新 Schema 的发版
+// 必要步骤不会与其他迁移进程并发。
+func ApplyWithPostStep(ctx context.Context, db *sql.DB, dir string, postStep func(*sql.Conn) error) error {
 	files, err := readFiles(dir)
 	if err != nil {
 		return err
@@ -87,6 +93,11 @@ func Apply(ctx context.Context, db *sql.DB, dir string) error {
 		}
 		if err := applyFile(ctx, conn, migration); err != nil {
 			return err
+		}
+	}
+	if postStep != nil {
+		if err := postStep(conn); err != nil {
+			return fmt.Errorf("执行迁移后步骤: %w", err)
 		}
 	}
 	return nil
