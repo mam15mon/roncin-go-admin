@@ -171,7 +171,7 @@ var manifest = append([]Permission{
 	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户", Requires: []string{UserRead}},
 	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "读取钉钉成员并创建或绑定系统用户", Requires: []string{UserRead}},
 	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码", Requires: []string{UserRead}},
-	{Key: RoleRead, Name: "查看角色", Group: "系统管理 · 角色", Description: "查看角色、权限和数据范围", Requires: []string{PermissionRead}},
+	{Key: RoleRead, Name: "查看角色", Group: "系统管理 · 角色", Description: "查看角色、权限和数据范围", Requires: []string{PermissionRead, OrganizationRead}},
 	{Key: RoleCreate, Name: "新建角色", Group: "系统管理 · 角色", Description: "新建角色并配置权限和数据范围", Requires: []string{RoleRead}},
 	{Key: RoleUpdate, Name: "编辑角色", Group: "系统管理 · 角色", Description: "修改角色、权限和数据范围", Requires: []string{RoleRead}},
 	{Key: PermissionRead, Name: "查看权限字典", Group: "系统管理 · 权限", Description: "查看系统功能权限字典"},

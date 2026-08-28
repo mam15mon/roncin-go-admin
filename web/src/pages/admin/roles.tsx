@@ -50,6 +50,8 @@ export default function RolesPanel() {
   const [permissionKeyword, setPermissionKeyword] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
+  const canConfigureRoles =
+    access.canReadPermissions && access.canReadOrganizations;
   const [searchParams, setSearchParams] = useState<{
     keyword?: string;
     dataScope?: number;
@@ -332,7 +334,7 @@ export default function RolesPanel() {
       valueType: 'option',
       width: 120,
       render: (_, role) => [
-        access.canUpdateRoles && access.canReadPermissions ? (
+        access.canUpdateRoles && canConfigureRoles ? (
           <Button
             key="edit"
             type="link"
@@ -380,7 +382,7 @@ export default function RolesPanel() {
             >
               刷新
             </Button>
-            {access.canCreateRoles && access.canReadPermissions && (
+            {access.canCreateRoles && canConfigureRoles && (
               <Button
                 key="create"
                 type="primary"

@@ -142,6 +142,7 @@ func TestResolveDependenciesExpandsTransitiveRequires(t *testing.T) {
 		RoleUpdate,
 		RoleRead,
 		PermissionRead,
+		OrganizationRead,
 	}
 	if !slicesEqual(granted, expected) {
 		t.Fatalf("ResolveDependencies() = %v, want %v", granted, expected)
