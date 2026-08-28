@@ -5,14 +5,16 @@ import {
   ReloadOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProColumns,
-  ProFormInstance,
-} from '@ant-design/pro-components';
+import type { ActionType, ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { SearchFilterTemplate } from '@/components/ui';
-import { App, Button, Space, Tag, Tooltip } from 'antd';
+import {
+  App,
+  Button,
+  Space,
+  Tag,
+  Tooltip,
+} from 'antd';
 import { useAccess } from '@umijs/max';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -36,17 +38,15 @@ export default function RolesPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminRole>();
   const [permissions, setPermissions] = useState<API.AdminPermission[]>([]);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
-  );
+  const [organizations, setOrganizations] = useState<
+    API.AdminOrganization[]
+  >([]);
   const [orderOrganizationAccesses, setOrderOrganizationAccesses] = useState<
     OrderOrganizationAccess[]
   >([]);
 
   // Permission tree state inside modal
-  const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<
-    string[]
-  >([]);
+  const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<string[]>([]);
   const [permissionKeyword, setPermissionKeyword] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
@@ -80,7 +80,7 @@ export default function RolesPanel() {
         .map((organization) => ({
           label: organization.code
             ? `${organization.name} (${organization.code})`
-            : (organization.name ?? ''),
+            : organization.name ?? '',
           value: organization.id ?? '',
         })),
     [organizations],
@@ -98,13 +98,7 @@ export default function RolesPanel() {
   );
 
   // Construct permission tree by group
-  const {
-    fullTreeData,
-    allGroupKeys,
-    allLeafKeys,
-    requiresByPermission,
-    permissionNameByKey,
-  } = useMemo(() => {
+  const { fullTreeData, allGroupKeys, allLeafKeys, requiresByPermission, permissionNameByKey } = useMemo(() => {
     const groupMap = new Map<string, API.AdminPermission[]>();
     const leafKeys: string[] = [];
     const groupKeys: string[] = [];
@@ -143,13 +137,7 @@ export default function RolesPanel() {
       }),
     );
 
-    return {
-      fullTreeData: tree,
-      allGroupKeys: groupKeys,
-      allLeafKeys: leafKeys,
-      requiresByPermission: requires,
-      permissionNameByKey: names,
-    };
+    return { fullTreeData: tree, allGroupKeys: groupKeys, allLeafKeys: leafKeys, requiresByPermission: requires, permissionNameByKey: names };
   }, [permissions]);
 
   // Filter permission tree by search keyword
@@ -209,13 +197,7 @@ export default function RolesPanel() {
       render: (_, r) => (
         <Space size={8}>
           <KeyOutlined style={{ color: '#1677ff', fontSize: 13 }} />
-          <span
-            style={{
-              fontWeight: 600,
-              fontFamily: 'monospace',
-              color: '#1e293b',
-            }}
-          >
+          <span style={{ fontWeight: 600, fontFamily: 'monospace', color: '#1e293b' }}>
             {r.code}
           </span>
         </Space>
@@ -229,11 +211,7 @@ export default function RolesPanel() {
         <Space size={6}>
           <span style={{ fontWeight: 600, color: '#0f172a' }}>{dom}</span>
           {!r.enabled && (
-            <Tag
-              color="error"
-              variant="filled"
-              style={{ fontSize: 11, lineHeight: '18px' }}
-            >
+            <Tag color="error" variant="filled" style={{ fontSize: 11, lineHeight: '18px' }}>
               已禁用
             </Tag>
           )}
@@ -262,9 +240,7 @@ export default function RolesPanel() {
       render: (_, r) => {
         const accesses = r.orderOrganizationAccesses ?? [];
         if (accesses.length === 0) {
-          return (
-            <span style={{ color: '#94a3b8', fontSize: 12 }}>仅当前公司</span>
-          );
+          return <span style={{ color: '#94a3b8', fontSize: 12 }}>仅当前公司</span>;
         }
         return (
           <Space size={4} wrap>
@@ -293,9 +269,7 @@ export default function RolesPanel() {
       render: (_, r) => {
         const keys = r.permissionKeys ?? [];
         if (keys.length === 0) {
-          return (
-            <span style={{ color: '#94a3b8', fontSize: 12 }}>暂无分配权限</span>
-          );
+          return <span style={{ color: '#94a3b8', fontSize: 12 }}>暂无分配权限</span>;
         }
         return (
           <Space size={4} wrap>
@@ -320,14 +294,9 @@ export default function RolesPanel() {
             {keys.length > 4 && (
               <Tooltip
                 title={
-                  <div
-                    style={{ maxHeight: 200, overflowY: 'auto', padding: 4 }}
-                  >
+                  <div style={{ maxHeight: 200, overflowY: 'auto', padding: 4 }}>
                     {keys.map((k) => (
-                      <div
-                        key={k}
-                        style={{ fontFamily: 'monospace', fontSize: 11 }}
-                      >
+                      <div key={k} style={{ fontFamily: 'monospace', fontSize: 11 }}>
                         {k}
                       </div>
                     ))}

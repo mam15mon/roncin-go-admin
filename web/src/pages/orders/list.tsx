@@ -1,7 +1,10 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
-import { OrderListTemplate, type OrderListItem } from '@/components/ui';
+import {
+  OrderListTemplate,
+  type OrderListItem,
+} from '@/components/ui';
 import { App, Result } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -109,9 +112,8 @@ export default function OrderListPage() {
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
   const consolidationDrawerRef = useRef<ConsolidationDrawerRef | null>(null);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
-  const shippingDocumentDrawerRef = useRef<ShippingDocumentDrawerRef | null>(
-    null,
-  );
+  const shippingDocumentDrawerRef =
+    useRef<ShippingDocumentDrawerRef | null>(null);
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
@@ -524,7 +526,8 @@ export default function OrderListPage() {
           item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord)
         }
         onOpenConsolidations={(item) =>
-          item.rawRecord && consolidationDrawerRef.current?.open(item.rawRecord)
+          item.rawRecord &&
+          consolidationDrawerRef.current?.open(item.rawRecord)
         }
         onOpenAbnormal={(item) =>
           item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)
