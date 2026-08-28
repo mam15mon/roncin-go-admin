@@ -10,18 +10,22 @@ import Settings from '../../../../config/defaultSettings';
 import styles from './index.module.less';
 
 interface LoginError extends Error {
-  response?: { data?: { message?: string } };
-  data?: { message?: string };
+  response?: { data?: { message?: string; reason?: string } };
+  data?: { message?: string; reason?: string };
 }
 
-function loginErrorMessage(error: unknown): string {
+interface LoginFailure {
+  message: string;
+  reason?: string;
+}
+
+function loginFailure(error: unknown): LoginFailure {
   const requestError = error as LoginError;
-  return (
-    requestError.data?.message ??
-    requestError.response?.data?.message ??
-    requestError.message ??
-    '钉钉登录失败'
-  );
+  const data = requestError.data ?? requestError.response?.data;
+  return {
+    message: data?.message ?? requestError.message ?? '钉钉登录失败',
+    reason: data?.reason,
+  };
 }
 
 function storedRedirect(): string {
@@ -34,7 +38,7 @@ function storedRedirect(): string {
 export default function DingTalkCallback() {
   const { setInitialState } = useModel('@@initialState');
   const { message } = App.useApp();
-  const [errorMessage, setErrorMessage] = useState('');
+  const [failure, setFailure] = useState<LoginFailure>();
   const [registeredName, setRegisteredName] = useState('');
   const handled = useRef(false);
   const [mode] = useState<'register' | 'login'>(() =>
@@ -50,7 +54,7 @@ export default function DingTalkCallback() {
     const authCode = params.get('authCode') ?? '';
     const state = params.get('state') ?? '';
     if (!authCode || !state) {
-      setErrorMessage('钉钉未返回有效的登录凭证，请重新扫码');
+      setFailure({ message: '钉钉未返回有效的登录凭证，请重新扫码' });
       return;
     }
     if (mode === 'register') {
@@ -60,21 +64,21 @@ export default function DingTalkCallback() {
       )
         .then((response) => {
           if (!response.data) {
-            setErrorMessage('钉钉注册未返回申请结果');
+            setFailure({ message: '钉钉注册未返回申请结果' });
             return;
           }
           sessionStorage.removeItem('dingtalk_auth_mode');
           setRegisteredName(response.data.displayName ?? '');
         })
         .catch((error) => {
-          setErrorMessage(loginErrorMessage(error));
+          setFailure(loginFailure(error));
         });
       return;
     }
     authServiceDingTalkLogin({ authCode, state }, { skipErrorHandler: true })
       .then((response) => {
         if (!response.data) {
-          setErrorMessage('钉钉登录未返回用户信息');
+          setFailure({ message: '钉钉登录未返回用户信息' });
           return;
         }
         startTransition(() => {
@@ -87,7 +91,7 @@ export default function DingTalkCallback() {
         window.location.replace(storedRedirect());
       })
       .catch((error) => {
-        setErrorMessage(loginErrorMessage(error));
+        setFailure(loginFailure(error));
       });
   }, [message, mode, setInitialState]);
 
@@ -114,22 +118,43 @@ export default function DingTalkCallback() {
             </Button>
           }
         />
-      ) : errorMessage ? (
+      ) : failure ? (
         <Result
           status={mode === 'register' ? 'error' : 'info'}
           icon={<DingdingOutlined style={{ color: '#1677ff' }} />}
           title={mode === 'register' ? '钉钉注册未完成' : '钉钉登录未完成'}
-          subTitle={errorMessage}
+          subTitle={failure.message}
           extra={
-            <Button
-              type="primary"
-              onClick={() => {
-                window.location.href =
-                  mode === 'register' ? '/user/register' : '/user/login';
-              }}
-            >
-              {mode === 'register' ? '返回注册' : '返回登录'}
-            </Button>
+            mode === 'login' &&
+            failure.reason === 'AUTH_DINGTALK_NOT_REGISTERED' ? (
+              <>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    window.location.href = '/user/register';
+                  }}
+                >
+                  前往注册
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/user/login';
+                  }}
+                >
+                  返回登录
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="primary"
+                onClick={() => {
+                  window.location.href =
+                    mode === 'register' ? '/user/register' : '/user/login';
+                }}
+              >
+                {mode === 'register' ? '返回注册' : '返回登录'}
+              </Button>
+            )
           }
         />
       ) : (
