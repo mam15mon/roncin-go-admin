@@ -65,6 +65,9 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询订舱服务类型: %v", err)
 	}
+	if !strings.Contains(booking.SearchKeywords, "DINGCANG") {
+		t.Fatalf("订舱服务类型缺少拼音检索键: %q", booking.SearchKeywords)
+	}
 	if _, err := booking.Update().SetName("自定义订舱").SetEnabled(false).Save(ctx); err != nil {
 		t.Fatalf("修改订舱服务类型: %v", err)
 	}

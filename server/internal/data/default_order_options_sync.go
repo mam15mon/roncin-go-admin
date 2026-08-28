@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
 
 // DefaultOrderOptionsSyncSummary 汇总默认订单主数据种子的补齐数量。
@@ -26,12 +27,15 @@ func SyncDefaultOrderOptions(ctx context.Context, database transactionStarter) (
 		result, err := tx.ExecContext(ctx, `
 INSERT INTO "master_data_items" (
   "id", "created_at", "updated_at", "kind", "code", "name",
-  "teu_factor", "source", "sort_order", "enabled", "organization_id"
+  "teu_factor", "source", "sort_order", "enabled", "attributes",
+  "search_keywords", "organization_id"
 )
-SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, true, "id"
+SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, true,
+       '{}'::jsonb, $7, "id"
 FROM "organizations"
 ON CONFLICT ("organization_id", "kind", "code") DO NOTHING`,
 			item.Kind, item.Code, item.Name, item.TEUFactor, item.Source, item.SortOrder,
+			searchtext.Build(item.Name),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("sync default order option %s/%s: %w", item.Kind, item.Code, err)
