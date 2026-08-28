@@ -26,10 +26,14 @@ func (protoJSONCodec) Marshal(v any) ([]byte, error) {
 	case json.Marshaler:
 		return m.MarshalJSON()
 	case proto.Message:
-		return protojson.Marshal(m)
+		return marshalProtoJSON(m)
 	default:
 		return json.Marshal(v)
 	}
+}
+
+func marshalProtoJSON(message proto.Message) ([]byte, error) {
+	return (protojson.MarshalOptions{UseEnumNumbers: true}).Marshal(message)
 }
 
 func (protoJSONCodec) Unmarshal(data []byte, v any) error {

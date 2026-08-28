@@ -5,7 +5,6 @@ import (
 
 	kratoshttp "github.com/go-kratos/kratos/v3/transport/http"
 	"google.golang.org/genproto/googleapis/api/httpbody"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -20,7 +19,7 @@ func encodeResponse(writer nethttp.ResponseWriter, request *nethttp.Request, val
 	if !ok {
 		return kratoshttp.DefaultResponseEncoder(writer, request, value)
 	}
-	data, err := protojson.Marshal(message)
+	data, err := marshalProtoJSON(message)
 	if err != nil {
 		return err
 	}

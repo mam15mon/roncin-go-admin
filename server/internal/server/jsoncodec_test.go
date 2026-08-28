@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-kratos/kratos/v3/encoding"
+	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"go.einride.tech/aip/fieldbehavior"
@@ -69,6 +70,21 @@ func TestProtoJSONCodecFallsBackToEncodingJSON(t *testing.T) {
 	}
 	if target.Name != "roncin" {
 		t.Fatalf("非 Proto 消息字段未解码: %q", target.Name)
+	}
+}
+
+func TestProtoJSONCodecUsesEnumNumbers(t *testing.T) {
+	codec := encoding.GetCodec("json")
+	if codec == nil {
+		t.Fatal("JSON 编解码器未注册")
+	}
+
+	data, err := codec.Marshal(&adminv1.AdminUser{Status: adminv1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_AUTHORIZATION})
+	if err != nil {
+		t.Fatalf("枚举响应编码失败: %v", err)
+	}
+	if string(data) != `{"status":2}` {
+		t.Fatalf("枚举响应 = %s，期望使用 OpenAPI 数字枚举", data)
 	}
 }
 

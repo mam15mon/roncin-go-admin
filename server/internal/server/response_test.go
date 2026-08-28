@@ -7,17 +7,18 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
+	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 )
 
 func TestEncodeResponseUsesProtoJSONFieldNames(t *testing.T) {
 	request := httptest.NewRequest("GET", "/api/v1/auth/me", nil)
 	writer := httptest.NewRecorder()
-	reply := &v1.MeResponse{
+	reply := &authv1.MeResponse{
 		Success: true,
-		Data: &v1.CurrentUser{
-			CurrentOrganization: &v1.Organization{Code: "HQ"},
-			RoleScopes:          []*v1.RoleScope{{RoleCode: "administrator", DataScope: "all"}},
+		Data: &authv1.CurrentUser{
+			CurrentOrganization: &authv1.Organization{Code: "HQ"},
+			RoleScopes:          []*authv1.RoleScope{{RoleCode: "administrator", DataScope: "all"}},
 		},
 	}
 
@@ -34,6 +35,24 @@ func TestEncodeResponseUsesProtoJSONFieldNames(t *testing.T) {
 		if strings.Contains(body, field) {
 			t.Fatalf("响应包含 snake_case 字段 %s: %s", field, body)
 		}
+	}
+}
+
+func TestEncodeResponseUsesEnumNumbers(t *testing.T) {
+	request := httptest.NewRequest("GET", "/api/v1/admin/users", nil)
+	writer := httptest.NewRecorder()
+	reply := &adminv1.ListUsersResponse{
+		Success: true,
+		Data: []*adminv1.AdminUser{{
+			Status: adminv1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_AUTHORIZATION,
+		}},
+	}
+
+	if err := encodeResponse(writer, request, reply); err != nil {
+		t.Fatalf("编码响应失败: %v", err)
+	}
+	if !strings.Contains(writer.Body.String(), `"status":2`) {
+		t.Fatalf("枚举响应未使用 OpenAPI 数字枚举: %s", writer.Body.String())
 	}
 }
 
