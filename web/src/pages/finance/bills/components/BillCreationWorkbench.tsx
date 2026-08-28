@@ -1,42 +1,26 @@
 import {
   ArrowLeftOutlined,
-  CheckCircleOutlined,
   DeleteOutlined,
   FileDoneOutlined,
-  PlusOutlined,
   ReloadOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { history, useAccess } from '@umijs/max';
 import {
   Alert,
   App,
-  AutoComplete,
   Button,
   Card,
-  Checkbox,
   Col,
-  DatePicker,
-  Descriptions,
-  Divider,
   Drawer,
-  Empty,
   Form,
-  Input,
-  InputNumber,
-  Modal,
   Popconfirm,
-  Result,
   Row,
-  Select,
   Space,
   Steps,
   Switch,
-  Table,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -51,8 +35,12 @@ import {
   partnerServiceCreatePartnerInvoiceProfile,
   partnerServiceListPartnerInvoiceProfiles,
 } from '@/services/roncin/partnerService';
+import BillCreationResultTable from './BillCreationResultTable';
+import BillGroupCard from './BillGroupCard';
+import BillSplitStrategyCards from './BillSplitStrategyCards';
+import QuickAddInvoiceProfileModal from './QuickAddInvoiceProfileModal';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 type GroupFormValue = {
   statementTitle: string;
@@ -123,7 +111,6 @@ export default function BillCreationWorkbench({
   onCreated,
 }: BillCreationWorkbenchProps) {
   const { message } = App.useApp();
-  const access = useAccess();
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [quickAddForm] = Form.useForm<QuickAddInvoiceProfileFormValue>();
   const [current, setCurrent] = useState(0);
@@ -739,525 +726,112 @@ export default function BillCreationWorkbench({
           ))}
 
         {current === 1 && (
-          <Card>
-            <Title level={5}>拆单维度</Title>
-            <Alert
-              type="info"
-              showIcon
-              style={{ marginBottom: 20 }}
-              title="收付方向、结算单位、原币和本币始终是强制拆单维度"
-              description="不同强制维度的费用绝不会进入同一张账单。下面两个开关只控制额外拆分，不会放宽服务端的财务边界。"
-            />
-            <Row gutter={[24, 16]}>
-              <Col xs={24} lg={12}>
-                <Card size="small" title="按订单拆分">
-                  <Space vertical>
-                    <Switch
-                      checked={splitByOrder}
-                      checkedChildren="已启用"
-                      unCheckedChildren="未启用"
-                      onChange={setSplitByOrder}
-                    />
-                    <Text type="secondary">
-                      启用后每个业务订单独立成账；关闭时允许同一结算单位的多票订单汇总对账。
-                    </Text>
-                  </Space>
-                </Card>
-              </Col>
-              <Col xs={24} lg={12}>
-                <Card size="small" title="按税率拆分">
-                  <Space vertical>
-                    <Switch
-                      checked={splitByTaxRate}
-                      checkedChildren="已启用"
-                      unCheckedChildren="未启用"
-                      onChange={setSplitByTaxRate}
-                    />
-                    <Text type="secondary">
-                      启用后不同税率独立成账；关闭时税率仍会逐费用行固化，后续开票可按行处理。
-                    </Text>
-                  </Space>
-                </Card>
-            </Col>
-          </Row>
-          <Descriptions size="small" column={2} style={{ marginTop: 20 }}>
-            <Descriptions.Item label="已选费用">
-              {selectedIds.length} 笔
-            </Descriptions.Item>
-            <Descriptions.Item label="预览机制">
-              服务端实时拆分并签发快照令牌
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-      )}
+          <BillSplitStrategyCards
+            splitByOrder={splitByOrder}
+            setSplitByOrder={setSplitByOrder}
+            splitByTaxRate={splitByTaxRate}
+            setSplitByTaxRate={setSplitByTaxRate}
+            selectedCount={selectedIds.length}
+          />
+        )}
 
-      {current === 2 && preview?.data && (
-        <Form form={form} layout="vertical">
-          <Card
-            size="small"
-            style={{ marginBottom: 16, background: '#fafafa', border: '1px solid #f0f0f0' }}
-          >
-            <Row justify="space-between" align="middle" gutter={[16, 8]}>
-              <Col xs={24} md={16}>
-                <Space size="large" wrap>
-                  <Space>
-                    <SettingOutlined style={{ color: '#1677ff' }} />
-                    <Text strong>拆单策略微调：</Text>
-                  </Space>
-                  <Space>
-                    <Text type="secondary">按订单拆分：</Text>
-                    <Switch
-                      size="small"
-                      checked={splitByOrder}
-                      onChange={async (checked) => {
-                        setSplitByOrder(checked);
-                        await loadPreview(undefined, {
-                          splitByOrder: checked,
-                          splitByTaxRate,
-                        });
-                      }}
-                    />
-                  </Space>
-                  <Space>
-                    <Text type="secondary">按税率拆分：</Text>
-                    <Switch
-                      size="small"
-                      checked={splitByTaxRate}
-                      onChange={async (checked) => {
-                        setSplitByTaxRate(checked);
-                        await loadPreview(undefined, {
-                          splitByOrder,
-                          splitByTaxRate: checked,
-                        });
-                      }}
-                    />
-                  </Space>
-                </Space>
-              </Col>
-              <Col xs={24} md={8} style={{ textAlign: 'right' }}>
-                <Space>
-                  <Tag color="blue">
-                    共 {preview.data.length} 张拟生成账单
-                  </Tag>
-                  <Button
-                    size="small"
-                    icon={<ReloadOutlined />}
-                    loading={loading}
-                    onClick={() => void loadPreview()}
-                  >
-                    刷新快照
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-
-          {preview.data.map((group, index) => (
+        {current === 2 && preview?.data && (
+          <Form form={form} layout="vertical">
             <Card
-              key={group.groupKey}
               size="small"
               style={{
                 marginBottom: 16,
-                border: '1px solid #e8e8e8',
-                borderRadius: 6,
+                background: '#fafafa',
+                border: '1px solid #f0f0f0',
               }}
-              title={
-                <Space wrap>
-                  <Tag
-                    color={
-                      group.direction === 'RECEIVABLE' ? 'green' : 'volcano'
-                    }
-                  >
-                    {directionText(group.direction)}
-                  </Tag>
-                  <span style={{ fontWeight: 600 }}>{group.settlementPartyName}</span>
-                  <Text type="secondary">
-                    {group.orderNo ? `订单 ${group.orderNo}` : '多订单汇总'}
-                  </Text>
-                  {group.taxRate != null && (
-                    <Tag>{Number(group.taxRate)}% 税率</Tag>
-                  )}
-                  <Tag color="geekblue">{group.fees?.length || 0} 笔费用</Tag>
-                </Space>
-              }
-              extra={
-                <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
-                  {group.totalAmount} {group.currency}
-                </Text>
-              }
             >
-              <Row gutter={16} style={{ marginBottom: 8 }}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name={['groups', index, 'statementTitle']}
-                    label={
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          width: '100%',
-                        }}
-                      >
-                        <span>对账抬头</span>
-                        <Tooltip title="为该结算单位新增开票抬头并自动选中">
-                          <Button
-                            type="link"
-                            size="small"
-                            icon={<PlusOutlined />}
-                            style={{
-                              padding: 0,
-                              height: 'auto',
-                              fontSize: 12,
-                              fontWeight: 'normal',
-                            }}
-                            onClick={() =>
-                              handleOpenQuickAddProfile(
-                                index,
-                                group.settlementPartyId,
-                                group.settlementPartyName,
-                              )
-                            }
-                          >
-                            新增抬头
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    }
-                    rules={[
-                      {
-                        required: true,
-                        whitespace: true,
-                        message: '请输入对账抬头',
-                      },
-                      { max: 200, message: '对账抬头不能超过 200 字' },
-                    ]}
-                  >
-                    <AutoComplete
-                      options={(() => {
-                        const profiles = (
-                          invoiceProfilesMap[group.settlementPartyId || ''] || []
-                        ).filter((p) => p.enabled !== false);
-                        const list = profiles.map((p) => ({
-                          value: p.invoiceTitle || '',
-                          label: (
-                            <div
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <span style={{ fontWeight: 500 }}>
-                                {p.invoiceTitle}
-                              </span>
-                              <Space size="small">
-                                {p.isDefault && (
-                                  <Tag
-                                    color="blue"
-                                    style={{ margin: 0, fontSize: 11 }}
-                                  >
-                                    默认
-                                  </Tag>
-                                )}
-                                {p.taxpayerIdentificationNo && (
-                                  <Text
-                                    type="secondary"
-                                    style={{ fontSize: 11 }}
-                                  >
-                                    税号: {p.taxpayerIdentificationNo}
-                                  </Text>
-                                )}
-                              </Space>
-                            </div>
-                          ),
-                        }));
-                        if (
-                          !list.some(
-                            (opt) => opt.value === group.settlementPartyName,
-                          )
-                        ) {
-                          list.unshift({
-                            value: group.settlementPartyName || '',
-                            label: (
-                              <span>
-                                {group.settlementPartyName}（结算单位全称）
-                              </span>
-                            ),
+              <Row justify="space-between" align="middle" gutter={[16, 8]}>
+                <Col xs={24} md={16}>
+                  <Space size="large" wrap>
+                    <Space>
+                      <SettingOutlined style={{ color: '#1677ff' }} />
+                      <Text strong>拆单策略微调：</Text>
+                    </Space>
+                    <Space>
+                      <Text type="secondary">按订单拆分：</Text>
+                      <Switch
+                        size="small"
+                        checked={splitByOrder}
+                        onChange={async (checked) => {
+                          setSplitByOrder(checked);
+                          await loadPreview(undefined, {
+                            splitByOrder: checked,
+                            splitByTaxRate,
                           });
-                        }
-                        return list;
-                      })()}
-                      popupRender={(menu) => (
-                        <>
-                          {menu}
-                          <Divider style={{ margin: '4px 0' }} />
-                          <div
-                            style={{
-                              padding: '6px 12px',
-                              cursor: 'pointer',
-                              color: '#1677ff',
-                              fontSize: 12,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              background: '#f6faff',
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleOpenQuickAddProfile(
-                                index,
-                                group.settlementPartyId,
-                                group.settlementPartyName,
-                              );
-                            }}
-                          >
-                            <PlusOutlined /> 为【{group.settlementPartyName}】新增开票抬头
-                          </div>
-                        </>
-                      )}
-                      placeholder="输入或下拉选择对账抬头"
-                    />
-                  </Form.Item>
+                        }}
+                      />
+                    </Space>
+                    <Space>
+                      <Text type="secondary">按税率拆分：</Text>
+                      <Switch
+                        size="small"
+                        checked={splitByTaxRate}
+                        onChange={async (checked) => {
+                          setSplitByTaxRate(checked);
+                          await loadPreview(undefined, {
+                            splitByOrder,
+                            splitByTaxRate: checked,
+                          });
+                        }}
+                      />
+                    </Space>
+                  </Space>
                 </Col>
-                <Col xs={24} md={5}>
-                  <Form.Item
-                    name={['groups', index, 'billDate']}
-                    label="账单日期"
-                    rules={[{ required: true, message: '请选择账单日期' }]}
-                  >
-                    <DatePicker allowClear={false} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={4}>
-                  <Form.Item
-                    name={['groups', index, 'paymentTermsDays']}
-                    label="账期（天）"
-                  >
-                    <InputNumber
-                      min={0}
-                      max={3650}
-                      precision={0}
-                      placeholder="天数"
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={7}>
-                  <Form.Item
-                    name={['groups', index, 'note']}
-                    label="备注"
-                    rules={[{ max: 500, message: '备注不能超过 500 字' }]}
-                  >
-                    <Input maxLength={500} placeholder="选填，账单备注" />
-                  </Form.Item>
+                <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                  <Space>
+                    <Tag color="blue">
+                      共 {preview.data.length} 张拟生成账单
+                    </Tag>
+                    <Button
+                      size="small"
+                      icon={<ReloadOutlined />}
+                      loading={loading}
+                      onClick={() => void loadPreview()}
+                    >
+                      刷新快照
+                    </Button>
+                  </Space>
                 </Col>
               </Row>
-              <ProTable<API.FeeLedgerItem>
-                rowKey="id"
-                size="small"
-                bordered
-                search={false}
-                options={false}
-                toolBarRender={false}
-                pagination={false}
-                columns={getPreviewFeeColumns(true)}
-                dataSource={group.fees || []}
-                scroll={{ x: 880 }}
-              />
             </Card>
-          ))}
-        </Form>
-      )}
 
-      {current === 3 &&
-        (result ? (
-          <>
-            <Result
-              status="success"
-              icon={<CheckCircleOutlined />}
-              title={`批次 ${result.batchNo || ''} 生成成功`}
-              subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单，当前${result.bills?.every((bill) => bill.status === 'CONFIRMED') ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
-              extra={
-                <Space wrap>
-                  {access.canConfirmFinanceBills &&
-                    result.bills?.every((bill) => bill.status === 'DRAFT') && (
-                      <Button
-                        type="primary"
-                        loading={confirming}
-                        onClick={() => void confirmBatch()}
-                      >
-                        确认本批全部账单
-                      </Button>
-                    )}
-                  <Button onClick={() => history.push('/finance/invoices')}>
-                    前往开票 / 来票
-                  </Button>
-                  <Button
-                    onClick={() => history.push('/finance/verifications')}
-                  >
-                    前往核销管理
-                  </Button>
-                </Space>
-              }
-            />
-            <Descriptions
-              bordered
-              size="small"
-              column={4}
-              style={{ marginBottom: 16 }}
-            >
-              <Descriptions.Item label="批次号">
-                {result.batchNo}
-              </Descriptions.Item>
-              <Descriptions.Item label="费用数">
-                {result.feeCount}
-              </Descriptions.Item>
-              <Descriptions.Item label="账单数">
-                {result.billCount}
-              </Descriptions.Item>
-              <Descriptions.Item label="本币合计">
-                {result.totalBaseAmount} {result.baseCurrency}
-              </Descriptions.Item>
-            </Descriptions>
-            <Table<API.FinanceBill>
-              rowKey="id"
-              size="small"
-              bordered
-              pagination={false}
-              dataSource={result.bills || []}
-              columns={[
-                { title: '账单编号', dataIndex: 'billNo', width: 180 },
-                {
-                  title: '状态',
-                  dataIndex: 'status',
-                  width: 90,
-                  render: (value) =>
-                    value === 'CONFIRMED' ? (
-                      <Tag color="green">已确认</Tag>
-                    ) : (
-                      <Tag color="gold">草稿</Tag>
-                    ),
-                },
-                {
-                  title: '方向',
-                  dataIndex: 'direction',
-                  width: 80,
-                  render: (value) => directionText(String(value)),
-                },
-                { title: '结算单位', dataIndex: 'settlementPartyName' },
-                { title: '对账抬头', dataIndex: 'statementTitle' },
-                {
-                  title: '金额',
-                  align: 'right',
-                  render: (_, row) => `${row.totalAmount} ${row.currency}`,
-                },
-                { title: '到期日', dataIndex: 'dueDate', width: 120 },
-              ]}
-            />
-          </>
-        ) : (
-          <Empty />
-        ))}
+            {preview.data.map((group, index) => (
+              <BillGroupCard
+                key={group.groupKey}
+                group={group}
+                index={index}
+                invoiceProfilesMap={invoiceProfilesMap}
+                feeColumns={getPreviewFeeColumns(true)}
+                directionText={directionText}
+                onOpenQuickAddProfile={handleOpenQuickAddProfile}
+              />
+            ))}
+          </Form>
+        )}
+
+        {current === 3 && (
+          <BillCreationResultTable
+            result={result}
+            confirming={confirming}
+            onConfirmBatch={() => void confirmBatch()}
+            directionText={directionText}
+          />
+        )}
       </Drawer>
 
-      <Modal
-        title={`为【${quickAddPartnerName}】新增开票抬头`}
+      <QuickAddInvoiceProfileModal
         open={quickAddOpen}
-        confirmLoading={quickAddSaving}
-        okText="保存并选用"
-        cancelText="取消"
+        partnerName={quickAddPartnerName}
+        saving={quickAddSaving}
+        form={quickAddForm}
         onOk={() => void handleSaveQuickAddProfile()}
         onCancel={() => setQuickAddOpen(false)}
-        destroyOnHidden
-        width={620}
-      >
-        <Form form={quickAddForm} layout="vertical" preserve={false}>
-          <Alert
-            type="info"
-            showIcon
-            title="新增的开票抬头将自动保存至该客户的主档案中，并自动选中为当前账单的对账抬头。"
-            style={{ marginBottom: 16 }}
-          />
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                name="invoiceTitle"
-                label="发票抬头全称"
-                rules={[
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: '请输入发票抬头全称',
-                  },
-                  { max: 200, message: '抬头全称不能超过 200 字' },
-                ]}
-              >
-                <Input placeholder="公司注册全称或开票抬头" maxLength={200} />
-              </Form.Item>
-            </Col>
-            <Col span={14}>
-              <Form.Item
-                name="taxpayerIdentificationNo"
-                label="统一社会信用代码 / 税号"
-                rules={[
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: '请输入纳税人识别号/税号',
-                  },
-                  { max: 50, message: '税号不能超过 50 位' },
-                ]}
-              >
-                <Input
-                  placeholder="18 位纳税人识别号（自动大写）"
-                  maxLength={50}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={10}>
-              <Form.Item
-                name="defaultInvoiceType"
-                label="默认发票类型"
-                rules={[{ required: true, message: '请选择发票类型' }]}
-              >
-                <Select
-                  options={[
-                    { label: '增值税普通发票', value: 'NORMAL' },
-                    { label: '增值税专用发票', value: 'SPECIAL' },
-                  ]}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="bankName" label="开户银行（选填）">
-                <Input placeholder="例如：中国工商银行上海分行" maxLength={100} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="bankAccount" label="银行账号（选填）">
-                <Input placeholder="开户行银行账号" maxLength={50} />
-              </Form.Item>
-            </Col>
-            <Col span={15}>
-              <Form.Item name="registeredAddress" label="开票地址（选填）">
-                <Input placeholder="企业注册地址" maxLength={200} />
-              </Form.Item>
-            </Col>
-            <Col span={9}>
-              <Form.Item name="registeredPhone" label="开票电话（选填）">
-                <Input placeholder="注册联系电话" maxLength={50} />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item name="isDefault" valuePropName="checked" style={{ marginBottom: 0 }}>
-                <Checkbox>设为该客户的默认首选开票抬头</Checkbox>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
+      />
     </>
   );
 }
