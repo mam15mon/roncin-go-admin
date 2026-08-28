@@ -132,13 +132,16 @@ func slicesEqual(a, b []string) bool {
 }
 
 func TestResolveDependenciesExpandsTransitiveRequires(t *testing.T) {
-	granted := ResolveDependencies([]string{OrderPermission(OrderBusinessSE, OrderCargoItemCreate), PartnerUpdate})
+	granted := ResolveDependencies([]string{OrderPermission(OrderBusinessSE, OrderCargoItemCreate), PartnerUpdate, RoleUpdate})
 	expected := []string{
 		OrderPermission(OrderBusinessSE, OrderCargoItemCreate),
 		OrderPermission(OrderBusinessSE, OrderCargoItemRead),
 		OrderPermission(OrderBusinessSE, OrderRead),
 		PartnerUpdate,
 		PartnerRead,
+		RoleUpdate,
+		RoleRead,
+		PermissionRead,
 	}
 	if !slicesEqual(granted, expected) {
 		t.Fatalf("ResolveDependencies() = %v, want %v", granted, expected)
