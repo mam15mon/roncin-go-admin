@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	"github.com/go-kratos/kratos/v3/transport/http"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
@@ -27,6 +28,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 			Recovery(logger),
 			tracing.Server(),
 			requestmeta.Middleware(),
+			requestmeta.Metrics(),
 			requestmeta.Logging(logger),
 			Authorization(authUsecase, policy, orderUsecase),
 			RequiredFieldsValidator(),
@@ -62,6 +64,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	orderv1.RegisterOrderFeeServiceHTTPServer(srv, orderFee)
 	financev1.RegisterSettlementServiceHTTPServer(srv, settlement)
 	registerHealthHandlers(srv, readiness)
+	srv.Handle("/metrics", promhttp.Handler())
 	srv.HandlePrefix("/", webassets.Handler())
 	return srv
 }

@@ -26,6 +26,7 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 			Recovery(logger),
 			tracing.Server(),
 			requestmeta.Middleware(),
+			requestmeta.Metrics(),
 			requestmeta.Logging(logger),
 			Authorization(authUsecase, policy, orderUsecase),
 			RequiredFieldsValidator(),

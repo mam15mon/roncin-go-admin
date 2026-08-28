@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 )
@@ -67,6 +68,8 @@ func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 
 func TestProductionConfigUsesSafeDefaults(t *testing.T) {
 	t.Setenv("DATABASE_SOURCE", "postgres://example.invalid/roncin")
+	unsetEnv(t, "HTTP_TIMEOUT")
+	unsetEnv(t, "GRPC_TIMEOUT")
 	c := newRuntimeConfig("../../configs/config.production.yaml")
 	t.Cleanup(func() { _ = c.Close() })
 	if err := c.Load(); err != nil {
@@ -84,6 +87,12 @@ func TestProductionConfigUsesSafeDefaults(t *testing.T) {
 	}
 	if bootstrap.GetTelemetry().GetInsecure() {
 		t.Fatal("生产配置不得默认使用不安全的 OTLP 连接")
+	}
+	if got := bootstrap.GetServer().GetHttp().GetTimeout().AsDuration(); got != 30*time.Second {
+		t.Fatalf("生产 HTTP 默认超时应为 30 秒，实际为 %s", got)
+	}
+	if got := bootstrap.GetServer().GetGrpc().GetTimeout().AsDuration(); got != 30*time.Second {
+		t.Fatalf("生产 gRPC 默认超时应为 30 秒，实际为 %s", got)
 	}
 }
 
