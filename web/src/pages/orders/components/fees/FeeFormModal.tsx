@@ -6,16 +6,17 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
-import { Button, Card, Col, Row, Space, Spin, Tag, Typography } from 'antd';
+import {
+  ExchangeRatePreviewCard,
+  ProFormSearchableSelect,
+} from '@/components/ui';
+import { Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React, { useRef } from 'react';
 import {
   exchangeRatePattern,
   quantityOrPricePattern,
 } from '../../order-fee-decimal';
-
-const { Text } = Typography;
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
@@ -271,51 +272,14 @@ export default function FeeFormModal({
 
         {/* 汇率与金额计算预览 */}
         <Col span={24}>
-          <Card
-            size="small"
-            style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}
-          >
-            <Space
-              separator={<span style={{ color: '#cbd5e1' }}>|</span>}
-              size={16}
-            >
-              <div>
-                <Text type="secondary">费用金额：</Text>
-                <Text
-                  strong
-                  style={{
-                    fontSize: 16,
-                    color: modalDirection === 1 ? '#1677ff' : '#fa8c16',
-                  }}
-                >
-                  {totalPreview
-                    ? `${formRef.current?.getFieldValue('currency') || ''} ${totalPreview}`
-                    : '-'}
-                </Text>
-              </div>
-              <div>
-                <Text type="secondary">生效汇率：</Text>
-                {exchangeRateStatus === 'loading' && <Spin size="small" />}
-                {exchangeRateStatus === 'resolved' && (
-                  <Text strong style={{ color: '#52c41a' }}>
-                    {exchangeRatePreview}
-                  </Text>
-                )}
-                {exchangeRateStatus === 'missing' && (
-                  <Space size={4}>
-                    <Tag color="error">汇率未配置</Tag>
-                    <Button
-                      type="link"
-                      size="small"
-                      onClick={() => setManualExchangeRate(true)}
-                    >
-                      手动输入
-                    </Button>
-                  </Space>
-                )}
-              </div>
-            </Space>
-          </Card>
+          <ExchangeRatePreviewCard
+            amountPreview={totalPreview}
+            currency={formRef.current?.getFieldValue('currency')}
+            amountColor={modalDirection === 1 ? '#1677ff' : '#fa8c16'}
+            status={exchangeRateStatus}
+            ratePreview={exchangeRatePreview}
+            onEnableManual={() => setManualExchangeRate(true)}
+          />
         </Col>
 
         {manualExchangeRate && (
