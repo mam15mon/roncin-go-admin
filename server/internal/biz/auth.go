@@ -37,7 +37,7 @@ var (
 	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉验证状态已失效，请重新扫码")
 	ErrDingTalkAuthorizationPending = errors.Forbidden("AUTH_DINGTALK_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 	ErrDingTalkOrganizationMismatch = errors.Forbidden("AUTH_DINGTALK_ORGANIZATION_MISMATCH", "当前钉钉账号不属于本企业，无法继续注册")
-	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "该钉钉账号尚未注册，请先完成钉钉扫码注册")
+	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "当前人员尚未注册，请先完成钉钉扫码注册")
 	ErrDingTalkAlreadyRegistered    = errors.Conflict("AUTH_DINGTALK_ALREADY_REGISTERED", "该钉钉账号已完成注册，请直接登录")
 )
 

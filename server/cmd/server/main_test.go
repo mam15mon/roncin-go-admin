@@ -98,6 +98,22 @@ func TestProductionConfigUsesSafeDefaults(t *testing.T) {
 	}
 }
 
+func TestDevelopmentConfigSupportsExternalIdentityLogin(t *testing.T) {
+	t.Setenv("DATABASE_SOURCE", "postgres://example.invalid/roncin")
+	c := newRuntimeConfig("../../configs/config.yaml")
+	t.Cleanup(func() { _ = c.Close() })
+	if err := c.Load(); err != nil {
+		t.Fatalf("加载开发配置失败: %v", err)
+	}
+	var bootstrap conf.Bootstrap
+	if err := c.Scan(&bootstrap); err != nil {
+		t.Fatalf("解析开发配置失败: %v", err)
+	}
+	if got := bootstrap.GetServer().GetHttp().GetTimeout().AsDuration(); got != 30*time.Second {
+		t.Fatalf("开发 HTTP 超时应允许外部身份认证完成，实际为 %s", got)
+	}
+}
+
 func loadWeComConfig(t *testing.T) *conf.Security_WeCom {
 	t.Helper()
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
