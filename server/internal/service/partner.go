@@ -903,6 +903,8 @@ func partnerAssignmentRoleFromAPI(value v1.PartnerAssignmentRole) biz.PartnerAss
 		return biz.PartnerAssignmentCommercial
 	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT:
 		return biz.PartnerAssignmentInternalContact
+	case v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_DOCUMENT:
+		return biz.PartnerAssignmentDocument
 	default:
 		return ""
 	}
@@ -924,6 +926,8 @@ func partnerAssignmentRoleToAPI(value biz.PartnerAssignmentRole) v1.PartnerAssig
 		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_COMMERCIAL
 	case biz.PartnerAssignmentInternalContact:
 		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_INTERNAL_CONTACT
+	case biz.PartnerAssignmentDocument:
+		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_DOCUMENT
 	default:
 		return v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_UNSPECIFIED
 	}

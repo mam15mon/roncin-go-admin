@@ -1,19 +1,8 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ProForm,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import { history, useLocation, useParams } from '@umijs/max';
-import {
-  App,
-  Button,
-  Col,
-  Space,
-  Spin,
-  Tag,
-  Typography,
-} from 'antd';
+import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   adminServiceListOrganizations,
@@ -31,9 +20,13 @@ import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
 import BasicInfoSection from './components/BasicInfoSection';
-import ContactCardList, { type ContactItem } from './components/ContactCardList';
+import ContactCardList, {
+  type ContactItem,
+} from './components/ContactCardList';
 import ContractCardList from './components/ContractCardList';
-import InterestRuleModal, { type InterestRuleValues } from './components/InterestRuleModal';
+import InterestRuleModal, {
+  type InterestRuleValues,
+} from './components/InterestRuleModal';
 import SettlementSection from './components/SettlementSection';
 import ShippingPresetSection from './components/ShippingPresetSection';
 
@@ -68,9 +61,15 @@ export default function PartnerDetailPage() {
 
   // Options state
   const [users, setUsers] = useState<API.AdminUser[]>([]);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>([]);
-  const [assignmentOptions, setAssignmentOptions] = useState<API.PartnerAssignmentOption[]>([]);
-  const [currencyOptions, setCurrencyOptions] = useState<{ label: string; value: string }[]>([
+  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
+    [],
+  );
+  const [assignmentOptions, setAssignmentOptions] = useState<
+    API.PartnerAssignmentOption[]
+  >([]);
+  const [currencyOptions, setCurrencyOptions] = useState<
+    { label: string; value: string }[]
+  >([
     { label: 'CNY (人民币)', value: 'CNY' },
     { label: 'USD (美元)', value: 'USD' },
     { label: 'EUR (欧元)', value: 'EUR' },
@@ -93,10 +92,18 @@ export default function PartnerDetailPage() {
   const { roleType, roleLabel, listUrl } = useMemo(() => {
     const path = location.pathname;
     if (path.includes('/suppliers')) {
-      return { roleType: 2, roleLabel: '供应商', listUrl: '/partners/suppliers' };
+      return {
+        roleType: 2,
+        roleLabel: '供应商',
+        listUrl: '/partners/suppliers',
+      };
     }
     if (path.includes('/foreign-agents')) {
-      return { roleType: 3, roleLabel: '国外代理', listUrl: '/partners/foreign-agents' };
+      return {
+        roleType: 3,
+        roleLabel: '国外代理',
+        listUrl: '/partners/foreign-agents',
+      };
     }
     return { roleType: 1, roleLabel: '客户', listUrl: '/partners/customers' };
   }, [location.pathname]);
@@ -108,12 +115,14 @@ export default function PartnerDetailPage() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled([
-          adminServiceListUsers({ page: 1, pageSize: 200 }),
-          adminServiceListOrganizations(),
-          masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
-          partnerServiceListPartnerAssignmentOptions(),
-        ]);
+        const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled(
+          [
+            adminServiceListUsers({ page: 1, pageSize: 200 }),
+            adminServiceListOrganizations(),
+            masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
+            partnerServiceListPartnerAssignmentOptions(),
+          ],
+        );
 
         if (usersRes.status === 'fulfilled' && usersRes.value.data) {
           setUsers(usersRes.value.data);
@@ -172,8 +181,13 @@ export default function PartnerDetailPage() {
             const profile = p.profile || {};
             const assignments = p.assignments || [];
 
-            const findAssignment = (role: number) => {
-              const item = assignments.find((a) => a.role === role);
+            const findAssignment = (role: number, index = 0) => {
+              const item = assignments
+                .filter((assignment) => assignment.role === role)
+                .sort(
+                  (left, right) =>
+                    (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
+                )[index];
               return {
                 userId: item?.userId,
                 organizationId: item?.organizationId,
@@ -186,18 +200,22 @@ export default function PartnerDetailPage() {
             if (profile.districtCode) regionCodes.push(profile.districtCode);
 
             // Aliases
-            const loadedAliases = (p.aliases || []).map((a) => a.aliasName || '').filter(Boolean);
+            const loadedAliases = (p.aliases || [])
+              .map((a) => a.aliasName || '')
+              .filter(Boolean);
             setAliases(loadedAliases);
 
             // Contacts
-            const loadedContacts: ContactItem[] = (p.contacts || []).map((c) => ({
-              id: c.id,
-              name: c.name || '',
-              phone: c.phone,
-              email: c.email,
-              note: c.note,
-              isPrimary: c.isPrimary,
-            }));
+            const loadedContacts: ContactItem[] = (p.contacts || []).map(
+              (c) => ({
+                id: c.id,
+                name: c.name || '',
+                phone: c.phone,
+                email: c.email,
+                note: c.note,
+                isPrimary: c.isPrimary,
+              }),
+            );
             setContacts(loadedContacts);
 
             // Credit Limit conversion
@@ -220,7 +238,7 @@ export default function PartnerDetailPage() {
               businessTypes: profile.businessTypes || [1],
               remark: profile.remark,
 
-              // 8 Assignment slots (User + Organization pairs)
+              // 9 Assignment slots (User + Organization pairs)
               assignCreatorUser: findAssignment(1).userId,
               assignCreatorOrg: findAssignment(1).organizationId,
               assignOperatorUser: findAssignment(2).userId,
@@ -229,14 +247,16 @@ export default function PartnerDetailPage() {
               assignSalesOrg: findAssignment(3).organizationId,
               assignServiceUser: findAssignment(4).userId,
               assignServiceOrg: findAssignment(4).organizationId,
-              assignDocUser: findAssignment(5).userId,
-              assignDocOrg: findAssignment(5).organizationId,
+              assignFinanceUser: findAssignment(5).userId,
+              assignFinanceOrg: findAssignment(5).organizationId,
               assignCommercialUser: findAssignment(6).userId,
               assignCommercialOrg: findAssignment(6).organizationId,
               assignContactUser: findAssignment(7).userId,
               assignContactOrg: findAssignment(7).organizationId,
-              assignContact2User: findAssignment(8).userId,
-              assignContact2Org: findAssignment(8).organizationId,
+              assignContact2User: findAssignment(7, 1).userId,
+              assignContact2Org: findAssignment(7, 1).organizationId,
+              assignDocUser: findAssignment(8).userId,
+              assignDocOrg: findAssignment(8).organizationId,
 
               // Settlement Info
               statementMode: currentRule?.statementMode ?? 1,
@@ -380,7 +400,11 @@ export default function PartnerDetailPage() {
       const assignments: API.PartnerAssignmentInput[] = [];
       const seenMembers = new Set<string>();
 
-      const addAssignment = (role: number, userField: string, orgField: string) => {
+      const addAssignment = (
+        role: number,
+        userField: string,
+        orgField: string,
+      ) => {
         const userId = values[userField];
         const orgId = values[orgField];
         if (userId && orgId) {
@@ -400,10 +424,11 @@ export default function PartnerDetailPage() {
       addAssignment(2, 'assignOperatorUser', 'assignOperatorOrg');
       addAssignment(3, 'assignSalesUser', 'assignSalesOrg');
       addAssignment(4, 'assignServiceUser', 'assignServiceOrg');
-      addAssignment(5, 'assignDocUser', 'assignDocOrg');
+      addAssignment(5, 'assignFinanceUser', 'assignFinanceOrg');
       addAssignment(6, 'assignCommercialUser', 'assignCommercialOrg');
       addAssignment(7, 'assignContactUser', 'assignContactOrg');
       addAssignment(7, 'assignContact2User', 'assignContact2Org'); // 内部联系人2同为 role: 7
+      addAssignment(8, 'assignDocUser', 'assignDocOrg');
 
       const contactInputs: API.PartnerContactInput[] = contacts.map((c) => ({
         name: c.name,
@@ -413,15 +438,18 @@ export default function PartnerDetailPage() {
         isPrimary: c.isPrimary,
       }));
 
-      const aliasInputs: API.PartnerAliasInput[] = aliases.map((aliasName, idx) => ({
-        aliasName,
-        sortOrder: idx,
-      }));
+      const aliasInputs: API.PartnerAliasInput[] = aliases.map(
+        (aliasName, idx) => ({
+          aliasName,
+          sortOrder: idx,
+        }),
+      );
 
       // Settlement Rule Payload
-      const creditLimitMinor = values.creditLimit !== undefined && values.creditLimit !== null
-        ? String(Math.round(Number(values.creditLimit) * 100))
-        : '0';
+      const creditLimitMinor =
+        values.creditLimit !== undefined && values.creditLimit !== null
+          ? String(Math.round(Number(values.creditLimit) * 100))
+          : '0';
 
       const settlementRuleInput: API.PartnerSettlementRuleInput = {
         statementMode: Number(values.statementMode || 1),
@@ -492,12 +520,16 @@ export default function PartnerDetailPage() {
   const displayTitle = partner?.legalName
     ? partner.legalName
     : isCreate
-    ? `新建${roleLabel}`
-    : `${roleLabel}详情`;
+      ? `新建${roleLabel}`
+      : `${roleLabel}详情`;
 
   const toggleSection = (key: string, collapsed: boolean) => {
     setActiveCollapseKeys((prev) =>
-      collapsed ? prev.filter((k) => k !== key) : prev.includes(key) ? prev : [...prev, key],
+      collapsed
+        ? prev.filter((k) => k !== key)
+        : prev.includes(key)
+          ? prev
+          : [...prev, key],
     );
   };
 
@@ -507,7 +539,9 @@ export default function PartnerDetailPage() {
       <PageHeaderShell
         title={displayTitle}
         onBack={() => history.push(listUrl)}
-        breadcrumbs={[{ label: `${roleLabel}管理`, onClick: () => history.push(listUrl) }]}
+        breadcrumbs={[
+          { label: `${roleLabel}管理`, onClick: () => history.push(listUrl) },
+        ]}
         tags={
           partner?.code ? (
             <Tag variant="filled" style={{ fontFamily: 'monospace' }}>
@@ -579,7 +613,9 @@ export default function PartnerDetailPage() {
                 title="账户信息"
                 collapsible
                 collapsed={!activeCollapseKeys.includes('accounts')}
-                onCollapseChange={(collapsed) => toggleSection('accounts', collapsed)}
+                onCollapseChange={(collapsed) =>
+                  toggleSection('accounts', collapsed)
+                }
               >
                 <AccountCardList
                   partnerId={partnerId}
@@ -593,12 +629,11 @@ export default function PartnerDetailPage() {
                 title="联系方式"
                 collapsible
                 collapsed={!activeCollapseKeys.includes('contacts')}
-                onCollapseChange={(collapsed) => toggleSection('contacts', collapsed)}
+                onCollapseChange={(collapsed) =>
+                  toggleSection('contacts', collapsed)
+                }
               >
-                <ContactCardList
-                  contacts={contacts}
-                  onChange={setContacts}
-                />
+                <ContactCardList contacts={contacts} onChange={setContacts} />
               </SectionCard>
 
               {/* Section 5: 常用信息 (Shipping Presets) */}
@@ -607,7 +642,9 @@ export default function PartnerDetailPage() {
                 title="常用信息"
                 collapsible
                 collapsed={!activeCollapseKeys.includes('presets')}
-                onCollapseChange={(collapsed) => toggleSection('presets', collapsed)}
+                onCollapseChange={(collapsed) =>
+                  toggleSection('presets', collapsed)
+                }
               >
                 <ShippingPresetSection partnerId={partnerId} />
               </SectionCard>
@@ -618,7 +655,9 @@ export default function PartnerDetailPage() {
                 title="合同管理"
                 collapsible
                 collapsed={!activeCollapseKeys.includes('contracts')}
-                onCollapseChange={(collapsed) => toggleSection('contracts', collapsed)}
+                onCollapseChange={(collapsed) =>
+                  toggleSection('contracts', collapsed)
+                }
               >
                 <ContractCardList partnerId={partnerId} />
               </SectionCard>
@@ -629,7 +668,9 @@ export default function PartnerDetailPage() {
                 title="客户备注"
                 collapsible
                 collapsed={!activeCollapseKeys.includes('remark')}
-                onCollapseChange={(collapsed) => toggleSection('remark', collapsed)}
+                onCollapseChange={(collapsed) =>
+                  toggleSection('remark', collapsed)
+                }
               >
                 <ProFormTextArea
                   name="remark"
@@ -645,7 +686,9 @@ export default function PartnerDetailPage() {
                   title="操作记录"
                   collapsible
                   collapsed={!activeCollapseKeys.includes('logs')}
-                  onCollapseChange={(collapsed) => toggleSection('logs', collapsed)}
+                  onCollapseChange={(collapsed) =>
+                    toggleSection('logs', collapsed)
+                  }
                 >
                   <AuditLogSection partnerId={partnerId} />
                 </SectionCard>
@@ -660,7 +703,10 @@ export default function PartnerDetailPage() {
         info={
           partner?.legalName ? (
             <Text type="secondary" style={{ fontSize: 13 }}>
-              当前档案：<Text strong style={{ color: 'rgba(0, 0, 0, 0.88)' }}>{partner.legalName}</Text>
+              当前档案：
+              <Text strong style={{ color: 'rgba(0, 0, 0, 0.88)' }}>
+                {partner.legalName}
+              </Text>
             </Text>
           ) : undefined
         }

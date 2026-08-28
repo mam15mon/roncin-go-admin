@@ -249,7 +249,7 @@ export default function BasicInfoSection({
 
         <Divider style={{ margin: '14px 0' }} />
 
-        {/* Row 6: 8 Personnel Assignment Slots */}
+        {/* Row 6: 9 Personnel Assignment Slots */}
         <div style={{ marginBottom: 12 }}>
           <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
             责任人员分配矩阵
@@ -406,7 +406,36 @@ export default function BasicInfoSection({
             </Form.Item>
           </Col>
 
-          {/* Slot 6: 单证人员 */}
+          {/* Slot 6: 财务人员 */}
+          <Col xs={24} md={12}>
+            <Form.Item label="财务人员" style={{ marginBottom: 0 }}>
+              <Space.Compact style={{ width: '100%' }}>
+                <Form.Item name="assignFinanceUser" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="请选择"
+                    options={userSelectOptions}
+                    style={{ width: '50%' }}
+                    allowClear
+                    onChange={(val) =>
+                      onUserChange('assignFinanceUser', 'assignFinanceOrg', val)
+                    }
+                  />
+                </Form.Item>
+                <Form.Item name="assignFinanceOrg" noStyle>
+                  <Select
+                    showSearch
+                    placeholder="请选择"
+                    options={orgSelectOptions}
+                    style={{ width: '50%' }}
+                    allowClear
+                  />
+                </Form.Item>
+              </Space.Compact>
+            </Form.Item>
+          </Col>
+
+          {/* Slot 7: 单证人员 */}
           <Col xs={24} md={12}>
             <Form.Item label="单证人员" style={{ marginBottom: 0 }}>
               <Space.Compact style={{ width: '100%' }}>
@@ -435,7 +464,7 @@ export default function BasicInfoSection({
             </Form.Item>
           </Col>
 
-          {/* Slot 7: 商务人员 */}
+          {/* Slot 8: 商务人员 */}
           <Col xs={24} md={12}>
             <Form.Item label="商务人员" style={{ marginBottom: 0 }}>
               <Space.Compact style={{ width: '100%' }}>
@@ -468,7 +497,7 @@ export default function BasicInfoSection({
             </Form.Item>
           </Col>
 
-          {/* Slot 8: 关联人员2 */}
+          {/* Slot 9: 关联人员2 */}
           <Col xs={24} md={12}>
             <Form.Item label="关联人员2" style={{ marginBottom: 0 }}>
               <Space.Compact style={{ width: '100%' }}>

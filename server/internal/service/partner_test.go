@@ -30,3 +30,13 @@ func TestPartnerAssignmentFinanceRoleRoundTrip(t *testing.T) {
 		t.Fatalf("财务人员从 API 转回领域角色为 %q", role)
 	}
 }
+
+func TestPartnerAssignmentDocumentRoleRoundTrip(t *testing.T) {
+	apiRole := partnerAssignmentRoleToAPI(biz.PartnerAssignmentDocument)
+	if apiRole != v1.PartnerAssignmentRole_PARTNER_ASSIGNMENT_ROLE_DOCUMENT {
+		t.Fatalf("单证人员转换到 API 角色为 %v", apiRole)
+	}
+	if role := partnerAssignmentRoleFromAPI(apiRole); role != biz.PartnerAssignmentDocument {
+		t.Fatalf("单证人员从 API 转回领域角色为 %q", role)
+	}
+}

@@ -129,11 +129,12 @@ const (
 	PartnerAssignmentFinance         PartnerAssignmentRole = "FINANCE"
 	PartnerAssignmentCommercial      PartnerAssignmentRole = "COMMERCIAL"
 	PartnerAssignmentInternalContact PartnerAssignmentRole = "INTERNAL_CONTACT"
+	PartnerAssignmentDocument        PartnerAssignmentRole = "DOCUMENT"
 )
 
 func (r PartnerAssignmentRole) Valid() bool {
 	switch r {
-	case PartnerAssignmentCreator, PartnerAssignmentOperator, PartnerAssignmentSales, PartnerAssignmentCustomerService, PartnerAssignmentFinance, PartnerAssignmentCommercial, PartnerAssignmentInternalContact:
+	case PartnerAssignmentCreator, PartnerAssignmentOperator, PartnerAssignmentSales, PartnerAssignmentCustomerService, PartnerAssignmentFinance, PartnerAssignmentCommercial, PartnerAssignmentInternalContact, PartnerAssignmentDocument:
 		return true
 	default:
 		return false
