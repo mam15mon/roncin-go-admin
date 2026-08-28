@@ -73,7 +73,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
           </Space>
         ) : null
       }
-      bordered={false}
+      variant="borderless"
       className={`roncin-section-card ${className || ''}`}
       style={{
         width: '100%',

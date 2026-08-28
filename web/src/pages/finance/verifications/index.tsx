@@ -285,7 +285,7 @@ export default function FinanceVerificationsPage() {
       <Drawer
         title={`核销记录详情 ${detail?.verificationNo || ''}`}
         open={Boolean(detail)}
-        width={920}
+        size={920}
         onClose={() => setDetail(undefined)}
       >
         {detail && (

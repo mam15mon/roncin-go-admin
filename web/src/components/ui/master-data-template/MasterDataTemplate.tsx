@@ -339,7 +339,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       {/* 1. Page Header */}
       <Card
         size="small"
-        bordered={false}
+        variant="borderless"
         style={{
           borderRadius: 8,
           marginBottom: 12,
@@ -415,28 +415,28 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         <Col xs={12} sm={6} md={6}>
           <Card
             size="small"
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
             styles={{ body: { padding: '10px 16px' } }}
           >
             <Statistic
               title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>全部{title.replace(/管理|维护/g, '')}</span>}
               value={totalCount}
-              valueStyle={{ fontSize: 20, fontWeight: 600, color: '#262626' }}
+              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#262626' } }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={6} md={6}>
           <Card
             size="small"
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
             styles={{ body: { padding: '10px 16px' } }}
           >
             <Statistic
               title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>启用中</span>}
               value={activeCount}
-              valueStyle={{ fontSize: 20, fontWeight: 600, color: '#52c41a' }}
+              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#52c41a' } }}
               prefix={<CheckCircleOutlined style={{ fontSize: 16 }} />}
             />
           </Card>
@@ -444,14 +444,14 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
         <Col xs={12} sm={6} md={6}>
           <Card
             size="small"
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
             styles={{ body: { padding: '10px 16px' } }}
           >
             <Statistic
               title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>已停用</span>}
               value={disabledCount}
-              valueStyle={{ fontSize: 20, fontWeight: 600, color: '#ff4d4f' }}
+              styles={{ content: { fontSize: 20, fontWeight: 600, color: '#ff4d4f' } }}
               prefix={<CloseCircleOutlined style={{ fontSize: 16 }} />}
             />
           </Card>
@@ -460,14 +460,14 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
           <Col xs={12} sm={6} md={6} key={stat.label || idx}>
             <Card
               size="small"
-              bordered={false}
+              variant="borderless"
               style={{ borderRadius: 6, backgroundColor: '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
               styles={{ body: { padding: '10px 16px' } }}
             >
               <Statistic
                 title={<span style={{ fontSize: 12, color: '#8c8c8c' }}>{stat.label}</span>}
                 value={stat.value}
-                valueStyle={{ fontSize: 20, fontWeight: 600, color: stat.color || '#1677ff' }}
+                styles={{ content: { fontSize: 20, fontWeight: 600, color: stat.color || '#1677ff' } }}
               />
             </Card>
           </Col>
@@ -477,7 +477,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       {/* 3. Search & Filters Bar */}
       <Card
         size="small"
-        bordered={false}
+        variant="borderless"
         style={{
           borderRadius: 8,
           marginBottom: 12,
@@ -560,7 +560,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
       {/* 4. Table Container */}
       <Card
         size="small"
-        bordered={false}
+        variant="borderless"
         style={{
           borderRadius: 8,
           backgroundColor: '#ffffff',

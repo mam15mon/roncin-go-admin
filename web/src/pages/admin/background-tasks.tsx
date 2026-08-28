@@ -62,7 +62,7 @@ export default function BackgroundTasksPanel() {
       render: (_, record) => {
         const config = record.kind ? kindTagMap[record.kind] : undefined;
         return config ? (
-          <Tag color={config.color} bordered={false}>
+          <Tag color={config.color} variant="filled">
             {config.label}
           </Tag>
         ) : (
@@ -107,7 +107,7 @@ export default function BackgroundTasksPanel() {
         const maxAttempts = record.maxAttempts ?? 0;
         const hasFailed = attempts >= maxAttempts && maxAttempts > 0;
         return (
-          <Tag color={hasFailed ? 'error' : attempts > 0 ? 'warning' : 'default'} bordered={false}>
+          <Tag color={hasFailed ? 'error' : attempts > 0 ? 'warning' : 'default'} variant="filled">
             {attempts} / {maxAttempts}
           </Tag>
         );

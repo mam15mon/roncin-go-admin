@@ -411,7 +411,7 @@ export function ExchangeRatesPanel() {
 
   return (
     <Card
-      bordered={false}
+      variant="borderless"
       style={{
         borderRadius: 8,
         border: '1px solid #f0f0f0',

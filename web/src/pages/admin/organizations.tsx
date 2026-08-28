@@ -309,7 +309,7 @@ export default function OrganizationsPanel() {
           {title}
         </span>
         <Tag
-          bordered={false}
+          variant="filled"
           style={{
             margin: 0,
             fontSize: 11,
@@ -323,14 +323,14 @@ export default function OrganizationsPanel() {
           {code}
         </Tag>
         {kindMeta && (
-          <Tag color={kindMeta.color} bordered={false} style={{ margin: 0 }}>
+          <Tag color={kindMeta.color} variant="filled" style={{ margin: 0 }}>
             {kindMeta.label}
           </Tag>
         )}
         {!node.enabled && (
           <Tag
             color="default"
-            bordered={false}
+            variant="filled"
             style={{
               margin: 0,
               fontSize: 11,
@@ -423,7 +423,7 @@ export default function OrganizationsPanel() {
                 ]}
               />
             )}
-            <Tag color="blue" bordered={false}>
+            <Tag color="blue" variant="filled">
               共 {organizations.length} 个组织节点
             </Tag>
           </Space>
@@ -585,7 +585,7 @@ export default function OrganizationsPanel() {
                               {item.enabled ? (
                                 <Tag
                                   color="success"
-                                  bordered={false}
+                                  variant="filled"
                                   style={{
                                     margin: 0,
                                     fontSize: 10,
@@ -598,7 +598,7 @@ export default function OrganizationsPanel() {
                               ) : (
                                 <Tag
                                   color="default"
-                                  bordered={false}
+                                  variant="filled"
                                   style={{
                                     margin: 0,
                                     fontSize: 10,
@@ -639,7 +639,7 @@ export default function OrganizationsPanel() {
                                   color={
                                     getOrganizationKindMeta(item.kind)?.color
                                   }
-                                  bordered={false}
+                                  variant="filled"
                                   style={{
                                     margin: 0,
                                     fontSize: 10,
@@ -654,7 +654,7 @@ export default function OrganizationsPanel() {
                               {(item.childrenCount ?? 0) > 0 ? (
                                 <Tag
                                   color="blue"
-                                  bordered={false}
+                                  variant="filled"
                                   style={{
                                     margin: 0,
                                     fontSize: 10,
@@ -797,7 +797,7 @@ export default function OrganizationsPanel() {
                 <span>组织架构树</span>
                 <Tag
                   color="blue"
-                  bordered={false}
+                  variant="filled"
                   style={{ margin: 0, fontSize: 11 }}
                 >
                   {organizations.length} 个节点
@@ -886,7 +886,7 @@ export default function OrganizationsPanel() {
                     {selectedOrg.name}
                   </Title>
                   <Tag
-                    bordered={false}
+                    variant="filled"
                     style={{
                       margin: 0,
                       fontFamily: 'monospace',
@@ -939,7 +939,7 @@ export default function OrganizationsPanel() {
             headerBordered
           >
             {selectedOrg ? (
-              <Space direction="vertical" size={20} style={{ width: '100%' }}>
+              <Space vertical size={20} style={{ width: '100%' }}>
                 <Descriptions
                   bordered
                   size="middle"
@@ -1005,7 +1005,7 @@ export default function OrganizationsPanel() {
                       </span>
                       <Tag
                         color="blue"
-                        bordered={false}
+                        variant="filled"
                         style={{ margin: 0, fontSize: 11 }}
                       >
                         {directChildren.length}
@@ -1126,7 +1126,7 @@ export default function OrganizationsPanel() {
               <span>{selectedOrg.name}</span>
               <Tag
                 color={selectedOrg.enabled ? 'success' : 'default'}
-                bordered={false}
+                variant="filled"
               >
                 {selectedOrg.enabled ? '正常启用' : '已停用'}
               </Tag>
@@ -1137,7 +1137,7 @@ export default function OrganizationsPanel() {
         }
         open={drawerOpen && viewMode === 'chart'}
         onClose={() => setDrawerOpen(false)}
-        width={420}
+        size={420}
         extra={
           selectedOrg && (
             <Space>
@@ -1170,7 +1170,7 @@ export default function OrganizationsPanel() {
         }
       >
         {selectedOrg ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Space vertical size={16} style={{ width: '100%' }}>
             <Descriptions column={1} bordered size="small">
               <Descriptions.Item label="节点类型">
                 {getOrganizationKindMeta(selectedOrg.kind)?.label}
@@ -1303,7 +1303,7 @@ export default function OrganizationsPanel() {
           <Alert
             showIcon
             type="info"
-            message={`当前上级：${parentForCreate.name}；本次创建：${childKindMetaForCreate.label}`}
+            title={`当前上级：${parentForCreate.name}；本次创建：${childKindMetaForCreate.label}`}
             style={{ marginBottom: 16 }}
           />
         )}

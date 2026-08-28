@@ -61,7 +61,7 @@ function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
               <span>{option.label}</span>
               {option.code && recommendedCodes.has(option.code) && (
                 <Tag
-                  bordered={false}
+                  variant="filled"
                   color="blue"
                   style={{ marginInlineEnd: 0 }}
                 >

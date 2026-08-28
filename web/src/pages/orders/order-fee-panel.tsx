@@ -529,14 +529,14 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFinanceLockCommissionNos([]);
             setCustomerName('');
           }}
-          width={1280}
+          size={1280}
           destroyOnHidden
         >
           {customerName && (
             <Alert
               type="info"
               showIcon
-              message={`委托单位：${customerName}`}
+              title={`委托单位：${customerName}`}
               style={{ marginBottom: 16 }}
             />
           )}
@@ -544,7 +544,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             <Alert
               type="warning"
               showIcon
-              message="该订单费用已进入财务锁定"
+              title="该订单费用已进入财务锁定"
               description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续差异请在提成管理中新增独立调整记录。`}
               style={{ marginBottom: 16 }}
             />
@@ -931,7 +931,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               style={{ gridColumn: '1 / -1' }}
               type="warning"
               showIcon
-              message="当前费用日期所在期间未配置生效汇率"
+              title="当前费用日期所在期间未配置生效汇率"
               description={
                 access.canOverrideFeeExchangeRate
                   ? '你可以仅为当前这笔费用录入手工汇率，该值不会改动公司汇率主数据。'
@@ -944,7 +944,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               style={{ gridColumn: '1 / -1' }}
               type="error"
               showIcon
-              message="汇率解析失败，暂时不能提交费用"
+              title="汇率解析失败，暂时不能提交费用"
             />
           )}
           <Alert
@@ -952,7 +952,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             type="info"
             showIcon
             icon={<DollarOutlined />}
-            message={
+            title={
               totalPreview
                 ? `精确总金额：${trimExactDecimal(totalPreview)} ${formRef.current?.getFieldValue('currency') || ''}；结算汇率：${manualExchangeRate ? '手工录入' : exchangeRateDisplay}`
                 : '总金额由服务端使用精确十进制计算，汇率默认从公司汇率数据带入。'

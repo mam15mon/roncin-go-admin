@@ -89,7 +89,7 @@ function roleTags(roles?: API.PartnerRole[]) {
     const item = roleMap.get(role.type ?? 0);
     const color = role.blacklisted ? 'error' : item?.color || 'default';
     return (
-      <Tag key={role.type} color={color} bordered={false}>
+      <Tag key={role.type} color={color} variant="filled">
         {roleLabels[role.type ?? 0] ?? '未知'}
         {!role.enabled ? ' (停用)' : ''}
         {role.blacklisted ? ' [黑名单]' : ''}
@@ -224,7 +224,7 @@ export default function Partners() {
       render: (_, record) => {
         const count = record.contacts?.length ?? 0;
         return (
-          <Tag bordered={false}>
+          <Tag variant="filled">
             {count} 位
           </Tag>
         );
@@ -238,7 +238,7 @@ export default function Partners() {
       render: (_, record) => {
         const count = record.aliases?.length ?? 0;
         return (
-          <Tag bordered={false}>
+          <Tag variant="filled">
             {count} 个
           </Tag>
         );

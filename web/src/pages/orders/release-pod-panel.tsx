@@ -285,7 +285,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             setOrder(undefined);
             setDocuments([]);
           }}
-          width={920}
+          size={920}
           destroyOnHidden
         >
           {order?.id && (

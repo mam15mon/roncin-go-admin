@@ -639,7 +639,7 @@ export default function FinanceBillsPage() {
       <Drawer
         title={`账单详情 ${detail?.billNo || ''}`}
         open={detailOpen}
-        width={1020}
+        size={1020}
         loading={detailLoading}
         onClose={() => setDetailOpen(false)}
       >

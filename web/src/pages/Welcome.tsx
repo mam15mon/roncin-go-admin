@@ -90,7 +90,7 @@ export default function Welcome() {
         </Space>
       }
     >
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Space vertical size={16} style={{ width: '100%' }}>
         {/* Profile and System Boundary Overview */}
         <ProCard gutter={[16, 16]} wrap ghost>
           <ProCard
@@ -131,7 +131,7 @@ export default function Welcome() {
                       <Tag
                         key={`${scope.roleCode}:${scope.dataScope}`}
                         color="cyan"
-                        bordered={false}
+                        variant="filled"
                         style={{ padding: '2px 8px', fontSize: 12 }}
                       >
                         <SafetyCertificateOutlined style={{ marginRight: 4 }} />
@@ -161,7 +161,7 @@ export default function Welcome() {
               当前平台基于严格的组织树数据隔离与基于角色的功能访问控制（RBAC）。
               所有的单据创建、流转、核销均受当前组织边界和授权策略约束。
             </Paragraph>
-            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <Space vertical size={8} style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
                 <Text type="secondary">功能权限授权数</Text>
                 <Text strong>{user?.permissions?.length ?? 0} 项</Text>
@@ -195,7 +195,7 @@ export default function Welcome() {
                 style={{ height: '100%' }}
                 onClick={() => history.push(item.path)}
               >
-                <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                <Space vertical size={12} style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ padding: 8, borderRadius: 8, background: '#f8fafc' }}>
                       {item.icon}
@@ -237,7 +237,7 @@ export default function Welcome() {
               <KeyOutlined style={{ color: '#fa8c16' }} />
               <span>当前已授权功能权限</span>
               {user?.permissions?.length ? (
-                <Tag color="blue" bordered={false}>
+                <Tag color="blue" variant="filled">
                   共 {user.permissions.length} 项
                 </Tag>
               ) : null}
@@ -251,7 +251,7 @@ export default function Welcome() {
               {user.permissions.map((permission) => (
                 <Tag
                   key={permission}
-                  bordered={false}
+                  variant="filled"
                   style={{
                     margin: 0,
                     fontSize: 12,

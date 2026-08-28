@@ -7,10 +7,10 @@ export interface SearchableSelectProps<
   OptionType extends BaseOptionType | DefaultOptionType = DefaultOptionType,
 > extends SelectProps<ValueType, OptionType> {
   /** 是否启用全局默认智能模糊搜索，默认 true */
-  showSearch?: boolean;
+  showSearch?: SelectProps<ValueType, OptionType>['showSearch'];
 }
 
 export interface ProFormSearchableSelectProps extends ProFormSelectProps {
   /** 是否启用全局默认智能模糊搜索，默认 true */
-  showSearch?: boolean;
+  showSearch?: ProFormSelectProps['showSearch'];
 }

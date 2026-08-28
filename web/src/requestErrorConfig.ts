@@ -1,7 +1,7 @@
 import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { history } from '@umijs/max';
-import { message, notification } from 'antd';
+import { showErrorMessage, showErrorNotification } from '@/utils/appFeedback';
 
 interface ErrorEnvelope {
   success: false;
@@ -48,10 +48,10 @@ export const errorConfig: RequestConfig = {
         return;
       }
       if (status === 403) {
-        message.error(envelope?.message ?? '无权执行此操作');
+        showErrorMessage(envelope?.message ?? '无权执行此操作');
         return;
       }
-      notification.error({
+      showErrorNotification({
         title: envelope?.message ?? '请求失败',
         description: envelope?.traceId
           ? `追踪编号：${envelope.traceId}`

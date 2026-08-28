@@ -1,16 +1,12 @@
-import { message, notification } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { showErrorMessage, showErrorNotification } from './utils/appFeedback';
 import { errorConfig } from './requestErrorConfig';
 
 const replace = vi.hoisted(() => vi.fn());
 
-vi.mock('antd', () => ({
-  message: {
-    error: vi.fn(),
-  },
-  notification: {
-    error: vi.fn(),
-  },
+vi.mock('@/utils/appFeedback', () => ({
+  showErrorMessage: vi.fn(),
+  showErrorNotification: vi.fn(),
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -60,8 +56,8 @@ describe('requestErrorConfig', () => {
     errorHandler({ response: { status: 401 } } as any, {});
 
     expect(replace).toHaveBeenCalledWith('/user/login?redirect=%2Fwelcome');
-    expect(message.error).not.toHaveBeenCalled();
-    expect(notification.error).not.toHaveBeenCalled();
+    expect(showErrorMessage).not.toHaveBeenCalled();
+    expect(showErrorNotification).not.toHaveBeenCalled();
   });
 
   it('should show a direct error for forbidden requests', () => {
@@ -75,8 +71,8 @@ describe('requestErrorConfig', () => {
       {},
     );
 
-    expect(message.error).toHaveBeenCalledWith('无权执行此操作');
-    expect(notification.error).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith('无权执行此操作');
+    expect(showErrorNotification).not.toHaveBeenCalled();
   });
 
   it('should include trace id in generic error notification', () => {
@@ -95,7 +91,7 @@ describe('requestErrorConfig', () => {
       {},
     );
 
-    expect(notification.error).toHaveBeenCalledWith({
+    expect(showErrorNotification).toHaveBeenCalledWith({
       title: '服务暂不可用',
       description: '追踪编号：trace-123',
     });
@@ -104,7 +100,7 @@ describe('requestErrorConfig', () => {
   it('should handle a generic network error', () => {
     errorHandler(new Error('Network error'), {});
 
-    expect(notification.error).toHaveBeenCalledWith({
+    expect(showErrorNotification).toHaveBeenCalledWith({
       title: '请求失败',
       description: '请联系系统管理员查看服务日志。',
     });

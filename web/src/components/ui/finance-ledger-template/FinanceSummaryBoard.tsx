@@ -226,7 +226,7 @@ export function FinanceSummaryBoard({
                 '#1677ff',
               )}
             </div>
-            <Divider type="vertical" style={{ margin: '0 4px', height: 13 }} />
+            <Divider vertical style={{ margin: '0 4px', height: 13 }} />
             <div>
               <span style={{ color: '#666666' }}>应付(含税): </span>
               {renderCurrencyList(selectedMetrics.payableByCurrency)}
@@ -236,7 +236,7 @@ export function FinanceSummaryBoard({
                 '#fa8c16',
               )}
             </div>
-            <Divider type="vertical" style={{ margin: '0 4px', height: 13 }} />
+            <Divider vertical style={{ margin: '0 4px', height: 13 }} />
             <div>
               <span style={{ color: '#666666' }}>利润: </span>
               {renderCurrencyList(selectedMetrics.profitByCurrency, true)}
@@ -278,7 +278,7 @@ export function FinanceSummaryBoard({
               '#1677ff',
             )}
           </div>
-          <Divider type="vertical" style={{ margin: '0 4px', height: 13 }} />
+          <Divider vertical style={{ margin: '0 4px', height: 13 }} />
           <div>
             <span style={{ color: '#666666' }}>应付(含税): </span>
             {renderCurrencyList(allMetrics.payableByCurrency)}
@@ -288,7 +288,7 @@ export function FinanceSummaryBoard({
               '#fa8c16',
             )}
           </div>
-          <Divider type="vertical" style={{ margin: '0 4px', height: 13 }} />
+          <Divider vertical style={{ margin: '0 4px', height: 13 }} />
           <div>
             <span style={{ color: '#666666' }}>利润: </span>
             {renderCurrencyList(allMetrics.profitByCurrency, true)}

@@ -561,7 +561,7 @@ export function OrderShippingDocumentFields({
                   <span>主单 ({documentLabels.master})</span>
                   {groups.length > 1 && (
                     <Tag
-                      bordered={false}
+                      variant="filled"
                       color="default"
                       style={{ marginInlineStart: 2, fontSize: 11 }}
                     >
@@ -614,7 +614,7 @@ export function OrderShippingDocumentFields({
                 {masterTrimmed && (
                   <Tag
                     color="blue"
-                    bordered={false}
+                    variant="filled"
                     style={{ margin: 0, fontSize: 11 }}
                   >
                     批次标识: {masterTrimmed.toUpperCase()}
@@ -894,18 +894,19 @@ export function OrderShippingDocumentFields({
                                 : '请输入分单签放方式'
                             }
                             disabled={disabled || isReleased}
-                            filterOption={(inputValue, option) =>
-                              Boolean(
-                                option?.value
-                                  ?.toString()
-                                  .toUpperCase()
-                                  .includes(inputValue.toUpperCase()) ||
-                                  option?.label
+                            showSearch={{
+                              filterOption: (inputValue, option) =>
+                                Boolean(
+                                  option?.value
                                     ?.toString()
                                     .toUpperCase()
-                                    .includes(inputValue.toUpperCase()),
-                              )
-                            }
+                                    .includes(inputValue.toUpperCase()) ||
+                                    option?.label
+                                      ?.toString()
+                                      .toUpperCase()
+                                      .includes(inputValue.toUpperCase()),
+                                ),
+                            }}
                             allowClear
                             style={{ width: '100%' }}
                           />

@@ -569,7 +569,7 @@ export default function PartnerDetailPage() {
         breadcrumbs={[{ label: `${roleLabel}管理`, onClick: () => history.push(listUrl) }]}
         tags={
           partner?.code ? (
-            <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
+            <Tag variant="filled" style={{ fontFamily: 'monospace' }}>
               {partner.code}
             </Tag>
           ) : undefined

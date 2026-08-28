@@ -485,7 +485,7 @@ export function NumberRulesPanel() {
       {/* 1. Header Toolbar */}
       <Card
         size="small"
-        bordered={false}
+        variant="borderless"
         style={{
           borderRadius: 8,
           marginBottom: 16,
@@ -573,7 +573,7 @@ export function NumberRulesPanel() {
       {/* 2. Main Content: Card Grid View or Table View */}
       <Spin spinning={loading}>
         {data.length === 0 ? (
-          <Card bordered={false} style={{ borderRadius: 8, padding: '40px 0' }}>
+          <Card variant="borderless" style={{ borderRadius: 8, padding: '40px 0' }}>
             <Empty description="暂无单号规则配置" />
           </Card>
         ) : viewMode === 'card' ? (
@@ -775,7 +775,7 @@ export function NumberRulesPanel() {
           /* Table View */
           <Card
             size="small"
-            bordered={false}
+            variant="borderless"
             style={{
               borderRadius: 8,
               backgroundColor: '#ffffff',

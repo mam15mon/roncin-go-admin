@@ -160,7 +160,7 @@ export function CustomSettingsPanel() {
 
   return (
     <Spin spinning={loading}>
-      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+      <Space vertical size={12} style={{ width: '100%' }}>
         {/* 1. 财务汇率设置 */}
         <SectionCard
           title="财务汇率设置"
@@ -186,7 +186,7 @@ export function CustomSettingsPanel() {
           >
             <Row align="middle" justify="space-between" gutter={[16, 16]}>
               <Col xs={24} md={18}>
-                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                <Space vertical size={6} style={{ width: '100%' }}>
                   <Space align="center" size={8} wrap>
                     <DollarOutlined style={{ fontSize: 16, color: '#1677ff' }} />
                     <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>
@@ -239,7 +239,7 @@ export function CustomSettingsPanel() {
           >
             <Row align="middle" justify="space-between" gutter={[16, 16]}>
               <Col xs={24} md={18}>
-                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                <Space vertical size={6} style={{ width: '100%' }}>
                   <Space align="center" size={8} wrap>
                     <FileTextOutlined style={{ fontSize: 16, color: '#1677ff' }} />
                     <Text strong style={{ fontSize: 15, color: 'rgba(0, 0, 0, 0.88)' }}>

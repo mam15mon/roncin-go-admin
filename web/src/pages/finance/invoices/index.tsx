@@ -709,7 +709,7 @@ export default function FinanceInvoicesPage() {
       <Drawer
         title={`开票详情 ${detail?.recordNo || ''}`}
         open={Boolean(detail)}
-        width={760}
+        size={760}
         onClose={() => setDetail(undefined)}
       >
         {detail && (

@@ -306,7 +306,7 @@ export default function VerificationWorkbench({
       open={open}
       width={1240}
       destroyOnHidden
-      maskClosable={false}
+      mask={{ closable: false }}
       onCancel={onClose}
       footer={
         <Space>
@@ -340,12 +340,11 @@ export default function VerificationWorkbench({
           <Col span={7}>
             <Typography.Text>结算单位</Typography.Text>
             <Select
-              showSearch
+              showSearch={{ optionFilterProp: 'label' }}
               aria-label="结算单位"
               value={scope.settlementPartyId}
               style={{ width: '100%', marginTop: 6 }}
               placeholder="请选择结算单位"
-              optionFilterProp="label"
               options={partners.map((partner) => ({
                 value: partner.id,
                 label: `${partner.code || ''} ${partner.legalName || ''}`.trim(),
@@ -469,7 +468,7 @@ export default function VerificationWorkbench({
           <Alert
             type="error"
             showIcon
-            message={validationMessage}
+            title={validationMessage}
             style={{ marginBottom: 12 }}
           />
         ) : null}

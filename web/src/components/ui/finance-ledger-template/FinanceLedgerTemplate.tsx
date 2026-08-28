@@ -372,8 +372,10 @@ export function FinanceLedgerTemplate<
                   value={card.value}
                   precision={card.precision}
                   suffix={card.suffix}
-                  valueStyle={
-                    card.valueColor ? { color: card.valueColor } : undefined
+                  styles={
+                    card.valueColor
+                      ? { content: { color: card.valueColor } }
+                      : undefined
                   }
                 />
               </Card>

@@ -560,7 +560,7 @@ export function OrderListTemplate({
       {/* 顶部状态快捷切签卡片 */}
       {statusTabs && statusTabs.length > 0 && (
         <Card
-          bordered={false}
+          variant="borderless"
           style={{
             borderRadius: 8,
             border: '1px solid #f0f0f0',
@@ -608,7 +608,7 @@ export function OrderListTemplate({
 
       {/* 数据表格卡片 */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           borderRadius: 8,
           border: '1px solid #f0f0f0',

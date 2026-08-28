@@ -75,10 +75,10 @@ export function OrderFormTemplate<T>({
 
       {loading ? (
         <Card
-          bordered={false}
+          variant="borderless"
           style={{ textAlign: 'center', padding: '60px 0', marginTop: 12 }}
         >
-          <Space direction="vertical" size="middle">
+          <Space vertical size="middle">
             <Spin size="large" />
             {loadingTip && <Text type="secondary">{loadingTip}</Text>}
           </Space>

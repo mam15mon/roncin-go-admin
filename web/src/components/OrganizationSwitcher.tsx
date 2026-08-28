@@ -41,8 +41,7 @@ export default function OrganizationSwitcher() {
         label: `${organization.code} · ${organization.name}`,
       }))}
       onChange={handleChange}
-      optionFilterProp="label"
-      showSearch
+      showSearch={{ optionFilterProp: 'label' }}
       style={{ minWidth: 180 }}
     />
   );

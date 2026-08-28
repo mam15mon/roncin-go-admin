@@ -88,7 +88,7 @@ export function MilestoneTemplatesPanel() {
       render: (_, record) => {
         const item = businessTypeMap.get(record.businessType ?? 0);
         return item ? (
-          <Tag color={item.color} bordered={false}>
+          <Tag color={item.color} variant="filled">
             {item.label}
           </Tag>
         ) : (
@@ -102,11 +102,11 @@ export function MilestoneTemplatesPanel() {
       width: 120,
       render: (_, record) =>
         record.tradeTerm ? (
-          <Tag color="orange" bordered={false}>
+          <Tag color="orange" variant="filled">
             {record.tradeTerm}
           </Tag>
         ) : (
-          <Tag bordered={false}>通用条款</Tag>
+          <Tag variant="filled">通用条款</Tag>
         ),
     },
     {
@@ -132,7 +132,7 @@ export function MilestoneTemplatesPanel() {
       width: 90,
       search: false,
       render: (_, record) => (
-        <Tag color="geekblue" bordered={false}>
+        <Tag color="geekblue" variant="filled">
           v{record.version ?? 1}
         </Tag>
       ),
@@ -223,7 +223,7 @@ export function MilestoneTemplatesPanel() {
 
   return (
     <Card
-      bordered={false}
+      variant="borderless"
       style={{
         borderRadius: 8,
         border: '1px solid #f0f0f0',
@@ -257,7 +257,7 @@ export function MilestoneTemplatesPanel() {
                   <Tag
                     key={item.code}
                     color="blue"
-                    bordered={false}
+                    variant="filled"
                     style={{ fontSize: 12, padding: '2px 8px' }}
                   >
                     {idx + 1}. {item.label} ({item.code})
@@ -409,7 +409,7 @@ export function MilestoneTemplatesPanel() {
           ]}
         >
           {() => (
-            <Space direction="horizontal" align="start" size={10} wrap>
+            <Space align="start" size={10} wrap>
               <ProFormText
                 name="code"
                 label="节点编码"

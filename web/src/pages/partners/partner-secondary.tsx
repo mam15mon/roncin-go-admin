@@ -254,7 +254,7 @@ export default function PartnerSecondary({
       dataIndex: 'currency',
       width: 100,
       render: (cur) => (
-        <Tag color="gold" bordered={false}>
+        <Tag color="gold" variant="filled">
           {cur}
         </Tag>
       ),
@@ -415,7 +415,7 @@ export default function PartnerSecondary({
     <Alert
       showIcon
       type="info"
-      message="无需结算账户配置"
+      title="无需结算账户配置"
       description="该往来单位当前未分配客户角色，仅客户身份支持配置结算银行账户。"
       style={{ margin: '16px 0' }}
     />
@@ -467,7 +467,7 @@ export default function PartnerSecondary({
       render: (_, record) => {
         const item = roleMap.get(record.roleType ?? 0);
         return item ? (
-          <Tag color={item.color} bordered={false}>
+          <Tag color={item.color} variant="filled">
             {item.label}
           </Tag>
         ) : (
@@ -517,7 +517,7 @@ export default function PartnerSecondary({
       dataIndex: 'settlementCurrency',
       width: 90,
       render: (cur) => (
-        <Tag color="gold" bordered={false}>
+        <Tag color="gold" variant="filled">
           {cur}
         </Tag>
       ),
@@ -691,7 +691,7 @@ export default function PartnerSecondary({
         type="info"
         showIcon
         style={{ marginBottom: 12 }}
-        message="同一往来单位可以维护多套开票抬头；默认抬头仅用于预选，创建发票时仍会明确选择并固化资料快照。"
+        title="同一往来单位可以维护多套开票抬头；默认抬头仅用于预选，创建发票时仍会明确选择并固化资料快照。"
       />
       <ProTable<API.PartnerInvoiceProfile>
         headerTitle="开票抬头"
@@ -790,7 +790,7 @@ export default function PartnerSecondary({
             <BankOutlined style={{ color: '#1677ff' }} />
             <span>往来商务档案：{partner?.legalName ?? ''}</span>
             {partner?.code && (
-              <Tag bordered={false} style={{ fontFamily: 'monospace' }}>
+              <Tag variant="filled" style={{ fontFamily: 'monospace' }}>
                 {partner.code}
               </Tag>
             )}
@@ -798,7 +798,7 @@ export default function PartnerSecondary({
         }
         open={open}
         onClose={onClose}
-        width={960}
+        size={960}
         destroyOnHidden
       >
         <Tabs
@@ -918,7 +918,7 @@ export default function PartnerSecondary({
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="这里维护的是税务开票主体资料，不是按币种维护的收付款结算账户"
+          title="这里维护的是税务开票主体资料，不是按币种维护的收付款结算账户"
         />
         <Space size={24} style={{ marginBottom: 8 }}>
           <ProFormSwitch name="isDefault" label="设为默认抬头" />
@@ -1355,7 +1355,7 @@ export default function PartnerSecondary({
         <Alert
           type="info"
           showIcon
-          message="此处登记企业营业执照、开户许可证、水运许可证等对象存储引用。"
+          title="此处登记企业营业执照、开户许可证、水运许可证等对象存储引用。"
           style={{ marginBottom: 16 }}
         />
         <ProFormText

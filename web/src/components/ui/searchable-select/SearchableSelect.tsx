@@ -14,10 +14,16 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   allowClear = true,
   ...rest
 }) => {
+  const mergedShowSearch =
+    typeof showSearch === 'object' && showSearch !== null
+      ? { filterOption, ...showSearch }
+      : showSearch
+        ? { filterOption }
+        : false;
+
   return (
     <Select
-      showSearch={showSearch}
-      filterOption={filterOption}
+      showSearch={mergedShowSearch}
       allowClear={allowClear}
       {...rest}
     />

@@ -468,7 +468,7 @@ export default function FinanceCommissionsPage() {
       width: 160,
       search: false,
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space vertical size={0}>
           <span>{personnelRoleText(record.personnelRole)}</span>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {calculationBasisText(record.calculationBasis)}
@@ -532,7 +532,7 @@ export default function FinanceCommissionsPage() {
       render: (_, record) => {
         if (record.status === 'CANCELLED') {
           return (
-            <Space direction="vertical" size={0}>
+            <Space vertical size={0}>
               <Typography.Text type="secondary" delete>
                 {`快照 ${decimalText(record.commissionAmount)} ${record.baseCurrency}`}
               </Typography.Text>
@@ -543,7 +543,7 @@ export default function FinanceCommissionsPage() {
           );
         }
         return (
-          <Space direction="vertical" size={0}>
+          <Space vertical size={0}>
             <span>{`原始 ${decimalText(record.commissionAmount)} ${record.baseCurrency}`}</span>
             <strong style={{ color: '#1677ff' }}>
               {`有效 ${decimalText(record.effectiveCommissionAmount || record.commissionAmount)} ${record.baseCurrency}`}
@@ -593,7 +593,7 @@ export default function FinanceCommissionsPage() {
       key: 'customerName',
       width: 180,
       render: (val: string, line: API.FinanceCommissionLine) => (
-        <Space direction="vertical" size={0}>
+        <Space vertical size={0}>
           <Typography.Text strong>{val || '-'}</Typography.Text>
           {line.customerCode && (
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
@@ -609,7 +609,7 @@ export default function FinanceCommissionsPage() {
       key: 'orderNo',
       width: 170,
       render: (val: string, line: API.FinanceCommissionLine) => (
-        <Space direction="vertical" size={0}>
+        <Space vertical size={0}>
           <Typography.Text strong>{val}</Typography.Text>
           {line.orderDate && (
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
@@ -624,7 +624,7 @@ export default function FinanceCommissionsPage() {
       key: 'personnelSnapshot',
       width: 170,
       render: (_: unknown, line: API.FinanceCommissionLine) => (
-        <Space direction="vertical" size={0}>
+        <Space vertical size={0}>
           <span>{`${line.employeeName} · ${personnelRoleText(line.personnelRole)}`}</span>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {line.customerAssignedAt || line.personnelAssignedAt
@@ -1147,7 +1147,7 @@ export default function FinanceCommissionsPage() {
         />
         <ProFormDependency name={['verificationId', 'ruleId', 'employeeId']}>
           {(values: Partial<CreateValues>) => (
-            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <Space vertical size={12} style={{ width: '100%' }}>
               <Button
                 type="primary"
                 ghost
@@ -1182,7 +1182,7 @@ export default function FinanceCommissionsPage() {
                 <Alert
                   type="info"
                   showIcon
-                  message="生成前必须计算预览"
+                  title="生成前必须计算预览"
                   description="系统会按本次核销涉及的订单，分别展示已实现收入、分摊成本、毛利和提成金额，并支持下钻展开费用明细。"
                 />
               ) : (
@@ -1262,7 +1262,7 @@ export default function FinanceCommissionsPage() {
             </Space>
           )}
         </ProFormDependency>
-        <Space direction="vertical" size={2} style={{ color: '#666', marginTop: 8 }}>
+        <Space vertical size={2} style={{ color: '#666', marginTop: 8 }}>
           <span>
             计算比例、角色与口径均取自已启用且在核销日期生效的考核规则。
           </span>
@@ -1274,7 +1274,7 @@ export default function FinanceCommissionsPage() {
       {/* 提成明细抽屉 */}
       <Drawer
         title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
-        width={1120}
+        size={1120}
         open={detailOpen}
         loading={detailLoading}
         extra={
@@ -1296,7 +1296,7 @@ export default function FinanceCommissionsPage() {
         }}
       >
         {detail ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Space vertical size={16} style={{ width: '100%' }}>
             <Descriptions
               bordered
               size="small"
@@ -1408,7 +1408,7 @@ export default function FinanceCommissionsPage() {
             <Alert
               type="info"
               showIcon
-              message="逐订单计算快照与财务锁"
+              title="逐订单计算快照与财务锁"
               description="下列数据是生成提成时固化的计算证据。提成确认后，关联订单的原费用会进入财务锁定；支持展开行下钻查看每笔订单的具体费用明细构成。"
             />
             <Table<API.FinanceCommissionLine>
@@ -1485,7 +1485,7 @@ export default function FinanceCommissionsPage() {
         <Alert
           type="warning"
           showIcon
-          message="原始提成不会被修改"
+          title="原始提成不会被修改"
           description="请选择产生差异的具体订单。增提或冲减会形成独立编号，并保留确认、发放/扣回和取消轨迹。冲减金额不能使有效提成小于零。"
           style={{ marginBottom: 16 }}
         />
@@ -1533,7 +1533,7 @@ export default function FinanceCommissionsPage() {
       {/* 考核规则抽屉 */}
       <Drawer
         title="提成考核规则"
-        width={980}
+        size={980}
         open={rulesOpen}
         onClose={() => setRulesOpen(false)}
       >

@@ -214,7 +214,7 @@ const AbnormalCasePanel = forwardRef<
           setDrawerOpen(false);
           setOrder(undefined);
         }}
-        width={920}
+        size={920}
         destroyOnHidden
       >
         {order?.id && (

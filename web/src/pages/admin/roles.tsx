@@ -295,7 +295,7 @@ export default function RolesPanel() {
           <Tooltip title={item.description}>
             <Tag
               color={item.color}
-              bordered={false}
+              variant="filled"
               style={{ fontSize: 12, padding: '2px 8px', cursor: 'help' }}
             >
               {item.label}
@@ -313,7 +313,7 @@ export default function RolesPanel() {
         const count = record.permissionKeys?.length ?? 0;
         return (
           <Tag
-            bordered={false}
+            variant="filled"
             style={{
               margin: 0,
               backgroundColor: count > 0 ? '#e6f4ff' : '#fafafa',
@@ -628,7 +628,7 @@ export default function RolesPanel() {
               <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
                 功能权限配置
               </Text>
-              <Tag color="blue" bordered={false}>
+              <Tag color="blue" variant="filled">
                 已选 {selectedPermissionKeys.length} / {allLeafKeys.length} 项
               </Tag>
             </Space>
@@ -757,7 +757,7 @@ export default function RolesPanel() {
                           {leaf.name}
                         </span>
                         <Tag
-                          bordered={false}
+                          variant="filled"
                           style={{
                             margin: 0,
                             fontSize: 10,

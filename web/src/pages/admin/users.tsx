@@ -217,7 +217,7 @@ export default function UsersPanel() {
               return (
                 <Tag
                   key={code}
-                  bordered={false}
+                  variant="filled"
                   style={{
                     margin: 0,
                     fontSize: 11,
@@ -453,7 +453,7 @@ export default function UsersPanel() {
           <Alert
             showIcon
             type="info"
-            message={`${pendingProvider === 'wecom' ? '企业微信' : '钉钉'}成员 ${pendingProvider === 'wecom' ? editing?.wecomName || editing?.displayName : editing?.dingtalkName || editing?.displayName} 已完成身份登记`}
+            title={`${pendingProvider === 'wecom' ? '企业微信' : '钉钉'}成员 ${pendingProvider === 'wecom' ? editing?.wecomName || editing?.displayName : editing?.dingtalkName || editing?.displayName} 已完成身份登记`}
             description="请分配至少一个角色并启用账号。启用后，该成员再次扫码即可登录。"
             style={{ marginBottom: 16 }}
           />
@@ -563,7 +563,7 @@ export default function UsersPanel() {
         <Alert
           showIcon
           type="warning"
-          message="重置密码安全须知"
+          title="重置密码安全须知"
           description="密码重置成功后，该用户的旧密码将立即失效，当前所有在线登录会话将被强制退出。"
           style={{ marginBottom: 16 }}
         />

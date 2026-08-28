@@ -664,120 +664,120 @@ export default function BillCreationWorkbench({
       <Drawer
         title="费用批量转账单"
         open={open}
-        width="min(1280px, 96vw)"
-      destroyOnHidden
-      maskClosable={false}
-      footer={footer}
-      onClose={onClose}
-    >
-      <Steps
-        current={current}
-        size="small"
-        style={{ marginBottom: 24 }}
-        items={[
-          { title: '选择费用' },
-          { title: '拆单策略' },
-          { title: '账单资料' },
-          { title: '生成完成' },
-        ]}
-      />
+        size="min(1280px, 96vw)"
+        destroyOnHidden
+        mask={{ closable: false }}
+        footer={footer}
+        onClose={onClose}
+      >
+        <Steps
+          current={current}
+          size="small"
+          style={{ marginBottom: 24 }}
+          items={[
+            { title: '选择费用' },
+            { title: '拆单策略' },
+            { title: '账单资料' },
+            { title: '生成完成' },
+          ]}
+        />
 
-      {current === 0 &&
-        (fixedSelection ? (
+        {current === 0 &&
+          (fixedSelection ? (
+            <Card>
+              <Alert
+                type="info"
+                showIcon
+                title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
+                description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
+              />
+            </Card>
+          ) : (
+            <ProTable<API.FeeLedgerItem>
+              rowKey="id"
+              headerTitle="选择待结算费用"
+              columns={selectionFeeColumns}
+              size="small"
+              bordered
+              options={false}
+              pagination={{ defaultPageSize: 15, showSizeChanger: true }}
+              rowSelection={{
+                selectedRowKeys: selectedFeeIds,
+                preserveSelectedRowKeys: true,
+                onChange: setSelectedFeeIds,
+                getCheckboxProps: (record) => {
+                  const isSelectable =
+                    record.status === 'CONFIRMED' && !record.billNo;
+                  return {
+                    disabled: !isSelectable,
+                    title: !isSelectable
+                      ? record.billNo
+                        ? `已进入账单 ${record.billNo}`
+                        : '只有已确认且未入账单的费用方可创建账单'
+                      : undefined,
+                  };
+                },
+              }}
+              tableAlertRender={({ selectedRowKeys }) => (
+                <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>
+              )}
+              request={async (params) => {
+                const response = await settlementServiceListFeeLedger({
+                  page: params.current,
+                  pageSize: params.pageSize,
+                  keyword: params.keyword,
+                  direction: params.direction,
+                  status: 'CONFIRMED',
+                });
+                return {
+                  data: response.data || [],
+                  total: Number(response.total || 0),
+                  success: response.success ?? true,
+                };
+              }}
+            />
+          ))}
+
+        {current === 1 && (
           <Card>
+            <Title level={5}>拆单维度</Title>
             <Alert
               type="info"
               showIcon
-              message={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
-              description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
+              style={{ marginBottom: 20 }}
+              title="收付方向、结算单位、原币和本币始终是强制拆单维度"
+              description="不同强制维度的费用绝不会进入同一张账单。下面两个开关只控制额外拆分，不会放宽服务端的财务边界。"
             />
-          </Card>
-        ) : (
-          <ProTable<API.FeeLedgerItem>
-            rowKey="id"
-            headerTitle="选择待结算费用"
-            columns={selectionFeeColumns}
-            size="small"
-            bordered
-            options={false}
-            pagination={{ defaultPageSize: 15, showSizeChanger: true }}
-            rowSelection={{
-              selectedRowKeys: selectedFeeIds,
-              preserveSelectedRowKeys: true,
-              onChange: setSelectedFeeIds,
-              getCheckboxProps: (record) => {
-                const isSelectable =
-                  record.status === 'CONFIRMED' && !record.billNo;
-                return {
-                  disabled: !isSelectable,
-                  title: !isSelectable
-                    ? record.billNo
-                      ? `已进入账单 ${record.billNo}`
-                      : '只有已确认且未入账单的费用方可创建账单'
-                    : undefined,
-                };
-              },
-            }}
-            tableAlertRender={({ selectedRowKeys }) => (
-              <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>
-            )}
-            request={async (params) => {
-              const response = await settlementServiceListFeeLedger({
-                page: params.current,
-                pageSize: params.pageSize,
-                keyword: params.keyword,
-                direction: params.direction,
-                status: 'CONFIRMED',
-              });
-              return {
-                data: response.data || [],
-                total: Number(response.total || 0),
-                success: response.success ?? true,
-              };
-            }}
-          />
-        ))}
-
-      {current === 1 && (
-        <Card>
-          <Title level={5}>拆单维度</Title>
-          <Alert
-            type="info"
-            showIcon
-            style={{ marginBottom: 20 }}
-            message="收付方向、结算单位、原币和本币始终是强制拆单维度"
-            description="不同强制维度的费用绝不会进入同一张账单。下面两个开关只控制额外拆分，不会放宽服务端的财务边界。"
-          />
-          <Row gutter={[24, 16]}>
-            <Col xs={24} lg={12}>
-              <Card size="small" title="按订单拆分">
-                <Space direction="vertical">
-                  <Switch
-                    checked={splitByOrder}
-                    checkedChildren="已启用"
-                    unCheckedChildren="未启用"
-                    onChange={setSplitByOrder}
-                  />
-                  <Text type="secondary">
-                    启用后每个业务订单独立成账；关闭时允许同一结算单位的多票订单汇总对账。
-                  </Text>
-                </Space>
-              </Card>
-            </Col>
-            <Col xs={24} lg={12}>
-              <Card size="small" title="按税率拆分">
-                <Space direction="vertical">
-                  <Switch
-                    checked={splitByTaxRate}
-                    checkedChildren="已启用"
-                    unCheckedChildren="未启用"
-                    onChange={setSplitByTaxRate}
-                  />
-                  <Text type="secondary">
-                    启用后不同税率独立成账；关闭时税率仍会逐费用行固化，后续开票可按行处理。
-                  </Text>
-                </Space>
-              </Card>
+            <Row gutter={[24, 16]}>
+              <Col xs={24} lg={12}>
+                <Card size="small" title="按订单拆分">
+                  <Space vertical>
+                    <Switch
+                      checked={splitByOrder}
+                      checkedChildren="已启用"
+                      unCheckedChildren="未启用"
+                      onChange={setSplitByOrder}
+                    />
+                    <Text type="secondary">
+                      启用后每个业务订单独立成账；关闭时允许同一结算单位的多票订单汇总对账。
+                    </Text>
+                  </Space>
+                </Card>
+              </Col>
+              <Col xs={24} lg={12}>
+                <Card size="small" title="按税率拆分">
+                  <Space vertical>
+                    <Switch
+                      checked={splitByTaxRate}
+                      checkedChildren="已启用"
+                      unCheckedChildren="未启用"
+                      onChange={setSplitByTaxRate}
+                    />
+                    <Text type="secondary">
+                      启用后不同税率独立成账；关闭时税率仍会逐费用行固化，后续开票可按行处理。
+                    </Text>
+                  </Space>
+                </Card>
             </Col>
           </Row>
           <Descriptions size="small" column={2} style={{ marginTop: 20 }}>
@@ -988,7 +988,7 @@ export default function BillCreationWorkbench({
                         }
                         return list;
                       })()}
-                      dropdownRender={(menu) => (
+                      popupRender={(menu) => (
                         <>
                           {menu}
                           <Divider style={{ margin: '4px 0' }} />
@@ -1170,14 +1170,14 @@ export default function BillCreationWorkbench({
         cancelText="取消"
         onOk={() => void handleSaveQuickAddProfile()}
         onCancel={() => setQuickAddOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={620}
       >
         <Form form={quickAddForm} layout="vertical" preserve={false}>
           <Alert
             type="info"
             showIcon
-            message="新增的开票抬头将自动保存至该客户的主档案中，并自动选中为当前账单的对账抬头。"
+            title="新增的开票抬头将自动保存至该客户的主档案中，并自动选中为当前账单的对账抬头。"
             style={{ marginBottom: 16 }}
           />
           <Row gutter={16}>

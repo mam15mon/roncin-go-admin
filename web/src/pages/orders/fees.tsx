@@ -792,7 +792,7 @@ export default function OrderFeesPage() {
           minHeight: '100vh',
         }}
       >
-        <Spin size="large" tip="正在加载费用工作台..." />
+        <Spin size="large" description="正在加载费用工作台..." />
       </div>
     );
   }
@@ -801,7 +801,7 @@ export default function OrderFeesPage() {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
         <Card
-          bordered={false}
+          variant="borderless"
           style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
         >
           <Empty description="未找到对应的订单档案" />
@@ -899,7 +899,7 @@ export default function OrderFeesPage() {
           <Alert
             type="warning"
             showIcon
-            message="该订单费用已进入财务锁定"
+            title="该订单费用已进入财务锁定"
             description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续提成差异请在提成管理中新增独立调整记录。`}
             style={{ marginBottom: 16 }}
           />
@@ -964,7 +964,7 @@ export default function OrderFeesPage() {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={8}>
             <Card
-              bordered={false}
+              variant="borderless"
               style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
             >
               <Statistic
@@ -972,13 +972,13 @@ export default function OrderFeesPage() {
                 value={receivableSummary.totalAmount}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#1677ff', fontWeight: 700 }}
+                styles={{ content: { color: '#1677ff', fontWeight: 700 } }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={8}>
             <Card
-              bordered={false}
+              variant="borderless"
               style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
             >
               <Statistic
@@ -986,13 +986,13 @@ export default function OrderFeesPage() {
                 value={payableSummary.totalAmount}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: '#fa8c16', fontWeight: 700 }}
+                styles={{ content: { color: '#fa8c16', fontWeight: 700 } }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={8}>
             <Card
-              bordered={false}
+              variant="borderless"
               style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
             >
               <Statistic
@@ -1007,9 +1007,11 @@ export default function OrderFeesPage() {
                 value={profitCny}
                 precision={2}
                 prefix="¥"
-                valueStyle={{
-                  color: profitCny >= 0 ? '#52c41a' : '#ff4d4f',
-                  fontWeight: 700,
+                styles={{
+                  content: {
+                    color: profitCny >= 0 ? '#52c41a' : '#ff4d4f',
+                    fontWeight: 700,
+                  },
                 }}
               />
             </Card>
@@ -1402,7 +1404,7 @@ export default function OrderFeesPage() {
               style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}
             >
               <Space
-                split={<span style={{ color: '#cbd5e1' }}>|</span>}
+                separator={<span style={{ color: '#cbd5e1' }}>|</span>}
                 size={16}
               >
                 <div>
@@ -1484,7 +1486,7 @@ export default function OrderFeesPage() {
         cancelText="取消"
         onOk={() => void handleSaveQuickAddFee()}
         onCancel={() => setQuickAddFeeModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={580}
       >
         <Form form={quickAddFeeForm} layout="vertical" preserve={false}>
@@ -1588,7 +1590,7 @@ export default function OrderFeesPage() {
         cancelText="取消"
         onOk={() => void handleSaveQuickAddPartner()}
         onCancel={() => setQuickAddPartnerModalOpen(false)}
-        destroyOnClose
+        destroyOnHidden
         width={540}
       >
         <Form form={quickAddPartnerForm} layout="vertical" preserve={false}>

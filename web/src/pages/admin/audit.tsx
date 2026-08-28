@@ -88,7 +88,7 @@ export default function AuditPanel() {
       width: 180,
       search: false,
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space vertical size={0}>
           {record.requestId && (
             <Text copyable style={{ fontSize: 11, fontFamily: 'monospace' }}>
               Req: {record.requestId}

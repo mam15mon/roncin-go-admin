@@ -89,7 +89,7 @@ export function OrderListSearchFilter({
 
   return (
     <Card
-      bordered={false}
+      variant="borderless"
       style={{
         borderRadius: 8,
         border: '1px solid #f0f0f0',
@@ -113,39 +113,45 @@ export function OrderListSearchFilter({
           <Col xs={24} sm={12} md={6} lg={5}>
             <Form.Item name="customerId" label="委托单位">
               <Select
-                showSearch
+                showSearch={{
+                  filterOption: (input, option) =>
+                    String(option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase()),
+                }}
                 allowClear
                 placeholder="选择/搜索委托客户"
                 options={options.partners}
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
             <Form.Item name="originLocationId" label="起运港 (POL)">
               <Select
-                showSearch
+                showSearch={{
+                  filterOption: (input, option) =>
+                    String(option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase()),
+                }}
                 allowClear
                 placeholder="选择起运港"
                 options={options.ports || options.airports}
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} md={6} lg={4}>
             <Form.Item name="destinationLocationId" label="目的港 (POD)">
               <Select
-                showSearch
+                showSearch={{
+                  filterOption: (input, option) =>
+                    String(option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase()),
+                }}
                 allowClear
                 placeholder="选择目的港"
                 options={options.ports || options.airports}
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
               />
             </Form.Item>
           </Col>

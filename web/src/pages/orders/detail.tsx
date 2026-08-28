@@ -657,7 +657,7 @@ export default function OrderDetailPage() {
           minHeight: '100vh',
         }}
       >
-        <Spin size="large" tip="正在加载订单详情..." />
+        <Spin size="large" description="正在加载订单详情..." />
       </div>
     );
   }
@@ -666,7 +666,7 @@ export default function OrderDetailPage() {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
         <Card
-          bordered={false}
+          variant="borderless"
           style={{ borderRadius: 8, textAlign: 'center', padding: 32 }}
         >
           <Empty description="未找到对应的订单档案" />
@@ -709,7 +709,7 @@ export default function OrderDetailPage() {
             ? '发起退关/终止'
             : '完成退关/终止',
       content: (
-        <Space direction="vertical" style={{ width: '100%', marginTop: 12 }}>
+        <Space vertical style={{ width: '100%', marginTop: 12 }}>
           {targetStatus !== 1 && (
             <Select
               defaultValue={3}

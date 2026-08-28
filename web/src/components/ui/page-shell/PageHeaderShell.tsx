@@ -62,7 +62,7 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
             >
               {backText}
             </Button>
-            <Divider type="vertical" style={{ margin: '0 4px' }} />
+            <Divider vertical style={{ margin: '0 4px' }} />
           </>
         )}
 

@@ -152,7 +152,7 @@ export default function Admin() {
         <Alert
           showIcon
           type="warning"
-          message="暂无可用的管理权限"
+          title="暂无可用的管理权限"
           description="请联系系统管理员为当前账号分配组织、用户或角色管理等相应权限。"
         />
       )}

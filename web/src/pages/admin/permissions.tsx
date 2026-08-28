@@ -32,7 +32,7 @@ export default function PermissionsPanel() {
       dataIndex: 'group',
       width: 160,
       render: (_, record) => (
-        <Tag color="blue" bordered={false} style={{ padding: '2px 8px' }}>
+        <Tag color="blue" variant="filled" style={{ padding: '2px 8px' }}>
           {record.group || '通用'}
         </Tag>
       ),

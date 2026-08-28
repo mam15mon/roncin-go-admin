@@ -213,6 +213,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
             accept=".xlsx"
             maxCount={1}
             fileList={fileList}
+            onChange={({ fileList: nextFileList }) => setFileList(nextFileList)}
             showUploadList={false}
             beforeUpload={(file) => {
               void processFile(file);
@@ -239,7 +240,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
               type="success"
               showIcon
               icon={<CheckCircleOutlined />}
-              message="预检通过，数据格式完全合规"
+              title="预检通过，数据格式完全合规"
               description={`文件「${batch.fileName}」包含 ${batch.totalCount} 条汇率记录，无冲突与异常，点击下方「确认导入」即可写入系统。`}
               style={{ marginBottom: 16 }}
             />
@@ -248,7 +249,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
               type="error"
               showIcon
               icon={<CloseCircleOutlined />}
-              message="预检未通过，已拒绝整批导入"
+              title="预检未通过，已拒绝整批导入"
               description={`文件「${batch.fileName}」共 ${batch.totalCount} 行，其中包含 ${batch.invalidCount} 行错误。根据严格防冲突策略，请根据下方错误明细修改 Excel 后重新上传。`}
               style={{ marginBottom: 16 }}
             />

@@ -368,13 +368,15 @@ export default function FinanceFeeDetailPage() {
             size="small"
             bordered
             column={{ xs: 1, sm: 2, md: 3, lg: 5, xl: 5 }}
-            labelStyle={{
-              background: '#fafafa',
-              width: '90px',
-              fontSize: 12,
-              fontWeight: 500,
+            styles={{
+              label: {
+                background: '#fafafa',
+                width: '90px',
+                fontSize: 12,
+                fontWeight: 500,
+              },
+              content: { background: '#fff', fontSize: 12 },
             }}
-            contentStyle={{ background: '#fff', fontSize: 12 }}
           >
             <Descriptions.Item label="订单编号">
               {route ? (
@@ -449,7 +451,7 @@ export default function FinanceFeeDetailPage() {
               {/* 美金合计 */}
               <Col span={6}>
                 <Input
-                  addonBefore="美金 应收(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>美金 应收(含税)</span>}
                   value={statistics.usdRec}
                   readOnly
                   style={{ fontWeight: 500 }}
@@ -457,7 +459,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="美金 应付(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>美金 应付(含税)</span>}
                   value={statistics.usdPay}
                   readOnly
                   style={{ fontWeight: 500 }}
@@ -465,7 +467,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="美金 毛利(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>美金 毛利(含税)</span>}
                   value={statistics.usdProfit}
                   readOnly
                   style={{
@@ -480,7 +482,7 @@ export default function FinanceFeeDetailPage() {
               {/* 人民币合计 */}
               <Col span={6}>
                 <Input
-                  addonBefore="人民币 应收(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>人民币 应收(含税)</span>}
                   value={statistics.cnyRec}
                   readOnly
                   style={{ fontWeight: 500 }}
@@ -488,7 +490,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="人民币 应付(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>人民币 应付(含税)</span>}
                   value={statistics.cnyPay}
                   readOnly
                   style={{ fontWeight: 500 }}
@@ -496,7 +498,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="人民币 毛利(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>人民币 毛利(含税)</span>}
                   value={statistics.cnyProfit}
                   readOnly
                   style={{
@@ -511,7 +513,7 @@ export default function FinanceFeeDetailPage() {
               {/* 本币含税 */}
               <Col span={6}>
                 <Input
-                  addonBefore="本币 应收(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 应收(含税)</span>}
                   value={statistics.baseRec}
                   readOnly
                   style={{ fontWeight: 600, color: '#1677ff' }}
@@ -519,7 +521,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="本币 应付(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 应付(含税)</span>}
                   value={statistics.basePay}
                   readOnly
                   style={{ fontWeight: 600, color: '#fa8c16' }}
@@ -527,7 +529,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="本币 毛利(含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 毛利(含税)</span>}
                   value={statistics.baseProfit}
                   readOnly
                   style={{
@@ -539,7 +541,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="含税毛利率"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>含税毛利率</span>}
                   value={statistics.taxMarginRate}
                   readOnly
                   style={{ fontWeight: 600 }}
@@ -549,21 +551,21 @@ export default function FinanceFeeDetailPage() {
               {/* 本币不含税 */}
               <Col span={6}>
                 <Input
-                  addonBefore="本币 应收(不含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 应收(不含税)</span>}
                   value={statistics.baseRecNet}
                   readOnly
                 />
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="本币 应付(不含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 应付(不含税)</span>}
                   value={statistics.basePayNet}
                   readOnly
                 />
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="本币 毛利(不含税)"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>本币 毛利(不含税)</span>}
                   value={statistics.baseProfitNet}
                   readOnly
                   style={{
@@ -577,7 +579,7 @@ export default function FinanceFeeDetailPage() {
               </Col>
               <Col span={6}>
                 <Input
-                  addonBefore="不含税毛利率"
+                  prefix={<span style={{ color: '#8c8c8c', fontSize: 12, marginRight: 6 }}>不含税毛利率</span>}
                   value={statistics.netMarginRate}
                   readOnly
                 />

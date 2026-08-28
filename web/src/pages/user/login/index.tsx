@@ -260,7 +260,7 @@ export default function Login() {
                 disabled={loading}
                 className={styles.submitButton}
                 icon={loading ? <LoadingOutlined /> : <ArrowRightOutlined />}
-                iconPosition="end"
+                iconPlacement="end"
               >
                 {loading ? '登录中...' : '登录'}
               </Button>
@@ -314,7 +314,7 @@ export default function Login() {
           setWecomAuthUrl('');
         }}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
         centered
         width={380}
         title={null}

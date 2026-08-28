@@ -9,6 +9,7 @@ import { TagsView } from '@/components/layout/TagsView';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
+import { AppFeedbackBridge } from '@/utils/appFeedback';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
@@ -120,6 +121,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   unAccessible: <Result status="403" title="403" subTitle="无权访问此页面" />,
   childrenRender: (children) => (
     <div className="roncin-layout-wrapper">
+      <AppFeedbackBridge />
       <TagsView />
       <div className="roncin-layout-main">{children}</div>
     </div>

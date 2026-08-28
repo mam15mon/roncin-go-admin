@@ -74,7 +74,7 @@ export default function InterestRuleModal({
     >
       <Col span={24}>
         <Alert
-          message="利息规则将在财务对账逾期时自动计算滞纳金与违约金"
+          title="利息规则将在财务对账逾期时自动计算滞纳金与违约金"
           type="info"
           showIcon
           style={{ marginBottom: 16 }}

@@ -704,7 +704,7 @@ export default function OrderListPage() {
       width: 140,
       render: (_, record) =>
         record.releaseType ? (
-          <Tag color="geekblue" bordered={false}>
+          <Tag color="geekblue" variant="filled">
             {formatHouseReleaseType(record.releaseType)}
           </Tag>
         ) : (
@@ -728,7 +728,7 @@ export default function OrderListPage() {
                   ? 'processing'
                   : 'default'
             }
-            bordered={false}
+            variant="filled"
           >
             {shippingDocumentStatusValueEnum[record.status]?.text}
           </Tag>
@@ -1031,7 +1031,7 @@ export default function OrderListPage() {
       render: (_, record) =>
         record.role !== undefined &&
         orderPersonnelRoleValueEnum[record.role] ? (
-          <Tag color="blue" bordered={false}>
+          <Tag color="blue" variant="filled">
             {orderPersonnelRoleValueEnum[record.role]?.text}
           </Tag>
         ) : (
@@ -1083,7 +1083,7 @@ export default function OrderListPage() {
       dataIndex: 'docType',
       width: 140,
       render: (type) => (
-        <Tag color="geekblue" bordered={false}>
+        <Tag color="geekblue" variant="filled">
           {type}
         </Tag>
       ),
@@ -1135,7 +1135,7 @@ export default function OrderListPage() {
       dataIndex: 'type',
       width: 160,
       render: (_, record) => (
-        <Tag color="blue" bordered={false}>
+        <Tag color="blue" variant="filled">
           {record.type || '-'}
         </Tag>
       ),
@@ -1628,7 +1628,7 @@ export default function OrderListPage() {
           setMilestoneDrawerOpen(false);
           setMilestoneOrder(undefined);
         }}
-        width={860}
+        size={860}
         destroyOnHidden
       >
         {milestoneOrder?.id && (
@@ -1739,7 +1739,7 @@ export default function OrderListPage() {
           setAttachmentDrawerOpen(false);
           setAttachmentOrder(undefined);
         }}
-        width={920}
+        size={920}
         destroyOnHidden
       >
         {attachmentOrder?.id && (
@@ -1809,7 +1809,7 @@ export default function OrderListPage() {
         <Alert
           type="info"
           showIcon
-          message="此处登记外部对象存储引用与元数据，不直接进行二进制文件上传。"
+          title="此处登记外部对象存储引用与元数据，不直接进行二进制文件上传。"
           style={{ marginBottom: 16 }}
         />
         <ProFormText
@@ -1868,7 +1868,7 @@ export default function OrderListPage() {
           setPersonnelDrawerOpen(false);
           setPersonnelOrder(undefined);
         }}
-        width={820}
+        size={820}
         destroyOnHidden
       >
         {personnelOrder?.id && (
@@ -1965,7 +1965,7 @@ export default function OrderListPage() {
           setContainerOrder(undefined);
           setContainerDocuments([]);
         }}
-        width={920}
+        size={920}
         destroyOnHidden
       >
         {containerOrder?.id && (
@@ -2125,7 +2125,7 @@ export default function OrderListPage() {
           setConsolidationDrawerOpen(false);
           setConsolidationOrder(undefined);
         }}
-        width={1080}
+        size={1080}
         destroyOnHidden
       >
         {consolidationOrder?.id && (
@@ -2209,7 +2209,7 @@ export default function OrderListPage() {
           setCargoDrawerOpen(false);
           setCargoOrder(undefined);
         }}
-        width={920}
+        size={920}
         destroyOnHidden
       >
         {cargoOrder?.id && (
@@ -2370,7 +2370,7 @@ export default function OrderListPage() {
           setShippingDocumentDrawerOpen(false);
           setShippingDocumentOrder(undefined);
         }}
-        width={920}
+        size={920}
         destroyOnHidden
       >
         {shippingDocumentOrder?.id && (
