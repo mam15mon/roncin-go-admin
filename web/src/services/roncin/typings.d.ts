@@ -1285,8 +1285,14 @@ declare namespace API {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: CurrentUser;
+    data?: DingTalkLoginResult;
     traceId?: string;
+  };
+
+  type DingTalkLoginResult = {
+    status?: number;
+    currentUser?: CurrentUser;
+    displayName?: string;
   };
 
   type DingTalkRegistration = {
@@ -1867,14 +1873,6 @@ declare namespace API {
   };
 
   type GetDingTalkLoginConfigResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: DingTalkLoginConfig;
-    traceId?: string;
-  };
-
-  type GetDingTalkRegistrationConfigResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -3831,10 +3829,7 @@ declare namespace API {
     traceId?: string;
   };
 
-  type RegisterDingTalkUserRequest = {
-    authCode: string;
-    state: string;
-  };
+  type RegisterDingTalkUserRequest = {};
 
   type RegisterDingTalkUserResponse = {
     success?: boolean;

@@ -787,26 +787,6 @@
         }
       }
     },
-    "/api/v1/auth/dingtalk/registration-config": {
-      "get": {
-        "tags": [
-          "AuthService"
-        ],
-        "operationId": "AuthService_GetDingTalkRegistrationConfig",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/auth.v1.GetDingTalkRegistrationConfigResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/auth/dingtalk/registrations": {
       "post": {
         "tags": [
@@ -9040,9 +9020,24 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+            "$ref": "#/components/schemas/auth.v1.DingTalkLoginResult"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.DingTalkLoginResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "currentUser": {
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+          },
+          "displayName": {
             "type": "string"
           }
         }
@@ -9059,27 +9054,6 @@
         }
       },
       "auth.v1.GetDingTalkLoginConfigResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/auth.v1.DingTalkLoginConfig"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "auth.v1.GetDingTalkRegistrationConfigResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -9218,19 +9192,8 @@
         }
       },
       "auth.v1.RegisterDingTalkUserRequest": {
-        "required": [
-          "authCode",
-          "state"
-        ],
         "type": "object",
-        "properties": {
-          "authCode": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string"
-          }
-        }
+        "properties": {}
       },
       "auth.v1.RegisterDingTalkUserResponse": {
         "type": "object",

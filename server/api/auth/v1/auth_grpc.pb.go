@@ -19,16 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName                         = "/auth.v1.AuthService/Login"
-	AuthService_GetWeComLoginConfig_FullMethodName           = "/auth.v1.AuthService/GetWeComLoginConfig"
-	AuthService_WeComLogin_FullMethodName                    = "/auth.v1.AuthService/WeComLogin"
-	AuthService_GetDingTalkLoginConfig_FullMethodName        = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-	AuthService_DingTalkLogin_FullMethodName                 = "/auth.v1.AuthService/DingTalkLogin"
-	AuthService_GetDingTalkRegistrationConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkRegistrationConfig"
-	AuthService_RegisterDingTalkUser_FullMethodName          = "/auth.v1.AuthService/RegisterDingTalkUser"
-	AuthService_Logout_FullMethodName                        = "/auth.v1.AuthService/Logout"
-	AuthService_Me_FullMethodName                            = "/auth.v1.AuthService/Me"
-	AuthService_SwitchOrganization_FullMethodName            = "/auth.v1.AuthService/SwitchOrganization"
+	AuthService_Login_FullMethodName                  = "/auth.v1.AuthService/Login"
+	AuthService_GetWeComLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetWeComLoginConfig"
+	AuthService_WeComLogin_FullMethodName             = "/auth.v1.AuthService/WeComLogin"
+	AuthService_GetDingTalkLoginConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkLoginConfig"
+	AuthService_DingTalkLogin_FullMethodName          = "/auth.v1.AuthService/DingTalkLogin"
+	AuthService_RegisterDingTalkUser_FullMethodName   = "/auth.v1.AuthService/RegisterDingTalkUser"
+	AuthService_Logout_FullMethodName                 = "/auth.v1.AuthService/Logout"
+	AuthService_Me_FullMethodName                     = "/auth.v1.AuthService/Me"
+	AuthService_SwitchOrganization_FullMethodName     = "/auth.v1.AuthService/SwitchOrganization"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -42,7 +41,6 @@ type AuthServiceClient interface {
 	WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*WeComLoginResponse, error)
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
-	GetDingTalkRegistrationConfig(ctx context.Context, in *GetDingTalkRegistrationConfigRequest, opts ...grpc.CallOption) (*GetDingTalkRegistrationConfigResponse, error)
 	RegisterDingTalkUser(ctx context.Context, in *RegisterDingTalkUserRequest, opts ...grpc.CallOption) (*RegisterDingTalkUserResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error)
@@ -107,16 +105,6 @@ func (c *authServiceClient) DingTalkLogin(ctx context.Context, in *DingTalkLogin
 	return out, nil
 }
 
-func (c *authServiceClient) GetDingTalkRegistrationConfig(ctx context.Context, in *GetDingTalkRegistrationConfigRequest, opts ...grpc.CallOption) (*GetDingTalkRegistrationConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetDingTalkRegistrationConfigResponse)
-	err := c.cc.Invoke(ctx, AuthService_GetDingTalkRegistrationConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *authServiceClient) RegisterDingTalkUser(ctx context.Context, in *RegisterDingTalkUserRequest, opts ...grpc.CallOption) (*RegisterDingTalkUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RegisterDingTalkUserResponse)
@@ -168,7 +156,6 @@ type AuthServiceServer interface {
 	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
-	GetDingTalkRegistrationConfig(context.Context, *GetDingTalkRegistrationConfigRequest) (*GetDingTalkRegistrationConfigResponse, error)
 	RegisterDingTalkUser(context.Context, *RegisterDingTalkUserRequest) (*RegisterDingTalkUserResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
@@ -197,9 +184,6 @@ func (UnimplementedAuthServiceServer) GetDingTalkLoginConfig(context.Context, *G
 }
 func (UnimplementedAuthServiceServer) DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DingTalkLogin not implemented")
-}
-func (UnimplementedAuthServiceServer) GetDingTalkRegistrationConfig(context.Context, *GetDingTalkRegistrationConfigRequest) (*GetDingTalkRegistrationConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDingTalkRegistrationConfig not implemented")
 }
 func (UnimplementedAuthServiceServer) RegisterDingTalkUser(context.Context, *RegisterDingTalkUserRequest) (*RegisterDingTalkUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterDingTalkUser not implemented")
@@ -324,24 +308,6 @@ func _AuthService_DingTalkLogin_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_GetDingTalkRegistrationConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDingTalkRegistrationConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).GetDingTalkRegistrationConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_GetDingTalkRegistrationConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetDingTalkRegistrationConfig(ctx, req.(*GetDingTalkRegistrationConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AuthService_RegisterDingTalkUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterDingTalkUserRequest)
 	if err := dec(in); err != nil {
@@ -440,10 +406,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DingTalkLogin",
 			Handler:    _AuthService_DingTalkLogin_Handler,
-		},
-		{
-			MethodName: "GetDingTalkRegistrationConfig",
-			Handler:    _AuthService_GetDingTalkRegistrationConfig_Handler,
 		},
 		{
 			MethodName: "RegisterDingTalkUser",

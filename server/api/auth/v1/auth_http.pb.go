@@ -19,7 +19,6 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationAuthServiceDingTalkLogin = "/auth.v1.AuthService/DingTalkLogin"
 const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-const OperationAuthServiceGetDingTalkRegistrationConfig = "/auth.v1.AuthService/GetDingTalkRegistrationConfig"
 const OperationAuthServiceGetWeComLoginConfig = "/auth.v1.AuthService/GetWeComLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
@@ -31,7 +30,6 @@ const OperationAuthServiceWeComLogin = "/auth.v1.AuthService/WeComLogin"
 type AuthServiceHTTPServer interface {
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
-	GetDingTalkRegistrationConfig(context.Context, *GetDingTalkRegistrationConfigRequest) (*GetDingTalkRegistrationConfigResponse, error)
 	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
@@ -48,7 +46,6 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.Handle("POST", "/api/v1/auth/wecom/login", _AuthService_WeComLogin0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/auth/dingtalk/registration-config", _AuthService_GetDingTalkRegistrationConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/registrations", _AuthService_RegisterDingTalkUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/me", _AuthService_Me0_HTTP_Handler(srv))
@@ -150,25 +147,6 @@ func _AuthService_DingTalkLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ct
 	}
 }
 
-func _AuthService_GetDingTalkRegistrationConfig0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetDingTalkRegistrationConfigRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServiceGetDingTalkRegistrationConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDingTalkRegistrationConfig(ctx, req.(*GetDingTalkRegistrationConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetDingTalkRegistrationConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _AuthService_RegisterDingTalkUser0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in RegisterDingTalkUserRequest
@@ -248,7 +226,6 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 type AuthServiceHTTPClient interface {
 	DingTalkLogin(ctx context.Context, req *DingTalkLoginRequest, opts ...http.CallOption) (rsp *DingTalkLoginResponse, err error)
 	GetDingTalkLoginConfig(ctx context.Context, req *GetDingTalkLoginConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkLoginConfigResponse, err error)
-	GetDingTalkRegistrationConfig(ctx context.Context, req *GetDingTalkRegistrationConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkRegistrationConfigResponse, err error)
 	GetWeComLoginConfig(ctx context.Context, req *GetWeComLoginConfigRequest, opts ...http.CallOption) (rsp *GetWeComLoginConfigResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
@@ -290,22 +267,6 @@ func (c *AuthServiceHTTPClientImpl) GetDingTalkLoginConfig(ctx context.Context, 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAuthServiceGetDingTalkLoginConfig),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *AuthServiceHTTPClientImpl) GetDingTalkRegistrationConfig(ctx context.Context, in *GetDingTalkRegistrationConfigRequest, opts ...http.CallOption) (*GetDingTalkRegistrationConfigResponse, error) {
-	var out GetDingTalkRegistrationConfigResponse
-	pattern := "/api/v1/auth/dingtalk/registration-config"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationAuthServiceGetDingTalkRegistrationConfig),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

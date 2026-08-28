@@ -23,7 +23,9 @@ import (
 // ProviderSet is data providers.
 var dingTalkProviderSet = wire.NewSet(
 	NewDingTalkIdentityProvider,
+	NewDingTalkRegistrationTokenCodec,
 	wire.Bind(new(biz.DingTalkIdentityProvider), new(*dingTalkIdentityProvider)),
+	wire.Bind(new(biz.DingTalkRegistrationTokenCodec), new(*dingTalkRegistrationTokenCodec)),
 	wire.Bind(new(biz.DingTalkNotificationSender), new(*dingTalkIdentityProvider)),
 )
 

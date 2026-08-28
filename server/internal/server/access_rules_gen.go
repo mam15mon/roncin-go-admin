@@ -30,7 +30,6 @@ var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/UpdateUserMembership":                             {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeAll},
 	"/auth.v1.AuthService/DingTalkLogin":                                      {mode: accessModePublic},
 	"/auth.v1.AuthService/GetDingTalkLoginConfig":                             {mode: accessModePublic},
-	"/auth.v1.AuthService/GetDingTalkRegistrationConfig":                      {mode: accessModePublic},
 	"/auth.v1.AuthService/GetWeComLoginConfig":                                {mode: accessModePublic},
 	"/auth.v1.AuthService/Login":                                              {mode: accessModePublic},
 	"/auth.v1.AuthService/Logout":                                             {mode: accessModeAuthenticated},

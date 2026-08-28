@@ -36,6 +36,7 @@ security:
     client_secret: ${DINGTALK_CLIENT_SECRET:}
     redirect_uri: ${DINGTALK_REDIRECT_URI:}
     corp_id: ${DINGTALK_CORP_ID:}
+    registration_token_secret: ${DINGTALK_REGISTRATION_TOKEN_SECRET:}
 telemetry:
   enabled: ${OTEL_ENABLED:false}
   endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:127.0.0.1:4317}

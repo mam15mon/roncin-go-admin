@@ -84,6 +84,7 @@ message Security {
     string client_secret = 3;
     string redirect_uri = 4;
     string corp_id = 5;
+    string registration_token_secret = 6;
   }
   Session session = 1;
   WeCom wecom = 2;

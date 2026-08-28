@@ -84,7 +84,7 @@ func (s *wecomAuthRepoStub) WriteAudit(_ context.Context, event *AuditEvent) err
 }
 
 func TestAuthUsecaseStartWeComLogin(t *testing.T) {
-	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{enabled: true}, &dingTalkProviderStub{})
+	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{enabled: true}, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{})
 	enabled, authorizeURL, state, expiresAt, err := usecase.StartWeComLogin()
 	if err != nil {
 		t.Fatalf("StartWeComLogin() error = %v", err)
@@ -102,7 +102,7 @@ func TestAuthUsecaseWeComFirstLoginWaitsForAuthorization(t *testing.T) {
 		created:    true,
 	}
 	provider := &wecomProviderStub{enabled: true, identity: &WeComIdentity{UserID: "zhangsan", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{})
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{})
 
 	_, _, _, err := usecase.LoginWeCom(context.Background(), "code", "state", "state", "test")
 	if err != ErrWeComAuthorizationPending {
@@ -123,7 +123,7 @@ func TestAuthUsecaseWeComAuthorizedLoginCreatesSession(t *testing.T) {
 		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
 	}
 	provider := &wecomProviderStub{enabled: true, identity: &WeComIdentity{UserID: "zhangsan", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{})
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{})
 
 	_, _, _, err := usecase.LoginWeCom(context.Background(), "code", "state", "state", "test")
 	if err != nil {

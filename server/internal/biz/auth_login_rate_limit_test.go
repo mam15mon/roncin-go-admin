@@ -57,7 +57,7 @@ func (s *loginRateLimitRepoStub) ClearLoginFailures(_ context.Context, keyHash s
 }
 
 func newLoginRateLimitUsecase(repo AuthRepo) *AuthUsecase {
-	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{})
+	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{})
 }
 
 func TestAuthUsecaseLoginRateLimitsSixthFailure(t *testing.T) {

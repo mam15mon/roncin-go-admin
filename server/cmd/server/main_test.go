@@ -25,6 +25,7 @@ const dingtalkConfig = `security:
     client_id: ${DINGTALK_CLIENT_ID:}
     client_secret: ${DINGTALK_CLIENT_SECRET:}
     redirect_uri: ${DINGTALK_REDIRECT_URI:}
+    registration_token_secret: ${DINGTALK_REGISTRATION_TOKEN_SECRET:}
 `
 
 func TestNewRuntimeConfigResolvesWeComEnvironment(t *testing.T) {
@@ -58,6 +59,7 @@ func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 	t.Setenv("DINGTALK_CLIENT_ID", "test-client")
 	t.Setenv("DINGTALK_CLIENT_SECRET", "test-secret")
 	t.Setenv("DINGTALK_REDIRECT_URI", "http://127.0.0.1:8001/user/login/dingtalk/callback")
+	t.Setenv("DINGTALK_REGISTRATION_TOKEN_SECRET", "test-registration-token-secret-32-bytes")
 
 	dingtalk := loadDingTalkConfig(t)
 	if !dingtalk.Enabled {
@@ -65,6 +67,9 @@ func TestNewRuntimeConfigResolvesDingTalkEnvironment(t *testing.T) {
 	}
 	if dingtalk.CorpId != "ding-test-corp" || dingtalk.ClientId != "test-client" || dingtalk.ClientSecret != "test-secret" {
 		t.Fatal("钉钉环境变量未完整注入")
+	}
+	if dingtalk.RegistrationTokenSecret != "test-registration-token-secret-32-bytes" {
+		t.Fatal("钉钉注册凭证密钥未注入")
 	}
 }
 

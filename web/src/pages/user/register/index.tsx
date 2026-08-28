@@ -7,7 +7,7 @@ import {
 import { Helmet, Link } from '@umijs/max';
 import { Alert, App, Button, Steps } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { authServiceGetDingTalkRegistrationConfig } from '@/services/roncin/authService';
+import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import styles from '../login/index.module.less';
 
@@ -17,7 +17,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    authServiceGetDingTalkRegistrationConfig({ skipErrorHandler: true })
+    authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
       .then((response) => setEnabled(response.data?.enabled ?? false))
       .catch(() => setEnabled(false));
   }, []);
@@ -25,14 +25,13 @@ export default function Register() {
   const startRegistration = async () => {
     setLoading(true);
     try {
-      const response = await authServiceGetDingTalkRegistrationConfig({
+      const response = await authServiceGetDingTalkLoginConfig({
         skipErrorHandler: true,
       });
       if (!response.data?.enabled || !response.data.authorizeUrl) {
         message.warning('钉钉注册暂未启用');
         return;
       }
-      sessionStorage.setItem('dingtalk_auth_mode', 'register');
       window.location.assign(response.data.authorizeUrl);
     } catch (error) {
       message.error(
@@ -118,7 +117,7 @@ export default function Register() {
             showIcon
             type="info"
             title="请使用本企业钉钉账号扫码"
-            description="系统会核验钉钉返回的企业标识。其他企业的账号会被拒绝，且不会生成用户或注册记录。"
+            description="系统会核验钉钉返回的人员身份和企业标识。验证通过后由您确认提交注册，无需重复扫码。"
             style={{ marginBottom: 24 }}
           />
           <Button
@@ -131,7 +130,7 @@ export default function Register() {
             className={styles.submitButton}
             onClick={startRegistration}
           >
-            {enabled ? '钉钉扫码验证并注册' : '钉钉注册暂未启用'}
+            {enabled ? '钉钉扫码确认身份' : '钉钉注册暂未启用'}
           </Button>
           <div
             style={{

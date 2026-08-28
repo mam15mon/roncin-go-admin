@@ -116,7 +116,6 @@ export default function Login() {
       const redirect = new URL(window.location.href).searchParams.get(
         'redirect',
       );
-      sessionStorage.setItem('dingtalk_auth_mode', 'login');
       sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
       window.location.assign(response.data.authorizeUrl);
     } catch (error) {

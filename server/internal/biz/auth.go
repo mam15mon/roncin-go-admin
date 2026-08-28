@@ -37,7 +37,8 @@ var (
 	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉验证状态已失效，请重新扫码")
 	ErrDingTalkAuthorizationPending = errors.Forbidden("AUTH_DINGTALK_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 	ErrDingTalkOrganizationMismatch = errors.Forbidden("AUTH_DINGTALK_ORGANIZATION_MISMATCH", "当前钉钉账号不属于本企业，无法继续注册")
-	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "当前人员尚未注册，请先完成钉钉扫码注册")
+	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "当前人员尚未登记")
+	ErrDingTalkRegistrationExpired  = errors.Unauthorized("AUTH_DINGTALK_REGISTRATION_EXPIRED", "钉钉身份确认已过期，请重新扫码")
 	ErrDingTalkAlreadyRegistered    = errors.Conflict("AUTH_DINGTALK_ALREADY_REGISTERED", "该钉钉账号已完成注册，请直接登录")
 )
 
@@ -97,6 +98,28 @@ type DingTalkIdentityProvider interface {
 	Enabled() bool
 	AuthorizeURL(string) (string, error)
 	ResolveIdentity(context.Context, string) (*DingTalkIdentity, error)
+}
+
+type DingTalkRegistrationTokenCodec interface {
+	Seal(*DingTalkIdentity, time.Time) (string, error)
+	Open(string, time.Time) (*DingTalkIdentity, error)
+}
+
+type DingTalkLoginStatus string
+
+const (
+	DingTalkLoginStatusAuthenticated        DingTalkLoginStatus = "AUTHENTICATED"
+	DingTalkLoginStatusRegistrationRequired DingTalkLoginStatus = "REGISTRATION_REQUIRED"
+)
+
+type DingTalkLoginResult struct {
+	Status                DingTalkLoginStatus
+	Principal             *Principal
+	SessionToken          string
+	SessionExpiresAt      time.Time
+	DisplayName           string
+	RegistrationToken     string
+	RegistrationExpiresAt time.Time
 }
 
 type Principal struct {
@@ -262,19 +285,21 @@ func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
 }
 
 type AuthUsecase struct {
-	repo     AuthRepo
-	policy   *SessionPolicy
-	wecom    WeComIdentityProvider
-	dingtalk DingTalkIdentityProvider
+	repo                       AuthRepo
+	policy                     *SessionPolicy
+	wecom                      WeComIdentityProvider
+	dingtalk                   DingTalkIdentityProvider
+	dingTalkRegistrationTokens DingTalkRegistrationTokenCodec
 }
 
-func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider, dingtalk DingTalkIdentityProvider) *AuthUsecase {
-	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom, dingtalk: dingtalk}
+func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider, dingtalk DingTalkIdentityProvider, dingTalkRegistrationTokens DingTalkRegistrationTokenCodec) *AuthUsecase {
+	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom, dingtalk: dingtalk, dingTalkRegistrationTokens: dingTalkRegistrationTokens}
 }
 
 const (
-	loginRateLimitWindow      = time.Minute
-	loginRateLimitMaxFailures = 5
+	loginRateLimitWindow              = time.Minute
+	loginRateLimitMaxFailures         = 5
+	dingTalkRegistrationTokenLifetime = 5 * time.Minute
 )
 
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userAgent, ipAddress string) (string, *Principal, time.Time, error) {
@@ -398,31 +423,7 @@ func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, er
 	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
 }
 
-func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expectedState, userAgent string) (string, *Principal, time.Time, error) {
-	if !uc.dingtalk.Enabled() {
-		return "", nil, time.Time{}, ErrDingTalkDisabled
-	}
-	authCode = strings.TrimSpace(authCode)
-	state = strings.TrimSpace(state)
-	expectedState = strings.TrimSpace(expectedState)
-	if authCode == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
-		return "", nil, time.Time{}, ErrDingTalkStateInvalid
-	}
-	identity, err := uc.dingtalk.ResolveIdentity(ctx, authCode)
-	if err != nil {
-		return "", nil, time.Time{}, err
-	}
-	credential, err := uc.repo.FindDingTalkCredential(ctx, identity)
-	if err != nil {
-		return "", nil, time.Time{}, err
-	}
-	if !credential.Enabled {
-		return "", nil, time.Time{}, ErrDingTalkAuthorizationPending
-	}
-	return uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login")
-}
-
-func (uc *AuthUsecase) RegisterDingTalk(ctx context.Context, authCode, state, expectedState string) (*DingTalkRegistration, error) {
+func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expectedState, userAgent string) (*DingTalkLoginResult, error) {
 	if !uc.dingtalk.Enabled() {
 		return nil, ErrDingTalkDisabled
 	}
@@ -433,6 +434,41 @@ func (uc *AuthUsecase) RegisterDingTalk(ctx context.Context, authCode, state, ex
 		return nil, ErrDingTalkStateInvalid
 	}
 	identity, err := uc.dingtalk.ResolveIdentity(ctx, authCode)
+	if err != nil {
+		return nil, err
+	}
+	credential, err := uc.repo.FindDingTalkCredential(ctx, identity)
+	if err != nil {
+		if !stderrors.Is(err, ErrDingTalkNotRegistered) {
+			return nil, err
+		}
+		expiresAt := time.Now().UTC().Add(dingTalkRegistrationTokenLifetime)
+		registrationToken, sealErr := uc.dingTalkRegistrationTokens.Seal(identity, expiresAt)
+		if sealErr != nil {
+			return nil, sealErr
+		}
+		return &DingTalkLoginResult{
+			Status:                DingTalkLoginStatusRegistrationRequired,
+			DisplayName:           identity.Name,
+			RegistrationToken:     registrationToken,
+			RegistrationExpiresAt: expiresAt,
+		}, nil
+	}
+	if !credential.Enabled {
+		return nil, ErrDingTalkAuthorizationPending
+	}
+	token, principal, expiresAt, err := uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login")
+	if err != nil {
+		return nil, err
+	}
+	return &DingTalkLoginResult{Status: DingTalkLoginStatusAuthenticated, Principal: principal, SessionToken: token, SessionExpiresAt: expiresAt}, nil
+}
+
+func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registrationToken string) (*DingTalkRegistration, error) {
+	if !uc.dingtalk.Enabled() {
+		return nil, ErrDingTalkDisabled
+	}
+	identity, err := uc.dingTalkRegistrationTokens.Open(strings.TrimSpace(registrationToken), time.Now().UTC())
 	if err != nil {
 		return nil, err
 	}

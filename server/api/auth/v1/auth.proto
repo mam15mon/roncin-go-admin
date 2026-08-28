@@ -44,11 +44,6 @@ service AuthService {
     };
   }
 
-  rpc GetDingTalkRegistrationConfig(GetDingTalkRegistrationConfigRequest) returns (GetDingTalkRegistrationConfigResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
-    option (google.api.http) = {get: "/api/v1/auth/dingtalk/registration-config"};
-  }
-
   rpc RegisterDingTalkUser(RegisterDingTalkUserRequest) returns (RegisterDingTalkUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {
@@ -94,10 +89,7 @@ message DingTalkLoginRequest {
   string state = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-message RegisterDingTalkUserRequest {
-  string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
-  string state = 2 [(google.api.field_behavior) = REQUIRED];
-}
+message RegisterDingTalkUserRequest {}
 
 message GetWeComLoginConfigResponse {
   bool success = 1;
@@ -125,14 +117,6 @@ message DingTalkLoginConfig {
   optional string authorize_url = 2;
 }
 
-message GetDingTalkRegistrationConfigResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  DingTalkLoginConfig data = 4;
-  string trace_id = 5;
-}
-
 message SwitchOrganizationRequest {
   string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
@@ -157,8 +141,20 @@ message DingTalkLoginResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  CurrentUser data = 4;
+  DingTalkLoginResult data = 4;
   string trace_id = 5;
+}
+
+enum DingTalkLoginStatus {
+  DING_TALK_LOGIN_STATUS_UNSPECIFIED = 0;
+  DING_TALK_LOGIN_STATUS_AUTHENTICATED = 1;
+  DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED = 2;
+}
+
+message DingTalkLoginResult {
+  DingTalkLoginStatus status = 1;
+  optional CurrentUser current_user = 2;
+  optional string display_name = 3;
 }
 
 message RegisterDingTalkUserResponse {
@@ -224,8 +220,6 @@ message RoleScope {
 message GetWeComLoginConfigRequest {}
 
 message GetDingTalkLoginConfigRequest {}
-
-message GetDingTalkRegistrationConfigRequest {}
 
 message LogoutRequest {}
 

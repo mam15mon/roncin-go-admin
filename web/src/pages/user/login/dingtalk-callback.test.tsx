@@ -1,11 +1,12 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DingTalkCallback from './dingtalk-callback';
 
-const { dingTalkLogin } = vi.hoisted(() => ({
+const { dingTalkLogin, registerDingTalkUser } = vi.hoisted(() => ({
   dingTalkLogin: vi.fn(),
+  registerDingTalkUser: vi.fn(),
 }));
 
 vi.mock('@umijs/max', () => ({
@@ -15,7 +16,7 @@ vi.mock('@umijs/max', () => ({
 
 vi.mock('@/services/roncin/authService', () => ({
   authServiceDingTalkLogin: dingTalkLogin,
-  authServiceRegisterDingTalkUser: vi.fn(),
+  authServiceRegisterDingTalkUser: registerDingTalkUser,
 }));
 
 describe('DingTalkCallback', () => {
@@ -33,12 +34,15 @@ describe('DingTalkCallback', () => {
     vi.clearAllMocks();
   });
 
-  it('人员未注册时提供注册入口和返回登录操作', async () => {
-    dingTalkLogin.mockRejectedValueOnce({
+  it('一次身份验证后由人员确认注册，不再重复扫码', async () => {
+    dingTalkLogin.mockResolvedValueOnce({
       data: {
-        message: '当前人员尚未注册，请先完成钉钉扫码注册',
-        reason: 'AUTH_DINGTALK_NOT_REGISTERED',
+        status: 2,
+        displayName: '张三',
       },
+    });
+    registerDingTalkUser.mockResolvedValueOnce({
+      data: { displayName: '张三', status: 'PENDING' },
     });
 
     render(
@@ -47,10 +51,15 @@ describe('DingTalkCallback', () => {
       </App>,
     );
 
-    expect(await screen.findByText('前往注册')).toBeInTheDocument();
-    expect(screen.getByText('返回登录')).toBeInTheDocument();
-    expect(
-      screen.getByText('当前人员尚未注册，请先完成钉钉扫码注册'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('确认注册')).toBeInTheDocument();
+    expect(screen.getByText(/已确认 张三 属于本企业/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('确认注册'));
+
+    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
+    expect(registerDingTalkUser).toHaveBeenCalledWith(
+      {},
+      { skipErrorHandler: true },
+    );
   });
 });

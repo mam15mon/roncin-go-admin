@@ -74,6 +74,7 @@ func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingT
 	if enabled {
 		config.AuthorizeUrl = &authorizeURL
 		s.setCookieNamed(ctx, s.dingTalkStateCookieName(), state, expiresAt, 300)
+		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
 	}
 	return &v1.GetDingTalkLoginConfigResponse{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
 }
@@ -86,37 +87,36 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 		expectedState = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkStateCookieName())
 	}
 	s.setCookieNamed(ctx, s.dingTalkStateCookieName(), "", time.Unix(1, 0), -1)
-	token, principal, expiresAt, err := s.usecase.LoginDingTalk(ctx, request.GetAuthCode(), request.GetState(), expectedState, userAgent)
+	result, err := s.usecase.LoginDingTalk(ctx, request.GetAuthCode(), request.GetState(), expectedState, userAgent)
 	if err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, token, expiresAt, 0)
-	return &v1.DingTalkLoginResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	data := &v1.DingTalkLoginResult{}
+	switch result.Status {
+	case biz.DingTalkLoginStatusAuthenticated:
+		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_AUTHENTICATED
+		data.CurrentUser = principalToAPI(result.Principal)
+		s.setCookie(ctx, result.SessionToken, result.SessionExpiresAt, 0)
+	case biz.DingTalkLoginStatusRegistrationRequired:
+		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED
+		data.DisplayName = &result.DisplayName
+		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), result.RegistrationToken, result.RegistrationExpiresAt, 300)
+	default:
+		return nil, biz.ErrDingTalkLoginFailed
+	}
+	return &v1.DingTalkLoginResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *AuthService) GetDingTalkRegistrationConfig(ctx context.Context, _ *v1.GetDingTalkRegistrationConfigRequest) (*v1.GetDingTalkRegistrationConfigResponse, error) {
-	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
-	if err != nil {
-		return nil, err
-	}
-	config := &v1.DingTalkLoginConfig{Enabled: enabled}
-	if enabled {
-		config.AuthorizeUrl = &authorizeURL
-		s.setCookieNamed(ctx, s.dingTalkRegistrationStateCookieName(), state, expiresAt, 300)
-	}
-	return &v1.GetDingTalkRegistrationConfigResponse{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
-}
-
-func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
-	expectedState := ""
+func (s *AuthService) RegisterDingTalkUser(ctx context.Context, _ *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
+	registrationToken := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
-		expectedState = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkRegistrationStateCookieName())
+		registrationToken = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkRegistrationTokenCookieName())
 	}
-	s.setCookieNamed(ctx, s.dingTalkRegistrationStateCookieName(), "", time.Unix(1, 0), -1)
-	registration, err := s.usecase.RegisterDingTalk(ctx, request.GetAuthCode(), request.GetState(), expectedState)
+	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken)
 	if err != nil {
 		return nil, err
 	}
+	s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
 	return &v1.RegisterDingTalkUserResponse{
 		Success: true,
 		Code:    0,
@@ -179,8 +179,8 @@ func (s *AuthService) dingTalkStateCookieName() string {
 	return s.policy.CookieName + "_dingtalk_state"
 }
 
-func (s *AuthService) dingTalkRegistrationStateCookieName() string {
-	return s.policy.CookieName + "_dingtalk_registration_state"
+func (s *AuthService) dingTalkRegistrationTokenCookieName() string {
+	return s.policy.CookieName + "_dingtalk_registration"
 }
 
 func cookieValue(rawHeader, name string) string {
