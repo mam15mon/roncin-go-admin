@@ -65,6 +65,23 @@ func backgroundTaskRows(id, orgID uuid.UUID, kind, status string, attempts, maxA
 	return rows
 }
 
+func TestBackgroundTaskToBizIncludesNotificationRecipient(t *testing.T) {
+	recipientDisplayName := "张冠楠"
+	value := backgroundTaskToBiz(&ent.BackgroundTask{
+		Edges: ent.BackgroundTaskEdges{
+			NotificationDelivery: &ent.NotificationDelivery{
+				Edges: ent.NotificationDeliveryEdges{
+					RecipientUser: &ent.User{DisplayName: recipientDisplayName},
+				},
+			},
+		},
+	})
+
+	if value.RecipientDisplayName == nil || *value.RecipientDisplayName != recipientDisplayName {
+		t.Fatalf("expected recipient display name %q, got %v", recipientDisplayName, value.RecipientDisplayName)
+	}
+}
+
 func TestBackgroundTaskRepo_Claim_ExpiredLeaseIncrementsAttempts(t *testing.T) {
 	repo, mock, cleanup := setupTestBackgroundTaskRepo(t)
 	defer cleanup()

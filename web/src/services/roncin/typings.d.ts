@@ -353,6 +353,7 @@ declare namespace API {
     lastError?: string;
     createdAt?: string;
     updatedAt?: string;
+    recipientDisplayName?: string;
   };
 
   type BackgroundTaskServiceGetBackgroundTaskParams = {

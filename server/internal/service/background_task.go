@@ -113,16 +113,17 @@ func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, reque
 // backgroundTaskToAPI 刻意不暴露租约令牌与租约到期时间，它们是内部执行凭据。
 func backgroundTaskToAPI(value *biz.BackgroundTask) *taskv1.BackgroundTask {
 	return &taskv1.BackgroundTask{
-		Id:             value.ID.String(),
-		Kind:           backgroundTaskKindToAPI(value.Kind),
-		IdempotencyKey: value.IdempotencyKey,
-		Status:         backgroundTaskStatusToAPI(value.Status),
-		Attempts:       int32(value.Attempts),
-		MaxAttempts:    int32(value.MaxAttempts),
-		NextRunAt:      value.NextRunAt.UTC().Format(time.RFC3339),
-		LastError:      value.LastError,
-		CreatedAt:      value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:      value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:                   value.ID.String(),
+		Kind:                 backgroundTaskKindToAPI(value.Kind),
+		IdempotencyKey:       value.IdempotencyKey,
+		Status:               backgroundTaskStatusToAPI(value.Status),
+		Attempts:             int32(value.Attempts),
+		MaxAttempts:          int32(value.MaxAttempts),
+		NextRunAt:            value.NextRunAt.UTC().Format(time.RFC3339),
+		LastError:            value.LastError,
+		CreatedAt:            value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:            value.UpdatedAt.UTC().Format(time.RFC3339),
+		RecipientDisplayName: value.RecipientDisplayName,
 	}
 }
 

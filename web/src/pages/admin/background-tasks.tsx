@@ -88,6 +88,18 @@ export default function BackgroundTasksPanel() {
       },
     },
     {
+      title: '通知对象',
+      dataIndex: 'recipientDisplayName',
+      width: 120,
+      search: false,
+      render: (_, record) =>
+        record.recipientDisplayName ? (
+          <Text strong>{record.recipientDisplayName}</Text>
+        ) : (
+          <Text type="secondary">-</Text>
+        ),
+    },
+    {
       title: '执行状态',
       dataIndex: 'status',
       width: 110,

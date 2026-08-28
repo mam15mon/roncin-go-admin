@@ -67,19 +67,20 @@ func (s BackgroundTaskStatus) Valid() bool {
 }
 
 type BackgroundTask struct {
-	ID             uuid.UUID
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	OrganizationID uuid.UUID
-	Kind           BackgroundTaskKind
-	IdempotencyKey string
-	Status         BackgroundTaskStatus
-	Attempts       int
-	MaxAttempts    int
-	NextRunAt      time.Time
-	LeaseToken     *string
-	LeaseExpiresAt *time.Time
-	LastError      *string
+	ID                   uuid.UUID
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	OrganizationID       uuid.UUID
+	Kind                 BackgroundTaskKind
+	IdempotencyKey       string
+	Status               BackgroundTaskStatus
+	Attempts             int
+	MaxAttempts          int
+	NextRunAt            time.Time
+	LeaseToken           *string
+	LeaseExpiresAt       *time.Time
+	LastError            *string
+	RecipientDisplayName *string
 }
 
 type BackgroundTaskListOptions struct {

@@ -279,6 +279,9 @@ func (r *backgroundTaskRepo) Get(ctx context.Context, organizationID, id uuid.UU
 			backgroundtaskent.IDEQ(id),
 			backgroundtaskent.OrganizationIDEQ(organizationID),
 		).
+		WithNotificationDelivery(func(query *ent.NotificationDeliveryQuery) {
+			query.WithRecipientUser()
+		}).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -308,6 +311,9 @@ func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID,
 		return nil, err
 	}
 	items, err := query.
+		WithNotificationDelivery(func(query *ent.NotificationDeliveryQuery) {
+			query.WithRecipientUser()
+		}).
 		Order(backgroundtaskent.ByCreatedAt(entsql.OrderDesc())).
 		Offset((options.Page - 1) * options.PageSize).
 		Limit(options.PageSize).
@@ -389,20 +395,26 @@ func backgroundTaskToBiz(item *ent.BackgroundTask) *biz.BackgroundTask {
 	if item == nil {
 		return nil
 	}
+	var recipientDisplayName *string
+	if delivery := item.Edges.NotificationDelivery; delivery != nil && delivery.Edges.RecipientUser != nil {
+		name := delivery.Edges.RecipientUser.DisplayName
+		recipientDisplayName = &name
+	}
 	return &biz.BackgroundTask{
-		ID:             item.ID,
-		CreatedAt:      item.CreatedAt,
-		UpdatedAt:      item.UpdatedAt,
-		OrganizationID: item.OrganizationID,
-		Kind:           biz.BackgroundTaskKind(item.Kind),
-		IdempotencyKey: item.IdempotencyKey,
-		Status:         biz.BackgroundTaskStatus(item.Status),
-		Attempts:       item.Attempts,
-		MaxAttempts:    item.MaxAttempts,
-		NextRunAt:      item.NextRunAt,
-		LeaseToken:     item.LeaseToken,
-		LeaseExpiresAt: item.LeaseExpiresAt,
-		LastError:      item.LastError,
+		ID:                   item.ID,
+		CreatedAt:            item.CreatedAt,
+		UpdatedAt:            item.UpdatedAt,
+		OrganizationID:       item.OrganizationID,
+		Kind:                 biz.BackgroundTaskKind(item.Kind),
+		IdempotencyKey:       item.IdempotencyKey,
+		Status:               biz.BackgroundTaskStatus(item.Status),
+		Attempts:             item.Attempts,
+		MaxAttempts:          item.MaxAttempts,
+		NextRunAt:            item.NextRunAt,
+		LeaseToken:           item.LeaseToken,
+		LeaseExpiresAt:       item.LeaseExpiresAt,
+		LastError:            item.LastError,
+		RecipientDisplayName: recipientDisplayName,
 	}
 }
 

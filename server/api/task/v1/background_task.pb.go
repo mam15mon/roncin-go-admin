@@ -143,19 +143,20 @@ func (BackgroundTaskStatus) EnumDescriptor() ([]byte, []int) {
 
 // BackgroundTask 后台任务信息，不包含租约令牌与租约到期时间。
 type BackgroundTask struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Kind           BackgroundTaskKind     `protobuf:"varint,2,opt,name=kind,proto3,enum=task.v1.BackgroundTaskKind" json:"kind,omitempty"`
-	IdempotencyKey string                 `protobuf:"bytes,3,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	Status         BackgroundTaskStatus   `protobuf:"varint,4,opt,name=status,proto3,enum=task.v1.BackgroundTaskStatus" json:"status,omitempty"`
-	Attempts       int32                  `protobuf:"varint,5,opt,name=attempts,proto3" json:"attempts,omitempty"`
-	MaxAttempts    int32                  `protobuf:"varint,6,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
-	NextRunAt      string                 `protobuf:"bytes,7,opt,name=next_run_at,json=nextRunAt,proto3" json:"next_run_at,omitempty"`
-	LastError      *string                `protobuf:"bytes,8,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind                 BackgroundTaskKind     `protobuf:"varint,2,opt,name=kind,proto3,enum=task.v1.BackgroundTaskKind" json:"kind,omitempty"`
+	IdempotencyKey       string                 `protobuf:"bytes,3,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	Status               BackgroundTaskStatus   `protobuf:"varint,4,opt,name=status,proto3,enum=task.v1.BackgroundTaskStatus" json:"status,omitempty"`
+	Attempts             int32                  `protobuf:"varint,5,opt,name=attempts,proto3" json:"attempts,omitempty"`
+	MaxAttempts          int32                  `protobuf:"varint,6,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
+	NextRunAt            string                 `protobuf:"bytes,7,opt,name=next_run_at,json=nextRunAt,proto3" json:"next_run_at,omitempty"`
+	LastError            *string                `protobuf:"bytes,8,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
+	CreatedAt            string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	RecipientDisplayName *string                `protobuf:"bytes,11,opt,name=recipient_display_name,json=recipientDisplayName,proto3,oneof" json:"recipient_display_name,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *BackgroundTask) Reset() {
@@ -254,6 +255,13 @@ func (x *BackgroundTask) GetCreatedAt() string {
 func (x *BackgroundTask) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *BackgroundTask) GetRecipientDisplayName() string {
+	if x != nil && x.RecipientDisplayName != nil {
+		return *x.RecipientDisplayName
 	}
 	return ""
 }
@@ -691,7 +699,7 @@ var File_task_v1_background_task_proto protoreflect.FileDescriptor
 
 const file_task_v1_background_task_proto_rawDesc = "" +
 	"\n" +
-	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x81\x03\n" +
+	"\x1dtask/v1/background_task.proto\x12\atask.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xd7\x03\n" +
 	"\x0eBackgroundTask\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x1b.task.v1.BackgroundTaskKindR\x04kind\x12'\n" +
@@ -706,8 +714,10 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAtB\r\n" +
-	"\v_last_error\"\xef\x01\n" +
+	" \x01(\tR\tupdatedAt\x129\n" +
+	"\x16recipient_display_name\x18\v \x01(\tH\x01R\x14recipientDisplayName\x88\x01\x01B\r\n" +
+	"\v_last_errorB\x19\n" +
+	"\x17_recipient_display_name\"\xef\x01\n" +
 	"\x1aListBackgroundTasksRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x125\n" +

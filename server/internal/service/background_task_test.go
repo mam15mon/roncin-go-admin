@@ -58,19 +58,21 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 	createdAt := time.Date(2026, 8, 20, 9, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2026, 8, 20, 9, 30, 0, 0, time.UTC)
 	lastError := "import failed"
+	recipientDisplayName := "张冠楠"
 	value := &biz.BackgroundTask{
-		ID:             uuid.New(),
-		OrganizationID: uuid.New(),
-		Kind:           biz.BackgroundTaskKindMasterDataImport,
-		IdempotencyKey: "import-key-001",
-		Status:         biz.BackgroundTaskStatusDeadLetter,
-		Attempts:       3,
-		MaxAttempts:    3,
-		NextRunAt:      nextRunAt,
-		LeaseToken:     &lastError,
-		LastError:      &lastError,
-		CreatedAt:      createdAt,
-		UpdatedAt:      updatedAt,
+		ID:                   uuid.New(),
+		OrganizationID:       uuid.New(),
+		Kind:                 biz.BackgroundTaskKindMasterDataImport,
+		IdempotencyKey:       "import-key-001",
+		Status:               biz.BackgroundTaskStatusDeadLetter,
+		Attempts:             3,
+		MaxAttempts:          3,
+		NextRunAt:            nextRunAt,
+		LeaseToken:           &lastError,
+		LastError:            &lastError,
+		CreatedAt:            createdAt,
+		UpdatedAt:            updatedAt,
+		RecipientDisplayName: &recipientDisplayName,
 	}
 	apiTask := backgroundTaskToAPI(value)
 	if apiTask.GetKind() != taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT {
@@ -87,6 +89,9 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 	}
 	if apiTask.GetNextRunAt() != nextRunAt.Format(time.RFC3339) {
 		t.Fatalf("expected next run at %s, got %s", nextRunAt.Format(time.RFC3339), apiTask.GetNextRunAt())
+	}
+	if apiTask.GetRecipientDisplayName() != recipientDisplayName {
+		t.Fatalf("expected recipient display name %q, got %q", recipientDisplayName, apiTask.GetRecipientDisplayName())
 	}
 }
 
