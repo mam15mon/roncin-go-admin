@@ -1,34 +1,16 @@
-import {
-  CheckOutlined,
-  CloseCircleOutlined,
-  EditOutlined,
-  EyeOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { PlusOutlined } from '@ant-design/icons';
+import type { ActionType } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import {
-  App,
-  DatePicker,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Popconfirm,
-  Space,
-  Table,
-  Tag,
-} from 'antd';
+import { App, Form, Input } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
   SearchFilterTemplate,
   type FinanceLedgerMetricCard,
   type SearchFilterFieldItem,
 } from '@/components/ui';
+import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelBill,
   settlementServiceConfirmBill,
@@ -36,21 +18,11 @@ import {
   settlementServiceListBills,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
-
-const statusOptions: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '草稿', color: 'gold' },
-  CONFIRMED: { text: '已确认', color: 'green' },
-  CANCELLED: { text: '已取消', color: 'default' },
-};
-
-type BillFormValues = {
-  billDate: Dayjs;
-  statementTitle: string;
-  paymentTermsDays?: number;
-  note?: string;
-};
+import BillDetailDrawer from './components/BillDetailDrawer';
+import BillEditModal from './components/BillEditModal';
+import { getFinanceBillColumns } from './components/billColumns';
+import type { BillFormValues } from './components/billConstants';
 
 export default function FinanceBillsPage() {
   const access = useAccess();
@@ -150,16 +122,18 @@ export default function FinanceBillsPage() {
   const openCreate = () => {
     setWorkbenchOpen(true);
   };
+
   const openEdit = (bill: API.FinanceBill) => {
     setEditing(bill);
     form.setFieldsValue({
+      statementTitle: bill.statementTitle,
       billDate: bill.billDate ? dayjs(bill.billDate) : dayjs(),
-      statementTitle: bill.statementTitle || bill.settlementPartyName || '',
       paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
     });
     setEditOpen(true);
   };
+
   const openDetail = async (bill: API.FinanceBill) => {
     if (!bill.id) return;
     setDetailOpen(true);
@@ -173,32 +147,33 @@ export default function FinanceBillsPage() {
       setDetailLoading(false);
     }
   };
+
   const submitBill = async () => {
+    if (!editing?.id || !editing.version) return;
     const values = await form.validateFields();
-    if (!editing?.id) return;
     setSubmitting(true);
     try {
-      const billDate = values.billDate.format('YYYY-MM-DD');
       await settlementServiceUpdateBill(
         { id: editing.id },
         {
           id: editing.id,
-          billDate,
+          expectedVersion: editing.version,
           statementTitle: values.statementTitle.trim(),
+          billDate: values.billDate.format('YYYY-MM-DD'),
           paymentTermsDays: values.paymentTermsDays,
-          note: values.note,
-          expectedVersion: editing.version || '0',
+          note: values.note?.trim() || undefined,
         },
       );
-      message.success('账单更新成功');
+      message.success('账单已成功更新并自动刷新汇率快照');
       setEditOpen(false);
       reload();
     } catch (error: any) {
-      message.error(error.message || '保存账单失败');
+      message.error(error.message || '更新账单失败');
     } finally {
       setSubmitting(false);
     }
   };
+
   const confirmBill = async (bill: API.FinanceBill) => {
     if (!bill.id || !bill.version) return;
     try {
@@ -206,31 +181,29 @@ export default function FinanceBillsPage() {
         { id: bill.id },
         { id: bill.id, expectedVersion: bill.version },
       );
-      message.success('账单已确认');
+      message.success('账单已确认，进入待开票/待核销流');
       reload();
     } catch (error: any) {
       message.error(error.message || '确认账单失败');
     }
   };
+
   const cancelBill = (bill: API.FinanceBill) => {
-    const billID = bill.id;
+    const id = bill.id;
     const version = bill.version;
-    if (!billID || !version) return;
+    if (!id || !version) return;
     let reason = '';
     modal.confirm({
-      title: '取消账单并释放费用？',
+      title: '取消账单并释放关联费用？',
       content: (
         <Input.TextArea
-          autoFocus
-          maxLength={500}
-          showCount
           placeholder="请输入取消原因（必填）"
-          onChange={(event) => {
-            reason = event.target.value.trim();
+          maxLength={500}
+          onChange={(e) => {
+            reason = e.target.value.trim();
           }}
         />
       ),
-      okText: '确认取消',
       okButtonProps: { danger: true },
       onOk: async () => {
         if (!reason) {
@@ -238,10 +211,10 @@ export default function FinanceBillsPage() {
           throw new Error('取消原因不能为空');
         }
         await settlementServiceCancelBill(
-          { id: billID },
-          { id: billID, expectedVersion: version, reason },
+          { id },
+          { id, expectedVersion: version, reason },
         );
-        message.success('账单已取消，费用已释放回已确认状态');
+        message.success('账单已取消，关联明细费用已释放并可重新建单');
         reload();
       },
     });
@@ -250,7 +223,7 @@ export default function FinanceBillsPage() {
   const metricCards: FinanceLedgerMetricCard[] = [
     {
       key: 'total-bills',
-      title: '有效账单总笔数',
+      title: '有效账单总记录数',
       value: metricStats.totalCount,
       suffix: '笔',
     },
@@ -271,234 +244,22 @@ export default function FinanceBillsPage() {
       valueColor: '#fa8c16',
     },
     {
-      key: 'unverified-bills',
-      title: '未核销账单折本币',
+      key: 'unv-bills',
+      title: '未核销总额折本币',
       value: metricStats.unverifiedBase,
       precision: 2,
       suffix: 'CNY',
-      valueColor: '#cf1322',
+      valueColor: metricStats.unverifiedBase > 0 ? '#cf1322' : '#52c41a',
     },
   ];
 
-  const columns: ProColumns<API.FinanceBill>[] = [
-    {
-      title: '序号',
-      dataIndex: 'index',
-      valueType: 'index',
-      width: 55,
-      fixed: 'left',
-    },
-    {
-      title: '方向',
-      dataIndex: 'direction',
-      width: 75,
-      fixed: 'left',
-      valueType: 'select',
-      valueEnum: { RECEIVABLE: { text: '应收' }, PAYABLE: { text: '应付' } },
-      render: (_, row) => (
-        <Tag
-          color={row.direction === 'RECEIVABLE' ? 'green' : 'volcano'}
-          style={{ margin: 0 }}
-        >
-          {row.direction === 'RECEIVABLE' ? '应收' : '应付'}
-        </Tag>
-      ),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 85,
-      valueType: 'select',
-      valueEnum: Object.fromEntries(
-        Object.entries(statusOptions).map(([key, value]) => [
-          key,
-          { text: value.text },
-        ]),
-      ),
-      render: (_, row) => {
-        const value = statusOptions[row.status || 'DRAFT'];
-        return (
-          <Tag color={value.color} style={{ margin: 0 }}>
-            {value.text}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: '账单编号',
-      dataIndex: 'billNo',
-      width: 170,
-      copyable: true,
-      search: false,
-      render: (val, row) => (
-        <a style={{ fontWeight: 500 }} onClick={() => void openDetail(row)}>
-          {val}
-        </a>
-      ),
-    },
-    {
-      title: '建单批次',
-      dataIndex: 'batchNo',
-      width: 175,
-      copyable: true,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
-      title: '结算单位',
-      dataIndex: 'settlementPartyName',
-      width: 220,
-      ellipsis: true,
-      search: false,
-    },
-    {
-      title: '对账抬头',
-      dataIndex: 'statementTitle',
-      width: 200,
-      ellipsis: true,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
-      title: '账单金额',
-      dataIndex: 'totalAmount',
-      width: 140,
-      align: 'right',
-      search: false,
-      render: (_, row) => (
-        <strong style={{ color: '#262626' }}>
-          {row.totalAmount} {row.currency}
-        </strong>
-      ),
-    },
-    {
-      title: '账单汇率',
-      dataIndex: 'exchangeRate',
-      width: 135,
-      align: 'right',
-      search: false,
-      render: (_, row) => {
-        if (!row.exchangeRate) return '-';
-        const sourceLabel =
-          row.exchangeRateSource === 'MANUAL'
-            ? '手工'
-            : row.exchangeRateSource === 'BASE_CURRENCY'
-            ? '本币'
-            : '系统';
-        const sourceColor =
-          row.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
-        return (
-          <Space size={4}>
-            <span>{row.exchangeRate}</span>
-            <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
-              {sourceLabel}
-            </Tag>
-          </Space>
-        );
-      },
-    },
-    {
-      title: '折本币金额',
-      dataIndex: 'baseCurrencyAmount',
-      width: 150,
-      align: 'right',
-      search: false,
-      render: (_, row) => (
-        <strong
-          style={{
-            color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
-          }}
-        >
-          {row.baseCurrencyAmount} {row.baseCurrency}
-        </strong>
-      ),
-    },
-    {
-      title: '已核销',
-      dataIndex: 'verifiedAmount',
-      width: 135,
-      align: 'right',
-      search: false,
-      render: (_, row) =>
-        `${row.verifiedAmount || '0.00000000'} ${row.currency}`,
-    },
-    {
-      title: '未核销',
-      dataIndex: 'unverifiedAmount',
-      width: 140,
-      align: 'right',
-      search: false,
-      render: (_, row) => (
-        <strong
-          style={{
-            color:
-              Number(row.unverifiedAmount || 0) > 0 ? '#cf1322' : '#389e0d',
-          }}
-        >
-          {row.unverifiedAmount || '0.00000000'} {row.currency}
-        </strong>
-      ),
-    },
-    { title: '费用数', dataIndex: 'feeCount', width: 75, search: false, align: 'center' },
-    {
-      title: '账单日期',
-      dataIndex: 'billDate',
-      width: 120,
-      search: false,
-      render: (_, row) => row.billDate || '-',
-    },
-    {
-      title: '到期日',
-      dataIndex: 'dueDate',
-      width: 110,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      width: 160,
-      search: false,
-      render: (_, row) =>
-        row.createdAt ? dayjs(row.createdAt).format('YYYY-MM-DD HH:mm') : '-',
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      fixed: 'right',
-      width: 170,
-      render: (_, row) => [
-        <a key="view" onClick={() => void openDetail(row)}>
-          <EyeOutlined /> 详情
-        </a>,
-        access.canUpdateFinanceBills && row.status === 'DRAFT' ? (
-          <a key="edit" onClick={() => openEdit(row)}>
-            <EditOutlined /> 编辑
-          </a>
-        ) : null,
-        access.canConfirmFinanceBills && row.status === 'DRAFT' ? (
-          <Popconfirm
-            key="confirm"
-            title="确认该账单？确认后将锁定对账金额并进入开票与核销"
-            onConfirm={() => void confirmBill(row)}
-          >
-            <a>
-              <CheckOutlined /> 确认
-            </a>
-          </Popconfirm>
-        ) : null,
-        access.canUpdateFinanceBills && row.status !== 'CANCELLED' ? (
-          <a
-            key="cancel"
-            style={{ color: '#ff4d4f' }}
-            onClick={() => cancelBill(row)}
-          >
-            <CloseCircleOutlined /> 取消
-          </a>
-        ) : null,
-      ],
-    },
-  ];
+  const columns = getFinanceBillColumns({
+    access,
+    onOpenDetail: openDetail,
+    onOpenEdit: openEdit,
+    onConfirmBill: confirmBill,
+    onCancelBill: cancelBill,
+  });
 
   return (
     <>
@@ -520,26 +281,19 @@ export default function FinanceBillsPage() {
             items={filterItems}
             onSearch={(values) => {
               setSearchParams(values);
-              actionRef.current?.reload();
+              reload();
             }}
             onReset={() => {
               setSearchParams({});
-              actionRef.current?.reload();
+              reload();
             }}
           />
         }
-        primaryActionText="新建对账单"
+        primaryActionText={
+          access.canCreateFinanceBills ? '批量创建账单' : undefined
+        }
         primaryActionIcon={<PlusOutlined />}
-        onPrimaryAction={access.canCreateFinanceBills ? () => openCreate() : undefined}
-        batchActions={[
-          {
-            key: 'batch-confirm-bills',
-            label: '批量确认勾选账单',
-            onClick: (keys, _rows) => {
-              message.info(`已选 ${keys.length} 笔账单，可逐笔或批量确认流转`);
-            },
-          },
-        ]}
+        onPrimaryAction={openCreate}
         request={async (params) => {
           const billDateFrom = searchParams.billDateRange?.[0]
             ? searchParams.billDateRange[0].format('YYYY-MM-DD')
@@ -559,23 +313,21 @@ export default function FinanceBillsPage() {
             billDateFrom,
             billDateTo,
           });
+
           const list = response.data || [];
-          // 计算指标
-          let recBase = 0;
-          let payBase = 0;
-          let unvBase = 0;
-          for (const item of list) {
-            const baseAmount = Number(item.baseCurrencyAmount || 0);
-            const unverified = Number(item.unverifiedAmount || 0);
-            if (item.direction === 'RECEIVABLE') {
-              recBase += baseAmount;
-            } else if (item.direction === 'PAYABLE') {
-              payBase += baseAmount;
-            }
-            unvBase += unverified;
-          }
+          const recBase = list
+            .filter((x) => x.direction === 'RECEIVABLE')
+            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
+          const payBase = list
+            .filter((x) => x.direction === 'PAYABLE')
+            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
+          const unvBase = list.reduce(
+            (s, x) => s + Number(x.unverifiedAmount || 0),
+            0,
+          );
+
           setMetricStats({
-            totalCount: Number(response.total || 0),
+            totalCount: Number(response.total || list.length),
             receivableBase: recBase,
             payableBase: payBase,
             unverifiedBase: unvBase,
@@ -589,46 +341,14 @@ export default function FinanceBillsPage() {
         }}
       />
 
-      <Modal
-        title={`编辑账单 ${editing?.billNo || ''}`}
+      <BillEditModal
         open={editOpen}
-        width={680}
-        destroyOnHidden
-        confirmLoading={submitting}
-        okText="保存"
+        editing={editing}
+        form={form}
+        submitting={submitting}
         onCancel={() => setEditOpen(false)}
-        onOk={() => void submitBill()}
-      >
-        <Form form={form} layout="vertical">
-          <Space size={16} align="start" wrap style={{ width: '100%' }}>
-            <Form.Item
-              name="statementTitle"
-              label="对账抬头"
-              rules={[
-                { required: true, whitespace: true, message: '请输入对账抬头' },
-                { max: 200, message: '对账抬头不能超过 200 字' },
-              ]}
-              style={{ minWidth: 260 }}
-            >
-              <Input maxLength={200} />
-            </Form.Item>
-            <Form.Item
-              name="billDate"
-              label="账单日期"
-              extra="修改账单日期将自动按新账单日重置 BILL 汇率快照"
-              rules={[{ required: true, message: '请选择账单日期' }]}
-            >
-              <DatePicker allowClear={false} />
-            </Form.Item>
-            <Form.Item name="paymentTermsDays" label="账期（天，可选）">
-              <InputNumber min={0} max={3650} precision={0} />
-            </Form.Item>
-            <Form.Item name="note" label="备注" style={{ minWidth: 620 }}>
-              <Input maxLength={500} />
-            </Form.Item>
-          </Space>
-        </Form>
-      </Modal>
+        onOk={submitBill}
+      />
 
       <BillCreationWorkbench
         open={workbenchOpen}
@@ -636,165 +356,12 @@ export default function FinanceBillsPage() {
         onCreated={() => reload()}
       />
 
-      <Drawer
-        title={`账单详情 ${detail?.billNo || ''}`}
+      <BillDetailDrawer
         open={detailOpen}
-        size={1020}
         loading={detailLoading}
+        detail={detail}
         onClose={() => setDetailOpen(false)}
-      >
-        {detail && (
-          <>
-            <Descriptions
-              bordered
-              size="small"
-              column={3}
-              style={{ marginBottom: 16 }}
-            >
-              <Descriptions.Item label="状态">
-                <Tag color={statusOptions[detail.status || 'DRAFT'].color}>
-                  {statusOptions[detail.status || 'DRAFT'].text}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="方向">
-                {detail.direction === 'RECEIVABLE' ? '应收' : '应付'}
-              </Descriptions.Item>
-              <Descriptions.Item label="结算单位">
-                {detail.settlementPartyName}
-              </Descriptions.Item>
-              <Descriptions.Item label="建单批次">
-                {detail.batchNo || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="对账抬头">
-                {detail.statementTitle || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="含税总额">
-                <strong style={{ color: '#262626' }}>
-                  {detail.totalAmount} {detail.currency}
-                </strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="不含税金额">
-                {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="税额汇总">
-                {detail.taxAmount ? `${detail.taxAmount} ${detail.currency}` : '0.00'}
-              </Descriptions.Item>
-              <Descriptions.Item label="账单汇率">
-                {detail.exchangeRate ? (
-                  <Space size={4}>
-                    <span>{detail.exchangeRate}</span>
-                    <Tag
-                      color={
-                        detail.exchangeRateSource === 'MANUAL'
-                          ? 'purple'
-                          : detail.exchangeRateSource === 'BASE_CURRENCY'
-                          ? 'default'
-                          : 'blue'
-                      }
-                    >
-                      {detail.exchangeRateSource === 'MANUAL'
-                        ? '手工'
-                        : detail.exchangeRateSource === 'BASE_CURRENCY'
-                        ? '本币'
-                        : '系统'}
-                    </Tag>
-                  </Space>
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="折本币总额">
-                <strong style={{ color: '#1677ff' }}>
-                  {detail.baseCurrencyAmount} {detail.baseCurrency}
-                </strong>
-              </Descriptions.Item>
-              <Descriptions.Item label="汇率生效日期">
-                {detail.exchangeRateDate || detail.billDate || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="账单日期">
-                {detail.billDate}
-              </Descriptions.Item>
-              <Descriptions.Item label="到期日">
-                {detail.dueDate || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="账期">
-                {detail.paymentTermsDays == null
-                  ? '-'
-                  : `${detail.paymentTermsDays} 天`}
-              </Descriptions.Item>
-              <Descriptions.Item label="费用笔数">
-                {detail.feeCount} 笔
-              </Descriptions.Item>
-              <Descriptions.Item label="备注" span={3}>
-                {detail.note || '-'}
-              </Descriptions.Item>
-              {detail.cancellationReason && (
-                <Descriptions.Item label="取消原因" span={3}>
-                  {detail.cancellationReason}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-            <Table<API.FinanceBillLine>
-              rowKey="id"
-              size="small"
-              bordered
-              pagination={false}
-              dataSource={detail.lines || []}
-              columns={[
-                { title: '订单编号', dataIndex: 'orderNo', width: 150 },
-                { title: '费用代码', dataIndex: 'feeCode', width: 100 },
-                { title: '费用名称', dataIndex: 'feeName', width: 130 },
-                {
-                  title: '税率',
-                  dataIndex: 'taxRate',
-                  align: 'right',
-                  width: 80,
-                  render: (value) =>
-                    value == null ? '-' : `${Number(value)}%`,
-                },
-                {
-                  title: '不含税金额',
-                  dataIndex: 'netAmount',
-                  align: 'right',
-                  render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
-                },
-                {
-                  title: '税额',
-                  dataIndex: 'taxAmount',
-                  align: 'right',
-                  render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
-                },
-                {
-                  title: '含税金额',
-                  dataIndex: 'totalAmount',
-                  render: (_, row) => (
-                    <strong>
-                      {row.totalAmount} {row.currency}
-                    </strong>
-                  ),
-                  align: 'right',
-                },
-                {
-                  title: '费用折本币',
-                  render: (_, row) =>
-                    `${row.baseCurrencyAmount} ${row.baseCurrency}`,
-                  align: 'right',
-                },
-                {
-                  title: '关联状态',
-                  render: (_, row) =>
-                    row.active ? (
-                      <Tag color="blue">有效</Tag>
-                    ) : (
-                      <Tag>已释放</Tag>
-                    ),
-                  width: 85,
-                },
-              ]}
-            />
-          </>
-        )}
-      </Drawer>
+      />
     </>
   );
 }
