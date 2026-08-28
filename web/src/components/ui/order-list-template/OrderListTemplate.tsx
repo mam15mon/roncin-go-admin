@@ -37,6 +37,7 @@ const defaultStatusTabs: OrderStatusTabItem[] = [
 ];
 
 export function OrderListTemplate({
+  actionRef: externalActionRef,
   orderKind,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
@@ -65,7 +66,10 @@ export function OrderListTemplate({
   options,
   readonly = false,
 }: OrderListTemplateProps) {
-  const actionRef = useRef<ActionType | undefined>(undefined);
+  const internalActionRef = useRef<ActionType | undefined>(undefined);
+  const actionRef =
+    (externalActionRef as React.MutableRefObject<ActionType | undefined>) ||
+    internalActionRef;
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const currentFilterRef = useRef<OrderListFilterParams>({});

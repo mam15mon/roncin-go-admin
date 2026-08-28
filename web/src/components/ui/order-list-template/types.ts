@@ -1,4 +1,4 @@
-import type { ProColumns } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 
 export type OrderKind =
   | 'sea-export'
@@ -175,6 +175,8 @@ export interface OrderListTemplateProps {
   orderKind: OrderKind;
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
+  /** 表格动作 Ref（支持外部受控刷新） */
+  actionRef?: React.MutableRefObject<ActionType | undefined> | React.RefObject<ActionType | undefined>;
   /** 页面副标题 */
   subTitle?: string;
   /** 状态切签列表（如 全部、待订舱、已配载、在途、已放行、已完成、异常等） */
