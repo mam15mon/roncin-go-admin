@@ -1717,6 +1717,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: financeLocked
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -6430,6 +6434,8 @@ components:
                     type: string
                 billNo:
                     type: string
+                financeLocked:
+                    type: boolean
         finance.v1.FeeLedgerPreference:
             type: object
             properties:

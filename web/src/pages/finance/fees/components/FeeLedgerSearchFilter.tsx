@@ -43,7 +43,7 @@ export interface FeeLedgerFilterParams {
 
   // 合约风控与标签
   isReconciled?: string;
-  isLocked?: string;
+  financeLocked?: 'LOCKED' | 'UNLOCKED';
   contractNo?: string;
   feeCategory?: string;
   serviceType?: string;
@@ -288,13 +288,13 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       ],
     },
     {
-      name: 'isLocked',
-      label: '财务锁单',
+      name: 'financeLocked',
+      label: '费用锁定状态',
       type: 'select',
       placeholder: '全部',
       options: [
-        { label: '已锁单', value: 'YES' },
-        { label: '未锁单', value: 'NO' },
+        { label: '因提成已锁定', value: 'LOCKED' },
+        { label: '未锁定', value: 'UNLOCKED' },
       ],
     },
     {

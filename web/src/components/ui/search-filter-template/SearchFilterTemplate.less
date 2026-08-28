@@ -1,0 +1,68 @@
+.roncin-search-filter-grid-horizontal {
+  .ant-form-item-row {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .ant-form-item-label {
+    flex-shrink: 0;
+    text-align: right;
+
+    > label {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      white-space: nowrap;
+    }
+  }
+
+  .ant-form-item-control {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .ant-form-item-control-input {
+    min-height: 32px;
+  }
+
+  .ant-form-item-control-input-content {
+    min-width: 0;
+  }
+
+  // 确保控件在 6 列栅格窄列下宽度 100% 且自适应缩放
+  .ant-input,
+  .ant-input-number,
+  .ant-select,
+  .ant-picker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  // 日期范围控件在紧凑列中保持单行不掉行
+  .ant-picker-range {
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 6px;
+
+    .ant-picker-input {
+      flex: 1 1 0%;
+      min-width: 0;
+
+      > input {
+        min-width: 0;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .ant-picker-range-separator {
+      padding-inline: 2px;
+      flex-shrink: 0;
+    }
+
+    .ant-picker-suffix,
+    .ant-picker-clear {
+      flex-shrink: 0;
+    }
+  }
+}

@@ -100,6 +100,7 @@ type ListFeeLedgerRequest struct {
 	CustomerId        *string                `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
 	FinancialProgress *string                `protobuf:"bytes,12,opt,name=financial_progress,json=financialProgress,proto3,oneof" json:"financial_progress,omitempty"`
 	BillNo            *string                `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
+	FinanceLocked     *bool                  `protobuf:"varint,14,opt,name=finance_locked,json=financeLocked,proto3,oneof" json:"finance_locked,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -225,6 +226,13 @@ func (x *ListFeeLedgerRequest) GetBillNo() string {
 	return ""
 }
 
+func (x *ListFeeLedgerRequest) GetFinanceLocked() bool {
+	if x != nil && x.FinanceLocked != nil {
+		return *x.FinanceLocked
+	}
+	return false
+}
+
 type FeeLedgerItem struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -257,6 +265,7 @@ type FeeLedgerItem struct {
 	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	FinancialProgress   string                 `protobuf:"bytes,29,opt,name=financial_progress,json=financialProgress,proto3" json:"financial_progress,omitempty"`
 	BillNo              *string                `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
+	FinanceLocked       bool                   `protobuf:"varint,31,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -499,6 +508,13 @@ func (x *FeeLedgerItem) GetBillNo() string {
 		return *x.BillNo
 	}
 	return ""
+}
+
+func (x *FeeLedgerItem) GetFinanceLocked() bool {
+	if x != nil {
+		return x.FinanceLocked
+	}
+	return false
 }
 
 type FeeLedgerSummary struct {
@@ -10223,7 +10239,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xb5\x05\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xf4\x05\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -10240,7 +10256,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"customerId\x88\x01\x01\x122\n" +
 	"\x12financial_progress\x18\f \x01(\tH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
 	"\abill_no\x18\r \x01(\tH\n" +
-	"R\x06billNo\x88\x01\x01B\n" +
+	"R\x06billNo\x88\x01\x01\x12*\n" +
+	"\x0efinance_locked\x18\x0e \x01(\bH\vR\rfinanceLocked\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -10254,7 +10271,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\f_customer_idB\x15\n" +
 	"\x13_financial_progressB\n" +
 	"\n" +
-	"\b_bill_no\"\x90\b\n" +
+	"\b_bill_noB\x11\n" +
+	"\x0f_finance_locked\"\xb7\b\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -10292,11 +10310,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"customerId\x12#\n" +
 	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12-\n" +
 	"\x12financial_progress\x18\x1d \x01(\tR\x11financialProgress\x12\x1c\n" +
-	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01B\a\n" +
+	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12%\n" +
+	"\x0efinance_locked\x18\x1f \x01(\bR\rfinanceLockedB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +
-	"\b_bill_noJ\x04\b\x1f\x10\"\"\xee\x01\n" +
+	"\b_bill_noJ\x04\b \x10\"\"\xee\x01\n" +
 	"\x10FeeLedgerSummary\x12!\n" +
 	"\factive_count\x18\x01 \x01(\x03R\vactiveCount\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +

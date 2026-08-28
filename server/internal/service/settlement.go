@@ -57,6 +57,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.BillNo = financeOptionalString(request.BillNo)
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
 	filter.ExpenseDateTo = financeOptionalString(request.ExpenseDateTo)
+	filter.FinanceLocked = request.FinanceLocked
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
 		if err != nil {
@@ -89,6 +90,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
 			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
 			FinancialProgress: string(item.FinancialProgress),
+			FinanceLocked:     item.FinanceLocked,
 		})
 		if item.BillNo != "" {
 			data[len(data)-1].BillNo = &item.BillNo

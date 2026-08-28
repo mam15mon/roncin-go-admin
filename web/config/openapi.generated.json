@@ -2849,6 +2849,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "financeLocked",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -10308,6 +10315,9 @@
           },
           "billNo": {
             "type": "string"
+          },
+          "financeLocked": {
+            "type": "boolean"
           }
         }
       },

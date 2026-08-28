@@ -136,6 +136,7 @@ message ListFeeLedgerRequest {
   optional string customer_id = 11;
   optional string financial_progress = 12;
   optional string bill_no = 13;
+  optional bool finance_locked = 14;
 }
 
 message FeeLedgerItem {
@@ -169,7 +170,8 @@ message FeeLedgerItem {
   string customer_name = 28;
   string financial_progress = 29;
   optional string bill_no = 30;
-  reserved 31 to 33;
+  bool finance_locked = 31;
+  reserved 32 to 33;
 }
 
 message FeeLedgerSummary {

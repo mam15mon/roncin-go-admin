@@ -1378,6 +1378,7 @@ declare namespace API {
     customerName?: string;
     financialProgress?: string;
     billNo?: string;
+    financeLocked?: boolean;
   };
 
   type FeeLedgerPreference = {
@@ -3971,6 +3972,7 @@ declare namespace API {
     customerId?: string;
     financialProgress?: string;
     billNo?: string;
+    financeLocked?: boolean;
   };
 
   type SettlementServiceListInvoicesParams = {

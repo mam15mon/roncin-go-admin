@@ -819,6 +819,12 @@ export default function FinanceFeeLedgerPage() {
             customerId: filterParams.customerId || undefined,
             settlementPartyId: filterParams.settlementPartyId || undefined,
             currency: filterParams.currency || undefined,
+            financeLocked:
+              filterParams.financeLocked === 'LOCKED'
+                ? true
+                : filterParams.financeLocked === 'UNLOCKED'
+                  ? false
+                  : undefined,
             expenseDateFrom,
             expenseDateTo,
           });

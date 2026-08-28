@@ -46,6 +46,10 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('账单编号')).not.toBeNull();
     expect(screen.getByText('订单编号')).not.toBeNull();
     expect(screen.getByText('主提单号')).not.toBeNull();
+    expect(screen.getByText('费用锁定状态')).not.toBeNull();
+    fireEvent.mouseDown(screen.getByLabelText('费用锁定状态'));
+    expect(screen.getByText('因提成已锁定')).not.toBeNull();
+    expect(screen.getByText('未锁定')).not.toBeNull();
     expect(screen.getByText(/收起/)).not.toBeNull();
   });
 

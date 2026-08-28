@@ -9,6 +9,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -22,6 +24,69 @@ import (
 
 type settlementRepo struct {
 	data *Data
+}
+
+func financeLockedOrderPredicate() predicate.Order {
+	return order.HasFinanceCommissionLinesWith(
+		financecommissionline.HasCommissionWith(
+			financecommission.StatusIn(financecommission.StatusCONFIRMED, financecommission.StatusPAID),
+		),
+	)
+}
+
+// feeLedgerFinancialProgressPredicate 将费用的账单、开票和核销组合状态下推到数据库。
+// 这里使用固定表名的相关子查询，是因为该组合状态并非单一 Ent 字段，无法用普通字段谓词表达。
+func feeLedgerFinancialProgressPredicate(progress biz.FeeLedgerFinancialProgress) predicate.OrderFee {
+	return func(selector *entsql.Selector) {
+		feeID := selector.C(orderfee.FieldID)
+		selector.Where(entsql.P(func(builder *entsql.Builder) {
+			if progress == biz.FeeLedgerUnbilled {
+				builder.WriteString("NOT EXISTS (SELECT 1 FROM finance_bill_lines AS fbl JOIN finance_bills AS fb ON fb.id = fbl.bill_id WHERE fbl.order_fee_id = ")
+				builder.Ident(feeID)
+				builder.WriteString(" AND fbl.active = TRUE AND fb.status <> ").Arg(financebill.StatusCANCELLED)
+				builder.WriteString(")")
+				return
+			}
+
+			builder.WriteString("EXISTS (SELECT 1 FROM finance_bill_lines AS fbl JOIN finance_bills AS fb ON fb.id = fbl.bill_id WHERE fbl.order_fee_id = ")
+			builder.Ident(feeID)
+			builder.WriteString(" AND fbl.active = TRUE AND fb.status <> ").Arg(financebill.StatusCANCELLED)
+			builder.WriteString(" AND ")
+			if progress == biz.FeeLedgerInvoicedUnverified || progress == biz.FeeLedgerInvoicedPartiallyVerified || progress == biz.FeeLedgerCompleted {
+				builder.WriteString("EXISTS")
+			} else {
+				builder.WriteString("NOT EXISTS")
+			}
+			builder.WriteString(" (SELECT 1 FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id = fib.invoice_id WHERE fib.bill_id = fb.id AND fib.active = TRUE AND fi.status = ").Arg(financeinvoice.StatusISSUED)
+			builder.WriteString(") AND ")
+
+			writeVerifiedAmount := func() {
+				builder.WriteString("COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.bill_id = fb.id AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
+				builder.WriteString("), 0)")
+			}
+			switch progress {
+			case biz.FeeLedgerUnverifiedUninvoiced, biz.FeeLedgerInvoicedUnverified:
+				writeVerifiedAmount()
+				builder.WriteString(" <= 0")
+			case biz.FeeLedgerPartiallyVerifiedUninvoiced, biz.FeeLedgerInvoicedPartiallyVerified:
+				writeVerifiedAmount()
+				builder.WriteString(" > 0 AND ")
+				writeVerifiedAmount()
+				builder.WriteString(" < fb.total_amount")
+			case biz.FeeLedgerVerifiedUninvoiced, biz.FeeLedgerCompleted:
+				writeVerifiedAmount()
+				builder.WriteString(" >= fb.total_amount")
+			}
+			builder.WriteString(")")
+		}))
+	}
+}
+
+type feeLedgerSummaryRow struct {
+	Direction    string `json:"direction"`
+	BaseCurrency string `json:"base_currency"`
+	ActiveCount  int64  `json:"active_count"`
+	BaseAmount   string `json:"base_amount"`
 }
 
 func NewSettlementRepo(data *Data) biz.SettlementRepo {
@@ -79,9 +144,68 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 	if filter.ExpenseDateTo != "" {
 		predicates = append(predicates, orderfee.ExpenseDateLTE(filter.ExpenseDateTo))
 	}
-	items, err := r.data.db.OrderFee.Query().Where(predicates...).
+	if filter.FinanceLocked != nil {
+		lockedOrder := financeLockedOrderPredicate()
+		if !*filter.FinanceLocked {
+			lockedOrder = order.Not(lockedOrder)
+		}
+		predicates = append(predicates, orderfee.HasOrderWith(lockedOrder))
+	}
+	if filter.FinancialProgress != "" {
+		predicates = append(predicates,
+			orderfee.StatusNEQ(orderfee.StatusCANCELLED),
+			feeLedgerFinancialProgressPredicate(filter.FinancialProgress),
+		)
+	}
+
+	baseQuery := r.data.db.OrderFee.Query().Where(predicates...)
+	total, err := baseQuery.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	summaryRows := make([]feeLedgerSummaryRow, 0)
+	if err := baseQuery.Clone().
+		Where(orderfee.StatusNEQ(orderfee.StatusCANCELLED)).
+		GroupBy(orderfee.FieldDirection, orderfee.FieldBaseCurrency).
+		Aggregate(
+			ent.As(ent.Count(), "active_count"),
+			ent.As(ent.Sum(orderfee.FieldBaseCurrencyAmount), "base_amount"),
+		).
+		Scan(ctx, &summaryRows); err != nil {
+		return nil, err
+	}
+	summary := biz.FeeLedgerSummary{
+		ReceivableBaseAmount: decimal.Zero,
+		PayableBaseAmount:    decimal.Zero,
+	}
+	for _, row := range summaryRows {
+		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.ActiveCount += row.ActiveCount
+		summary.BaseCurrency = row.BaseCurrency
+		if row.Direction == string(orderfee.DirectionRECEIVABLE) {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
+	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
+
+	items, err := baseQuery.Clone().
 		WithSettlementParty().
-		WithOrder(func(query *ent.OrderQuery) { query.WithCustomer() }).
+		WithOrder(func(query *ent.OrderQuery) {
+			query.
+				WithCustomer().
+				WithFinanceCommissionLines(func(lineQuery *ent.FinanceCommissionLineQuery) {
+					lineQuery.Where(
+						financecommissionline.HasCommissionWith(
+							financecommission.StatusIn(financecommission.StatusCONFIRMED, financecommission.StatusPAID),
+						),
+					)
+				})
+		}).
 		WithFinanceBillLines(func(lineQuery *ent.FinanceBillLineQuery) {
 			lineQuery.
 				Where(
@@ -105,12 +229,13 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 				})
 		}).
 		Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
+		Offset((filter.Page - 1) * filter.PageSize).
+		Limit(filter.PageSize).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	filtered := make([]*biz.FeeLedgerItem, 0, len(items))
-	summary := biz.FeeLedgerSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
+	resultItems := make([]*biz.FeeLedgerItem, 0, len(items))
 	for _, item := range items {
 		fee, convertErr := orderFeeToBiz(item)
 		if convertErr != nil {
@@ -132,6 +257,11 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			CustomerName:      customer.LegalName,
 			FinancialProgress: biz.FeeLedgerUnbilled,
 		}
+		financeLockLines, edgeErr := businessOrder.Edges.FinanceCommissionLinesOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		ledgerItem.FinanceLocked = len(financeLockLines) > 0
 		if fee.Status == biz.OrderFeeCancelled {
 			ledgerItem.FinancialProgress = ""
 		}
@@ -167,34 +297,11 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			ledgerItem.BillNo = bill.BillNo
 			ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, verifiedAmount)
 		}
-		if filter.FinancialProgress != "" && ledgerItem.FinancialProgress != filter.FinancialProgress {
-			continue
-		}
-		filtered = append(filtered, ledgerItem)
-		if item.Status == orderfee.StatusCANCELLED {
-			continue
-		}
-		amount, parseErr := decimal.NewFromString(item.BaseCurrencyAmount)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		summary.ActiveCount++
-		summary.BaseCurrency = item.BaseCurrency
-		if item.Direction == orderfee.DirectionRECEIVABLE {
-			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
-		} else {
-			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
-		}
+		resultItems = append(resultItems, ledgerItem)
 	}
-	summary.ProfitBaseAmount = summary.ReceivableBaseAmount.Sub(summary.PayableBaseAmount)
-	start := (filter.Page - 1) * filter.PageSize
-	if start > len(filtered) {
-		start = len(filtered)
-	}
-	end := min(start+filter.PageSize, len(filtered))
 	result := &biz.FeeLedgerResult{
-		Items:   filtered[start:end],
-		Total:   int64(len(filtered)),
+		Items:   resultItems,
+		Total:   int64(total),
 		Summary: summary,
 	}
 	return result, nil

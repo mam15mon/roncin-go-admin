@@ -41,6 +41,7 @@ type FeeLedgerFilter struct {
 	BillNo            string
 	ExpenseDateFrom   string
 	ExpenseDateTo     string
+	FinanceLocked     *bool
 }
 
 type FeeLedgerItem struct {
@@ -51,6 +52,7 @@ type FeeLedgerItem struct {
 	CustomerName      string
 	FinancialProgress FeeLedgerFinancialProgress
 	BillNo            string
+	FinanceLocked     bool
 }
 
 func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount decimal.Decimal) FeeLedgerFinancialProgress {

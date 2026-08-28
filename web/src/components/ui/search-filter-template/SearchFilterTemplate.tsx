@@ -18,6 +18,7 @@ import {
 import React, { useMemo, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import { SearchableSelect } from '../searchable-select';
+import './SearchFilterTemplate.less';
 import type {
   SearchFilterFieldItem,
   SearchFilterTemplateProps,
@@ -156,6 +157,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
           <Input
             allowClear={allowClear}
             placeholder={placeholder as string}
+            style={{ width: '100%' }}
             {...fieldProps}
           />
         );
@@ -166,7 +168,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   if (layout === 'bar') {
     return (
       <Card
-        bordered={false}
+        variant="borderless"
         className={className}
         style={{
           borderRadius: 8,
@@ -240,7 +242,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   if (layout === 'custom') {
     return (
       <Card
-        bordered={false}
+        variant="borderless"
         className={className}
         style={{
           borderRadius: 8,
@@ -263,7 +265,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   // 3. 多字段配置化网格表单模式 ('grid')
   return (
     <Card
-      bordered={false}
+      variant="borderless"
       className={className}
       style={{
         borderRadius: 8,
@@ -274,7 +276,16 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
       }}
       styles={{ body: { padding: '14px 16px 6px' } }}
     >
-      <Form form={form} layout={formLayout} onFinish={handleFinish}>
+      <Form
+        form={form}
+        layout={formLayout}
+        onFinish={handleFinish}
+        className={
+          formLayout === 'horizontal'
+            ? 'roncin-search-filter-grid-horizontal'
+            : undefined
+        }
+      >
         <Row gutter={[16, 0]}>
           {visibleItems.map((item) => (
             <Col key={item.name} span={item.span || colSpan || 4}>
@@ -286,13 +297,15 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
                     ? {
                         flex:
                           typeof labelWidth === 'number'
-                            ? `${labelWidth}px`
+                            ? `0 0 ${labelWidth}px`
                             : labelWidth,
                       }
                     : undefined
                 }
                 wrapperCol={
-                  formLayout === 'horizontal' ? { flex: 'auto' } : undefined
+                  formLayout === 'horizontal'
+                    ? { flex: '1 1 0%', style: { minWidth: 0 } }
+                    : undefined
                 }
                 initialValue={item.initialValue}
                 style={{ marginBottom: 10 }}
@@ -311,6 +324,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
                 actionSpan === 24 ? 'space-between' : 'flex-end',
               alignItems: 'center',
               marginBottom: 10,
+              minHeight: 32,
             }}
           >
             {actionSpan === 24 ? <div>{extraRight}</div> : null}

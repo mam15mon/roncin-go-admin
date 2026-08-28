@@ -57,6 +57,9 @@ describe('SearchFilterTemplate', () => {
     // 默认折叠，只展示前 2 个字段
     expect(screen.getByText('关键字')).toBeInTheDocument();
     expect(screen.getByText('状态')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('请输入关键字').closest('form')).toHaveClass(
+      'roncin-search-filter-grid-horizontal',
+    );
     expect(screen.queryByText('创建人')).not.toBeInTheDocument();
     expect(screen.getByText(/展开/)).toBeInTheDocument();
 
