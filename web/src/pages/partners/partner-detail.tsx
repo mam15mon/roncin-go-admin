@@ -1,32 +1,17 @@
-import {
-  CheckCircleOutlined,
-  QuestionCircleOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProForm,
-  ProFormCheckbox,
-  ProFormDigit,
-  ProFormSelect,
-  ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { history, useLocation, useParams } from '@umijs/max';
 import {
   App,
   Button,
-  Cascader,
   Col,
-  Divider,
-  Form,
-  Input,
-  Row,
-  Select,
   Space,
   Spin,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -42,67 +27,17 @@ import {
   partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
-import { pcaCascaderOptions } from '@/utils/chinaDivision';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
+import BasicInfoSection from './components/BasicInfoSection';
 import ContactCardList, { type ContactItem } from './components/ContactCardList';
 import ContractCardList from './components/ContractCardList';
 import InterestRuleModal, { type InterestRuleValues } from './components/InterestRuleModal';
+import SettlementSection from './components/SettlementSection';
 import ShippingPresetSection from './components/ShippingPresetSection';
 
 const { Text } = Typography;
-
-const BUSINESS_TYPE_OPTIONS = [
-  { label: 'SE（海运出口）', value: 1 },
-  { label: 'SI（海运进口）', value: 2 },
-  { label: 'AE（空运出口）', value: 3 },
-  { label: 'AI（空运进口）', value: 4 },
-  { label: 'LAND（陆运业务）', value: 5 },
-  { label: 'RAIL（铁路运输）', value: 6 },
-];
-
-const CUSTOMER_TYPE_OPTIONS = [
-  { label: '直客', value: 1 },
-  { label: '同行', value: 2 },
-];
-
-const DEVELOPMENT_METHOD_OPTIONS = [
-  { label: '自主开发', value: '自主开发' },
-  { label: '网络推广', value: '网络推广' },
-  { label: '老客转介', value: '老客转介' },
-  { label: '商务分配', value: '商务分配' },
-  { label: '展会获取', value: '展会获取' },
-  { label: '公开招标', value: '公开招标' },
-  { label: '其它方式', value: '其它方式' },
-];
-
-const STATEMENT_MODE_OPTIONS = [
-  { label: '单票', value: 1 },
-  { label: '汇总', value: 2 },
-];
-
-const SETTLEMENT_METHOD_OPTIONS = [
-  { label: '票结', value: 1 },
-  { label: '月结', value: 2 },
-  { label: '周结', value: 3 },
-  { label: '半月结', value: 4 },
-  { label: '双月结', value: 5 },
-  { label: '季结', value: 6 },
-  { label: '45天', value: 7 },
-  { label: '预付', value: 8 },
-];
-
-const SETTLEMENT_BASE_OPTIONS = [
-  { label: '开票后', value: 1 },
-  { label: '出运后', value: 2 },
-  { label: '到港后', value: 3 },
-];
-
-const SETTLEMENT_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
-  label: `${i + 1}日`,
-  value: i + 1,
-}));
 
 export default function PartnerDetailPage() {
   const { message } = App.useApp();
@@ -373,11 +308,17 @@ export default function PartnerDetailPage() {
   );
 
   // Auto fill org when user is selected
-  const handleUserChange = (userFieldName: string, orgFieldName: string, selectedUserId: string) => {
+  const handleUserChange = (
+    userFieldName: string,
+    orgFieldName: string,
+    selectedUserId?: string,
+  ) => {
     formRef.current?.setFieldValue(userFieldName, selectedUserId);
-    const defaultOrg = userOrgMap.get(selectedUserId);
-    if (defaultOrg && !formRef.current?.getFieldValue(orgFieldName)) {
-      formRef.current?.setFieldValue(orgFieldName, defaultOrg);
+    if (selectedUserId) {
+      const defaultOrg = userOrgMap.get(selectedUserId);
+      if (defaultOrg && !formRef.current?.getFieldValue(orgFieldName)) {
+        formRef.current?.setFieldValue(orgFieldName, defaultOrg);
+      }
     }
   };
 
@@ -603,587 +544,34 @@ export default function PartnerDetailPage() {
           >
             <Col span={24}>
               {/* Section 1: 基础信息 */}
-              <SectionCard
-                key="basic"
-                title="基础信息"
-                collapsible
+              <BasicInfoSection
                 collapsed={!activeCollapseKeys.includes('basic')}
-                onCollapseChange={(collapsed) => toggleSection('basic', collapsed)}
-              >
-                <div>
-                        {/* Row 1: Legal Name, USCC, Code */}
-                        <Row gutter={[16, 12]} align="middle">
-                          <Col xs={24} lg={10}>
-                            <ProFormText
-                              name="legalName"
-                              label="公司抬头"
-                              placeholder="请输入企业法人营业执照全称"
-                              rules={[{ required: true, message: '请输入公司抬头全称' }]}
-                            />
-                          </Col>
-
-                          <Col xs={24} lg={9}>
-                            <Form.Item
-                              label={
-                                <Space size={4}>
-                                  <span>社会统一信用代码</span>
-                                  <Tooltip title="18位纳税人统一社会信用代码">
-                                    <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                                  </Tooltip>
-                                </Space>
-                              }
-                              style={{ marginBottom: 0 }}
-                            >
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item
-                                  name="unifiedSocialCreditCode"
-                                  noStyle
-                                  rules={[
-                                    {
-                                      pattern: /^[0-9ABCDEFGHJKLMNPQRTUWXY]{18}$/,
-                                      message: '请输入正确的18位统一社会信用代码',
-                                    },
-                                  ]}
-                                >
-                                  <Input
-                                    placeholder="91510108MAKB..."
-                                    allowClear
-                                    style={{ fontFamily: 'monospace' }}
-                                  />
-                                </Form.Item>
-                                <Button
-                                  type="primary"
-                                  icon={<SafetyCertificateOutlined />}
-                                  onClick={handleTianyanchaVerify}
-                                >
-                                  校验公司信息
-                                </Button>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          <Col xs={24} lg={5}>
-                            <ProFormText
-                              name="code"
-                              label="代码"
-                              placeholder="如 CDRT"
-                              disabled={Boolean(partnerId)}
-                              rules={[
-                                { required: true, message: '请输入唯一代码' },
-                                {
-                                  pattern: /^[A-Za-z0-9_-]+$/,
-                                  message: '仅支持字母数字',
-                                },
-                              ]}
-                            />
-                          </Col>
-                        </Row>
-
-                        {/* Row 2: 中文地址 */}
-                        <Row gutter={[16, 12]} style={{ marginTop: 8 }}>
-                          <Col span={24}>
-                            <Form.Item label="中文地址" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="regionCodes" noStyle>
-                                  <Cascader
-                                    options={pcaCascaderOptions}
-                                    placeholder="省 / 市 / 区"
-                                    style={{ width: 280 }}
-                                    allowClear
-                                    showSearch
-                                  />
-                                </Form.Item>
-                                <Form.Item name="addressDetail" noStyle>
-                                  <Input
-                                    placeholder="请输入详细地址"
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-
-                        {/* Row 3: 英文名 */}
-                        <Row gutter={[16, 12]} style={{ marginTop: 8 }}>
-                          <Col span={24}>
-                            <ProFormText
-                              name="nameEn"
-                              label="英文名"
-                              placeholder="请输入英文名称"
-                            />
-                          </Col>
-                        </Row>
-
-                        {/* Row 4: 英文地址 */}
-                        <Row gutter={[16, 12]}>
-                          <Col span={24}>
-                            <ProFormText
-                              name="addressEn"
-                              label="英文地址"
-                              placeholder="请输入英文地址"
-                            />
-                          </Col>
-                        </Row>
-
-                        {/* Row 5: 性质, 类型, 开发方式, 业务类型 */}
-                        <Row gutter={[16, 12]} align="middle" style={{ marginTop: 4 }}>
-                          <Col xs={24} sm={12} md={4}>
-                            <ProFormSelect
-                              name="nature"
-                              label="性质"
-                              options={[
-                                { label: '客户', value: '客户' },
-                                { label: '供应商', value: '供应商' },
-                              ]}
-                              initialValue={roleLabel}
-                              disabled
-                            />
-                          </Col>
-
-                          <Col xs={24} sm={12} md={6}>
-                            <ProFormCheckbox.Group
-                              name="customerTypes"
-                              label="类型"
-                              options={CUSTOMER_TYPE_OPTIONS}
-                              initialValue={[1]}
-                            />
-                          </Col>
-
-                          <Col xs={24} sm={12} md={6}>
-                            <ProFormSelect
-                              name="developmentMethod"
-                              label="开发方式"
-                              options={DEVELOPMENT_METHOD_OPTIONS}
-                              initialValue="自主开发"
-                            />
-                          </Col>
-
-                          <Col xs={24} md={8}>
-                            <ProFormSelect
-                              name="businessTypes"
-                              label="业务类型"
-                              mode="multiple"
-                              options={BUSINESS_TYPE_OPTIONS}
-                              placeholder="请选择适用的业务类型"
-                              initialValue={[1]}
-                            />
-                          </Col>
-                        </Row>
-
-                        <Divider style={{ margin: '14px 0' }} />
-
-                        {/* Row 6: 8 Personnel Assignment Slots (4 Rows x 2 Columns) */}
-                        <div style={{ marginBottom: 12 }}>
-                          <Text strong style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.88)' }}>
-                            责任人员分配矩阵
-                          </Text>
-                        </div>
-
-                        <Row gutter={[20, 10]}>
-                          {/* Slot 1: 创建人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="创建人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignCreatorUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignCreatorUser', 'assignCreatorOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignCreatorOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 2: 操作人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="操作人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignOperatorUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignOperatorUser', 'assignOperatorOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignOperatorOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 3: 业务人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="业务人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignSalesUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignSalesUser', 'assignSalesOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignSalesOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 4: 客服人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="客服人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignServiceUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignServiceUser', 'assignServiceOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignServiceOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 5: 关联人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="关联人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignContactUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignContactUser', 'assignContactOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignContactOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 6: 单证人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="单证人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignDocUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignDocUser', 'assignDocOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignDocOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 7: 商务人员 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="商务人员" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignCommercialUser" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignCommercialUser', 'assignCommercialOrg', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignCommercialOrg" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-
-                          {/* Slot 8: 关联人员2 */}
-                          <Col xs={24} md={12}>
-                            <Form.Item label="关联人员2" style={{ marginBottom: 0 }}>
-                              <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item name="assignContact2User" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={userSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                    onChange={(val) => handleUserChange('assignContact2User', 'assignContact2Org', val)}
-                                  />
-                                </Form.Item>
-                                <Form.Item name="assignContact2Org" noStyle>
-                                  <Select
-                                    showSearch
-                                    placeholder="请选择"
-                                    options={orgSelectOptions}
-                                    style={{ width: '50%' }}
-                                    allowClear
-                                  />
-                                </Form.Item>
-                              </Space.Compact>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-
-                        <Divider style={{ margin: '14px 0' }} />
-
-                        {/* Row 7: 公司别名 */}
-                        <Row gutter={[16, 12]} align="middle">
-                          <Col span={24}>
-                            <Form.Item label="公司别名" style={{ marginBottom: 0 }}>
-                              <Space wrap align="center">
-                                <Input
-                                  placeholder="输入企业别名"
-                                  value={newAliasInput}
-                                  onChange={(e) => setNewAliasInput(e.target.value)}
-                                  onPressEnter={handleAddAlias}
-                                  style={{ width: 220 }}
-                                />
-                                <Button type="dashed" onClick={handleAddAlias}>
-                                  添加
-                                </Button>
-                                {aliases.map((alias) => (
-                                  <Tag
-                                    key={alias}
-                                    closable
-                                    onClose={() => handleRemoveAlias(alias)}
-                                    color="blue"
-                                    style={{ fontSize: 12, padding: '2px 8px' }}
-                                  >
-                                    {alias}
-                                  </Tag>
-                                ))}
-                              </Space>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                </div>
-              </SectionCard>
+                onCollapseChange={(collapsed) =>
+                  toggleSection('basic', collapsed)
+                }
+                partnerId={partnerId}
+                roleLabel={roleLabel}
+                userSelectOptions={userSelectOptions}
+                orgSelectOptions={orgSelectOptions}
+                aliases={aliases}
+                newAliasInput={newAliasInput}
+                setNewAliasInput={setNewAliasInput}
+                onAddAlias={handleAddAlias}
+                onRemoveAlias={handleRemoveAlias}
+                onTianyanchaVerify={handleTianyanchaVerify}
+                onUserChange={handleUserChange}
+              />
 
               {/* Section 2: 财务结算规则 */}
-              <SectionCard
-                key="settlement"
-                title="财务结算规则"
-                collapsible
+              <SettlementSection
                 collapsed={!activeCollapseKeys.includes('settlement')}
-                onCollapseChange={(collapsed) => toggleSection('settlement', collapsed)}
-              >
-                <div>
-                  <Row gutter={[16, 12]} align="middle">
-                    {/* 对账方式 */}
-                    <Col xs={24} sm={12} md={4}>
-                      <ProFormSelect
-                        name="statementMode"
-                        label="对账方式"
-                        options={STATEMENT_MODE_OPTIONS}
-                        rules={[{ required: true, message: '请选择对账方式' }]}
-                      />
-                    </Col>
-
-                    {/* 结算方式 */}
-                    <Col xs={24} sm={12} md={4}>
-                      <ProFormSelect
-                        name="settlementMethod"
-                        label="结算方式"
-                        options={SETTLEMENT_METHOD_OPTIONS}
-                        rules={[{ required: true, message: '请选择结算方式' }]}
-                      />
-                    </Col>
-
-                    {/* 结算日期 */}
-                    <Col xs={24} sm={12} md={5}>
-                      <Form.Item
-                        label={
-                          <Space size={4}>
-                            <span>结算日期</span>
-                            <Tooltip title="每月固定结算与对账截止日">
-                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                            </Tooltip>
-                          </Space>
-                        }
-                        style={{ marginBottom: 0 }}
-                      >
-                        <Space.Compact style={{ width: '100%' }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '0 8px',
-                              backgroundColor: '#fafafa',
-                              border: '1px solid #d9d9d9',
-                              borderRight: 0,
-                              borderRadius: '6px 0 0 6px',
-                              color: '#595959',
-                            }}
-                          >
-                            每月
-                          </div>
-                          <Form.Item name="settlementDay" noStyle>
-                            <Select
-                              options={SETTLEMENT_DAY_OPTIONS}
-                              placeholder="请选择"
-                              style={{ width: '100%' }}
-                            />
-                          </Form.Item>
-                        </Space.Compact>
-                      </Form.Item>
-                    </Col>
-
-                    {/* 账期 */}
-                    <Col xs={24} sm={12} md={5}>
-                      <Form.Item
-                        label={
-                          <Space size={4}>
-                            <span>账期</span>
-                            <Tooltip title="账期基准与有效信用天数">
-                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                            </Tooltip>
-                          </Space>
-                        }
-                        style={{ marginBottom: 0 }}
-                      >
-                        <Space.Compact style={{ width: '100%' }}>
-                          <Form.Item name="settlementBase" noStyle>
-                            <Select
-                              options={SETTLEMENT_BASE_OPTIONS}
-                              placeholder="请选择"
-                              style={{ width: '55%' }}
-                            />
-                          </Form.Item>
-                          <Form.Item name="creditDays" noStyle>
-                            <Input
-                              placeholder="天数"
-                              style={{ width: '45%', textAlign: 'center' }}
-                              suffix="天"
-                            />
-                          </Form.Item>
-                        </Space.Compact>
-                      </Form.Item>
-                    </Col>
-
-                    {/* 信用额度(本币) */}
-                    <Col xs={24} sm={12} md={6}>
-                      <ProFormDigit
-                        name="creditLimit"
-                        label={
-                          <Space size={4}>
-                            <span>信用额度(本币)</span>
-                            <Tooltip title="本币最大允许未核销应收账款额度">
-                              <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
-                            </Tooltip>
-                          </Space>
-                        }
-                        placeholder="输入信用额度"
-                        min={0}
-                        fieldProps={{
-                          precision: 2,
-                          addonAfter: '元',
-                        }}
-                      />
-                    </Col>
-                  </Row>
-
-                  <Row gutter={[16, 12]} align="middle" style={{ marginTop: 8 }}>
-                    {/* 结算币种 */}
-                    <Col xs={24} sm={12} md={4}>
-                      <ProFormSelect
-                        name="settlementCurrency"
-                        label="结算币种"
-                        options={currencyOptions}
-                        rules={[{ required: true, message: '请选择结算币种' }]}
-                      />
-                    </Col>
-
-                    {/* 利息规则 */}
-                    <Col xs={24} sm={12} md={6}>
-                      <Form.Item label="利息规则" style={{ marginBottom: 0 }}>
-                        <Button
-                          type="link"
-                          onClick={() => setInterestModalOpen(true)}
-                          style={{ padding: 0, fontWeight: 500 }}
-                        >
-                          {interestRule.enabled
-                            ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
-                            : '编辑规则'}
-                        </Button>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </div>
-              </SectionCard>
+                onCollapseChange={(collapsed) =>
+                  toggleSection('settlement', collapsed)
+                }
+                currencyOptions={currencyOptions}
+                interestRule={interestRule}
+                onOpenInterestModal={() => setInterestModalOpen(true)}
+              />
 
               {/* Section 3: 账户信息 */}
               <SectionCard
