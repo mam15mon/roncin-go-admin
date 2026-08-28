@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
-	"github.com/go-kratos/kratos/v3/middleware/validate"
 	"github.com/go-kratos/kratos/v3/transport/http"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
@@ -19,9 +18,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 	"github.com/roncin/roncin-go-admin/server/internal/service"
 	"github.com/roncin/roncin-go-admin/server/internal/webassets"
-
-	"go.einride.tech/aip/fieldbehavior"
-	"google.golang.org/protobuf/proto"
 )
 
 // NewHTTPServer new an HTTP server.
@@ -32,16 +28,9 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 			recovery.Recovery(),
 			tracing.Server(),
 			requestmeta.Middleware(),
-			Authorization(authUsecase, policy, orderUsecase),
 			requestmeta.Logging(logger),
-			validate.Validator(func(req any) error {
-				if msg, ok := req.(proto.Message); ok {
-					if err := fieldbehavior.ValidateRequiredFields(msg); err != nil {
-						return err
-					}
-				}
-				return nil
-			}),
+			Authorization(authUsecase, policy, orderUsecase),
+			RequiredFieldsValidator(),
 		),
 	}
 	if c.Http.Network != "" {

@@ -27,8 +27,9 @@ func NewGRPCServer(c *conf.Server, auth *service.AuthService, partner *service.P
 			recovery.Recovery(),
 			tracing.Server(),
 			requestmeta.Middleware(),
-			Authorization(authUsecase, policy, orderUsecase),
 			requestmeta.Logging(logger),
+			Authorization(authUsecase, policy, orderUsecase),
+			RequiredFieldsValidator(),
 		),
 	}
 	if c.Grpc.Network != "" {
