@@ -1250,6 +1250,14 @@ func (_c *OrderCreate) defaults() {
 		v := order.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.ShipperShortName(); !ok {
+		v := order.DefaultShipperShortName
+		_c.mutation.SetShipperShortName(v)
+	}
+	if _, ok := _c.mutation.ConsigneeShortName(); !ok {
+		v := order.DefaultConsigneeShortName
+		_c.mutation.SetConsigneeShortName(v)
+	}
 	if _, ok := _c.mutation.FlowStatus(); !ok {
 		v := order.DefaultFlowStatus
 		_c.mutation.SetFlowStatus(v)
@@ -1312,10 +1320,16 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "internal_reference_no", err: fmt.Errorf(`ent: validator failed for field "Order.internal_reference_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ShipperShortName(); !ok {
+		return &ValidationError{Name: "shipper_short_name", err: errors.New(`ent: missing required field "Order.shipper_short_name"`)}
+	}
 	if v, ok := _c.mutation.ShipperShortName(); ok {
 		if err := order.ShipperShortNameValidator(v); err != nil {
 			return &ValidationError{Name: "shipper_short_name", err: fmt.Errorf(`ent: validator failed for field "Order.shipper_short_name": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.ConsigneeShortName(); !ok {
+		return &ValidationError{Name: "consignee_short_name", err: errors.New(`ent: missing required field "Order.consignee_short_name"`)}
 	}
 	if v, ok := _c.mutation.ConsigneeShortName(); ok {
 		if err := order.ConsigneeShortNameValidator(v); err != nil {

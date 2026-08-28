@@ -137,12 +137,6 @@ func (_u *OrderUpdate) SetNillableShipperShortName(v *string) *OrderUpdate {
 	return _u
 }
 
-// ClearShipperShortName clears the value of the "shipper_short_name" field.
-func (_u *OrderUpdate) ClearShipperShortName() *OrderUpdate {
-	_u.mutation.ClearShipperShortName()
-	return _u
-}
-
 // SetConsigneeShortName sets the "consignee_short_name" field.
 func (_u *OrderUpdate) SetConsigneeShortName(v string) *OrderUpdate {
 	_u.mutation.SetConsigneeShortName(v)
@@ -154,12 +148,6 @@ func (_u *OrderUpdate) SetNillableConsigneeShortName(v *string) *OrderUpdate {
 	if v != nil {
 		_u.SetConsigneeShortName(*v)
 	}
-	return _u
-}
-
-// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
-func (_u *OrderUpdate) ClearConsigneeShortName() *OrderUpdate {
-	_u.mutation.ClearConsigneeShortName()
 	return _u
 }
 
@@ -2255,14 +2243,8 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ShipperShortName(); ok {
 		_spec.SetField(order.FieldShipperShortName, field.TypeString, value)
 	}
-	if _u.mutation.ShipperShortNameCleared() {
-		_spec.ClearField(order.FieldShipperShortName, field.TypeString)
-	}
 	if value, ok := _u.mutation.ConsigneeShortName(); ok {
 		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
-	}
-	if _u.mutation.ConsigneeShortNameCleared() {
-		_spec.ClearField(order.FieldConsigneeShortName, field.TypeString)
 	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)
@@ -3536,12 +3518,6 @@ func (_u *OrderUpdateOne) SetNillableShipperShortName(v *string) *OrderUpdateOne
 	return _u
 }
 
-// ClearShipperShortName clears the value of the "shipper_short_name" field.
-func (_u *OrderUpdateOne) ClearShipperShortName() *OrderUpdateOne {
-	_u.mutation.ClearShipperShortName()
-	return _u
-}
-
 // SetConsigneeShortName sets the "consignee_short_name" field.
 func (_u *OrderUpdateOne) SetConsigneeShortName(v string) *OrderUpdateOne {
 	_u.mutation.SetConsigneeShortName(v)
@@ -3553,12 +3529,6 @@ func (_u *OrderUpdateOne) SetNillableConsigneeShortName(v *string) *OrderUpdateO
 	if v != nil {
 		_u.SetConsigneeShortName(*v)
 	}
-	return _u
-}
-
-// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
-func (_u *OrderUpdateOne) ClearConsigneeShortName() *OrderUpdateOne {
-	_u.mutation.ClearConsigneeShortName()
 	return _u
 }
 
@@ -5684,14 +5654,8 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	if value, ok := _u.mutation.ShipperShortName(); ok {
 		_spec.SetField(order.FieldShipperShortName, field.TypeString, value)
 	}
-	if _u.mutation.ShipperShortNameCleared() {
-		_spec.ClearField(order.FieldShipperShortName, field.TypeString)
-	}
 	if value, ok := _u.mutation.ConsigneeShortName(); ok {
 		_spec.SetField(order.FieldConsigneeShortName, field.TypeString, value)
-	}
-	if _u.mutation.ConsigneeShortNameCleared() {
-		_spec.ClearField(order.FieldConsigneeShortName, field.TypeString)
 	}
 	if value, ok := _u.mutation.CarrierID(); ok {
 		_spec.SetField(order.FieldCarrierID, field.TypeUUID, value)

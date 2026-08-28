@@ -423,8 +423,12 @@ var (
 	CustomerReferenceNoValidator func(string) error
 	// InternalReferenceNoValidator is a validator for the "internal_reference_no" field. It is called by the builders before save.
 	InternalReferenceNoValidator func(string) error
+	// DefaultShipperShortName holds the default value on creation for the "shipper_short_name" field.
+	DefaultShipperShortName string
 	// ShipperShortNameValidator is a validator for the "shipper_short_name" field. It is called by the builders before save.
 	ShipperShortNameValidator func(string) error
+	// DefaultConsigneeShortName holds the default value on creation for the "consignee_short_name" field.
+	DefaultConsigneeShortName string
 	// ConsigneeShortNameValidator is a validator for the "consignee_short_name" field. It is called by the builders before save.
 	ConsigneeShortNameValidator func(string) error
 	// ContractNoValidator is a validator for the "contract_no" field. It is called by the builders before save.

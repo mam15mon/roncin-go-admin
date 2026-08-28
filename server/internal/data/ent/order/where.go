@@ -726,16 +726,6 @@ func ShipperShortNameHasSuffix(v string) predicate.Order {
 	return predicate.Order(sql.FieldHasSuffix(FieldShipperShortName, v))
 }
 
-// ShipperShortNameIsNil applies the IsNil predicate on the "shipper_short_name" field.
-func ShipperShortNameIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldShipperShortName))
-}
-
-// ShipperShortNameNotNil applies the NotNil predicate on the "shipper_short_name" field.
-func ShipperShortNameNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldShipperShortName))
-}
-
 // ShipperShortNameEqualFold applies the EqualFold predicate on the "shipper_short_name" field.
 func ShipperShortNameEqualFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldEqualFold(FieldShipperShortName, v))
@@ -799,16 +789,6 @@ func ConsigneeShortNameHasPrefix(v string) predicate.Order {
 // ConsigneeShortNameHasSuffix applies the HasSuffix predicate on the "consignee_short_name" field.
 func ConsigneeShortNameHasSuffix(v string) predicate.Order {
 	return predicate.Order(sql.FieldHasSuffix(FieldConsigneeShortName, v))
-}
-
-// ConsigneeShortNameIsNil applies the IsNil predicate on the "consignee_short_name" field.
-func ConsigneeShortNameIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldConsigneeShortName))
-}
-
-// ConsigneeShortNameNotNil applies the NotNil predicate on the "consignee_short_name" field.
-func ConsigneeShortNameNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldConsigneeShortName))
 }
 
 // ConsigneeShortNameEqualFold applies the EqualFold predicate on the "consignee_short_name" field.

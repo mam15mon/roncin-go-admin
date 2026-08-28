@@ -47423,22 +47423,9 @@ func (m *OrderMutation) OldShipperShortName(ctx context.Context) (v string, err 
 	return oldValue.ShipperShortName, nil
 }
 
-// ClearShipperShortName clears the value of the "shipper_short_name" field.
-func (m *OrderMutation) ClearShipperShortName() {
-	m.shipper_short_name = nil
-	m.clearedFields[order.FieldShipperShortName] = struct{}{}
-}
-
-// ShipperShortNameCleared returns if the "shipper_short_name" field was cleared in this mutation.
-func (m *OrderMutation) ShipperShortNameCleared() bool {
-	_, ok := m.clearedFields[order.FieldShipperShortName]
-	return ok
-}
-
 // ResetShipperShortName resets all changes to the "shipper_short_name" field.
 func (m *OrderMutation) ResetShipperShortName() {
 	m.shipper_short_name = nil
-	delete(m.clearedFields, order.FieldShipperShortName)
 }
 
 // SetConsigneeShortName sets the "consignee_short_name" field.
@@ -47472,22 +47459,9 @@ func (m *OrderMutation) OldConsigneeShortName(ctx context.Context) (v string, er
 	return oldValue.ConsigneeShortName, nil
 }
 
-// ClearConsigneeShortName clears the value of the "consignee_short_name" field.
-func (m *OrderMutation) ClearConsigneeShortName() {
-	m.consignee_short_name = nil
-	m.clearedFields[order.FieldConsigneeShortName] = struct{}{}
-}
-
-// ConsigneeShortNameCleared returns if the "consignee_short_name" field was cleared in this mutation.
-func (m *OrderMutation) ConsigneeShortNameCleared() bool {
-	_, ok := m.clearedFields[order.FieldConsigneeShortName]
-	return ok
-}
-
 // ResetConsigneeShortName resets all changes to the "consignee_short_name" field.
 func (m *OrderMutation) ResetConsigneeShortName() {
 	m.consignee_short_name = nil
-	delete(m.clearedFields, order.FieldConsigneeShortName)
 }
 
 // SetCarrierID sets the "carrier_id" field.
@@ -52421,12 +52395,6 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldInternalReferenceNo) {
 		fields = append(fields, order.FieldInternalReferenceNo)
 	}
-	if m.FieldCleared(order.FieldShipperShortName) {
-		fields = append(fields, order.FieldShipperShortName)
-	}
-	if m.FieldCleared(order.FieldConsigneeShortName) {
-		fields = append(fields, order.FieldConsigneeShortName)
-	}
 	if m.FieldCleared(order.FieldCarrierID) {
 		fields = append(fields, order.FieldCarrierID)
 	}
@@ -52593,12 +52561,6 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldInternalReferenceNo:
 		m.ClearInternalReferenceNo()
-		return nil
-	case order.FieldShipperShortName:
-		m.ClearShipperShortName()
-		return nil
-	case order.FieldConsigneeShortName:
-		m.ClearConsigneeShortName()
 		return nil
 	case order.FieldCarrierID:
 		m.ClearCarrierID()

@@ -3444,10 +3444,14 @@ func init() {
 	order.InternalReferenceNoValidator = orderDescInternalReferenceNo.Validators[0].(func(string) error)
 	// orderDescShipperShortName is the schema descriptor for shipper_short_name field.
 	orderDescShipperShortName := orderFields[5].Descriptor()
+	// order.DefaultShipperShortName holds the default value on creation for the shipper_short_name field.
+	order.DefaultShipperShortName = orderDescShipperShortName.Default.(string)
 	// order.ShipperShortNameValidator is a validator for the "shipper_short_name" field. It is called by the builders before save.
 	order.ShipperShortNameValidator = orderDescShipperShortName.Validators[0].(func(string) error)
 	// orderDescConsigneeShortName is the schema descriptor for consignee_short_name field.
 	orderDescConsigneeShortName := orderFields[6].Descriptor()
+	// order.DefaultConsigneeShortName holds the default value on creation for the consignee_short_name field.
+	order.DefaultConsigneeShortName = orderDescConsigneeShortName.Default.(string)
 	// order.ConsigneeShortNameValidator is a validator for the "consignee_short_name" field. It is called by the builders before save.
 	order.ConsigneeShortNameValidator = orderDescConsigneeShortName.Validators[0].(func(string) error)
 	// orderDescContractNo is the schema descriptor for contract_no field.

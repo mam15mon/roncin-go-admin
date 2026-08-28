@@ -1,7 +1,7 @@
 -- 为订单全量筛选补充可持久化的收发货人、锁定、分享和标签属性。
 ALTER TABLE "orders"
-  ADD COLUMN "shipper_short_name" varchar(200),
-  ADD COLUMN "consignee_short_name" varchar(200),
+  ADD COLUMN "shipper_short_name" varchar(200) NOT NULL DEFAULT '',
+  ADD COLUMN "consignee_short_name" varchar(200) NOT NULL DEFAULT '',
   ADD COLUMN "locked_at" timestamptz,
   ADD COLUMN "is_shared" boolean NOT NULL DEFAULT false,
   ADD COLUMN "tags" jsonb NOT NULL DEFAULT '[]'::jsonb,
