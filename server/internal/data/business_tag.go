@@ -7,14 +7,16 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
-	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
-	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
-	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	tagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
+	taggroupent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
+	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 )
 
 type businessTagRepo struct {
@@ -30,7 +32,11 @@ func (r *businessTagRepo) ListTagOptions(ctx context.Context, organizationID uui
 	query := r.data.db.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeTAG), resourceent.EnabledEQ(true)).
 		WithTag(func(q *ent.EnterpriseTagQuery) { q.WithGroup() })
 	if keyword != "" {
-		query.Where(resourceent.Or(resourceent.ShortNameContainsFold(keyword), resourceent.SearchKeywordsContainsFold(keyword)))
+		query.Where(resourceent.Or(
+			resourceent.ShortNameContainsFold(keyword),
+			resourceent.SearchKeywordsContainsFold(keyword),
+			resourceent.HasTagWith(tagent.HasGroupWith(taggroupent.NameContainsFold(keyword))),
+		))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {

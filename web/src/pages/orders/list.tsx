@@ -137,6 +137,7 @@ export default function OrderListPage() {
           loadPersonnel: searchOrderPersonnel,
           tags: tagFilterOptions,
         }}
+        showManageTags={access.canOrder(config.businessType, 'update')}
         onBatchAction={(actionKey, rows) => {
           if (actionKey === 'manage-tags') {
             setTagRows(rows);
@@ -213,6 +214,12 @@ export default function OrderListPage() {
       />
       <BusinessTagModal
         open={tagModalOpen}
+        loadOptions={(params) =>
+          orderTagServiceListOrderTagOptions({
+            ...params,
+            businessType: config.businessType as number,
+          })
+        }
         targetCount={tagRows.length}
         existingTags={tagRows.flatMap((row) => row.rawRecord?.tags ?? row.tags ?? [])}
         canQuickCreate={Boolean(access.canCreateEnterpriseResources)}

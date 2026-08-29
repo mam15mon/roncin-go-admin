@@ -1,6 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { history, useAccess } from '@umijs/max';
-import { App } from 'antd';
+import { App, Select, Space } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
@@ -179,6 +179,27 @@ export default function FinanceFeeLedgerPage() {
 
   return (
     <>
+
+      <div style={{ marginBottom: 12 }}>
+        <Space>
+          <span>标签筛选</span>
+          <Select
+            mode="multiple"
+            allowClear
+            showSearch
+            optionFilterProp="label"
+            style={{ minWidth: 320 }}
+            placeholder="命中任一标签即返回"
+            options={tagOptions}
+            value={tagFilterIds}
+            onChange={(value) => {
+              setTagFilterIds(value.length ? value : undefined);
+              actionRef.current?.reload();
+            }}
+          />
+        </Space>
+      </div>
+
       <FinanceLedgerTemplate<API.FeeLedgerItem>
         headerTitle="集运费用明细台账"
         actionRef={actionRef}
@@ -194,24 +215,6 @@ export default function FinanceFeeLedgerPage() {
         search={false}
         primaryActionText="创建账单"
         primaryActionRequiresSelection
-        rowSelection={{
-          getCheckboxProps: (record) => {
-            const blocked =
-              Boolean(record.billNo) ||
-              record.status === 'BILLED' ||
-              record.status === 'CANCELLED';
-            return {
-              disabled: blocked,
-              title: blocked
-                ? record.billNo
-                  ? `已进入账单 ${record.billNo}`
-                  : record.status === 'BILLED'
-                    ? '已开账费用不可再次操作'
-                    : '已作废费用不可操作'
-                : undefined,
-            };
-          },
-        }}
         onPrimaryAction={(keys, rows) => {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
           if (invalidRows.length > 0) {
@@ -229,11 +232,15 @@ export default function FinanceFeeLedgerPage() {
             label: '批量确认勾选费用',
             onClick: handleBatchConfirm,
           },
-          {
-            key: 'manage-tags',
-            label: '添加/移除标签',
-            onClick: (keys, rows) => openTagModal(keys, rows),
-          },
+          ...(access.canManageFinanceFeeTags
+            ? [
+                {
+                  key: 'manage-tags',
+                  label: '添加/移除标签',
+                  onClick: (keys: React.Key[], rows: API.FeeLedgerItem[]) => openTagModal(keys, rows),
+                },
+              ]
+            : []),
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
         onOpenColumnConfig={() => setColumnConfigOpen(true)}

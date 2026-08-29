@@ -45,7 +45,6 @@ func TestOrderPersonnelFilterFromAPIRequiresEmployee(t *testing.T) {
 	}
 }
 
-
 func TestReadableOrderBusinessTypesUsesScopedReadPermissions(t *testing.T) {
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)

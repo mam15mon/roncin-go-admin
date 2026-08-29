@@ -329,6 +329,26 @@ export default function FinanceBillsPage() {
         primaryActionText={
           access.canCreateFinanceBills ? '批量创建账单' : undefined
         }
+        batchActions={
+          access.canUpdateFinanceBills
+            ? [
+                {
+                  key: 'manage-tags',
+                  label: '添加/移除标签',
+                  onClick: (keys: React.Key[], rows: API.FinanceBill[]) => {
+                    if (!rows.length) return;
+                    setTagBillIds(rows.map((row) => row.id ?? '').filter(Boolean));
+                    const seen = new Map<string, API.BusinessTagSummary>();
+                    for (const row of rows)
+                      for (const tag of row.tags ?? [])
+                        if (tag.id) seen.set(tag.id, tag);
+                    setTagExisting([...seen.values()]);
+                    setTagModalOpen(true);
+                  },
+                },
+              ]
+            : []
+        }
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={openCreate}
         request={async (params) => {

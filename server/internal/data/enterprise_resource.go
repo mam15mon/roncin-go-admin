@@ -16,14 +16,14 @@ import (
 	assigneeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	imageent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
-	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
-	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
-	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	remarkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	tagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
 	taggroupent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
+	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
@@ -307,6 +307,15 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 	}
 	audit.Details["resource.type"] = string(item.ResourceType)
 	if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
+		// 与批量关联写入使用同一行锁：先锁标签资源再统计使用，防止统计与删除之间并发写入关联
+		locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id)).Order(resourceent.ByID()).ForUpdate().All(ctx)
+		if err != nil || len(locked) != 1 {
+			_ = tx.Rollback()
+			if err != nil {
+				return err
+			}
+			return biz.ErrEnterpriseResourceNotFound
+		}
 		partnerCount, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).Count(ctx)
 		if err != nil {
 			_ = tx.Rollback()

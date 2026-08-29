@@ -171,6 +171,8 @@ export type BatchActionKey =
 
 /** OrderListTemplate 组件属性定义 */
 export interface OrderListTemplateProps {
+  /** 是否显示标签管理入口 */
+  showManageTags?: boolean;
   /** 品类标识（如 'sea-export' | 'sea-import' | 'air-export' | 'air-import'） */
   orderKind: OrderKind;
   /** 页面/工作台主标题，如 "海运出口订单" */

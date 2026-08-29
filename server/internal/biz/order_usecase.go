@@ -18,13 +18,15 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 	if err != nil {
 		return nil, err
 	}
-	attachOrderTags(ctx, uc.tagRepo, order)
+	if err := attachOrderTags(ctx, uc.tagRepo, order); err != nil {
+		return nil, err
+	}
 	return order, nil
 }
 
-func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Order) {
+func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Order) error {
 	if tagRepo == nil || len(orders) == 0 {
-		return
+		return nil
 	}
 	ids := make([]uuid.UUID, 0, len(orders))
 	for _, order := range orders {
@@ -32,11 +34,12 @@ func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Or
 	}
 	tags, err := tagRepo.LoadOrderTags(ctx, ids)
 	if err != nil {
-		return
+		return err
 	}
 	for _, order := range orders {
 		order.Tags = tags[order.ID]
 	}
+	return nil
 }
 
 func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) {
@@ -77,7 +80,9 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if err != nil {
 		return nil, err
 	}
-	attachOrderTags(ctx, uc.tagRepo, result.Items...)
+	if err := attachOrderTags(ctx, uc.tagRepo, result.Items...); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 

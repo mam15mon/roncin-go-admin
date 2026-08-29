@@ -65,6 +65,7 @@ export function OrderListTemplate({
   onTransitionStatus,
   options,
   readonly = false,
+  showManageTags = true,
 }: OrderListTemplateProps) {
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef =
@@ -665,6 +666,7 @@ export function OrderListTemplate({
           filterVisible={filterVisible}
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
+          showManageTags={showManageTags}
         />
 
         <ProTable<OrderListItem>

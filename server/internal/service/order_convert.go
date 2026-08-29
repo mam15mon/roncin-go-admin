@@ -44,7 +44,6 @@ func orderToAPI(item *biz.Order) *v1.Order {
 	return result
 }
 
-
 func shippingDocumentsFromAPI(values []*v1.OrderShippingDocumentInput) ([]*biz.OrderShippingDocument, error) {
 	result := make([]*biz.OrderShippingDocument, 0, len(values))
 	for _, value := range values {

@@ -23,7 +23,7 @@ import {
 } from './components/fees/feeConstants';
 import { confirmWithReason } from './fee-reason-confirm';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
-import { orderFeeServiceBatchAssignOrderFeeTags, orderFeeServiceBatchRemoveOrderFeeTags } from '@/services/roncin/orderFeeService';
+import { orderFeeServiceBatchAssignOrderFeeTags, orderFeeServiceBatchRemoveOrderFeeTags, orderFeeServiceListOrderFeeTagOptions } from '@/services/roncin/orderFeeService';
 import { TagOutlined } from '@ant-design/icons';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import {
@@ -403,6 +403,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
         <BusinessTagModal
           open={tagModalOpen}
+          loadOptions={(params) =>
+            orderFeeServiceListOrderFeeTagOptions({
+              ...params,
+              orderId: order?.id as string,
+            })
+          }
           targetCount={selectedFeeIds.length}
           canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
           onSubmit={async (mode, tagIds) => {

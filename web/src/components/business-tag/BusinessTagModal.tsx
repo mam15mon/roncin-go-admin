@@ -98,7 +98,7 @@ export function BusinessTagModal({
 
   const submitQuickCreate = async () => {
     const values = await quickForm.validateFields();
-    await enterpriseResourceServiceCreateEnterpriseResource({
+    const response = await enterpriseResourceServiceCreateEnterpriseResource({
       resource: {
         resourceType: 4,
         shortName: values.name.trim(),
@@ -111,14 +111,8 @@ export function BusinessTagModal({
     setQuickCreateOpen(false);
     quickForm.resetFields();
     await loadTagOptions();
-    // 快捷新建后自动选中
-    const response = await fetchOptions({
-      page: 1,
-      pageSize: 50,
-      keyword: values.name.trim(),
-    });
-    const created = response.tags?.find((tag) => tag.name === values.name.trim());
-    if (created?.id) setSelectedTagIds([created.id]);
+    const createdID = response.data?.id;
+    if (createdID) setSelectedTagIds([createdID]);
   };
 
   return (

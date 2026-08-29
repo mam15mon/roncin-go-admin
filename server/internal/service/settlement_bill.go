@@ -71,7 +71,13 @@ func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequ
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	billTags, err := s.tagUsecase.LoadFinanceBillTags(ctx, []uuid.UUID{id})
+	if err != nil {
+		return nil, err
+	}
+	converted := financeBillToAPI(item)
+	converted.Tags = businessTagSummariesToFinanceAPI(billTags[id])
+	return &v1.GetBillResponse{Success: true, Code: 0, Message: "OK", Data: converted, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBillRequest) (*v1.CreateBillResponse, error) {

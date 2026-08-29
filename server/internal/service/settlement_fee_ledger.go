@@ -87,7 +87,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
 			FinancialProgress: string(item.FinancialProgress),
 			FinanceLocked:     item.FinanceLocked,
-			Tags: businessTagSummariesToFinanceAPI(feeTags[fee.ID]),
+			Tags:              businessTagSummariesToFinanceAPI(feeTags[fee.ID]),
 		})
 		if item.BillNo != "" {
 			data[len(data)-1].BillNo = &item.BillNo

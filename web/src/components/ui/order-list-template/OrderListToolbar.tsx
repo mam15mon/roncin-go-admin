@@ -29,6 +29,8 @@ import type { BatchActionKey, OrderListItem } from './types';
 const { Text } = Typography;
 
 export interface OrderListToolbarProps {
+  /** 是否显示标签管理入口（由订单业务类型 update 权限决定） */
+  showManageTags?: boolean;
   orderKindTitle?: string;
   selectedRows: OrderListItem[];
   onRefresh: () => void;
@@ -43,6 +45,7 @@ export interface OrderListToolbarProps {
 }
 
 export function OrderListToolbar({
+  showManageTags = true,
   orderKindTitle = '订单',
   selectedRows,
   onRefresh,
@@ -120,12 +123,16 @@ export function OrderListToolbar({
       label: '批量修改字段',
       disabled: !hasSelected,
     },
-    {
-      key: 'manage-tags',
-      icon: <TagOutlined />,
-      label: '标签管理',
-      disabled: !hasSelected,
-    },
+    ...(showManageTags
+      ? [
+          {
+            key: 'manage-tags',
+            icon: <TagOutlined />,
+            label: '标签管理',
+            disabled: !hasSelected,
+          },
+        ]
+      : []),
     {
       key: 'batch-import',
       icon: <DownloadOutlined />,
