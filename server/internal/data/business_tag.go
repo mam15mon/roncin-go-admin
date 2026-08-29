@@ -35,7 +35,10 @@ func (r *businessTagRepo) ListTagOptions(ctx context.Context, organizationID uui
 		query.Where(resourceent.Or(
 			resourceent.ShortNameContainsFold(keyword),
 			resourceent.SearchKeywordsContainsFold(keyword),
-			resourceent.HasTagWith(tagent.HasGroupWith(taggroupent.NameContainsFold(keyword))),
+			resourceent.HasTagWith(tagent.HasGroupWith(taggroupent.Or(
+				taggroupent.NameContainsFold(keyword),
+				taggroupent.SearchKeywordsContainsFold(keyword),
+			))),
 		))
 	}
 	total, err := query.Clone().Count(ctx)

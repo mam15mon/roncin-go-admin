@@ -1322,6 +1322,8 @@ func init() {
 	// enterprisetag.DefaultID holds the default value on creation for the id field.
 	enterprisetag.DefaultID = enterprisetagDescID.Default.(func() uuid.UUID)
 	enterprisetaggroupMixin := schema.EnterpriseTagGroup{}.Mixin()
+	enterprisetaggroupHooks := schema.EnterpriseTagGroup{}.Hooks()
+	enterprisetaggroup.Hooks[0] = enterprisetaggroupHooks[0]
 	enterprisetaggroupMixinFields0 := enterprisetaggroupMixin[0].Fields()
 	_ = enterprisetaggroupMixinFields0
 	enterprisetaggroupMixinFields1 := enterprisetaggroupMixin[1].Fields()
@@ -1374,12 +1376,16 @@ func init() {
 			return nil
 		}
 	}()
+	// enterprisetaggroupDescSearchKeywords is the schema descriptor for search_keywords field.
+	enterprisetaggroupDescSearchKeywords := enterprisetaggroupFields[3].Descriptor()
+	// enterprisetaggroup.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
+	enterprisetaggroup.DefaultSearchKeywords = enterprisetaggroupDescSearchKeywords.Default.(string)
 	// enterprisetaggroupDescColor is the schema descriptor for color field.
-	enterprisetaggroupDescColor := enterprisetaggroupFields[3].Descriptor()
+	enterprisetaggroupDescColor := enterprisetaggroupFields[4].Descriptor()
 	// enterprisetaggroup.ColorValidator is a validator for the "color" field. It is called by the builders before save.
 	enterprisetaggroup.ColorValidator = enterprisetaggroupDescColor.Validators[0].(func(string) error)
 	// enterprisetaggroupDescSortOrder is the schema descriptor for sort_order field.
-	enterprisetaggroupDescSortOrder := enterprisetaggroupFields[4].Descriptor()
+	enterprisetaggroupDescSortOrder := enterprisetaggroupFields[5].Descriptor()
 	// enterprisetaggroup.DefaultSortOrder holds the default value on creation for the sort_order field.
 	enterprisetaggroup.DefaultSortOrder = enterprisetaggroupDescSortOrder.Default.(int)
 	// enterprisetaggroup.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.

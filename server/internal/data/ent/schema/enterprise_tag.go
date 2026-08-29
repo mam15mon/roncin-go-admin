@@ -18,9 +18,14 @@ func (EnterpriseTagGroup) Fields() []ent.Field {
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("name").NotEmpty().MaxLen(100),
 		field.String("normalized_name").NotEmpty().MaxLen(100),
+		searchKeywordsField(),
 		field.String("color").Optional().Nillable().MaxLen(7),
 		field.Int("sort_order").Default(0).NonNegative(),
 	}
+}
+
+func (EnterpriseTagGroup) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("name")}
 }
 
 func (EnterpriseTagGroup) Edges() []ent.Edge {

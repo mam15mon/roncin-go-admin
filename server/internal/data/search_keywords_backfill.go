@@ -29,6 +29,7 @@ var selectorSearchKeywordBackfills = []searchKeywordBackfillSpec{
 	{table: "fee_settings", columns: []string{"name_zh", "name_en", "alias_name"}},
 	{table: "billing_units", columns: []string{"name"}},
 	{table: "taxable_services", columns: []string{"name", "short_name"}},
+	{table: "enterprise_tag_groups", columns: []string{"name"}},
 }
 
 // BackfillSelectorSearchKeywords 为迁移前已有的候选项数据补齐拼音检索键。

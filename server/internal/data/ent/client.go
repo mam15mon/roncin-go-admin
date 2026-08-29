@@ -3895,7 +3895,8 @@ func (c *EnterpriseTagGroupClient) QueryTags(_m *EnterpriseTagGroup) *Enterprise
 
 // Hooks returns the client hooks.
 func (c *EnterpriseTagGroupClient) Hooks() []Hook {
-	return c.hooks.EnterpriseTagGroup
+	hooks := c.hooks.EnterpriseTagGroup
+	return append(hooks[:len(hooks):len(hooks)], enterprisetaggroup.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.

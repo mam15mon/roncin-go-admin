@@ -17272,6 +17272,7 @@ type EnterpriseTagGroupMutation struct {
 	updated_at          *time.Time
 	name                *string
 	normalized_name     *string
+	search_keywords     *string
 	color               *string
 	sort_order          *int
 	addsort_order       *int
@@ -17570,6 +17571,42 @@ func (m *EnterpriseTagGroupMutation) ResetNormalizedName() {
 	m.normalized_name = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *EnterpriseTagGroupMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *EnterpriseTagGroupMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *EnterpriseTagGroupMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // SetColor sets the "color" field.
 func (m *EnterpriseTagGroupMutation) SetColor(s string) {
 	m.color = &s
@@ -17790,7 +17827,7 @@ func (m *EnterpriseTagGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnterpriseTagGroupMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, enterprisetaggroup.FieldCreatedAt)
 	}
@@ -17805,6 +17842,9 @@ func (m *EnterpriseTagGroupMutation) Fields() []string {
 	}
 	if m.normalized_name != nil {
 		fields = append(fields, enterprisetaggroup.FieldNormalizedName)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, enterprisetaggroup.FieldSearchKeywords)
 	}
 	if m.color != nil {
 		fields = append(fields, enterprisetaggroup.FieldColor)
@@ -17830,6 +17870,8 @@ func (m *EnterpriseTagGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case enterprisetaggroup.FieldNormalizedName:
 		return m.NormalizedName()
+	case enterprisetaggroup.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case enterprisetaggroup.FieldColor:
 		return m.Color()
 	case enterprisetaggroup.FieldSortOrder:
@@ -17853,6 +17895,8 @@ func (m *EnterpriseTagGroupMutation) OldField(ctx context.Context, name string) 
 		return m.OldName(ctx)
 	case enterprisetaggroup.FieldNormalizedName:
 		return m.OldNormalizedName(ctx)
+	case enterprisetaggroup.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case enterprisetaggroup.FieldColor:
 		return m.OldColor(ctx)
 	case enterprisetaggroup.FieldSortOrder:
@@ -17900,6 +17944,13 @@ func (m *EnterpriseTagGroupMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNormalizedName(v)
+		return nil
+	case enterprisetaggroup.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case enterprisetaggroup.FieldColor:
 		v, ok := value.(string)
@@ -18002,6 +18053,9 @@ func (m *EnterpriseTagGroupMutation) ResetField(name string) error {
 		return nil
 	case enterprisetaggroup.FieldNormalizedName:
 		m.ResetNormalizedName()
+		return nil
+	case enterprisetaggroup.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case enterprisetaggroup.FieldColor:
 		m.ResetColor()

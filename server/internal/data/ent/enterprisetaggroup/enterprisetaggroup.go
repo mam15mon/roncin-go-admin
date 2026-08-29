@@ -5,6 +5,7 @@ package enterprisetaggroup
 import (
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -25,6 +26,8 @@ const (
 	FieldName = "name"
 	// FieldNormalizedName holds the string denoting the normalized_name field in the database.
 	FieldNormalizedName = "normalized_name"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// FieldColor holds the string denoting the color field in the database.
 	FieldColor = "color"
 	// FieldSortOrder holds the string denoting the sort_order field in the database.
@@ -59,6 +62,7 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldName,
 	FieldNormalizedName,
+	FieldSearchKeywords,
 	FieldColor,
 	FieldSortOrder,
 }
@@ -73,7 +77,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -84,6 +94,8 @@ var (
 	NameValidator func(string) error
 	// NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
 	NormalizedNameValidator func(string) error
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// ColorValidator is a validator for the "color" field. It is called by the builders before save.
 	ColorValidator func(string) error
 	// DefaultSortOrder holds the default value on creation for the "sort_order" field.
@@ -125,6 +137,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByNormalizedName orders the results by the normalized_name field.
 func ByNormalizedName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNormalizedName, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // ByColor orders the results by the color field.

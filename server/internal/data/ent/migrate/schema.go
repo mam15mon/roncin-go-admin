@@ -830,6 +830,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "normalized_name", Type: field.TypeString, Size: 100},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "color", Type: field.TypeString, Nullable: true, Size: 7},
 		{Name: "sort_order", Type: field.TypeInt, Default: 0},
 		{Name: "organization_id", Type: field.TypeUUID},
@@ -842,7 +843,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "enterprise_tag_groups_organizations_enterprise_tag_groups",
-				Columns:    []*schema.Column{EnterpriseTagGroupsColumns[7]},
+				Columns:    []*schema.Column{EnterpriseTagGroupsColumns[8]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -856,12 +857,12 @@ var (
 			{
 				Name:    "enterprisetaggroup_organization_id_normalized_name",
 				Unique:  true,
-				Columns: []*schema.Column{EnterpriseTagGroupsColumns[7], EnterpriseTagGroupsColumns[4]},
+				Columns: []*schema.Column{EnterpriseTagGroupsColumns[8], EnterpriseTagGroupsColumns[4]},
 			},
 			{
 				Name:    "enterprisetaggroup_organization_id_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{EnterpriseTagGroupsColumns[7], EnterpriseTagGroupsColumns[6]},
+				Columns: []*schema.Column{EnterpriseTagGroupsColumns[8], EnterpriseTagGroupsColumns[7]},
 			},
 		},
 	}

@@ -1,12 +1,32 @@
 package server
 
 import (
+	"context"
 	"testing"
+
+	"github.com/google/uuid"
 
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
+
+type authorizationOrderRepoStub struct {
+	biz.OrderRepo
+	order     *biz.Order
+	findCalls int
+	getCalls  int
+}
+
+func (s *authorizationOrderRepoStub) Find(context.Context, uuid.UUID) (*biz.Order, error) {
+	s.findCalls++
+	return s.order, nil
+}
+
+func (s *authorizationOrderRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*biz.Order, error) {
+	s.getCalls++
+	return nil, biz.ErrOrderNotFound
+}
 
 func TestHasPermissionAllowsUnfilteredOrderListWithAnyReadableBusinessType(t *testing.T) {
 	principal := principalWithOrderPermission(access.OrderBusinessSE, access.OrderRead)
@@ -37,6 +57,31 @@ func TestHasPermissionRejectsUnfilteredOrderListWithoutReadPermission(t *testing
 
 	if hasPermission(t.Context(), &orderv1.ListOrdersRequest{}, principal, rule, nil) {
 		t.Fatal("没有任何订单读取权限时，未指定业务类型的订单列表应拒绝访问")
+	}
+}
+
+func TestRequestOrderBusinessTypeOnlyLoadsOrderBaseData(t *testing.T) {
+	organizationID := uuid.New()
+	orderID := uuid.New()
+	repo := &authorizationOrderRepoStub{order: &biz.Order{
+		ID:             orderID,
+		OrganizationID: organizationID,
+		BusinessType:   biz.OrderBusinessSE,
+	}}
+	usecase := biz.NewOrderUsecase(repo, nil, nil)
+
+	businessType, ok := requestOrderBusinessType(
+		t.Context(),
+		&orderv1.GetOrderRequest{Id: orderID.String()},
+		organizationID,
+		usecase,
+	)
+
+	if !ok || businessType != access.OrderBusinessSE {
+		t.Fatalf("应识别海运出口订单，实际 businessType=%q ok=%v", businessType, ok)
+	}
+	if repo.findCalls != 1 || repo.getCalls != 0 {
+		t.Fatalf("鉴权应仅查询订单基础数据，实际 Find=%d Get=%d", repo.findCalls, repo.getCalls)
 	}
 }
 

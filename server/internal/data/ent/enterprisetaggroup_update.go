@@ -64,6 +64,20 @@ func (_u *EnterpriseTagGroupUpdate) SetNillableNormalizedName(v *string) *Enterp
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseTagGroupUpdate) SetSearchKeywords(v string) *EnterpriseTagGroupUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseTagGroupUpdate) SetNillableSearchKeywords(v *string) *EnterpriseTagGroupUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetColor sets the "color" field.
 func (_u *EnterpriseTagGroupUpdate) SetColor(v string) *EnterpriseTagGroupUpdate {
 	_u.mutation.SetColor(v)
@@ -148,7 +162,9 @@ func (_u *EnterpriseTagGroupUpdate) RemoveTags(v ...*EnterpriseTag) *EnterpriseT
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *EnterpriseTagGroupUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -175,11 +191,15 @@ func (_u *EnterpriseTagGroupUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseTagGroupUpdate) defaults() {
+func (_u *EnterpriseTagGroupUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterprisetaggroup.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterprisetaggroup.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterprisetaggroup.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -230,6 +250,9 @@ func (_u *EnterpriseTagGroupUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.NormalizedName(); ok {
 		_spec.SetField(enterprisetaggroup.FieldNormalizedName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterprisetaggroup.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(enterprisetaggroup.FieldColor, field.TypeString, value)
@@ -342,6 +365,20 @@ func (_u *EnterpriseTagGroupUpdateOne) SetNillableNormalizedName(v *string) *Ent
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseTagGroupUpdateOne) SetSearchKeywords(v string) *EnterpriseTagGroupUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseTagGroupUpdateOne) SetNillableSearchKeywords(v *string) *EnterpriseTagGroupUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetColor sets the "color" field.
 func (_u *EnterpriseTagGroupUpdateOne) SetColor(v string) *EnterpriseTagGroupUpdateOne {
 	_u.mutation.SetColor(v)
@@ -439,7 +476,9 @@ func (_u *EnterpriseTagGroupUpdateOne) Select(field string, fields ...string) *E
 
 // Save executes the query and returns the updated EnterpriseTagGroup entity.
 func (_u *EnterpriseTagGroupUpdateOne) Save(ctx context.Context) (*EnterpriseTagGroup, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -466,11 +505,15 @@ func (_u *EnterpriseTagGroupUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseTagGroupUpdateOne) defaults() {
+func (_u *EnterpriseTagGroupUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterprisetaggroup.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterprisetaggroup.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterprisetaggroup.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -538,6 +581,9 @@ func (_u *EnterpriseTagGroupUpdateOne) sqlSave(ctx context.Context) (_node *Ente
 	}
 	if value, ok := _u.mutation.NormalizedName(); ok {
 		_spec.SetField(enterprisetaggroup.FieldNormalizedName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterprisetaggroup.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(enterprisetaggroup.FieldColor, field.TypeString, value)

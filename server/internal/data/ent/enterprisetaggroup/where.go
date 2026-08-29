@@ -81,6 +81,11 @@ func NormalizedName(v string) predicate.EnterpriseTagGroup {
 	return predicate.EnterpriseTagGroup(sql.FieldEQ(FieldNormalizedName, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // Color applies equality check predicate on the "color" field. It's identical to ColorEQ.
 func Color(v string) predicate.EnterpriseTagGroup {
 	return predicate.EnterpriseTagGroup(sql.FieldEQ(FieldColor, v))
@@ -319,6 +324,71 @@ func NormalizedNameEqualFold(v string) predicate.EnterpriseTagGroup {
 // NormalizedNameContainsFold applies the ContainsFold predicate on the "normalized_name" field.
 func NormalizedNameContainsFold(v string) predicate.EnterpriseTagGroup {
 	return predicate.EnterpriseTagGroup(sql.FieldContainsFold(FieldNormalizedName, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.EnterpriseTagGroup {
+	return predicate.EnterpriseTagGroup(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // ColorEQ applies the EQ predicate on the "color" field.

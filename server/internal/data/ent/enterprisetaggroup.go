@@ -29,6 +29,8 @@ type EnterpriseTagGroup struct {
 	Name string `json:"name,omitempty"`
 	// NormalizedName holds the value of the "normalized_name" field.
 	NormalizedName string `json:"normalized_name,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Color holds the value of the "color" field.
 	Color *string `json:"color,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
@@ -77,7 +79,7 @@ func (*EnterpriseTagGroup) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case enterprisetaggroup.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case enterprisetaggroup.FieldName, enterprisetaggroup.FieldNormalizedName, enterprisetaggroup.FieldColor:
+		case enterprisetaggroup.FieldName, enterprisetaggroup.FieldNormalizedName, enterprisetaggroup.FieldSearchKeywords, enterprisetaggroup.FieldColor:
 			values[i] = new(sql.NullString)
 		case enterprisetaggroup.FieldCreatedAt, enterprisetaggroup.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -133,6 +135,12 @@ func (_m *EnterpriseTagGroup) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field normalized_name", values[i])
 			} else if value.Valid {
 				_m.NormalizedName = value.String
+			}
+		case enterprisetaggroup.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case enterprisetaggroup.FieldColor:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -207,6 +215,9 @@ func (_m *EnterpriseTagGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("normalized_name=")
 	builder.WriteString(_m.NormalizedName)
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	if v := _m.Color; v != nil {
 		builder.WriteString("color=")

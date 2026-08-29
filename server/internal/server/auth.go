@@ -155,8 +155,8 @@ func requestOrderBusinessType(ctx context.Context, request any, organizationID u
 	if err != nil {
 		return "", false
 	}
-	order, err := orderUsecase.Get(ctx, organizationID, id)
-	if err != nil {
+	order, err := orderUsecase.Find(ctx, id)
+	if err != nil || order.OrganizationID != organizationID {
 		return "", false
 	}
 	return orderBusinessTypeFromBiz(order.BusinessType)

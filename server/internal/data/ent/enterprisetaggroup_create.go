@@ -69,6 +69,20 @@ func (_c *EnterpriseTagGroupCreate) SetNormalizedName(v string) *EnterpriseTagGr
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *EnterpriseTagGroupCreate) SetSearchKeywords(v string) *EnterpriseTagGroupCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *EnterpriseTagGroupCreate) SetNillableSearchKeywords(v *string) *EnterpriseTagGroupCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetColor sets the "color" field.
 func (_c *EnterpriseTagGroupCreate) SetColor(v string) *EnterpriseTagGroupCreate {
 	_c.mutation.SetColor(v)
@@ -138,7 +152,9 @@ func (_c *EnterpriseTagGroupCreate) Mutation() *EnterpriseTagGroupMutation {
 
 // Save creates the EnterpriseTagGroup in the database.
 func (_c *EnterpriseTagGroupCreate) Save(ctx context.Context) (*EnterpriseTagGroup, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -165,23 +181,37 @@ func (_c *EnterpriseTagGroupCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *EnterpriseTagGroupCreate) defaults() {
+func (_c *EnterpriseTagGroupCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if enterprisetaggroup.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterprisetaggroup.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterprisetaggroup.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if enterprisetaggroup.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterprisetaggroup.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterprisetaggroup.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := enterprisetaggroup.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		v := enterprisetaggroup.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if enterprisetaggroup.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized enterprisetaggroup.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := enterprisetaggroup.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -210,6 +240,9 @@ func (_c *EnterpriseTagGroupCreate) check() error {
 		if err := enterprisetaggroup.NormalizedNameValidator(v); err != nil {
 			return &ValidationError{Name: "normalized_name", err: fmt.Errorf(`ent: validator failed for field "EnterpriseTagGroup.normalized_name": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "EnterpriseTagGroup.search_keywords"`)}
 	}
 	if v, ok := _c.mutation.Color(); ok {
 		if err := enterprisetaggroup.ColorValidator(v); err != nil {
@@ -277,6 +310,10 @@ func (_c *EnterpriseTagGroupCreate) createSpec() (*EnterpriseTagGroup, *sqlgraph
 	if value, ok := _c.mutation.NormalizedName(); ok {
 		_spec.SetField(enterprisetaggroup.FieldNormalizedName, field.TypeString, value)
 		_node.NormalizedName = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterprisetaggroup.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(enterprisetaggroup.FieldColor, field.TypeString, value)
