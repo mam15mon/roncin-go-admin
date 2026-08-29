@@ -174,11 +174,7 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.CreateRole(ctx, organizationID, normalized, granted)
-	if err != nil {
-		return nil, err
-	}
-	return created, uc.writeAudit(ctx, actorID, &created.ID, "admin.role.create", created.Code)
+	return uc.repo.CreateRole(ctx, organizationID, normalized, granted, adminAuditEvent(ctx, actorID, nil, "admin.role.create", normalized.Code))
 }
 
 func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminRole, permissionKeys []string) (*AdminRole, error) {
@@ -207,11 +203,7 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.OrderOrganizationAccesses, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted)
-	if err != nil {
-		return nil, err
-	}
-	return updated, uc.writeAudit(ctx, actorID, &id, "admin.role.update", updated.Code)
+	return uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted, adminAuditEvent(ctx, actorID, &id, "admin.role.update", currentRole.Code))
 }
 
 func (uc *AdminUsecase) ListPermissions(ctx context.Context) ([]*AdminPermission, error) {

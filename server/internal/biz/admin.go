@@ -15,24 +15,24 @@ var ErrAdminInvalidArgument = errors.BadRequest("ADMIN_INVALID_ARGUMENT", "ÁÆ°Áê
 type AdminRepo interface {
 	ListOrganizations(context.Context) ([]*AdminOrganization, error)
 	GetOrganization(context.Context, uuid.UUID) (*AdminOrganization, error)
-	CreateOrganization(context.Context, *AdminOrganization) (*AdminOrganization, error)
-	UpdateOrganization(context.Context, uuid.UUID, *AdminOrganization) (*AdminOrganization, error)
+	CreateOrganization(context.Context, *AdminOrganization, *AuditEvent) (*AdminOrganization, error)
+	UpdateOrganization(context.Context, uuid.UUID, *AdminOrganization, *AuditEvent) (*AdminOrganization, error)
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
-	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID) (*AdminUser, error)
-	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
+	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID, *AuditEvent) (*AdminUser, error)
+	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *AuditEvent) (*AdminUser, error)
 	ListUserMemberships(context.Context, uuid.UUID) ([]*AdminUserMembership, error)
 	GetUserMembership(context.Context, uuid.UUID, uuid.UUID) (*AdminUserMembership, error)
-	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
-	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID) (*AdminUserMembership, error)
-	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID) error
-	TerminateUser(context.Context, uuid.UUID, uuid.UUID) error
-	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID) (*AdminUser, error)
-	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *NotificationIntent) (*AdminUser, error)
-	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string) error
+	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)
+	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)
+	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
+	TerminateUser(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
+	AuthorizeWeComUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *AuditEvent) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *NotificationIntent, *AuditEvent) (*AdminUser, error)
+	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string, *AuditEvent) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	GetRole(context.Context, uuid.UUID, uuid.UUID) (*AdminRole, error)
-	CreateRole(context.Context, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
-	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string) (*AdminRole, error)
+	CreateRole(context.Context, uuid.UUID, *AdminRole, []string, *AuditEvent) (*AdminRole, error)
+	UpdateRole(context.Context, uuid.UUID, uuid.UUID, *AdminRole, []string, *AuditEvent) (*AdminRole, error)
 	ListPermissions(context.Context) ([]*AdminPermission, error)
 	ListAuditLogs(context.Context, uuid.UUID, AdminAuditLogListOptions) (*AdminAuditLogList, error)
 	GetActorRolesPrivilegeProfiles(context.Context, uuid.UUID, uuid.UUID) ([]*AdminRoleProfile, error)
@@ -40,21 +40,20 @@ type AdminRepo interface {
 }
 
 type AdminUsecase struct {
-	repo  AdminRepo
-	audit AuditRepo
+	repo AdminRepo
 }
 
-func NewAdminUsecase(repo AdminRepo, audit AuditRepo) *AdminUsecase {
-	return &AdminUsecase{repo: repo, audit: audit}
+func NewAdminUsecase(repo AdminRepo) *AdminUsecase {
+	return &AdminUsecase{repo: repo}
 }
 
-func (uc *AdminUsecase) writeAudit(ctx context.Context, userID uuid.UUID, resourceID *uuid.UUID, action, value string) error {
+func adminAuditEvent(ctx context.Context, userID uuid.UUID, resourceID *uuid.UUID, action, value string) *AuditEvent {
 	organizationID, _ := PrincipalFromContext(ctx)
 	var orgID *uuid.UUID
 	if organizationID != nil {
 		orgID = &organizationID.Organization.ID
 	}
-	return uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: orgID, UserID: &userID, Action: action, Result: "success", Details: map[string]string{"value": value, "resource_id": resourceIDString(resourceID)}})
+	return &AuditEvent{OrganizationID: orgID, UserID: &userID, Action: action, Result: "success", Details: map[string]string{"value": value, "resource_id": resourceIDString(resourceID)}}
 }
 
 func resourceIDString(id *uuid.UUID) string {

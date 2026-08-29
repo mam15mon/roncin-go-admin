@@ -48,11 +48,8 @@ func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorOrganizat
 		OrganizationID: organizationID,
 		Primary:        primary,
 		Enabled:        true,
-	}, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-	return created, uc.writeAudit(ctx, actorID, &userID, "admin.user.membership.create", created.OrganizationID.String())
+	}, roleIDs, adminAuditEvent(ctx, actorID, &userID, "admin.user.membership.create", organizationID.String()))
+	return created, err
 }
 
 func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, membershipID uuid.UUID, enabled, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
@@ -74,11 +71,8 @@ func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizat
 		UserID:  userID,
 		Enabled: enabled,
 		Primary: primary,
-	}, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-	return updated, uc.writeAudit(ctx, actorID, &userID, "admin.user.membership.update", updated.OrganizationID.String())
+	}, roleIDs, adminAuditEvent(ctx, actorID, &userID, "admin.user.membership.update", currentMembership.OrganizationID.String()))
+	return updated, err
 }
 
 func (uc *AdminUsecase) DeleteUserMembership(ctx context.Context, actorID, userID, membershipID uuid.UUID) error {
@@ -88,8 +82,5 @@ func (uc *AdminUsecase) DeleteUserMembership(ctx context.Context, actorID, userI
 	if actorID == userID {
 		return ErrAdminUserSelfDelete
 	}
-	if err := uc.repo.DeleteUserMembership(ctx, userID, membershipID); err != nil {
-		return err
-	}
-	return uc.writeAudit(ctx, actorID, &userID, "admin.user.membership.delete", membershipID.String())
+	return uc.repo.DeleteUserMembership(ctx, userID, membershipID, adminAuditEvent(ctx, actorID, &userID, "admin.user.membership.delete", membershipID.String()))
 }

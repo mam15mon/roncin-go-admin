@@ -30,6 +30,7 @@ type adminRepoStub struct {
 	roleProfiles      []*AdminRoleProfile
 	currentRole       *AdminRole
 	notification      *NotificationIntent
+	auditEvent        *AuditEvent
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -44,12 +45,14 @@ func (s *adminRepoStub) GetOrganization(_ context.Context, id uuid.UUID) (*Admin
 	return s.organization, nil
 }
 
-func (s *adminRepoStub) CreateOrganization(_ context.Context, input *AdminOrganization) (*AdminOrganization, error) {
+func (s *adminRepoStub) CreateOrganization(_ context.Context, input *AdminOrganization, audit *AuditEvent) (*AdminOrganization, error) {
 	s.organizationInput = input
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, input *AdminOrganization) (*AdminOrganization, error) {
+func (s *adminRepoStub) UpdateOrganization(_ context.Context, _ uuid.UUID, input *AdminOrganization, audit *AuditEvent) (*AdminOrganization, error) {
+	s.auditEvent = audit
 	return input, nil
 }
 
@@ -58,13 +61,15 @@ func (s *adminRepoStub) ListUsers(_ context.Context, _ uuid.UUID, options AdminU
 	return &AdminUserList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminUser, passwordHash string, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
 	s.userInput = input
 	s.userPassword = passwordHash
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
+	s.auditEvent = audit
 	return input, nil
 }
 
@@ -76,47 +81,54 @@ func (s *adminRepoStub) GetUserMembership(_ context.Context, userID, membershipI
 	return &AdminUserMembership{ID: membershipID, UserID: userID, OrganizationID: uuid.New(), Enabled: true}, nil
 }
 
-func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID, audit *AuditEvent) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.ID = uuid.New()
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID, audit *AuditEvent) (*AdminUserMembership, error) {
 	s.membershipInput = input
 	s.membershipRoleIDs = roleIDs
 	input.OrganizationID = uuid.New()
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) DeleteUserMembership(_ context.Context, _ uuid.UUID, membershipID uuid.UUID) error {
+func (s *adminRepoStub) DeleteUserMembership(_ context.Context, _ uuid.UUID, membershipID uuid.UUID, audit *AuditEvent) error {
 	s.deletedMembership = membershipID
+	s.auditEvent = audit
 	return nil
 }
 
-func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid.UUID) error {
+func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid.UUID, audit *AuditEvent) error {
 	s.deleteOrgID = organizationID
 	s.deletedUserID = id
+	s.auditEvent = audit
 	return nil
 }
 
-func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, notification *NotificationIntent) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, notification *NotificationIntent, audit *AuditEvent) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
 	s.notification = notification
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string, username *string) error {
+func (s *adminRepoStub) ResetUserPassword(_ context.Context, _ uuid.UUID, _ uuid.UUID, passwordHash string, username *string, audit *AuditEvent) error {
 	s.resetPassword = passwordHash
 	s.resetUsername = username
+	s.auditEvent = audit
 	return nil
 }
 
@@ -131,14 +143,16 @@ func (s *adminRepoStub) GetRole(_ context.Context, organizationID, id uuid.UUID)
 	return &AdminRole{ID: id, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization}, nil
 }
 
-func (s *adminRepoStub) CreateRole(_ context.Context, organizationID uuid.UUID, input *AdminRole, keys []string) (*AdminRole, error) {
+func (s *adminRepoStub) CreateRole(_ context.Context, organizationID uuid.UUID, input *AdminRole, keys []string, audit *AuditEvent) (*AdminRole, error) {
 	s.roleKeys = keys
 	input.OrganizationID = organizationID
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateRole(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminRole, keys []string) (*AdminRole, error) {
+func (s *adminRepoStub) UpdateRole(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminRole, keys []string, audit *AuditEvent) (*AdminRole, error) {
 	s.updatedRoleKeys = keys
+	s.auditEvent = audit
 	return input, nil
 }
 
@@ -179,7 +193,7 @@ func (s *auditRepoStub) WriteAudit(_ context.Context, event *AuditEvent) error {
 
 func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 	organizationID := uuid.New()
 
 	_, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 2, PageSize: 20, Keyword: "  Alice  "})
@@ -202,7 +216,7 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 }
 
 func TestAdminUsecaseAuthorizeWeComUserRequiresTargetAndRole(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
 	if _, err := usecase.AuthorizeWeComUser(context.Background(), uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing target organization error = %v", err)
@@ -213,7 +227,7 @@ func TestAdminUsecaseAuthorizeWeComUserRequiresTargetAndRole(t *testing.T) {
 }
 
 func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
 	if _, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing target organization error = %v", err)
@@ -225,7 +239,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
 
 func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 	userID := uuid.New()
 
 	authorized, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []uuid.UUID{uuid.New()})
@@ -241,7 +255,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T
 }
 
 func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	if _, err := usecase.ListOrganizations(context.Background(), uuid.Nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("ListOrganizations() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -250,7 +264,7 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	parentID := uuid.New()
 	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindHeadquarters, BaseCurrency: "CNY"}}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, ParentID: &parentID, BaseCurrency: "usd"})
 	if err != nil {
@@ -274,7 +288,7 @@ func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 
 func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 ", Kind: OrganizationKindCompany}); err != ErrAdminOrganizationParentRequired {
 		t.Fatalf("root organization error = %v, want ErrAdminOrganizationParentRequired", err)
@@ -284,7 +298,7 @@ func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 	parentID := uuid.New()
 	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindCompany, BaseCurrency: "CNY"}}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{
 		Code: "finance", Name: "财务部", Kind: OrganizationKindDepartment, ParentID: &parentID,
@@ -316,7 +330,7 @@ func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 }
 
 func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	start := time.Date(2026, 8, 20, 12, 0, 0, 0, time.UTC)
 	end := start.Add(-time.Minute)
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{Page: 1, PageSize: 20, StartTime: &start, EndTime: &end}); err != ErrAdminInvalidArgument {
@@ -325,7 +339,7 @@ func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
 }
 
 func TestAdminUsecaseListAuditLogsRejectsLongResourceFilter(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{
 		Page: 1, PageSize: 20, ResourceType: strings.Repeat("x", 101),
 	}); err != ErrAdminInvalidArgument {
@@ -335,8 +349,7 @@ func TestAdminUsecaseListAuditLogsRejectsLongResourceFilter(t *testing.T) {
 
 func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -362,14 +375,14 @@ func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 			t.Fatalf("permission key %d = %q, want %q", index, repo.roleKeys[index], key)
 		}
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.role.create" || audit.events[0].UserID == nil || *audit.events[0].UserID != actorID {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.role.create" || repo.auditEvent.UserID == nil || *repo.auditEvent.UserID != actorID {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
 func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	if _, err := usecase.CreateRole(
 		context.Background(),
@@ -387,7 +400,7 @@ func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
 
 func TestAdminUsecaseUpdateRoleExpandsPermissionDependencies(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	if _, err := usecase.UpdateRole(
 		context.Background(),
@@ -410,7 +423,7 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 		DataScope:      DataScopeOrganization,
 		PermissionKeys: []string{"business.partner.update"},
 	}}}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	if _, err := usecase.CreateRole(
 		context.Background(),
@@ -428,7 +441,7 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 
 func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 
 	first, err := usecase.CreateRole(
 		context.Background(),
@@ -460,8 +473,7 @@ func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 
 func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -482,15 +494,14 @@ func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 	if repo.userPassword == "a-strong-password" || repo.userPassword == "" {
 		t.Fatal("repository did not receive a password hash")
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.create" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.user.create" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
 func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	userID := uuid.New()
@@ -511,8 +522,8 @@ func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	if repo.resetUsername == nil || *repo.resetUsername != "valid.user_01" {
 		t.Fatalf("reset username = %#v, want valid.user_01", repo.resetUsername)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.password.reset" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.user.password.reset" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
@@ -566,7 +577,7 @@ func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
 		{Code: "viewer", DataScope: DataScopeSelf, PermissionKeys: []string{"system.user.read"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID}}},
 		{Code: "manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.read", "system.user.update"}, OrderOrganizationAccesses: []OrderOrganizationAccess{{OrganizationID: readOnlyOrganizationID, Writable: true}}},
 	}}
-	profile, err := NewAdminUsecase(repo, &auditRepoStub{}).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
+	profile, err := NewAdminUsecase(repo).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
 	if err != nil {
 		t.Fatalf("getActorPrivilegeProfile() error = %v", err)
 	}
@@ -586,7 +597,7 @@ func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing
 		actorRoleProfiles: []*AdminRoleProfile{{Code: "role_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.role.update"}}},
 		currentRole:       &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
 	}
-	usecase := NewAdminUsecase(repo, &auditRepoStub{})
+	usecase := NewAdminUsecase(repo)
 	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "系统管理员", DataScope: DataScopeOrganization, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
 		t.Fatalf("UpdateRole() administrator error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
@@ -599,8 +610,7 @@ func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing
 
 func TestAdminUsecaseTerminateUserRejectsSelfAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -618,8 +628,8 @@ func TestAdminUsecaseTerminateUserRejectsSelfAndAudits(t *testing.T) {
 	if repo.deleteOrgID != organizationID || repo.deletedUserID != userID {
 		t.Fatalf("deleted organization/user = %s/%s", repo.deleteOrgID, repo.deletedUserID)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.terminate" || audit.events[0].Details["resource_id"] != userID.String() {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.user.terminate" || repo.auditEvent.Details["resource_id"] != userID.String() {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
@@ -630,7 +640,7 @@ func TestNormalizeRoleRejectsUnspecifiedDataScope(t *testing.T) {
 }
 
 func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -638,8 +648,7 @@ func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
 
 func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	actorID := uuid.New()
 	userID := uuid.New()
 	organizationID := uuid.New()
@@ -658,13 +667,13 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 	if len(repo.membershipRoleIDs) != 1 || repo.membershipRoleIDs[0] != roleID {
 		t.Fatalf("membership role IDs = %#v", repo.membershipRoleIDs)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.membership.create" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.user.membership.create" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
 func TestAdminUsecaseUpdateUserMembershipRejectsDisabledPrimary(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{}, &auditRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{})
 	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), false, true, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUserMembership() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -676,8 +685,7 @@ func TestAdminUsecaseUpdateUserMembershipRejectsDisabledPrimary(t *testing.T) {
 
 func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewAdminUsecase(repo, audit)
+	usecase := NewAdminUsecase(repo)
 	actorID := uuid.New()
 	membershipID := uuid.New()
 
@@ -691,8 +699,8 @@ func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
 	if repo.deletedMembership != membershipID {
 		t.Fatalf("deleted membership = %s, want %s", repo.deletedMembership, membershipID)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "admin.user.membership.delete" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "admin.user.membership.delete" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 

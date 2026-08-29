@@ -56,7 +56,7 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 	return &biz.AdminUserList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -87,13 +87,18 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["resource_id"] = account.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.findUser(ctx, organizationID, account.ID)
 }
 
-func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
+func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -144,12 +149,17 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["value"] = account.Username
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.findUser(ctx, organizationID, id)
 }
-func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.UUID) error {
+func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
@@ -192,22 +202,26 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 		_ = tx.Rollback()
 		return err
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 	return tx.Commit()
 }
 
-func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, nil, func(account *ent.User) bool {
+func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, nil, audit, func(account *ent.User) bool {
 		return account.WecomUserid != nil
 	})
 }
 
-func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, notification, func(account *ent.User) bool {
+func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.AdminUser, error) {
+	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, notification, audit, func(account *ent.User) bool {
 		return account.DingtalkUnionid != nil && account.DingtalkUserid != nil && strings.TrimSpace(*account.DingtalkUserid) != ""
 	})
 }
 
-func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
+func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -293,13 +307,18 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["value"] = account.Username
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.findUser(ctx, targetOrganizationID, input.ID)
 }
 
-func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string, username *string) error {
+func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string, username *string, audit *biz.AuditEvent) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
@@ -345,6 +364,10 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 		return err
 	}
 	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

@@ -86,10 +86,10 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	adminRepo := &adminRepo{data: data}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID); err != biz.ErrAdminUserLastMembership {
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit("admin.user.membership.delete")); err != biz.ErrAdminUserLastMembership {
 		t.Fatalf("移出最后组织 error = %v, want ErrAdminUserLastMembership", err)
 	}
-	if err := adminRepo.TerminateUser(ctx, headquarters.ID, account.ID); err != nil {
+	if err := adminRepo.TerminateUser(ctx, headquarters.ID, account.ID, adminLifecycleAudit("admin.user.terminate")); err != nil {
 		t.Fatalf("办理离职: %v", err)
 	}
 	terminated, err := data.db.User.Get(ctx, account.ID)
@@ -130,14 +130,14 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
 	}
 	pendingUsername := "pending.user"
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername); err != biz.ErrAdminUserNotFound {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit("admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("待审批账号设置密码 error = %v, want ErrAdminUserNotFound", err)
 	}
 	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, account.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 		Enabled:     true,
-	}, []uuid.UUID{role.ID}); err != biz.ErrAdminUserAuthorizationRequired {
+	}, []uuid.UUID{role.ID}, adminLifecycleAudit("admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
@@ -145,7 +145,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID}, notification)
+	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit("admin.user.dingtalk.authorize"))
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}
@@ -165,7 +165,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	backupUsername := "backup.user"
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername); err != nil {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername, adminLifecycleAudit("admin.user.password.reset")); err != nil {
 		t.Fatalf("为在职账号设置备用账密: %v", err)
 	}
 	activeAccount, err := data.db.User.Get(ctx, account.ID)
@@ -194,11 +194,11 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("加入分公司: %v", err)
 	}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID); err != nil {
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit("admin.user.membership.delete")); err != nil {
 		t.Fatalf("移出总部: %v", err)
 	}
 	replacementUsername := "replacement.user"
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername); err != biz.ErrAdminUserNotFound {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit("admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("历史组织重置全局密码 error = %v, want ErrAdminUserNotFound", err)
 	}
 	retainedAccount, err := data.db.User.Get(ctx, account.ID)
@@ -208,4 +208,8 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	if _, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("历史组织读取操作者能力 error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
+}
+
+func adminLifecycleAudit(action string) *biz.AuditEvent {
+	return &biz.AuditEvent{Action: action, Result: "success", Details: map[string]string{}}
 }

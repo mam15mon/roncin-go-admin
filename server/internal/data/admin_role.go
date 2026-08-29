@@ -101,7 +101,7 @@ func (r *adminRepo) GetRolesPrivilegeProfiles(ctx context.Context, organizationI
 	return profiles, nil
 }
 
-func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, input *biz.AdminRole, permissionKeys []string) (*biz.AdminRole, error) {
+func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, input *biz.AdminRole, permissionKeys []string, audit *biz.AuditEvent) (*biz.AdminRole, error) {
 	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
 	if err != nil {
 		return nil, err
@@ -122,6 +122,11 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["resource_id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -132,7 +137,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 	return roleToBiz(created), nil
 }
 
-func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminRole, permissionKeys []string) (*biz.AdminRole, error) {
+func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminRole, permissionKeys []string, audit *biz.AuditEvent) (*biz.AdminRole, error) {
 	permissions, err := permissionsByKeys(ctx, r.data.db.Permission.Query(), permissionKeys)
 	if err != nil {
 		return nil, err
@@ -150,6 +155,10 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 		return nil, err
 	}
 	if err := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}

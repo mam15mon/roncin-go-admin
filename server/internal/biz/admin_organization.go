@@ -77,11 +77,7 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 		}
 		normalized.BaseCurrency = parent.BaseCurrency
 	}
-	created, err := uc.repo.CreateOrganization(ctx, normalized)
-	if err != nil {
-		return nil, err
-	}
-	return created, uc.writeAudit(ctx, userID, nil, "admin.organization.create", created.ID.String())
+	return uc.repo.CreateOrganization(ctx, normalized, adminAuditEvent(ctx, userID, nil, "admin.organization.create", ""))
 }
 
 func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool, baseCurrency string) (*AdminOrganization, error) {
@@ -101,11 +97,7 @@ func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organiza
 	} else if baseCurrency != "" {
 		return nil, ErrAdminOrganizationCurrency
 	}
-	updated, err := uc.repo.UpdateOrganization(ctx, organizationID, &AdminOrganization{ID: id, Name: name, Enabled: enabled, Kind: current.Kind, BaseCurrency: baseCurrency})
-	if err != nil {
-		return nil, err
-	}
-	return updated, uc.writeAudit(ctx, userID, &id, "admin.organization.update", updated.Code)
+	return uc.repo.UpdateOrganization(ctx, organizationID, &AdminOrganization{ID: id, Name: name, Enabled: enabled, Kind: current.Kind, BaseCurrency: baseCurrency}, adminAuditEvent(ctx, userID, &id, "admin.organization.update", current.Code))
 }
 func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error) {
 	if input == nil {

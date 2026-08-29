@@ -40,7 +40,7 @@ func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.Adm
 	return r.organizationToBiz(ctx, item)
 }
 
-func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
+func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -76,6 +76,11 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["value"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -86,19 +91,32 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 	return result, nil
 }
 
-func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.UUID, input *biz.AdminOrganization) (*biz.AdminOrganization, error) {
-	update := r.data.db.Organization.UpdateOneID(input.ID).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(input.Name).SetEnabled(input.Enabled)
+func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.UUID, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	update := tx.Organization.UpdateOneID(input.ID).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(input.Name).SetEnabled(input.Enabled)
 	if input.Kind == biz.OrganizationKindHeadquarters || input.Kind == biz.OrganizationKindCompany {
-		if err := validateOrganizationCurrency(ctx, r.data.db.Currency, input.BaseCurrency); err != nil {
+		if err := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); err != nil {
+			_ = tx.Rollback()
 			return nil, err
 		}
 		update.SetBaseCurrency(input.BaseCurrency)
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrAdminOrganizationNotFound
 		}
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.organizationToBiz(ctx, updated)

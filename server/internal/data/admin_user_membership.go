@@ -44,7 +44,7 @@ func (r *adminRepo) GetUserMembership(ctx context.Context, userID, membershipID 
 	return r.findUserMembership(ctx, userID, membershipID)
 }
 
-func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
+func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -101,13 +101,17 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 		_ = tx.Rollback()
 		return nil, err
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.findUserMembership(ctx, input.UserID, created.ID)
 }
 
-func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID) (*biz.AdminUserMembership, error) {
+func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -171,13 +175,17 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 			return nil, err
 		}
 	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.findUserMembership(ctx, input.UserID, current.ID)
 }
 
-func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membershipID uuid.UUID) error {
+func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membershipID uuid.UUID, audit *biz.AuditEvent) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
@@ -227,6 +235,10 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 		Where(sessionent.UserIDEQ(userID), sessionent.OrganizationIDEQ(current.OrganizationID), sessionent.RevokedAtIsNil()).
 		SetRevokedAt(time.Now().UTC()).
 		Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

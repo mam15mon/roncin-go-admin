@@ -88,11 +88,7 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 	if err != nil {
 		return nil, fmt.Errorf("hash admin password: %w", err)
 	}
-	created, err := uc.repo.CreateUser(ctx, organizationID, normalized, hash, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-	return created, uc.writeAudit(ctx, actorID, &created.ID, "admin.user.create", created.Username)
+	return uc.repo.CreateUser(ctx, organizationID, normalized, hash, roleIDs, adminAuditEvent(ctx, actorID, nil, "admin.user.create", normalized.Username))
 }
 
 func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
@@ -106,11 +102,7 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-	return updated, uc.writeAudit(ctx, actorID, &id, "admin.user.update", updated.Username)
+	return uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs, adminAuditEvent(ctx, actorID, &id, "admin.user.update", ""))
 }
 func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
@@ -119,10 +111,7 @@ func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actor
 	if actorID == id {
 		return ErrAdminUserSelfDelete
 	}
-	if err := uc.repo.TerminateUser(ctx, organizationID, id); err != nil {
-		return err
-	}
-	return uc.writeAudit(ctx, actorID, &id, "admin.user.terminate", "")
+	return uc.repo.TerminateUser(ctx, organizationID, id, adminAuditEvent(ctx, actorID, &id, "admin.user.terminate", ""))
 }
 func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
 	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
@@ -135,11 +124,7 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs)
-	if err != nil {
-		return nil, err
-	}
-	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.wecom.authorize", authorized.Username)
+	return uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, adminAuditEvent(ctx, actorID, &normalized.ID, "admin.user.wecom.authorize", ""))
 }
 
 func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
@@ -154,11 +139,7 @@ func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganiz
 		return nil, err
 	}
 	notification := NewDingTalkUserAuthorizedNotification(normalized.ID)
-	authorized, err := uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, notification)
-	if err != nil {
-		return nil, err
-	}
-	return authorized, uc.writeAudit(ctx, actorID, &authorized.ID, "admin.user.dingtalk.authorize", authorized.Username)
+	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, notification, adminAuditEvent(ctx, actorID, &normalized.ID, "admin.user.dingtalk.authorize", ""))
 }
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
@@ -176,10 +157,7 @@ func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, a
 	if err != nil {
 		return fmt.Errorf("hash reset password: %w", err)
 	}
-	if err := uc.repo.ResetUserPassword(ctx, organizationID, id, hash, normalizedUsername); err != nil {
-		return err
-	}
-	return uc.writeAudit(ctx, actorID, &id, "admin.user.password.reset", "")
+	return uc.repo.ResetUserPassword(ctx, organizationID, id, hash, normalizedUsername, adminAuditEvent(ctx, actorID, &id, "admin.user.password.reset", ""))
 }
 
 var usernamePattern = regexp.MustCompile(`^[a-z0-9_.-]+$`)
