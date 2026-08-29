@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -125,17 +124,17 @@ type ShippingLineList struct {
 
 type IndustryReferenceRepo interface {
 	ListPorts(context.Context, uuid.UUID, IndustryReferenceListOptions) (*PortList, error)
-	CreatePort(context.Context, uuid.UUID, *Port) (*Port, error)
-	UpdatePort(context.Context, uuid.UUID, uuid.UUID, *Port) (*Port, error)
+	CreatePort(context.Context, uuid.UUID, *Port, *AuditEvent) (*Port, error)
+	UpdatePort(context.Context, uuid.UUID, uuid.UUID, *Port, *AuditEvent) (*Port, error)
 	ListAirports(context.Context, uuid.UUID, IndustryReferenceListOptions) (*AirportList, error)
-	CreateAirport(context.Context, uuid.UUID, *Airport) (*Airport, error)
-	UpdateAirport(context.Context, uuid.UUID, uuid.UUID, *Airport) (*Airport, error)
+	CreateAirport(context.Context, uuid.UUID, *Airport, *AuditEvent) (*Airport, error)
+	UpdateAirport(context.Context, uuid.UUID, uuid.UUID, *Airport, *AuditEvent) (*Airport, error)
 	ListAirlines(context.Context, uuid.UUID, IndustryReferenceListOptions) (*AirlineList, error)
-	CreateAirline(context.Context, uuid.UUID, *Airline) (*Airline, error)
-	UpdateAirline(context.Context, uuid.UUID, uuid.UUID, *Airline) (*Airline, error)
+	CreateAirline(context.Context, uuid.UUID, *Airline, *AuditEvent) (*Airline, error)
+	UpdateAirline(context.Context, uuid.UUID, uuid.UUID, *Airline, *AuditEvent) (*Airline, error)
 	ListShippingLines(context.Context, uuid.UUID, IndustryReferenceListOptions) (*ShippingLineList, error)
-	CreateShippingLine(context.Context, uuid.UUID, *ShippingLine) (*ShippingLine, error)
-	UpdateShippingLine(context.Context, uuid.UUID, uuid.UUID, *ShippingLine) (*ShippingLine, error)
+	CreateShippingLine(context.Context, uuid.UUID, *ShippingLine, *AuditEvent) (*ShippingLine, error)
+	UpdateShippingLine(context.Context, uuid.UUID, uuid.UUID, *ShippingLine, *AuditEvent) (*ShippingLine, error)
 }
 
 type IndustryReferenceUsecase struct {
@@ -159,11 +158,11 @@ func (uc *IndustryReferenceUsecase) CreatePort(ctx context.Context, organization
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	created, err := uc.repo.CreatePort(ctx, organizationID, normalized)
+	created, err := uc.repo.CreatePort(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "port.create", uuid.Nil, normalized.UNLocode))
 	if err != nil {
 		return nil, err
 	}
-	return created, uc.writeAudit(ctx, organizationID, actorID, "port.create", created.ID, created.UNLocode)
+	return created, nil
 }
 
 func (uc *IndustryReferenceUsecase) UpdatePort(ctx context.Context, organizationID, actorID, id uuid.UUID, input *Port) (*Port, error) {
@@ -171,11 +170,11 @@ func (uc *IndustryReferenceUsecase) UpdatePort(ctx context.Context, organization
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	updated, err := uc.repo.UpdatePort(ctx, organizationID, id, normalized)
+	updated, err := uc.repo.UpdatePort(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "port.update", id, normalized.UNLocode))
 	if err != nil {
 		return nil, err
 	}
-	return updated, uc.writeAudit(ctx, organizationID, actorID, "port.update", updated.ID, updated.UNLocode)
+	return updated, nil
 }
 
 func (uc *IndustryReferenceUsecase) ListAirports(ctx context.Context, organizationID uuid.UUID, options IndustryReferenceListOptions) (*AirportList, error) {
@@ -190,11 +189,11 @@ func (uc *IndustryReferenceUsecase) CreateAirport(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	created, err := uc.repo.CreateAirport(ctx, organizationID, normalized)
+	created, err := uc.repo.CreateAirport(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "airport.create", uuid.Nil, normalized.IATACode))
 	if err != nil {
 		return nil, err
 	}
-	return created, uc.writeAudit(ctx, organizationID, actorID, "airport.create", created.ID, created.IATACode)
+	return created, nil
 }
 
 func (uc *IndustryReferenceUsecase) UpdateAirport(ctx context.Context, organizationID, actorID, id uuid.UUID, input *Airport) (*Airport, error) {
@@ -202,11 +201,11 @@ func (uc *IndustryReferenceUsecase) UpdateAirport(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	updated, err := uc.repo.UpdateAirport(ctx, organizationID, id, normalized)
+	updated, err := uc.repo.UpdateAirport(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "airport.update", id, normalized.IATACode))
 	if err != nil {
 		return nil, err
 	}
-	return updated, uc.writeAudit(ctx, organizationID, actorID, "airport.update", updated.ID, updated.IATACode)
+	return updated, nil
 }
 
 func (uc *IndustryReferenceUsecase) ListAirlines(ctx context.Context, organizationID uuid.UUID, options IndustryReferenceListOptions) (*AirlineList, error) {
@@ -221,11 +220,11 @@ func (uc *IndustryReferenceUsecase) CreateAirline(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	created, err := uc.repo.CreateAirline(ctx, organizationID, normalized)
+	created, err := uc.repo.CreateAirline(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "airline.create", uuid.Nil, normalized.IATACode))
 	if err != nil {
 		return nil, err
 	}
-	return created, uc.writeAudit(ctx, organizationID, actorID, "airline.create", created.ID, created.IATACode)
+	return created, nil
 }
 
 func (uc *IndustryReferenceUsecase) UpdateAirline(ctx context.Context, organizationID, actorID, id uuid.UUID, input *Airline) (*Airline, error) {
@@ -233,11 +232,11 @@ func (uc *IndustryReferenceUsecase) UpdateAirline(ctx context.Context, organizat
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	updated, err := uc.repo.UpdateAirline(ctx, organizationID, id, normalized)
+	updated, err := uc.repo.UpdateAirline(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "airline.update", id, normalized.IATACode))
 	if err != nil {
 		return nil, err
 	}
-	return updated, uc.writeAudit(ctx, organizationID, actorID, "airline.update", updated.ID, updated.IATACode)
+	return updated, nil
 }
 
 func (uc *IndustryReferenceUsecase) ListShippingLines(ctx context.Context, organizationID uuid.UUID, options IndustryReferenceListOptions) (*ShippingLineList, error) {
@@ -252,11 +251,11 @@ func (uc *IndustryReferenceUsecase) CreateShippingLine(ctx context.Context, orga
 	if err != nil || organizationID == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	created, err := uc.repo.CreateShippingLine(ctx, organizationID, normalized)
+	created, err := uc.repo.CreateShippingLine(ctx, organizationID, normalized, newIndustryReferenceAudit(organizationID, actorID, "shipping_line.create", uuid.Nil, normalized.SCACCode))
 	if err != nil {
 		return nil, err
 	}
-	return created, uc.writeAudit(ctx, organizationID, actorID, "shipping_line.create", created.ID, created.SCACCode)
+	return created, nil
 }
 
 func (uc *IndustryReferenceUsecase) UpdateShippingLine(ctx context.Context, organizationID, actorID, id uuid.UUID, input *ShippingLine) (*ShippingLine, error) {
@@ -264,18 +263,19 @@ func (uc *IndustryReferenceUsecase) UpdateShippingLine(ctx context.Context, orga
 	if err != nil || organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrMasterDataInvalidArgument
 	}
-	updated, err := uc.repo.UpdateShippingLine(ctx, organizationID, id, normalized)
+	updated, err := uc.repo.UpdateShippingLine(ctx, organizationID, id, normalized, newIndustryReferenceAudit(organizationID, actorID, "shipping_line.update", id, normalized.SCACCode))
 	if err != nil {
 		return nil, err
 	}
-	return updated, uc.writeAudit(ctx, organizationID, actorID, "shipping_line.update", updated.ID, updated.SCACCode)
+	return updated, nil
 }
 
-func (uc *IndustryReferenceUsecase) writeAudit(ctx context.Context, organizationID, actorID uuid.UUID, action string, id uuid.UUID, standardCode string) error {
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, Result: "success", Details: map[string]string{"industry_reference.id": id.String(), "standard_code": standardCode}}); err != nil {
-		return fmt.Errorf("write industry reference audit: %w", err)
+func newIndustryReferenceAudit(organizationID, actorID uuid.UUID, action string, id uuid.UUID, standardCode string) *AuditEvent {
+	details := map[string]string{"standard_code": standardCode}
+	if id != uuid.Nil {
+		details["industry_reference.id"] = id.String()
 	}
-	return nil
+	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, Result: "success", Details: details}
 }
 
 var (

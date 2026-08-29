@@ -42,22 +42,49 @@ func (r *industryReferenceRepo) ListPorts(ctx context.Context, organizationID uu
 	return &biz.PortList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *industryReferenceRepo) CreatePort(ctx context.Context, organizationID uuid.UUID, input *biz.Port) (*biz.Port, error) {
-	created, err := r.data.db.Port.Create().SetOrganizationID(organizationID).SetUnLocode(input.UNLocode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+func (r *industryReferenceRepo) CreatePort(ctx context.Context, organizationID uuid.UUID, input *biz.Port, audit *biz.AuditEvent) (*biz.Port, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.Port.Create().SetOrganizationID(organizationID).SetUnLocode(input.UNLocode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["industry_reference.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return portToBiz(created), nil
 }
 
-func (r *industryReferenceRepo) UpdatePort(ctx context.Context, organizationID, id uuid.UUID, input *biz.Port) (*biz.Port, error) {
-	existing, err := r.data.db.Port.Query().Where(port.IDEQ(id), port.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *industryReferenceRepo) UpdatePort(ctx context.Context, organizationID, id uuid.UUID, input *biz.Port, audit *biz.AuditEvent) (*biz.Port, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.Port.Query().Where(port.IDEQ(id), port.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceNotFound(err)
 	}
 	updated, err := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["standard_code"] = updated.UnLocode
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return portToBiz(updated), nil
 }
@@ -85,17 +112,35 @@ func (r *industryReferenceRepo) ListAirports(ctx context.Context, organizationID
 	return &biz.AirportList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *industryReferenceRepo) CreateAirport(ctx context.Context, organizationID uuid.UUID, input *biz.Airport) (*biz.Airport, error) {
-	created, err := r.data.db.Airport.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetNillableCityNameEn(input.CityNameEN).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+func (r *industryReferenceRepo) CreateAirport(ctx context.Context, organizationID uuid.UUID, input *biz.Airport, audit *biz.AuditEvent) (*biz.Airport, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.Airport.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetNillableCityNameEn(input.CityNameEN).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["industry_reference.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return airportToBiz(created), nil
 }
 
-func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airport) (*biz.Airport, error) {
-	existing, err := r.data.db.Airport.Query().Where(airport.IDEQ(id), airport.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airport, audit *biz.AuditEvent) (*biz.Airport, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.Airport.Query().Where(airport.IDEQ(id), airport.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceNotFound(err)
 	}
 	update := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetCountryCode(input.CountryCode).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
@@ -111,7 +156,16 @@ func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationI
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["standard_code"] = updated.IataCode
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return airportToBiz(updated), nil
 }
@@ -139,17 +193,35 @@ func (r *industryReferenceRepo) ListAirlines(ctx context.Context, organizationID
 	return &biz.AirlineList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *industryReferenceRepo) CreateAirline(ctx context.Context, organizationID uuid.UUID, input *biz.Airline) (*biz.Airline, error) {
-	created, err := r.data.db.Airline.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+func (r *industryReferenceRepo) CreateAirline(ctx context.Context, organizationID uuid.UUID, input *biz.Airline, audit *biz.AuditEvent) (*biz.Airline, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.Airline.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["industry_reference.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return airlineToBiz(created), nil
 }
 
-func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airline) (*biz.Airline, error) {
-	existing, err := r.data.db.Airline.Query().Where(airline.IDEQ(id), airline.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airline, audit *biz.AuditEvent) (*biz.Airline, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.Airline.Query().Where(airline.IDEQ(id), airline.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceNotFound(err)
 	}
 	update := existing.Update().SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
@@ -160,7 +232,16 @@ func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationI
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapIndustryReferenceConstraint(err)
+	}
+	audit.Details["standard_code"] = updated.IataCode
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return airlineToBiz(updated), nil
 }
@@ -188,7 +269,7 @@ func (r *industryReferenceRepo) ListShippingLines(ctx context.Context, organizat
 	return &biz.ShippingLineList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (r *industryReferenceRepo) CreateShippingLine(ctx context.Context, organizationID uuid.UUID, input *biz.ShippingLine) (*biz.ShippingLine, error) {
+func (r *industryReferenceRepo) CreateShippingLine(ctx context.Context, organizationID uuid.UUID, input *biz.ShippingLine, audit *biz.AuditEvent) (*biz.ShippingLine, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -202,13 +283,23 @@ func (r *industryReferenceRepo) CreateShippingLine(ctx context.Context, organiza
 		_ = tx.Rollback()
 		return nil, err
 	}
+	item, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(created.ID), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["industry_reference.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return r.findShippingLine(ctx, organizationID, created.ID)
+	return shippingLineToBiz(item), nil
 }
 
-func (r *industryReferenceRepo) UpdateShippingLine(ctx context.Context, organizationID, id uuid.UUID, input *biz.ShippingLine) (*biz.ShippingLine, error) {
+func (r *industryReferenceRepo) UpdateShippingLine(ctx context.Context, organizationID, id uuid.UUID, input *biz.ShippingLine, audit *biz.AuditEvent) (*biz.ShippingLine, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -241,10 +332,20 @@ func (r *industryReferenceRepo) UpdateShippingLine(ctx context.Context, organiza
 		_ = tx.Rollback()
 		return nil, err
 	}
+	item, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["standard_code"] = item.ScacCode
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return r.findShippingLine(ctx, organizationID, id)
+	return shippingLineToBiz(item), nil
 }
 
 func replaceShippingLinePrefixes(ctx context.Context, tx *ent.Tx, organizationID, shippingLineID uuid.UUID, prefixes []string) error {
@@ -254,14 +355,6 @@ func replaceShippingLinePrefixes(ctx context.Context, tx *ent.Tx, organizationID
 		}
 	}
 	return nil
-}
-
-func (r *industryReferenceRepo) findShippingLine(ctx context.Context, organizationID, id uuid.UUID) (*biz.ShippingLine, error) {
-	item, err := r.data.db.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
-	if err != nil {
-		return nil, mapIndustryReferenceNotFound(err)
-	}
-	return shippingLineToBiz(item), nil
 }
 
 func portToBiz(item *ent.Port) *biz.Port {
