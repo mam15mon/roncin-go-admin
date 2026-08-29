@@ -1,5 +1,5 @@
 import type { ActionType } from '@ant-design/pro-components';
-import { history } from '@umijs/max';
+import { history, useAccess } from '@umijs/max';
 import { App } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -13,6 +13,13 @@ import {
   settlementServiceGetFeeLedgerPreference,
   settlementServiceListFeeLedger,
 } from '@/services/roncin/settlementService';
+import {
+  settlementServiceListFinanceFeeTagOptions,
+  settlementServiceBatchAssignFinanceFeeTags,
+  settlementServiceBatchRemoveFinanceFeeTags,
+} from '@/services/roncin/settlementService';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { Tag as AntTag } from 'antd';
 import {
   FeeLedgerSearchFilter,
   type FeeLedgerFilterParams,
@@ -133,6 +140,28 @@ export default function FinanceFeeLedgerPage() {
     },
   ];
 
+  const access = useAccess();
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagFeeIds, setTagFeeIds] = useState<string[]>([]);
+  const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
+  const [tagOptions, setTagOptions] = useState<{ label: string; value: string }[]>([]);
+  const [tagFilterIds, setTagFilterIds] = useState<string[]>();
+
+  useEffect(() => {
+    void settlementServiceListFinanceFeeTagOptions({ page: 1, pageSize: 200 }).then((response) => {
+      setTagOptions((response.tags ?? []).map((tag) => ({ label: tag.name ?? '', value: tag.id ?? '' })));
+    });
+  }, []);
+
+  const openTagModal = (keys: React.Key[], rows: API.FeeLedgerItem[]) => {
+    if (!rows.length) return;
+    setTagFeeIds(rows.map((row) => row.id ?? '').filter(Boolean));
+    const seen = new Map<string, API.BusinessTagSummary>();
+    for (const row of rows) for (const tag of row.tags ?? []) if (tag.id) seen.set(tag.id, tag);
+    setTagExisting([...seen.values()]);
+    setTagModalOpen(true);
+  };
+
   const baseColumns = useMemo(() => getBaseFeeLedgerColumns(), []);
 
   // 根据当前用户的个性化列偏好动态过滤显示并按用户拖拽顺序重排
@@ -200,6 +229,11 @@ export default function FinanceFeeLedgerPage() {
             label: '批量确认勾选费用',
             onClick: handleBatchConfirm,
           },
+          {
+            key: 'manage-tags',
+            label: '添加/移除标签',
+            onClick: (keys, rows) => openTagModal(keys, rows),
+          },
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
         onOpenColumnConfig={() => setColumnConfigOpen(true)}
@@ -251,6 +285,7 @@ export default function FinanceFeeLedgerPage() {
                   : undefined,
             expenseDateFrom,
             expenseDateTo,
+            tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
           });
           setSummary(response.summary);
           return {
@@ -284,6 +319,22 @@ export default function FinanceFeeLedgerPage() {
           setPreference(updated);
           actionRef.current?.reload();
         }}
+      />
+      <BusinessTagModal
+        open={tagModalOpen}
+        targetCount={tagFeeIds.length}
+        existingTags={tagExisting}
+        canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
+        loadOptions={settlementServiceListFinanceFeeTagOptions}
+        onSubmit={async (mode, tagIds) => {
+          if (mode === 'assign') {
+            await settlementServiceBatchAssignFinanceFeeTags({ feeIds: tagFeeIds, tagIds });
+          } else {
+            await settlementServiceBatchRemoveFinanceFeeTags({ feeIds: tagFeeIds, tagIds });
+          }
+          actionRef.current?.reload();
+        }}
+        onCancel={() => setTagModalOpen(false)}
       />
     </>
   );

@@ -1,9 +1,9 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Input } from 'antd';
+import { App, Form, Input, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
   SearchFilterTemplate,
@@ -18,6 +18,12 @@ import {
   settlementServiceListBills,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
+import {
+  settlementServiceListFinanceBillTagOptions,
+  settlementServiceBatchAssignFinanceBillTags,
+  settlementServiceBatchRemoveFinanceBillTags,
+} from '@/services/roncin/settlementService';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -26,6 +32,18 @@ import type { BillFormValues } from './components/billConstants';
 
 export default function FinanceBillsPage() {
   const access = useAccess();
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagBillIds, setTagBillIds] = useState<string[]>([]);
+  const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
+  const [tagOptions, setTagOptions] = useState<{ label: string; value: string }[]>([]);
+  const [tagFilterIds, setTagFilterIds] = useState<string[]>();
+
+  useEffect(() => {
+    void settlementServiceListFinanceBillTagOptions({ page: 1, pageSize: 200 }).then((response) => {
+      setTagOptions((response.tags ?? []).map((tag) => ({ label: tag.name ?? '', value: tag.id ?? '' })));
+    });
+  }, []);
+
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<BillFormValues>();
@@ -263,6 +281,25 @@ export default function FinanceBillsPage() {
 
   return (
     <>
+
+      <div style={{ marginBottom: 12 }}>
+        <span style={{ marginRight: 8 }}>标签筛选</span>
+        <Select
+          mode="multiple"
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          style={{ minWidth: 320 }}
+          placeholder="命中任一标签即返回"
+          options={tagOptions}
+          value={tagFilterIds}
+          onChange={(value) => {
+            setTagFilterIds(value.length ? value : undefined);
+            actionRef.current?.reload();
+          }}
+        />
+      </div>
+
       <FinanceLedgerTemplate<API.FinanceBill>
         headerTitle="账单管理台账"
         actionRef={actionRef}
@@ -312,6 +349,7 @@ export default function FinanceBillsPage() {
             currency: searchParams.currency || undefined,
             billDateFrom,
             billDateTo,
+            tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
           });
 
           const list = response.data || [];
@@ -361,6 +399,22 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailOpen(false)}
+      />
+      <BusinessTagModal
+        open={tagModalOpen}
+        targetCount={tagBillIds.length}
+        existingTags={tagExisting}
+        canQuickCreate={Boolean(access?.canCreateEnterpriseResources)}
+        loadOptions={settlementServiceListFinanceBillTagOptions}
+        onSubmit={async (mode, tagIds) => {
+          if (mode === 'assign') {
+            await settlementServiceBatchAssignFinanceBillTags({ billIds: tagBillIds, tagIds });
+          } else {
+            await settlementServiceBatchRemoveFinanceBillTags({ billIds: tagBillIds, tagIds });
+          }
+          actionRef.current?.reload();
+        }}
+        onCancel={() => setTagModalOpen(false)}
       />
     </>
   );

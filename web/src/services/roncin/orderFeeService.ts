@@ -38,6 +38,69 @@ export async function orderFeeServiceListFeeOptions(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-tag-options */
+export async function orderFeeServiceListOrderFeeTagOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceListOrderFeeTagOptionsParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ListOrderFeeTagOptionsResponse>(
+    `/api/v1/orders/${param0}/fee-tag-options`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-tags/batch-assign */
+export async function orderFeeServiceBatchAssignOrderFeeTags(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceBatchAssignOrderFeeTagsParams,
+  body: API.BatchAssignOrderFeeTagsRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.BatchAssignOrderFeeTagsResponse>(
+    `/api/v1/orders/${param0}/fee-tags/batch-assign`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-tags/batch-remove */
+export async function orderFeeServiceBatchRemoveOrderFeeTags(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceBatchRemoveOrderFeeTagsParams,
+  body: API.BatchRemoveOrderFeeTagsRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.BatchRemoveOrderFeeTagsResponse>(
+    `/api/v1/orders/${param0}/fee-tags/batch-remove`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListFees 获取指定订单的费用列表。 GET /api/v1/orders/${param0}/fees */
 export async function orderFeeServiceListFees(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

@@ -22,6 +22,9 @@ import {
   feeStatusCode,
 } from './components/fees/feeConstants';
 import { confirmWithReason } from './fee-reason-confirm';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { orderFeeServiceBatchAssignOrderFeeTags, orderFeeServiceBatchRemoveOrderFeeTags } from '@/services/roncin/orderFeeService';
+import { TagOutlined } from '@ant-design/icons';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import {
   orderFeeServiceAddFee,
@@ -51,6 +54,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const feeOptionsRequestRef = useRef(0);
     const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
+    const [tagModalOpen, setTagModalOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
     const [editingFee, setEditingFee] = useState<API.OrderFee>();
@@ -358,6 +363,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               actionRef={actionRef}
               rowKey="id"
               columns={columns}
+              rowSelection={{
+                selectedRowKeys: selectedFeeIds,
+                onChange: setSelectedFeeIds,
+              }}
               bordered
               search={false}
               pagination={false}
@@ -382,10 +391,33 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                     录入费用
                   </Button>
                 ),
+                canUpdate && selectedFeeIds.length > 0 && (
+                  <Button key="tags" icon={<TagOutlined />} onClick={() => setTagModalOpen(true)}>
+                    标签管理
+                  </Button>
+                ),
               ]}
             />
           )}
         </Drawer>
+
+        <BusinessTagModal
+          open={tagModalOpen}
+          targetCount={selectedFeeIds.length}
+          canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
+          onSubmit={async (mode, tagIds) => {
+            if (!order?.id || selectedFeeIds.length === 0) return;
+            const feeIds = selectedFeeIds.map(String);
+            if (mode === 'assign') {
+              await orderFeeServiceBatchAssignOrderFeeTags({ orderId: order.id as string }, { orderId: order.id as string, feeIds, tagIds });
+            } else {
+              await orderFeeServiceBatchRemoveOrderFeeTags({ orderId: order.id as string }, { orderId: order.id as string, feeIds, tagIds });
+            }
+            setSelectedFeeIds([]);
+            actionRef.current?.reload();
+          }}
+          onCancel={() => setTagModalOpen(false)}
+        />
 
         <FeeFormModal
           open={modalOpen}

@@ -403,6 +403,37 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BatchAssignFinanceBillTagsRequest = {
+    billIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchAssignFinanceBillTagsResponse = {
+    assignedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchAssignFinanceFeeTagsRequest = {
+    feeIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchAssignFinanceFeeTagsResponse = {
+    assignedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchAssignOrderFeeTagsRequest = {
+    orderId: string;
+    feeIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchAssignOrderFeeTagsResponse = {
+    assignedCount?: number;
+    traceId?: string;
+  };
+
   type BatchAssignOrderTagsRequest = {
     businessType: number;
     orderIds: string[];
@@ -466,6 +497,37 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BatchRemoveFinanceBillTagsRequest = {
+    billIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchRemoveFinanceBillTagsResponse = {
+    removedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchRemoveFinanceFeeTagsRequest = {
+    feeIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchRemoveFinanceFeeTagsResponse = {
+    removedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchRemoveOrderFeeTagsRequest = {
+    orderId: string;
+    feeIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchRemoveOrderFeeTagsResponse = {
+    removedCount?: number;
+    traceId?: string;
+  };
+
   type BatchRemoveOrderTagsRequest = {
     businessType: number;
     orderIds: string[];
@@ -524,6 +586,15 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     isContainerUnit?: boolean;
+  };
+
+  type BusinessTagSummary = {
+    id?: string;
+    name?: string;
+    groupId?: string;
+    groupName?: string;
+    groupColor?: string;
+    enabled?: boolean;
   };
 
   type BusinessTagSummary = {
@@ -1810,6 +1881,7 @@ declare namespace API {
     financialProgress?: string;
     billNo?: string;
     financeLocked?: boolean;
+    tags?: BusinessTagSummary[];
   };
 
   type FeeLedgerPreference = {
@@ -1900,6 +1972,7 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
+    tags?: BusinessTagSummary[];
   };
 
   type FinanceBillBatch = {
@@ -2611,6 +2684,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListFinanceBillTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceFeeTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListInvoicesResponse = {
     success?: boolean;
     code?: number;
@@ -2660,6 +2745,12 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderConsolidationSummary[];
+    traceId?: string;
+  };
+
+  type ListOrderFeeTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
     traceId?: string;
   };
 
@@ -3352,6 +3443,7 @@ declare namespace API {
     cancelledAt?: string;
     cancelledBy?: string;
     cancellationReason?: string;
+    tags?: BusinessTagSummary[];
   };
 
   type OrderFeeBillingUnitOption = {
@@ -3370,6 +3462,14 @@ declare namespace API {
     orderId: string;
   };
 
+  type OrderFeeServiceBatchAssignOrderFeeTagsParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceBatchRemoveOrderFeeTagsParams = {
+    orderId: string;
+  };
+
   type OrderFeeServiceConfirmFeeParams = {
     orderId: string;
     id: string;
@@ -3381,6 +3481,13 @@ declare namespace API {
 
   type OrderFeeServiceListFeesParams = {
     orderId: string;
+  };
+
+  type OrderFeeServiceListOrderFeeTagOptionsParams = {
+    orderId: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type OrderFeeServiceRemoveFeeParams = {
@@ -4549,6 +4656,7 @@ declare namespace API {
     currency?: string;
     billDateFrom?: string;
     billDateTo?: string;
+    tagIds?: string[];
   };
 
   type SettlementServiceListCashflowsParams = {
@@ -4605,6 +4713,19 @@ declare namespace API {
     financialProgress?: string;
     billNo?: string;
     financeLocked?: boolean;
+    tagIds?: string[];
+  };
+
+  type SettlementServiceListFinanceBillTagOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type SettlementServiceListFinanceFeeTagOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type SettlementServiceListInvoicesParams = {

@@ -2032,6 +2032,111 @@
         }
       }
     },
+    "/api/v1/finance/bill-tag-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListFinanceBillTagOptions",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceBillTagOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bill-tags/batch-assign": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_BatchAssignFinanceBillTags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceBillTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceBillTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bill-tags/batch-remove": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_BatchRemoveFinanceBillTags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/billing-units": {
       "get": {
         "tags": [
@@ -2235,6 +2340,16 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "tagIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -3782,6 +3897,111 @@
         }
       }
     },
+    "/api/v1/finance/fee-tag-options": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListFinanceFeeTagOptions",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceFeeTagOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/fee-tags/batch-assign": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_BatchAssignFinanceFeeTags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceFeeTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceFeeTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/fee-tags/batch-remove": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_BatchRemoveFinanceFeeTags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceFeeTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceFeeTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/fees": {
       "get": {
         "tags": [
@@ -3888,6 +4108,16 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "tagIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -6590,6 +6820,139 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/order.v1.ListFeeOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-tag-options": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_ListOrderFeeTagOptions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListOrderFeeTagOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-tags/batch-assign": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_BatchAssignOrderFeeTags",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.BatchAssignOrderFeeTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.BatchAssignOrderFeeTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-tags/batch-remove": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_BatchRemoveOrderFeeTags",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.BatchRemoveOrderFeeTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.BatchRemoveOrderFeeTagsResponse"
                 }
               }
             }
@@ -11321,6 +11684,138 @@
           }
         }
       },
+      "finance.v1.BatchAssignFinanceBillTagsRequest": {
+        "required": [
+          "billIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "billIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "finance.v1.BatchAssignFinanceBillTagsResponse": {
+        "type": "object",
+        "properties": {
+          "assignedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.BatchAssignFinanceFeeTagsRequest": {
+        "required": [
+          "feeIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "feeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "finance.v1.BatchAssignFinanceFeeTagsResponse": {
+        "type": "object",
+        "properties": {
+          "assignedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.BatchRemoveFinanceBillTagsRequest": {
+        "required": [
+          "billIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "billIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "finance.v1.BatchRemoveFinanceBillTagsResponse": {
+        "type": "object",
+        "properties": {
+          "removedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.BatchRemoveFinanceFeeTagsRequest": {
+        "required": [
+          "feeIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "feeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "finance.v1.BatchRemoveFinanceFeeTagsResponse": {
+        "type": "object",
+        "properties": {
+          "removedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.BillBatchPreviewGroup": {
         "type": "object",
         "properties": {
@@ -11454,6 +11949,29 @@
             "type": "string"
           },
           "isContainerUnit": {
+            "type": "boolean"
+          }
+        }
+      },
+      "finance.v1.BusinessTagSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "groupName": {
+            "type": "string"
+          },
+          "groupColor": {
+            "type": "string"
+          },
+          "enabled": {
             "type": "boolean"
           }
         }
@@ -13090,6 +13608,12 @@
           },
           "financeLocked": {
             "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
           }
         }
       },
@@ -13359,6 +13883,12 @@
           },
           "exchangeRateSettingId": {
             "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
           }
         }
       },
@@ -14697,6 +15227,40 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "finance.v1.ListFinanceBillTagOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListFinanceFeeTagOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -17614,6 +18178,43 @@
         },
         "description": "AssignPersonnelResponse 单条订单协作人员响应。"
       },
+      "order.v1.BatchAssignOrderFeeTagsRequest": {
+        "required": [
+          "orderId",
+          "feeIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "feeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.BatchAssignOrderFeeTagsResponse": {
+        "type": "object",
+        "properties": {
+          "assignedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.BatchAssignOrderTagsRequest": {
         "required": [
           "businessType",
@@ -17644,6 +18245,43 @@
         "type": "object",
         "properties": {
           "assignedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.BatchRemoveOrderFeeTagsRequest": {
+        "required": [
+          "orderId",
+          "feeIds",
+          "tagIds"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "feeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.BatchRemoveOrderFeeTagsResponse": {
+        "type": "object",
+        "properties": {
+          "removedCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -18252,6 +18890,23 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderConsolidationSummary"
             }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListOrderFeeTagOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
+            }
+          },
+          "total": {
+            "type": "string"
           },
           "traceId": {
             "type": "string"
@@ -19118,6 +19773,12 @@
           },
           "cancellationReason": {
             "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
+            }
           }
         },
         "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"

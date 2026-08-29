@@ -97,6 +97,31 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       search: false,
     },
     {
+      title: '标签',
+      dataIndex: 'tags',
+      width: 140,
+      search: false,
+      render: (_, row) =>
+        row.tags?.length ? (
+          <React.Fragment>
+            {row.tags.map((tag) => (
+              <Tag
+                key={tag.id}
+                style={
+                  tag.groupColor
+                    ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
+                    : { marginInlineEnd: 4 }
+                }
+              >
+                {tag.name}
+              </Tag>
+            ))}
+          </React.Fragment>
+        ) : (
+          '-'
+        ),
+    },
+    {
       title: '属性',
       dataIndex: 'direction',
       width: 65,

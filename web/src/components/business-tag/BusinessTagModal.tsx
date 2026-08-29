@@ -16,6 +16,12 @@ interface BusinessTagModalProps {
   existingTags?: API.BusinessTagSummary[];
   /** 是否显示快捷新建入口（需同时具备企业资源创建权限） */
   canQuickCreate: boolean;
+  /** 自定义标签候选加载器（费用/账单页面传入对应领域接口） */
+  loadOptions?: (params: {
+    keyword?: string;
+    page: number;
+    pageSize: number;
+  }) => Promise<API.ListOrderTagOptionsResponse | API.ListFinanceFeeTagOptionsResponse | API.ListFinanceBillTagOptionsResponse>;
   /** 提交选中标签 ID，由调用方执行对应领域的批量接口 */
   onSubmit: (mode: BusinessTagModalMode, tagIds: string[]) => Promise<void>;
   onCancel: () => void;
@@ -31,6 +37,7 @@ export function BusinessTagModal({
   targetCount,
   existingTags,
   canQuickCreate,
+  loadOptions,
   onSubmit,
   onCancel,
 }: BusinessTagModalProps) {
@@ -43,10 +50,11 @@ export function BusinessTagModal({
   const [groupOptions, setGroupOptions] = useState<{ label: string; value: string }[]>([]);
   const [quickForm] = Form.useForm<{ groupId: string; name: string }>();
 
-  const loadOptions = async (keyword?: string) => {
+  const fetchOptions = loadOptions ?? orderTagServiceListOrderTagOptions;
+  const loadTagOptions = async (keyword?: string) => {
     setLoading(true);
     try {
-      const response = await orderTagServiceListOrderTagOptions({
+      const response = await fetchOptions({
         page: 1,
         pageSize: 50,
         keyword: keyword?.trim() || undefined,
@@ -62,7 +70,7 @@ export function BusinessTagModal({
     setMode('assign');
     setSelectedTagIds([]);
     setQuickCreateOpen(false);
-    void loadOptions();
+    void loadTagOptions();
   }, [open]);
 
   const mergedOptions = useMemo(() => {
@@ -102,9 +110,9 @@ export function BusinessTagModal({
     message.success('标签已创建');
     setQuickCreateOpen(false);
     quickForm.resetFields();
-    await loadOptions();
+    await loadTagOptions();
     // 快捷新建后自动选中
-    const response = await orderTagServiceListOrderTagOptions({
+    const response = await fetchOptions({
       page: 1,
       pageSize: 50,
       keyword: values.name.trim(),
@@ -150,7 +158,7 @@ export function BusinessTagModal({
           loading={loading}
           showSearch
           filterOption={false}
-          onSearch={(keyword) => void loadOptions(keyword)}
+          onSearch={(keyword) => void loadTagOptions(keyword)}
           options={mergedOptions.map((tag) => ({
             value: tag.id ?? '',
             label: (

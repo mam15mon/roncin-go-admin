@@ -57,6 +57,60 @@ export async function settlementServicePreviewBillBatch(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/bill-tag-options */
+export async function settlementServiceListFinanceBillTagOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceBillTagOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceBillTagOptionsResponse>(
+    "/api/v1/finance/bill-tag-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/bill-tags/batch-assign */
+export async function settlementServiceBatchAssignFinanceBillTags(
+  body: API.BatchAssignFinanceBillTagsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BatchAssignFinanceBillTagsResponse>(
+    "/api/v1/finance/bill-tags/batch-assign",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/bill-tags/batch-remove */
+export async function settlementServiceBatchRemoveFinanceBillTags(
+  body: API.BatchRemoveFinanceBillTagsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BatchRemoveFinanceBillTagsResponse>(
+    "/api/v1/finance/bill-tags/batch-remove",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/bills */
 export async function settlementServiceListBills(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -573,6 +627,60 @@ export async function settlementServiceUpdateBilledFeeEditPolicy(
     "/api/v1/finance/custom-settings/billed-fee-edit-policy",
     {
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/fee-tag-options */
+export async function settlementServiceListFinanceFeeTagOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListFinanceFeeTagOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFinanceFeeTagOptionsResponse>(
+    "/api/v1/finance/fee-tag-options",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/fee-tags/batch-assign */
+export async function settlementServiceBatchAssignFinanceFeeTags(
+  body: API.BatchAssignFinanceFeeTagsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BatchAssignFinanceFeeTagsResponse>(
+    "/api/v1/finance/fee-tags/batch-assign",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/fee-tags/batch-remove */
+export async function settlementServiceBatchRemoveFinanceFeeTags(
+  body: API.BatchRemoveFinanceFeeTagsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BatchRemoveFinanceFeeTagsResponse>(
+    "/api/v1/finance/fee-tags/batch-remove",
+    {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
