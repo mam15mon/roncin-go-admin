@@ -12,9 +12,7 @@ import {
   Button,
   Card,
   Empty,
-  Input,
   type MenuProps,
-  Select,
   Space,
   Spin,
   Typography,
@@ -23,28 +21,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
-import {
-  orderServiceGetOrder,
-  orderServiceListPersonnelOptions,
-  orderServiceTransitionOrderClosure,
-  orderServiceTransitionOrderTermination,
-  orderServiceUpdateOrder,
-} from '@/services/roncin/orderService';
-import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
-import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
-import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
-import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
-import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
+import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
 import {
-  fetchOrderMasterData,
-  isMasterDataKind,
-  MASTER_DATA_KINDS,
   PARTNER_ROLES,
   parseOrderKind,
-  requireSeaServiceTypeOptions,
   searchPartnersByRole,
 } from './common';
 import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
@@ -54,13 +37,17 @@ import {
   buildInitialValues,
   buildUpdatePayload,
 } from './components/detail/orderDetailHelpers';
+import {
+  confirmOrderClosure,
+  confirmOrderTermination,
+} from './order-detail-transitions';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import {
   getAirTemplateSections,
   getSeaTemplateSections,
-  type SelectOption,
 } from './templates';
+import { useOrderDetailData } from './use-order-detail-data';
 
 const { Text } = Typography;
 
@@ -73,130 +60,32 @@ export default function OrderDetailPage() {
   const kind = params.kind || 'sea-export';
   const orderId = params.id;
   const config = parseOrderKind(kind) || {
-    kind: 'sea-export',
+    kind: 'sea-export' as const,
     title: '海运出口',
     businessType: 1,
-    category: 'sea',
+    tradeDirection: 1,
+    category: 'sea' as const,
   };
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [order, setOrder] = useState<API.Order>();
-  const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
-    [],
-  );
-  const [_containers, setContainers] = useState<API.OrderContainer[]>([]);
-  const [_cargoItems, setCargoItems] = useState<API.OrderCargoItem[]>([]);
-  const [_milestones, setMilestones] = useState<API.OrderMilestone[]>([]);
-  const [personnel, setPersonnel] = useState<API.OrderPersonnel[]>([]);
-
-  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
-    [],
-  );
-  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<
-    SelectOption[]
-  >([]);
-  const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
-  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
-  const [containerSpecOptions, setContainerSpecOptions] = useState<
-    SelectOption[]
-  >([]);
-  const [personnelOptions, setPersonnelOptions] = useState<
-    API.OrderPersonnelOption[]
-  >([]);
+  const {
+    loading,
+    order,
+    shippingDocs,
+    personnel,
+    serviceTypeOptions,
+    cargoCategoryOptions,
+    locationOptions,
+    currencyOptions,
+    containerSpecOptions,
+    personnelOptions,
+    loadData,
+  } = useOrderDetailData(orderId, config);
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
-
-  // 1. 加载主数据与订单数据
-  const loadData = async () => {
-    if (!orderId) return;
-    setLoading(true);
-    try {
-      const [
-        masterData,
-        personnelOptRes,
-        orderRes,
-        docsRes,
-        cntrsRes,
-        cargoRes,
-        milestonesRes,
-        personnelRes,
-      ] = await Promise.all([
-        fetchOrderMasterData(),
-        config.category === 'sea'
-          ? orderServiceListPersonnelOptions({
-              businessType: config.businessType,
-              page: 1,
-              pageSize: 200,
-            }).catch(() => ({ data: [] }))
-          : Promise.resolve({ data: [] }),
-        orderServiceGetOrder({ id: orderId }),
-        orderShippingDocumentServiceListShippingDocuments({ orderId }).catch(
-          () => ({ data: [] }),
-        ),
-        orderContainerServiceListContainers({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderCargoItemServiceListCargoItems({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderMilestoneServiceListMilestones({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderPersonnelServiceListPersonnel({ orderId }).catch(() => ({
-          data: [],
-        })),
-      ]);
-
-      const nextServiceTypeOptions =
-        config.category === 'sea'
-          ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
-          : masterData.serviceTypeOptions;
-
-      setServiceTypeOptions(nextServiceTypeOptions);
-      setCargoCategoryOptions(masterData.cargoCategoryOptions);
-      setLocationOptions(
-        config.category === 'sea'
-          ? masterData.seaLocationOptions
-          : masterData.airLocationOptions,
-      );
-      setCurrencyOptions(masterData.currencyOptions);
-      setContainerSpecOptions(
-        masterData.masterOptions
-          .filter(
-            (item) =>
-              isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
-              item.enabled !== false,
-          )
-          .map((item) => ({
-            label: item.code
-              ? `${item.name ?? item.code} (${item.code})`
-              : (item.name ?? ''),
-            value: item.id ?? '',
-          }))
-          .filter((item) => item.value !== ''),
-      );
-      setPersonnelOptions(personnelOptRes.data ?? []);
-
-      setOrder(orderRes.data);
-      setShippingDocs(docsRes.data ?? []);
-      setContainers(cntrsRes.data ?? []);
-      setCargoItems(cargoRes.data ?? []);
-      setMilestones(milestonesRes.data ?? []);
-      setPersonnel(personnelRes.data ?? []);
-    } catch (error: any) {
-      message.error(error.message || '加载订单数据失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadData();
-  }, [orderId]);
 
   useEffect(() => {
     if (order?.orderNo && typeof window !== 'undefined') {
@@ -344,120 +233,21 @@ export default function OrderDetailPage() {
   const hasAction = (action: number) =>
     order.allowedActions?.includes(action) === true;
 
-  const confirmTermination = (targetStatus: number) => {
-    const orderID = order.id;
-    const expectedVersion = order.version;
-    if (!orderID || expectedVersion === undefined) {
-      message.error('订单数据不完整，请刷新后重试');
-      return;
-    }
-    let reason = '';
-    let terminationType = 3;
-    modal.confirm({
-      title:
-        targetStatus === 1
-          ? '取消退关/终止'
-          : targetStatus === 2
-            ? '发起退关/终止'
-            : '完成退关/终止',
-      content: (
-        <Space vertical style={{ width: '100%', marginTop: 12 }}>
-          {targetStatus !== 1 && (
-            <Select
-              defaultValue={3}
-              style={{ width: '100%' }}
-              options={[
-                { label: '客户撤单', value: 1 },
-                { label: '承运人取消', value: 2 },
-                { label: '海关退关', value: 3 },
-                { label: '操作取消', value: 4 },
-                { label: '其他', value: 5 },
-              ]}
-              onChange={(value) => {
-                terminationType = value;
-              }}
-            />
-          )}
-          <Input.TextArea
-            placeholder="请输入原因（必填）"
-            maxLength={500}
-            showCount
-            onChange={(event) => {
-              reason = event.target.value;
-            }}
-          />
-        </Space>
-      ),
-      async onOk() {
-        if (!reason.trim()) {
-          message.error('请输入原因');
-          return Promise.reject();
-        }
-        const response = await orderServiceTransitionOrderTermination(
-          { id: orderID },
-          {
-            id: orderID,
-            expectedVersion,
-            targetStatus,
-            terminationType: targetStatus === 1 ? undefined : terminationType,
-            reason,
-          },
-        );
-        if (response.data) {
-          message.success('更新退关状态成功');
-          await loadData();
-        }
-      },
-    });
-  };
+  const confirmTermination = (targetStatus: number) =>
+    confirmOrderTermination(
+      { modal, message },
+      order,
+      targetStatus,
+      loadData,
+    );
 
-  const confirmClosure = (targetStatus: number) => {
-    const orderID = order.id;
-    const expectedVersion = order.version;
-    if (!orderID || expectedVersion === undefined) {
-      message.error('订单数据不完整，请刷新后重试');
-      return;
-    }
-    let reason = '';
-    modal.confirm({
-      title: targetStatus === 1 ? '反结案/重新激活订单' : '完结订单',
-      content: (
-        <Space vertical style={{ width: '100%', marginTop: 12 }}>
-          <Input.TextArea
-            placeholder={
-              targetStatus === 1
-                ? '请输入反结案原因（必填）'
-                : '请输入完结原因（选填）'
-            }
-            maxLength={500}
-            showCount
-            onChange={(event) => {
-              reason = event.target.value;
-            }}
-          />
-        </Space>
-      ),
-      async onOk() {
-        if (targetStatus === 1 && !reason.trim()) {
-          message.error('请输入反结案原因');
-          return Promise.reject();
-        }
-        const response = await orderServiceTransitionOrderClosure(
-          { id: orderID },
-          {
-            id: orderID,
-            expectedVersion,
-            targetStatus,
-            reason: reason.trim(),
-          },
-        );
-        if (response.data) {
-          message.success(targetStatus === 1 ? '反结案成功' : '完结订单成功');
-          await loadData();
-        }
-      },
-    });
-  };
+  const confirmClosure = (targetStatus: number) =>
+    confirmOrderClosure(
+      { modal, message },
+      order,
+      targetStatus,
+      loadData,
+    );
 
   const moreMenuItems: MenuProps['items'] = [
     {
