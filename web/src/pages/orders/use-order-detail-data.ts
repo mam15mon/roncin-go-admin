@@ -1,14 +1,14 @@
 import { App } from 'antd';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
+import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
+import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
+import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import {
   orderServiceGetOrder,
   orderServiceListPersonnelOptions,
 } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
-import { orderContainerServiceListContainers } from '@/services/roncin/orderContainerService';
-import { orderCargoItemServiceListCargoItems } from '@/services/roncin/orderCargoItemService';
-import { orderMilestoneServiceListMilestones } from '@/services/roncin/orderMilestoneService';
-import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
@@ -24,6 +24,7 @@ export function useOrderDetailData(
   config: OrderKindConfig,
 ) {
   const { message } = App.useApp();
+  const { businessType, category } = config;
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<API.Order>();
   const [shippingDocs, setShippingDocs] = useState<API.OrderShippingDocument[]>(
@@ -49,7 +50,7 @@ export function useOrderDetailData(
     API.OrderPersonnelOption[]
   >([]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!orderId) return;
     setLoading(true);
     try {
@@ -64,40 +65,30 @@ export function useOrderDetailData(
         personnelRes,
       ] = await Promise.all([
         fetchOrderMasterData(),
-        config.category === 'sea'
+        category === 'sea'
           ? orderServiceListPersonnelOptions({
-              businessType: config.businessType,
+              businessType,
               page: 1,
               pageSize: 200,
-            }).catch(() => ({ data: [] }))
+            })
           : Promise.resolve({ data: [] }),
         orderServiceGetOrder({ id: orderId }),
-        orderShippingDocumentServiceListShippingDocuments({ orderId }).catch(
-          () => ({ data: [] }),
-        ),
-        orderContainerServiceListContainers({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderCargoItemServiceListCargoItems({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderMilestoneServiceListMilestones({ orderId }).catch(() => ({
-          data: [],
-        })),
-        orderPersonnelServiceListPersonnel({ orderId }).catch(() => ({
-          data: [],
-        })),
+        orderShippingDocumentServiceListShippingDocuments({ orderId }),
+        orderContainerServiceListContainers({ orderId }),
+        orderCargoItemServiceListCargoItems({ orderId }),
+        orderMilestoneServiceListMilestones({ orderId }),
+        orderPersonnelServiceListPersonnel({ orderId }),
       ]);
 
       const nextServiceTypeOptions =
-        config.category === 'sea'
+        category === 'sea'
           ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
           : masterData.serviceTypeOptions;
 
       setServiceTypeOptions(nextServiceTypeOptions);
       setCargoCategoryOptions(masterData.cargoCategoryOptions);
       setLocationOptions(
-        config.category === 'sea'
+        category === 'sea'
           ? masterData.seaLocationOptions
           : masterData.airLocationOptions,
       );
@@ -130,11 +121,11 @@ export function useOrderDetailData(
     } finally {
       setLoading(false);
     }
-  };
+  }, [businessType, category, message, orderId]);
 
   useEffect(() => {
     void loadData();
-  }, [orderId]);
+  }, [loadData]);
 
   return {
     loading,
