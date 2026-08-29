@@ -351,4 +351,16 @@ func TestPartnerAssignmentFinanceAndDocumentRolesAreIndependent(t *testing.T) {
 	}
 }
 
+func TestFormatPartnerRolesAuditValueIsStable(t *testing.T) {
+	roles := []*PartnerRole{
+		{Type: PartnerRoleSupplier, Enabled: false},
+		nil,
+		{Type: PartnerRoleCustomer, Enabled: true},
+	}
+
+	if got, want := FormatPartnerRolesAuditValue(roles), "customer:true,supplier:false"; got != want {
+		t.Fatalf("FormatPartnerRolesAuditValue() = %q, want %q", got, want)
+	}
+}
+
 var _ PartnerRepo = (*partnerRepoStub)(nil)

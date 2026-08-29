@@ -341,7 +341,7 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 		Details: map[string]string{
 			"partner.code": normalized.Code,
 			"legal_name":   normalized.LegalName,
-			"roles":        partnerRolesAuditValue(normalized.Roles),
+			"roles":        FormatPartnerRolesAuditValue(normalized.Roles),
 		},
 	})
 }
@@ -363,7 +363,7 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 		Result:         "success",
 		Details: map[string]string{
 			"partner.id": id.String(),
-			"to_roles":   partnerRolesAuditValue(normalized.Roles),
+			"to_roles":   FormatPartnerRolesAuditValue(normalized.Roles),
 		},
 	})
 	if err != nil {
@@ -662,7 +662,8 @@ func validUnifiedSocialCreditCode(value string) bool {
 	return true
 }
 
-func partnerRolesAuditValue(roles []*PartnerRole) string {
+// FormatPartnerRolesAuditValue 生成稳定的往来单位角色审计值。
+func FormatPartnerRolesAuditValue(roles []*PartnerRole) string {
 	values := make([]string, 0, len(roles))
 	for _, role := range roles {
 		if role != nil {

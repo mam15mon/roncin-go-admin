@@ -292,7 +292,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		_ = tx.Rollback()
 		return nil, err
 	}
-	audit.Details["from_roles"] = partnerRolesAuditValue(previousRoles)
+	audit.Details["from_roles"] = biz.FormatPartnerRolesAuditValue(previousRoles)
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -458,14 +458,6 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 		return err
 	}
 	return replacePartnerAssignments(ctx, tx, organizationID, existing.ID, editablePartnerAssignments(input.Assignments))
-}
-
-func partnerRolesAuditValue(roles []*biz.PartnerRole) string {
-	values := make([]string, 0, len(roles))
-	for _, role := range roles {
-		values = append(values, string(role.Type)+":"+strconv.FormatBool(role.Enabled))
-	}
-	return strings.Join(values, ",")
 }
 
 func editablePartnerAssignments(assignments []*biz.PartnerAssignment) []*biz.PartnerAssignment {
