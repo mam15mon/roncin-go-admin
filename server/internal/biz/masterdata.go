@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -273,9 +272,9 @@ type MasterDataImportResult struct {
 type MasterDataRepo interface {
 	List(context.Context, uuid.UUID, MasterDataListOptions) (*MasterDataList, error)
 	ListEnabled(context.Context, uuid.UUID) ([]*MasterDataItem, error)
-	Create(context.Context, uuid.UUID, *MasterDataItem) (*MasterDataItem, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, *MasterDataItem) (*MasterDataItem, error)
-	Import(context.Context, uuid.UUID, MasterDataImportMode, []*MasterDataItem) (*MasterDataImportResult, error)
+	Create(context.Context, uuid.UUID, *MasterDataItem, *AuditEvent) (*MasterDataItem, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, *MasterDataItem, *AuditEvent) (*MasterDataItem, error)
+	Import(context.Context, uuid.UUID, MasterDataImportMode, []*MasterDataItem, *AuditEvent) (*MasterDataImportResult, error)
 }
 
 type MasterDataUsecase struct {
@@ -313,12 +312,10 @@ func (uc *MasterDataUsecase) Create(ctx context.Context, organizationID, actorID
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, normalized)
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.create", Result: "success", Details: map[string]string{"master_data.kind": string(normalized.Kind), "master_data.code": normalized.Code}}
+	created, err := uc.repo.Create(ctx, organizationID, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.create", Result: "success", Details: map[string]string{"master_data.id": created.ID.String(), "master_data.kind": string(created.Kind), "master_data.code": created.Code}}); err != nil {
-		return nil, fmt.Errorf("write master data create audit: %w", err)
 	}
 	return created, nil
 }
@@ -347,12 +344,10 @@ func (uc *MasterDataUsecase) Import(ctx context.Context, organizationID, actorID
 		seen[normalized.Code] = struct{}{}
 		items = append(items, normalized)
 	}
-	result, err := uc.repo.Import(ctx, organizationID, input.Mode, items)
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.import", Result: "success", Details: map[string]string{"master_data.kind": string(input.Kind), "source": input.Source, "mode": string(input.Mode)}}
+	result, err := uc.repo.Import(ctx, organizationID, input.Mode, items, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.import", Result: "success", Details: map[string]string{"master_data.kind": string(input.Kind), "source": input.Source, "mode": string(input.Mode), "created": fmt.Sprintf("%d", result.Created), "updated": fmt.Sprintf("%d", result.Updated)}}); err != nil {
-		return nil, fmt.Errorf("write master data import audit: %w", err)
 	}
 	return result, nil
 }
@@ -365,12 +360,10 @@ func (uc *MasterDataUsecase) Update(ctx context.Context, organizationID, actorID
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, id, normalized)
+	audit := &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.update", Result: "success", Details: map[string]string{"master_data.id": id.String(), "master_data.kind": string(normalized.Kind)}}
+	updated, err := uc.repo.Update(ctx, organizationID, id, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "master_data.update", Result: "success", Details: map[string]string{"master_data.id": updated.ID.String(), "master_data.kind": string(updated.Kind), "master_data.code": updated.Code}}); err != nil {
-		return nil, fmt.Errorf("write master data update audit: %w", err)
 	}
 	return updated, nil
 }

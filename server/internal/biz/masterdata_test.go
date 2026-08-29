@@ -12,6 +12,9 @@ type masterDataRepoStub struct {
 	listOptions  MasterDataListOptions
 	created      *MasterDataItem
 	updated      *MasterDataItem
+	createAudit  *AuditEvent
+	updateAudit  *AuditEvent
+	importAudit  *AuditEvent
 	importOrgID  uuid.UUID
 	importMode   MasterDataImportMode
 	importItems  []*MasterDataItem
@@ -28,36 +31,39 @@ func (s *masterDataRepoStub) ListEnabled(context.Context, uuid.UUID) ([]*MasterD
 	return nil, nil
 }
 
-func (s *masterDataRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *MasterDataItem) (*MasterDataItem, error) {
+func (s *masterDataRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
 	s.created = input
+	s.createAudit = audit
 	input.OrganizationID = organizationID
 	input.ID = uuid.New()
+	audit.Details["master_data.id"] = input.ID.String()
 	return input, nil
 }
 
-func (s *masterDataRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *MasterDataItem) (*MasterDataItem, error) {
+func (s *masterDataRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *MasterDataItem, audit *AuditEvent) (*MasterDataItem, error) {
 	s.updated = input
+	s.updateAudit = audit
 	input.OrganizationID = organizationID
 	input.ID = id
 	input.Code = "40HC"
 	return input, nil
 }
 
-func (s *masterDataRepoStub) Import(_ context.Context, organizationID uuid.UUID, mode MasterDataImportMode, items []*MasterDataItem) (*MasterDataImportResult, error) {
+func (s *masterDataRepoStub) Import(_ context.Context, organizationID uuid.UUID, mode MasterDataImportMode, items []*MasterDataItem, audit *AuditEvent) (*MasterDataImportResult, error) {
 	s.importOrgID = organizationID
 	s.importMode = mode
 	s.importItems = items
+	s.importAudit = audit
 	if s.importErr != nil {
 		return nil, s.importErr
 	}
-	if s.importResult != nil {
-		return s.importResult, nil
+	result := s.importResult
+	if result == nil {
+		result = &MasterDataImportResult{Items: items, Created: len(items)}
 	}
-	return &MasterDataImportResult{
-		Items:   items,
-		Created: len(items),
-		Updated: 0,
-	}, nil
+	audit.Details["created"] = fmt.Sprintf("%d", result.Created)
+	audit.Details["updated"] = fmt.Sprintf("%d", result.Updated)
+	return result, nil
 }
 
 func TestDefaultOrderOptions(t *testing.T) {
@@ -128,8 +134,8 @@ func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 	if created.Code != "CNY" || created.Name != "人民币" || created.NameEN == nil || *created.NameEN != "Renminbi" || created.Source != "manual" {
 		t.Fatalf("normalized item = %#v", created)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "master_data.create" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.createAudit == nil || repo.createAudit.Action != "master_data.create" {
+		t.Fatalf("audit event = %#v", repo.createAudit)
 	}
 }
 
@@ -212,10 +218,10 @@ func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 	}
 
 	// 精确断言审计日志及详细字段
-	if len(audit.events) != 1 {
-		t.Fatalf("audit event count = %d, want 1", len(audit.events))
+	if repo.importAudit == nil {
+		t.Fatal("import audit event is nil")
 	}
-	event := audit.events[0]
+	event := repo.importAudit
 	if event.Action != "master_data.import" {
 		t.Fatalf("audit action = %q, want master_data.import", event.Action)
 	}

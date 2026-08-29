@@ -106,27 +106,45 @@ func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UU
 	return masterDataItemsToBiz(items), nil
 }
 
-func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.MasterDataItem) (*biz.MasterDataItem, error) {
+func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
 	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
 		return nil, err
 	}
-	create := r.data.db.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	create := tx.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 	created, err := create.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
 			return nil, biz.ErrMasterDataCodeExists
 		}
 		return nil, err
 	}
+	audit.Details["master_data.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return masterDataItemToBiz(created), nil
 }
 
-func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.MasterDataItem) (*biz.MasterDataItem, error) {
+func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataItem, error) {
 	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
 		return nil, err
 	}
-	existing, err := r.data.db.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrMasterDataNotFound
 		}
@@ -144,12 +162,21 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["master_data.code"] = updated.Code
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return masterDataItemToBiz(updated), nil
 }
 
-func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem) (*biz.MasterDataImportResult, error) {
+func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataImportResult, error) {
 	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
 		return nil, err
 	}
@@ -218,6 +245,12 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 		}
 		result.Items = append(result.Items, masterDataItemToBiz(updated))
 		result.Updated++
+	}
+	audit.Details["created"] = fmt.Sprintf("%d", result.Created)
+	audit.Details["updated"] = fmt.Sprintf("%d", result.Updated)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
