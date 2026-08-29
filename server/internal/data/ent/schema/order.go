@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -58,7 +57,6 @@ func (Order) Fields() []ent.Field {
 		field.UUID("closed_by", uuid.Nil).Optional().Nillable(),
 		field.Time("locked_at").Optional().Nillable(),
 		field.Bool("is_shared").Default(false),
-		field.JSON("tags", []string{}).Default([]string{}),
 		field.Uint64("version").Default(1),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("destination_location_id", uuid.Nil).Optional().Nillable(),
@@ -106,6 +104,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("finance_commission_lines", FinanceCommissionLine.Type),
 		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),
 		edge.To("commission_attributions", OrderCommissionAttribution.Type),
+		edge.To("enterprise_tag_links", OrderEnterpriseTag.Type),
 	}
 }
 
@@ -122,6 +121,5 @@ func (Order) Indexes() []ent.Index {
 		index.Fields("organization_id", "destination_location_id"),
 		index.Fields("organization_id", "locked_at"),
 		index.Fields("organization_id", "is_shared"),
-		index.Fields("tags").StorageKey("order_tags_gin").Annotations(entsql.IndexType("GIN")),
 	}
 }

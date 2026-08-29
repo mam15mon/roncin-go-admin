@@ -78,9 +78,15 @@ type EnterpriseResourceEdges struct {
 	Assignees []*EnterpriseResourceAssignee `json:"assignees,omitempty"`
 	// AddressTypes holds the value of the address_types edge.
 	AddressTypes []*EnterpriseResourceAddressType `json:"address_types,omitempty"`
+	// OrderTagLinks holds the value of the order_tag_links edge.
+	OrderTagLinks []*OrderEnterpriseTag `json:"order_tag_links,omitempty"`
+	// OrderFeeTagLinks holds the value of the order_fee_tag_links edge.
+	OrderFeeTagLinks []*OrderFeeEnterpriseTag `json:"order_fee_tag_links,omitempty"`
+	// FinanceBillTagLinks holds the value of the finance_bill_tag_links edge.
+	FinanceBillTagLinks []*FinanceBillEnterpriseTag `json:"finance_bill_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [15]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -207,6 +213,33 @@ func (e EnterpriseResourceEdges) AddressTypesOrErr() ([]*EnterpriseResourceAddre
 		return e.AddressTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "address_types"}
+}
+
+// OrderTagLinksOrErr returns the OrderTagLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnterpriseResourceEdges) OrderTagLinksOrErr() ([]*OrderEnterpriseTag, error) {
+	if e.loadedTypes[12] {
+		return e.OrderTagLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "order_tag_links"}
+}
+
+// OrderFeeTagLinksOrErr returns the OrderFeeTagLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnterpriseResourceEdges) OrderFeeTagLinksOrErr() ([]*OrderFeeEnterpriseTag, error) {
+	if e.loadedTypes[13] {
+		return e.OrderFeeTagLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "order_fee_tag_links"}
+}
+
+// FinanceBillTagLinksOrErr returns the FinanceBillTagLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e EnterpriseResourceEdges) FinanceBillTagLinksOrErr() ([]*FinanceBillEnterpriseTag, error) {
+	if e.loadedTypes[14] {
+		return e.FinanceBillTagLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_bill_tag_links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -380,6 +413,21 @@ func (_m *EnterpriseResource) QueryAssignees() *EnterpriseResourceAssigneeQuery 
 // QueryAddressTypes queries the "address_types" edge of the EnterpriseResource entity.
 func (_m *EnterpriseResource) QueryAddressTypes() *EnterpriseResourceAddressTypeQuery {
 	return NewEnterpriseResourceClient(_m.config).QueryAddressTypes(_m)
+}
+
+// QueryOrderTagLinks queries the "order_tag_links" edge of the EnterpriseResource entity.
+func (_m *EnterpriseResource) QueryOrderTagLinks() *OrderEnterpriseTagQuery {
+	return NewEnterpriseResourceClient(_m.config).QueryOrderTagLinks(_m)
+}
+
+// QueryOrderFeeTagLinks queries the "order_fee_tag_links" edge of the EnterpriseResource entity.
+func (_m *EnterpriseResource) QueryOrderFeeTagLinks() *OrderFeeEnterpriseTagQuery {
+	return NewEnterpriseResourceClient(_m.config).QueryOrderFeeTagLinks(_m)
+}
+
+// QueryFinanceBillTagLinks queries the "finance_bill_tag_links" edge of the EnterpriseResource entity.
+func (_m *EnterpriseResource) QueryFinanceBillTagLinks() *FinanceBillEnterpriseTagQuery {
+	return NewEnterpriseResourceClient(_m.config).QueryFinanceBillTagLinks(_m)
 }
 
 // Update returns a builder for updating this EnterpriseResource.

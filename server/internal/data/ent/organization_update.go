@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
@@ -37,6 +38,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -695,6 +698,51 @@ func (_u *OrganizationUpdate) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup) *
 		ids[i] = v[i].ID
 	}
 	return _u.AddEnterpriseTagGroupIDs(ids...)
+}
+
+// AddOrderEnterpriseTagIDs adds the "order_enterprise_tags" edge to the OrderEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdate) AddOrderEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddOrderEnterpriseTags adds the "order_enterprise_tags" edges to the OrderEnterpriseTag entity.
+func (_u *OrganizationUpdate) AddOrderEnterpriseTags(v ...*OrderEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderEnterpriseTagIDs(ids...)
+}
+
+// AddOrderFeeEnterpriseTagIDs adds the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdate) AddOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddOrderFeeEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddOrderFeeEnterpriseTags adds the "order_fee_enterprise_tags" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrganizationUpdate) AddOrderFeeEnterpriseTags(v ...*OrderFeeEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeEnterpriseTagIDs(ids...)
+}
+
+// AddFinanceBillEnterpriseTagIDs adds the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceBillEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillEnterpriseTags adds the "finance_bill_enterprise_tags" edges to the FinanceBillEnterpriseTag entity.
+func (_u *OrganizationUpdate) AddFinanceBillEnterpriseTags(v ...*FinanceBillEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillEnterpriseTagIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1462,6 +1510,69 @@ func (_u *OrganizationUpdate) RemoveEnterpriseTagGroups(v ...*EnterpriseTagGroup
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEnterpriseTagGroupIDs(ids...)
+}
+
+// ClearOrderEnterpriseTags clears all "order_enterprise_tags" edges to the OrderEnterpriseTag entity.
+func (_u *OrganizationUpdate) ClearOrderEnterpriseTags() *OrganizationUpdate {
+	_u.mutation.ClearOrderEnterpriseTags()
+	return _u
+}
+
+// RemoveOrderEnterpriseTagIDs removes the "order_enterprise_tags" edge to OrderEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveOrderEnterpriseTags removes "order_enterprise_tags" edges to OrderEnterpriseTag entities.
+func (_u *OrganizationUpdate) RemoveOrderEnterpriseTags(v ...*OrderEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderEnterpriseTagIDs(ids...)
+}
+
+// ClearOrderFeeEnterpriseTags clears all "order_fee_enterprise_tags" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrganizationUpdate) ClearOrderFeeEnterpriseTags() *OrganizationUpdate {
+	_u.mutation.ClearOrderFeeEnterpriseTags()
+	return _u
+}
+
+// RemoveOrderFeeEnterpriseTagIDs removes the "order_fee_enterprise_tags" edge to OrderFeeEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdate) RemoveOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveOrderFeeEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFeeEnterpriseTags removes "order_fee_enterprise_tags" edges to OrderFeeEnterpriseTag entities.
+func (_u *OrganizationUpdate) RemoveOrderFeeEnterpriseTags(v ...*OrderFeeEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeEnterpriseTagIDs(ids...)
+}
+
+// ClearFinanceBillEnterpriseTags clears all "finance_bill_enterprise_tags" edges to the FinanceBillEnterpriseTag entity.
+func (_u *OrganizationUpdate) ClearFinanceBillEnterpriseTags() *OrganizationUpdate {
+	_u.mutation.ClearFinanceBillEnterpriseTags()
+	return _u
+}
+
+// RemoveFinanceBillEnterpriseTagIDs removes the "finance_bill_enterprise_tags" edge to FinanceBillEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceBillEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillEnterpriseTags removes "finance_bill_enterprise_tags" edges to FinanceBillEnterpriseTag entities.
+func (_u *OrganizationUpdate) RemoveFinanceBillEnterpriseTags(v ...*FinanceBillEnterpriseTag) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillEnterpriseTagIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -3200,6 +3311,141 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OrderEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.OrderEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderFeeEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeeEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeeEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceBillEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -3851,6 +4097,51 @@ func (_u *OrganizationUpdateOne) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup
 		ids[i] = v[i].ID
 	}
 	return _u.AddEnterpriseTagGroupIDs(ids...)
+}
+
+// AddOrderEnterpriseTagIDs adds the "order_enterprise_tags" edge to the OrderEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddOrderEnterpriseTags adds the "order_enterprise_tags" edges to the OrderEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) AddOrderEnterpriseTags(v ...*OrderEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderEnterpriseTagIDs(ids...)
+}
+
+// AddOrderFeeEnterpriseTagIDs adds the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdateOne) AddOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddOrderFeeEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddOrderFeeEnterpriseTags adds the "order_fee_enterprise_tags" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) AddOrderFeeEnterpriseTags(v ...*OrderFeeEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddOrderFeeEnterpriseTagIDs(ids...)
+}
+
+// AddFinanceBillEnterpriseTagIDs adds the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceBillEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// AddFinanceBillEnterpriseTags adds the "finance_bill_enterprise_tags" edges to the FinanceBillEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) AddFinanceBillEnterpriseTags(v ...*FinanceBillEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceBillEnterpriseTagIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -4618,6 +4909,69 @@ func (_u *OrganizationUpdateOne) RemoveEnterpriseTagGroups(v ...*EnterpriseTagGr
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEnterpriseTagGroupIDs(ids...)
+}
+
+// ClearOrderEnterpriseTags clears all "order_enterprise_tags" edges to the OrderEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) ClearOrderEnterpriseTags() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderEnterpriseTags()
+	return _u
+}
+
+// RemoveOrderEnterpriseTagIDs removes the "order_enterprise_tags" edge to OrderEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveOrderEnterpriseTags removes "order_enterprise_tags" edges to OrderEnterpriseTag entities.
+func (_u *OrganizationUpdateOne) RemoveOrderEnterpriseTags(v ...*OrderEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderEnterpriseTagIDs(ids...)
+}
+
+// ClearOrderFeeEnterpriseTags clears all "order_fee_enterprise_tags" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) ClearOrderFeeEnterpriseTags() *OrganizationUpdateOne {
+	_u.mutation.ClearOrderFeeEnterpriseTags()
+	return _u
+}
+
+// RemoveOrderFeeEnterpriseTagIDs removes the "order_fee_enterprise_tags" edge to OrderFeeEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveOrderFeeEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveOrderFeeEnterpriseTags removes "order_fee_enterprise_tags" edges to OrderFeeEnterpriseTag entities.
+func (_u *OrganizationUpdateOne) RemoveOrderFeeEnterpriseTags(v ...*OrderFeeEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveOrderFeeEnterpriseTagIDs(ids...)
+}
+
+// ClearFinanceBillEnterpriseTags clears all "finance_bill_enterprise_tags" edges to the FinanceBillEnterpriseTag entity.
+func (_u *OrganizationUpdateOne) ClearFinanceBillEnterpriseTags() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceBillEnterpriseTags()
+	return _u
+}
+
+// RemoveFinanceBillEnterpriseTagIDs removes the "finance_bill_enterprise_tags" edge to FinanceBillEnterpriseTag entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceBillEnterpriseTagIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceBillEnterpriseTags removes "finance_bill_enterprise_tags" edges to FinanceBillEnterpriseTag entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceBillEnterpriseTags(v ...*FinanceBillEnterpriseTag) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceBillEnterpriseTagIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -6379,6 +6733,141 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.OrderEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderEnterpriseTagsTable,
+			Columns: []string{organization.OrderEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OrderFeeEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedOrderFeeEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OrderFeeEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.OrderFeeEnterpriseTagsTable,
+			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceBillEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceBillEnterpriseTagsIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillEnterpriseTagsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceBillEnterpriseTagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceBillEnterpriseTagsTable,
+			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

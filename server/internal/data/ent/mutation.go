@@ -38,6 +38,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -66,7 +67,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -133,6 +136,7 @@ const (
 	TypeFeeSetting                     = "FeeSetting"
 	TypeFinanceBill                    = "FinanceBill"
 	TypeFinanceBillBatch               = "FinanceBillBatch"
+	TypeFinanceBillEnterpriseTag       = "FinanceBillEnterpriseTag"
 	TypeFinanceBillLine                = "FinanceBillLine"
 	TypeFinanceCashflow                = "FinanceCashflow"
 	TypeFinanceCommission              = "FinanceCommission"
@@ -161,7 +165,9 @@ const (
 	TypeOrderConsolidation             = "OrderConsolidation"
 	TypeOrderContainer                 = "OrderContainer"
 	TypeOrderContainerRequest          = "OrderContainerRequest"
+	TypeOrderEnterpriseTag             = "OrderEnterpriseTag"
 	TypeOrderFee                       = "OrderFee"
+	TypeOrderFeeEnterpriseTag          = "OrderFeeEnterpriseTag"
 	TypeOrderLifecycleEvent            = "OrderLifecycleEvent"
 	TypeOrderMilestone                 = "OrderMilestone"
 	TypeOrderPersonnel                 = "OrderPersonnel"
@@ -7714,48 +7720,57 @@ func (m *CurrencyMutation) ResetEdge(name string) error {
 // EnterpriseResourceMutation represents an operation that mutates the EnterpriseResource nodes in the graph.
 type EnterpriseResourceMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *uuid.UUID
-	created_at           *time.Time
-	updated_at           *time.Time
-	resource_type        *enterpriseresource.ResourceType
-	short_name           *string
-	enabled              *bool
-	sort_order           *int
-	addsort_order        *int
-	search_keywords      *string
-	clearedFields        map[string]struct{}
-	organization         *uuid.UUID
-	clearedorganization  bool
-	creator              *uuid.UUID
-	clearedcreator       bool
-	updater              *uuid.UUID
-	clearedupdater       bool
-	address              *uuid.UUID
-	clearedaddress       bool
-	remark               *uuid.UUID
-	clearedremark        bool
-	image                *uuid.UUID
-	clearedimage         bool
-	party                *uuid.UUID
-	clearedparty         bool
-	shipping_text        *uuid.UUID
-	clearedshipping_text bool
-	tag                  *uuid.UUID
-	clearedtag           bool
-	partner_links        map[uuid.UUID]struct{}
-	removedpartner_links map[uuid.UUID]struct{}
-	clearedpartner_links bool
-	assignees            map[uuid.UUID]struct{}
-	removedassignees     map[uuid.UUID]struct{}
-	clearedassignees     bool
-	address_types        map[uuid.UUID]struct{}
-	removedaddress_types map[uuid.UUID]struct{}
-	clearedaddress_types bool
-	done                 bool
-	oldValue             func(context.Context) (*EnterpriseResource, error)
-	predicates           []predicate.EnterpriseResource
+	op                            Op
+	typ                           string
+	id                            *uuid.UUID
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	resource_type                 *enterpriseresource.ResourceType
+	short_name                    *string
+	enabled                       *bool
+	sort_order                    *int
+	addsort_order                 *int
+	search_keywords               *string
+	clearedFields                 map[string]struct{}
+	organization                  *uuid.UUID
+	clearedorganization           bool
+	creator                       *uuid.UUID
+	clearedcreator                bool
+	updater                       *uuid.UUID
+	clearedupdater                bool
+	address                       *uuid.UUID
+	clearedaddress                bool
+	remark                        *uuid.UUID
+	clearedremark                 bool
+	image                         *uuid.UUID
+	clearedimage                  bool
+	party                         *uuid.UUID
+	clearedparty                  bool
+	shipping_text                 *uuid.UUID
+	clearedshipping_text          bool
+	tag                           *uuid.UUID
+	clearedtag                    bool
+	partner_links                 map[uuid.UUID]struct{}
+	removedpartner_links          map[uuid.UUID]struct{}
+	clearedpartner_links          bool
+	assignees                     map[uuid.UUID]struct{}
+	removedassignees              map[uuid.UUID]struct{}
+	clearedassignees              bool
+	address_types                 map[uuid.UUID]struct{}
+	removedaddress_types          map[uuid.UUID]struct{}
+	clearedaddress_types          bool
+	order_tag_links               map[uuid.UUID]struct{}
+	removedorder_tag_links        map[uuid.UUID]struct{}
+	clearedorder_tag_links        bool
+	order_fee_tag_links           map[uuid.UUID]struct{}
+	removedorder_fee_tag_links    map[uuid.UUID]struct{}
+	clearedorder_fee_tag_links    bool
+	finance_bill_tag_links        map[uuid.UUID]struct{}
+	removedfinance_bill_tag_links map[uuid.UUID]struct{}
+	clearedfinance_bill_tag_links bool
+	done                          bool
+	oldValue                      func(context.Context) (*EnterpriseResource, error)
+	predicates                    []predicate.EnterpriseResource
 }
 
 var _ ent.Mutation = (*EnterpriseResourceMutation)(nil)
@@ -8771,6 +8786,168 @@ func (m *EnterpriseResourceMutation) ResetAddressTypes() {
 	m.removedaddress_types = nil
 }
 
+// AddOrderTagLinkIDs adds the "order_tag_links" edge to the OrderEnterpriseTag entity by ids.
+func (m *EnterpriseResourceMutation) AddOrderTagLinkIDs(ids ...uuid.UUID) {
+	if m.order_tag_links == nil {
+		m.order_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderTagLinks clears the "order_tag_links" edge to the OrderEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) ClearOrderTagLinks() {
+	m.clearedorder_tag_links = true
+}
+
+// OrderTagLinksCleared reports if the "order_tag_links" edge to the OrderEnterpriseTag entity was cleared.
+func (m *EnterpriseResourceMutation) OrderTagLinksCleared() bool {
+	return m.clearedorder_tag_links
+}
+
+// RemoveOrderTagLinkIDs removes the "order_tag_links" edge to the OrderEnterpriseTag entity by IDs.
+func (m *EnterpriseResourceMutation) RemoveOrderTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedorder_tag_links == nil {
+		m.removedorder_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_tag_links, ids[i])
+		m.removedorder_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderTagLinks returns the removed IDs of the "order_tag_links" edge to the OrderEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) RemovedOrderTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderTagLinksIDs returns the "order_tag_links" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) OrderTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.order_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderTagLinks resets all changes to the "order_tag_links" edge.
+func (m *EnterpriseResourceMutation) ResetOrderTagLinks() {
+	m.order_tag_links = nil
+	m.clearedorder_tag_links = false
+	m.removedorder_tag_links = nil
+}
+
+// AddOrderFeeTagLinkIDs adds the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity by ids.
+func (m *EnterpriseResourceMutation) AddOrderFeeTagLinkIDs(ids ...uuid.UUID) {
+	if m.order_fee_tag_links == nil {
+		m.order_fee_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fee_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFeeTagLinks clears the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) ClearOrderFeeTagLinks() {
+	m.clearedorder_fee_tag_links = true
+}
+
+// OrderFeeTagLinksCleared reports if the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity was cleared.
+func (m *EnterpriseResourceMutation) OrderFeeTagLinksCleared() bool {
+	return m.clearedorder_fee_tag_links
+}
+
+// RemoveOrderFeeTagLinkIDs removes the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (m *EnterpriseResourceMutation) RemoveOrderFeeTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedorder_fee_tag_links == nil {
+		m.removedorder_fee_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fee_tag_links, ids[i])
+		m.removedorder_fee_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFeeTagLinks returns the removed IDs of the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) RemovedOrderFeeTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fee_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeeTagLinksIDs returns the "order_fee_tag_links" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) OrderFeeTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.order_fee_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFeeTagLinks resets all changes to the "order_fee_tag_links" edge.
+func (m *EnterpriseResourceMutation) ResetOrderFeeTagLinks() {
+	m.order_fee_tag_links = nil
+	m.clearedorder_fee_tag_links = false
+	m.removedorder_fee_tag_links = nil
+}
+
+// AddFinanceBillTagLinkIDs adds the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity by ids.
+func (m *EnterpriseResourceMutation) AddFinanceBillTagLinkIDs(ids ...uuid.UUID) {
+	if m.finance_bill_tag_links == nil {
+		m.finance_bill_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_bill_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceBillTagLinks clears the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) ClearFinanceBillTagLinks() {
+	m.clearedfinance_bill_tag_links = true
+}
+
+// FinanceBillTagLinksCleared reports if the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity was cleared.
+func (m *EnterpriseResourceMutation) FinanceBillTagLinksCleared() bool {
+	return m.clearedfinance_bill_tag_links
+}
+
+// RemoveFinanceBillTagLinkIDs removes the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (m *EnterpriseResourceMutation) RemoveFinanceBillTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedfinance_bill_tag_links == nil {
+		m.removedfinance_bill_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_bill_tag_links, ids[i])
+		m.removedfinance_bill_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceBillTagLinks returns the removed IDs of the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity.
+func (m *EnterpriseResourceMutation) RemovedFinanceBillTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_bill_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceBillTagLinksIDs returns the "finance_bill_tag_links" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) FinanceBillTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.finance_bill_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceBillTagLinks resets all changes to the "finance_bill_tag_links" edge.
+func (m *EnterpriseResourceMutation) ResetFinanceBillTagLinks() {
+	m.finance_bill_tag_links = nil
+	m.clearedfinance_bill_tag_links = false
+	m.removedfinance_bill_tag_links = nil
+}
+
 // Where appends a list predicates to the EnterpriseResourceMutation builder.
 func (m *EnterpriseResourceMutation) Where(ps ...predicate.EnterpriseResource) {
 	m.predicates = append(m.predicates, ps...)
@@ -9087,7 +9264,7 @@ func (m *EnterpriseResourceMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EnterpriseResourceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 15)
 	if m.organization != nil {
 		edges = append(edges, enterpriseresource.EdgeOrganization)
 	}
@@ -9123,6 +9300,15 @@ func (m *EnterpriseResourceMutation) AddedEdges() []string {
 	}
 	if m.address_types != nil {
 		edges = append(edges, enterpriseresource.EdgeAddressTypes)
+	}
+	if m.order_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeOrderTagLinks)
+	}
+	if m.order_fee_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeOrderFeeTagLinks)
+	}
+	if m.finance_bill_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeFinanceBillTagLinks)
 	}
 	return edges
 }
@@ -9185,13 +9371,31 @@ func (m *EnterpriseResourceMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case enterpriseresource.EdgeOrderTagLinks:
+		ids := make([]ent.Value, 0, len(m.order_tag_links))
+		for id := range m.order_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeOrderFeeTagLinks:
+		ids := make([]ent.Value, 0, len(m.order_fee_tag_links))
+		for id := range m.order_fee_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeFinanceBillTagLinks:
+		ids := make([]ent.Value, 0, len(m.finance_bill_tag_links))
+		for id := range m.finance_bill_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EnterpriseResourceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 15)
 	if m.removedpartner_links != nil {
 		edges = append(edges, enterpriseresource.EdgePartnerLinks)
 	}
@@ -9200,6 +9404,15 @@ func (m *EnterpriseResourceMutation) RemovedEdges() []string {
 	}
 	if m.removedaddress_types != nil {
 		edges = append(edges, enterpriseresource.EdgeAddressTypes)
+	}
+	if m.removedorder_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeOrderTagLinks)
+	}
+	if m.removedorder_fee_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeOrderFeeTagLinks)
+	}
+	if m.removedfinance_bill_tag_links != nil {
+		edges = append(edges, enterpriseresource.EdgeFinanceBillTagLinks)
 	}
 	return edges
 }
@@ -9226,13 +9439,31 @@ func (m *EnterpriseResourceMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case enterpriseresource.EdgeOrderTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedorder_tag_links))
+		for id := range m.removedorder_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeOrderFeeTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedorder_fee_tag_links))
+		for id := range m.removedorder_fee_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeFinanceBillTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedfinance_bill_tag_links))
+		for id := range m.removedfinance_bill_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EnterpriseResourceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 15)
 	if m.clearedorganization {
 		edges = append(edges, enterpriseresource.EdgeOrganization)
 	}
@@ -9269,6 +9500,15 @@ func (m *EnterpriseResourceMutation) ClearedEdges() []string {
 	if m.clearedaddress_types {
 		edges = append(edges, enterpriseresource.EdgeAddressTypes)
 	}
+	if m.clearedorder_tag_links {
+		edges = append(edges, enterpriseresource.EdgeOrderTagLinks)
+	}
+	if m.clearedorder_fee_tag_links {
+		edges = append(edges, enterpriseresource.EdgeOrderFeeTagLinks)
+	}
+	if m.clearedfinance_bill_tag_links {
+		edges = append(edges, enterpriseresource.EdgeFinanceBillTagLinks)
+	}
 	return edges
 }
 
@@ -9300,6 +9540,12 @@ func (m *EnterpriseResourceMutation) EdgeCleared(name string) bool {
 		return m.clearedassignees
 	case enterpriseresource.EdgeAddressTypes:
 		return m.clearedaddress_types
+	case enterpriseresource.EdgeOrderTagLinks:
+		return m.clearedorder_tag_links
+	case enterpriseresource.EdgeOrderFeeTagLinks:
+		return m.clearedorder_fee_tag_links
+	case enterpriseresource.EdgeFinanceBillTagLinks:
+		return m.clearedfinance_bill_tag_links
 	}
 	return false
 }
@@ -9378,6 +9624,15 @@ func (m *EnterpriseResourceMutation) ResetEdge(name string) error {
 		return nil
 	case enterpriseresource.EdgeAddressTypes:
 		m.ResetAddressTypes()
+		return nil
+	case enterpriseresource.EdgeOrderTagLinks:
+		m.ResetOrderTagLinks()
+		return nil
+	case enterpriseresource.EdgeOrderFeeTagLinks:
+		m.ResetOrderFeeTagLinks()
+		return nil
+	case enterpriseresource.EdgeFinanceBillTagLinks:
+		m.ResetFinanceBillTagLinks()
 		return nil
 	}
 	return fmt.Errorf("unknown EnterpriseResource edge %s", name)
@@ -23327,6 +23582,9 @@ type FinanceBillMutation struct {
 	verification_allocations        map[uuid.UUID]struct{}
 	removedverification_allocations map[uuid.UUID]struct{}
 	clearedverification_allocations bool
+	enterprise_tag_links            map[uuid.UUID]struct{}
+	removedenterprise_tag_links     map[uuid.UUID]struct{}
+	clearedenterprise_tag_links     bool
 	done                            bool
 	oldValue                        func(context.Context) (*FinanceBill, error)
 	predicates                      []predicate.FinanceBill
@@ -25115,6 +25373,60 @@ func (m *FinanceBillMutation) ResetVerificationAllocations() {
 	m.removedverification_allocations = nil
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by ids.
+func (m *FinanceBillMutation) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.enterprise_tag_links == nil {
+		m.enterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseTagLinks clears the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity.
+func (m *FinanceBillMutation) ClearEnterpriseTagLinks() {
+	m.clearedenterprise_tag_links = true
+}
+
+// EnterpriseTagLinksCleared reports if the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity was cleared.
+func (m *FinanceBillMutation) EnterpriseTagLinksCleared() bool {
+	return m.clearedenterprise_tag_links
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (m *FinanceBillMutation) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_tag_links == nil {
+		m.removedenterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_tag_links, ids[i])
+		m.removedenterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseTagLinks returns the removed IDs of the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity.
+func (m *FinanceBillMutation) RemovedEnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseTagLinksIDs returns the "enterprise_tag_links" edge IDs in the mutation.
+func (m *FinanceBillMutation) EnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseTagLinks resets all changes to the "enterprise_tag_links" edge.
+func (m *FinanceBillMutation) ResetEnterpriseTagLinks() {
+	m.enterprise_tag_links = nil
+	m.clearedenterprise_tag_links = false
+	m.removedenterprise_tag_links = nil
+}
+
 // Where appends a list predicates to the FinanceBillMutation builder.
 func (m *FinanceBillMutation) Where(ps ...predicate.FinanceBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -25883,7 +26195,7 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.organization != nil {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -25907,6 +26219,9 @@ func (m *FinanceBillMutation) AddedEdges() []string {
 	}
 	if m.verification_allocations != nil {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
+	}
+	if m.enterprise_tag_links != nil {
+		edges = append(edges, financebill.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -25953,13 +26268,19 @@ func (m *FinanceBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.enterprise_tag_links))
+		for id := range m.enterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedlines != nil {
 		edges = append(edges, financebill.EdgeLines)
 	}
@@ -25968,6 +26289,9 @@ func (m *FinanceBillMutation) RemovedEdges() []string {
 	}
 	if m.removedverification_allocations != nil {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
+	}
+	if m.removedenterprise_tag_links != nil {
+		edges = append(edges, financebill.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -25994,13 +26318,19 @@ func (m *FinanceBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_tag_links))
+		for id := range m.removedenterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedorganization {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -26025,6 +26355,9 @@ func (m *FinanceBillMutation) ClearedEdges() []string {
 	if m.clearedverification_allocations {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
 	}
+	if m.clearedenterprise_tag_links {
+		edges = append(edges, financebill.EdgeEnterpriseTagLinks)
+	}
 	return edges
 }
 
@@ -26048,6 +26381,8 @@ func (m *FinanceBillMutation) EdgeCleared(name string) bool {
 		return m.clearedinvoice_links
 	case financebill.EdgeVerificationAllocations:
 		return m.clearedverification_allocations
+	case financebill.EdgeEnterpriseTagLinks:
+		return m.clearedenterprise_tag_links
 	}
 	return false
 }
@@ -26102,6 +26437,9 @@ func (m *FinanceBillMutation) ResetEdge(name string) error {
 		return nil
 	case financebill.EdgeVerificationAllocations:
 		m.ResetVerificationAllocations()
+		return nil
+	case financebill.EdgeEnterpriseTagLinks:
+		m.ResetEnterpriseTagLinks()
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceBill edge %s", name)
@@ -27352,6 +27690,700 @@ func (m *FinanceBillBatchMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceBillBatch edge %s", name)
+}
+
+// FinanceBillEnterpriseTagMutation represents an operation that mutates the FinanceBillEnterpriseTag nodes in the graph.
+type FinanceBillEnterpriseTagMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	finance_bill        *uuid.UUID
+	clearedfinance_bill bool
+	tag_resource        *uuid.UUID
+	clearedtag_resource bool
+	done                bool
+	oldValue            func(context.Context) (*FinanceBillEnterpriseTag, error)
+	predicates          []predicate.FinanceBillEnterpriseTag
+}
+
+var _ ent.Mutation = (*FinanceBillEnterpriseTagMutation)(nil)
+
+// financebillenterprisetagOption allows management of the mutation configuration using functional options.
+type financebillenterprisetagOption func(*FinanceBillEnterpriseTagMutation)
+
+// newFinanceBillEnterpriseTagMutation creates new mutation for the FinanceBillEnterpriseTag entity.
+func newFinanceBillEnterpriseTagMutation(c config, op Op, opts ...financebillenterprisetagOption) *FinanceBillEnterpriseTagMutation {
+	m := &FinanceBillEnterpriseTagMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceBillEnterpriseTag,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceBillEnterpriseTagID sets the ID field of the mutation.
+func withFinanceBillEnterpriseTagID(id uuid.UUID) financebillenterprisetagOption {
+	return func(m *FinanceBillEnterpriseTagMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceBillEnterpriseTag
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceBillEnterpriseTag, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceBillEnterpriseTag.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceBillEnterpriseTag sets the old FinanceBillEnterpriseTag of the mutation.
+func withFinanceBillEnterpriseTag(node *FinanceBillEnterpriseTag) financebillenterprisetagOption {
+	return func(m *FinanceBillEnterpriseTagMutation) {
+		m.oldValue = func(context.Context) (*FinanceBillEnterpriseTag, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceBillEnterpriseTagMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceBillEnterpriseTagMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceBillEnterpriseTag entities.
+func (m *FinanceBillEnterpriseTagMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceBillEnterpriseTagMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceBillEnterpriseTagMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceBillEnterpriseTag.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceBillEnterpriseTagMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceBillEnterpriseTagMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceBillEnterpriseTag entity.
+// If the FinanceBillEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillEnterpriseTagMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceBillEnterpriseTagMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceBillEnterpriseTagMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceBillEnterpriseTagMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceBillEnterpriseTag entity.
+// If the FinanceBillEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillEnterpriseTagMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceBillEnterpriseTagMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *FinanceBillEnterpriseTagMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *FinanceBillEnterpriseTagMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the FinanceBillEnterpriseTag entity.
+// If the FinanceBillEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillEnterpriseTagMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *FinanceBillEnterpriseTagMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetFinanceBillID sets the "finance_bill_id" field.
+func (m *FinanceBillEnterpriseTagMutation) SetFinanceBillID(u uuid.UUID) {
+	m.finance_bill = &u
+}
+
+// FinanceBillID returns the value of the "finance_bill_id" field in the mutation.
+func (m *FinanceBillEnterpriseTagMutation) FinanceBillID() (r uuid.UUID, exists bool) {
+	v := m.finance_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinanceBillID returns the old "finance_bill_id" field's value of the FinanceBillEnterpriseTag entity.
+// If the FinanceBillEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillEnterpriseTagMutation) OldFinanceBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinanceBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinanceBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinanceBillID: %w", err)
+	}
+	return oldValue.FinanceBillID, nil
+}
+
+// ResetFinanceBillID resets all changes to the "finance_bill_id" field.
+func (m *FinanceBillEnterpriseTagMutation) ResetFinanceBillID() {
+	m.finance_bill = nil
+}
+
+// SetTagResourceID sets the "tag_resource_id" field.
+func (m *FinanceBillEnterpriseTagMutation) SetTagResourceID(u uuid.UUID) {
+	m.tag_resource = &u
+}
+
+// TagResourceID returns the value of the "tag_resource_id" field in the mutation.
+func (m *FinanceBillEnterpriseTagMutation) TagResourceID() (r uuid.UUID, exists bool) {
+	v := m.tag_resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTagResourceID returns the old "tag_resource_id" field's value of the FinanceBillEnterpriseTag entity.
+// If the FinanceBillEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillEnterpriseTagMutation) OldTagResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTagResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTagResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTagResourceID: %w", err)
+	}
+	return oldValue.TagResourceID, nil
+}
+
+// ResetTagResourceID resets all changes to the "tag_resource_id" field.
+func (m *FinanceBillEnterpriseTagMutation) ResetTagResourceID() {
+	m.tag_resource = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *FinanceBillEnterpriseTagMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[financebillenterprisetag.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *FinanceBillEnterpriseTagMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *FinanceBillEnterpriseTagMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *FinanceBillEnterpriseTagMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearFinanceBill clears the "finance_bill" edge to the FinanceBill entity.
+func (m *FinanceBillEnterpriseTagMutation) ClearFinanceBill() {
+	m.clearedfinance_bill = true
+	m.clearedFields[financebillenterprisetag.FieldFinanceBillID] = struct{}{}
+}
+
+// FinanceBillCleared reports if the "finance_bill" edge to the FinanceBill entity was cleared.
+func (m *FinanceBillEnterpriseTagMutation) FinanceBillCleared() bool {
+	return m.clearedfinance_bill
+}
+
+// FinanceBillIDs returns the "finance_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FinanceBillID instead. It exists only for internal usage by the builders.
+func (m *FinanceBillEnterpriseTagMutation) FinanceBillIDs() (ids []uuid.UUID) {
+	if id := m.finance_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFinanceBill resets all changes to the "finance_bill" edge.
+func (m *FinanceBillEnterpriseTagMutation) ResetFinanceBill() {
+	m.finance_bill = nil
+	m.clearedfinance_bill = false
+}
+
+// ClearTagResource clears the "tag_resource" edge to the EnterpriseResource entity.
+func (m *FinanceBillEnterpriseTagMutation) ClearTagResource() {
+	m.clearedtag_resource = true
+	m.clearedFields[financebillenterprisetag.FieldTagResourceID] = struct{}{}
+}
+
+// TagResourceCleared reports if the "tag_resource" edge to the EnterpriseResource entity was cleared.
+func (m *FinanceBillEnterpriseTagMutation) TagResourceCleared() bool {
+	return m.clearedtag_resource
+}
+
+// TagResourceIDs returns the "tag_resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TagResourceID instead. It exists only for internal usage by the builders.
+func (m *FinanceBillEnterpriseTagMutation) TagResourceIDs() (ids []uuid.UUID) {
+	if id := m.tag_resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTagResource resets all changes to the "tag_resource" edge.
+func (m *FinanceBillEnterpriseTagMutation) ResetTagResource() {
+	m.tag_resource = nil
+	m.clearedtag_resource = false
+}
+
+// Where appends a list predicates to the FinanceBillEnterpriseTagMutation builder.
+func (m *FinanceBillEnterpriseTagMutation) Where(ps ...predicate.FinanceBillEnterpriseTag) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceBillEnterpriseTagMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceBillEnterpriseTagMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceBillEnterpriseTag, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceBillEnterpriseTagMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceBillEnterpriseTagMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceBillEnterpriseTag).
+func (m *FinanceBillEnterpriseTagMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceBillEnterpriseTagMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, financebillenterprisetag.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financebillenterprisetag.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, financebillenterprisetag.FieldOrganizationID)
+	}
+	if m.finance_bill != nil {
+		fields = append(fields, financebillenterprisetag.FieldFinanceBillID)
+	}
+	if m.tag_resource != nil {
+		fields = append(fields, financebillenterprisetag.FieldTagResourceID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceBillEnterpriseTagMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financebillenterprisetag.FieldCreatedAt:
+		return m.CreatedAt()
+	case financebillenterprisetag.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financebillenterprisetag.FieldOrganizationID:
+		return m.OrganizationID()
+	case financebillenterprisetag.FieldFinanceBillID:
+		return m.FinanceBillID()
+	case financebillenterprisetag.FieldTagResourceID:
+		return m.TagResourceID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceBillEnterpriseTagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financebillenterprisetag.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financebillenterprisetag.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financebillenterprisetag.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case financebillenterprisetag.FieldFinanceBillID:
+		return m.OldFinanceBillID(ctx)
+	case financebillenterprisetag.FieldTagResourceID:
+		return m.OldTagResourceID(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceBillEnterpriseTag field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceBillEnterpriseTagMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financebillenterprisetag.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financebillenterprisetag.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financebillenterprisetag.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case financebillenterprisetag.FieldFinanceBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinanceBillID(v)
+		return nil
+	case financebillenterprisetag.FieldTagResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTagResourceID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceBillEnterpriseTagMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceBillEnterpriseTagMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceBillEnterpriseTagMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceBillEnterpriseTagMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceBillEnterpriseTagMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceBillEnterpriseTagMutation) ResetField(name string) error {
+	switch name {
+	case financebillenterprisetag.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financebillenterprisetag.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financebillenterprisetag.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case financebillenterprisetag.FieldFinanceBillID:
+		m.ResetFinanceBillID()
+		return nil
+	case financebillenterprisetag.FieldTagResourceID:
+		m.ResetTagResourceID()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, financebillenterprisetag.EdgeOrganization)
+	}
+	if m.finance_bill != nil {
+		edges = append(edges, financebillenterprisetag.EdgeFinanceBill)
+	}
+	if m.tag_resource != nil {
+		edges = append(edges, financebillenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financebillenterprisetag.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case financebillenterprisetag.EdgeFinanceBill:
+		if id := m.finance_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case financebillenterprisetag.EdgeTagResource:
+		if id := m.tag_resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, financebillenterprisetag.EdgeOrganization)
+	}
+	if m.clearedfinance_bill {
+		edges = append(edges, financebillenterprisetag.EdgeFinanceBill)
+	}
+	if m.clearedtag_resource {
+		edges = append(edges, financebillenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceBillEnterpriseTagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financebillenterprisetag.EdgeOrganization:
+		return m.clearedorganization
+	case financebillenterprisetag.EdgeFinanceBill:
+		return m.clearedfinance_bill
+	case financebillenterprisetag.EdgeTagResource:
+		return m.clearedtag_resource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceBillEnterpriseTagMutation) ClearEdge(name string) error {
+	switch name {
+	case financebillenterprisetag.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case financebillenterprisetag.EdgeFinanceBill:
+		m.ClearFinanceBill()
+		return nil
+	case financebillenterprisetag.EdgeTagResource:
+		m.ClearTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceBillEnterpriseTagMutation) ResetEdge(name string) error {
+	switch name {
+	case financebillenterprisetag.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case financebillenterprisetag.EdgeFinanceBill:
+		m.ResetFinanceBill()
+		return nil
+	case financebillenterprisetag.EdgeTagResource:
+		m.ResetTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceBillEnterpriseTag edge %s", name)
 }
 
 // FinanceBillLineMutation represents an operation that mutates the FinanceBillLine nodes in the graph.
@@ -56124,8 +57156,6 @@ type OrderMutation struct {
 	closed_by                             *uuid.UUID
 	locked_at                             *time.Time
 	is_shared                             *bool
-	tags                                  *[]string
-	appendtags                            []string
 	version                               *uint64
 	addversion                            *int64
 	origin_location_id                    *uuid.UUID
@@ -56209,6 +57239,9 @@ type OrderMutation struct {
 	commission_attributions               map[uuid.UUID]struct{}
 	removedcommission_attributions        map[uuid.UUID]struct{}
 	clearedcommission_attributions        bool
+	enterprise_tag_links                  map[uuid.UUID]struct{}
+	removedenterprise_tag_links           map[uuid.UUID]struct{}
+	clearedenterprise_tag_links           bool
 	done                                  bool
 	oldValue                              func(context.Context) (*Order, error)
 	predicates                            []predicate.Order
@@ -58277,57 +59310,6 @@ func (m *OrderMutation) OldIsShared(ctx context.Context) (v bool, err error) {
 // ResetIsShared resets all changes to the "is_shared" field.
 func (m *OrderMutation) ResetIsShared() {
 	m.is_shared = nil
-}
-
-// SetTags sets the "tags" field.
-func (m *OrderMutation) SetTags(s []string) {
-	m.tags = &s
-	m.appendtags = nil
-}
-
-// Tags returns the value of the "tags" field in the mutation.
-func (m *OrderMutation) Tags() (r []string, exists bool) {
-	v := m.tags
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTags returns the old "tags" field's value of the Order entity.
-// If the Order object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldTags(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTags is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTags requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTags: %w", err)
-	}
-	return oldValue.Tags, nil
-}
-
-// AppendTags adds s to the "tags" field.
-func (m *OrderMutation) AppendTags(s []string) {
-	m.appendtags = append(m.appendtags, s...)
-}
-
-// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
-func (m *OrderMutation) AppendedTags() ([]string, bool) {
-	if len(m.appendtags) == 0 {
-		return nil, false
-	}
-	return m.appendtags, true
-}
-
-// ResetTags resets all changes to the "tags" field.
-func (m *OrderMutation) ResetTags() {
-	m.tags = nil
-	m.appendtags = nil
 }
 
 // SetVersion sets the "version" field.
@@ -60499,6 +61481,60 @@ func (m *OrderMutation) ResetCommissionAttributions() {
 	m.removedcommission_attributions = nil
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by ids.
+func (m *OrderMutation) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.enterprise_tag_links == nil {
+		m.enterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseTagLinks clears the "enterprise_tag_links" edge to the OrderEnterpriseTag entity.
+func (m *OrderMutation) ClearEnterpriseTagLinks() {
+	m.clearedenterprise_tag_links = true
+}
+
+// EnterpriseTagLinksCleared reports if the "enterprise_tag_links" edge to the OrderEnterpriseTag entity was cleared.
+func (m *OrderMutation) EnterpriseTagLinksCleared() bool {
+	return m.clearedenterprise_tag_links
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
+func (m *OrderMutation) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_tag_links == nil {
+		m.removedenterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_tag_links, ids[i])
+		m.removedenterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseTagLinks returns the removed IDs of the "enterprise_tag_links" edge to the OrderEnterpriseTag entity.
+func (m *OrderMutation) RemovedEnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseTagLinksIDs returns the "enterprise_tag_links" edge IDs in the mutation.
+func (m *OrderMutation) EnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseTagLinks resets all changes to the "enterprise_tag_links" edge.
+func (m *OrderMutation) ResetEnterpriseTagLinks() {
+	m.enterprise_tag_links = nil
+	m.clearedenterprise_tag_links = false
+	m.removedenterprise_tag_links = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -60533,7 +61569,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 68)
+	fields := make([]string, 0, 67)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -60665,9 +61701,6 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.is_shared != nil {
 		fields = append(fields, order.FieldIsShared)
-	}
-	if m.tags != nil {
-		fields = append(fields, order.FieldTags)
 	}
 	if m.version != nil {
 		fields = append(fields, order.FieldVersion)
@@ -60834,8 +61867,6 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.LockedAt()
 	case order.FieldIsShared:
 		return m.IsShared()
-	case order.FieldTags:
-		return m.Tags()
 	case order.FieldVersion:
 		return m.Version()
 	case order.FieldOriginLocationID:
@@ -60979,8 +62010,6 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldLockedAt(ctx)
 	case order.FieldIsShared:
 		return m.OldIsShared(ctx)
-	case order.FieldTags:
-		return m.OldTags(ctx)
 	case order.FieldVersion:
 		return m.OldVersion(ctx)
 	case order.FieldOriginLocationID:
@@ -61343,13 +62372,6 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsShared(v)
-		return nil
-	case order.FieldTags:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTags(v)
 		return nil
 	case order.FieldVersion:
 		v, ok := value.(uint64)
@@ -62053,9 +63075,6 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldIsShared:
 		m.ResetIsShared()
 		return nil
-	case order.FieldTags:
-		m.ResetTags()
-		return nil
 	case order.FieldVersion:
 		m.ResetVersion()
 		return nil
@@ -62131,7 +63150,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -62188,6 +63207,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.commission_attributions != nil {
 		edges = append(edges, order.EdgeCommissionAttributions)
+	}
+	if m.enterprise_tag_links != nil {
+		edges = append(edges, order.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -62306,13 +63328,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.enterprise_tag_links))
+		for id := range m.enterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -62363,6 +63391,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedcommission_attributions != nil {
 		edges = append(edges, order.EdgeCommissionAttributions)
+	}
+	if m.removedenterprise_tag_links != nil {
+		edges = append(edges, order.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -62473,13 +63504,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_tag_links))
+		for id := range m.removedenterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 19)
+	edges := make([]string, 0, 20)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -62537,6 +63574,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedcommission_attributions {
 		edges = append(edges, order.EdgeCommissionAttributions)
 	}
+	if m.clearedenterprise_tag_links {
+		edges = append(edges, order.EdgeEnterpriseTagLinks)
+	}
 	return edges
 }
 
@@ -62582,6 +63622,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_commission_adjustments
 	case order.EdgeCommissionAttributions:
 		return m.clearedcommission_attributions
+	case order.EdgeEnterpriseTagLinks:
+		return m.clearedenterprise_tag_links
 	}
 	return false
 }
@@ -62660,6 +63702,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeCommissionAttributions:
 		m.ResetCommissionAttributions()
+		return nil
+	case order.EdgeEnterpriseTagLinks:
+		m.ResetEnterpriseTagLinks()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -69655,59 +70700,756 @@ func (m *OrderContainerRequestMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderContainerRequest edge %s", name)
 }
 
+// OrderEnterpriseTagMutation represents an operation that mutates the OrderEnterpriseTag nodes in the graph.
+type OrderEnterpriseTagMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	_order              *uuid.UUID
+	cleared_order       bool
+	tag_resource        *uuid.UUID
+	clearedtag_resource bool
+	done                bool
+	oldValue            func(context.Context) (*OrderEnterpriseTag, error)
+	predicates          []predicate.OrderEnterpriseTag
+}
+
+var _ ent.Mutation = (*OrderEnterpriseTagMutation)(nil)
+
+// orderenterprisetagOption allows management of the mutation configuration using functional options.
+type orderenterprisetagOption func(*OrderEnterpriseTagMutation)
+
+// newOrderEnterpriseTagMutation creates new mutation for the OrderEnterpriseTag entity.
+func newOrderEnterpriseTagMutation(c config, op Op, opts ...orderenterprisetagOption) *OrderEnterpriseTagMutation {
+	m := &OrderEnterpriseTagMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderEnterpriseTag,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderEnterpriseTagID sets the ID field of the mutation.
+func withOrderEnterpriseTagID(id uuid.UUID) orderenterprisetagOption {
+	return func(m *OrderEnterpriseTagMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderEnterpriseTag
+		)
+		m.oldValue = func(ctx context.Context) (*OrderEnterpriseTag, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderEnterpriseTag.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderEnterpriseTag sets the old OrderEnterpriseTag of the mutation.
+func withOrderEnterpriseTag(node *OrderEnterpriseTag) orderenterprisetagOption {
+	return func(m *OrderEnterpriseTagMutation) {
+		m.oldValue = func(context.Context) (*OrderEnterpriseTag, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderEnterpriseTagMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderEnterpriseTagMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderEnterpriseTag entities.
+func (m *OrderEnterpriseTagMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderEnterpriseTagMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderEnterpriseTagMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderEnterpriseTag.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderEnterpriseTagMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderEnterpriseTagMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderEnterpriseTag entity.
+// If the OrderEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEnterpriseTagMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderEnterpriseTagMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderEnterpriseTagMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderEnterpriseTagMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderEnterpriseTag entity.
+// If the OrderEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEnterpriseTagMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderEnterpriseTagMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderEnterpriseTagMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderEnterpriseTagMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderEnterpriseTag entity.
+// If the OrderEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEnterpriseTagMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderEnterpriseTagMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderEnterpriseTagMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderEnterpriseTagMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderEnterpriseTag entity.
+// If the OrderEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEnterpriseTagMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderEnterpriseTagMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetTagResourceID sets the "tag_resource_id" field.
+func (m *OrderEnterpriseTagMutation) SetTagResourceID(u uuid.UUID) {
+	m.tag_resource = &u
+}
+
+// TagResourceID returns the value of the "tag_resource_id" field in the mutation.
+func (m *OrderEnterpriseTagMutation) TagResourceID() (r uuid.UUID, exists bool) {
+	v := m.tag_resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTagResourceID returns the old "tag_resource_id" field's value of the OrderEnterpriseTag entity.
+// If the OrderEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEnterpriseTagMutation) OldTagResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTagResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTagResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTagResourceID: %w", err)
+	}
+	return oldValue.TagResourceID, nil
+}
+
+// ResetTagResourceID resets all changes to the "tag_resource_id" field.
+func (m *OrderEnterpriseTagMutation) ResetTagResourceID() {
+	m.tag_resource = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderEnterpriseTagMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderenterprisetag.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderEnterpriseTagMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderEnterpriseTagMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderEnterpriseTagMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderEnterpriseTagMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderenterprisetag.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderEnterpriseTagMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderEnterpriseTagMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderEnterpriseTagMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearTagResource clears the "tag_resource" edge to the EnterpriseResource entity.
+func (m *OrderEnterpriseTagMutation) ClearTagResource() {
+	m.clearedtag_resource = true
+	m.clearedFields[orderenterprisetag.FieldTagResourceID] = struct{}{}
+}
+
+// TagResourceCleared reports if the "tag_resource" edge to the EnterpriseResource entity was cleared.
+func (m *OrderEnterpriseTagMutation) TagResourceCleared() bool {
+	return m.clearedtag_resource
+}
+
+// TagResourceIDs returns the "tag_resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TagResourceID instead. It exists only for internal usage by the builders.
+func (m *OrderEnterpriseTagMutation) TagResourceIDs() (ids []uuid.UUID) {
+	if id := m.tag_resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTagResource resets all changes to the "tag_resource" edge.
+func (m *OrderEnterpriseTagMutation) ResetTagResource() {
+	m.tag_resource = nil
+	m.clearedtag_resource = false
+}
+
+// Where appends a list predicates to the OrderEnterpriseTagMutation builder.
+func (m *OrderEnterpriseTagMutation) Where(ps ...predicate.OrderEnterpriseTag) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderEnterpriseTagMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderEnterpriseTagMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderEnterpriseTag, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderEnterpriseTagMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderEnterpriseTagMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderEnterpriseTag).
+func (m *OrderEnterpriseTagMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderEnterpriseTagMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, orderenterprisetag.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderenterprisetag.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderenterprisetag.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, orderenterprisetag.FieldOrderID)
+	}
+	if m.tag_resource != nil {
+		fields = append(fields, orderenterprisetag.FieldTagResourceID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderEnterpriseTagMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderenterprisetag.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderenterprisetag.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderenterprisetag.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderenterprisetag.FieldOrderID:
+		return m.OrderID()
+	case orderenterprisetag.FieldTagResourceID:
+		return m.TagResourceID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderEnterpriseTagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderenterprisetag.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderenterprisetag.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderenterprisetag.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderenterprisetag.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderenterprisetag.FieldTagResourceID:
+		return m.OldTagResourceID(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderEnterpriseTag field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderEnterpriseTagMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderenterprisetag.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderenterprisetag.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderenterprisetag.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderenterprisetag.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderenterprisetag.FieldTagResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTagResourceID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderEnterpriseTag field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderEnterpriseTagMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderEnterpriseTagMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderEnterpriseTagMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderEnterpriseTag numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderEnterpriseTagMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderEnterpriseTagMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderEnterpriseTagMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OrderEnterpriseTag nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderEnterpriseTagMutation) ResetField(name string) error {
+	switch name {
+	case orderenterprisetag.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderenterprisetag.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderenterprisetag.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderenterprisetag.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderenterprisetag.FieldTagResourceID:
+		m.ResetTagResourceID()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderEnterpriseTag field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderEnterpriseTagMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, orderenterprisetag.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, orderenterprisetag.EdgeOrder)
+	}
+	if m.tag_resource != nil {
+		edges = append(edges, orderenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderEnterpriseTagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderenterprisetag.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderenterprisetag.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderenterprisetag.EdgeTagResource:
+		if id := m.tag_resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderEnterpriseTagMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderEnterpriseTagMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderEnterpriseTagMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, orderenterprisetag.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, orderenterprisetag.EdgeOrder)
+	}
+	if m.clearedtag_resource {
+		edges = append(edges, orderenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderEnterpriseTagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderenterprisetag.EdgeOrganization:
+		return m.clearedorganization
+	case orderenterprisetag.EdgeOrder:
+		return m.cleared_order
+	case orderenterprisetag.EdgeTagResource:
+		return m.clearedtag_resource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderEnterpriseTagMutation) ClearEdge(name string) error {
+	switch name {
+	case orderenterprisetag.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case orderenterprisetag.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case orderenterprisetag.EdgeTagResource:
+		m.ClearTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderEnterpriseTag unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderEnterpriseTagMutation) ResetEdge(name string) error {
+	switch name {
+	case orderenterprisetag.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case orderenterprisetag.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case orderenterprisetag.EdgeTagResource:
+		m.ResetTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderEnterpriseTag edge %s", name)
+}
+
 // OrderFeeMutation represents an operation that mutates the OrderFee nodes in the graph.
 type OrderFeeMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	created_at                *time.Time
-	updated_at                *time.Time
-	idempotency_key           *string
-	direction                 *orderfee.Direction
-	status                    *orderfee.Status
-	fee_code                  *string
-	fee_name                  *string
-	fee_name_en               *string
-	billing_unit              *string
-	tax_rate                  *string
-	taxable_service_name      *string
-	quantity                  *string
-	unit_price                *string
-	total_amount              *string
-	tax_inclusive             *bool
-	net_amount                *string
-	tax_amount                *string
-	currency                  *string
-	exchange_rate             *string
-	exchange_rate_source      *orderfee.ExchangeRateSource
-	exchange_rate_date        *string
-	exchange_rate_setting_id  *uuid.UUID
-	base_currency             *string
-	base_currency_amount      *string
-	expense_date              *string
-	note                      *string
-	version                   *uint64
-	addversion                *int64
-	cancelled_at              *time.Time
-	cancellation_reason       *string
-	clearedFields             map[string]struct{}
-	_order                    *uuid.UUID
-	cleared_order             bool
-	fee_setting               *uuid.UUID
-	clearedfee_setting        bool
-	settlement_party          *uuid.UUID
-	clearedsettlement_party   bool
-	billing_unit_ref          *uuid.UUID
-	clearedbilling_unit_ref   bool
-	cancelled_by_user         *uuid.UUID
-	clearedcancelled_by_user  bool
-	finance_bill_lines        map[uuid.UUID]struct{}
-	removedfinance_bill_lines map[uuid.UUID]struct{}
-	clearedfinance_bill_lines bool
-	done                      bool
-	oldValue                  func(context.Context) (*OrderFee, error)
-	predicates                []predicate.OrderFee
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	idempotency_key             *string
+	direction                   *orderfee.Direction
+	status                      *orderfee.Status
+	fee_code                    *string
+	fee_name                    *string
+	fee_name_en                 *string
+	billing_unit                *string
+	tax_rate                    *string
+	taxable_service_name        *string
+	quantity                    *string
+	unit_price                  *string
+	total_amount                *string
+	tax_inclusive               *bool
+	net_amount                  *string
+	tax_amount                  *string
+	currency                    *string
+	exchange_rate               *string
+	exchange_rate_source        *orderfee.ExchangeRateSource
+	exchange_rate_date          *string
+	exchange_rate_setting_id    *uuid.UUID
+	base_currency               *string
+	base_currency_amount        *string
+	expense_date                *string
+	note                        *string
+	version                     *uint64
+	addversion                  *int64
+	cancelled_at                *time.Time
+	cancellation_reason         *string
+	clearedFields               map[string]struct{}
+	_order                      *uuid.UUID
+	cleared_order               bool
+	fee_setting                 *uuid.UUID
+	clearedfee_setting          bool
+	settlement_party            *uuid.UUID
+	clearedsettlement_party     bool
+	billing_unit_ref            *uuid.UUID
+	clearedbilling_unit_ref     bool
+	cancelled_by_user           *uuid.UUID
+	clearedcancelled_by_user    bool
+	finance_bill_lines          map[uuid.UUID]struct{}
+	removedfinance_bill_lines   map[uuid.UUID]struct{}
+	clearedfinance_bill_lines   bool
+	enterprise_tag_links        map[uuid.UUID]struct{}
+	removedenterprise_tag_links map[uuid.UUID]struct{}
+	clearedenterprise_tag_links bool
+	done                        bool
+	oldValue                    func(context.Context) (*OrderFee, error)
+	predicates                  []predicate.OrderFee
 }
 
 var _ ent.Mutation = (*OrderFeeMutation)(nil)
@@ -71403,6 +73145,60 @@ func (m *OrderFeeMutation) ResetFinanceBillLines() {
 	m.removedfinance_bill_lines = nil
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity by ids.
+func (m *OrderFeeMutation) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.enterprise_tag_links == nil {
+		m.enterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseTagLinks clears the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity.
+func (m *OrderFeeMutation) ClearEnterpriseTagLinks() {
+	m.clearedenterprise_tag_links = true
+}
+
+// EnterpriseTagLinksCleared reports if the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity was cleared.
+func (m *OrderFeeMutation) EnterpriseTagLinksCleared() bool {
+	return m.clearedenterprise_tag_links
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (m *OrderFeeMutation) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_tag_links == nil {
+		m.removedenterprise_tag_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_tag_links, ids[i])
+		m.removedenterprise_tag_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseTagLinks returns the removed IDs of the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity.
+func (m *OrderFeeMutation) RemovedEnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseTagLinksIDs returns the "enterprise_tag_links" edge IDs in the mutation.
+func (m *OrderFeeMutation) EnterpriseTagLinksIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_tag_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseTagLinks resets all changes to the "enterprise_tag_links" edge.
+func (m *OrderFeeMutation) ResetEnterpriseTagLinks() {
+	m.enterprise_tag_links = nil
+	m.clearedenterprise_tag_links = false
+	m.removedenterprise_tag_links = nil
+}
+
 // Where appends a list predicates to the OrderFeeMutation builder.
 func (m *OrderFeeMutation) Where(ps ...predicate.OrderFee) {
 	m.predicates = append(m.predicates, ps...)
@@ -72175,7 +73971,7 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderFeeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m._order != nil {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
@@ -72193,6 +73989,9 @@ func (m *OrderFeeMutation) AddedEdges() []string {
 	}
 	if m.finance_bill_lines != nil {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
+	}
+	if m.enterprise_tag_links != nil {
+		edges = append(edges, orderfee.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -72227,15 +74026,24 @@ func (m *OrderFeeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case orderfee.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.enterprise_tag_links))
+		for id := range m.enterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderFeeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedfinance_bill_lines != nil {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
+	}
+	if m.removedenterprise_tag_links != nil {
+		edges = append(edges, orderfee.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -72250,13 +74058,19 @@ func (m *OrderFeeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case orderfee.EdgeEnterpriseTagLinks:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_tag_links))
+		for id := range m.removedenterprise_tag_links {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderFeeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.cleared_order {
 		edges = append(edges, orderfee.EdgeOrder)
 	}
@@ -72274,6 +74088,9 @@ func (m *OrderFeeMutation) ClearedEdges() []string {
 	}
 	if m.clearedfinance_bill_lines {
 		edges = append(edges, orderfee.EdgeFinanceBillLines)
+	}
+	if m.clearedenterprise_tag_links {
+		edges = append(edges, orderfee.EdgeEnterpriseTagLinks)
 	}
 	return edges
 }
@@ -72294,6 +74111,8 @@ func (m *OrderFeeMutation) EdgeCleared(name string) bool {
 		return m.clearedcancelled_by_user
 	case orderfee.EdgeFinanceBillLines:
 		return m.clearedfinance_bill_lines
+	case orderfee.EdgeEnterpriseTagLinks:
+		return m.clearedenterprise_tag_links
 	}
 	return false
 }
@@ -72343,8 +74162,705 @@ func (m *OrderFeeMutation) ResetEdge(name string) error {
 	case orderfee.EdgeFinanceBillLines:
 		m.ResetFinanceBillLines()
 		return nil
+	case orderfee.EdgeEnterpriseTagLinks:
+		m.ResetEnterpriseTagLinks()
+		return nil
 	}
 	return fmt.Errorf("unknown OrderFee edge %s", name)
+}
+
+// OrderFeeEnterpriseTagMutation represents an operation that mutates the OrderFeeEnterpriseTag nodes in the graph.
+type OrderFeeEnterpriseTagMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	order_fee           *uuid.UUID
+	clearedorder_fee    bool
+	tag_resource        *uuid.UUID
+	clearedtag_resource bool
+	done                bool
+	oldValue            func(context.Context) (*OrderFeeEnterpriseTag, error)
+	predicates          []predicate.OrderFeeEnterpriseTag
+}
+
+var _ ent.Mutation = (*OrderFeeEnterpriseTagMutation)(nil)
+
+// orderfeeenterprisetagOption allows management of the mutation configuration using functional options.
+type orderfeeenterprisetagOption func(*OrderFeeEnterpriseTagMutation)
+
+// newOrderFeeEnterpriseTagMutation creates new mutation for the OrderFeeEnterpriseTag entity.
+func newOrderFeeEnterpriseTagMutation(c config, op Op, opts ...orderfeeenterprisetagOption) *OrderFeeEnterpriseTagMutation {
+	m := &OrderFeeEnterpriseTagMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderFeeEnterpriseTag,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderFeeEnterpriseTagID sets the ID field of the mutation.
+func withOrderFeeEnterpriseTagID(id uuid.UUID) orderfeeenterprisetagOption {
+	return func(m *OrderFeeEnterpriseTagMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderFeeEnterpriseTag
+		)
+		m.oldValue = func(ctx context.Context) (*OrderFeeEnterpriseTag, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderFeeEnterpriseTag.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderFeeEnterpriseTag sets the old OrderFeeEnterpriseTag of the mutation.
+func withOrderFeeEnterpriseTag(node *OrderFeeEnterpriseTag) orderfeeenterprisetagOption {
+	return func(m *OrderFeeEnterpriseTagMutation) {
+		m.oldValue = func(context.Context) (*OrderFeeEnterpriseTag, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderFeeEnterpriseTagMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderFeeEnterpriseTagMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderFeeEnterpriseTag entities.
+func (m *OrderFeeEnterpriseTagMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderFeeEnterpriseTagMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderFeeEnterpriseTagMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderFeeEnterpriseTag.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderFeeEnterpriseTagMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderFeeEnterpriseTagMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderFeeEnterpriseTag entity.
+// If the OrderFeeEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeEnterpriseTagMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderFeeEnterpriseTagMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderFeeEnterpriseTagMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderFeeEnterpriseTagMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderFeeEnterpriseTag entity.
+// If the OrderFeeEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeEnterpriseTagMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderFeeEnterpriseTagMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderFeeEnterpriseTagMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderFeeEnterpriseTagMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderFeeEnterpriseTag entity.
+// If the OrderFeeEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeEnterpriseTagMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderFeeEnterpriseTagMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderFeeID sets the "order_fee_id" field.
+func (m *OrderFeeEnterpriseTagMutation) SetOrderFeeID(u uuid.UUID) {
+	m.order_fee = &u
+}
+
+// OrderFeeID returns the value of the "order_fee_id" field in the mutation.
+func (m *OrderFeeEnterpriseTagMutation) OrderFeeID() (r uuid.UUID, exists bool) {
+	v := m.order_fee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderFeeID returns the old "order_fee_id" field's value of the OrderFeeEnterpriseTag entity.
+// If the OrderFeeEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeEnterpriseTagMutation) OldOrderFeeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderFeeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderFeeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderFeeID: %w", err)
+	}
+	return oldValue.OrderFeeID, nil
+}
+
+// ResetOrderFeeID resets all changes to the "order_fee_id" field.
+func (m *OrderFeeEnterpriseTagMutation) ResetOrderFeeID() {
+	m.order_fee = nil
+}
+
+// SetTagResourceID sets the "tag_resource_id" field.
+func (m *OrderFeeEnterpriseTagMutation) SetTagResourceID(u uuid.UUID) {
+	m.tag_resource = &u
+}
+
+// TagResourceID returns the value of the "tag_resource_id" field in the mutation.
+func (m *OrderFeeEnterpriseTagMutation) TagResourceID() (r uuid.UUID, exists bool) {
+	v := m.tag_resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTagResourceID returns the old "tag_resource_id" field's value of the OrderFeeEnterpriseTag entity.
+// If the OrderFeeEnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeEnterpriseTagMutation) OldTagResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTagResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTagResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTagResourceID: %w", err)
+	}
+	return oldValue.TagResourceID, nil
+}
+
+// ResetTagResourceID resets all changes to the "tag_resource_id" field.
+func (m *OrderFeeEnterpriseTagMutation) ResetTagResourceID() {
+	m.tag_resource = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *OrderFeeEnterpriseTagMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[orderfeeenterprisetag.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *OrderFeeEnterpriseTagMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeEnterpriseTagMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *OrderFeeEnterpriseTagMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrderFee clears the "order_fee" edge to the OrderFee entity.
+func (m *OrderFeeEnterpriseTagMutation) ClearOrderFee() {
+	m.clearedorder_fee = true
+	m.clearedFields[orderfeeenterprisetag.FieldOrderFeeID] = struct{}{}
+}
+
+// OrderFeeCleared reports if the "order_fee" edge to the OrderFee entity was cleared.
+func (m *OrderFeeEnterpriseTagMutation) OrderFeeCleared() bool {
+	return m.clearedorder_fee
+}
+
+// OrderFeeIDs returns the "order_fee" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderFeeID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeEnterpriseTagMutation) OrderFeeIDs() (ids []uuid.UUID) {
+	if id := m.order_fee; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrderFee resets all changes to the "order_fee" edge.
+func (m *OrderFeeEnterpriseTagMutation) ResetOrderFee() {
+	m.order_fee = nil
+	m.clearedorder_fee = false
+}
+
+// ClearTagResource clears the "tag_resource" edge to the EnterpriseResource entity.
+func (m *OrderFeeEnterpriseTagMutation) ClearTagResource() {
+	m.clearedtag_resource = true
+	m.clearedFields[orderfeeenterprisetag.FieldTagResourceID] = struct{}{}
+}
+
+// TagResourceCleared reports if the "tag_resource" edge to the EnterpriseResource entity was cleared.
+func (m *OrderFeeEnterpriseTagMutation) TagResourceCleared() bool {
+	return m.clearedtag_resource
+}
+
+// TagResourceIDs returns the "tag_resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TagResourceID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeEnterpriseTagMutation) TagResourceIDs() (ids []uuid.UUID) {
+	if id := m.tag_resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTagResource resets all changes to the "tag_resource" edge.
+func (m *OrderFeeEnterpriseTagMutation) ResetTagResource() {
+	m.tag_resource = nil
+	m.clearedtag_resource = false
+}
+
+// Where appends a list predicates to the OrderFeeEnterpriseTagMutation builder.
+func (m *OrderFeeEnterpriseTagMutation) Where(ps ...predicate.OrderFeeEnterpriseTag) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderFeeEnterpriseTagMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderFeeEnterpriseTagMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderFeeEnterpriseTag, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderFeeEnterpriseTagMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderFeeEnterpriseTagMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderFeeEnterpriseTag).
+func (m *OrderFeeEnterpriseTagMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderFeeEnterpriseTagMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, orderfeeenterprisetag.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderfeeenterprisetag.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, orderfeeenterprisetag.FieldOrganizationID)
+	}
+	if m.order_fee != nil {
+		fields = append(fields, orderfeeenterprisetag.FieldOrderFeeID)
+	}
+	if m.tag_resource != nil {
+		fields = append(fields, orderfeeenterprisetag.FieldTagResourceID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderFeeEnterpriseTagMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderfeeenterprisetag.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderfeeenterprisetag.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderfeeenterprisetag.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderfeeenterprisetag.FieldOrderFeeID:
+		return m.OrderFeeID()
+	case orderfeeenterprisetag.FieldTagResourceID:
+		return m.TagResourceID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderFeeEnterpriseTagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderfeeenterprisetag.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderfeeenterprisetag.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderfeeenterprisetag.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderfeeenterprisetag.FieldOrderFeeID:
+		return m.OldOrderFeeID(ctx)
+	case orderfeeenterprisetag.FieldTagResourceID:
+		return m.OldTagResourceID(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderFeeEnterpriseTag field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeEnterpriseTagMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderfeeenterprisetag.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderfeeenterprisetag.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderfeeenterprisetag.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderfeeenterprisetag.FieldOrderFeeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderFeeID(v)
+		return nil
+	case orderfeeenterprisetag.FieldTagResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTagResourceID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderFeeEnterpriseTagMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderFeeEnterpriseTagMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeEnterpriseTagMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderFeeEnterpriseTagMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderFeeEnterpriseTagMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderFeeEnterpriseTagMutation) ResetField(name string) error {
+	switch name {
+	case orderfeeenterprisetag.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderfeeenterprisetag.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderfeeenterprisetag.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderfeeenterprisetag.FieldOrderFeeID:
+		m.ResetOrderFeeID()
+		return nil
+	case orderfeeenterprisetag.FieldTagResourceID:
+		m.ResetTagResourceID()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, orderfeeenterprisetag.EdgeOrganization)
+	}
+	if m.order_fee != nil {
+		edges = append(edges, orderfeeenterprisetag.EdgeOrderFee)
+	}
+	if m.tag_resource != nil {
+		edges = append(edges, orderfeeenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderfeeenterprisetag.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeeenterprisetag.EdgeOrderFee:
+		if id := m.order_fee; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderfeeenterprisetag.EdgeTagResource:
+		if id := m.tag_resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, orderfeeenterprisetag.EdgeOrganization)
+	}
+	if m.clearedorder_fee {
+		edges = append(edges, orderfeeenterprisetag.EdgeOrderFee)
+	}
+	if m.clearedtag_resource {
+		edges = append(edges, orderfeeenterprisetag.EdgeTagResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderFeeEnterpriseTagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderfeeenterprisetag.EdgeOrganization:
+		return m.clearedorganization
+	case orderfeeenterprisetag.EdgeOrderFee:
+		return m.clearedorder_fee
+	case orderfeeenterprisetag.EdgeTagResource:
+		return m.clearedtag_resource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderFeeEnterpriseTagMutation) ClearEdge(name string) error {
+	switch name {
+	case orderfeeenterprisetag.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case orderfeeenterprisetag.EdgeOrderFee:
+		m.ClearOrderFee()
+		return nil
+	case orderfeeenterprisetag.EdgeTagResource:
+		m.ClearTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderFeeEnterpriseTagMutation) ResetEdge(name string) error {
+	switch name {
+	case orderfeeenterprisetag.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case orderfeeenterprisetag.EdgeOrderFee:
+		m.ResetOrderFee()
+		return nil
+	case orderfeeenterprisetag.EdgeTagResource:
+		m.ResetTagResource()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeEnterpriseTag edge %s", name)
 }
 
 // OrderLifecycleEventMutation represents an operation that mutates the OrderLifecycleEvent nodes in the graph.
@@ -77616,6 +80132,15 @@ type OrganizationMutation struct {
 	enterprise_tag_groups                   map[uuid.UUID]struct{}
 	removedenterprise_tag_groups            map[uuid.UUID]struct{}
 	clearedenterprise_tag_groups            bool
+	order_enterprise_tags                   map[uuid.UUID]struct{}
+	removedorder_enterprise_tags            map[uuid.UUID]struct{}
+	clearedorder_enterprise_tags            bool
+	order_fee_enterprise_tags               map[uuid.UUID]struct{}
+	removedorder_fee_enterprise_tags        map[uuid.UUID]struct{}
+	clearedorder_fee_enterprise_tags        bool
+	finance_bill_enterprise_tags            map[uuid.UUID]struct{}
+	removedfinance_bill_enterprise_tags     map[uuid.UUID]struct{}
+	clearedfinance_bill_enterprise_tags     bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -80046,6 +82571,168 @@ func (m *OrganizationMutation) ResetEnterpriseTagGroups() {
 	m.removedenterprise_tag_groups = nil
 }
 
+// AddOrderEnterpriseTagIDs adds the "order_enterprise_tags" edge to the OrderEnterpriseTag entity by ids.
+func (m *OrganizationMutation) AddOrderEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.order_enterprise_tags == nil {
+		m.order_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderEnterpriseTags clears the "order_enterprise_tags" edge to the OrderEnterpriseTag entity.
+func (m *OrganizationMutation) ClearOrderEnterpriseTags() {
+	m.clearedorder_enterprise_tags = true
+}
+
+// OrderEnterpriseTagsCleared reports if the "order_enterprise_tags" edge to the OrderEnterpriseTag entity was cleared.
+func (m *OrganizationMutation) OrderEnterpriseTagsCleared() bool {
+	return m.clearedorder_enterprise_tags
+}
+
+// RemoveOrderEnterpriseTagIDs removes the "order_enterprise_tags" edge to the OrderEnterpriseTag entity by IDs.
+func (m *OrganizationMutation) RemoveOrderEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.removedorder_enterprise_tags == nil {
+		m.removedorder_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_enterprise_tags, ids[i])
+		m.removedorder_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderEnterpriseTags returns the removed IDs of the "order_enterprise_tags" edge to the OrderEnterpriseTag entity.
+func (m *OrganizationMutation) RemovedOrderEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderEnterpriseTagsIDs returns the "order_enterprise_tags" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.order_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderEnterpriseTags resets all changes to the "order_enterprise_tags" edge.
+func (m *OrganizationMutation) ResetOrderEnterpriseTags() {
+	m.order_enterprise_tags = nil
+	m.clearedorder_enterprise_tags = false
+	m.removedorder_enterprise_tags = nil
+}
+
+// AddOrderFeeEnterpriseTagIDs adds the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity by ids.
+func (m *OrganizationMutation) AddOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.order_fee_enterprise_tags == nil {
+		m.order_fee_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.order_fee_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderFeeEnterpriseTags clears the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity.
+func (m *OrganizationMutation) ClearOrderFeeEnterpriseTags() {
+	m.clearedorder_fee_enterprise_tags = true
+}
+
+// OrderFeeEnterpriseTagsCleared reports if the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity was cleared.
+func (m *OrganizationMutation) OrderFeeEnterpriseTagsCleared() bool {
+	return m.clearedorder_fee_enterprise_tags
+}
+
+// RemoveOrderFeeEnterpriseTagIDs removes the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (m *OrganizationMutation) RemoveOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.removedorder_fee_enterprise_tags == nil {
+		m.removedorder_fee_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.order_fee_enterprise_tags, ids[i])
+		m.removedorder_fee_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderFeeEnterpriseTags returns the removed IDs of the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity.
+func (m *OrganizationMutation) RemovedOrderFeeEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.removedorder_fee_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderFeeEnterpriseTagsIDs returns the "order_fee_enterprise_tags" edge IDs in the mutation.
+func (m *OrganizationMutation) OrderFeeEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.order_fee_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderFeeEnterpriseTags resets all changes to the "order_fee_enterprise_tags" edge.
+func (m *OrganizationMutation) ResetOrderFeeEnterpriseTags() {
+	m.order_fee_enterprise_tags = nil
+	m.clearedorder_fee_enterprise_tags = false
+	m.removedorder_fee_enterprise_tags = nil
+}
+
+// AddFinanceBillEnterpriseTagIDs adds the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity by ids.
+func (m *OrganizationMutation) AddFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.finance_bill_enterprise_tags == nil {
+		m.finance_bill_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_bill_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceBillEnterpriseTags clears the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity.
+func (m *OrganizationMutation) ClearFinanceBillEnterpriseTags() {
+	m.clearedfinance_bill_enterprise_tags = true
+}
+
+// FinanceBillEnterpriseTagsCleared reports if the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity was cleared.
+func (m *OrganizationMutation) FinanceBillEnterpriseTagsCleared() bool {
+	return m.clearedfinance_bill_enterprise_tags
+}
+
+// RemoveFinanceBillEnterpriseTagIDs removes the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (m *OrganizationMutation) RemoveFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) {
+	if m.removedfinance_bill_enterprise_tags == nil {
+		m.removedfinance_bill_enterprise_tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_bill_enterprise_tags, ids[i])
+		m.removedfinance_bill_enterprise_tags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceBillEnterpriseTags returns the removed IDs of the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity.
+func (m *OrganizationMutation) RemovedFinanceBillEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_bill_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceBillEnterpriseTagsIDs returns the "finance_bill_enterprise_tags" edge IDs in the mutation.
+func (m *OrganizationMutation) FinanceBillEnterpriseTagsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_bill_enterprise_tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceBillEnterpriseTags resets all changes to the "finance_bill_enterprise_tags" edge.
+func (m *OrganizationMutation) ResetFinanceBillEnterpriseTags() {
+	m.finance_bill_enterprise_tags = nil
+	m.clearedfinance_bill_enterprise_tags = false
+	m.removedfinance_bill_enterprise_tags = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -80330,7 +83017,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 37)
+	edges := make([]string, 0, 40)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -80441,6 +83128,15 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.enterprise_tag_groups != nil {
 		edges = append(edges, organization.EdgeEnterpriseTagGroups)
+	}
+	if m.order_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeOrderEnterpriseTags)
+	}
+	if m.order_fee_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeOrderFeeEnterpriseTags)
+	}
+	if m.finance_bill_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
 	}
 	return edges
 }
@@ -80669,13 +83365,31 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.order_enterprise_tags))
+		for id := range m.order_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeOrderFeeEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.order_fee_enterprise_tags))
+		for id := range m.order_fee_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeFinanceBillEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.finance_bill_enterprise_tags))
+		for id := range m.finance_bill_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 37)
+	edges := make([]string, 0, 40)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -80783,6 +83497,15 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedenterprise_tag_groups != nil {
 		edges = append(edges, organization.EdgeEnterpriseTagGroups)
+	}
+	if m.removedorder_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeOrderEnterpriseTags)
+	}
+	if m.removedorder_fee_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeOrderFeeEnterpriseTags)
+	}
+	if m.removedfinance_bill_enterprise_tags != nil {
+		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
 	}
 	return edges
 }
@@ -81007,13 +83730,31 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeOrderEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.removedorder_enterprise_tags))
+		for id := range m.removedorder_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeOrderFeeEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.removedorder_fee_enterprise_tags))
+		for id := range m.removedorder_fee_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeFinanceBillEnterpriseTags:
+		ids := make([]ent.Value, 0, len(m.removedfinance_bill_enterprise_tags))
+		for id := range m.removedfinance_bill_enterprise_tags {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 37)
+	edges := make([]string, 0, 40)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -81125,6 +83866,15 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedenterprise_tag_groups {
 		edges = append(edges, organization.EdgeEnterpriseTagGroups)
 	}
+	if m.clearedorder_enterprise_tags {
+		edges = append(edges, organization.EdgeOrderEnterpriseTags)
+	}
+	if m.clearedorder_fee_enterprise_tags {
+		edges = append(edges, organization.EdgeOrderFeeEnterpriseTags)
+	}
+	if m.clearedfinance_bill_enterprise_tags {
+		edges = append(edges, organization.EdgeFinanceBillEnterpriseTags)
+	}
 	return edges
 }
 
@@ -81206,6 +83956,12 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedenterprise_resources
 	case organization.EdgeEnterpriseTagGroups:
 		return m.clearedenterprise_tag_groups
+	case organization.EdgeOrderEnterpriseTags:
+		return m.clearedorder_enterprise_tags
+	case organization.EdgeOrderFeeEnterpriseTags:
+		return m.clearedorder_fee_enterprise_tags
+	case organization.EdgeFinanceBillEnterpriseTags:
+		return m.clearedfinance_bill_enterprise_tags
 	}
 	return false
 }
@@ -81335,6 +84091,15 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeEnterpriseTagGroups:
 		m.ResetEnterpriseTagGroups()
+		return nil
+	case organization.EdgeOrderEnterpriseTags:
+		m.ResetOrderEnterpriseTags()
+		return nil
+	case organization.EdgeOrderFeeEnterpriseTags:
+		m.ResetOrderFeeEnterpriseTags()
+		return nil
+	case organization.EdgeFinanceBillEnterpriseTags:
+		m.ResetFinanceBillEnterpriseTags()
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)

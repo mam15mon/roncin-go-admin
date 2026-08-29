@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -109,8 +108,6 @@ type Order struct {
 	LockedAt *time.Time `json:"locked_at,omitempty"`
 	// IsShared holds the value of the "is_shared" field.
 	IsShared bool `json:"is_shared,omitempty"`
-	// Tags holds the value of the "tags" field.
-	Tags []string `json:"tags,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// OriginLocationID holds the value of the "origin_location_id" field.
@@ -203,9 +200,11 @@ type OrderEdges struct {
 	FinanceCommissionAdjustments []*FinanceCommissionAdjustment `json:"finance_commission_adjustments,omitempty"`
 	// CommissionAttributions holds the value of the commission_attributions edge.
 	CommissionAttributions []*OrderCommissionAttribution `json:"commission_attributions,omitempty"`
+	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
+	EnterpriseTagLinks []*OrderEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [19]bool
+	loadedTypes [20]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -383,6 +382,15 @@ func (e OrderEdges) CommissionAttributionsOrErr() ([]*OrderCommissionAttribution
 	return nil, &NotLoadedError{edge: "commission_attributions"}
 }
 
+// EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) EnterpriseTagLinksOrErr() ([]*OrderEnterpriseTag, error) {
+	if e.loadedTypes[19] {
+		return e.EnterpriseTagLinks, nil
+	}
+	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -390,8 +398,6 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldCarrierID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case order.FieldTags:
-			values[i] = new([]byte)
 		case order.FieldIsShared:
 			values[i] = new(sql.NullBool)
 		case order.FieldTotalGrossWeightKg, order.FieldTotalVolumeCbm:
@@ -704,14 +710,6 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsShared = value.Bool
 			}
-		case order.FieldTags:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field tags", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Tags); err != nil {
-					return fmt.Errorf("unmarshal field tags: %w", err)
-				}
-			}
 		case order.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -965,6 +963,11 @@ func (_m *Order) QueryCommissionAttributions() *OrderCommissionAttributionQuery 
 	return NewOrderClient(_m.config).QueryCommissionAttributions(_m)
 }
 
+// QueryEnterpriseTagLinks queries the "enterprise_tag_links" edge of the Order entity.
+func (_m *Order) QueryEnterpriseTagLinks() *OrderEnterpriseTagQuery {
+	return NewOrderClient(_m.config).QueryEnterpriseTagLinks(_m)
+}
+
 // Update returns a builder for updating this Order.
 // Note that you need to call Order.Unwrap() before calling this method if this Order
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -1149,9 +1152,6 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_shared=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsShared))
-	builder.WriteString(", ")
-	builder.WriteString("tags=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

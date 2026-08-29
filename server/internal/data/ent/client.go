@@ -41,6 +41,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -69,7 +70,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -155,6 +158,8 @@ type Client struct {
 	FinanceBill *FinanceBillClient
 	// FinanceBillBatch is the client for interacting with the FinanceBillBatch builders.
 	FinanceBillBatch *FinanceBillBatchClient
+	// FinanceBillEnterpriseTag is the client for interacting with the FinanceBillEnterpriseTag builders.
+	FinanceBillEnterpriseTag *FinanceBillEnterpriseTagClient
 	// FinanceBillLine is the client for interacting with the FinanceBillLine builders.
 	FinanceBillLine *FinanceBillLineClient
 	// FinanceCashflow is the client for interacting with the FinanceCashflow builders.
@@ -211,8 +216,12 @@ type Client struct {
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
 	OrderContainerRequest *OrderContainerRequestClient
+	// OrderEnterpriseTag is the client for interacting with the OrderEnterpriseTag builders.
+	OrderEnterpriseTag *OrderEnterpriseTagClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
+	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
@@ -305,6 +314,7 @@ func (c *Client) init() {
 	c.FeeSetting = NewFeeSettingClient(c.config)
 	c.FinanceBill = NewFinanceBillClient(c.config)
 	c.FinanceBillBatch = NewFinanceBillBatchClient(c.config)
+	c.FinanceBillEnterpriseTag = NewFinanceBillEnterpriseTagClient(c.config)
 	c.FinanceBillLine = NewFinanceBillLineClient(c.config)
 	c.FinanceCashflow = NewFinanceCashflowClient(c.config)
 	c.FinanceCommission = NewFinanceCommissionClient(c.config)
@@ -333,7 +343,9 @@ func (c *Client) init() {
 	c.OrderConsolidation = NewOrderConsolidationClient(c.config)
 	c.OrderContainer = NewOrderContainerClient(c.config)
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
+	c.OrderEnterpriseTag = NewOrderEnterpriseTagClient(c.config)
 	c.OrderFee = NewOrderFeeClient(c.config)
+	c.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(c.config)
 	c.OrderLifecycleEvent = NewOrderLifecycleEventClient(c.config)
 	c.OrderMilestone = NewOrderMilestoneClient(c.config)
 	c.OrderPersonnel = NewOrderPersonnelClient(c.config)
@@ -479,6 +491,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FeeSetting:                     NewFeeSettingClient(cfg),
 		FinanceBill:                    NewFinanceBillClient(cfg),
 		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
+		FinanceBillEnterpriseTag:       NewFinanceBillEnterpriseTagClient(cfg),
 		FinanceBillLine:                NewFinanceBillLineClient(cfg),
 		FinanceCashflow:                NewFinanceCashflowClient(cfg),
 		FinanceCommission:              NewFinanceCommissionClient(cfg),
@@ -507,7 +520,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderConsolidation:             NewOrderConsolidationClient(cfg),
 		OrderContainer:                 NewOrderContainerClient(cfg),
 		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
+		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                       NewOrderFeeClient(cfg),
+		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
 		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
 		OrderMilestone:                 NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
@@ -580,6 +595,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FeeSetting:                     NewFeeSettingClient(cfg),
 		FinanceBill:                    NewFinanceBillClient(cfg),
 		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
+		FinanceBillEnterpriseTag:       NewFinanceBillEnterpriseTagClient(cfg),
 		FinanceBillLine:                NewFinanceBillLineClient(cfg),
 		FinanceCashflow:                NewFinanceCashflowClient(cfg),
 		FinanceCommission:              NewFinanceCommissionClient(cfg),
@@ -608,7 +624,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderConsolidation:             NewOrderConsolidationClient(cfg),
 		OrderContainer:                 NewOrderContainerClient(cfg),
 		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
+		OrderEnterpriseTag:             NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                       NewOrderFeeClient(cfg),
+		OrderFeeEnterpriseTag:          NewOrderFeeEnterpriseTagClient(cfg),
 		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
 		OrderMilestone:                 NewOrderMilestoneClient(cfg),
 		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
@@ -674,15 +692,16 @@ func (c *Client) Use(hooks ...Hook) {
 		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
 		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
 		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
+		c.FinanceCommission, c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
 		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
 		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
 		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
 		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
 		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
@@ -707,15 +726,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
 		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
 		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
+		c.FinanceCommission, c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
 		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
 		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
 		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
 		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
 		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
 		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
@@ -781,6 +801,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceBill.mutate(ctx, m)
 	case *FinanceBillBatchMutation:
 		return c.FinanceBillBatch.mutate(ctx, m)
+	case *FinanceBillEnterpriseTagMutation:
+		return c.FinanceBillEnterpriseTag.mutate(ctx, m)
 	case *FinanceBillLineMutation:
 		return c.FinanceBillLine.mutate(ctx, m)
 	case *FinanceCashflowMutation:
@@ -837,8 +859,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderContainer.mutate(ctx, m)
 	case *OrderContainerRequestMutation:
 		return c.OrderContainerRequest.mutate(ctx, m)
+	case *OrderEnterpriseTagMutation:
+		return c.OrderEnterpriseTag.mutate(ctx, m)
 	case *OrderFeeMutation:
 		return c.OrderFee.mutate(ctx, m)
+	case *OrderFeeEnterpriseTagMutation:
+		return c.OrderFeeEnterpriseTag.mutate(ctx, m)
 	case *OrderLifecycleEventMutation:
 		return c.OrderLifecycleEvent.mutate(ctx, m)
 	case *OrderMilestoneMutation:
@@ -2241,6 +2267,54 @@ func (c *EnterpriseResourceClient) QueryAddressTypes(_m *EnterpriseResource) *En
 			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
 			sqlgraph.To(enterpriseresourceaddresstype.Table, enterpriseresourceaddresstype.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.AddressTypesTable, enterpriseresource.AddressTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderTagLinks queries the order_tag_links edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryOrderTagLinks(_m *EnterpriseResource) *OrderEnterpriseTagQuery {
+	query := (&OrderEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(orderenterprisetag.Table, orderenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.OrderTagLinksTable, enterpriseresource.OrderTagLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderFeeTagLinks queries the order_fee_tag_links edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryOrderFeeTagLinks(_m *EnterpriseResource) *OrderFeeEnterpriseTagQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.OrderFeeTagLinksTable, enterpriseresource.OrderFeeTagLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceBillTagLinks queries the finance_bill_tag_links edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryFinanceBillTagLinks(_m *EnterpriseResource) *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.FinanceBillTagLinksTable, enterpriseresource.FinanceBillTagLinksColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4874,6 +4948,22 @@ func (c *FinanceBillClient) QueryVerificationAllocations(_m *FinanceBill) *Finan
 	return query
 }
 
+// QueryEnterpriseTagLinks queries the enterprise_tag_links edge of a FinanceBill.
+func (c *FinanceBillClient) QueryEnterpriseTagLinks(_m *FinanceBill) *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, id),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.EnterpriseTagLinksTable, financebill.EnterpriseTagLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FinanceBillClient) Hooks() []Hook {
 	return c.hooks.FinanceBill
@@ -5077,6 +5167,187 @@ func (c *FinanceBillBatchClient) mutate(ctx context.Context, m *FinanceBillBatch
 		return (&FinanceBillBatchDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceBillBatch mutation op: %q", m.Op())
+	}
+}
+
+// FinanceBillEnterpriseTagClient is a client for the FinanceBillEnterpriseTag schema.
+type FinanceBillEnterpriseTagClient struct {
+	config
+}
+
+// NewFinanceBillEnterpriseTagClient returns a client for the FinanceBillEnterpriseTag from the given config.
+func NewFinanceBillEnterpriseTagClient(c config) *FinanceBillEnterpriseTagClient {
+	return &FinanceBillEnterpriseTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financebillenterprisetag.Hooks(f(g(h())))`.
+func (c *FinanceBillEnterpriseTagClient) Use(hooks ...Hook) {
+	c.hooks.FinanceBillEnterpriseTag = append(c.hooks.FinanceBillEnterpriseTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financebillenterprisetag.Intercept(f(g(h())))`.
+func (c *FinanceBillEnterpriseTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceBillEnterpriseTag = append(c.inters.FinanceBillEnterpriseTag, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceBillEnterpriseTag entity.
+func (c *FinanceBillEnterpriseTagClient) Create() *FinanceBillEnterpriseTagCreate {
+	mutation := newFinanceBillEnterpriseTagMutation(c.config, OpCreate)
+	return &FinanceBillEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceBillEnterpriseTag entities.
+func (c *FinanceBillEnterpriseTagClient) CreateBulk(builders ...*FinanceBillEnterpriseTagCreate) *FinanceBillEnterpriseTagCreateBulk {
+	return &FinanceBillEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceBillEnterpriseTagClient) MapCreateBulk(slice any, setFunc func(*FinanceBillEnterpriseTagCreate, int)) *FinanceBillEnterpriseTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceBillEnterpriseTagCreateBulk{err: fmt.Errorf("calling to FinanceBillEnterpriseTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceBillEnterpriseTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceBillEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) Update() *FinanceBillEnterpriseTagUpdate {
+	mutation := newFinanceBillEnterpriseTagMutation(c.config, OpUpdate)
+	return &FinanceBillEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceBillEnterpriseTagClient) UpdateOne(_m *FinanceBillEnterpriseTag) *FinanceBillEnterpriseTagUpdateOne {
+	mutation := newFinanceBillEnterpriseTagMutation(c.config, OpUpdateOne, withFinanceBillEnterpriseTag(_m))
+	return &FinanceBillEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceBillEnterpriseTagClient) UpdateOneID(id uuid.UUID) *FinanceBillEnterpriseTagUpdateOne {
+	mutation := newFinanceBillEnterpriseTagMutation(c.config, OpUpdateOne, withFinanceBillEnterpriseTagID(id))
+	return &FinanceBillEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) Delete() *FinanceBillEnterpriseTagDelete {
+	mutation := newFinanceBillEnterpriseTagMutation(c.config, OpDelete)
+	return &FinanceBillEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceBillEnterpriseTagClient) DeleteOne(_m *FinanceBillEnterpriseTag) *FinanceBillEnterpriseTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceBillEnterpriseTagClient) DeleteOneID(id uuid.UUID) *FinanceBillEnterpriseTagDeleteOne {
+	builder := c.Delete().Where(financebillenterprisetag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceBillEnterpriseTagDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) Query() *FinanceBillEnterpriseTagQuery {
+	return &FinanceBillEnterpriseTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceBillEnterpriseTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceBillEnterpriseTag entity by its id.
+func (c *FinanceBillEnterpriseTagClient) Get(ctx context.Context, id uuid.UUID) (*FinanceBillEnterpriseTag, error) {
+	return c.Query().Where(financebillenterprisetag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceBillEnterpriseTagClient) GetX(ctx context.Context, id uuid.UUID) *FinanceBillEnterpriseTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) QueryOrganization(_m *FinanceBillEnterpriseTag) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillenterprisetag.Table, financebillenterprisetag.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financebillenterprisetag.OrganizationTable, financebillenterprisetag.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceBill queries the finance_bill edge of a FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) QueryFinanceBill(_m *FinanceBillEnterpriseTag) *FinanceBillQuery {
+	query := (&FinanceBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillenterprisetag.Table, financebillenterprisetag.FieldID, id),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financebillenterprisetag.FinanceBillTable, financebillenterprisetag.FinanceBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTagResource queries the tag_resource edge of a FinanceBillEnterpriseTag.
+func (c *FinanceBillEnterpriseTagClient) QueryTagResource(_m *FinanceBillEnterpriseTag) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillenterprisetag.Table, financebillenterprisetag.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financebillenterprisetag.TagResourceTable, financebillenterprisetag.TagResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceBillEnterpriseTagClient) Hooks() []Hook {
+	return c.hooks.FinanceBillEnterpriseTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceBillEnterpriseTagClient) Interceptors() []Interceptor {
+	return c.inters.FinanceBillEnterpriseTag
+}
+
+func (c *FinanceBillEnterpriseTagClient) mutate(ctx context.Context, m *FinanceBillEnterpriseTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceBillEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceBillEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceBillEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceBillEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceBillEnterpriseTag mutation op: %q", m.Op())
 	}
 }
 
@@ -9060,6 +9331,22 @@ func (c *OrderClient) QueryCommissionAttributions(_m *Order) *OrderCommissionAtt
 	return query
 }
 
+// QueryEnterpriseTagLinks queries the enterprise_tag_links edge of a Order.
+func (c *OrderClient) QueryEnterpriseTagLinks(_m *Order) *OrderEnterpriseTagQuery {
+	query := (&OrderEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderenterprisetag.Table, orderenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.EnterpriseTagLinksTable, order.EnterpriseTagLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -10357,6 +10644,187 @@ func (c *OrderContainerRequestClient) mutate(ctx context.Context, m *OrderContai
 	}
 }
 
+// OrderEnterpriseTagClient is a client for the OrderEnterpriseTag schema.
+type OrderEnterpriseTagClient struct {
+	config
+}
+
+// NewOrderEnterpriseTagClient returns a client for the OrderEnterpriseTag from the given config.
+func NewOrderEnterpriseTagClient(c config) *OrderEnterpriseTagClient {
+	return &OrderEnterpriseTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderenterprisetag.Hooks(f(g(h())))`.
+func (c *OrderEnterpriseTagClient) Use(hooks ...Hook) {
+	c.hooks.OrderEnterpriseTag = append(c.hooks.OrderEnterpriseTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderenterprisetag.Intercept(f(g(h())))`.
+func (c *OrderEnterpriseTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderEnterpriseTag = append(c.inters.OrderEnterpriseTag, interceptors...)
+}
+
+// Create returns a builder for creating a OrderEnterpriseTag entity.
+func (c *OrderEnterpriseTagClient) Create() *OrderEnterpriseTagCreate {
+	mutation := newOrderEnterpriseTagMutation(c.config, OpCreate)
+	return &OrderEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderEnterpriseTag entities.
+func (c *OrderEnterpriseTagClient) CreateBulk(builders ...*OrderEnterpriseTagCreate) *OrderEnterpriseTagCreateBulk {
+	return &OrderEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderEnterpriseTagClient) MapCreateBulk(slice any, setFunc func(*OrderEnterpriseTagCreate, int)) *OrderEnterpriseTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderEnterpriseTagCreateBulk{err: fmt.Errorf("calling to OrderEnterpriseTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderEnterpriseTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) Update() *OrderEnterpriseTagUpdate {
+	mutation := newOrderEnterpriseTagMutation(c.config, OpUpdate)
+	return &OrderEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderEnterpriseTagClient) UpdateOne(_m *OrderEnterpriseTag) *OrderEnterpriseTagUpdateOne {
+	mutation := newOrderEnterpriseTagMutation(c.config, OpUpdateOne, withOrderEnterpriseTag(_m))
+	return &OrderEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderEnterpriseTagClient) UpdateOneID(id uuid.UUID) *OrderEnterpriseTagUpdateOne {
+	mutation := newOrderEnterpriseTagMutation(c.config, OpUpdateOne, withOrderEnterpriseTagID(id))
+	return &OrderEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) Delete() *OrderEnterpriseTagDelete {
+	mutation := newOrderEnterpriseTagMutation(c.config, OpDelete)
+	return &OrderEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderEnterpriseTagClient) DeleteOne(_m *OrderEnterpriseTag) *OrderEnterpriseTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderEnterpriseTagClient) DeleteOneID(id uuid.UUID) *OrderEnterpriseTagDeleteOne {
+	builder := c.Delete().Where(orderenterprisetag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderEnterpriseTagDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) Query() *OrderEnterpriseTagQuery {
+	return &OrderEnterpriseTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderEnterpriseTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderEnterpriseTag entity by its id.
+func (c *OrderEnterpriseTagClient) Get(ctx context.Context, id uuid.UUID) (*OrderEnterpriseTag, error) {
+	return c.Query().Where(orderenterprisetag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderEnterpriseTagClient) GetX(ctx context.Context, id uuid.UUID) *OrderEnterpriseTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) QueryOrganization(_m *OrderEnterpriseTag) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderenterprisetag.Table, orderenterprisetag.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderenterprisetag.OrganizationTable, orderenterprisetag.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) QueryOrder(_m *OrderEnterpriseTag) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderenterprisetag.Table, orderenterprisetag.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderenterprisetag.OrderTable, orderenterprisetag.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTagResource queries the tag_resource edge of a OrderEnterpriseTag.
+func (c *OrderEnterpriseTagClient) QueryTagResource(_m *OrderEnterpriseTag) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderenterprisetag.Table, orderenterprisetag.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderenterprisetag.TagResourceTable, orderenterprisetag.TagResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderEnterpriseTagClient) Hooks() []Hook {
+	return c.hooks.OrderEnterpriseTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderEnterpriseTagClient) Interceptors() []Interceptor {
+	return c.inters.OrderEnterpriseTag
+}
+
+func (c *OrderEnterpriseTagClient) mutate(ctx context.Context, m *OrderEnterpriseTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderEnterpriseTag mutation op: %q", m.Op())
+	}
+}
+
 // OrderFeeClient is a client for the OrderFee schema.
 type OrderFeeClient struct {
 	config
@@ -10561,6 +11029,22 @@ func (c *OrderFeeClient) QueryFinanceBillLines(_m *OrderFee) *FinanceBillLineQue
 	return query
 }
 
+// QueryEnterpriseTagLinks queries the enterprise_tag_links edge of a OrderFee.
+func (c *OrderFeeClient) QueryEnterpriseTagLinks(_m *OrderFee) *OrderFeeEnterpriseTagQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.EnterpriseTagLinksTable, orderfee.EnterpriseTagLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderFeeClient) Hooks() []Hook {
 	return c.hooks.OrderFee
@@ -10583,6 +11067,187 @@ func (c *OrderFeeClient) mutate(ctx context.Context, m *OrderFeeMutation) (Value
 		return (&OrderFeeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderFee mutation op: %q", m.Op())
+	}
+}
+
+// OrderFeeEnterpriseTagClient is a client for the OrderFeeEnterpriseTag schema.
+type OrderFeeEnterpriseTagClient struct {
+	config
+}
+
+// NewOrderFeeEnterpriseTagClient returns a client for the OrderFeeEnterpriseTag from the given config.
+func NewOrderFeeEnterpriseTagClient(c config) *OrderFeeEnterpriseTagClient {
+	return &OrderFeeEnterpriseTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderfeeenterprisetag.Hooks(f(g(h())))`.
+func (c *OrderFeeEnterpriseTagClient) Use(hooks ...Hook) {
+	c.hooks.OrderFeeEnterpriseTag = append(c.hooks.OrderFeeEnterpriseTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderfeeenterprisetag.Intercept(f(g(h())))`.
+func (c *OrderFeeEnterpriseTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderFeeEnterpriseTag = append(c.inters.OrderFeeEnterpriseTag, interceptors...)
+}
+
+// Create returns a builder for creating a OrderFeeEnterpriseTag entity.
+func (c *OrderFeeEnterpriseTagClient) Create() *OrderFeeEnterpriseTagCreate {
+	mutation := newOrderFeeEnterpriseTagMutation(c.config, OpCreate)
+	return &OrderFeeEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderFeeEnterpriseTag entities.
+func (c *OrderFeeEnterpriseTagClient) CreateBulk(builders ...*OrderFeeEnterpriseTagCreate) *OrderFeeEnterpriseTagCreateBulk {
+	return &OrderFeeEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderFeeEnterpriseTagClient) MapCreateBulk(slice any, setFunc func(*OrderFeeEnterpriseTagCreate, int)) *OrderFeeEnterpriseTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderFeeEnterpriseTagCreateBulk{err: fmt.Errorf("calling to OrderFeeEnterpriseTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderFeeEnterpriseTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderFeeEnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) Update() *OrderFeeEnterpriseTagUpdate {
+	mutation := newOrderFeeEnterpriseTagMutation(c.config, OpUpdate)
+	return &OrderFeeEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderFeeEnterpriseTagClient) UpdateOne(_m *OrderFeeEnterpriseTag) *OrderFeeEnterpriseTagUpdateOne {
+	mutation := newOrderFeeEnterpriseTagMutation(c.config, OpUpdateOne, withOrderFeeEnterpriseTag(_m))
+	return &OrderFeeEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderFeeEnterpriseTagClient) UpdateOneID(id uuid.UUID) *OrderFeeEnterpriseTagUpdateOne {
+	mutation := newOrderFeeEnterpriseTagMutation(c.config, OpUpdateOne, withOrderFeeEnterpriseTagID(id))
+	return &OrderFeeEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) Delete() *OrderFeeEnterpriseTagDelete {
+	mutation := newOrderFeeEnterpriseTagMutation(c.config, OpDelete)
+	return &OrderFeeEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderFeeEnterpriseTagClient) DeleteOne(_m *OrderFeeEnterpriseTag) *OrderFeeEnterpriseTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderFeeEnterpriseTagClient) DeleteOneID(id uuid.UUID) *OrderFeeEnterpriseTagDeleteOne {
+	builder := c.Delete().Where(orderfeeenterprisetag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderFeeEnterpriseTagDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) Query() *OrderFeeEnterpriseTagQuery {
+	return &OrderFeeEnterpriseTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderFeeEnterpriseTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderFeeEnterpriseTag entity by its id.
+func (c *OrderFeeEnterpriseTagClient) Get(ctx context.Context, id uuid.UUID) (*OrderFeeEnterpriseTag, error) {
+	return c.Query().Where(orderfeeenterprisetag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderFeeEnterpriseTagClient) GetX(ctx context.Context, id uuid.UUID) *OrderFeeEnterpriseTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) QueryOrganization(_m *OrderFeeEnterpriseTag) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeeenterprisetag.OrganizationTable, orderfeeenterprisetag.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderFee queries the order_fee edge of a OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) QueryOrderFee(_m *OrderFeeEnterpriseTag) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeeenterprisetag.OrderFeeTable, orderfeeenterprisetag.OrderFeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTagResource queries the tag_resource edge of a OrderFeeEnterpriseTag.
+func (c *OrderFeeEnterpriseTagClient) QueryTagResource(_m *OrderFeeEnterpriseTag) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeeenterprisetag.TagResourceTable, orderfeeenterprisetag.TagResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderFeeEnterpriseTagClient) Hooks() []Hook {
+	return c.hooks.OrderFeeEnterpriseTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderFeeEnterpriseTagClient) Interceptors() []Interceptor {
+	return c.inters.OrderFeeEnterpriseTag
+}
+
+func (c *OrderFeeEnterpriseTagClient) mutate(ctx context.Context, m *OrderFeeEnterpriseTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderFeeEnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderFeeEnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderFeeEnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderFeeEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderFeeEnterpriseTag mutation op: %q", m.Op())
 	}
 }
 
@@ -12269,6 +12934,54 @@ func (c *OrganizationClient) QueryEnterpriseTagGroups(_m *Organization) *Enterpr
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(enterprisetaggroup.Table, enterprisetaggroup.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.EnterpriseTagGroupsTable, organization.EnterpriseTagGroupsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderEnterpriseTags queries the order_enterprise_tags edge of a Organization.
+func (c *OrganizationClient) QueryOrderEnterpriseTags(_m *Organization) *OrderEnterpriseTagQuery {
+	query := (&OrderEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderenterprisetag.Table, orderenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderEnterpriseTagsTable, organization.OrderEnterpriseTagsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderFeeEnterpriseTags queries the order_fee_enterprise_tags edge of a Organization.
+func (c *OrganizationClient) QueryOrderFeeEnterpriseTags(_m *Organization) *OrderFeeEnterpriseTagQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderFeeEnterpriseTagsTable, organization.OrderFeeEnterpriseTagsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceBillEnterpriseTags queries the finance_bill_enterprise_tags edge of a Organization.
+func (c *OrganizationClient) QueryFinanceBillEnterpriseTags(_m *Organization) *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceBillEnterpriseTagsTable, organization.FinanceBillEnterpriseTagsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -16407,20 +17120,21 @@ type (
 		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
 		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
 		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
+		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
+		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
+		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
+		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence, Order,
 		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -16431,20 +17145,21 @@ type (
 		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
 		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
 		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
-		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
+		FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine, FinanceCashflow,
+		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionLine,
+		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
+		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence, Order,
 		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderFee, OrderLifecycleEvent, OrderMilestone,
-		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
+		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
+		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
+		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
+		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
+		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

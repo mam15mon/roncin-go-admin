@@ -118,9 +118,15 @@ type OrganizationEdges struct {
 	EnterpriseResources []*EnterpriseResource `json:"enterprise_resources,omitempty"`
 	// EnterpriseTagGroups holds the value of the enterprise_tag_groups edge.
 	EnterpriseTagGroups []*EnterpriseTagGroup `json:"enterprise_tag_groups,omitempty"`
+	// OrderEnterpriseTags holds the value of the order_enterprise_tags edge.
+	OrderEnterpriseTags []*OrderEnterpriseTag `json:"order_enterprise_tags,omitempty"`
+	// OrderFeeEnterpriseTags holds the value of the order_fee_enterprise_tags edge.
+	OrderFeeEnterpriseTags []*OrderFeeEnterpriseTag `json:"order_fee_enterprise_tags,omitempty"`
+	// FinanceBillEnterpriseTags holds the value of the finance_bill_enterprise_tags edge.
+	FinanceBillEnterpriseTags []*FinanceBillEnterpriseTag `json:"finance_bill_enterprise_tags,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [37]bool
+	loadedTypes [40]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -458,6 +464,33 @@ func (e OrganizationEdges) EnterpriseTagGroupsOrErr() ([]*EnterpriseTagGroup, er
 	return nil, &NotLoadedError{edge: "enterprise_tag_groups"}
 }
 
+// OrderEnterpriseTagsOrErr returns the OrderEnterpriseTags value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderEnterpriseTagsOrErr() ([]*OrderEnterpriseTag, error) {
+	if e.loadedTypes[37] {
+		return e.OrderEnterpriseTags, nil
+	}
+	return nil, &NotLoadedError{edge: "order_enterprise_tags"}
+}
+
+// OrderFeeEnterpriseTagsOrErr returns the OrderFeeEnterpriseTags value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) OrderFeeEnterpriseTagsOrErr() ([]*OrderFeeEnterpriseTag, error) {
+	if e.loadedTypes[38] {
+		return e.OrderFeeEnterpriseTags, nil
+	}
+	return nil, &NotLoadedError{edge: "order_fee_enterprise_tags"}
+}
+
+// FinanceBillEnterpriseTagsOrErr returns the FinanceBillEnterpriseTags value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FinanceBillEnterpriseTagsOrErr() ([]*FinanceBillEnterpriseTag, error) {
+	if e.loadedTypes[39] {
+		return e.FinanceBillEnterpriseTags, nil
+	}
+	return nil, &NotLoadedError{edge: "finance_bill_enterprise_tags"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -746,6 +779,21 @@ func (_m *Organization) QueryEnterpriseResources() *EnterpriseResourceQuery {
 // QueryEnterpriseTagGroups queries the "enterprise_tag_groups" edge of the Organization entity.
 func (_m *Organization) QueryEnterpriseTagGroups() *EnterpriseTagGroupQuery {
 	return NewOrganizationClient(_m.config).QueryEnterpriseTagGroups(_m)
+}
+
+// QueryOrderEnterpriseTags queries the "order_enterprise_tags" edge of the Organization entity.
+func (_m *Organization) QueryOrderEnterpriseTags() *OrderEnterpriseTagQuery {
+	return NewOrganizationClient(_m.config).QueryOrderEnterpriseTags(_m)
+}
+
+// QueryOrderFeeEnterpriseTags queries the "order_fee_enterprise_tags" edge of the Organization entity.
+func (_m *Organization) QueryOrderFeeEnterpriseTags() *OrderFeeEnterpriseTagQuery {
+	return NewOrganizationClient(_m.config).QueryOrderFeeEnterpriseTags(_m)
+}
+
+// QueryFinanceBillEnterpriseTags queries the "finance_bill_enterprise_tags" edge of the Organization entity.
+func (_m *Organization) QueryFinanceBillEnterpriseTags() *FinanceBillEnterpriseTagQuery {
+	return NewOrganizationClient(_m.config).QueryFinanceBillEnterpriseTags(_m)
 }
 
 // Update returns a builder for updating this Organization.

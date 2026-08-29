@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -490,6 +491,21 @@ func (_u *FinanceBillUpdate) AddVerificationAllocations(v ...*FinanceVerificatio
 	return _u.AddVerificationAllocationIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (_u *FinanceBillUpdate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
+func (_u *FinanceBillUpdate) AddEnterpriseTagLinks(v ...*FinanceBillEnterpriseTag) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the FinanceBillMutation object of the builder.
 func (_u *FinanceBillUpdate) Mutation() *FinanceBillMutation {
 	return _u.mutation
@@ -568,6 +584,27 @@ func (_u *FinanceBillUpdate) RemoveVerificationAllocations(v ...*FinanceVerifica
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVerificationAllocationIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
+func (_u *FinanceBillUpdate) ClearEnterpriseTagLinks() *FinanceBillUpdate {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to FinanceBillEnterpriseTag entities by IDs.
+func (_u *FinanceBillUpdate) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdate {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to FinanceBillEnterpriseTag entities.
+func (_u *FinanceBillUpdate) RemoveEnterpriseTagLinks(v ...*FinanceBillEnterpriseTag) *FinanceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -955,6 +992,51 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1439,6 +1521,21 @@ func (_u *FinanceBillUpdateOne) AddVerificationAllocations(v ...*FinanceVerifica
 	return _u.AddVerificationAllocationIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
+func (_u *FinanceBillUpdateOne) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
+func (_u *FinanceBillUpdateOne) AddEnterpriseTagLinks(v ...*FinanceBillEnterpriseTag) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the FinanceBillMutation object of the builder.
 func (_u *FinanceBillUpdateOne) Mutation() *FinanceBillMutation {
 	return _u.mutation
@@ -1517,6 +1614,27 @@ func (_u *FinanceBillUpdateOne) RemoveVerificationAllocations(v ...*FinanceVerif
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveVerificationAllocationIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
+func (_u *FinanceBillUpdateOne) ClearEnterpriseTagLinks() *FinanceBillUpdateOne {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to FinanceBillEnterpriseTag entities by IDs.
+func (_u *FinanceBillUpdateOne) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillUpdateOne {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to FinanceBillEnterpriseTag entities.
+func (_u *FinanceBillUpdateOne) RemoveEnterpriseTagLinks(v ...*FinanceBillEnterpriseTag) *FinanceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceBillUpdate builder.
@@ -1934,6 +2052,51 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeverificationallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.EnterpriseTagLinksTable,
+			Columns: []string{financebill.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

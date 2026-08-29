@@ -117,17 +117,6 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId(), request.GetCreatorOrganizationId()); err != nil {
 		return nil, err
 	}
-	options.Tags = request.GetTags()
-	if request.TagMatchMode != nil {
-		switch request.GetTagMatchMode() {
-		case v1.OrderTagMatchMode_ORDER_TAG_MATCH_MODE_FUZZY_OR:
-			options.TagMatchMode = biz.OrderTagMatchFuzzyOr
-		case v1.OrderTagMatchMode_ORDER_TAG_MATCH_MODE_EXACT_AND:
-			options.TagMatchMode = biz.OrderTagMatchExactAnd
-		default:
-			return nil, biz.ErrOrderInvalidArgument
-		}
-	}
 	if request.IsLocked != nil {
 		value := request.GetIsLocked()
 		options.IsLocked = &value

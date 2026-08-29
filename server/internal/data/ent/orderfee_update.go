@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -610,6 +611,21 @@ func (_u *OrderFeeUpdate) AddFinanceBillLines(v ...*FinanceBillLine) *OrderFeeUp
 	return _u.AddFinanceBillLineIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (_u *OrderFeeUpdate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrderFeeUpdate) AddEnterpriseTagLinks(v ...*OrderFeeEnterpriseTag) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the OrderFeeMutation object of the builder.
 func (_u *OrderFeeUpdate) Mutation() *OrderFeeMutation {
 	return _u.mutation
@@ -664,6 +680,27 @@ func (_u *OrderFeeUpdate) RemoveFinanceBillLines(v ...*FinanceBillLine) *OrderFe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillLineIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrderFeeUpdate) ClearEnterpriseTagLinks() *OrderFeeUpdate {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderFeeEnterpriseTag entities by IDs.
+func (_u *OrderFeeUpdate) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderFeeEnterpriseTag entities.
+func (_u *OrderFeeUpdate) RemoveEnterpriseTagLinks(v ...*OrderFeeEnterpriseTag) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1083,6 +1120,51 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1685,6 +1767,21 @@ func (_u *OrderFeeUpdateOne) AddFinanceBillLines(v ...*FinanceBillLine) *OrderFe
 	return _u.AddFinanceBillLineIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (_u *OrderFeeUpdateOne) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrderFeeUpdateOne) AddEnterpriseTagLinks(v ...*OrderFeeEnterpriseTag) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the OrderFeeMutation object of the builder.
 func (_u *OrderFeeUpdateOne) Mutation() *OrderFeeMutation {
 	return _u.mutation
@@ -1739,6 +1836,27 @@ func (_u *OrderFeeUpdateOne) RemoveFinanceBillLines(v ...*FinanceBillLine) *Orde
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceBillLineIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderFeeEnterpriseTag entity.
+func (_u *OrderFeeUpdateOne) ClearEnterpriseTagLinks() *OrderFeeUpdateOne {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderFeeEnterpriseTag entities by IDs.
+func (_u *OrderFeeUpdateOne) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderFeeEnterpriseTag entities.
+func (_u *OrderFeeUpdateOne) RemoveEnterpriseTagLinks(v ...*OrderFeeEnterpriseTag) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderFeeUpdate builder.
@@ -2188,6 +2306,51 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

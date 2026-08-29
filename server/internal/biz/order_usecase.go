@@ -45,18 +45,6 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if options.NumberKeyword != "" && !options.NumberType.Valid() || options.NumberKeyword == "" && options.NumberType != "" {
 		return nil, ErrOrderInvalidArgument
 	}
-	if len(options.Tags) > 0 && !options.TagMatchMode.Valid() || len(options.Tags) == 0 && options.TagMatchMode != "" {
-		return nil, ErrOrderInvalidArgument
-	}
-	cleanTags := make([]string, 0, len(options.Tags))
-	for _, tag := range options.Tags {
-		tag = strings.TrimSpace(tag)
-		if tag == "" || utf8.RuneCountInString(tag) > 64 {
-			return nil, ErrOrderInvalidArgument
-		}
-		cleanTags = append(cleanTags, tag)
-	}
-	options.Tags = cleanTags
 	if options.FlowStatus != "" && !options.FlowStatus.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
@@ -198,20 +186,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if utf8.RuneCountInString(output.CustomerReferenceNo) > 100 || utf8.RuneCountInString(output.InternalReferenceNo) > 100 || utf8.RuneCountInString(output.ShipperShortName) > 200 || utf8.RuneCountInString(output.ConsigneeShortName) > 200 || utf8.RuneCountInString(output.ContractNo) > 100 || utf8.RuneCountInString(output.HazardClass) > 16 || utf8.RuneCountInString(output.FactoryName) > 200 || utf8.RuneCountInString(output.LoadingTerms) > 100 || utf8.RuneCountInString(output.VesselVoyage) > 100 || utf8.RuneCountInString(output.GoodsDescription) > 1000 || utf8.RuneCountInString(output.SpecialRequirements) > 1000 || utf8.RuneCountInString(output.Notes) > 1000 || utf8.RuneCountInString(output.BookingNotes) > 1000 || utf8.RuneCountInString(output.AllocationNotes) > 1000 || utf8.RuneCountInString(output.OperationNotes) > 1000 || output.TotalPackages != nil && *output.TotalPackages < 0 || output.TotalGrossWeightKg != nil && *output.TotalGrossWeightKg < 0 || output.TotalVolumeCbm != nil && *output.TotalVolumeCbm < 0 {
 		return nil, ErrOrderInvalidArgument
 	}
-	cleanTags := make([]string, 0, len(output.Tags))
-	seenTags := make(map[string]struct{}, len(output.Tags))
-	for _, tag := range output.Tags {
-		tag = strings.TrimSpace(tag)
-		if tag == "" || utf8.RuneCountInString(tag) > 64 {
-			return nil, ErrOrderInvalidArgument
-		}
-		if _, exists := seenTags[tag]; exists {
-			continue
-		}
-		seenTags[tag] = struct{}{}
-		cleanTags = append(cleanTags, tag)
-	}
-	output.Tags = cleanTags
 	roleCounts := make(map[OrderPersonnelRole]int, len(output.PersonnelAssignments))
 	normalizedPersonnel := make([]*OrderPersonnel, 0, len(output.PersonnelAssignments))
 	for _, assignment := range output.PersonnelAssignments {

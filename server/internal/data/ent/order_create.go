@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
@@ -597,12 +598,6 @@ func (_c *OrderCreate) SetNillableIsShared(v *bool) *OrderCreate {
 	if v != nil {
 		_c.SetIsShared(*v)
 	}
-	return _c
-}
-
-// SetTags sets the "tags" field.
-func (_c *OrderCreate) SetTags(v []string) *OrderCreate {
-	_c.mutation.SetTags(v)
 	return _c
 }
 
@@ -1207,6 +1202,21 @@ func (_c *OrderCreate) AddCommissionAttributions(v ...*OrderCommissionAttributio
 	return _c.AddCommissionAttributionIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
+func (_c *OrderCreate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
+func (_c *OrderCreate) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -1273,10 +1283,6 @@ func (_c *OrderCreate) defaults() {
 	if _, ok := _c.mutation.IsShared(); !ok {
 		v := order.DefaultIsShared
 		_c.mutation.SetIsShared(v)
-	}
-	if _, ok := _c.mutation.Tags(); !ok {
-		v := order.DefaultTags
-		_c.mutation.SetTags(v)
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := order.DefaultVersion
@@ -1484,9 +1490,6 @@ func (_c *OrderCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsShared(); !ok {
 		return &ValidationError{Name: "is_shared", err: errors.New(`ent: missing required field "Order.is_shared"`)}
-	}
-	if _, ok := _c.mutation.Tags(); !ok {
-		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required field "Order.tags"`)}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Order.version"`)}
@@ -1784,10 +1787,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
 		_node.IsShared = value
-	}
-	if value, ok := _c.mutation.Tags(); ok {
-		_spec.SetField(order.FieldTags, field.TypeJSON, value)
-		_node.Tags = value
 	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
@@ -2180,6 +2179,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

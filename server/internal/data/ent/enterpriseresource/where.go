@@ -737,6 +737,75 @@ func HasAddressTypesWith(preds ...predicate.EnterpriseResourceAddressType) predi
 	})
 }
 
+// HasOrderTagLinks applies the HasEdge predicate on the "order_tag_links" edge.
+func HasOrderTagLinks() predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderTagLinksTable, OrderTagLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderTagLinksWith applies the HasEdge predicate on the "order_tag_links" edge with a given conditions (other predicates).
+func HasOrderTagLinksWith(preds ...predicate.OrderEnterpriseTag) predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := newOrderTagLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderFeeTagLinks applies the HasEdge predicate on the "order_fee_tag_links" edge.
+func HasOrderFeeTagLinks() predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeTagLinksTable, OrderFeeTagLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderFeeTagLinksWith applies the HasEdge predicate on the "order_fee_tag_links" edge with a given conditions (other predicates).
+func HasOrderFeeTagLinksWith(preds ...predicate.OrderFeeEnterpriseTag) predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := newOrderFeeTagLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFinanceBillTagLinks applies the HasEdge predicate on the "finance_bill_tag_links" edge.
+func HasFinanceBillTagLinks() predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillTagLinksTable, FinanceBillTagLinksColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceBillTagLinksWith applies the HasEdge predicate on the "finance_bill_tag_links" edge with a given conditions (other predicates).
+func HasFinanceBillTagLinksWith(preds ...predicate.FinanceBillEnterpriseTag) predicate.EnterpriseResource {
+	return predicate.EnterpriseResource(func(s *sql.Selector) {
+		step := newFinanceBillTagLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.EnterpriseResource) predicate.EnterpriseResource {
 	return predicate.EnterpriseResource(sql.AndPredicates(predicates...))

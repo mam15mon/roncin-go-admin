@@ -1284,6 +1284,63 @@ var (
 			},
 		},
 	}
+	// FinanceBillEnterpriseTagsColumns holds the columns for the "finance_bill_enterprise_tags" table.
+	FinanceBillEnterpriseTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "tag_resource_id", Type: field.TypeUUID},
+		{Name: "finance_bill_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// FinanceBillEnterpriseTagsTable holds the schema information for the "finance_bill_enterprise_tags" table.
+	FinanceBillEnterpriseTagsTable = &schema.Table{
+		Name:       "finance_bill_enterprise_tags",
+		Columns:    FinanceBillEnterpriseTagsColumns,
+		PrimaryKey: []*schema.Column{FinanceBillEnterpriseTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_bill_enterprise_tags_enterprise_resources_finance_bill_tag_links",
+				Columns:    []*schema.Column{FinanceBillEnterpriseTagsColumns[3]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bill_enterprise_tags_finance_bills_enterprise_tag_links",
+				Columns:    []*schema.Column{FinanceBillEnterpriseTagsColumns[4]},
+				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_bill_enterprise_tags_organizations_finance_bill_enterprise_tags",
+				Columns:    []*schema.Column{FinanceBillEnterpriseTagsColumns[5]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financebillenterprisetag_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillEnterpriseTagsColumns[2]},
+			},
+			{
+				Name:    "financebillenterprisetag_finance_bill_id_tag_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceBillEnterpriseTagsColumns[4], FinanceBillEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "financebillenterprisetag_organization_id_tag_resource_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillEnterpriseTagsColumns[5], FinanceBillEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "financebillenterprisetag_finance_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillEnterpriseTagsColumns[4]},
+			},
+		},
+	}
 	// FinanceBillLinesColumns holds the columns for the "finance_bill_lines" table.
 	FinanceBillLinesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -2607,7 +2664,6 @@ var (
 		{Name: "closed_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "locked_at", Type: field.TypeTime, Nullable: true},
 		{Name: "is_shared", Type: field.TypeBool, Default: false},
-		{Name: "tags", Type: field.TypeJSON},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "origin_location_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
@@ -2642,13 +2698,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[67]},
+				Columns:    []*schema.Column{OrdersColumns[66]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[68]},
+				Columns:    []*schema.Column{OrdersColumns[67]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2662,65 +2718,57 @@ var (
 			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[3]},
 			},
 			{
 				Name:    "order_organization_id_flow_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[31]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[31]},
 			},
 			{
 				Name:    "order_organization_id_termination_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[32]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[32]},
 			},
 			{
 				Name:    "order_organization_id_closure_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[37]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[37]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[24]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[24]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[68]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[67]},
 			},
 			{
 				Name:    "order_organization_id_carrier_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[8]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[8]},
 			},
 			{
 				Name:    "order_organization_id_origin_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[45]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[44]},
 			},
 			{
 				Name:    "order_organization_id_destination_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[46]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[45]},
 			},
 			{
 				Name:    "order_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[41]},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[41]},
 			},
 			{
 				Name:    "order_organization_id_is_shared",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[67], OrdersColumns[42]},
-			},
-			{
-				Name:    "order_tags_gin",
-				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[43]},
-				Annotation: &entsql.IndexAnnotation{
-					Type: "GIN",
-				},
+				Columns: []*schema.Column{OrdersColumns[66], OrdersColumns[42]},
 			},
 		},
 	}
@@ -3104,6 +3152,63 @@ var (
 			},
 		},
 	}
+	// OrderEnterpriseTagsColumns holds the columns for the "order_enterprise_tags" table.
+	OrderEnterpriseTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "tag_resource_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// OrderEnterpriseTagsTable holds the schema information for the "order_enterprise_tags" table.
+	OrderEnterpriseTagsTable = &schema.Table{
+		Name:       "order_enterprise_tags",
+		Columns:    OrderEnterpriseTagsColumns,
+		PrimaryKey: []*schema.Column{OrderEnterpriseTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_enterprise_tags_enterprise_resources_order_tag_links",
+				Columns:    []*schema.Column{OrderEnterpriseTagsColumns[3]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_enterprise_tags_orders_enterprise_tag_links",
+				Columns:    []*schema.Column{OrderEnterpriseTagsColumns[4]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_enterprise_tags_organizations_order_enterprise_tags",
+				Columns:    []*schema.Column{OrderEnterpriseTagsColumns[5]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderenterprisetag_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderEnterpriseTagsColumns[2]},
+			},
+			{
+				Name:    "orderenterprisetag_order_id_tag_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderEnterpriseTagsColumns[4], OrderEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "orderenterprisetag_organization_id_tag_resource_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderEnterpriseTagsColumns[5], OrderEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "orderenterprisetag_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderEnterpriseTagsColumns[4]},
+			},
+		},
+	}
 	// OrderFeesColumns holds the columns for the "order_fees" table.
 	OrderFeesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3214,6 +3319,63 @@ var (
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
 				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[4], OrderFeesColumns[18]},
+			},
+		},
+	}
+	// OrderFeeEnterpriseTagsColumns holds the columns for the "order_fee_enterprise_tags" table.
+	OrderFeeEnterpriseTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "tag_resource_id", Type: field.TypeUUID},
+		{Name: "order_fee_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// OrderFeeEnterpriseTagsTable holds the schema information for the "order_fee_enterprise_tags" table.
+	OrderFeeEnterpriseTagsTable = &schema.Table{
+		Name:       "order_fee_enterprise_tags",
+		Columns:    OrderFeeEnterpriseTagsColumns,
+		PrimaryKey: []*schema.Column{OrderFeeEnterpriseTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_fee_enterprise_tags_enterprise_resources_order_fee_tag_links",
+				Columns:    []*schema.Column{OrderFeeEnterpriseTagsColumns[3]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_enterprise_tags_order_fees_enterprise_tag_links",
+				Columns:    []*schema.Column{OrderFeeEnterpriseTagsColumns[4]},
+				RefColumns: []*schema.Column{OrderFeesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_enterprise_tags_organizations_order_fee_enterprise_tags",
+				Columns:    []*schema.Column{OrderFeeEnterpriseTagsColumns[5]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderfeeenterprisetag_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeEnterpriseTagsColumns[2]},
+			},
+			{
+				Name:    "orderfeeenterprisetag_order_fee_id_tag_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeeEnterpriseTagsColumns[4], OrderFeeEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "orderfeeenterprisetag_organization_id_tag_resource_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeEnterpriseTagsColumns[5], OrderFeeEnterpriseTagsColumns[3]},
+			},
+			{
+				Name:    "orderfeeenterprisetag_order_fee_id",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeEnterpriseTagsColumns[4]},
 			},
 		},
 	}
@@ -4611,6 +4773,7 @@ var (
 		FeeSettingsTable,
 		FinanceBillsTable,
 		FinanceBillBatchesTable,
+		FinanceBillEnterpriseTagsTable,
 		FinanceBillLinesTable,
 		FinanceCashflowsTable,
 		FinanceCommissionsTable,
@@ -4639,7 +4802,9 @@ var (
 		OrderConsolidationsTable,
 		OrderContainersTable,
 		OrderContainerRequestsTable,
+		OrderEnterpriseTagsTable,
 		OrderFeesTable,
+		OrderFeeEnterpriseTagsTable,
 		OrderLifecycleEventsTable,
 		OrderMilestonesTable,
 		OrderPersonnelsTable,
@@ -4708,6 +4873,9 @@ func init() {
 	FinanceBillsTable.ForeignKeys[4].RefTable = UsersTable
 	FinanceBillBatchesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceBillBatchesTable.ForeignKeys[1].RefTable = UsersTable
+	FinanceBillEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	FinanceBillEnterpriseTagsTable.ForeignKeys[1].RefTable = FinanceBillsTable
+	FinanceBillEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	FinanceBillLinesTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceBillLinesTable.ForeignKeys[1].RefTable = OrdersTable
 	FinanceBillLinesTable.ForeignKeys[2].RefTable = OrderFeesTable
@@ -4774,11 +4942,17 @@ func init() {
 	OrderContainersTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderContainersTable.ForeignKeys[1].RefTable = OrderShippingDocumentsTable
 	OrderContainerRequestsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	OrderEnterpriseTagsTable.ForeignKeys[1].RefTable = OrdersTable
+	OrderEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	OrderFeesTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
 	OrderFeesTable.ForeignKeys[3].RefTable = PartnersTable
 	OrderFeesTable.ForeignKeys[4].RefTable = UsersTable
+	OrderFeeEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	OrderFeeEnterpriseTagsTable.ForeignKeys[1].RefTable = OrderFeesTable
+	OrderFeeEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	OrderLifecycleEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable

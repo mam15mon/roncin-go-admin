@@ -104,8 +104,6 @@ const (
 	FieldLockedAt = "locked_at"
 	// FieldIsShared holds the string denoting the is_shared field in the database.
 	FieldIsShared = "is_shared"
-	// FieldTags holds the string denoting the tags field in the database.
-	FieldTags = "tags"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
@@ -190,6 +188,8 @@ const (
 	EdgeFinanceCommissionAdjustments = "finance_commission_adjustments"
 	// EdgeCommissionAttributions holds the string denoting the commission_attributions edge name in mutations.
 	EdgeCommissionAttributions = "commission_attributions"
+	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
+	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// Table holds the table name of the order in the database.
 	Table = "orders"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -325,6 +325,13 @@ const (
 	CommissionAttributionsInverseTable = "order_commission_attributions"
 	// CommissionAttributionsColumn is the table column denoting the commission_attributions relation/edge.
 	CommissionAttributionsColumn = "order_id"
+	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
+	EnterpriseTagLinksTable = "order_enterprise_tags"
+	// EnterpriseTagLinksInverseTable is the table name for the OrderEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "orderenterprisetag" package.
+	EnterpriseTagLinksInverseTable = "order_enterprise_tags"
+	// EnterpriseTagLinksColumn is the table column denoting the enterprise_tag_links relation/edge.
+	EnterpriseTagLinksColumn = "order_id"
 )
 
 // Columns holds all SQL columns for order fields.
@@ -374,7 +381,6 @@ var Columns = []string{
 	FieldClosedBy,
 	FieldLockedAt,
 	FieldIsShared,
-	FieldTags,
 	FieldVersion,
 	FieldOriginLocationID,
 	FieldDestinationLocationID,
@@ -461,8 +467,6 @@ var (
 	ClosureReasonValidator func(string) error
 	// DefaultIsShared holds the default value on creation for the "is_shared" field.
 	DefaultIsShared bool
-	// DefaultTags holds the default value on creation for the "tags" field.
-	DefaultTags []string
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
@@ -1383,6 +1387,20 @@ func ByCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 		sqlgraph.OrderByNeighborTerms(s, newCommissionAttributionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
+func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagLinksStep(), opts...)
+	}
+}
+
+// ByEnterpriseTagLinks orders the results by enterprise_tag_links terms.
+func ByEnterpriseTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1514,5 +1532,12 @@ func newCommissionAttributionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CommissionAttributionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CommissionAttributionsTable, CommissionAttributionsColumn),
+	)
+}
+func newEnterpriseTagLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnterpriseTagLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
 	)
 }

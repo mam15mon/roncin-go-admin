@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -40,6 +41,7 @@ type FinanceBillQuery struct {
 	withLines                   *FinanceBillLineQuery
 	withInvoiceLinks            *FinanceInvoiceBillQuery
 	withVerificationAllocations *FinanceVerificationAllocationQuery
+	withEnterpriseTagLinks      *FinanceBillEnterpriseTagQuery
 	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -253,6 +255,28 @@ func (_q *FinanceBillQuery) QueryVerificationAllocations() *FinanceVerificationA
 	return query
 }
 
+// QueryEnterpriseTagLinks chains the current query on the "enterprise_tag_links" edge.
+func (_q *FinanceBillQuery) QueryEnterpriseTagLinks() *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.EnterpriseTagLinksTable, financebill.EnterpriseTagLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first FinanceBill entity from the query.
 // Returns a *NotFoundError when no FinanceBill was found.
 func (_q *FinanceBillQuery) First(ctx context.Context) (*FinanceBill, error) {
@@ -453,6 +477,7 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		withLines:                   _q.withLines.Clone(),
 		withInvoiceLinks:            _q.withInvoiceLinks.Clone(),
 		withVerificationAllocations: _q.withVerificationAllocations.Clone(),
+		withEnterpriseTagLinks:      _q.withEnterpriseTagLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -547,6 +572,17 @@ func (_q *FinanceBillQuery) WithVerificationAllocations(opts ...func(*FinanceVer
 	return _q
 }
 
+// WithEnterpriseTagLinks tells the query-builder to eager-load the nodes that are connected to
+// the "enterprise_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithEnterpriseTagLinks(opts ...func(*FinanceBillEnterpriseTagQuery)) *FinanceBillQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEnterpriseTagLinks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -625,7 +661,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withOrganization != nil,
 			_q.withBatch != nil,
 			_q.withSettlementParty != nil,
@@ -634,6 +670,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			_q.withLines != nil,
 			_q.withInvoiceLinks != nil,
 			_q.withVerificationAllocations != nil,
+			_q.withEnterpriseTagLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -706,6 +743,15 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			func(n *FinanceBill) { n.Edges.VerificationAllocations = []*FinanceVerificationAllocation{} },
 			func(n *FinanceBill, e *FinanceVerificationAllocation) {
 				n.Edges.VerificationAllocations = append(n.Edges.VerificationAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEnterpriseTagLinks; query != nil {
+		if err := _q.loadEnterpriseTagLinks(ctx, query, nodes,
+			func(n *FinanceBill) { n.Edges.EnterpriseTagLinks = []*FinanceBillEnterpriseTag{} },
+			func(n *FinanceBill, e *FinanceBillEnterpriseTag) {
+				n.Edges.EnterpriseTagLinks = append(n.Edges.EnterpriseTagLinks, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -952,6 +998,36 @@ func (_q *FinanceBillQuery) loadVerificationAllocations(ctx context.Context, que
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadEnterpriseTagLinks(ctx context.Context, query *FinanceBillEnterpriseTagQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceBillEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebillenterprisetag.FieldFinanceBillID)
+	}
+	query.Where(predicate.FinanceBillEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebill.EnterpriseTagLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.FinanceBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "finance_bill_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -431,6 +432,21 @@ func (_c *OrderFeeCreate) AddFinanceBillLines(v ...*FinanceBillLine) *OrderFeeCr
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceBillLineIDs(ids...)
+}
+
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
+func (_c *OrderFeeCreate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderFeeCreate {
+	_c.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderFeeEnterpriseTag entity.
+func (_c *OrderFeeCreate) AddEnterpriseTagLinks(v ...*OrderFeeEnterpriseTag) *OrderFeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseTagLinkIDs(ids...)
 }
 
 // Mutation returns the OrderFeeMutation object of the builder.
@@ -894,6 +910,22 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financebillline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.EnterpriseTagLinksTable,
+			Columns: []string{orderfee.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

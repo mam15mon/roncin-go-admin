@@ -109,6 +109,12 @@ const (
 	EdgeEnterpriseResources = "enterprise_resources"
 	// EdgeEnterpriseTagGroups holds the string denoting the enterprise_tag_groups edge name in mutations.
 	EdgeEnterpriseTagGroups = "enterprise_tag_groups"
+	// EdgeOrderEnterpriseTags holds the string denoting the order_enterprise_tags edge name in mutations.
+	EdgeOrderEnterpriseTags = "order_enterprise_tags"
+	// EdgeOrderFeeEnterpriseTags holds the string denoting the order_fee_enterprise_tags edge name in mutations.
+	EdgeOrderFeeEnterpriseTags = "order_fee_enterprise_tags"
+	// EdgeFinanceBillEnterpriseTags holds the string denoting the finance_bill_enterprise_tags edge name in mutations.
+	EdgeFinanceBillEnterpriseTags = "finance_bill_enterprise_tags"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -364,6 +370,27 @@ const (
 	EnterpriseTagGroupsInverseTable = "enterprise_tag_groups"
 	// EnterpriseTagGroupsColumn is the table column denoting the enterprise_tag_groups relation/edge.
 	EnterpriseTagGroupsColumn = "organization_id"
+	// OrderEnterpriseTagsTable is the table that holds the order_enterprise_tags relation/edge.
+	OrderEnterpriseTagsTable = "order_enterprise_tags"
+	// OrderEnterpriseTagsInverseTable is the table name for the OrderEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "orderenterprisetag" package.
+	OrderEnterpriseTagsInverseTable = "order_enterprise_tags"
+	// OrderEnterpriseTagsColumn is the table column denoting the order_enterprise_tags relation/edge.
+	OrderEnterpriseTagsColumn = "organization_id"
+	// OrderFeeEnterpriseTagsTable is the table that holds the order_fee_enterprise_tags relation/edge.
+	OrderFeeEnterpriseTagsTable = "order_fee_enterprise_tags"
+	// OrderFeeEnterpriseTagsInverseTable is the table name for the OrderFeeEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeeenterprisetag" package.
+	OrderFeeEnterpriseTagsInverseTable = "order_fee_enterprise_tags"
+	// OrderFeeEnterpriseTagsColumn is the table column denoting the order_fee_enterprise_tags relation/edge.
+	OrderFeeEnterpriseTagsColumn = "organization_id"
+	// FinanceBillEnterpriseTagsTable is the table that holds the finance_bill_enterprise_tags relation/edge.
+	FinanceBillEnterpriseTagsTable = "finance_bill_enterprise_tags"
+	// FinanceBillEnterpriseTagsInverseTable is the table name for the FinanceBillEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillenterprisetag" package.
+	FinanceBillEnterpriseTagsInverseTable = "finance_bill_enterprise_tags"
+	// FinanceBillEnterpriseTagsColumn is the table column denoting the finance_bill_enterprise_tags relation/edge.
+	FinanceBillEnterpriseTagsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -1005,6 +1032,48 @@ func ByEnterpriseTagGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderEnterpriseTagsCount orders the results by order_enterprise_tags count.
+func ByOrderEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderEnterpriseTagsStep(), opts...)
+	}
+}
+
+// ByOrderEnterpriseTags orders the results by order_enterprise_tags terms.
+func ByOrderEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderFeeEnterpriseTagsCount orders the results by order_fee_enterprise_tags count.
+func ByOrderFeeEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderFeeEnterpriseTagsStep(), opts...)
+	}
+}
+
+// ByOrderFeeEnterpriseTags orders the results by order_fee_enterprise_tags terms.
+func ByOrderFeeEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderFeeEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinanceBillEnterpriseTagsCount orders the results by finance_bill_enterprise_tags count.
+func ByFinanceBillEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceBillEnterpriseTagsStep(), opts...)
+	}
+}
+
+// ByFinanceBillEnterpriseTags orders the results by finance_bill_enterprise_tags terms.
+func ByFinanceBillEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceBillEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1262,5 +1331,26 @@ func newEnterpriseTagGroupsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EnterpriseTagGroupsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagGroupsTable, EnterpriseTagGroupsColumn),
+	)
+}
+func newOrderEnterpriseTagsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderEnterpriseTagsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderEnterpriseTagsTable, OrderEnterpriseTagsColumn),
+	)
+}
+func newOrderFeeEnterpriseTagsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderFeeEnterpriseTagsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeEnterpriseTagsTable, OrderFeeEnterpriseTagsColumn),
+	)
+}
+func newFinanceBillEnterpriseTagsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceBillEnterpriseTagsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillEnterpriseTagsTable, FinanceBillEnterpriseTagsColumn),
 	)
 }

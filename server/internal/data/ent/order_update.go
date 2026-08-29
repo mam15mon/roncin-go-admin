@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
@@ -24,6 +23,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
@@ -803,18 +803,6 @@ func (_u *OrderUpdate) SetNillableIsShared(v *bool) *OrderUpdate {
 	return _u
 }
 
-// SetTags sets the "tags" field.
-func (_u *OrderUpdate) SetTags(v []string) *OrderUpdate {
-	_u.mutation.SetTags(v)
-	return _u
-}
-
-// AppendTags appends value to the "tags" field.
-func (_u *OrderUpdate) AppendTags(v []string) *OrderUpdate {
-	_u.mutation.AppendTags(v)
-	return _u
-}
-
 // SetVersion sets the "version" field.
 func (_u *OrderUpdate) SetVersion(v uint64) *OrderUpdate {
 	_u.mutation.ResetVersion()
@@ -1562,6 +1550,21 @@ func (_u *OrderUpdate) AddCommissionAttributions(v ...*OrderCommissionAttributio
 	return _u.AddCommissionAttributionIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
+func (_u *OrderUpdate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
+func (_u *OrderUpdate) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -1934,6 +1937,27 @@ func (_u *OrderUpdate) RemoveCommissionAttributions(v ...*OrderCommissionAttribu
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionAttributionIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
+func (_u *OrderUpdate) ClearEnterpriseTagLinks() *OrderUpdate {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderEnterpriseTag entities by IDs.
+func (_u *OrderUpdate) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderEnterpriseTag entities.
+func (_u *OrderUpdate) RemoveEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2431,14 +2455,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Tags(); ok {
-		_spec.SetField(order.FieldTags, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedTags(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, order.FieldTags, value)
-		})
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
@@ -3403,6 +3419,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -4184,18 +4245,6 @@ func (_u *OrderUpdateOne) SetNillableIsShared(v *bool) *OrderUpdateOne {
 	return _u
 }
 
-// SetTags sets the "tags" field.
-func (_u *OrderUpdateOne) SetTags(v []string) *OrderUpdateOne {
-	_u.mutation.SetTags(v)
-	return _u
-}
-
-// AppendTags appends value to the "tags" field.
-func (_u *OrderUpdateOne) AppendTags(v []string) *OrderUpdateOne {
-	_u.mutation.AppendTags(v)
-	return _u
-}
-
 // SetVersion sets the "version" field.
 func (_u *OrderUpdateOne) SetVersion(v uint64) *OrderUpdateOne {
 	_u.mutation.ResetVersion()
@@ -4943,6 +4992,21 @@ func (_u *OrderUpdateOne) AddCommissionAttributions(v ...*OrderCommissionAttribu
 	return _u.AddCommissionAttributionIDs(ids...)
 }
 
+// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
+func (_u *OrderUpdateOne) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
+func (_u *OrderUpdateOne) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagLinkIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -5315,6 +5379,27 @@ func (_u *OrderUpdateOne) RemoveCommissionAttributions(v ...*OrderCommissionAttr
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionAttributionIDs(ids...)
+}
+
+// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
+func (_u *OrderUpdateOne) ClearEnterpriseTagLinks() *OrderUpdateOne {
+	_u.mutation.ClearEnterpriseTagLinks()
+	return _u
+}
+
+// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderEnterpriseTag entities by IDs.
+func (_u *OrderUpdateOne) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderEnterpriseTag entities.
+func (_u *OrderUpdateOne) RemoveEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -5842,14 +5927,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.IsShared(); ok {
 		_spec.SetField(order.FieldIsShared, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.Tags(); ok {
-		_spec.SetField(order.FieldTags, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedTags(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, order.FieldTags, value)
-		})
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
@@ -6814,6 +6891,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.EnterpriseTagLinksTable,
+			Columns: []string{order.EnterpriseTagLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

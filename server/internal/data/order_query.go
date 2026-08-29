@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	entsql "entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/google/uuid"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -142,25 +141,6 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	}
 	if options.IsShared != nil {
 		query.Where(orderent.IsSharedEQ(*options.IsShared))
-	}
-	if len(options.Tags) > 0 {
-		if options.TagMatchMode == biz.OrderTagMatchExactAnd {
-			for _, tag := range options.Tags {
-				tag := tag
-				query.Where(entpredicate.Order(func(selector *entsql.Selector) {
-					selector.Where(sqljson.ValueContains(selector.C(orderent.FieldTags), tag))
-				}))
-			}
-		} else {
-			tags := append([]string(nil), options.Tags...)
-			query.Where(entpredicate.Order(func(selector *entsql.Selector) {
-				predicates := make([]*entsql.Predicate, 0, len(tags))
-				for _, tag := range tags {
-					predicates = append(predicates, sqljson.StringContains(selector.C(orderent.FieldTags), tag))
-				}
-				selector.Where(entsql.Or(predicates...))
-			}))
-		}
 	}
 	total, err := query.Count(ctx)
 	if err != nil {

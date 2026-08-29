@@ -157,13 +157,6 @@ enum OrderNumberFilterType {
   ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER = 3;
 }
 
-// OrderTagMatchMode 订单标签匹配方式。
-enum OrderTagMatchMode {
-  ORDER_TAG_MATCH_MODE_UNSPECIFIED = 0;
-  ORDER_TAG_MATCH_MODE_FUZZY_OR = 1;
-  ORDER_TAG_MATCH_MODE_EXACT_AND = 2;
-}
-
 // OrderFlowStatus 海运出口订单主流程状态。
 enum OrderFlowStatus {
   ORDER_FLOW_STATUS_UNSPECIFIED = 0;
@@ -294,7 +287,6 @@ message Order {
   optional string consignee_short_name = 76;
   optional string locked_at = 77;
   bool is_shared = 78;
-  repeated string tags = 79;
 }
 
 message OrderCargoMeasurement {
@@ -366,11 +358,6 @@ message OrderPersonnelOption {
   string organization_name = 4;
 }
 
-// OrderTagsInput 订单标签写入值；消息存在但 values 为空表示明确清空标签。
-message OrderTagsInput {
-  repeated string values = 1;
-}
-
 // OrderServiceSelection 订单服务类型选择。
 message OrderServiceSelection {
   string id = 1;
@@ -440,8 +427,6 @@ message ListOrdersRequest {
   string customer_service_organization_id = 32;
   string creator_id = 33;
   string creator_organization_id = 34;
-  repeated string tags = 35;
-  optional OrderTagMatchMode tag_match_mode = 36;
   optional bool is_locked = 37;
   optional bool is_shared = 38;
 }
@@ -531,7 +516,6 @@ message CreateOrderRequest {
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
-  optional OrderTagsInput tags = 57;
 }
 
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
@@ -592,7 +576,6 @@ message UpdateOrderRequest {
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
-  optional OrderTagsInput tags = 57;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

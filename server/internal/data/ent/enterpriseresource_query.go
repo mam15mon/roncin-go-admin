@@ -24,6 +24,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -32,23 +35,26 @@ import (
 // EnterpriseResourceQuery is the builder for querying EnterpriseResource entities.
 type EnterpriseResourceQuery struct {
 	config
-	ctx              *QueryContext
-	order            []enterpriseresource.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.EnterpriseResource
-	withOrganization *OrganizationQuery
-	withCreator      *UserQuery
-	withUpdater      *UserQuery
-	withAddress      *EnterpriseResourceAddressQuery
-	withRemark       *EnterpriseResourceRemarkQuery
-	withImage        *EnterpriseResourceImageQuery
-	withParty        *EnterpriseResourcePartyQuery
-	withShippingText *EnterpriseResourceShippingTextQuery
-	withTag          *EnterpriseTagQuery
-	withPartnerLinks *EnterpriseResourcePartnerQuery
-	withAssignees    *EnterpriseResourceAssigneeQuery
-	withAddressTypes *EnterpriseResourceAddressTypeQuery
-	modifiers        []func(*sql.Selector)
+	ctx                     *QueryContext
+	order                   []enterpriseresource.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.EnterpriseResource
+	withOrganization        *OrganizationQuery
+	withCreator             *UserQuery
+	withUpdater             *UserQuery
+	withAddress             *EnterpriseResourceAddressQuery
+	withRemark              *EnterpriseResourceRemarkQuery
+	withImage               *EnterpriseResourceImageQuery
+	withParty               *EnterpriseResourcePartyQuery
+	withShippingText        *EnterpriseResourceShippingTextQuery
+	withTag                 *EnterpriseTagQuery
+	withPartnerLinks        *EnterpriseResourcePartnerQuery
+	withAssignees           *EnterpriseResourceAssigneeQuery
+	withAddressTypes        *EnterpriseResourceAddressTypeQuery
+	withOrderTagLinks       *OrderEnterpriseTagQuery
+	withOrderFeeTagLinks    *OrderFeeEnterpriseTagQuery
+	withFinanceBillTagLinks *FinanceBillEnterpriseTagQuery
+	modifiers               []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -349,6 +355,72 @@ func (_q *EnterpriseResourceQuery) QueryAddressTypes() *EnterpriseResourceAddres
 	return query
 }
 
+// QueryOrderTagLinks chains the current query on the "order_tag_links" edge.
+func (_q *EnterpriseResourceQuery) QueryOrderTagLinks() *OrderEnterpriseTagQuery {
+	query := (&OrderEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, selector),
+			sqlgraph.To(orderenterprisetag.Table, orderenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.OrderTagLinksTable, enterpriseresource.OrderTagLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderFeeTagLinks chains the current query on the "order_fee_tag_links" edge.
+func (_q *EnterpriseResourceQuery) QueryOrderFeeTagLinks() *OrderFeeEnterpriseTagQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, selector),
+			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.OrderFeeTagLinksTable, enterpriseresource.OrderFeeTagLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceBillTagLinks chains the current query on the "finance_bill_tag_links" edge.
+func (_q *EnterpriseResourceQuery) QueryFinanceBillTagLinks() *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, selector),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.FinanceBillTagLinksTable, enterpriseresource.FinanceBillTagLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first EnterpriseResource entity from the query.
 // Returns a *NotFoundError when no EnterpriseResource was found.
 func (_q *EnterpriseResourceQuery) First(ctx context.Context) (*EnterpriseResource, error) {
@@ -536,23 +608,26 @@ func (_q *EnterpriseResourceQuery) Clone() *EnterpriseResourceQuery {
 		return nil
 	}
 	return &EnterpriseResourceQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]enterpriseresource.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.EnterpriseResource{}, _q.predicates...),
-		withOrganization: _q.withOrganization.Clone(),
-		withCreator:      _q.withCreator.Clone(),
-		withUpdater:      _q.withUpdater.Clone(),
-		withAddress:      _q.withAddress.Clone(),
-		withRemark:       _q.withRemark.Clone(),
-		withImage:        _q.withImage.Clone(),
-		withParty:        _q.withParty.Clone(),
-		withShippingText: _q.withShippingText.Clone(),
-		withTag:          _q.withTag.Clone(),
-		withPartnerLinks: _q.withPartnerLinks.Clone(),
-		withAssignees:    _q.withAssignees.Clone(),
-		withAddressTypes: _q.withAddressTypes.Clone(),
+		config:                  _q.config,
+		ctx:                     _q.ctx.Clone(),
+		order:                   append([]enterpriseresource.OrderOption{}, _q.order...),
+		inters:                  append([]Interceptor{}, _q.inters...),
+		predicates:              append([]predicate.EnterpriseResource{}, _q.predicates...),
+		withOrganization:        _q.withOrganization.Clone(),
+		withCreator:             _q.withCreator.Clone(),
+		withUpdater:             _q.withUpdater.Clone(),
+		withAddress:             _q.withAddress.Clone(),
+		withRemark:              _q.withRemark.Clone(),
+		withImage:               _q.withImage.Clone(),
+		withParty:               _q.withParty.Clone(),
+		withShippingText:        _q.withShippingText.Clone(),
+		withTag:                 _q.withTag.Clone(),
+		withPartnerLinks:        _q.withPartnerLinks.Clone(),
+		withAssignees:           _q.withAssignees.Clone(),
+		withAddressTypes:        _q.withAddressTypes.Clone(),
+		withOrderTagLinks:       _q.withOrderTagLinks.Clone(),
+		withOrderFeeTagLinks:    _q.withOrderFeeTagLinks.Clone(),
+		withFinanceBillTagLinks: _q.withFinanceBillTagLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -691,6 +766,39 @@ func (_q *EnterpriseResourceQuery) WithAddressTypes(opts ...func(*EnterpriseReso
 	return _q
 }
 
+// WithOrderTagLinks tells the query-builder to eager-load the nodes that are connected to
+// the "order_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EnterpriseResourceQuery) WithOrderTagLinks(opts ...func(*OrderEnterpriseTagQuery)) *EnterpriseResourceQuery {
+	query := (&OrderEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderTagLinks = query
+	return _q
+}
+
+// WithOrderFeeTagLinks tells the query-builder to eager-load the nodes that are connected to
+// the "order_fee_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EnterpriseResourceQuery) WithOrderFeeTagLinks(opts ...func(*OrderFeeEnterpriseTagQuery)) *EnterpriseResourceQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderFeeTagLinks = query
+	return _q
+}
+
+// WithFinanceBillTagLinks tells the query-builder to eager-load the nodes that are connected to
+// the "finance_bill_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EnterpriseResourceQuery) WithFinanceBillTagLinks(opts ...func(*FinanceBillEnterpriseTagQuery)) *EnterpriseResourceQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceBillTagLinks = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -769,7 +877,7 @@ func (_q *EnterpriseResourceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	var (
 		nodes       = []*EnterpriseResource{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [15]bool{
 			_q.withOrganization != nil,
 			_q.withCreator != nil,
 			_q.withUpdater != nil,
@@ -782,6 +890,9 @@ func (_q *EnterpriseResourceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 			_q.withPartnerLinks != nil,
 			_q.withAssignees != nil,
 			_q.withAddressTypes != nil,
+			_q.withOrderTagLinks != nil,
+			_q.withOrderFeeTagLinks != nil,
+			_q.withFinanceBillTagLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -882,6 +993,33 @@ func (_q *EnterpriseResourceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 			func(n *EnterpriseResource) { n.Edges.AddressTypes = []*EnterpriseResourceAddressType{} },
 			func(n *EnterpriseResource, e *EnterpriseResourceAddressType) {
 				n.Edges.AddressTypes = append(n.Edges.AddressTypes, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderTagLinks; query != nil {
+		if err := _q.loadOrderTagLinks(ctx, query, nodes,
+			func(n *EnterpriseResource) { n.Edges.OrderTagLinks = []*OrderEnterpriseTag{} },
+			func(n *EnterpriseResource, e *OrderEnterpriseTag) {
+				n.Edges.OrderTagLinks = append(n.Edges.OrderTagLinks, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderFeeTagLinks; query != nil {
+		if err := _q.loadOrderFeeTagLinks(ctx, query, nodes,
+			func(n *EnterpriseResource) { n.Edges.OrderFeeTagLinks = []*OrderFeeEnterpriseTag{} },
+			func(n *EnterpriseResource, e *OrderFeeEnterpriseTag) {
+				n.Edges.OrderFeeTagLinks = append(n.Edges.OrderFeeTagLinks, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceBillTagLinks; query != nil {
+		if err := _q.loadFinanceBillTagLinks(ctx, query, nodes,
+			func(n *EnterpriseResource) { n.Edges.FinanceBillTagLinks = []*FinanceBillEnterpriseTag{} },
+			func(n *EnterpriseResource, e *FinanceBillEnterpriseTag) {
+				n.Edges.FinanceBillTagLinks = append(n.Edges.FinanceBillTagLinks, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1229,6 +1367,96 @@ func (_q *EnterpriseResourceQuery) loadAddressTypes(ctx context.Context, query *
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "resource_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EnterpriseResourceQuery) loadOrderTagLinks(ctx context.Context, query *OrderEnterpriseTagQuery, nodes []*EnterpriseResource, init func(*EnterpriseResource), assign func(*EnterpriseResource, *OrderEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*EnterpriseResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderenterprisetag.FieldTagResourceID)
+	}
+	query.Where(predicate.OrderEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(enterpriseresource.OrderTagLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TagResourceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tag_resource_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EnterpriseResourceQuery) loadOrderFeeTagLinks(ctx context.Context, query *OrderFeeEnterpriseTagQuery, nodes []*EnterpriseResource, init func(*EnterpriseResource), assign func(*EnterpriseResource, *OrderFeeEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*EnterpriseResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeeenterprisetag.FieldTagResourceID)
+	}
+	query.Where(predicate.OrderFeeEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(enterpriseresource.OrderFeeTagLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TagResourceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tag_resource_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EnterpriseResourceQuery) loadFinanceBillTagLinks(ctx context.Context, query *FinanceBillEnterpriseTagQuery, nodes []*EnterpriseResource, init func(*EnterpriseResource), assign func(*EnterpriseResource, *FinanceBillEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*EnterpriseResource)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebillenterprisetag.FieldTagResourceID)
+	}
+	query.Where(predicate.FinanceBillEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(enterpriseresource.FinanceBillTagLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TagResourceID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tag_resource_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

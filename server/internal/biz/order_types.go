@@ -190,17 +190,6 @@ func (v OrderNumberFilterType) Valid() bool {
 	return v == OrderNumberFilterOrder || v == OrderNumberFilterMaster || v == OrderNumberFilterConsolidatedMaster
 }
 
-type OrderTagMatchMode string
-
-const (
-	OrderTagMatchFuzzyOr  OrderTagMatchMode = "fuzzy_or"
-	OrderTagMatchExactAnd OrderTagMatchMode = "exact_and"
-)
-
-func (v OrderTagMatchMode) Valid() bool {
-	return v == OrderTagMatchFuzzyOr || v == OrderTagMatchExactAnd
-}
-
 type OrderDateRange struct {
 	From        *time.Time
 	ToExclusive *time.Time
@@ -256,7 +245,6 @@ type Order struct {
 	ClosedBy              *uuid.UUID
 	LockedAt              *time.Time
 	IsShared              bool
-	Tags                  []string
 	Version               uint64
 	HasActiveException    bool
 	ActiveExceptionCount  int
@@ -329,8 +317,6 @@ type OrderListOptions struct {
 	Sales                 OrderPersonnelFilter
 	CustomerService       OrderPersonnelFilter
 	Creator               OrderPersonnelFilter
-	Tags                  []string
-	TagMatchMode          OrderTagMatchMode
 	IsLocked              *bool
 	IsShared              *bool
 }

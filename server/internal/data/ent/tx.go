@@ -62,6 +62,8 @@ type Tx struct {
 	FinanceBill *FinanceBillClient
 	// FinanceBillBatch is the client for interacting with the FinanceBillBatch builders.
 	FinanceBillBatch *FinanceBillBatchClient
+	// FinanceBillEnterpriseTag is the client for interacting with the FinanceBillEnterpriseTag builders.
+	FinanceBillEnterpriseTag *FinanceBillEnterpriseTagClient
 	// FinanceBillLine is the client for interacting with the FinanceBillLine builders.
 	FinanceBillLine *FinanceBillLineClient
 	// FinanceCashflow is the client for interacting with the FinanceCashflow builders.
@@ -118,8 +120,12 @@ type Tx struct {
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
 	OrderContainerRequest *OrderContainerRequestClient
+	// OrderEnterpriseTag is the client for interacting with the OrderEnterpriseTag builders.
+	OrderEnterpriseTag *OrderEnterpriseTagClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
+	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderMilestone is the client for interacting with the OrderMilestone builders.
@@ -332,6 +338,7 @@ func (tx *Tx) init() {
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.FinanceBill = NewFinanceBillClient(tx.config)
 	tx.FinanceBillBatch = NewFinanceBillBatchClient(tx.config)
+	tx.FinanceBillEnterpriseTag = NewFinanceBillEnterpriseTagClient(tx.config)
 	tx.FinanceBillLine = NewFinanceBillLineClient(tx.config)
 	tx.FinanceCashflow = NewFinanceCashflowClient(tx.config)
 	tx.FinanceCommission = NewFinanceCommissionClient(tx.config)
@@ -360,7 +367,9 @@ func (tx *Tx) init() {
 	tx.OrderConsolidation = NewOrderConsolidationClient(tx.config)
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
+	tx.OrderEnterpriseTag = NewOrderEnterpriseTagClient(tx.config)
 	tx.OrderFee = NewOrderFeeClient(tx.config)
+	tx.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(tx.config)
 	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)
 	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
 	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)

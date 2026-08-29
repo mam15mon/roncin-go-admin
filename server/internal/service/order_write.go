@@ -160,7 +160,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		CustomerID: customerID,
 		CarrierID:  carrierID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
-		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(), Tags: normalizedOrderTags(request.GetTags().GetValues()),
+		ShipperShortName: request.GetShipperShortName(), ConsigneeShortName: request.GetConsigneeShortName(),
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(), LoadingTerms: request.GetLoadingTerms(),
 		DeclarationCutoffAt: request.GetDeclarationCutoffAt(), ReceivedAt: request.GetReceivedAt(),
@@ -366,9 +366,6 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.ConsigneeShortName != nil {
 		output.ConsigneeShortName = request.GetConsigneeShortName()
-	}
-	if request.Tags != nil {
-		output.Tags = normalizedOrderTags(request.GetTags().GetValues())
 	}
 	output.ShippingDocuments, err = shippingDocumentsFromAPI(request.GetShippingDocuments())
 	if err != nil {

@@ -33,7 +33,6 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		SetInternalReferenceNo(input.InternalReferenceNo).
 		SetShipperShortName(input.ShipperShortName).
 		SetConsigneeShortName(input.ConsigneeShortName).
-		SetTags(input.Tags).
 		SetNillableCarrierID(input.CarrierID).
 		SetNillableBookingAgentID(input.BookingAgentID).
 		SetNillableForeignAgentID(input.ForeignAgentID).
@@ -199,7 +198,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		SetInternalReferenceNo(input.InternalReferenceNo).
 		SetShipperShortName(input.ShipperShortName).
 		SetConsigneeShortName(input.ConsigneeShortName).
-		SetTags(input.Tags).
 		SetContractNo(input.ContractNo).
 		SetCargoValue(input.CargoValue).
 		SetInsurancePremium(input.InsurancePremium).

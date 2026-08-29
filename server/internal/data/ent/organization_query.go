@@ -24,6 +24,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
@@ -39,6 +40,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -97,6 +100,9 @@ type OrganizationQuery struct {
 	withFinanceCustomSetting          *FinanceCustomSettingQuery
 	withEnterpriseResources           *EnterpriseResourceQuery
 	withEnterpriseTagGroups           *EnterpriseTagGroupQuery
+	withOrderEnterpriseTags           *OrderEnterpriseTagQuery
+	withOrderFeeEnterpriseTags        *OrderFeeEnterpriseTagQuery
+	withFinanceBillEnterpriseTags     *FinanceBillEnterpriseTagQuery
 	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -948,6 +954,72 @@ func (_q *OrganizationQuery) QueryEnterpriseTagGroups() *EnterpriseTagGroupQuery
 	return query
 }
 
+// QueryOrderEnterpriseTags chains the current query on the "order_enterprise_tags" edge.
+func (_q *OrganizationQuery) QueryOrderEnterpriseTags() *OrderEnterpriseTagQuery {
+	query := (&OrderEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderenterprisetag.Table, orderenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderEnterpriseTagsTable, organization.OrderEnterpriseTagsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderFeeEnterpriseTags chains the current query on the "order_fee_enterprise_tags" edge.
+func (_q *OrganizationQuery) QueryOrderFeeEnterpriseTags() *OrderFeeEnterpriseTagQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderFeeEnterpriseTagsTable, organization.OrderFeeEnterpriseTagsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceBillEnterpriseTags chains the current query on the "finance_bill_enterprise_tags" edge.
+func (_q *OrganizationQuery) QueryFinanceBillEnterpriseTags() *FinanceBillEnterpriseTagQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financebillenterprisetag.Table, financebillenterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceBillEnterpriseTagsTable, organization.FinanceBillEnterpriseTagsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Organization entity from the query.
 // Returns a *NotFoundError when no Organization was found.
 func (_q *OrganizationQuery) First(ctx context.Context) (*Organization, error) {
@@ -1177,6 +1249,9 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceCustomSetting:          _q.withFinanceCustomSetting.Clone(),
 		withEnterpriseResources:           _q.withEnterpriseResources.Clone(),
 		withEnterpriseTagGroups:           _q.withEnterpriseTagGroups.Clone(),
+		withOrderEnterpriseTags:           _q.withOrderEnterpriseTags.Clone(),
+		withOrderFeeEnterpriseTags:        _q.withOrderFeeEnterpriseTags.Clone(),
+		withFinanceBillEnterpriseTags:     _q.withFinanceBillEnterpriseTags.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1590,6 +1665,39 @@ func (_q *OrganizationQuery) WithEnterpriseTagGroups(opts ...func(*EnterpriseTag
 	return _q
 }
 
+// WithOrderEnterpriseTags tells the query-builder to eager-load the nodes that are connected to
+// the "order_enterprise_tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderEnterpriseTags(opts ...func(*OrderEnterpriseTagQuery)) *OrganizationQuery {
+	query := (&OrderEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderEnterpriseTags = query
+	return _q
+}
+
+// WithOrderFeeEnterpriseTags tells the query-builder to eager-load the nodes that are connected to
+// the "order_fee_enterprise_tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithOrderFeeEnterpriseTags(opts ...func(*OrderFeeEnterpriseTagQuery)) *OrganizationQuery {
+	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOrderFeeEnterpriseTags = query
+	return _q
+}
+
+// WithFinanceBillEnterpriseTags tells the query-builder to eager-load the nodes that are connected to
+// the "finance_bill_enterprise_tags" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceBillEnterpriseTags(opts ...func(*FinanceBillEnterpriseTagQuery)) *OrganizationQuery {
+	query := (&FinanceBillEnterpriseTagClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceBillEnterpriseTags = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1668,7 +1776,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [37]bool{
+		loadedTypes = [40]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1706,6 +1814,9 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceCustomSetting != nil,
 			_q.withEnterpriseResources != nil,
 			_q.withEnterpriseTagGroups != nil,
+			_q.withOrderEnterpriseTags != nil,
+			_q.withOrderFeeEnterpriseTags != nil,
+			_q.withFinanceBillEnterpriseTags != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -2017,6 +2128,33 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.EnterpriseTagGroups = []*EnterpriseTagGroup{} },
 			func(n *Organization, e *EnterpriseTagGroup) {
 				n.Edges.EnterpriseTagGroups = append(n.Edges.EnterpriseTagGroups, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderEnterpriseTags; query != nil {
+		if err := _q.loadOrderEnterpriseTags(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderEnterpriseTags = []*OrderEnterpriseTag{} },
+			func(n *Organization, e *OrderEnterpriseTag) {
+				n.Edges.OrderEnterpriseTags = append(n.Edges.OrderEnterpriseTags, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOrderFeeEnterpriseTags; query != nil {
+		if err := _q.loadOrderFeeEnterpriseTags(ctx, query, nodes,
+			func(n *Organization) { n.Edges.OrderFeeEnterpriseTags = []*OrderFeeEnterpriseTag{} },
+			func(n *Organization, e *OrderFeeEnterpriseTag) {
+				n.Edges.OrderFeeEnterpriseTags = append(n.Edges.OrderFeeEnterpriseTags, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceBillEnterpriseTags; query != nil {
+		if err := _q.loadFinanceBillEnterpriseTags(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceBillEnterpriseTags = []*FinanceBillEnterpriseTag{} },
+			func(n *Organization, e *FinanceBillEnterpriseTag) {
+				n.Edges.FinanceBillEnterpriseTags = append(n.Edges.FinanceBillEnterpriseTags, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -3124,6 +3262,96 @@ func (_q *OrganizationQuery) loadEnterpriseTagGroups(ctx context.Context, query 
 	}
 	query.Where(predicate.EnterpriseTagGroup(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.EnterpriseTagGroupsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderEnterpriseTags(ctx context.Context, query *OrderEnterpriseTagQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderenterprisetag.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderEnterpriseTagsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadOrderFeeEnterpriseTags(ctx context.Context, query *OrderFeeEnterpriseTagQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderFeeEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeeenterprisetag.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderFeeEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.OrderFeeEnterpriseTagsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceBillEnterpriseTags(ctx context.Context, query *FinanceBillEnterpriseTagQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceBillEnterpriseTag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financebillenterprisetag.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceBillEnterpriseTag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceBillEnterpriseTagsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

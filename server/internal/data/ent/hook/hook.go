@@ -309,6 +309,18 @@ func (f FinanceBillBatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillBatchMutation", m)
 }
 
+// The FinanceBillEnterpriseTagFunc type is an adapter to allow the use of ordinary
+// function as FinanceBillEnterpriseTag mutator.
+type FinanceBillEnterpriseTagFunc func(context.Context, *ent.FinanceBillEnterpriseTagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceBillEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceBillEnterpriseTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillEnterpriseTagMutation", m)
+}
+
 // The FinanceBillLineFunc type is an adapter to allow the use of ordinary
 // function as FinanceBillLine mutator.
 type FinanceBillLineFunc func(context.Context, *ent.FinanceBillLineMutation) (ent.Value, error)
@@ -645,6 +657,18 @@ func (f OrderContainerRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderContainerRequestMutation", m)
 }
 
+// The OrderEnterpriseTagFunc type is an adapter to allow the use of ordinary
+// function as OrderEnterpriseTag mutator.
+type OrderEnterpriseTagFunc func(context.Context, *ent.OrderEnterpriseTagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderEnterpriseTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderEnterpriseTagMutation", m)
+}
+
 // The OrderFeeFunc type is an adapter to allow the use of ordinary
 // function as OrderFee mutator.
 type OrderFeeFunc func(context.Context, *ent.OrderFeeMutation) (ent.Value, error)
@@ -655,6 +679,18 @@ func (f OrderFeeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeMutation", m)
+}
+
+// The OrderFeeEnterpriseTagFunc type is an adapter to allow the use of ordinary
+// function as OrderFeeEnterpriseTag mutator.
+type OrderFeeEnterpriseTagFunc func(context.Context, *ent.OrderFeeEnterpriseTagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderFeeEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderFeeEnterpriseTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeEnterpriseTagMutation", m)
 }
 
 // The OrderLifecycleEventFunc type is an adapter to allow the use of ordinary

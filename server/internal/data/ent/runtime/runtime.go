@@ -31,6 +31,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -59,7 +60,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -2019,6 +2022,27 @@ func init() {
 	financebillbatchDescID := financebillbatchMixinFields0[0].Descriptor()
 	// financebillbatch.DefaultID holds the default value on creation for the id field.
 	financebillbatch.DefaultID = financebillbatchDescID.Default.(func() uuid.UUID)
+	financebillenterprisetagMixin := schema.FinanceBillEnterpriseTag{}.Mixin()
+	financebillenterprisetagMixinFields0 := financebillenterprisetagMixin[0].Fields()
+	_ = financebillenterprisetagMixinFields0
+	financebillenterprisetagMixinFields1 := financebillenterprisetagMixin[1].Fields()
+	_ = financebillenterprisetagMixinFields1
+	financebillenterprisetagFields := schema.FinanceBillEnterpriseTag{}.Fields()
+	_ = financebillenterprisetagFields
+	// financebillenterprisetagDescCreatedAt is the schema descriptor for created_at field.
+	financebillenterprisetagDescCreatedAt := financebillenterprisetagMixinFields1[0].Descriptor()
+	// financebillenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financebillenterprisetag.DefaultCreatedAt = financebillenterprisetagDescCreatedAt.Default.(func() time.Time)
+	// financebillenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
+	financebillenterprisetagDescUpdatedAt := financebillenterprisetagMixinFields1[1].Descriptor()
+	// financebillenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financebillenterprisetag.DefaultUpdatedAt = financebillenterprisetagDescUpdatedAt.Default.(func() time.Time)
+	// financebillenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financebillenterprisetag.UpdateDefaultUpdatedAt = financebillenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financebillenterprisetagDescID is the schema descriptor for id field.
+	financebillenterprisetagDescID := financebillenterprisetagMixinFields0[0].Descriptor()
+	// financebillenterprisetag.DefaultID holds the default value on creation for the id field.
+	financebillenterprisetag.DefaultID = financebillenterprisetagDescID.Default.(func() uuid.UUID)
 	financebilllineMixin := schema.FinanceBillLine{}.Mixin()
 	financebilllineMixinFields0 := financebilllineMixin[0].Fields()
 	_ = financebilllineMixinFields0
@@ -4051,80 +4075,76 @@ func init() {
 	orderDescIsShared := orderFields[41].Descriptor()
 	// order.DefaultIsShared holds the default value on creation for the is_shared field.
 	order.DefaultIsShared = orderDescIsShared.Default.(bool)
-	// orderDescTags is the schema descriptor for tags field.
-	orderDescTags := orderFields[42].Descriptor()
-	// order.DefaultTags holds the default value on creation for the tags field.
-	order.DefaultTags = orderDescTags.Default.([]string)
 	// orderDescVersion is the schema descriptor for version field.
-	orderDescVersion := orderFields[43].Descriptor()
+	orderDescVersion := orderFields[42].Descriptor()
 	// order.DefaultVersion holds the default value on creation for the version field.
 	order.DefaultVersion = orderDescVersion.Default.(uint64)
 	// orderDescVesselVoyage is the schema descriptor for vessel_voyage field.
-	orderDescVesselVoyage := orderFields[48].Descriptor()
+	orderDescVesselVoyage := orderFields[47].Descriptor()
 	// order.VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	order.VesselVoyageValidator = orderDescVesselVoyage.Validators[0].(func(string) error)
 	// orderDescEtd is the schema descriptor for etd field.
-	orderDescEtd := orderFields[49].Descriptor()
+	orderDescEtd := orderFields[48].Descriptor()
 	// order.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
 	order.EtdValidator = orderDescEtd.Validators[0].(func(string) error)
 	// orderDescEta is the schema descriptor for eta field.
-	orderDescEta := orderFields[50].Descriptor()
+	orderDescEta := orderFields[49].Descriptor()
 	// order.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
 	order.EtaValidator = orderDescEta.Validators[0].(func(string) error)
 	// orderDescSiCutoff is the schema descriptor for si_cutoff field.
-	orderDescSiCutoff := orderFields[51].Descriptor()
+	orderDescSiCutoff := orderFields[50].Descriptor()
 	// order.SiCutoffValidator is a validator for the "si_cutoff" field. It is called by the builders before save.
 	order.SiCutoffValidator = orderDescSiCutoff.Validators[0].(func(string) error)
 	// orderDescDocCutoff is the schema descriptor for doc_cutoff field.
-	orderDescDocCutoff := orderFields[52].Descriptor()
+	orderDescDocCutoff := orderFields[51].Descriptor()
 	// order.DocCutoffValidator is a validator for the "doc_cutoff" field. It is called by the builders before save.
 	order.DocCutoffValidator = orderDescDocCutoff.Validators[0].(func(string) error)
 	// orderDescCustomsCutoff is the schema descriptor for customs_cutoff field.
-	orderDescCustomsCutoff := orderFields[53].Descriptor()
+	orderDescCustomsCutoff := orderFields[52].Descriptor()
 	// order.CustomsCutoffValidator is a validator for the "customs_cutoff" field. It is called by the builders before save.
 	order.CustomsCutoffValidator = orderDescCustomsCutoff.Validators[0].(func(string) error)
 	// orderDescVgmCutoff is the schema descriptor for vgm_cutoff field.
-	orderDescVgmCutoff := orderFields[54].Descriptor()
+	orderDescVgmCutoff := orderFields[53].Descriptor()
 	// order.VgmCutoffValidator is a validator for the "vgm_cutoff" field. It is called by the builders before save.
 	order.VgmCutoffValidator = orderDescVgmCutoff.Validators[0].(func(string) error)
 	// orderDescGoodsDescription is the schema descriptor for goods_description field.
-	orderDescGoodsDescription := orderFields[55].Descriptor()
+	orderDescGoodsDescription := orderFields[54].Descriptor()
 	// order.GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
 	order.GoodsDescriptionValidator = orderDescGoodsDescription.Validators[0].(func(string) error)
 	// orderDescTotalGrossWeightKg is the schema descriptor for total_gross_weight_kg field.
-	orderDescTotalGrossWeightKg := orderFields[57].Descriptor()
+	orderDescTotalGrossWeightKg := orderFields[56].Descriptor()
 	// order.TotalGrossWeightKgValidator is a validator for the "total_gross_weight_kg" field. It is called by the builders before save.
 	order.TotalGrossWeightKgValidator = orderDescTotalGrossWeightKg.Validators[0].(func(float64) error)
 	// orderDescTotalVolumeCbm is the schema descriptor for total_volume_cbm field.
-	orderDescTotalVolumeCbm := orderFields[58].Descriptor()
+	orderDescTotalVolumeCbm := orderFields[57].Descriptor()
 	// order.TotalVolumeCbmValidator is a validator for the "total_volume_cbm" field. It is called by the builders before save.
 	order.TotalVolumeCbmValidator = orderDescTotalVolumeCbm.Validators[0].(func(float64) error)
 	// orderDescTotalPackageUnit is the schema descriptor for total_package_unit field.
-	orderDescTotalPackageUnit := orderFields[59].Descriptor()
+	orderDescTotalPackageUnit := orderFields[58].Descriptor()
 	// order.TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
 	order.TotalPackageUnitValidator = orderDescTotalPackageUnit.Validators[0].(func(string) error)
 	// orderDescSpecialRequirements is the schema descriptor for special_requirements field.
-	orderDescSpecialRequirements := orderFields[60].Descriptor()
+	orderDescSpecialRequirements := orderFields[59].Descriptor()
 	// order.SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
 	order.SpecialRequirementsValidator = orderDescSpecialRequirements.Validators[0].(func(string) error)
 	// orderDescOrderDate is the schema descriptor for order_date field.
-	orderDescOrderDate := orderFields[61].Descriptor()
+	orderDescOrderDate := orderFields[60].Descriptor()
 	// order.OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
 	order.OrderDateValidator = orderDescOrderDate.Validators[0].(func(string) error)
 	// orderDescNotes is the schema descriptor for notes field.
-	orderDescNotes := orderFields[62].Descriptor()
+	orderDescNotes := orderFields[61].Descriptor()
 	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	order.NotesValidator = orderDescNotes.Validators[0].(func(string) error)
 	// orderDescBookingNotes is the schema descriptor for booking_notes field.
-	orderDescBookingNotes := orderFields[63].Descriptor()
+	orderDescBookingNotes := orderFields[62].Descriptor()
 	// order.BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
 	order.BookingNotesValidator = orderDescBookingNotes.Validators[0].(func(string) error)
 	// orderDescAllocationNotes is the schema descriptor for allocation_notes field.
-	orderDescAllocationNotes := orderFields[64].Descriptor()
+	orderDescAllocationNotes := orderFields[63].Descriptor()
 	// order.AllocationNotesValidator is a validator for the "allocation_notes" field. It is called by the builders before save.
 	order.AllocationNotesValidator = orderDescAllocationNotes.Validators[0].(func(string) error)
 	// orderDescOperationNotes is the schema descriptor for operation_notes field.
-	orderDescOperationNotes := orderFields[65].Descriptor()
+	orderDescOperationNotes := orderFields[64].Descriptor()
 	// order.OperationNotesValidator is a validator for the "operation_notes" field. It is called by the builders before save.
 	order.OperationNotesValidator = orderDescOperationNotes.Validators[0].(func(string) error)
 	// orderDescID is the schema descriptor for id field.
@@ -4539,6 +4559,27 @@ func init() {
 	ordercontainerrequestDescID := ordercontainerrequestMixinFields0[0].Descriptor()
 	// ordercontainerrequest.DefaultID holds the default value on creation for the id field.
 	ordercontainerrequest.DefaultID = ordercontainerrequestDescID.Default.(func() uuid.UUID)
+	orderenterprisetagMixin := schema.OrderEnterpriseTag{}.Mixin()
+	orderenterprisetagMixinFields0 := orderenterprisetagMixin[0].Fields()
+	_ = orderenterprisetagMixinFields0
+	orderenterprisetagMixinFields1 := orderenterprisetagMixin[1].Fields()
+	_ = orderenterprisetagMixinFields1
+	orderenterprisetagFields := schema.OrderEnterpriseTag{}.Fields()
+	_ = orderenterprisetagFields
+	// orderenterprisetagDescCreatedAt is the schema descriptor for created_at field.
+	orderenterprisetagDescCreatedAt := orderenterprisetagMixinFields1[0].Descriptor()
+	// orderenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderenterprisetag.DefaultCreatedAt = orderenterprisetagDescCreatedAt.Default.(func() time.Time)
+	// orderenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
+	orderenterprisetagDescUpdatedAt := orderenterprisetagMixinFields1[1].Descriptor()
+	// orderenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderenterprisetag.DefaultUpdatedAt = orderenterprisetagDescUpdatedAt.Default.(func() time.Time)
+	// orderenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderenterprisetag.UpdateDefaultUpdatedAt = orderenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderenterprisetagDescID is the schema descriptor for id field.
+	orderenterprisetagDescID := orderenterprisetagMixinFields0[0].Descriptor()
+	// orderenterprisetag.DefaultID holds the default value on creation for the id field.
+	orderenterprisetag.DefaultID = orderenterprisetagDescID.Default.(func() uuid.UUID)
 	orderfeeMixin := schema.OrderFee{}.Mixin()
 	orderfeeMixinFields0 := orderfeeMixin[0].Fields()
 	_ = orderfeeMixinFields0
@@ -4732,6 +4773,27 @@ func init() {
 	orderfeeDescID := orderfeeMixinFields0[0].Descriptor()
 	// orderfee.DefaultID holds the default value on creation for the id field.
 	orderfee.DefaultID = orderfeeDescID.Default.(func() uuid.UUID)
+	orderfeeenterprisetagMixin := schema.OrderFeeEnterpriseTag{}.Mixin()
+	orderfeeenterprisetagMixinFields0 := orderfeeenterprisetagMixin[0].Fields()
+	_ = orderfeeenterprisetagMixinFields0
+	orderfeeenterprisetagMixinFields1 := orderfeeenterprisetagMixin[1].Fields()
+	_ = orderfeeenterprisetagMixinFields1
+	orderfeeenterprisetagFields := schema.OrderFeeEnterpriseTag{}.Fields()
+	_ = orderfeeenterprisetagFields
+	// orderfeeenterprisetagDescCreatedAt is the schema descriptor for created_at field.
+	orderfeeenterprisetagDescCreatedAt := orderfeeenterprisetagMixinFields1[0].Descriptor()
+	// orderfeeenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderfeeenterprisetag.DefaultCreatedAt = orderfeeenterprisetagDescCreatedAt.Default.(func() time.Time)
+	// orderfeeenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
+	orderfeeenterprisetagDescUpdatedAt := orderfeeenterprisetagMixinFields1[1].Descriptor()
+	// orderfeeenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderfeeenterprisetag.DefaultUpdatedAt = orderfeeenterprisetagDescUpdatedAt.Default.(func() time.Time)
+	// orderfeeenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderfeeenterprisetag.UpdateDefaultUpdatedAt = orderfeeenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderfeeenterprisetagDescID is the schema descriptor for id field.
+	orderfeeenterprisetagDescID := orderfeeenterprisetagMixinFields0[0].Descriptor()
+	// orderfeeenterprisetag.DefaultID holds the default value on creation for the id field.
+	orderfeeenterprisetag.DefaultID = orderfeeenterprisetagDescID.Default.(func() uuid.UUID)
 	orderlifecycleeventMixin := schema.OrderLifecycleEvent{}.Mixin()
 	orderlifecycleeventMixinFields0 := orderlifecycleeventMixin[0].Fields()
 	_ = orderlifecycleeventMixinFields0

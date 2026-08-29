@@ -1357,6 +1357,75 @@ func HasEnterpriseTagGroupsWith(preds ...predicate.EnterpriseTagGroup) predicate
 	})
 }
 
+// HasOrderEnterpriseTags applies the HasEdge predicate on the "order_enterprise_tags" edge.
+func HasOrderEnterpriseTags() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderEnterpriseTagsTable, OrderEnterpriseTagsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderEnterpriseTagsWith applies the HasEdge predicate on the "order_enterprise_tags" edge with a given conditions (other predicates).
+func HasOrderEnterpriseTagsWith(preds ...predicate.OrderEnterpriseTag) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderEnterpriseTagsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderFeeEnterpriseTags applies the HasEdge predicate on the "order_fee_enterprise_tags" edge.
+func HasOrderFeeEnterpriseTags() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeEnterpriseTagsTable, OrderFeeEnterpriseTagsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderFeeEnterpriseTagsWith applies the HasEdge predicate on the "order_fee_enterprise_tags" edge with a given conditions (other predicates).
+func HasOrderFeeEnterpriseTagsWith(preds ...predicate.OrderFeeEnterpriseTag) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newOrderFeeEnterpriseTagsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFinanceBillEnterpriseTags applies the HasEdge predicate on the "finance_bill_enterprise_tags" edge.
+func HasFinanceBillEnterpriseTags() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillEnterpriseTagsTable, FinanceBillEnterpriseTagsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceBillEnterpriseTagsWith applies the HasEdge predicate on the "finance_bill_enterprise_tags" edge with a given conditions (other predicates).
+func HasFinanceBillEnterpriseTagsWith(preds ...predicate.FinanceBillEnterpriseTag) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFinanceBillEnterpriseTagsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

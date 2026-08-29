@@ -47,6 +47,9 @@ func (EnterpriseResource) Edges() []ent.Edge {
 		edge.To("partner_links", EnterpriseResourcePartner.Type),
 		edge.To("assignees", EnterpriseResourceAssignee.Type),
 		edge.To("address_types", EnterpriseResourceAddressType.Type),
+		edge.To("order_tag_links", OrderEnterpriseTag.Type),
+		edge.To("order_fee_tag_links", OrderFeeEnterpriseTag.Type),
+		edge.To("finance_bill_tag_links", FinanceBillEnterpriseTag.Type),
 	}
 }
 

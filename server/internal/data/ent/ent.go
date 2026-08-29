@@ -37,6 +37,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -65,7 +66,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -179,6 +182,7 @@ func checkColumn(t, c string) error {
 			feesetting.Table:                     feesetting.ValidColumn,
 			financebill.Table:                    financebill.ValidColumn,
 			financebillbatch.Table:               financebillbatch.ValidColumn,
+			financebillenterprisetag.Table:       financebillenterprisetag.ValidColumn,
 			financebillline.Table:                financebillline.ValidColumn,
 			financecashflow.Table:                financecashflow.ValidColumn,
 			financecommission.Table:              financecommission.ValidColumn,
@@ -207,7 +211,9 @@ func checkColumn(t, c string) error {
 			orderconsolidation.Table:             orderconsolidation.ValidColumn,
 			ordercontainer.Table:                 ordercontainer.ValidColumn,
 			ordercontainerrequest.Table:          ordercontainerrequest.ValidColumn,
+			orderenterprisetag.Table:             orderenterprisetag.ValidColumn,
 			orderfee.Table:                       orderfee.ValidColumn,
+			orderfeeenterprisetag.Table:          orderfeeenterprisetag.ValidColumn,
 			orderlifecycleevent.Table:            orderlifecycleevent.ValidColumn,
 			ordermilestone.Table:                 ordermilestone.ValidColumn,
 			orderpersonnel.Table:                 orderpersonnel.ValidColumn,

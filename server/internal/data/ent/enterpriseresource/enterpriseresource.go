@@ -61,6 +61,12 @@ const (
 	EdgeAssignees = "assignees"
 	// EdgeAddressTypes holds the string denoting the address_types edge name in mutations.
 	EdgeAddressTypes = "address_types"
+	// EdgeOrderTagLinks holds the string denoting the order_tag_links edge name in mutations.
+	EdgeOrderTagLinks = "order_tag_links"
+	// EdgeOrderFeeTagLinks holds the string denoting the order_fee_tag_links edge name in mutations.
+	EdgeOrderFeeTagLinks = "order_fee_tag_links"
+	// EdgeFinanceBillTagLinks holds the string denoting the finance_bill_tag_links edge name in mutations.
+	EdgeFinanceBillTagLinks = "finance_bill_tag_links"
 	// Table holds the table name of the enterpriseresource in the database.
 	Table = "enterprise_resources"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -147,6 +153,27 @@ const (
 	AddressTypesInverseTable = "enterprise_resource_address_types"
 	// AddressTypesColumn is the table column denoting the address_types relation/edge.
 	AddressTypesColumn = "resource_id"
+	// OrderTagLinksTable is the table that holds the order_tag_links relation/edge.
+	OrderTagLinksTable = "order_enterprise_tags"
+	// OrderTagLinksInverseTable is the table name for the OrderEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "orderenterprisetag" package.
+	OrderTagLinksInverseTable = "order_enterprise_tags"
+	// OrderTagLinksColumn is the table column denoting the order_tag_links relation/edge.
+	OrderTagLinksColumn = "tag_resource_id"
+	// OrderFeeTagLinksTable is the table that holds the order_fee_tag_links relation/edge.
+	OrderFeeTagLinksTable = "order_fee_enterprise_tags"
+	// OrderFeeTagLinksInverseTable is the table name for the OrderFeeEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeeenterprisetag" package.
+	OrderFeeTagLinksInverseTable = "order_fee_enterprise_tags"
+	// OrderFeeTagLinksColumn is the table column denoting the order_fee_tag_links relation/edge.
+	OrderFeeTagLinksColumn = "tag_resource_id"
+	// FinanceBillTagLinksTable is the table that holds the finance_bill_tag_links relation/edge.
+	FinanceBillTagLinksTable = "finance_bill_enterprise_tags"
+	// FinanceBillTagLinksInverseTable is the table name for the FinanceBillEnterpriseTag entity.
+	// It exists in this package in order to avoid circular dependency with the "financebillenterprisetag" package.
+	FinanceBillTagLinksInverseTable = "finance_bill_enterprise_tags"
+	// FinanceBillTagLinksColumn is the table column denoting the finance_bill_tag_links relation/edge.
+	FinanceBillTagLinksColumn = "tag_resource_id"
 )
 
 // Columns holds all SQL columns for enterpriseresource fields.
@@ -394,6 +421,48 @@ func ByAddressTypes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAddressTypesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOrderTagLinksCount orders the results by order_tag_links count.
+func ByOrderTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderTagLinksStep(), opts...)
+	}
+}
+
+// ByOrderTagLinks orders the results by order_tag_links terms.
+func ByOrderTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderFeeTagLinksCount orders the results by order_fee_tag_links count.
+func ByOrderFeeTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderFeeTagLinksStep(), opts...)
+	}
+}
+
+// ByOrderFeeTagLinks orders the results by order_fee_tag_links terms.
+func ByOrderFeeTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderFeeTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinanceBillTagLinksCount orders the results by finance_bill_tag_links count.
+func ByFinanceBillTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceBillTagLinksStep(), opts...)
+	}
+}
+
+// ByFinanceBillTagLinks orders the results by finance_bill_tag_links terms.
+func ByFinanceBillTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceBillTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -476,5 +545,26 @@ func newAddressTypesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AddressTypesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AddressTypesTable, AddressTypesColumn),
+	)
+}
+func newOrderTagLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderTagLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderTagLinksTable, OrderTagLinksColumn),
+	)
+}
+func newOrderFeeTagLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderFeeTagLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeTagLinksTable, OrderFeeTagLinksColumn),
+	)
+}
+func newFinanceBillTagLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceBillTagLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillTagLinksTable, FinanceBillTagLinksColumn),
 	)
 }
