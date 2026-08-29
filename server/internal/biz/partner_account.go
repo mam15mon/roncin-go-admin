@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -45,17 +44,16 @@ type PartnerAccount struct {
 
 type PartnerAccountRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID, *bool) ([]*PartnerAccount, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerAccount) (*PartnerAccount, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerAccount) (*PartnerAccount, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerAccount, *AuditEvent) (*PartnerAccount, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerAccount, *AuditEvent) (*PartnerAccount, error)
 }
 
 type PartnerAccountUsecase struct {
-	repo  PartnerAccountRepo
-	audit AuditRepo
+	repo PartnerAccountRepo
 }
 
-func NewPartnerAccountUsecase(repo PartnerAccountRepo, audit AuditRepo) *PartnerAccountUsecase {
-	return &PartnerAccountUsecase{repo: repo, audit: audit}
+func NewPartnerAccountUsecase(repo PartnerAccountRepo) *PartnerAccountUsecase {
+	return &PartnerAccountUsecase{repo: repo}
 }
 
 func (uc *PartnerAccountUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, enabled *bool) ([]*PartnerAccount, error) {
@@ -70,14 +68,7 @@ func (uc *PartnerAccountUsecase) Create(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, partnerID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.account.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"account.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
-		return nil, fmt.Errorf("write partner account create audit: %w", err)
-	}
-	return created, nil
+	return uc.repo.Create(ctx, organizationID, partnerID, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.account.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String()}})
 }
 
 func (uc *PartnerAccountUsecase) Update(ctx context.Context, organizationID, actorID, partnerID, id uuid.UUID, input *PartnerAccount) (*PartnerAccount, error) {
@@ -88,14 +79,7 @@ func (uc *PartnerAccountUsecase) Update(ctx context.Context, organizationID, act
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, partnerID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.account.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"account.id": updated.ID.String(), "partner.id": partnerID.String()}}); err != nil {
-		return nil, fmt.Errorf("write partner account update audit: %w", err)
-	}
-	return updated, nil
+	return uc.repo.Update(ctx, organizationID, partnerID, id, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.account.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"account.id": id.String(), "partner.id": partnerID.String()}})
 }
 
 func normalizePartnerAccount(input *PartnerAccount) (*PartnerAccount, error) {

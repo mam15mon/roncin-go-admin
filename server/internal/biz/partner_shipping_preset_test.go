@@ -10,30 +10,32 @@ import (
 type partnerShippingPresetRepoStub struct {
 	created *PartnerShippingPreset
 	updated *PartnerShippingPreset
+	audit   *AuditEvent
 }
 
 func (stub *partnerShippingPresetRepoStub) List(context.Context, uuid.UUID, uuid.UUID, PartnerShippingPresetListOptions) ([]*PartnerShippingPreset, error) {
 	return nil, nil
 }
 
-func (stub *partnerShippingPresetRepoStub) Create(_ context.Context, _ uuid.UUID, partnerID uuid.UUID, input *PartnerShippingPreset) (*PartnerShippingPreset, error) {
+func (stub *partnerShippingPresetRepoStub) Create(_ context.Context, _ uuid.UUID, partnerID uuid.UUID, input *PartnerShippingPreset, audit *AuditEvent) (*PartnerShippingPreset, error) {
 	stub.created = input
 	input.ID = uuid.New()
 	input.PartnerID = partnerID
+	stub.audit = audit
 	return input, nil
 }
 
-func (stub *partnerShippingPresetRepoStub) Update(_ context.Context, _ uuid.UUID, partnerID, id uuid.UUID, input *PartnerShippingPreset) (*PartnerShippingPreset, error) {
+func (stub *partnerShippingPresetRepoStub) Update(_ context.Context, _ uuid.UUID, partnerID, id uuid.UUID, input *PartnerShippingPreset, audit *AuditEvent) (*PartnerShippingPreset, error) {
 	stub.updated = input
 	input.ID = id
 	input.PartnerID = partnerID
+	stub.audit = audit
 	return input, nil
 }
 
 func TestPartnerShippingPresetNormalizesPartyPayload(t *testing.T) {
 	repo := &partnerShippingPresetRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewPartnerShippingPresetUsecase(repo, audit)
+	usecase := NewPartnerShippingPresetUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	partnerID := uuid.New()
@@ -52,13 +54,13 @@ func TestPartnerShippingPresetNormalizesPartyPayload(t *testing.T) {
 	if created.Title != "默认发货人" || created.Party.CompanyName != "ACME LOGISTICS" || created.Party.CountryCode != "CN" {
 		t.Fatalf("normalized preset = %#v", created)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "partner.shipping_preset.create" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.audit == nil || repo.audit.Action != "partner.shipping_preset.create" {
+		t.Fatalf("audit event = %#v", repo.audit)
 	}
 }
 
 func TestPartnerShippingPresetValidatesPayloadTypeAndHSCode(t *testing.T) {
-	usecase := NewPartnerShippingPresetUsecase(&partnerShippingPresetRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerShippingPresetUsecase(&partnerShippingPresetRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	partnerID := uuid.New()

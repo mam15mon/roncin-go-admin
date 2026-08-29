@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -49,17 +48,16 @@ type PartnerContract struct {
 type PartnerContractRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID, *PartnerContractStatus) ([]*PartnerContract, error)
 	Get(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerContract, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerContract) (*PartnerContract, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, PartnerContractStatus, *PartnerContract) (*PartnerContract, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerContract, *AuditEvent) (*PartnerContract, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, PartnerContractStatus, *PartnerContract, *AuditEvent) (*PartnerContract, error)
 }
 
 type PartnerContractUsecase struct {
-	repo  PartnerContractRepo
-	audit AuditRepo
+	repo PartnerContractRepo
 }
 
-func NewPartnerContractUsecase(repo PartnerContractRepo, audit AuditRepo) *PartnerContractUsecase {
-	return &PartnerContractUsecase{repo: repo, audit: audit}
+func NewPartnerContractUsecase(repo PartnerContractRepo) *PartnerContractUsecase {
+	return &PartnerContractUsecase{repo: repo}
 }
 
 func (uc *PartnerContractUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, status *PartnerContractStatus) ([]*PartnerContract, error) {
@@ -77,14 +75,7 @@ func (uc *PartnerContractUsecase) Create(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, partnerID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"contract.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
-		return nil, fmt.Errorf("write partner contract create audit: %w", err)
-	}
-	return created, nil
+	return uc.repo.Create(ctx, organizationID, partnerID, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String()}})
 }
 
 func (uc *PartnerContractUsecase) Update(ctx context.Context, organizationID, actorID, partnerID, id uuid.UUID, input *PartnerContract) (*PartnerContract, error) {
@@ -99,14 +90,7 @@ func (uc *PartnerContractUsecase) Update(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, partnerID, id, existing.Status, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"contract.id": updated.ID.String(), "partner.id": partnerID.String()}}); err != nil {
-		return nil, fmt.Errorf("write partner contract update audit: %w", err)
-	}
-	return updated, nil
+	return uc.repo.Update(ctx, organizationID, partnerID, id, existing.Status, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.contract.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"contract.id": id.String(), "partner.id": partnerID.String()}})
 }
 
 func normalizePartnerContract(input *PartnerContract, creating bool, previous *PartnerContractStatus) (*PartnerContract, error) {

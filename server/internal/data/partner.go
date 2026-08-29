@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -191,7 +192,7 @@ func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partner
 	return &biz.PartnerAuditLogList{Items: result, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
-func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner) (*biz.Partner, error) {
+func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.Partner, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -215,13 +216,19 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.ResourceID = created.ID.String()
+	audit.Details["partner.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, created.ID)
 }
 
-func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.Partner) (*biz.PartnerUpdateResult, error) {
+func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.PartnerUpdateResult, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -285,6 +292,11 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["from_roles"] = partnerRolesAuditValue(previousRoles)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -295,7 +307,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 	return &biz.PartnerUpdateResult{Partner: updated, PreviousRoles: previousRoles}, nil
 }
 
-func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate) (*biz.PartnerBlacklistResult, error) {
+func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate, audit *biz.AuditEvent) (*biz.PartnerBlacklistResult, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -329,6 +341,11 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["previously_blacklisted"] = strconv.FormatBool(previouslyBlacklisted)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -339,7 +356,7 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 	return &biz.PartnerBlacklistResult{Partner: updated, PreviouslyBlacklisted: previouslyBlacklisted}, nil
 }
 
-func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner) (*biz.PartnerImportResult, error) {
+func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner, audit *biz.AuditEvent) (*biz.PartnerImportResult, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -393,6 +410,12 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 		}
 		result.UpdatedCount++
 	}
+	audit.Details["created_count"] = strconv.Itoa(result.CreatedCount)
+	audit.Details["updated_count"] = strconv.Itoa(result.UpdatedCount)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -435,6 +458,14 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 		return err
 	}
 	return replacePartnerAssignments(ctx, tx, organizationID, existing.ID, editablePartnerAssignments(input.Assignments))
+}
+
+func partnerRolesAuditValue(roles []*biz.PartnerRole) string {
+	values := make([]string, 0, len(roles))
+	for _, role := range roles {
+		values = append(values, string(role.Type)+":"+strconv.FormatBool(role.Enabled))
+	}
+	return strings.Join(values, ",")
 }
 
 func editablePartnerAssignments(assignments []*biz.PartnerAssignment) []*biz.PartnerAssignment {

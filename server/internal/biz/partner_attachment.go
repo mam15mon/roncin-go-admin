@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode"
@@ -36,16 +35,15 @@ type PartnerAttachment struct {
 
 type PartnerAttachmentRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID) ([]*PartnerAttachment, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerAttachment) (*PartnerAttachment, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerAttachment, *AuditEvent) (*PartnerAttachment, error)
 }
 
 type PartnerAttachmentUsecase struct {
-	repo  PartnerAttachmentRepo
-	audit AuditRepo
+	repo PartnerAttachmentRepo
 }
 
-func NewPartnerAttachmentUsecase(repo PartnerAttachmentRepo, audit AuditRepo) *PartnerAttachmentUsecase {
-	return &PartnerAttachmentUsecase{repo: repo, audit: audit}
+func NewPartnerAttachmentUsecase(repo PartnerAttachmentRepo) *PartnerAttachmentUsecase {
+	return &PartnerAttachmentUsecase{repo: repo}
 }
 
 func (uc *PartnerAttachmentUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID) ([]*PartnerAttachment, error) {
@@ -63,14 +61,7 @@ func (uc *PartnerAttachmentUsecase) Register(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, actorID, partnerID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.attachment.register", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"attachment.id": created.ID.String(), "partner.id": partnerID.String()}}); err != nil {
-		return nil, fmt.Errorf("write partner attachment register audit: %w", err)
-	}
-	return created, nil
+	return uc.repo.Create(ctx, organizationID, actorID, partnerID, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.attachment.register", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String()}})
 }
 
 func normalizePartnerAttachment(input *PartnerAttachment, actorID uuid.UUID) (*PartnerAttachment, error) {

@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/go-kratos/kratos/v3/errors"
@@ -76,17 +75,16 @@ type PartnerSettlementRule struct {
 
 type PartnerSettlementRuleRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID, PartnerRoleType) ([]*PartnerSettlementRule, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, PartnerRoleType, *PartnerSettlementRule) (*PartnerSettlementRule, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, PartnerRoleType, uuid.UUID, *PartnerSettlementRule) (*PartnerSettlementRule, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, PartnerRoleType, *PartnerSettlementRule, *AuditEvent) (*PartnerSettlementRule, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, PartnerRoleType, uuid.UUID, *PartnerSettlementRule, *AuditEvent) (*PartnerSettlementRule, error)
 }
 
 type PartnerSettlementRuleUsecase struct {
-	repo  PartnerSettlementRuleRepo
-	audit AuditRepo
+	repo PartnerSettlementRuleRepo
 }
 
-func NewPartnerSettlementRuleUsecase(repo PartnerSettlementRuleRepo, audit AuditRepo) *PartnerSettlementRuleUsecase {
-	return &PartnerSettlementRuleUsecase{repo: repo, audit: audit}
+func NewPartnerSettlementRuleUsecase(repo PartnerSettlementRuleRepo) *PartnerSettlementRuleUsecase {
+	return &PartnerSettlementRuleUsecase{repo: repo}
 }
 
 func (uc *PartnerSettlementRuleUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, roleType PartnerRoleType) ([]*PartnerSettlementRule, error) {
@@ -101,14 +99,7 @@ func (uc *PartnerSettlementRuleUsecase) Create(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, partnerID, roleType, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"rule.id": created.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
-		return nil, fmt.Errorf("write partner settlement rule create audit: %w", err)
-	}
-	return created, nil
+	return uc.repo.Create(ctx, organizationID, partnerID, roleType, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "role": string(roleType)}})
 }
 
 func (uc *PartnerSettlementRuleUsecase) Update(ctx context.Context, organizationID, actorID, partnerID, id uuid.UUID, roleType PartnerRoleType, input *PartnerSettlementRule) (*PartnerSettlementRule, error) {
@@ -119,14 +110,7 @@ func (uc *PartnerSettlementRuleUsecase) Update(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, partnerID, roleType, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"rule.id": updated.ID.String(), "partner.id": partnerID.String(), "role": string(roleType)}}); err != nil {
-		return nil, fmt.Errorf("write partner settlement rule update audit: %w", err)
-	}
-	return updated, nil
+	return uc.repo.Update(ctx, organizationID, partnerID, roleType, id, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.settlement_rule.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"rule.id": id.String(), "partner.id": partnerID.String(), "role": string(roleType)}})
 }
 
 func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettlementRule, error) {

@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -81,17 +80,16 @@ type PartnerShippingPresetListOptions struct {
 
 type PartnerShippingPresetRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID, PartnerShippingPresetListOptions) ([]*PartnerShippingPreset, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerShippingPreset) (*PartnerShippingPreset, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerShippingPreset) (*PartnerShippingPreset, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, *PartnerShippingPreset, *AuditEvent) (*PartnerShippingPreset, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *PartnerShippingPreset, *AuditEvent) (*PartnerShippingPreset, error)
 }
 
 type PartnerShippingPresetUsecase struct {
-	repo  PartnerShippingPresetRepo
-	audit AuditRepo
+	repo PartnerShippingPresetRepo
 }
 
-func NewPartnerShippingPresetUsecase(repo PartnerShippingPresetRepo, audit AuditRepo) *PartnerShippingPresetUsecase {
-	return &PartnerShippingPresetUsecase{repo: repo, audit: audit}
+func NewPartnerShippingPresetUsecase(repo PartnerShippingPresetRepo) *PartnerShippingPresetUsecase {
+	return &PartnerShippingPresetUsecase{repo: repo}
 }
 
 func (uc *PartnerShippingPresetUsecase) List(ctx context.Context, organizationID, partnerID uuid.UUID, options PartnerShippingPresetListOptions) ([]*PartnerShippingPreset, error) {
@@ -106,14 +104,7 @@ func (uc *PartnerShippingPresetUsecase) Create(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, partnerID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": created.ID.String(), "preset.type": string(created.PresetType)}}); err != nil {
-		return nil, fmt.Errorf("write partner shipping preset create audit: %w", err)
-	}
-	return created, nil
+	return uc.repo.Create(ctx, organizationID, partnerID, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.create", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.type": string(normalized.PresetType)}})
 }
 
 func (uc *PartnerShippingPresetUsecase) Update(ctx context.Context, organizationID, actorID, partnerID, id uuid.UUID, input *PartnerShippingPreset) (*PartnerShippingPreset, error) {
@@ -124,14 +115,7 @@ func (uc *PartnerShippingPresetUsecase) Update(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.Update(ctx, organizationID, partnerID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": updated.ID.String(), "preset.type": string(updated.PresetType)}}); err != nil {
-		return nil, fmt.Errorf("write partner shipping preset update audit: %w", err)
-	}
-	return updated, nil
+	return uc.repo.Update(ctx, organizationID, partnerID, id, normalized, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "partner.shipping_preset.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{"partner.id": partnerID.String(), "preset.id": id.String(), "preset.type": string(normalized.PresetType)}})
 }
 
 func normalizePartnerShippingPreset(input *PartnerShippingPreset) (*PartnerShippingPreset, error) {

@@ -14,6 +14,7 @@ type partnerRepoStub struct {
 	updateResult    *PartnerUpdateResult
 	blacklistInput  PartnerBlacklistUpdate
 	blacklistResult *PartnerBlacklistResult
+	auditEvent      *AuditEvent
 }
 
 func (s *partnerRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error) {
@@ -32,15 +33,19 @@ func (s *partnerRepoStub) ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, i
 	return &PartnerAuditLogList{}, nil
 }
 
-func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner) (*Partner, error) {
+func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner, audit *AuditEvent) (*Partner, error) {
 	s.created = input
 	input.ID = uuid.New()
 	input.OrganizationID = organizationID
+	audit.ResourceID = input.ID.String()
+	audit.Details["partner.id"] = input.ID.String()
+	s.auditEvent = audit
 	return input, nil
 }
 
-func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *Partner) (*PartnerUpdateResult, error) {
+func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *Partner, audit *AuditEvent) (*PartnerUpdateResult, error) {
 	s.updated = input
+	s.auditEvent = audit
 	if s.updateResult != nil {
 		return s.updateResult, nil
 	}
@@ -49,22 +54,23 @@ func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID
 	return &PartnerUpdateResult{Partner: input}, nil
 }
 
-func (s *partnerRepoStub) SetSupplierBlacklist(_ context.Context, organizationID, id uuid.UUID, input PartnerBlacklistUpdate) (*PartnerBlacklistResult, error) {
+func (s *partnerRepoStub) SetSupplierBlacklist(_ context.Context, organizationID, id uuid.UUID, input PartnerBlacklistUpdate, audit *AuditEvent) (*PartnerBlacklistResult, error) {
 	s.blacklistInput = input
+	s.auditEvent = audit
 	if s.blacklistResult != nil {
 		return s.blacklistResult, nil
 	}
 	return &PartnerBlacklistResult{Partner: &Partner{ID: id, OrganizationID: organizationID}}, nil
 }
 
-func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, _ PartnerImportMode, items []*Partner) (*PartnerImportResult, error) {
+func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, _ PartnerImportMode, items []*Partner, audit *AuditEvent) (*PartnerImportResult, error) {
+	s.auditEvent = audit
 	return &PartnerImportResult{CreatedCount: len(items)}, nil
 }
 
 func TestPartnerCreateNormalizesAggregateAndAudits(t *testing.T) {
 	repo := &partnerRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewPartnerUsecase(repo, audit)
+	usecase := NewPartnerUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -89,13 +95,13 @@ func TestPartnerCreateNormalizesAggregateAndAudits(t *testing.T) {
 	if created.RegisteredAddress != "上海市" || created.Contacts[0].Name != "张三" || created.Aliases[0].NormalizedAliasName != "ACME LOGISTICS" {
 		t.Fatalf("normalized children = contacts %#v aliases %#v", created.Contacts, created.Aliases)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "partner.create" || audit.events[0].ResourceType != "partner" || audit.events[0].ResourceID != created.ID.String() || audit.events[0].Details["roles"] != "customer:true,supplier:true" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "partner.create" || repo.auditEvent.ResourceType != "partner" || repo.auditEvent.ResourceID != created.ID.String() || repo.auditEvent.Details["roles"] != "customer:true,supplier:true" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 
 func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
-	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), uuid.New(), 0, 20); err != ErrPartnerInvalidArgument {
 		t.Fatalf("invalid page error = %v, want ErrPartnerInvalidArgument", err)
 	}
@@ -108,7 +114,7 @@ func TestPartnerListAuditLogsValidatesPagination(t *testing.T) {
 }
 
 func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
-	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -136,7 +142,7 @@ func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
 }
 
 func TestPartnerRejectsInvalidUSCCAndDuplicateAlias(t *testing.T) {
-	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -156,7 +162,7 @@ func TestPartnerRejectsInvalidUSCCAndDuplicateAlias(t *testing.T) {
 }
 
 func TestPartnerTaxIdentifierDependsOnActiveRole(t *testing.T) {
-	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -179,7 +185,7 @@ func TestPartnerTaxIdentifierDependsOnActiveRole(t *testing.T) {
 
 func TestPartnerNormalizesProfileAndAssignments(t *testing.T) {
 	repo := &partnerRepoStub{}
-	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	usecase := NewPartnerUsecase(repo)
 	userID := uuid.New()
 	organizationID := uuid.New()
 
@@ -206,7 +212,7 @@ func TestPartnerNormalizesProfileAndAssignments(t *testing.T) {
 }
 
 func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
-	usecase := NewPartnerUsecase(&partnerRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerUsecase(&partnerRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	base := Partner{
@@ -246,7 +252,7 @@ func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
 
 func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 	repo := &partnerRepoStub{}
-	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	usecase := NewPartnerUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	input := &Partner{
@@ -275,7 +281,7 @@ func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 
 func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 	repo := &partnerRepoStub{}
-	usecase := NewPartnerUsecase(repo, &auditRepoStub{})
+	usecase := NewPartnerUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	creditCurrency := " cny "
@@ -315,8 +321,7 @@ func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 		Partner:               &Partner{ID: partnerID, OrganizationID: organizationID},
 		PreviouslyBlacklisted: false,
 	}}
-	audit := &auditRepoStub{}
-	usecase := NewPartnerUsecase(repo, audit)
+	usecase := NewPartnerUsecase(repo)
 	usecase.now = func() time.Time { return changedAt }
 
 	if _, err := usecase.SetSupplierBlacklist(context.Background(), organizationID, actorID, partnerID, true, "   "); err != ErrPartnerBlacklistReasonRequired {
@@ -329,8 +334,8 @@ func TestPartnerSetSupplierBlacklistRequiresReasonAndAudits(t *testing.T) {
 	if updated.ID != partnerID || !repo.blacklistInput.Blacklisted || repo.blacklistInput.Reason != "严重违约" || repo.blacklistInput.ChangedAt != changedAt || repo.blacklistInput.ChangedBy != actorID {
 		t.Fatalf("blacklist input = %#v, updated = %#v", repo.blacklistInput, updated)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "partner.supplier_blacklist.set" || audit.events[0].Details["reason"] != "严重违约" || audit.events[0].Details["blacklisted"] != "true" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.auditEvent == nil || repo.auditEvent.Action != "partner.supplier_blacklist.set" || repo.auditEvent.Details["reason"] != "严重违约" || repo.auditEvent.Details["blacklisted"] != "true" {
+		t.Fatalf("audit event = %#v", repo.auditEvent)
 	}
 }
 

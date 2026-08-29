@@ -44,7 +44,7 @@ func (r *partnerShippingPresetRepo) List(ctx context.Context, organizationID, pa
 	return result, nil
 }
 
-func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerShippingPreset) (*biz.PartnerShippingPreset, error) {
+func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -64,13 +64,18 @@ func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, 
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["preset.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerShippingPresetToBiz(created), nil
 }
 
-func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerShippingPreset) (*biz.PartnerShippingPreset, error) {
+func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -99,6 +104,10 @@ func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, 
 	}
 	updated, err := setPartnerShippingPresetUpdate(existing.Update(), input).Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}

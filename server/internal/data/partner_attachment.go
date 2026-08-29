@@ -42,11 +42,15 @@ func (r *partnerAttachmentRepo) List(ctx context.Context, organizationID, partne
 	return result, nil
 }
 
-func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, actorID, partnerID uuid.UUID, input *biz.PartnerAttachment) (*biz.PartnerAttachment, error) {
+func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, actorID, partnerID uuid.UUID, input *biz.PartnerAttachment, audit *biz.AuditEvent) (*biz.PartnerAttachment, error) {
 	if err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	create := r.data.db.PartnerAttachment.Create().
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	create := tx.PartnerAttachment.Create().
 		SetPartnerID(partnerID).
 		SetIdempotencyKey(input.IdempotencyKey).
 		SetFileName(input.FileName).
@@ -59,9 +63,18 @@ func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, acto
 	}
 	created, err := create.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "partner_attachment_idempotency_key") {
 			return nil, biz.ErrPartnerAttachmentExists
 		}
+		return nil, err
+	}
+	audit.Details["attachment.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerAttachmentToBiz(created), nil

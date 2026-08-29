@@ -13,6 +13,7 @@ type partnerContractRepoStub struct {
 	created        *PartnerContract
 	updated        *PartnerContract
 	expectedStatus PartnerContractStatus
+	audit          *AuditEvent
 }
 
 func (s *partnerContractRepoStub) List(context.Context, uuid.UUID, uuid.UUID, *PartnerContractStatus) ([]*PartnerContract, error) {
@@ -26,25 +27,27 @@ func (s *partnerContractRepoStub) Get(context.Context, uuid.UUID, uuid.UUID, uui
 	return s.existing, nil
 }
 
-func (s *partnerContractRepoStub) Create(_ context.Context, _, partnerID uuid.UUID, input *PartnerContract) (*PartnerContract, error) {
+func (s *partnerContractRepoStub) Create(_ context.Context, _, partnerID uuid.UUID, input *PartnerContract, audit *AuditEvent) (*PartnerContract, error) {
 	s.created = input
 	input.ID = uuid.New()
 	input.PartnerID = partnerID
+	s.audit = audit
 	return input, nil
 }
 
-func (s *partnerContractRepoStub) Update(_ context.Context, _, partnerID, id uuid.UUID, expectedStatus PartnerContractStatus, input *PartnerContract) (*PartnerContract, error) {
+func (s *partnerContractRepoStub) Update(_ context.Context, _, partnerID, id uuid.UUID, expectedStatus PartnerContractStatus, input *PartnerContract, audit *AuditEvent) (*PartnerContract, error) {
 	s.updated = input
 	s.expectedStatus = expectedStatus
 	input.ID = id
 	input.PartnerID = partnerID
 	input.ContractNo = s.existing.ContractNo
+	s.audit = audit
 	return input, nil
 }
 
 func TestPartnerContractRejectsInvalidDateAndTransition(t *testing.T) {
 	start := time.Date(2026, time.August, 20, 0, 0, 0, 0, time.UTC)
-	usecase := NewPartnerContractUsecase(&partnerContractRepoStub{}, &auditRepoStub{})
+	usecase := NewPartnerContractUsecase(&partnerContractRepoStub{})
 	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), &PartnerContract{
 		ContractNo: "HT-001", Name: "年度合同", Status: PartnerContractPending, StartDate: start, EndDate: start,
 	}); err != ErrPartnerContractInvalidArgument {
@@ -52,7 +55,7 @@ func TestPartnerContractRejectsInvalidDateAndTransition(t *testing.T) {
 	}
 
 	repo := &partnerContractRepoStub{existing: &PartnerContract{Status: PartnerContractExpired, ContractNo: "HT-001"}}
-	usecase = NewPartnerContractUsecase(repo, &auditRepoStub{})
+	usecase = NewPartnerContractUsecase(repo)
 	if _, err := usecase.Update(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), &PartnerContract{
 		Name: "年度合同", Status: PartnerContractActive, StartDate: start, EndDate: start.AddDate(1, 0, 0),
 	}); err != ErrPartnerContractStatusConflict {
@@ -65,8 +68,7 @@ func TestPartnerContractUpdateUsesExpectedStatusAndAudits(t *testing.T) {
 	contractID := uuid.New()
 	partnerID := uuid.New()
 	repo := &partnerContractRepoStub{existing: &PartnerContract{ID: contractID, PartnerID: partnerID, ContractNo: "HT-001", Status: PartnerContractPending}}
-	audit := &auditRepoStub{}
-	usecase := NewPartnerContractUsecase(repo, audit)
+	usecase := NewPartnerContractUsecase(repo)
 
 	updated, err := usecase.Update(context.Background(), uuid.New(), uuid.New(), partnerID, contractID, &PartnerContract{
 		Name: " 年度合同 ", Status: PartnerContractActive, StartDate: start, EndDate: start.AddDate(1, 0, 0),
@@ -77,8 +79,8 @@ func TestPartnerContractUpdateUsesExpectedStatusAndAudits(t *testing.T) {
 	if repo.expectedStatus != PartnerContractPending || updated.ContractNo != "HT-001" || updated.Name != "年度合同" {
 		t.Fatalf("updated contract = %#v, expected status = %q", updated, repo.expectedStatus)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "partner.contract.update" || audit.events[0].Details["contract.id"] != contractID.String() {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.audit == nil || repo.audit.Action != "partner.contract.update" || repo.audit.Details["contract.id"] != contractID.String() {
+		t.Fatalf("audit event = %#v", repo.audit)
 	}
 }
 

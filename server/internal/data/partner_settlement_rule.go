@@ -52,7 +52,7 @@ func (r *partnerSettlementRuleRepo) List(ctx context.Context, organizationID, pa
 	return result, nil
 }
 
-func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, input *biz.PartnerSettlementRule) (*biz.PartnerSettlementRule, error) {
+func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, input *biz.PartnerSettlementRule, audit *biz.AuditEvent) (*biz.PartnerSettlementRule, error) {
 	role, err := r.role(ctx, organizationID, partnerID, roleType)
 	if err != nil {
 		return nil, err
@@ -60,14 +60,27 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
 		return nil, err
 	}
-	created, err := createPartnerSettlementRule(ctx, r.data.db.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapPartnerSettlementRuleConstraint(err)
+	}
+	audit.Details["rule.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return partnerSettlementRuleToBiz(created), nil
 }
 
-func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule) (*biz.PartnerSettlementRule, error) {
+func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule, audit *biz.AuditEvent) (*biz.PartnerSettlementRule, error) {
 	role, err := r.role(ctx, organizationID, partnerID, roleType)
 	if err != nil {
 		return nil, err
@@ -75,13 +88,25 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 	if err := validateSettlementCurrencies(ctx, r.data.db.Currency.Query(), input); err != nil {
 		return nil, err
 	}
-	update := r.data.db.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID))
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	update := tx.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID))
 	updated, err := updatePartnerSettlementRule(ctx, update, input)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrPartnerSettlementRuleNotFound
 		}
 		return nil, mapPartnerSettlementRuleConstraint(err)
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return partnerSettlementRuleToBiz(updated), nil
 }

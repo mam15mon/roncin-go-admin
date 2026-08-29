@@ -58,7 +58,7 @@ func (r *partnerAccountRepo) List(ctx context.Context, organizationID, partnerID
 	return result, nil
 }
 
-func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerAccount) (*biz.PartnerAccount, error) {
+func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerAccount, audit *biz.AuditEvent) (*biz.PartnerAccount, error) {
 	role, err := r.role(ctx, organizationID, partnerID)
 	if err != nil {
 		return nil, err
@@ -95,6 +95,11 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 		_ = tx.Rollback()
 		return nil, mapPartnerSecondaryConstraint(err)
 	}
+	audit.Details["account.id"] = item.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -105,7 +110,7 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 	return partnerAccountToBiz(item), nil
 }
 
-func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerAccount) (*biz.PartnerAccount, error) {
+func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerAccount, audit *biz.AuditEvent) (*biz.PartnerAccount, error) {
 	role, err := r.role(ctx, organizationID, partnerID)
 	if err != nil {
 		return nil, err
@@ -140,6 +145,10 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, mapPartnerSecondaryConstraint(err)
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -198,19 +207,36 @@ func (r *partnerContractRepo) Get(ctx context.Context, organizationID, partnerID
 	return partnerContractToBiz(item), nil
 }
 
-func (r *partnerContractRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerContract) (*biz.PartnerContract, error) {
+func (r *partnerContractRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerContract, audit *biz.AuditEvent) (*biz.PartnerContract, error) {
 	if _, err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	created, err := r.data.db.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapPartnerSecondaryConstraint(err)
+	}
+	audit.Details["contract.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return partnerContractToBiz(created), nil
 }
 
-func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, expectedStatus biz.PartnerContractStatus, input *biz.PartnerContract) (*biz.PartnerContract, error) {
-	updated, err := r.data.db.PartnerContract.Update().Where(
+func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, expectedStatus biz.PartnerContractStatus, input *biz.PartnerContract, audit *biz.AuditEvent) (*biz.PartnerContract, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	updated, err := tx.PartnerContract.Update().Where(
 		partnercontractent.IDEQ(id),
 		partnercontractent.PartnerIDEQ(partnerID),
 		partnercontractent.StatusEQ(partnercontractent.Status(expectedStatus)),
@@ -225,13 +251,23 @@ func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partne
 		SetOtherNotes(input.OtherNotes).
 		Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, mapPartnerSecondaryConstraint(err)
 	}
 	if updated == 0 {
+		_ = tx.Rollback()
 		return nil, biz.ErrPartnerContractStatusConflict
 	}
-	item, err := r.data.db.PartnerContract.Get(ctx, id)
+	item, err := tx.PartnerContract.Get(ctx, id)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerContractToBiz(item), nil

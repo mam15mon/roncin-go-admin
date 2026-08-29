@@ -248,20 +248,19 @@ type PartnerRepo interface {
 	List(context.Context, uuid.UUID, PartnerListOptions) (*PartnerList, error)
 	ListAssignmentOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error)
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
-	Create(context.Context, uuid.UUID, *Partner) (*Partner, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, *Partner) (*PartnerUpdateResult, error)
-	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate) (*PartnerBlacklistResult, error)
-	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner) (*PartnerImportResult, error)
+	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, *Partner, *AuditEvent) (*PartnerUpdateResult, error)
+	SetSupplierBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate, *AuditEvent) (*PartnerBlacklistResult, error)
+	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner, *AuditEvent) (*PartnerImportResult, error)
 }
 
 type PartnerUsecase struct {
-	repo  PartnerRepo
-	audit AuditRepo
-	now   func() time.Time
+	repo PartnerRepo
+	now  func() time.Time
 }
 
-func NewPartnerUsecase(repo PartnerRepo, audit AuditRepo) *PartnerUsecase {
-	return &PartnerUsecase{repo: repo, audit: audit, now: time.Now}
+func NewPartnerUsecase(repo PartnerRepo) *PartnerUsecase {
+	return &PartnerUsecase{repo: repo, now: time.Now}
 }
 
 func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (*Partner, error) {
@@ -315,25 +314,16 @@ func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uui
 		value.Assignments = append(value.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 		normalized = append(normalized, value)
 	}
-	result, err := uc.repo.Import(ctx, organizationID, input.Mode, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Import(ctx, organizationID, input.Mode, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.import",
 		Result:         "success",
 		Details: map[string]string{
-			"source":        input.Source,
-			"mode":          string(input.Mode),
-			"created_count": fmt.Sprintf("%d", result.CreatedCount),
-			"updated_count": fmt.Sprintf("%d", result.UpdatedCount),
+			"source": input.Source,
+			"mode":   string(input.Mode),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write partner import audit: %w", err)
-	}
-	return result, nil
+	})
 }
 
 func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uuid.UUID, input *Partner) (*Partner, error) {
@@ -342,27 +332,18 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 		return nil, err
 	}
 	normalized.Assignments = append(normalized.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
-	created, err := uc.repo.Create(ctx, organizationID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	return uc.repo.Create(ctx, organizationID, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.create",
 		ResourceType:   "partner",
-		ResourceID:     created.ID.String(),
 		Result:         "success",
 		Details: map[string]string{
-			"partner.id":   created.ID.String(),
-			"partner.code": created.Code,
-			"legal_name":   created.LegalName,
-			"roles":        partnerRolesAuditValue(created.Roles),
+			"partner.code": normalized.Code,
+			"legal_name":   normalized.LegalName,
+			"roles":        partnerRolesAuditValue(normalized.Roles),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write partner create audit: %w", err)
-	}
-	return created, nil
+	})
 }
 
 func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {
@@ -373,24 +354,20 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 	if err != nil {
 		return nil, err
 	}
-	result, err := uc.repo.Update(ctx, organizationID, id, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	result, err := uc.repo.Update(ctx, organizationID, id, normalized, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.update",
 		ResourceType:   "partner",
-		ResourceID:     result.Partner.ID.String(),
+		ResourceID:     id.String(),
 		Result:         "success",
 		Details: map[string]string{
-			"partner.id": result.Partner.ID.String(),
-			"from_roles": partnerRolesAuditValue(result.PreviousRoles),
-			"to_roles":   partnerRolesAuditValue(result.Partner.Roles),
+			"partner.id": id.String(),
+			"to_roles":   partnerRolesAuditValue(normalized.Roles),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write partner update audit: %w", err)
+	})
+	if err != nil {
+		return nil, err
 	}
 	return result.Partner, nil
 }
@@ -408,11 +385,7 @@ func (uc *PartnerUsecase) SetSupplierBlacklist(ctx context.Context, organization
 		Reason:      reason,
 		ChangedAt:   uc.now().UTC(),
 		ChangedBy:   userID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	}, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.supplier_blacklist.set",
@@ -420,13 +393,13 @@ func (uc *PartnerUsecase) SetSupplierBlacklist(ctx context.Context, organization
 		ResourceID:     id.String(),
 		Result:         "success",
 		Details: map[string]string{
-			"partner.id":             result.Partner.ID.String(),
-			"previously_blacklisted": fmt.Sprintf("%t", result.PreviouslyBlacklisted),
-			"blacklisted":            fmt.Sprintf("%t", blacklisted),
-			"reason":                 reason,
+			"partner.id":  id.String(),
+			"blacklisted": fmt.Sprintf("%t", blacklisted),
+			"reason":      reason,
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write partner blacklist audit: %w", err)
+	})
+	if err != nil {
+		return nil, err
 	}
 	return result.Partner, nil
 }
