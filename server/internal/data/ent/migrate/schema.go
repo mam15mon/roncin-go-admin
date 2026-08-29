@@ -4107,59 +4107,6 @@ var (
 			},
 		},
 	}
-	// PartnerShippingPresetsColumns holds the columns for the "partner_shipping_presets" table.
-	PartnerShippingPresetsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "preset_type", Type: field.TypeEnum, Enums: []string{"SHIPPER", "CONSIGNEE", "NOTIFY_PARTY", "ENGLISH_CARGO_NAME", "HS_CODE", "MARKS"}},
-		{Name: "title", Type: field.TypeString, Size: 100},
-		{Name: "company_name", Type: field.TypeString, Nullable: true, Size: 200},
-		{Name: "address", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
-		{Name: "phone", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
-		{Name: "country_code", Type: field.TypeString, Nullable: true, Size: 2},
-		{Name: "tax_identifier", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "content", Type: field.TypeString, Nullable: true, Size: 4000},
-		{Name: "code", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "is_default", Type: field.TypeBool, Default: false},
-		{Name: "sort_order", Type: field.TypeInt, Default: 0},
-		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "partner_id", Type: field.TypeUUID},
-	}
-	// PartnerShippingPresetsTable holds the schema information for the "partner_shipping_presets" table.
-	PartnerShippingPresetsTable = &schema.Table{
-		Name:       "partner_shipping_presets",
-		Columns:    PartnerShippingPresetsColumns,
-		PrimaryKey: []*schema.Column{PartnerShippingPresetsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "partner_shipping_presets_partners_shipping_presets",
-				Columns:    []*schema.Column{PartnerShippingPresetsColumns[18]},
-				RefColumns: []*schema.Column{PartnersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "partnershippingpreset_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{PartnerShippingPresetsColumns[2]},
-			},
-			{
-				Name:    "partnershippingpreset_partner_id_preset_type_enabled_sort_order",
-				Unique:  false,
-				Columns: []*schema.Column{PartnerShippingPresetsColumns[18], PartnerShippingPresetsColumns[3], PartnerShippingPresetsColumns[17], PartnerShippingPresetsColumns[15]},
-			},
-			{
-				Name:    "partnershippingpreset_partner_id_preset_type_is_default",
-				Unique:  false,
-				Columns: []*schema.Column{PartnerShippingPresetsColumns[18], PartnerShippingPresetsColumns[3], PartnerShippingPresetsColumns[14]},
-			},
-		},
-	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4711,7 +4658,6 @@ var (
 		PartnerProfilesTable,
 		PartnerRolesTable,
 		PartnerSettlementRulesTable,
-		PartnerShippingPresetsTable,
 		PermissionsTable,
 		PortsTable,
 		RolesTable,
@@ -4858,7 +4804,6 @@ func init() {
 	PartnerProfilesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerRolesTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
-	PartnerShippingPresetsTable.ForeignKeys[0].RefTable = PartnersTable
 	PortsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable

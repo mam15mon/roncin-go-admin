@@ -78,7 +78,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -5787,113 +5786,6 @@ func init() {
 	partnersettlementruleDescID := partnersettlementruleMixinFields0[0].Descriptor()
 	// partnersettlementrule.DefaultID holds the default value on creation for the id field.
 	partnersettlementrule.DefaultID = partnersettlementruleDescID.Default.(func() uuid.UUID)
-	partnershippingpresetMixin := schema.PartnerShippingPreset{}.Mixin()
-	partnershippingpresetMixinFields0 := partnershippingpresetMixin[0].Fields()
-	_ = partnershippingpresetMixinFields0
-	partnershippingpresetMixinFields1 := partnershippingpresetMixin[1].Fields()
-	_ = partnershippingpresetMixinFields1
-	partnershippingpresetFields := schema.PartnerShippingPreset{}.Fields()
-	_ = partnershippingpresetFields
-	// partnershippingpresetDescCreatedAt is the schema descriptor for created_at field.
-	partnershippingpresetDescCreatedAt := partnershippingpresetMixinFields1[0].Descriptor()
-	// partnershippingpreset.DefaultCreatedAt holds the default value on creation for the created_at field.
-	partnershippingpreset.DefaultCreatedAt = partnershippingpresetDescCreatedAt.Default.(func() time.Time)
-	// partnershippingpresetDescUpdatedAt is the schema descriptor for updated_at field.
-	partnershippingpresetDescUpdatedAt := partnershippingpresetMixinFields1[1].Descriptor()
-	// partnershippingpreset.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	partnershippingpreset.DefaultUpdatedAt = partnershippingpresetDescUpdatedAt.Default.(func() time.Time)
-	// partnershippingpreset.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	partnershippingpreset.UpdateDefaultUpdatedAt = partnershippingpresetDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// partnershippingpresetDescTitle is the schema descriptor for title field.
-	partnershippingpresetDescTitle := partnershippingpresetFields[2].Descriptor()
-	// partnershippingpreset.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	partnershippingpreset.TitleValidator = func() func(string) error {
-		validators := partnershippingpresetDescTitle.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(title string) error {
-			for _, fn := range fns {
-				if err := fn(title); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// partnershippingpresetDescCompanyName is the schema descriptor for company_name field.
-	partnershippingpresetDescCompanyName := partnershippingpresetFields[3].Descriptor()
-	// partnershippingpreset.CompanyNameValidator is a validator for the "company_name" field. It is called by the builders before save.
-	partnershippingpreset.CompanyNameValidator = partnershippingpresetDescCompanyName.Validators[0].(func(string) error)
-	// partnershippingpresetDescAddress is the schema descriptor for address field.
-	partnershippingpresetDescAddress := partnershippingpresetFields[4].Descriptor()
-	// partnershippingpreset.AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	partnershippingpreset.AddressValidator = partnershippingpresetDescAddress.Validators[0].(func(string) error)
-	// partnershippingpresetDescContactName is the schema descriptor for contact_name field.
-	partnershippingpresetDescContactName := partnershippingpresetFields[5].Descriptor()
-	// partnershippingpreset.ContactNameValidator is a validator for the "contact_name" field. It is called by the builders before save.
-	partnershippingpreset.ContactNameValidator = partnershippingpresetDescContactName.Validators[0].(func(string) error)
-	// partnershippingpresetDescPhone is the schema descriptor for phone field.
-	partnershippingpresetDescPhone := partnershippingpresetFields[6].Descriptor()
-	// partnershippingpreset.PhoneValidator is a validator for the "phone" field. It is called by the builders before save.
-	partnershippingpreset.PhoneValidator = partnershippingpresetDescPhone.Validators[0].(func(string) error)
-	// partnershippingpresetDescEmail is the schema descriptor for email field.
-	partnershippingpresetDescEmail := partnershippingpresetFields[7].Descriptor()
-	// partnershippingpreset.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	partnershippingpreset.EmailValidator = partnershippingpresetDescEmail.Validators[0].(func(string) error)
-	// partnershippingpresetDescCountryCode is the schema descriptor for country_code field.
-	partnershippingpresetDescCountryCode := partnershippingpresetFields[8].Descriptor()
-	// partnershippingpreset.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
-	partnershippingpreset.CountryCodeValidator = func() func(string) error {
-		validators := partnershippingpresetDescCountryCode.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(country_code string) error {
-			for _, fn := range fns {
-				if err := fn(country_code); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// partnershippingpresetDescTaxIdentifier is the schema descriptor for tax_identifier field.
-	partnershippingpresetDescTaxIdentifier := partnershippingpresetFields[9].Descriptor()
-	// partnershippingpreset.TaxIdentifierValidator is a validator for the "tax_identifier" field. It is called by the builders before save.
-	partnershippingpreset.TaxIdentifierValidator = partnershippingpresetDescTaxIdentifier.Validators[0].(func(string) error)
-	// partnershippingpresetDescContent is the schema descriptor for content field.
-	partnershippingpresetDescContent := partnershippingpresetFields[10].Descriptor()
-	// partnershippingpreset.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	partnershippingpreset.ContentValidator = partnershippingpresetDescContent.Validators[0].(func(string) error)
-	// partnershippingpresetDescCode is the schema descriptor for code field.
-	partnershippingpresetDescCode := partnershippingpresetFields[11].Descriptor()
-	// partnershippingpreset.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	partnershippingpreset.CodeValidator = partnershippingpresetDescCode.Validators[0].(func(string) error)
-	// partnershippingpresetDescIsDefault is the schema descriptor for is_default field.
-	partnershippingpresetDescIsDefault := partnershippingpresetFields[12].Descriptor()
-	// partnershippingpreset.DefaultIsDefault holds the default value on creation for the is_default field.
-	partnershippingpreset.DefaultIsDefault = partnershippingpresetDescIsDefault.Default.(bool)
-	// partnershippingpresetDescSortOrder is the schema descriptor for sort_order field.
-	partnershippingpresetDescSortOrder := partnershippingpresetFields[13].Descriptor()
-	// partnershippingpreset.DefaultSortOrder holds the default value on creation for the sort_order field.
-	partnershippingpreset.DefaultSortOrder = partnershippingpresetDescSortOrder.Default.(int)
-	// partnershippingpreset.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
-	partnershippingpreset.SortOrderValidator = partnershippingpresetDescSortOrder.Validators[0].(func(int) error)
-	// partnershippingpresetDescRemark is the schema descriptor for remark field.
-	partnershippingpresetDescRemark := partnershippingpresetFields[14].Descriptor()
-	// partnershippingpreset.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
-	partnershippingpreset.RemarkValidator = partnershippingpresetDescRemark.Validators[0].(func(string) error)
-	// partnershippingpresetDescEnabled is the schema descriptor for enabled field.
-	partnershippingpresetDescEnabled := partnershippingpresetFields[15].Descriptor()
-	// partnershippingpreset.DefaultEnabled holds the default value on creation for the enabled field.
-	partnershippingpreset.DefaultEnabled = partnershippingpresetDescEnabled.Default.(bool)
-	// partnershippingpresetDescID is the schema descriptor for id field.
-	partnershippingpresetDescID := partnershippingpresetMixinFields0[0].Descriptor()
-	// partnershippingpreset.DefaultID holds the default value on creation for the id field.
-	partnershippingpreset.DefaultID = partnershippingpresetDescID.Default.(func() uuid.UUID)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0

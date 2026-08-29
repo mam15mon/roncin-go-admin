@@ -787,29 +787,6 @@ func HasAssignmentsWith(preds ...predicate.PartnerAssignment) predicate.Partner 
 	})
 }
 
-// HasShippingPresets applies the HasEdge predicate on the "shipping_presets" edge.
-func HasShippingPresets() predicate.Partner {
-	return predicate.Partner(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ShippingPresetsTable, ShippingPresetsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasShippingPresetsWith applies the HasEdge predicate on the "shipping_presets" edge with a given conditions (other predicates).
-func HasShippingPresetsWith(preds ...predicate.PartnerShippingPreset) predicate.Partner {
-	return predicate.Partner(func(s *sql.Selector) {
-		step := newShippingPresetsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasEnterpriseResourceLinks applies the HasEdge predicate on the "enterprise_resource_links" edge.
 func HasEnterpriseResourceLinks() predicate.Partner {
 	return predicate.Partner(func(s *sql.Selector) {

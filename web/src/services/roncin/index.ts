@@ -5,6 +5,7 @@
 import * as adminService from "./adminService";
 import * as authService from "./authService";
 import * as backgroundTaskService from "./backgroundTaskService";
+import * as enterpriseResourceService from "./enterpriseResourceService";
 import * as settlementService from "./settlementService";
 import * as feeCatalogService from "./feeCatalogService";
 import * as exchangeRateService from "./exchangeRateService";
@@ -24,6 +25,7 @@ export default {
   adminService,
   authService,
   backgroundTaskService,
+  enterpriseResourceService,
   settlementService,
   feeCatalogService,
   exchangeRateService,

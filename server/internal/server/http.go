@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
+	enterpriseresourcev1 "github.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	orderv1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
@@ -21,7 +22,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
@@ -45,6 +46,7 @@ func NewHTTPServer(c *conf.Server, auth *service.AuthService, partner *service.P
 	}
 	opts = append(opts, http.ErrorEncoder(encodeError))
 	srv := http.NewServer(opts...)
+	enterpriseresourcev1.RegisterEnterpriseResourceServiceHTTPServer(srv, enterpriseResource)
 	authv1.RegisterAuthServiceHTTPServer(srv, auth)
 	partnerv1.RegisterPartnerServiceHTTPServer(srv, partner)
 	adminv1.RegisterAdminServiceHTTPServer(srv, admin)

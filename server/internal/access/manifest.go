@@ -79,6 +79,10 @@ const (
 	PartnerShippingPresetUpdate = "business.partner.shipping_preset.update"
 	PartnerAuditRead            = "business.partner.audit.read"
 	PartnerAssignmentOptionRead = "business.partner.assignment_option.read"
+	EnterpriseResourceRead      = "business.enterprise_resource.read"
+	EnterpriseResourceCreate    = "business.enterprise_resource.create"
+	EnterpriseResourceUpdate    = "business.enterprise_resource.update"
+	EnterpriseResourceDelete    = "business.enterprise_resource.delete"
 
 	MasterDataCurrencyRead             = "system.master_data.currency.read"
 	MasterDataAdministrativeRegionRead = "system.master_data.administrative_region.read"
@@ -173,6 +177,10 @@ var manifest = append([]Permission{
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理 · 审计", Description: "查看安全与业务操作审计"},
 	{Key: TaskRead, Name: "查看后台任务", Group: "系统管理 · 后台任务", Description: "查看后台任务执行状态"},
 	{Key: TaskRequeue, Name: "重新入队后台任务", Group: "系统管理 · 后台任务", Description: "重新入队失败或死信后台任务", Requires: []string{TaskRead}},
+	{Key: EnterpriseResourceRead, Name: "查看资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "查看地址、备注、图片、标签和单证主体资源"},
+	{Key: EnterpriseResourceCreate, Name: "新建资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "新建资源及标签组", Requires: []string{EnterpriseResourceRead}},
+	{Key: EnterpriseResourceUpdate, Name: "编辑资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "编辑资源、标签组和企业关联", Requires: []string{EnterpriseResourceRead}},
+	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源及空标签组", Requires: []string{EnterpriseResourceRead}},
 	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看组织汇率主数据和时间标准"},
 	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建组织汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改组织汇率和时间标准", Requires: []string{FinanceExchangeRateRead}},

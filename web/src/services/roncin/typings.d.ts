@@ -377,6 +377,29 @@ declare namespace API {
     id: string;
   };
 
+  type BatchAddressTypeRequest = {
+    resourceIds: string[];
+    addressTypes: number[];
+  };
+
+  type BatchAssigneeRequest = {
+    resourceIds: string[];
+    assigneeIds: string[];
+  };
+
+  type BatchAssociationRequest = {
+    resourceIds: string[];
+    partnerIds: string[];
+  };
+
+  type BatchMutationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
   type BillBatchPreviewGroup = {
     groupKey?: string;
     direction?: string;
@@ -576,6 +599,11 @@ declare namespace API {
     effectiveTo?: string;
     enabled?: boolean;
     note?: string;
+  };
+
+  type CommitEnterpriseResourceImportRequest = {
+    resourceType: number;
+    rows: EnterpriseResourceInput[];
   };
 
   type ConfirmBillBatchRequest = {
@@ -835,6 +863,14 @@ declare namespace API {
     message?: string;
     data?: FinanceCommissionRule;
     traceId?: string;
+  };
+
+  type CreateEnterpriseResourceRequest = {
+    resource: EnterpriseResourceInput;
+  };
+
+  type CreateEnterpriseTagGroupRequest = {
+    group: EnterpriseTagGroupInput;
   };
 
   type CreateExchangeRateSettingRequest = {
@@ -1309,6 +1345,166 @@ declare namespace API {
     contentType?: string;
     content?: string;
     templateVersion?: number;
+    traceId?: string;
+  };
+
+  type EnterpriseResource = {
+    id?: string;
+    resourceType?: number;
+    shortName?: string;
+    enabled?: boolean;
+    sortOrder?: number;
+    partnerIds?: string[];
+    addressTypes?: number[];
+    assigneeIds?: string[];
+    address?: EnterpriseResourceAddress;
+    remark?: EnterpriseResourceRemark;
+    party?: EnterpriseResourceParty;
+    image?: EnterpriseResourceImage;
+    tag?: EnterpriseResourceTag;
+    createdBy?: string;
+    updatedBy?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type EnterpriseResourceAddress = {
+    contactName?: string;
+    contactPhone?: string;
+    countryCode?: string;
+    provinceCode?: string;
+    cityCode?: string;
+    districtCode?: string;
+    addressDetail?: string;
+    remark?: string;
+  };
+
+  type EnterpriseResourceImage = {
+    fileName?: string;
+    mimeType?: string;
+    fileSize?: string;
+    objectKey?: string;
+    checksum?: string;
+    width?: number;
+    height?: number;
+  };
+
+  type EnterpriseResourceImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    rows?: EnterpriseResourceImportRow[];
+    validCount?: number;
+    invalidCount?: number;
+    createdCount?: number;
+    traceId?: string;
+  };
+
+  type EnterpriseResourceImportRow = {
+    rowNumber?: number;
+    resource?: EnterpriseResourceInput;
+    errors?: string[];
+  };
+
+  type EnterpriseResourceInput = {
+    resourceType: number;
+    shortName: string;
+    enabled?: boolean;
+    sortOrder?: number;
+    partnerAssociations?: PartnerAssociations;
+    addressTypes?: number[];
+    assigneeIds?: string[];
+    address?: EnterpriseResourceAddress;
+    remark?: EnterpriseResourceRemark;
+    party?: EnterpriseResourceParty;
+    image?: EnterpriseResourceImage;
+    tag?: EnterpriseResourceTag;
+  };
+
+  type EnterpriseResourceParty = {
+    companyName?: string;
+    businessCode?: string;
+    address?: string;
+    countryCode?: string;
+    contactName?: string;
+    contactPhone?: string;
+    email?: string;
+    taxIdentifier?: string;
+    aeoCode?: string;
+    customDisplay?: boolean;
+    displayContent?: string;
+    remark?: string;
+  };
+
+  type EnterpriseResourceRemark = {
+    remarkType?: number;
+    content?: string;
+  };
+
+  type EnterpriseResourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResource;
+    traceId?: string;
+  };
+
+  type EnterpriseResourceServiceDeleteEnterpriseResourceParams = {
+    id: string;
+  };
+
+  type EnterpriseResourceServiceDeleteEnterpriseTagGroupParams = {
+    id: string;
+  };
+
+  type EnterpriseResourceServiceGetEnterpriseResourceParams = {
+    id: string;
+  };
+
+  type EnterpriseResourceServiceListEnterpriseResourcesParams = {
+    resourceType?: number;
+    partnerId?: string;
+    linked?: boolean;
+    enabled?: boolean;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+    addressType?: number;
+    assigneeId?: string;
+  };
+
+  type EnterpriseResourceServiceUpdateEnterpriseResourceParams = {
+    id: string;
+  };
+
+  type EnterpriseResourceServiceUpdateEnterpriseTagGroupParams = {
+    id: string;
+  };
+
+  type EnterpriseResourceTag = {
+    groupId?: string;
+  };
+
+  type EnterpriseTagGroup = {
+    id?: string;
+    name?: string;
+    color?: string;
+    sortOrder?: number;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type EnterpriseTagGroupInput = {
+    name: string;
+    color?: string;
+    sortOrder?: number;
+  };
+
+  type EnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseTagGroup;
     traceId?: string;
   };
 
@@ -2140,6 +2336,25 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type ListEnterpriseResourcesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResource[];
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListEnterpriseTagGroupsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseTagGroup[];
+    traceId?: string;
+  };
+
   type ListExchangeRateSettingsResponse = {
     success?: boolean;
     code?: number;
@@ -2649,6 +2864,13 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
+    traceId?: string;
+  };
+
+  type MutationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
     traceId?: string;
   };
 
@@ -3338,6 +3560,10 @@ declare namespace API {
     membershipEnabled?: boolean;
   };
 
+  type PartnerAssociations = {
+    partnerIds?: string[];
+  };
+
   type PartnerAttachment = {
     id?: string;
     partnerId?: string;
@@ -3696,6 +3922,11 @@ declare namespace API {
     message?: string;
     data?: CommissionCalculation;
     traceId?: string;
+  };
+
+  type PreviewEnterpriseResourceImportRequest = {
+    resourceType: number;
+    rows: EnterpriseResourceInput[];
   };
 
   type PreviewExchangeRateImportRequest = {
@@ -4441,6 +4672,16 @@ declare namespace API {
     message?: string;
     data?: OrderContainer;
     traceId?: string;
+  };
+
+  type UpdateEnterpriseResourceRequest = {
+    id: string;
+    resource: EnterpriseResourceInput;
+  };
+
+  type UpdateEnterpriseTagGroupRequest = {
+    id: string;
+    group: EnterpriseTagGroupInput;
   };
 
   type UpdateExchangeRateCustomSettingRequest = {

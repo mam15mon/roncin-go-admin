@@ -222,9 +222,6 @@ type PartnerRole func(*sql.Selector)
 // PartnerSettlementRule is the predicate function for partnersettlementrule builders.
 type PartnerSettlementRule func(*sql.Selector)
 
-// PartnerShippingPreset is the predicate function for partnershippingpreset builders.
-type PartnerShippingPreset func(*sql.Selector)
-
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 

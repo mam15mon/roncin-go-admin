@@ -32,7 +32,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -50,7 +49,6 @@ type PartnerQuery struct {
 	withProfile                     *PartnerProfileQuery
 	withInvoiceProfiles             *PartnerInvoiceProfileQuery
 	withAssignments                 *PartnerAssignmentQuery
-	withShippingPresets             *PartnerShippingPresetQuery
 	withEnterpriseResourceLinks     *EnterpriseResourcePartnerQuery
 	withContracts                   *PartnerContractQuery
 	withAttachments                 *PartnerAttachmentQuery
@@ -245,28 +243,6 @@ func (_q *PartnerQuery) QueryAssignments() *PartnerAssignmentQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.AssignmentsTable, partner.AssignmentsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryShippingPresets chains the current query on the "shipping_presets" edge.
-func (_q *PartnerQuery) QueryShippingPresets() *PartnerShippingPresetQuery {
-	query := (&PartnerShippingPresetClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(partner.Table, partner.FieldID, selector),
-			sqlgraph.To(partnershippingpreset.Table, partnershippingpreset.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, partner.ShippingPresetsTable, partner.ShippingPresetsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -693,7 +669,6 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withProfile:                     _q.withProfile.Clone(),
 		withInvoiceProfiles:             _q.withInvoiceProfiles.Clone(),
 		withAssignments:                 _q.withAssignments.Clone(),
-		withShippingPresets:             _q.withShippingPresets.Clone(),
 		withEnterpriseResourceLinks:     _q.withEnterpriseResourceLinks.Clone(),
 		withContracts:                   _q.withContracts.Clone(),
 		withAttachments:                 _q.withAttachments.Clone(),
@@ -784,17 +759,6 @@ func (_q *PartnerQuery) WithAssignments(opts ...func(*PartnerAssignmentQuery)) *
 		opt(query)
 	}
 	_q.withAssignments = query
-	return _q
-}
-
-// WithShippingPresets tells the query-builder to eager-load the nodes that are connected to
-// the "shipping_presets" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PartnerQuery) WithShippingPresets(opts ...func(*PartnerShippingPresetQuery)) *PartnerQuery {
-	query := (&PartnerShippingPresetClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withShippingPresets = query
 	return _q
 }
 
@@ -986,7 +950,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [18]bool{
+		loadedTypes = [17]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -994,7 +958,6 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withProfile != nil,
 			_q.withInvoiceProfiles != nil,
 			_q.withAssignments != nil,
-			_q.withShippingPresets != nil,
 			_q.withEnterpriseResourceLinks != nil,
 			_q.withContracts != nil,
 			_q.withAttachments != nil,
@@ -1074,15 +1037,6 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 		if err := _q.loadAssignments(ctx, query, nodes,
 			func(n *Partner) { n.Edges.Assignments = []*PartnerAssignment{} },
 			func(n *Partner, e *PartnerAssignment) { n.Edges.Assignments = append(n.Edges.Assignments, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withShippingPresets; query != nil {
-		if err := _q.loadShippingPresets(ctx, query, nodes,
-			func(n *Partner) { n.Edges.ShippingPresets = []*PartnerShippingPreset{} },
-			func(n *Partner, e *PartnerShippingPreset) {
-				n.Edges.ShippingPresets = append(n.Edges.ShippingPresets, e)
-			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1356,36 +1310,6 @@ func (_q *PartnerQuery) loadAssignments(ctx context.Context, query *PartnerAssig
 	}
 	query.Where(predicate.PartnerAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.AssignmentsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.PartnerID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *PartnerQuery) loadShippingPresets(ctx context.Context, query *PartnerShippingPresetQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *PartnerShippingPreset)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Partner)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(partnershippingpreset.FieldPartnerID)
-	}
-	query.Where(predicate.PartnerShippingPreset(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(partner.ShippingPresetsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

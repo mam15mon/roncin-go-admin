@@ -37,7 +37,6 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("profile", PartnerProfile.Type).Unique(),
 		edge.To("invoice_profiles", PartnerInvoiceProfile.Type),
 		edge.To("assignments", PartnerAssignment.Type),
-		edge.To("shipping_presets", PartnerShippingPreset.Type),
 		edge.To("enterprise_resource_links", EnterpriseResourcePartner.Type),
 		edge.To("contracts", PartnerContract.Type),
 		edge.To("attachments", PartnerAttachment.Type),

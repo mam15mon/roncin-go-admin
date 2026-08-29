@@ -3,12 +3,14 @@ package data
 import (
 	"context"
 
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	linkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
+	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
+	textent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	shippingpresetent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnershippingpreset"
 )
 
 type partnerShippingPresetRepo struct{ data *Data }
@@ -18,28 +20,27 @@ func NewPartnerShippingPresetRepo(data *Data) biz.PartnerShippingPresetRepo {
 }
 
 func (r *partnerShippingPresetRepo) List(ctx context.Context, organizationID, partnerID uuid.UUID, options biz.PartnerShippingPresetListOptions) ([]*biz.PartnerShippingPreset, error) {
-	query := r.data.db.PartnerShippingPreset.Query().Where(
-		shippingpresetent.PartnerIDEQ(partnerID),
-		shippingpresetent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
-	)
+	query := r.data.db.EnterpriseResource.Query().Where(
+		resourceent.OrganizationIDEQ(organizationID),
+		resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID)),
+	).WithParty().WithShippingText().WithPartnerLinks(func(query *ent.EnterpriseResourcePartnerQuery) {
+		query.Where(linkent.PartnerIDEQ(partnerID))
+	})
 	if options.PresetType != "" {
-		query.Where(shippingpresetent.PresetTypeEQ(shippingpresetent.PresetType(options.PresetType)))
+		query.Where(resourceent.ResourceTypeEQ(resourceent.ResourceType(options.PresetType)))
+	} else {
+		query.Where(resourceent.ResourceTypeIn(shippingPresetResourceTypes()...))
 	}
 	if options.Enabled != nil {
-		query.Where(shippingpresetent.EnabledEQ(*options.Enabled))
+		query.Where(resourceent.EnabledEQ(*options.Enabled))
 	}
-	items, err := query.Order(
-		shippingpresetent.ByPresetType(),
-		shippingpresetent.ByIsDefault(entsql.OrderDesc()),
-		shippingpresetent.BySortOrder(),
-		shippingpresetent.ByTitle(),
-	).All(ctx)
+	items, err := query.Order(resourceent.ByResourceType(), resourceent.BySortOrder(), resourceent.ByShortName()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	result := make([]*biz.PartnerShippingPreset, 0, len(items))
 	for _, item := range items {
-		result = append(result, partnerShippingPresetToBiz(item))
+		result = append(result, enterpriseResourceToShippingPreset(item, partnerID))
 	}
 	return result, nil
 }
@@ -54,17 +55,31 @@ func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, 
 		return nil, err
 	}
 	if input.IsDefault {
-		if err := clearPartnerShippingPresetDefault(ctx, tx, partnerID, input.PresetType, uuid.Nil); err != nil {
+		if err := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, uuid.Nil); err != nil {
 			_ = tx.Rollback()
 			return nil, err
 		}
 	}
-	created, err := setPartnerShippingPresetCreate(tx.PartnerShippingPreset.Create().SetPartnerID(partnerID), input).Save(ctx)
+	actorID := uuid.Nil
+	if audit.UserID != nil {
+		actorID = *audit.UserID
+	}
+	resource, err := tx.EnterpriseResource.Create().SetOrganizationID(organizationID).SetResourceType(resourceent.ResourceType(input.PresetType)).SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetNillableCreatedBy(nonNilUUID(actorID)).SetNillableUpdatedBy(nonNilUUID(actorID)).Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
-	audit.Details["preset.id"] = created.ID.String()
+	if err := createShippingPresetDetail(ctx, tx, resource.ID, organizationID, input); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	link, err := tx.EnterpriseResourcePartner.Create().SetResourceID(resource.ID).SetPartnerID(partnerID).SetResourceType(linkent.ResourceType(input.PresetType)).SetIsDefault(input.IsDefault).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	resource.Edges.PartnerLinks = []*ent.EnterpriseResourcePartner{link}
+	audit.Details["preset.id"] = resource.ID.String()
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -72,7 +87,7 @@ func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return partnerShippingPresetToBiz(created), nil
+	return r.getShippingPreset(ctx, organizationID, partnerID, resource.ID)
 }
 
 func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
@@ -80,30 +95,38 @@ func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	existing, err := tx.PartnerShippingPreset.Query().Where(
-		shippingpresetent.IDEQ(id),
-		shippingpresetent.PartnerIDEQ(partnerID),
-		shippingpresetent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
-	).ForUpdate().Only(ctx)
+	existing, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).ForUpdate().Only(ctx)
+	if ent.IsNotFound(err) {
+		_ = tx.Rollback()
+		return nil, biz.ErrPartnerShippingPresetNotFound
+	}
 	if err != nil {
 		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerShippingPresetNotFound
-		}
 		return nil, err
 	}
-	if biz.PartnerShippingPresetType(existing.PresetType) != input.PresetType {
+	if biz.PartnerShippingPresetType(existing.ResourceType) != input.PresetType {
 		_ = tx.Rollback()
 		return nil, biz.ErrPartnerShippingPresetInvalidArgument
 	}
 	if input.IsDefault {
-		if err := clearPartnerShippingPresetDefault(ctx, tx, partnerID, input.PresetType, id); err != nil {
+		if err := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, id); err != nil {
 			_ = tx.Rollback()
 			return nil, err
 		}
 	}
-	updated, err := setPartnerShippingPresetUpdate(existing.Update(), input).Save(ctx)
-	if err != nil {
+	update := existing.Update().SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
+	if audit.UserID != nil {
+		update.SetUpdatedBy(*audit.UserID)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := updateShippingPresetDetail(ctx, tx, id, input); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if _, err := tx.EnterpriseResourcePartner.Update().Where(linkent.ResourceIDEQ(id), linkent.PartnerIDEQ(partnerID)).SetIsDefault(input.IsDefault && input.Enabled).Save(ctx); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
@@ -114,7 +137,18 @@ func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return partnerShippingPresetToBiz(updated), nil
+	return r.getShippingPreset(ctx, organizationID, partnerID, id)
+}
+
+func (r *partnerShippingPresetRepo) getShippingPreset(ctx context.Context, organizationID, partnerID, id uuid.UUID) (*biz.PartnerShippingPreset, error) {
+	item, err := r.data.db.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).WithParty().WithShippingText().WithPartnerLinks(func(query *ent.EnterpriseResourcePartnerQuery) { query.Where(linkent.PartnerIDEQ(partnerID)) }).Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, biz.ErrPartnerShippingPresetNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return enterpriseResourceToShippingPreset(item, partnerID), nil
 }
 
 func ensurePartnerInOrganization(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID) error {
@@ -128,60 +162,71 @@ func ensurePartnerInOrganization(ctx context.Context, tx *ent.Tx, organizationID
 	return nil
 }
 
-func clearPartnerShippingPresetDefault(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, presetType biz.PartnerShippingPresetType, exceptID uuid.UUID) error {
-	query := tx.PartnerShippingPreset.Update().Where(
-		shippingpresetent.PartnerIDEQ(partnerID),
-		shippingpresetent.PresetTypeEQ(shippingpresetent.PresetType(presetType)),
-		shippingpresetent.IsDefaultEQ(true),
-	)
-	if exceptID != uuid.Nil {
-		query.Where(shippingpresetent.IDNEQ(exceptID))
+func lockAndClearResourceDefault(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, presetType biz.PartnerShippingPresetType, exceptResourceID uuid.UUID) error {
+	if _, err := tx.Partner.Query().Where(partnerent.IDEQ(partnerID)).ForUpdate().Only(ctx); err != nil {
+		return err
+	}
+	query := tx.EnterpriseResourcePartner.Update().Where(linkent.PartnerIDEQ(partnerID), linkent.ResourceTypeEQ(linkent.ResourceType(presetType)), linkent.IsDefaultEQ(true))
+	if exceptResourceID != uuid.Nil {
+		query.Where(linkent.ResourceIDNEQ(exceptResourceID))
 	}
 	_, err := query.SetIsDefault(false).Save(ctx)
 	return err
 }
 
-func setPartnerShippingPresetCreate(builder *ent.PartnerShippingPresetCreate, input *biz.PartnerShippingPreset) *ent.PartnerShippingPresetCreate {
-	builder.SetPresetType(shippingpresetent.PresetType(input.PresetType)).SetTitle(input.Title).
-		SetIsDefault(input.IsDefault).SetSortOrder(input.SortOrder).SetRemark(input.Remark).SetEnabled(input.Enabled)
-	if input.Party != nil {
-		builder.SetCompanyName(input.Party.CompanyName).SetAddress(input.Party.Address).SetContactName(input.Party.ContactName).
-			SetPhone(input.Party.Phone).SetEmail(input.Party.Email).SetCountryCode(input.Party.CountryCode).SetTaxIdentifier(input.Party.TaxIdentifier)
+func createShippingPresetDetail(ctx context.Context, tx *ent.Tx, id, organizationID uuid.UUID, input *biz.PartnerShippingPreset) error {
+	if input.PresetType.Party() {
+		party := input.Party
+		_, err := tx.EnterpriseResourceParty.Create().SetResourceID(id).SetOrganizationID(organizationID).SetResourceType(partyent.ResourceType(input.PresetType)).SetCompanyName(party.CompanyName).SetNillableAddress(optionalString(party.Address)).SetNillableContactName(optionalString(party.ContactName)).SetNillableContactPhone(optionalString(party.Phone)).SetNillableEmail(optionalString(party.Email)).SetCountryCode(party.CountryCode).SetNillableTaxIdentifier(optionalString(party.TaxIdentifier)).SetNillableRemark(optionalString(input.Remark)).Save(ctx)
+		return err
 	}
-	if input.Text != nil {
-		builder.SetContent(input.Text.Content).SetCode(input.Text.Code)
-	}
-	return builder
+	_, err := tx.EnterpriseResourceShippingText.Create().SetResourceID(id).SetNillableContent(optionalString(input.Text.Content)).SetNillableCode(optionalString(input.Text.Code)).SetNillableRemark(optionalString(input.Remark)).Save(ctx)
+	return err
 }
 
-func setPartnerShippingPresetUpdate(builder *ent.PartnerShippingPresetUpdateOne, input *biz.PartnerShippingPreset) *ent.PartnerShippingPresetUpdateOne {
-	builder.SetTitle(input.Title).SetIsDefault(input.IsDefault).SetSortOrder(input.SortOrder).SetRemark(input.Remark).SetEnabled(input.Enabled).
-		ClearCompanyName().ClearAddress().ClearContactName().ClearPhone().ClearEmail().ClearCountryCode().ClearTaxIdentifier().ClearContent().ClearCode()
-	if input.Party != nil {
-		builder.SetCompanyName(input.Party.CompanyName).SetAddress(input.Party.Address).SetContactName(input.Party.ContactName).
-			SetPhone(input.Party.Phone).SetEmail(input.Party.Email).SetCountryCode(input.Party.CountryCode).SetTaxIdentifier(input.Party.TaxIdentifier)
+func updateShippingPresetDetail(ctx context.Context, tx *ent.Tx, id uuid.UUID, input *biz.PartnerShippingPreset) error {
+	if input.PresetType.Party() {
+		party := input.Party
+		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(party.CompanyName).SetCountryCode(party.CountryCode).ClearAddress().ClearContactName().ClearContactPhone().ClearEmail().ClearTaxIdentifier().ClearRemark()
+		builder.SetNillableAddress(optionalString(party.Address)).SetNillableContactName(optionalString(party.ContactName)).SetNillableContactPhone(optionalString(party.Phone)).SetNillableEmail(optionalString(party.Email)).SetNillableTaxIdentifier(optionalString(party.TaxIdentifier)).SetNillableRemark(optionalString(input.Remark))
+		_, err := builder.Save(ctx)
+		return err
 	}
-	if input.Text != nil {
-		builder.SetContent(input.Text.Content).SetCode(input.Text.Code)
-	}
-	return builder
+	builder := tx.EnterpriseResourceShippingText.Update().Where(textent.ResourceIDEQ(id)).ClearContent().ClearCode().ClearRemark()
+	builder.SetNillableContent(optionalString(input.Text.Content)).SetNillableCode(optionalString(input.Text.Code)).SetNillableRemark(optionalString(input.Remark))
+	_, err := builder.Save(ctx)
+	return err
 }
 
-func partnerShippingPresetToBiz(item *ent.PartnerShippingPreset) *biz.PartnerShippingPreset {
-	result := &biz.PartnerShippingPreset{
-		ID: item.ID, PartnerID: item.PartnerID, PresetType: biz.PartnerShippingPresetType(item.PresetType), Title: item.Title,
-		IsDefault: item.IsDefault, SortOrder: item.SortOrder, Remark: item.Remark, Enabled: item.Enabled,
-		CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
-	}
-	if result.PresetType.Party() {
-		result.Party = &biz.PartnerShippingPartyPayload{
-			CompanyName: stringValue(item.CompanyName), Address: stringValue(item.Address), ContactName: stringValue(item.ContactName),
-			Phone: stringValue(item.Phone), Email: stringValue(item.Email), CountryCode: stringValue(item.CountryCode), TaxIdentifier: stringValue(item.TaxIdentifier),
+func enterpriseResourceToShippingPreset(item *ent.EnterpriseResource, partnerID uuid.UUID) *biz.PartnerShippingPreset {
+	result := &biz.PartnerShippingPreset{ID: item.ID, PartnerID: partnerID, PresetType: biz.PartnerShippingPresetType(item.ResourceType), Title: item.ShortName, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	for _, link := range item.Edges.PartnerLinks {
+		if link.PartnerID == partnerID {
+			result.IsDefault = link.IsDefault
+			break
 		}
-	} else {
-		result.Text = &biz.PartnerShippingTextPayload{Content: stringValue(item.Content), Code: stringValue(item.Code)}
+	}
+	if result.PresetType.Party() && item.Edges.Party != nil {
+		party := item.Edges.Party
+		result.Party = &biz.PartnerShippingPartyPayload{CompanyName: party.CompanyName, Address: stringValue(party.Address), ContactName: stringValue(party.ContactName), Phone: stringValue(party.ContactPhone), Email: stringValue(party.Email), CountryCode: party.CountryCode, TaxIdentifier: stringValue(party.TaxIdentifier)}
+		result.Remark = stringValue(party.Remark)
+	} else if item.Edges.ShippingText != nil {
+		text := item.Edges.ShippingText
+		result.Text = &biz.PartnerShippingTextPayload{Content: stringValue(text.Content), Code: stringValue(text.Code)}
+		result.Remark = stringValue(text.Remark)
 	}
 	return result
+}
+
+func shippingPresetResourceTypes() []resourceent.ResourceType {
+	return []resourceent.ResourceType{resourceent.ResourceTypeSHIPPER, resourceent.ResourceTypeCONSIGNEE, resourceent.ResourceTypeNOTIFY_PARTY, resourceent.ResourceTypeENGLISH_CARGO_NAME, resourceent.ResourceTypeHS_CODE, resourceent.ResourceTypeMARKS}
+}
+
+func nonNilUUID(value uuid.UUID) *uuid.UUID {
+	if value == uuid.Nil {
+		return nil
+	}
+	return &value
 }
 
 func stringValue(value *string) string {

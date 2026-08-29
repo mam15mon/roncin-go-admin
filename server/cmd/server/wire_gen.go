@@ -28,6 +28,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	if err != nil {
 		return nil, nil, err
 	}
+	enterpriseResourceRepo := data.NewEnterpriseResourceRepo(dataData)
+	enterpriseResourceUsecase := biz.NewEnterpriseResourceUsecase(enterpriseResourceRepo)
+	enterpriseResourceService := service.NewEnterpriseResourceService(enterpriseResourceUsecase)
 	authRepo := data.NewAuthRepo(dataData)
 	sessionPolicy, err := server.NewSessionPolicy(security)
 	if err != nil {
@@ -134,8 +137,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	feeLedgerPreferenceRepo := data.NewFeeLedgerPreferenceRepo(dataData)
 	feeLedgerPreferenceUsecase := biz.NewFeeLedgerPreferenceUsecase(feeLedgerPreferenceRepo)
 	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase)
-	grpcServer := server.NewGRPCServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, logger)
-	httpServer := server.NewHTTPServer(confServer, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)
+	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, logger)
+	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, orderService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, authUsecase, orderUsecase, sessionPolicy, dataData, logger)
 	notificationRepo := data.NewNotificationRepo(dataData)
 	notificationUsecase := biz.NewNotificationUsecase(backgroundTaskUsecase, notificationRepo, dingTalkIdentityProvider)
 	notificationWorker := server.NewNotificationWorker(notificationUsecase, logger)

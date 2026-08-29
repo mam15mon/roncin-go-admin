@@ -50,8 +50,6 @@ const (
 	EdgeInvoiceProfiles = "invoice_profiles"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
-	// EdgeShippingPresets holds the string denoting the shipping_presets edge name in mutations.
-	EdgeShippingPresets = "shipping_presets"
 	// EdgeEnterpriseResourceLinks holds the string denoting the enterprise_resource_links edge name in mutations.
 	EdgeEnterpriseResourceLinks = "enterprise_resource_links"
 	// EdgeContracts holds the string denoting the contracts edge name in mutations.
@@ -123,13 +121,6 @@ const (
 	AssignmentsInverseTable = "partner_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "partner_id"
-	// ShippingPresetsTable is the table that holds the shipping_presets relation/edge.
-	ShippingPresetsTable = "partner_shipping_presets"
-	// ShippingPresetsInverseTable is the table name for the PartnerShippingPreset entity.
-	// It exists in this package in order to avoid circular dependency with the "partnershippingpreset" package.
-	ShippingPresetsInverseTable = "partner_shipping_presets"
-	// ShippingPresetsColumn is the table column denoting the shipping_presets relation/edge.
-	ShippingPresetsColumn = "partner_id"
 	// EnterpriseResourceLinksTable is the table that holds the enterprise_resource_links relation/edge.
 	EnterpriseResourceLinksTable = "enterprise_resource_partners"
 	// EnterpriseResourceLinksInverseTable is the table name for the EnterpriseResourcePartner entity.
@@ -400,20 +391,6 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByShippingPresetsCount orders the results by shipping_presets count.
-func ByShippingPresetsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newShippingPresetsStep(), opts...)
-	}
-}
-
-// ByShippingPresets orders the results by shipping_presets terms.
-func ByShippingPresets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newShippingPresetsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByEnterpriseResourceLinksCount orders the results by enterprise_resource_links count.
 func ByEnterpriseResourceLinksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -600,13 +577,6 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
-	)
-}
-func newShippingPresetsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ShippingPresetsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ShippingPresetsTable, ShippingPresetsColumn),
 	)
 }
 func newEnterpriseResourceLinksStep() *sqlgraph.Step {
