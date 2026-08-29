@@ -434,7 +434,7 @@ func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource
 			}
 		}
 		if !detail.CustomDisplay {
-			detail.DisplayContent = strings.TrimSpace(strings.Join([]string{detail.CompanyName, detail.Address, detail.ContactName, detail.ContactPhone}, "\n"))
+			detail.DisplayContent = enterprisePartyDisplayContent(detail.CompanyName, detail.Address, detail.ContactName, detail.ContactPhone)
 		}
 		value.Party = &detail
 	}
@@ -456,10 +456,22 @@ func normalizeEnterpriseTagGroup(input *EnterpriseTagGroup) (*EnterpriseTagGroup
 
 func enterpriseResourceAudit(organizationID, actorID uuid.UUID, action string, id uuid.UUID, resourceType EnterpriseResourceType) *AuditEvent {
 	details := map[string]string{"resource.type": string(resourceType)}
+	resourceID := ""
 	if id != uuid.Nil {
-		details["resource.id"] = id.String()
+		resourceID = id.String()
+		details["resource.id"] = resourceID
 	}
-	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, ResourceType: "enterprise_resource", ResourceID: id.String(), Result: "success", Details: details}
+	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, ResourceType: "enterprise_resource", ResourceID: resourceID, Result: "success", Details: details}
+}
+
+func enterprisePartyDisplayContent(parts ...string) string {
+	values := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if value := strings.TrimSpace(part); value != "" {
+			values = append(values, value)
+		}
+	}
+	return strings.Join(values, "\n")
 }
 
 func containsNilUUID(values []uuid.UUID) bool {

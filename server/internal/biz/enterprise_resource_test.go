@@ -82,3 +82,29 @@ func TestNormalizeEnterpriseResourceValidatesImageTypeAndSize(t *testing.T) {
 		t.Fatalf("超限图片应被拒绝，实际为 %v", err)
 	}
 }
+
+func TestNormalizeEnterpriseResourceBuildsCompactPartyDisplayContent(t *testing.T) {
+	result, err := normalizeEnterpriseResource(&EnterpriseResource{
+		ResourceType: EnterpriseResourceShipperType,
+		ShortName:    "测试发货人",
+		Enabled:      true,
+		Party: &EnterpriseResourceParty{
+			CompanyName:  " 测试企业 ",
+			CountryCode:  "cn",
+			ContactPhone: " 13800000000 ",
+		},
+	})
+	if err != nil {
+		t.Fatalf("规范化单证主体失败: %v", err)
+	}
+	if result.Party.DisplayContent != "测试企业\n13800000000" {
+		t.Fatalf("自动展示内容存在多余空行: %q", result.Party.DisplayContent)
+	}
+}
+
+func TestEnterpriseResourceBatchAuditHasNoZeroResourceID(t *testing.T) {
+	audit := enterpriseResourceAudit(uuid.New(), uuid.New(), "enterprise_resource.import", uuid.Nil, EnterpriseResourceShipperType)
+	if audit.ResourceID != "" {
+		t.Fatalf("批量审计不应写入零 UUID: %q", audit.ResourceID)
+	}
+}

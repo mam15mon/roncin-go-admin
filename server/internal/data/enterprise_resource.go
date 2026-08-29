@@ -716,10 +716,17 @@ func updateEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 
 func replaceEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, id uuid.UUID, resourceType biz.EnterpriseResourceType, partnerIDs, assigneeIDs []uuid.UUID, addressTypes []biz.EnterpriseAddressType) error {
 	if partnerIDs != nil {
-		if _, err := tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDEQ(id)).Exec(ctx); err != nil {
+		existing, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).All(ctx)
+		if err != nil {
 			return err
 		}
-		for _, partnerID := range uniqueEnterpriseUUIDs(partnerIDs) {
+		removedIDs, addedIDs := enterprisePartnerRelationChanges(existing, partnerIDs)
+		if len(removedIDs) > 0 {
+			if _, err := tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.IDIn(removedIDs...)).Exec(ctx); err != nil {
+				return err
+			}
+		}
+		for _, partnerID := range addedIDs {
 			if _, err := tx.EnterpriseResourcePartner.Create().SetResourceID(id).SetPartnerID(partnerID).SetResourceType(partnerlinkent.ResourceType(resourceType)).Save(ctx); err != nil {
 				return err
 			}
@@ -746,6 +753,28 @@ func replaceEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, id uuid
 		}
 	}
 	return nil
+}
+
+func enterprisePartnerRelationChanges(existing []*ent.EnterpriseResourcePartner, desired []uuid.UUID) ([]uuid.UUID, []uuid.UUID) {
+	desiredSet := make(map[uuid.UUID]struct{}, len(desired))
+	for _, partnerID := range uniqueEnterpriseUUIDs(desired) {
+		desiredSet[partnerID] = struct{}{}
+	}
+	existingSet := make(map[uuid.UUID]struct{}, len(existing))
+	removedIDs := make([]uuid.UUID, 0)
+	for _, link := range existing {
+		existingSet[link.PartnerID] = struct{}{}
+		if _, keep := desiredSet[link.PartnerID]; !keep {
+			removedIDs = append(removedIDs, link.ID)
+		}
+	}
+	addedIDs := make([]uuid.UUID, 0)
+	for _, partnerID := range uniqueEnterpriseUUIDs(desired) {
+		if _, exists := existingSet[partnerID]; !exists {
+			addedIDs = append(addedIDs, partnerID)
+		}
+	}
+	return removedIDs, addedIDs
 }
 
 func enterpriseResourceToBiz(item *ent.EnterpriseResource) *biz.EnterpriseResource {
