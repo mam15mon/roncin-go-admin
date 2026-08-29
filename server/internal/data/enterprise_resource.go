@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -21,6 +22,10 @@ import (
 	taggroupent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
+	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 type enterpriseResourceRepo struct{ data *Data }
@@ -33,6 +38,74 @@ func enterpriseResourceQuery(client *ent.Client) *ent.EnterpriseResourceQuery {
 	return client.EnterpriseResource.Query().
 		WithAddress().WithRemark().WithImage().WithParty().WithTag().
 		WithPartnerLinks().WithAssignees().WithAddressTypes()
+}
+
+func (r *enterpriseResourceRepo) SearchPartnerOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.EnterpriseResourcePartnerOption, int64, error) {
+	query := r.data.db.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true))
+	if keyword != "" {
+		query.Where(partnerent.Or(
+			partnerent.CodeContainsFold(keyword), partnerent.LegalNameContainsFold(keyword), partnerent.SearchKeywordsContainsFold(keyword),
+			partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(keyword), partneraliasent.SearchKeywordsContainsFold(keyword))),
+			partnerent.HasContactsWith(partnercontactent.Or(partnercontactent.NameContainsFold(keyword), partnercontactent.PhoneContainsFold(keyword), partnercontactent.EmailContainsFold(keyword))),
+		))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	items, err := query.Order(partnerent.ByLegalName(), partnerent.ByID()).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	result := make([]*biz.EnterpriseResourcePartnerOption, 0, len(items))
+	for _, item := range items {
+		result = append(result, &biz.EnterpriseResourcePartnerOption{ID: item.ID, Code: item.Code, Name: item.LegalName})
+	}
+	return result, int64(total), nil
+}
+
+func (r *enterpriseResourceRepo) SearchAssigneeOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.EnterpriseResourceAssigneeOption, int64, error) {
+	query := r.data.db.Membership.Query().Where(
+		membershipent.OrganizationIDEQ(organizationID), membershipent.EnabledEQ(true), membershipent.HasUserWith(userent.EnabledEQ(true)),
+	)
+	if keyword != "" {
+		query.Where(membershipent.HasUserWith(userent.Or(userent.UsernameContainsFold(keyword), userent.DisplayNameContainsFold(keyword), userent.SearchKeywordsContainsFold(keyword))))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	items, err := query.WithUser().Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByID()).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	result := make([]*biz.EnterpriseResourceAssigneeOption, 0, len(items))
+	for _, item := range items {
+		if item.Edges.User != nil {
+			result = append(result, &biz.EnterpriseResourceAssigneeOption{ID: item.UserID, Username: item.Edges.User.Username, DisplayName: item.Edges.User.DisplayName})
+		}
+	}
+	return result, int64(total), nil
+}
+
+func (r *enterpriseResourceRepo) ListRegionOptions(ctx context.Context, level int, parentCode *string, page, pageSize int) ([]*biz.EnterpriseResourceRegionOption, int64, error) {
+	query := r.data.db.AdministrativeRegion.Query().Where(regionent.LevelEQ(level), regionent.EnabledEQ(true))
+	if parentCode != nil {
+		query.Where(regionent.ParentCodeEQ(*parentCode))
+	}
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	items, err := query.Order(regionent.ByCode()).Offset((page - 1) * pageSize).Limit(pageSize).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	result := make([]*biz.EnterpriseResourceRegionOption, 0, len(items))
+	for _, item := range items {
+		result = append(result, &biz.EnterpriseResourceRegionOption{Code: item.Code, Name: item.Name, Level: item.Level, ParentCode: stringValue(item.ParentCode)})
+	}
+	return result, int64(total), nil
 }
 
 func (r *enterpriseResourceRepo) ImageUsage(ctx context.Context, organizationID uuid.UUID) (int64, error) {
@@ -550,37 +623,162 @@ func (r *enterpriseResourceRepo) DeleteTagGroup(ctx context.Context, organizatio
 	}
 	return tx.Commit()
 }
-func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*biz.EnterpriseResource, audit *biz.AuditEvent) ([]*biz.EnterpriseResource, error) {
+func (r *enterpriseResourceRepo) FindImportConflicts(ctx context.Context, organizationID uuid.UUID, inputs []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
+	return findEnterpriseResourceImportConflicts(ctx, r.data.db.EnterpriseResourceParty, organizationID, inputs)
+}
+
+func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*biz.EnterpriseResource, overwriteConflicts bool, audit *biz.AuditEvent) ([]*biz.EnterpriseResource, int, int, []*biz.EnterpriseResourceImportConflict, error) {
 	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return nil, 0, 0, nil, err
+	}
+	conflicts, err := findEnterpriseResourceImportConflicts(ctx, tx.EnterpriseResourceParty, organizationID, inputs)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, 0, 0, nil, err
+	}
+	if len(conflicts) > 0 && !overwriteConflicts {
+		_ = tx.Rollback()
+		return inputs, 0, 0, conflicts, nil
+	}
+	conflictsByRow := make(map[int][]*biz.EnterpriseResourceImportConflict)
+	for _, conflict := range conflicts {
+		conflictsByRow[conflict.RowNumber] = append(conflictsByRow[conflict.RowNumber], conflict)
+	}
+	for _, rowConflicts := range conflictsByRow {
+		if len(rowConflicts) > 1 {
+			_ = tx.Rollback()
+			return nil, 0, 0, conflicts, biz.ErrEnterpriseResourceImportAmbiguous
+		}
+	}
+	resourceIDsToLock := make([]uuid.UUID, 0, len(conflictsByRow))
+	resourceRows := make(map[uuid.UUID]int, len(conflictsByRow))
+	for rowNumber, rowConflicts := range conflictsByRow {
+		resourceID := rowConflicts[0].ExistingResourceID
+		if existingRow, exists := resourceRows[resourceID]; exists && existingRow != rowNumber {
+			_ = tx.Rollback()
+			return nil, 0, 0, conflicts, biz.ErrEnterpriseResourceImportAmbiguous
+		}
+		resourceRows[resourceID] = rowNumber
+		resourceIDsToLock = append(resourceIDsToLock, resourceID)
+	}
+	sort.Slice(resourceIDsToLock, func(i, j int) bool { return resourceIDsToLock[i].String() < resourceIDsToLock[j].String() })
+	if len(resourceIDsToLock) > 0 {
+		locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDIn(resourceIDsToLock...), resourceent.OrganizationIDEQ(organizationID)).Order(resourceent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return nil, 0, 0, nil, err
+		}
+		if len(locked) != len(resourceIDsToLock) {
+			_ = tx.Rollback()
+			return nil, 0, 0, nil, biz.ErrEnterpriseResourceInvalidArgument
+		}
+	}
+	createdCount := 0
+	updatedCount := 0
+	for index, input := range inputs {
+		rowConflicts := conflictsByRow[index+1]
+		if len(rowConflicts) == 0 {
+			_, err := createEnterpriseResource(ctx, tx, organizationID, actorID, input)
+			if err != nil {
+				_ = tx.Rollback()
+				return nil, 0, 0, nil, err
+			}
+			createdCount++
+			continue
+		}
+		id := rowConflicts[0].ExistingResourceID
+		if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
+			_ = tx.Rollback()
+			return nil, 0, 0, nil, err
+		}
+		if _, err := tx.EnterpriseResource.Update().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceType(input.ResourceType))).SetShortName(input.ShortName).SetUpdatedBy(actorID).Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, 0, 0, nil, err
+		}
+		if err := updateImportedEnterpriseResourceParty(ctx, tx, id, input.Party); err != nil {
+			_ = tx.Rollback()
+			return nil, 0, 0, nil, err
+		}
+		updatedCount++
+	}
+	audit.Details["created_count"] = stringInt(createdCount)
+	audit.Details["updated_count"] = stringInt(updatedCount)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, 0, 0, nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, 0, 0, nil, err
+	}
+	return inputs, createdCount, updatedCount, conflicts, nil
+}
+
+func findEnterpriseResourceImportConflicts(ctx context.Context, client *ent.EnterpriseResourcePartyClient, organizationID uuid.UUID, inputs []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
+	if len(inputs) == 0 {
+		return nil, nil
+	}
+	conditions := make([]predicate.EnterpriseResourceParty, 0, len(inputs)*2)
+	codes := make([]string, 0, len(inputs))
+	for _, input := range inputs {
+		conditions = append(conditions, partyent.CompanyNameEqualFold(input.Party.CompanyName))
+		if input.Party.BusinessCode != "" {
+			codes = append(codes, strings.ToUpper(input.Party.BusinessCode))
+		}
+	}
+	if len(codes) > 0 {
+		conditions = append(conditions, partyent.NormalizedBusinessCodeIn(codes...))
+	}
+	items, err := client.Query().Where(
+		partyent.OrganizationIDEQ(organizationID),
+		partyent.ResourceTypeEQ(partyent.ResourceType(inputs[0].ResourceType)),
+		partyent.Or(conditions...),
+	).WithResource().All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	ids := make([]uuid.UUID, 0, len(inputs))
-	for _, input := range inputs {
-		created, err := createEnterpriseResource(ctx, tx, organizationID, actorID, input)
-		if err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	byCode := make(map[string][]*ent.EnterpriseResourceParty)
+	byName := make(map[string][]*ent.EnterpriseResourceParty)
+	for _, item := range items {
+		if item.NormalizedBusinessCode != nil {
+			byCode[*item.NormalizedBusinessCode] = append(byCode[*item.NormalizedBusinessCode], item)
 		}
-		ids = append(ids, created.ID)
+		nameKey := strings.ToUpper(strings.TrimSpace(item.CompanyName))
+		byName[nameKey] = append(byName[nameKey], item)
 	}
-	audit.Details["created_count"] = stringInt(len(ids))
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	result := make([]*biz.EnterpriseResource, 0, len(ids))
-	for _, id := range ids {
-		item, err := r.Get(ctx, organizationID, id)
-		if err != nil {
-			return nil, err
+	conflicts := make([]*biz.EnterpriseResourceImportConflict, 0)
+	for index, input := range inputs {
+		matches := make(map[uuid.UUID]*biz.EnterpriseResourceImportConflict)
+		addMatches := func(items []*ent.EnterpriseResourceParty, field string) {
+			for _, item := range items {
+				resource := item.Edges.Resource
+				if resource == nil {
+					continue
+				}
+				conflict, exists := matches[resource.ID]
+				if !exists {
+					conflict = &biz.EnterpriseResourceImportConflict{RowNumber: index + 1, ExistingResourceID: resource.ID, ExistingShortName: resource.ShortName}
+					matches[resource.ID] = conflict
+				}
+				conflict.MatchedFields = append(conflict.MatchedFields, field)
+			}
 		}
-		result = append(result, item)
+		if input.Party.BusinessCode != "" {
+			addMatches(byCode[strings.ToUpper(input.Party.BusinessCode)], "business_code")
+		}
+		addMatches(byName[strings.ToUpper(strings.TrimSpace(input.Party.CompanyName))], "company_name")
+		for _, conflict := range matches {
+			sort.Strings(conflict.MatchedFields)
+			conflicts = append(conflicts, conflict)
+		}
 	}
-	return result, nil
+	sort.Slice(conflicts, func(i, j int) bool {
+		if conflicts[i].RowNumber != conflicts[j].RowNumber {
+			return conflicts[i].RowNumber < conflicts[j].RowNumber
+		}
+		return conflicts[i].ExistingResourceID.String() < conflicts[j].ExistingResourceID.String()
+	})
+	return conflicts, nil
 }
 
 func validateEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.EnterpriseResource) error {
@@ -712,6 +910,30 @@ func updateEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 		_, err := builder.Save(ctx)
 		return err
 	}
+}
+
+func updateImportedEnterpriseResourceParty(ctx context.Context, tx *ent.Tx, id uuid.UUID, input *biz.EnterpriseResourceParty) error {
+	builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).
+		SetCompanyName(input.CompanyName).
+		SetCountryCode(input.CountryCode).
+		ClearBusinessCode().
+		ClearNormalizedBusinessCode().
+		ClearAddress().
+		ClearContactName().
+		ClearContactPhone().
+		ClearEmail().
+		ClearTaxIdentifier().
+		ClearAeoCode()
+	builder.SetNillableBusinessCode(optionalString(input.BusinessCode)).
+		SetNillableNormalizedBusinessCode(optionalString(strings.ToUpper(input.BusinessCode))).
+		SetNillableAddress(optionalString(input.Address)).
+		SetNillableContactName(optionalString(input.ContactName)).
+		SetNillableContactPhone(optionalString(input.ContactPhone)).
+		SetNillableEmail(optionalString(input.Email)).
+		SetNillableTaxIdentifier(optionalString(input.TaxIdentifier)).
+		SetNillableAeoCode(optionalString(input.AEOCode))
+	_, err := builder.Save(ctx)
+	return err
 }
 
 func replaceEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, id uuid.UUID, resourceType biz.EnterpriseResourceType, partnerIDs, assigneeIDs []uuid.UUID, addressTypes []biz.EnterpriseAddressType) error {

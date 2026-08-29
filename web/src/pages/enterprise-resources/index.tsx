@@ -1,5 +1,6 @@
 import {
   DeleteOutlined,
+  DownloadOutlined,
   EditOutlined,
   LinkOutlined,
   PlusOutlined,
@@ -10,6 +11,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
 import {
+  Alert,
   App,
   Button,
   Checkbox,
@@ -29,9 +31,6 @@ import {
 import type { UploadFile } from 'antd';
 import type { RcFile } from 'antd/es/upload';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
-import { adminServiceListUsers } from '@/services/roncin/adminService';
-import { masterDataServiceListAdministrativeRegions } from '@/services/roncin/masterDataService';
 import {
   enterpriseResourceServiceBatchCreateAssociations,
   enterpriseResourceServiceBatchAssignAddressTypes,
@@ -45,8 +44,11 @@ import {
   enterpriseResourceServiceDeleteEnterpriseTagGroup,
   enterpriseResourceServiceGetEnterpriseResourceCapabilities,
   enterpriseResourceServiceListEnterpriseResources,
+  enterpriseResourceServiceListEnterpriseResourceRegionOptions,
   enterpriseResourceServiceListEnterpriseTagGroups,
   enterpriseResourceServicePrepareEnterpriseResourceImageUpload,
+  enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions,
+  enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions,
   enterpriseResourceServiceGetEnterpriseResourceImageAccess,
   enterpriseResourceServicePreviewEnterpriseResourceImport,
   enterpriseResourceServiceCommitEnterpriseResourceImport,
@@ -74,6 +76,8 @@ const addressTypes = [
   { label: '送货地址', value: 3 },
 ];
 const partyTypes = new Set([5, 6, 7]);
+const importHeaders = ['简称', '企业名称', '企业代码', '地址', '国家代码', '联系人', '电话', '邮箱', '税号', 'AEO代码'];
+const importConflictFieldLabels: Record<string, string> = { business_code: '企业代码', company_name: '企业名称' };
 
 async function imageChecksum(file: Blob): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
@@ -86,6 +90,40 @@ function formatStorageSize(value?: string): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KiB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GiB`;
+}
+
+function parseCSV(content: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let quoted = false;
+  for (let index = 0; index < content.length; index += 1) {
+    const character = content[index];
+    if (character === '"') {
+      if (quoted && content[index + 1] === '"') { field += '"'; index += 1; }
+      else quoted = !quoted;
+    } else if (character === ',' && !quoted) { row.push(field.trim()); field = ''; }
+    else if ((character === '\n' || character === '\r') && !quoted) {
+      if (character === '\r' && content[index + 1] === '\n') index += 1;
+      row.push(field.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      field = '';
+    } else field += character;
+  }
+  if (quoted) throw new Error('CSV 文件存在未闭合的双引号');
+  row.push(field.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
+function parseImportFile(content: string, resourceType: number): API.EnterpriseResourceInput[] {
+  const rows = parseCSV(content.replace(/^\uFEFF/, ''));
+  if (!rows.length || importHeaders.some((header, index) => rows[0][index] !== header)) throw new Error(`CSV 表头必须为：${importHeaders.join(',')}`);
+  return rows.slice(1).map((values) => {
+    const [shortName, companyName, businessCode, address, countryCode = 'CN', contactName, contactPhone, email, taxIdentifier, aeoCode] = values;
+    return { resourceType, shortName: shortName ?? '', enabled: true, sortOrder: 0, party: { companyName, businessCode, address, countryCode: countryCode || 'CN', contactName, contactPhone, email, taxIdentifier, aeoCode } };
+  });
 }
 
 type EditorValues = {
@@ -156,8 +194,10 @@ const EnterpriseResourcesPage: React.FC = () => {
   const [groupForm] = Form.useForm();
   const [imageFiles, setImageFiles] = useState<UploadFile[]>([]);
   const [importOpen, setImportOpen] = useState(false);
-  const [importText, setImportText] = useState('');
+  const [importFiles, setImportFiles] = useState<UploadFile[]>([]);
+  const [importRows, setImportRows] = useState<API.EnterpriseResourceInput[]>([]);
   const [importPreview, setImportPreview] = useState<API.PreviewEnterpriseResourceImportResponse>();
+  const [importLoading, setImportLoading] = useState(false);
   const countryCode = Form.useWatch('countryCode', form);
   const provinceCode = Form.useWatch('provinceCode', form);
   const cityCode = Form.useWatch('cityCode', form);
@@ -177,17 +217,17 @@ const EnterpriseResourcesPage: React.FC = () => {
   }, [active.type, loadTagGroups]);
 
   const searchPartners = useCallback(async (keyword = '') => {
-    const response = await partnerServiceListPartners({ page: 1, pageSize: 50, keyword, enabled: true });
-    setPartnerOptions((response.data ?? []).flatMap((item) => item.id ? [{ value: item.id, label: `${item.code ?? ''} ${item.legalName ?? ''}`.trim() }] : []));
+    const response = await enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions({ page: 1, pageSize: 50, keyword });
+    setPartnerOptions((response.data ?? []).flatMap((item) => item.id ? [{ value: item.id, label: `${item.code ?? ''} ${item.name ?? ''}`.trim() }] : []));
   }, []);
 
   const searchAssignees = useCallback(async (keyword = '') => {
-    const response = await adminServiceListUsers({ page: 1, pageSize: 50, keyword });
+    const response = await enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions({ page: 1, pageSize: 50, keyword });
     setAssigneeOptions((response.data ?? []).flatMap((item) => item.id ? [{ value: item.id, label: item.displayName ?? item.username ?? item.id }] : []));
   }, []);
 
   const loadRegions = useCallback(async (level: number, parentCode?: string) => {
-    const response = await masterDataServiceListAdministrativeRegions({ level, parentCode, page: 1, pageSize: 200 });
+    const response = await enterpriseResourceServiceListEnterpriseResourceRegionOptions({ level, parentCode, page: 1, pageSize: 200 });
     return (response.data ?? []).flatMap((item) => item.code ? [{ value: item.code, label: item.name ?? item.code }] : []);
   }, []);
 
@@ -317,19 +357,29 @@ const EnterpriseResourcesPage: React.FC = () => {
     message.success('标签组已保存'); setGroupOpen(false); await loadTagGroups();
   };
 
-  const importInputs = (): API.EnterpriseResourceInput[] => importText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
-    const [shortName, companyName, businessCode, address, countryCode = 'CN', contactName, contactPhone, email, taxIdentifier, aeoCode] = line.split(',').map((value) => value.trim());
-    return { resourceType: active.type, shortName, enabled: true, sortOrder: 0, partnerAssociations: { partnerIds: [] }, party: { companyName, businessCode, address, countryCode, contactName, contactPhone, email, taxIdentifier, aeoCode } };
-  });
-
   const previewImport = async () => {
-    setImportPreview(await enterpriseResourceServicePreviewEnterpriseResourceImport({ resourceType: active.type, rows: importInputs() }));
+    setImportLoading(true);
+    try { setImportPreview(await enterpriseResourceServicePreviewEnterpriseResourceImport({ resourceType: active.type, rows: importRows })); }
+    finally { setImportLoading(false); }
   };
 
   const commitImport = async () => {
-    const response = await enterpriseResourceServiceCommitEnterpriseResourceImport({ resourceType: active.type, rows: importInputs() });
-    message.success(`已导入 ${response.createdCount ?? 0} 条资源`);
-    setImportOpen(false); setImportPreview(undefined); setImportText(''); actionRef.current?.reload();
+    setImportLoading(true);
+    try {
+      const response = await enterpriseResourceServiceCommitEnterpriseResourceImport({ resourceType: active.type, rows: importRows, overwriteConflicts: (importPreview?.conflictCount ?? 0) > 0 });
+      message.success(`已新增 ${response.createdCount ?? 0} 条，更新 ${response.updatedCount ?? 0} 条资源`);
+      setImportOpen(false); setImportPreview(undefined); setImportFiles([]); setImportRows([]); actionRef.current?.reload();
+    } finally { setImportLoading(false); }
+  };
+
+  const downloadImportTemplate = () => {
+    const content = `\uFEFF${importHeaders.join(',')}\r\n示例主体,上海示例公司,SAMPLE001,上海市浦东新区,CN,张三,13800000000,example@example.com,,`;
+    const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${active.label.replace('管理', '')}导入模板.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -348,7 +398,7 @@ const EnterpriseResourcesPage: React.FC = () => {
         pagination={{ defaultPageSize: 20, showSizeChanger: true }} scroll={{ x: 1100 }}
         toolBarRender={() => [
           active.type === 4 && access.canCreateEnterpriseResources && <Button key="groups" icon={<TagsOutlined />} onClick={() => { setEditingGroup(undefined); groupForm.resetFields(); setGroupOpen(true); }}>标签组</Button>,
-          partyTypes.has(active.type) && access.canCreateEnterpriseResources && <Button key="import" icon={<UploadOutlined />} onClick={() => { setImportOpen(true); setImportPreview(undefined); }}>批量导入</Button>,
+          partyTypes.has(active.type) && access.canCreateEnterpriseResources && <Button key="import" icon={<UploadOutlined />} onClick={() => { setImportOpen(true); setImportPreview(undefined); setImportFiles([]); setImportRows([]); }}>批量导入</Button>,
           active.type !== 2 && active.type !== 3 && active.type !== 4 && access.canUpdateEnterpriseResources && <Button key="link" disabled={!selectedKeys.length} icon={<LinkOutlined />} onClick={() => { setAssociationMode('link'); setAssociationPartners([]); void searchPartners(); setAssociationOpen(true); }}>批量关联</Button>,
           active.type !== 2 && active.type !== 3 && active.type !== 4 && access.canUpdateEnterpriseResources && <Button key="unlink" disabled={!selectedKeys.length} onClick={() => { setAssociationMode('unlink'); setAssociationPartners([]); void searchPartners(); setAssociationOpen(true); }}>解除关联</Button>,
           active.type === 1 && access.canUpdateEnterpriseResources && <Button key="address-type" disabled={!selectedKeys.length} onClick={() => { setAddressTypeMode('assign'); setBatchAddressTypes([]); setAddressTypeOpen(true); }}>批量设置地址类型</Button>,
@@ -399,10 +449,32 @@ const EnterpriseResourcesPage: React.FC = () => {
         <Form form={groupForm} layout="vertical" initialValues={{ sortOrder: 0 }}><Form.Item name="name" label="组名" rules={[{ required: true }]}><Input maxLength={100} /></Form.Item><Form.Item name="color" label="颜色"><ColorPicker showText allowClear /></Form.Item><Form.Item name="sortOrder" label="排序"><InputNumber min={0} /></Form.Item></Form>
         {!!tagGroups.length && !editingGroup && <Space orientation="vertical" style={{ width: '100%' }}>{tagGroups.map((group) => <Space key={group.id} style={{ justifyContent: 'space-between', width: '100%' }}><Tag color={group.color}>{group.name}</Tag><Space><Button type="link" size="small" onClick={() => { setEditingGroup(group); groupForm.setFieldsValue(group); }}>编辑</Button><Popconfirm title="仅空标签组可删除，确认删除？" onConfirm={async () => { if (!group.id) return; await enterpriseResourceServiceDeleteEnterpriseTagGroup({ id: group.id }); await loadTagGroups(); }}><Button type="link" danger size="small">删除</Button></Popconfirm></Space></Space>)}</Space>}
       </Modal>
-      <Modal title={`批量导入${active.label.replace('管理', '')}`} open={importOpen} okText={importPreview?.invalidCount === 0 ? '确认导入' : '校验数据'} onOk={() => importPreview?.invalidCount === 0 ? void commitImport() : void previewImport()} onCancel={() => setImportOpen(false)}>
-        <p>每行一条，字段顺序：简称,企业名称,企业代码,地址,国家代码,联系人,电话,邮箱,税号,AEO代码</p>
-        <Input.TextArea rows={10} value={importText} onChange={(event) => { setImportText(event.target.value); setImportPreview(undefined); }} placeholder="示例发货人,上海示例公司,SAMPLE001,上海市浦东新区,CN,张三,13800000000,example@example.com,," />
-        {importPreview && <p style={{ marginTop: 12 }}>有效 {importPreview.validCount ?? 0} 条，无效 {importPreview.invalidCount ?? 0} 条{importPreview.rows?.some((row) => row.errors?.length) ? `：${importPreview.rows.flatMap((row) => row.errors ?? []).join('；')}` : ''}</p>}
+      <Modal title={`批量导入${active.label.replace('管理', '')}`} open={importOpen} okText={!importPreview ? '校验数据' : (importPreview.conflictCount ?? 0) > 0 ? `确认覆盖 ${importPreview.conflictCount} 条` : '确认导入'} confirmLoading={importLoading} okButtonProps={{ disabled: !importRows.length || (importPreview?.invalidCount ?? 0) > 0 || importPreview?.overwriteAllowed === false }} onOk={() => importPreview ? void commitImport() : void previewImport()} onCancel={() => setImportOpen(false)}>
+        <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+          <Space>
+            <Upload accept=".csv,text/csv" maxCount={1} fileList={importFiles} beforeUpload={async (file) => {
+              try {
+                const rows = parseImportFile(await file.text(), active.type);
+                if (!rows.length) throw new Error('CSV 文件没有可导入的数据行');
+                setImportRows(rows); setImportPreview(undefined);
+              } catch (error) {
+                setImportRows([]); setImportPreview(undefined); setImportFiles([]);
+                message.error(error instanceof Error ? error.message : 'CSV 文件解析失败');
+                return Upload.LIST_IGNORE;
+              }
+              return false;
+            }} onChange={({ fileList }) => setImportFiles(fileList.slice(-1))} onRemove={() => { setImportFiles([]); setImportRows([]); setImportPreview(undefined); return true; }}>
+              <Button icon={<UploadOutlined />}>选择 CSV 文件</Button>
+            </Upload>
+            <Button icon={<DownloadOutlined />} onClick={downloadImportTemplate}>下载模板</Button>
+          </Space>
+          {!!importRows.length && !importPreview && <Alert type="info" showIcon title={`已读取 ${importRows.length} 条数据，请先校验`} />}
+          {importPreview && <Alert type={(importPreview.invalidCount ?? 0) > 0 || importPreview.overwriteAllowed === false ? 'error' : (importPreview.conflictCount ?? 0) > 0 ? 'warning' : 'success'} showIcon title={`有效 ${importPreview.validCount ?? 0} 条，无效 ${importPreview.invalidCount ?? 0} 条，冲突 ${importPreview.conflictCount ?? 0} 条`} description={<Space orientation="vertical" size={4}>
+            {importPreview.overwriteAllowed === false && <span>存在一行匹配多个资源的歧义，请先修正企业名称或企业代码后重新上传。</span>}
+            {importPreview.rows?.filter((row) => row.errors?.length).map((row) => <span key={`error-${row.rowNumber}`}>第 {row.rowNumber} 行：{row.errors?.join('；')}</span>)}
+            {importPreview.rows?.filter((row) => row.conflicts?.length).map((row) => <span key={`conflict-${row.rowNumber}`}>第 {row.rowNumber} 行与“{row.conflicts?.map((item) => item.existingShortName).join('、')}”冲突（{row.conflicts?.flatMap((item) => item.matchedFields ?? []).map((field) => importConflictFieldLabels[field] ?? field).join('、')}）{importPreview.overwriteAllowed === false ? '' : '，确认后将覆盖该资源'}</span>)}
+          </Space>} />}
+        </Space>
       </Modal>
     </PageContainer>
   );

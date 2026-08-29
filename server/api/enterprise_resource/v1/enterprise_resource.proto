@@ -9,6 +9,18 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1;v1";
 
 service EnterpriseResourceService {
+  rpc SearchEnterpriseResourcePartnerOptions(SearchEnterpriseResourcePartnerOptionsRequest) returns (SearchEnterpriseResourcePartnerOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/enterprise-resource-options/partners"};
+  }
+  rpc SearchEnterpriseResourceAssigneeOptions(SearchEnterpriseResourceAssigneeOptionsRequest) returns (SearchEnterpriseResourceAssigneeOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/enterprise-resource-options/assignees"};
+  }
+  rpc ListEnterpriseResourceRegionOptions(ListEnterpriseResourceRegionOptionsRequest) returns (ListEnterpriseResourceRegionOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/enterprise-resource-options/regions"};
+  }
   rpc GetEnterpriseResourceCapabilities(GetEnterpriseResourceCapabilitiesRequest) returns (GetEnterpriseResourceCapabilitiesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/enterprise-resource-capabilities"};
@@ -129,6 +141,16 @@ enum EnterpriseAddressType {
   ENTERPRISE_ADDRESS_TYPE_PICKUP = 2;
   ENTERPRISE_ADDRESS_TYPE_DELIVERY = 3;
 }
+
+message EnterpriseResourcePartnerOption { string id = 1; string code = 2; string name = 3; }
+message EnterpriseResourceAssigneeOption { string id = 1; string username = 2; string display_name = 3; }
+message EnterpriseResourceRegionOption { string code = 1; string name = 2; int32 level = 3; string parent_code = 4; }
+message SearchEnterpriseResourcePartnerOptionsRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
+message SearchEnterpriseResourcePartnerOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourcePartnerOption data = 4; int64 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8; }
+message SearchEnterpriseResourceAssigneeOptionsRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
+message SearchEnterpriseResourceAssigneeOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceAssigneeOption data = 4; int64 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8; }
+message ListEnterpriseResourceRegionOptionsRequest { int32 level = 1 [(google.api.field_behavior) = REQUIRED]; optional string parent_code = 2; int32 page = 3; int32 page_size = 4; }
+message ListEnterpriseResourceRegionOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceRegionOption data = 4; int64 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8; }
 
 message EnterpriseResourceAddress {
   string contact_name = 1;
@@ -263,8 +285,9 @@ message CreateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; str
 message UpdateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
 message DeleteEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; string trace_id = 4; }
 
-message EnterpriseResourceImportRow { int32 row_number = 1; EnterpriseResourceInput resource = 2; repeated string errors = 3; }
+message EnterpriseResourceImportConflict { string existing_resource_id = 1; string existing_short_name = 2; repeated string matched_fields = 3; }
+message EnterpriseResourceImportRow { int32 row_number = 1; EnterpriseResourceInput resource = 2; repeated string errors = 3; repeated EnterpriseResourceImportConflict conflicts = 4; }
 message PreviewEnterpriseResourceImportRequest { EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseResourceInput rows = 2 [(google.api.field_behavior) = REQUIRED]; }
-message CommitEnterpriseResourceImportRequest { EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseResourceInput rows = 2 [(google.api.field_behavior) = REQUIRED]; }
-message PreviewEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; }
-message CommitEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; }
+message CommitEnterpriseResourceImportRequest { EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseResourceInput rows = 2 [(google.api.field_behavior) = REQUIRED]; bool overwrite_conflicts = 3; }
+message PreviewEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; int32 conflict_count = 9; bool overwrite_allowed = 10; }
+message CommitEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; int32 conflict_count = 9; int32 updated_count = 10; }

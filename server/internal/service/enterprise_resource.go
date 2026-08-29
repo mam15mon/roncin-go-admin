@@ -21,6 +21,65 @@ func NewEnterpriseResourceService(usecase *biz.EnterpriseResourceUsecase) *Enter
 	return &EnterpriseResourceService{usecase: usecase}
 }
 
+func (s *EnterpriseResourceService) SearchEnterpriseResourcePartnerOptions(ctx context.Context, request *v1.SearchEnterpriseResourcePartnerOptionsRequest) (*v1.SearchEnterpriseResourcePartnerOptionsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.usecase.SearchPartnerOptions(ctx, principal.Organization.ID, request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.EnterpriseResourcePartnerOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.EnterpriseResourcePartnerOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
+	}
+	return &v1.SearchEnterpriseResourcePartnerOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx context.Context, request *v1.SearchEnterpriseResourceAssigneeOptionsRequest) (*v1.SearchEnterpriseResourceAssigneeOptionsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.usecase.SearchAssigneeOptions(ctx, principal.Organization.ID, request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.EnterpriseResourceAssigneeOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.EnterpriseResourceAssigneeOption{Id: item.ID.String(), Username: item.Username, DisplayName: item.DisplayName})
+	}
+	return &v1.SearchEnterpriseResourceAssigneeOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx context.Context, request *v1.ListEnterpriseResourceRegionOptionsRequest) (*v1.ListEnterpriseResourceRegionOptionsResponse, error) {
+	if _, ok := biz.PrincipalFromContext(ctx); !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.usecase.ListRegionOptions(ctx, int(request.GetLevel()), request.ParentCode, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.EnterpriseResourceRegionOption, 0, len(items))
+	for _, item := range items {
+		data = append(data, &v1.EnterpriseResourceRegionOption{Code: item.Code, Name: item.Name, Level: int32(item.Level), ParentCode: item.ParentCode})
+	}
+	return &v1.ListEnterpriseResourceRegionOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx context.Context, _ *v1.GetEnterpriseResourceCapabilitiesRequest) (*v1.GetEnterpriseResourceCapabilitiesResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -313,16 +372,20 @@ func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context
 }
 
 func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.PreviewEnterpriseResourceImportResponse, error) {
-	if _, ok := biz.PrincipalFromContext(ctx); !ok {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
 		return nil, biz.ErrSessionRequired
 	}
 	inputs, err := enterpriseResourceInputsFromAPI(request.GetRows())
 	if err != nil {
 		return nil, err
 	}
-	values, errs := s.usecase.PreviewImport(inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()))
-	result := enterpriseResourceImportResult(values, errs, 0)
-	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.success, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: result.createdCount, TraceId: requestmeta.TraceID(ctx)}, nil
+	outcome, err := s.usecase.PreviewImport(ctx, principal.Organization.ID, inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()))
+	if err != nil {
+		return nil, err
+	}
+	result := enterpriseResourceImportResult(outcome)
+	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.invalidCount == 0, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: 0, TraceId: requestmeta.TraceID(ctx), ConflictCount: result.conflictCount, OverwriteAllowed: result.overwriteAllowed}, nil
 }
 func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.Context, request *v1.CommitEnterpriseResourceImportRequest) (*v1.CommitEnterpriseResourceImportResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
@@ -333,12 +396,13 @@ func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.C
 	if err != nil {
 		return nil, err
 	}
-	values, rowErrors, err := s.usecase.CommitImport(ctx, principal.Organization.ID, principal.UserID, inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()))
-	if err != nil && len(rowErrors) == 0 {
+	outcome, err := s.usecase.CommitImport(ctx, principal.Organization.ID, principal.UserID, inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()), request.GetOverwriteConflicts())
+	if err != nil {
 		return nil, err
 	}
-	result := enterpriseResourceImportResult(values, rowErrors, len(values))
-	return &v1.CommitEnterpriseResourceImportResponse{Success: result.success, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: result.createdCount, TraceId: requestmeta.TraceID(ctx)}, nil
+	result := enterpriseResourceImportResult(outcome)
+	success := result.invalidCount == 0 && int(result.validCount) == outcome.CreatedCount+outcome.UpdatedCount
+	return &v1.CommitEnterpriseResourceImportResponse{Success: success, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: int32(outcome.CreatedCount), TraceId: requestmeta.TraceID(ctx), ConflictCount: result.conflictCount, UpdatedCount: int32(outcome.UpdatedCount)}, nil
 }
 
 func enterpriseResourceFromAPI(value *v1.EnterpriseResourceInput) (*biz.EnterpriseResource, error) {
@@ -507,19 +571,25 @@ func enterpriseResourceInputsFromAPI(values []*v1.EnterpriseResourceInput) ([]*b
 }
 
 type enterpriseResourceImportResultValue struct {
-	success                  bool
 	rows                     []*v1.EnterpriseResourceImportRow
 	validCount, invalidCount int32
-	createdCount             int32
+	conflictCount            int32
+	overwriteAllowed         bool
 }
 
-func enterpriseResourceImportResult(values []*biz.EnterpriseResource, errs []error, created int) enterpriseResourceImportResultValue {
-	rows := make([]*v1.EnterpriseResourceImportRow, len(errs))
+func enterpriseResourceImportResult(outcome *biz.EnterpriseResourceImportOutcome) enterpriseResourceImportResultValue {
+	rows := make([]*v1.EnterpriseResourceImportRow, len(outcome.RowErrors))
+	conflictsByRow := make(map[int][]*v1.EnterpriseResourceImportConflict)
+	for _, conflict := range outcome.Conflicts {
+		conflictsByRow[conflict.RowNumber] = append(conflictsByRow[conflict.RowNumber], &v1.EnterpriseResourceImportConflict{
+			ExistingResourceId: conflict.ExistingResourceID.String(), ExistingShortName: conflict.ExistingShortName, MatchedFields: conflict.MatchedFields,
+		})
+	}
 	valid := 0
-	for i, err := range errs {
-		row := &v1.EnterpriseResourceImportRow{RowNumber: int32(i + 1)}
-		if i < len(values) && values[i] != nil {
-			row.Resource = enterpriseResourceToInputAPI(values[i])
+	for i, err := range outcome.RowErrors {
+		row := &v1.EnterpriseResourceImportRow{RowNumber: int32(i + 1), Conflicts: conflictsByRow[i+1]}
+		if i < len(outcome.Rows) && outcome.Rows[i] != nil {
+			row.Resource = enterpriseResourceToInputAPI(outcome.Rows[i])
 		}
 		if err != nil {
 			row.Errors = []string{err.Error()}
@@ -528,7 +598,14 @@ func enterpriseResourceImportResult(values []*biz.EnterpriseResource, errs []err
 		}
 		rows[i] = row
 	}
-	return enterpriseResourceImportResultValue{success: len(errs)-valid == 0, rows: rows, validCount: int32(valid), invalidCount: int32(len(errs) - valid), createdCount: int32(created)}
+	overwriteAllowed := true
+	for _, conflicts := range conflictsByRow {
+		if len(conflicts) > 1 {
+			overwriteAllowed = false
+			break
+		}
+	}
+	return enterpriseResourceImportResultValue{rows: rows, validCount: int32(valid), invalidCount: int32(len(outcome.RowErrors) - valid), conflictCount: int32(len(outcome.Conflicts)), overwriteAllowed: overwriteAllowed}
 }
 func enterpriseResourceToInputAPI(value *biz.EnterpriseResource) *v1.EnterpriseResourceInput {
 	result := &v1.EnterpriseResourceInput{ResourceType: enterpriseResourceTypeToAPI(value.ResourceType), ShortName: value.ShortName, Enabled: value.Enabled, SortOrder: int32(value.SortOrder)}

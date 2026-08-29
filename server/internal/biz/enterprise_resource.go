@@ -17,6 +17,7 @@ var (
 	ErrEnterpriseResourceInvalidArgument = errors.BadRequest("ENTERPRISE_RESOURCE_INVALID_ARGUMENT", "企业资源字段不合法")
 	ErrEnterpriseTagGroupNotEmpty        = errors.Conflict("ENTERPRISE_TAG_GROUP_NOT_EMPTY", "标签组下仍有标签")
 	ErrEnterpriseImageStorageUnavailable = errors.ServiceUnavailable("ENTERPRISE_IMAGE_STORAGE_UNAVAILABLE", "图片对象存储未配置")
+	ErrEnterpriseResourceImportAmbiguous = errors.Conflict("ENTERPRISE_RESOURCE_IMPORT_AMBIGUOUS", "导入行匹配到多个现有资源，请先修正企业名称或业务代码")
 )
 
 type EnterpriseResourceType string
@@ -115,7 +116,40 @@ type EnterpriseTagGroup struct {
 	CreatedAt, UpdatedAt time.Time
 }
 
+type EnterpriseResourceImportConflict struct {
+	RowNumber          int
+	ExistingResourceID uuid.UUID
+	ExistingShortName  string
+	MatchedFields      []string
+}
+
+type EnterpriseResourceImportOutcome struct {
+	Rows         []*EnterpriseResource
+	RowErrors    []error
+	Conflicts    []*EnterpriseResourceImportConflict
+	CreatedCount int
+	UpdatedCount int
+}
+
+type EnterpriseResourcePartnerOption struct {
+	ID         uuid.UUID
+	Code, Name string
+}
+
+type EnterpriseResourceAssigneeOption struct {
+	ID                    uuid.UUID
+	Username, DisplayName string
+}
+
+type EnterpriseResourceRegionOption struct {
+	Code, Name, ParentCode string
+	Level                  int
+}
+
 type EnterpriseResourceRepo interface {
+	SearchPartnerOptions(context.Context, uuid.UUID, string, int, int) ([]*EnterpriseResourcePartnerOption, int64, error)
+	SearchAssigneeOptions(context.Context, uuid.UUID, string, int, int) ([]*EnterpriseResourceAssigneeOption, int64, error)
+	ListRegionOptions(context.Context, int, *string, int, int) ([]*EnterpriseResourceRegionOption, int64, error)
 	ImageUsage(context.Context, uuid.UUID) (int64, error)
 	List(context.Context, uuid.UUID, EnterpriseResourceListOptions) ([]*EnterpriseResource, int64, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*EnterpriseResource, error)
@@ -129,7 +163,8 @@ type EnterpriseResourceRepo interface {
 	CreateTagGroup(context.Context, uuid.UUID, *EnterpriseTagGroup, *AuditEvent) (*EnterpriseTagGroup, error)
 	UpdateTagGroup(context.Context, uuid.UUID, uuid.UUID, *EnterpriseTagGroup, *AuditEvent) (*EnterpriseTagGroup, error)
 	DeleteTagGroup(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
-	Import(context.Context, uuid.UUID, uuid.UUID, []*EnterpriseResource, *AuditEvent) ([]*EnterpriseResource, error)
+	FindImportConflicts(context.Context, uuid.UUID, []*EnterpriseResource) ([]*EnterpriseResourceImportConflict, error)
+	Import(context.Context, uuid.UUID, uuid.UUID, []*EnterpriseResource, bool, *AuditEvent) ([]*EnterpriseResource, int, int, []*EnterpriseResourceImportConflict, error)
 }
 
 type EnterpriseImageUpload struct {
@@ -157,6 +192,43 @@ func NewEnterpriseResourceUsecase(repo EnterpriseResourceRepo, storage Enterpris
 
 func (uc *EnterpriseResourceUsecase) ImageStorageEnabled() bool {
 	return uc.storage.Enabled()
+}
+
+func (uc *EnterpriseResourceUsecase) SearchPartnerOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*EnterpriseResourcePartnerOption, int64, error) {
+	keyword = strings.TrimSpace(keyword)
+	if organizationID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
+		return nil, 0, ErrEnterpriseResourceInvalidArgument
+	}
+	return uc.repo.SearchPartnerOptions(ctx, organizationID, keyword, page, pageSize)
+}
+
+func (uc *EnterpriseResourceUsecase) SearchAssigneeOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*EnterpriseResourceAssigneeOption, int64, error) {
+	keyword = strings.TrimSpace(keyword)
+	if organizationID == uuid.Nil || !ValidListPagination(page, pageSize) || utf8.RuneCountInString(keyword) > 100 {
+		return nil, 0, ErrEnterpriseResourceInvalidArgument
+	}
+	return uc.repo.SearchAssigneeOptions(ctx, organizationID, keyword, page, pageSize)
+}
+
+func (uc *EnterpriseResourceUsecase) ListRegionOptions(ctx context.Context, level int, parentCode *string, page, pageSize int) ([]*EnterpriseResourceRegionOption, int64, error) {
+	if level < 1 || level > 3 || !ValidListPagination(page, pageSize) {
+		return nil, 0, ErrEnterpriseResourceInvalidArgument
+	}
+	if level == 1 {
+		if parentCode != nil {
+			return nil, 0, ErrEnterpriseResourceInvalidArgument
+		}
+	} else {
+		if parentCode == nil {
+			return nil, 0, ErrEnterpriseResourceInvalidArgument
+		}
+		value := strings.TrimSpace(*parentCode)
+		if value == "" {
+			return nil, 0, ErrEnterpriseResourceInvalidArgument
+		}
+		parentCode = &value
+	}
+	return uc.repo.ListRegionOptions(ctx, level, parentCode, page, pageSize)
 }
 
 func (uc *EnterpriseResourceUsecase) ImageUsage(ctx context.Context, organizationID uuid.UUID) (int64, error) {
@@ -323,7 +395,21 @@ func (uc *EnterpriseResourceUsecase) DeleteTagGroup(ctx context.Context, organiz
 	return uc.repo.DeleteTagGroup(ctx, organizationID, id, enterpriseResourceAudit(organizationID, actorID, "enterprise_tag_group.delete", id, EnterpriseResourceTagType))
 }
 
-func (uc *EnterpriseResourceUsecase) PreviewImport(inputs []*EnterpriseResource, resourceType EnterpriseResourceType) ([]*EnterpriseResource, []error) {
+func (uc *EnterpriseResourceUsecase) PreviewImport(ctx context.Context, organizationID uuid.UUID, inputs []*EnterpriseResource, resourceType EnterpriseResourceType) (*EnterpriseResourceImportOutcome, error) {
+	values, rowErrors := validateEnterpriseResourceImport(inputs, resourceType)
+	outcome := &EnterpriseResourceImportOutcome{Rows: values, RowErrors: rowErrors}
+	if hasEnterpriseResourceImportErrors(rowErrors) {
+		return outcome, nil
+	}
+	conflicts, err := uc.repo.FindImportConflicts(ctx, organizationID, values)
+	if err != nil {
+		return nil, err
+	}
+	outcome.Conflicts = conflicts
+	return outcome, nil
+}
+
+func validateEnterpriseResourceImport(inputs []*EnterpriseResource, resourceType EnterpriseResourceType) ([]*EnterpriseResource, []error) {
 	values := make([]*EnterpriseResource, len(inputs))
 	errs := make([]error, len(inputs))
 	if !resourceType.Party() {
@@ -332,34 +418,58 @@ func (uc *EnterpriseResourceUsecase) PreviewImport(inputs []*EnterpriseResource,
 		}
 		return values, errs
 	}
-	seen := make(map[string]struct{})
+	seenCodes := make(map[string]struct{})
+	seenNames := make(map[string]struct{})
 	for i, input := range inputs {
 		if input == nil || input.ResourceType != resourceType {
 			errs[i] = ErrEnterpriseResourceInvalidArgument
 			continue
 		}
 		values[i], errs[i] = normalizeEnterpriseResource(input)
-		if errs[i] == nil && values[i].Party.BusinessCode != "" {
-			key := strings.ToUpper(values[i].Party.BusinessCode)
-			if _, ok := seen[key]; ok {
+		if errs[i] == nil {
+			nameKey := strings.ToUpper(values[i].Party.CompanyName)
+			if _, ok := seenNames[nameKey]; ok {
 				errs[i] = ErrEnterpriseResourceInvalidArgument
 			} else {
-				seen[key] = struct{}{}
+				seenNames[nameKey] = struct{}{}
+			}
+		}
+		if errs[i] == nil && values[i].Party.BusinessCode != "" {
+			codeKey := strings.ToUpper(values[i].Party.BusinessCode)
+			if _, ok := seenCodes[codeKey]; ok {
+				errs[i] = ErrEnterpriseResourceInvalidArgument
+			} else {
+				seenCodes[codeKey] = struct{}{}
 			}
 		}
 	}
 	return values, errs
 }
 
-func (uc *EnterpriseResourceUsecase) CommitImport(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*EnterpriseResource, resourceType EnterpriseResourceType) ([]*EnterpriseResource, []error, error) {
-	values, rowErrors := uc.PreviewImport(inputs, resourceType)
-	for _, err := range rowErrors {
+func (uc *EnterpriseResourceUsecase) CommitImport(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*EnterpriseResource, resourceType EnterpriseResourceType, overwriteConflicts bool) (*EnterpriseResourceImportOutcome, error) {
+	values, rowErrors := validateEnterpriseResourceImport(inputs, resourceType)
+	outcome := &EnterpriseResourceImportOutcome{Rows: values, RowErrors: rowErrors}
+	if hasEnterpriseResourceImportErrors(rowErrors) {
+		return outcome, nil
+	}
+	resources, createdCount, updatedCount, conflicts, err := uc.repo.Import(ctx, organizationID, actorID, values, overwriteConflicts, enterpriseResourceAudit(organizationID, actorID, "enterprise_resource.import", uuid.Nil, resourceType))
+	if err != nil {
+		return nil, err
+	}
+	outcome.Rows = resources
+	outcome.Conflicts = conflicts
+	outcome.CreatedCount = createdCount
+	outcome.UpdatedCount = updatedCount
+	return outcome, nil
+}
+
+func hasEnterpriseResourceImportErrors(values []error) bool {
+	for _, err := range values {
 		if err != nil {
-			return nil, rowErrors, ErrEnterpriseResourceInvalidArgument
+			return true
 		}
 	}
-	created, err := uc.repo.Import(ctx, organizationID, actorID, values, enterpriseResourceAudit(organizationID, actorID, "enterprise_resource.import", uuid.Nil, resourceType))
-	return created, rowErrors, err
+	return false
 }
 
 func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource, error) {

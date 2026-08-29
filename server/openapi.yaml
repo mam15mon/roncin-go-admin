@@ -819,6 +819,92 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse'
+    /api/v1/enterprise-resource-options/assignees:
+        get:
+            tags:
+                - EnterpriseResourceService
+            operationId: EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse'
+    /api/v1/enterprise-resource-options/partners:
+        get:
+            tags:
+                - EnterpriseResourceService
+            operationId: EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse'
+    /api/v1/enterprise-resource-options/regions:
+        get:
+            tags:
+                - EnterpriseResourceService
+            operationId: EnterpriseResourceService_ListEnterpriseResourceRegionOptions
+            parameters:
+                - name: level
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: parentCode
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse'
     /api/v1/enterprise-resources:
         get:
             tags:
@@ -6219,6 +6305,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceInput'
+                overwriteConflicts:
+                    type: boolean
         enterprise_resource.v1.CommitEnterpriseResourceImportResponse:
             type: object
             properties:
@@ -6244,6 +6332,12 @@ components:
                     format: int32
                 traceId:
                     type: string
+                conflictCount:
+                    type: integer
+                    format: int32
+                updatedCount:
+                    type: integer
+                    format: int32
         enterprise_resource.v1.CreateEnterpriseResourceRequest:
             required:
                 - resource
@@ -6375,6 +6469,15 @@ components:
                     type: string
                 remark:
                     type: string
+        enterprise_resource.v1.EnterpriseResourceAssigneeOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                displayName:
+                    type: string
         enterprise_resource.v1.EnterpriseResourceImage:
             type: object
             properties:
@@ -6394,6 +6497,17 @@ components:
                 height:
                     type: integer
                     format: int32
+        enterprise_resource.v1.EnterpriseResourceImportConflict:
+            type: object
+            properties:
+                existingResourceId:
+                    type: string
+                existingShortName:
+                    type: string
+                matchedFields:
+                    type: array
+                    items:
+                        type: string
         enterprise_resource.v1.EnterpriseResourceImportRow:
             type: object
             properties:
@@ -6406,6 +6520,10 @@ components:
                     type: array
                     items:
                         type: string
+                conflicts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportConflict'
         enterprise_resource.v1.EnterpriseResourceInput:
             required:
                 - resourceType
@@ -6443,6 +6561,15 @@ components:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImage'
                 tag:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceTag'
+        enterprise_resource.v1.EnterpriseResourcePartnerOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
         enterprise_resource.v1.EnterpriseResourceParty:
             type: object
             properties:
@@ -6469,6 +6596,18 @@ components:
                 displayContent:
                     type: string
                 remark:
+                    type: string
+        enterprise_resource.v1.EnterpriseResourceRegionOption:
+            type: object
+            properties:
+                code:
+                    type: string
+                name:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                parentCode:
                     type: string
         enterprise_resource.v1.EnterpriseResourceRemark:
             type: object
@@ -6559,6 +6698,30 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResource'
+                traceId:
+                    type: string
+        enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceRegionOption'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
                 traceId:
                     type: string
         enterprise_resource.v1.ListEnterpriseResourcesResponse:
@@ -6680,6 +6843,59 @@ components:
                     type: integer
                     format: int32
                 createdCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+                conflictCount:
+                    type: integer
+                    format: int32
+                overwriteAllowed:
+                    type: boolean
+        enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceAssigneeOption'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourcePartnerOption'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
                     type: integer
                     format: int32
                 traceId:

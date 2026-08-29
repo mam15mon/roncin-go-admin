@@ -19,32 +19,38 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EnterpriseResourceService_GetEnterpriseResourceCapabilities_FullMethodName    = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceCapabilities"
-	EnterpriseResourceService_PrepareEnterpriseResourceImageUpload_FullMethodName = "/enterprise_resource.v1.EnterpriseResourceService/PrepareEnterpriseResourceImageUpload"
-	EnterpriseResourceService_GetEnterpriseResourceImageAccess_FullMethodName     = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceImageAccess"
-	EnterpriseResourceService_ListEnterpriseResources_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResources"
-	EnterpriseResourceService_GetEnterpriseResource_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResource"
-	EnterpriseResourceService_CreateEnterpriseResource_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseResource"
-	EnterpriseResourceService_UpdateEnterpriseResource_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseResource"
-	EnterpriseResourceService_DeleteEnterpriseResource_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseResource"
-	EnterpriseResourceService_BatchCreateAssociations_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/BatchCreateAssociations"
-	EnterpriseResourceService_BatchDeleteAssociations_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/BatchDeleteAssociations"
-	EnterpriseResourceService_BatchAssignAddressTypes_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAddressTypes"
-	EnterpriseResourceService_BatchRemoveAddressTypes_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAddressTypes"
-	EnterpriseResourceService_BatchAssignAssignees_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAssignees"
-	EnterpriseResourceService_BatchRemoveAssignees_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAssignees"
-	EnterpriseResourceService_ListEnterpriseTagGroups_FullMethodName              = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseTagGroups"
-	EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseTagGroup"
-	EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseTagGroup"
-	EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName             = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseTagGroup"
-	EnterpriseResourceService_PreviewEnterpriseResourceImport_FullMethodName      = "/enterprise_resource.v1.EnterpriseResourceService/PreviewEnterpriseResourceImport"
-	EnterpriseResourceService_CommitEnterpriseResourceImport_FullMethodName       = "/enterprise_resource.v1.EnterpriseResourceService/CommitEnterpriseResourceImport"
+	EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions_FullMethodName  = "/enterprise_resource.v1.EnterpriseResourceService/SearchEnterpriseResourcePartnerOptions"
+	EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions_FullMethodName = "/enterprise_resource.v1.EnterpriseResourceService/SearchEnterpriseResourceAssigneeOptions"
+	EnterpriseResourceService_ListEnterpriseResourceRegionOptions_FullMethodName     = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResourceRegionOptions"
+	EnterpriseResourceService_GetEnterpriseResourceCapabilities_FullMethodName       = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceCapabilities"
+	EnterpriseResourceService_PrepareEnterpriseResourceImageUpload_FullMethodName    = "/enterprise_resource.v1.EnterpriseResourceService/PrepareEnterpriseResourceImageUpload"
+	EnterpriseResourceService_GetEnterpriseResourceImageAccess_FullMethodName        = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceImageAccess"
+	EnterpriseResourceService_ListEnterpriseResources_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResources"
+	EnterpriseResourceService_GetEnterpriseResource_FullMethodName                   = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResource"
+	EnterpriseResourceService_CreateEnterpriseResource_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseResource"
+	EnterpriseResourceService_UpdateEnterpriseResource_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseResource"
+	EnterpriseResourceService_DeleteEnterpriseResource_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseResource"
+	EnterpriseResourceService_BatchCreateAssociations_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchCreateAssociations"
+	EnterpriseResourceService_BatchDeleteAssociations_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchDeleteAssociations"
+	EnterpriseResourceService_BatchAssignAddressTypes_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAddressTypes"
+	EnterpriseResourceService_BatchRemoveAddressTypes_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAddressTypes"
+	EnterpriseResourceService_BatchAssignAssignees_FullMethodName                    = "/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAssignees"
+	EnterpriseResourceService_BatchRemoveAssignees_FullMethodName                    = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAssignees"
+	EnterpriseResourceService_ListEnterpriseTagGroups_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseTagGroups"
+	EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseTagGroup"
+	EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseTagGroup"
+	EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseTagGroup"
+	EnterpriseResourceService_PreviewEnterpriseResourceImport_FullMethodName         = "/enterprise_resource.v1.EnterpriseResourceService/PreviewEnterpriseResourceImport"
+	EnterpriseResourceService_CommitEnterpriseResourceImport_FullMethodName          = "/enterprise_resource.v1.EnterpriseResourceService/CommitEnterpriseResourceImport"
 )
 
 // EnterpriseResourceServiceClient is the client API for EnterpriseResourceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EnterpriseResourceServiceClient interface {
+	SearchEnterpriseResourcePartnerOptions(ctx context.Context, in *SearchEnterpriseResourcePartnerOptionsRequest, opts ...grpc.CallOption) (*SearchEnterpriseResourcePartnerOptionsResponse, error)
+	SearchEnterpriseResourceAssigneeOptions(ctx context.Context, in *SearchEnterpriseResourceAssigneeOptionsRequest, opts ...grpc.CallOption) (*SearchEnterpriseResourceAssigneeOptionsResponse, error)
+	ListEnterpriseResourceRegionOptions(ctx context.Context, in *ListEnterpriseResourceRegionOptionsRequest, opts ...grpc.CallOption) (*ListEnterpriseResourceRegionOptionsResponse, error)
 	GetEnterpriseResourceCapabilities(ctx context.Context, in *GetEnterpriseResourceCapabilitiesRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceCapabilitiesResponse, error)
 	PrepareEnterpriseResourceImageUpload(ctx context.Context, in *PrepareEnterpriseResourceImageUploadRequest, opts ...grpc.CallOption) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	GetEnterpriseResourceImageAccess(ctx context.Context, in *GetEnterpriseResourceImageAccessRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceImageAccessResponse, error)
@@ -73,6 +79,36 @@ type enterpriseResourceServiceClient struct {
 
 func NewEnterpriseResourceServiceClient(cc grpc.ClientConnInterface) EnterpriseResourceServiceClient {
 	return &enterpriseResourceServiceClient{cc}
+}
+
+func (c *enterpriseResourceServiceClient) SearchEnterpriseResourcePartnerOptions(ctx context.Context, in *SearchEnterpriseResourcePartnerOptionsRequest, opts ...grpc.CallOption) (*SearchEnterpriseResourcePartnerOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchEnterpriseResourcePartnerOptionsResponse)
+	err := c.cc.Invoke(ctx, EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *enterpriseResourceServiceClient) SearchEnterpriseResourceAssigneeOptions(ctx context.Context, in *SearchEnterpriseResourceAssigneeOptionsRequest, opts ...grpc.CallOption) (*SearchEnterpriseResourceAssigneeOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchEnterpriseResourceAssigneeOptionsResponse)
+	err := c.cc.Invoke(ctx, EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *enterpriseResourceServiceClient) ListEnterpriseResourceRegionOptions(ctx context.Context, in *ListEnterpriseResourceRegionOptionsRequest, opts ...grpc.CallOption) (*ListEnterpriseResourceRegionOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListEnterpriseResourceRegionOptionsResponse)
+	err := c.cc.Invoke(ctx, EnterpriseResourceService_ListEnterpriseResourceRegionOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *enterpriseResourceServiceClient) GetEnterpriseResourceCapabilities(ctx context.Context, in *GetEnterpriseResourceCapabilitiesRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceCapabilitiesResponse, error) {
@@ -279,6 +315,9 @@ func (c *enterpriseResourceServiceClient) CommitEnterpriseResourceImport(ctx con
 // All implementations must embed UnimplementedEnterpriseResourceServiceServer
 // for forward compatibility.
 type EnterpriseResourceServiceServer interface {
+	SearchEnterpriseResourcePartnerOptions(context.Context, *SearchEnterpriseResourcePartnerOptionsRequest) (*SearchEnterpriseResourcePartnerOptionsResponse, error)
+	SearchEnterpriseResourceAssigneeOptions(context.Context, *SearchEnterpriseResourceAssigneeOptionsRequest) (*SearchEnterpriseResourceAssigneeOptionsResponse, error)
+	ListEnterpriseResourceRegionOptions(context.Context, *ListEnterpriseResourceRegionOptionsRequest) (*ListEnterpriseResourceRegionOptionsResponse, error)
 	GetEnterpriseResourceCapabilities(context.Context, *GetEnterpriseResourceCapabilitiesRequest) (*GetEnterpriseResourceCapabilitiesResponse, error)
 	PrepareEnterpriseResourceImageUpload(context.Context, *PrepareEnterpriseResourceImageUploadRequest) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	GetEnterpriseResourceImageAccess(context.Context, *GetEnterpriseResourceImageAccessRequest) (*GetEnterpriseResourceImageAccessResponse, error)
@@ -309,6 +348,15 @@ type EnterpriseResourceServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedEnterpriseResourceServiceServer struct{}
 
+func (UnimplementedEnterpriseResourceServiceServer) SearchEnterpriseResourcePartnerOptions(context.Context, *SearchEnterpriseResourcePartnerOptionsRequest) (*SearchEnterpriseResourcePartnerOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchEnterpriseResourcePartnerOptions not implemented")
+}
+func (UnimplementedEnterpriseResourceServiceServer) SearchEnterpriseResourceAssigneeOptions(context.Context, *SearchEnterpriseResourceAssigneeOptionsRequest) (*SearchEnterpriseResourceAssigneeOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchEnterpriseResourceAssigneeOptions not implemented")
+}
+func (UnimplementedEnterpriseResourceServiceServer) ListEnterpriseResourceRegionOptions(context.Context, *ListEnterpriseResourceRegionOptionsRequest) (*ListEnterpriseResourceRegionOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListEnterpriseResourceRegionOptions not implemented")
+}
 func (UnimplementedEnterpriseResourceServiceServer) GetEnterpriseResourceCapabilities(context.Context, *GetEnterpriseResourceCapabilitiesRequest) (*GetEnterpriseResourceCapabilitiesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEnterpriseResourceCapabilities not implemented")
 }
@@ -389,6 +437,60 @@ func RegisterEnterpriseResourceServiceServer(s grpc.ServiceRegistrar, srv Enterp
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&EnterpriseResourceService_ServiceDesc, srv)
+}
+
+func _EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchEnterpriseResourcePartnerOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnterpriseResourceServiceServer).SearchEnterpriseResourcePartnerOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnterpriseResourceServiceServer).SearchEnterpriseResourcePartnerOptions(ctx, req.(*SearchEnterpriseResourcePartnerOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchEnterpriseResourceAssigneeOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnterpriseResourceServiceServer).SearchEnterpriseResourceAssigneeOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnterpriseResourceServiceServer).SearchEnterpriseResourceAssigneeOptions(ctx, req.(*SearchEnterpriseResourceAssigneeOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EnterpriseResourceService_ListEnterpriseResourceRegionOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEnterpriseResourceRegionOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnterpriseResourceServiceServer).ListEnterpriseResourceRegionOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnterpriseResourceService_ListEnterpriseResourceRegionOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnterpriseResourceServiceServer).ListEnterpriseResourceRegionOptions(ctx, req.(*ListEnterpriseResourceRegionOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_GetEnterpriseResourceCapabilities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -758,6 +860,18 @@ var EnterpriseResourceService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "enterprise_resource.v1.EnterpriseResourceService",
 	HandlerType: (*EnterpriseResourceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SearchEnterpriseResourcePartnerOptions",
+			Handler:    _EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions_Handler,
+		},
+		{
+			MethodName: "SearchEnterpriseResourceAssigneeOptions",
+			Handler:    _EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions_Handler,
+		},
+		{
+			MethodName: "ListEnterpriseResourceRegionOptions",
+			Handler:    _EnterpriseResourceService_ListEnterpriseResourceRegionOptions_Handler,
+		},
 		{
 			MethodName: "GetEnterpriseResourceCapabilities",
 			Handler:    _EnterpriseResourceService_GetEnterpriseResourceCapabilities_Handler,

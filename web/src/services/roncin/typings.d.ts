@@ -659,6 +659,7 @@ declare namespace API {
   type CommitEnterpriseResourceImportRequest = {
     resourceType: number;
     rows: EnterpriseResourceInput[];
+    overwriteConflicts?: boolean;
   };
 
   type CommitEnterpriseResourceImportResponse = {
@@ -670,6 +671,8 @@ declare namespace API {
     invalidCount?: number;
     createdCount?: number;
     traceId?: string;
+    conflictCount?: number;
+    updatedCount?: number;
   };
 
   type ConfirmBillBatchRequest = {
@@ -1475,6 +1478,12 @@ declare namespace API {
     remark?: string;
   };
 
+  type EnterpriseResourceAssigneeOption = {
+    id?: string;
+    username?: string;
+    displayName?: string;
+  };
+
   type EnterpriseResourceImage = {
     fileName?: string;
     mimeType?: string;
@@ -1485,10 +1494,17 @@ declare namespace API {
     height?: number;
   };
 
+  type EnterpriseResourceImportConflict = {
+    existingResourceId?: string;
+    existingShortName?: string;
+    matchedFields?: string[];
+  };
+
   type EnterpriseResourceImportRow = {
     rowNumber?: number;
     resource?: EnterpriseResourceInput;
     errors?: string[];
+    conflicts?: EnterpriseResourceImportConflict[];
   };
 
   type EnterpriseResourceInput = {
@@ -1506,6 +1522,12 @@ declare namespace API {
     tag?: EnterpriseResourceTag;
   };
 
+  type EnterpriseResourcePartnerOption = {
+    id?: string;
+    code?: string;
+    name?: string;
+  };
+
   type EnterpriseResourceParty = {
     companyName?: string;
     businessCode?: string;
@@ -1519,6 +1541,13 @@ declare namespace API {
     customDisplay?: boolean;
     displayContent?: string;
     remark?: string;
+  };
+
+  type EnterpriseResourceRegionOption = {
+    code?: string;
+    name?: string;
+    level?: number;
+    parentCode?: string;
   };
 
   type EnterpriseResourceRemark = {
@@ -1542,6 +1571,13 @@ declare namespace API {
     id: string;
   };
 
+  type EnterpriseResourceServiceListEnterpriseResourceRegionOptionsParams = {
+    level?: number;
+    parentCode?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type EnterpriseResourceServiceListEnterpriseResourcesParams = {
     resourceType?: number;
     partnerId?: string;
@@ -1554,6 +1590,19 @@ declare namespace API {
     assigneeId?: string;
     sortBy?: string;
     sortOrder?: string;
+  };
+
+  type EnterpriseResourceServiceSearchEnterpriseResourceAssigneeOptionsParams =
+    {
+      keyword?: string;
+      page?: number;
+      pageSize?: number;
+    };
+
+  type EnterpriseResourceServiceSearchEnterpriseResourcePartnerOptionsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type EnterpriseResourceServiceUpdateEnterpriseResourceParams = {
@@ -2437,6 +2486,17 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListEnterpriseResourceRegionOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResourceRegionOption[];
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
   };
 
   type ListEnterpriseResourcesResponse = {
@@ -4052,6 +4112,8 @@ declare namespace API {
     invalidCount?: number;
     createdCount?: number;
     traceId?: string;
+    conflictCount?: number;
+    overwriteAllowed?: boolean;
   };
 
   type PreviewExchangeRateImportRequest = {
@@ -4291,6 +4353,28 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type SearchEnterpriseResourceAssigneeOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResourceAssigneeOption[];
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type SearchEnterpriseResourcePartnerOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResourcePartnerOption[];
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
   };
 
   type SearchFeeSettingsResponse = {

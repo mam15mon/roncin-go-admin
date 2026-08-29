@@ -233,6 +233,682 @@ func (EnterpriseAddressType) EnumDescriptor() ([]byte, []int) {
 	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{2}
 }
 
+type EnterpriseResourcePartnerOption struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnterpriseResourcePartnerOption) Reset() {
+	*x = EnterpriseResourcePartnerOption{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnterpriseResourcePartnerOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnterpriseResourcePartnerOption) ProtoMessage() {}
+
+func (x *EnterpriseResourcePartnerOption) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnterpriseResourcePartnerOption.ProtoReflect.Descriptor instead.
+func (*EnterpriseResourcePartnerOption) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *EnterpriseResourcePartnerOption) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EnterpriseResourcePartnerOption) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *EnterpriseResourcePartnerOption) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type EnterpriseResourceAssigneeOption struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnterpriseResourceAssigneeOption) Reset() {
+	*x = EnterpriseResourceAssigneeOption{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnterpriseResourceAssigneeOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnterpriseResourceAssigneeOption) ProtoMessage() {}
+
+func (x *EnterpriseResourceAssigneeOption) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnterpriseResourceAssigneeOption.ProtoReflect.Descriptor instead.
+func (*EnterpriseResourceAssigneeOption) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *EnterpriseResourceAssigneeOption) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceAssigneeOption) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceAssigneeOption) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+type EnterpriseResourceRegionOption struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Level         int32                  `protobuf:"varint,3,opt,name=level,proto3" json:"level,omitempty"`
+	ParentCode    string                 `protobuf:"bytes,4,opt,name=parent_code,json=parentCode,proto3" json:"parent_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnterpriseResourceRegionOption) Reset() {
+	*x = EnterpriseResourceRegionOption{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnterpriseResourceRegionOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnterpriseResourceRegionOption) ProtoMessage() {}
+
+func (x *EnterpriseResourceRegionOption) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnterpriseResourceRegionOption.ProtoReflect.Descriptor instead.
+func (*EnterpriseResourceRegionOption) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *EnterpriseResourceRegionOption) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceRegionOption) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceRegionOption) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *EnterpriseResourceRegionOption) GetParentCode() string {
+	if x != nil {
+		return x.ParentCode
+	}
+	return ""
+}
+
+type SearchEnterpriseResourcePartnerOptionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) Reset() {
+	*x = SearchEnterpriseResourcePartnerOptionsRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchEnterpriseResourcePartnerOptionsRequest) ProtoMessage() {}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchEnterpriseResourcePartnerOptionsRequest.ProtoReflect.Descriptor instead.
+func (*SearchEnterpriseResourcePartnerOptionsRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type SearchEnterpriseResourcePartnerOptionsResponse struct {
+	state         protoimpl.MessageState             `protogen:"open.v1"`
+	Success       bool                               `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                              `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                             `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*EnterpriseResourcePartnerOption `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	Total         int64                              `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                              `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                              `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	TraceId       string                             `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) Reset() {
+	*x = SearchEnterpriseResourcePartnerOptionsResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchEnterpriseResourcePartnerOptionsResponse) ProtoMessage() {}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchEnterpriseResourcePartnerOptionsResponse.ProtoReflect.Descriptor instead.
+func (*SearchEnterpriseResourcePartnerOptionsResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetData() []*EnterpriseResourcePartnerOption {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourcePartnerOptionsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SearchEnterpriseResourceAssigneeOptionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) Reset() {
+	*x = SearchEnterpriseResourceAssigneeOptionsRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchEnterpriseResourceAssigneeOptionsRequest) ProtoMessage() {}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchEnterpriseResourceAssigneeOptionsRequest.ProtoReflect.Descriptor instead.
+func (*SearchEnterpriseResourceAssigneeOptionsRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type SearchEnterpriseResourceAssigneeOptionsResponse struct {
+	state         protoimpl.MessageState              `protogen:"open.v1"`
+	Success       bool                                `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                               `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                              `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*EnterpriseResourceAssigneeOption `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	Total         int64                               `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                               `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                               `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	TraceId       string                              `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) Reset() {
+	*x = SearchEnterpriseResourceAssigneeOptionsResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchEnterpriseResourceAssigneeOptionsResponse) ProtoMessage() {}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchEnterpriseResourceAssigneeOptionsResponse.ProtoReflect.Descriptor instead.
+func (*SearchEnterpriseResourceAssigneeOptionsResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetData() []*EnterpriseResourceAssigneeOption {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchEnterpriseResourceAssigneeOptionsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ListEnterpriseResourceRegionOptionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Level         int32                  `protobuf:"varint,1,opt,name=level,proto3" json:"level,omitempty"`
+	ParentCode    *string                `protobuf:"bytes,2,opt,name=parent_code,json=parentCode,proto3,oneof" json:"parent_code,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) Reset() {
+	*x = ListEnterpriseResourceRegionOptionsRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEnterpriseResourceRegionOptionsRequest) ProtoMessage() {}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEnterpriseResourceRegionOptionsRequest.ProtoReflect.Descriptor instead.
+func (*ListEnterpriseResourceRegionOptionsRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) GetParentCode() string {
+	if x != nil && x.ParentCode != nil {
+		return *x.ParentCode
+	}
+	return ""
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListEnterpriseResourceRegionOptionsResponse struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Success       bool                              `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                             `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                            `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*EnterpriseResourceRegionOption `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	Total         int64                             `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                             `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                             `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	TraceId       string                            `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) Reset() {
+	*x = ListEnterpriseResourceRegionOptionsResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEnterpriseResourceRegionOptionsResponse) ProtoMessage() {}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEnterpriseResourceRegionOptionsResponse.ProtoReflect.Descriptor instead.
+func (*ListEnterpriseResourceRegionOptionsResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetData() []*EnterpriseResourceRegionOption {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListEnterpriseResourceRegionOptionsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 type EnterpriseResourceAddress struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ContactName   string                 `protobuf:"bytes,1,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
@@ -249,7 +925,7 @@ type EnterpriseResourceAddress struct {
 
 func (x *EnterpriseResourceAddress) Reset() {
 	*x = EnterpriseResourceAddress{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[0]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -261,7 +937,7 @@ func (x *EnterpriseResourceAddress) String() string {
 func (*EnterpriseResourceAddress) ProtoMessage() {}
 
 func (x *EnterpriseResourceAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[0]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -274,7 +950,7 @@ func (x *EnterpriseResourceAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceAddress.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceAddress) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{0}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *EnterpriseResourceAddress) GetContactName() string {
@@ -343,7 +1019,7 @@ type EnterpriseResourceRemark struct {
 
 func (x *EnterpriseResourceRemark) Reset() {
 	*x = EnterpriseResourceRemark{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[1]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -355,7 +1031,7 @@ func (x *EnterpriseResourceRemark) String() string {
 func (*EnterpriseResourceRemark) ProtoMessage() {}
 
 func (x *EnterpriseResourceRemark) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[1]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -368,7 +1044,7 @@ func (x *EnterpriseResourceRemark) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceRemark.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceRemark) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{1}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EnterpriseResourceRemark) GetRemarkType() EnterpriseRemarkType {
@@ -405,7 +1081,7 @@ type EnterpriseResourceParty struct {
 
 func (x *EnterpriseResourceParty) Reset() {
 	*x = EnterpriseResourceParty{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[2]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +1093,7 @@ func (x *EnterpriseResourceParty) String() string {
 func (*EnterpriseResourceParty) ProtoMessage() {}
 
 func (x *EnterpriseResourceParty) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[2]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +1106,7 @@ func (x *EnterpriseResourceParty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceParty.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceParty) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{2}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *EnterpriseResourceParty) GetCompanyName() string {
@@ -532,7 +1208,7 @@ type EnterpriseResourceImage struct {
 
 func (x *EnterpriseResourceImage) Reset() {
 	*x = EnterpriseResourceImage{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[3]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +1220,7 @@ func (x *EnterpriseResourceImage) String() string {
 func (*EnterpriseResourceImage) ProtoMessage() {}
 
 func (x *EnterpriseResourceImage) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[3]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +1233,7 @@ func (x *EnterpriseResourceImage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceImage.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceImage) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{3}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EnterpriseResourceImage) GetFileName() string {
@@ -617,7 +1293,7 @@ type GetEnterpriseResourceCapabilitiesRequest struct {
 
 func (x *GetEnterpriseResourceCapabilitiesRequest) Reset() {
 	*x = GetEnterpriseResourceCapabilitiesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[4]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -629,7 +1305,7 @@ func (x *GetEnterpriseResourceCapabilitiesRequest) String() string {
 func (*GetEnterpriseResourceCapabilitiesRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceCapabilitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[4]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -642,7 +1318,7 @@ func (x *GetEnterpriseResourceCapabilitiesRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use GetEnterpriseResourceCapabilitiesRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceCapabilitiesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{4}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{13}
 }
 
 type GetEnterpriseResourceCapabilitiesResponse struct {
@@ -661,7 +1337,7 @@ type GetEnterpriseResourceCapabilitiesResponse struct {
 
 func (x *GetEnterpriseResourceCapabilitiesResponse) Reset() {
 	*x = GetEnterpriseResourceCapabilitiesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[5]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -673,7 +1349,7 @@ func (x *GetEnterpriseResourceCapabilitiesResponse) String() string {
 func (*GetEnterpriseResourceCapabilitiesResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceCapabilitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[5]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -686,7 +1362,7 @@ func (x *GetEnterpriseResourceCapabilitiesResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use GetEnterpriseResourceCapabilitiesResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceCapabilitiesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{5}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetEnterpriseResourceCapabilitiesResponse) GetSuccess() bool {
@@ -757,7 +1433,7 @@ type PrepareEnterpriseResourceImageUploadRequest struct {
 
 func (x *PrepareEnterpriseResourceImageUploadRequest) Reset() {
 	*x = PrepareEnterpriseResourceImageUploadRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[6]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +1445,7 @@ func (x *PrepareEnterpriseResourceImageUploadRequest) String() string {
 func (*PrepareEnterpriseResourceImageUploadRequest) ProtoMessage() {}
 
 func (x *PrepareEnterpriseResourceImageUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[6]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +1458,7 @@ func (x *PrepareEnterpriseResourceImageUploadRequest) ProtoReflect() protoreflec
 
 // Deprecated: Use PrepareEnterpriseResourceImageUploadRequest.ProtoReflect.Descriptor instead.
 func (*PrepareEnterpriseResourceImageUploadRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{6}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *PrepareEnterpriseResourceImageUploadRequest) GetFileName() string {
@@ -829,7 +1505,7 @@ type PrepareEnterpriseResourceImageUploadResponse struct {
 
 func (x *PrepareEnterpriseResourceImageUploadResponse) Reset() {
 	*x = PrepareEnterpriseResourceImageUploadResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[7]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -841,7 +1517,7 @@ func (x *PrepareEnterpriseResourceImageUploadResponse) String() string {
 func (*PrepareEnterpriseResourceImageUploadResponse) ProtoMessage() {}
 
 func (x *PrepareEnterpriseResourceImageUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[7]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -854,7 +1530,7 @@ func (x *PrepareEnterpriseResourceImageUploadResponse) ProtoReflect() protorefle
 
 // Deprecated: Use PrepareEnterpriseResourceImageUploadResponse.ProtoReflect.Descriptor instead.
 func (*PrepareEnterpriseResourceImageUploadResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{7}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PrepareEnterpriseResourceImageUploadResponse) GetSuccess() bool {
@@ -922,7 +1598,7 @@ type GetEnterpriseResourceImageAccessRequest struct {
 
 func (x *GetEnterpriseResourceImageAccessRequest) Reset() {
 	*x = GetEnterpriseResourceImageAccessRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[8]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -934,7 +1610,7 @@ func (x *GetEnterpriseResourceImageAccessRequest) String() string {
 func (*GetEnterpriseResourceImageAccessRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceImageAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[8]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -947,7 +1623,7 @@ func (x *GetEnterpriseResourceImageAccessRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetEnterpriseResourceImageAccessRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceImageAccessRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{8}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetEnterpriseResourceImageAccessRequest) GetId() string {
@@ -971,7 +1647,7 @@ type GetEnterpriseResourceImageAccessResponse struct {
 
 func (x *GetEnterpriseResourceImageAccessResponse) Reset() {
 	*x = GetEnterpriseResourceImageAccessResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[9]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +1659,7 @@ func (x *GetEnterpriseResourceImageAccessResponse) String() string {
 func (*GetEnterpriseResourceImageAccessResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceImageAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[9]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +1672,7 @@ func (x *GetEnterpriseResourceImageAccessResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use GetEnterpriseResourceImageAccessResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceImageAccessResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{9}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetEnterpriseResourceImageAccessResponse) GetSuccess() bool {
@@ -1050,7 +1726,7 @@ type EnterpriseResourceTag struct {
 
 func (x *EnterpriseResourceTag) Reset() {
 	*x = EnterpriseResourceTag{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[10]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1062,7 +1738,7 @@ func (x *EnterpriseResourceTag) String() string {
 func (*EnterpriseResourceTag) ProtoMessage() {}
 
 func (x *EnterpriseResourceTag) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[10]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1075,7 +1751,7 @@ func (x *EnterpriseResourceTag) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceTag.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceTag) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{10}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *EnterpriseResourceTag) GetGroupId() string {
@@ -1113,7 +1789,7 @@ type EnterpriseResource struct {
 
 func (x *EnterpriseResource) Reset() {
 	*x = EnterpriseResource{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[11]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1125,7 +1801,7 @@ func (x *EnterpriseResource) String() string {
 func (*EnterpriseResource) ProtoMessage() {}
 
 func (x *EnterpriseResource) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[11]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1138,7 +1814,7 @@ func (x *EnterpriseResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResource.ProtoReflect.Descriptor instead.
 func (*EnterpriseResource) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{11}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *EnterpriseResource) GetId() string {
@@ -1334,7 +2010,7 @@ type EnterpriseResourceInput struct {
 
 func (x *EnterpriseResourceInput) Reset() {
 	*x = EnterpriseResourceInput{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1346,7 +2022,7 @@ func (x *EnterpriseResourceInput) String() string {
 func (*EnterpriseResourceInput) ProtoMessage() {}
 
 func (x *EnterpriseResourceInput) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1359,7 +2035,7 @@ func (x *EnterpriseResourceInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceInput.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceInput) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{12}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *EnterpriseResourceInput) GetResourceType() EnterpriseResourceType {
@@ -1506,7 +2182,7 @@ type PartnerAssociations struct {
 
 func (x *PartnerAssociations) Reset() {
 	*x = PartnerAssociations{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[13]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1518,7 +2194,7 @@ func (x *PartnerAssociations) String() string {
 func (*PartnerAssociations) ProtoMessage() {}
 
 func (x *PartnerAssociations) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[13]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1531,7 +2207,7 @@ func (x *PartnerAssociations) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartnerAssociations.ProtoReflect.Descriptor instead.
 func (*PartnerAssociations) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{13}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *PartnerAssociations) GetPartnerIds() []string {
@@ -1560,7 +2236,7 @@ type ListEnterpriseResourcesRequest struct {
 
 func (x *ListEnterpriseResourcesRequest) Reset() {
 	*x = ListEnterpriseResourcesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[14]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +2248,7 @@ func (x *ListEnterpriseResourcesRequest) String() string {
 func (*ListEnterpriseResourcesRequest) ProtoMessage() {}
 
 func (x *ListEnterpriseResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[14]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +2261,7 @@ func (x *ListEnterpriseResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{14}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListEnterpriseResourcesRequest) GetResourceType() EnterpriseResourceType {
@@ -1674,7 +2350,7 @@ type GetEnterpriseResourceRequest struct {
 
 func (x *GetEnterpriseResourceRequest) Reset() {
 	*x = GetEnterpriseResourceRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[15]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1686,7 +2362,7 @@ func (x *GetEnterpriseResourceRequest) String() string {
 func (*GetEnterpriseResourceRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[15]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1699,7 +2375,7 @@ func (x *GetEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseResourceRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{15}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetEnterpriseResourceRequest) GetId() string {
@@ -1718,7 +2394,7 @@ type CreateEnterpriseResourceRequest struct {
 
 func (x *CreateEnterpriseResourceRequest) Reset() {
 	*x = CreateEnterpriseResourceRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[16]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1730,7 +2406,7 @@ func (x *CreateEnterpriseResourceRequest) String() string {
 func (*CreateEnterpriseResourceRequest) ProtoMessage() {}
 
 func (x *CreateEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[16]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1743,7 +2419,7 @@ func (x *CreateEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEnterpriseResourceRequest.ProtoReflect.Descriptor instead.
 func (*CreateEnterpriseResourceRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{16}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateEnterpriseResourceRequest) GetResource() *EnterpriseResourceInput {
@@ -1763,7 +2439,7 @@ type UpdateEnterpriseResourceRequest struct {
 
 func (x *UpdateEnterpriseResourceRequest) Reset() {
 	*x = UpdateEnterpriseResourceRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[17]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1775,7 +2451,7 @@ func (x *UpdateEnterpriseResourceRequest) String() string {
 func (*UpdateEnterpriseResourceRequest) ProtoMessage() {}
 
 func (x *UpdateEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[17]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1788,7 +2464,7 @@ func (x *UpdateEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEnterpriseResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEnterpriseResourceRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{17}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateEnterpriseResourceRequest) GetId() string {
@@ -1814,7 +2490,7 @@ type DeleteEnterpriseResourceRequest struct {
 
 func (x *DeleteEnterpriseResourceRequest) Reset() {
 	*x = DeleteEnterpriseResourceRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[18]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1826,7 +2502,7 @@ func (x *DeleteEnterpriseResourceRequest) String() string {
 func (*DeleteEnterpriseResourceRequest) ProtoMessage() {}
 
 func (x *DeleteEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[18]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1839,7 +2515,7 @@ func (x *DeleteEnterpriseResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEnterpriseResourceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteEnterpriseResourceRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{18}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteEnterpriseResourceRequest) GetId() string {
@@ -1862,7 +2538,7 @@ type GetEnterpriseResourceResponse struct {
 
 func (x *GetEnterpriseResourceResponse) Reset() {
 	*x = GetEnterpriseResourceResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1874,7 +2550,7 @@ func (x *GetEnterpriseResourceResponse) String() string {
 func (*GetEnterpriseResourceResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1887,7 +2563,7 @@ func (x *GetEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{19}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetEnterpriseResourceResponse) GetSuccess() bool {
@@ -1938,7 +2614,7 @@ type CreateEnterpriseResourceResponse struct {
 
 func (x *CreateEnterpriseResourceResponse) Reset() {
 	*x = CreateEnterpriseResourceResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1950,7 +2626,7 @@ func (x *CreateEnterpriseResourceResponse) String() string {
 func (*CreateEnterpriseResourceResponse) ProtoMessage() {}
 
 func (x *CreateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1963,7 +2639,7 @@ func (x *CreateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
 func (*CreateEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{20}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CreateEnterpriseResourceResponse) GetSuccess() bool {
@@ -2014,7 +2690,7 @@ type UpdateEnterpriseResourceResponse struct {
 
 func (x *UpdateEnterpriseResourceResponse) Reset() {
 	*x = UpdateEnterpriseResourceResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2026,7 +2702,7 @@ func (x *UpdateEnterpriseResourceResponse) String() string {
 func (*UpdateEnterpriseResourceResponse) ProtoMessage() {}
 
 func (x *UpdateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2039,7 +2715,7 @@ func (x *UpdateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{21}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateEnterpriseResourceResponse) GetSuccess() bool {
@@ -2093,7 +2769,7 @@ type ListEnterpriseResourcesResponse struct {
 
 func (x *ListEnterpriseResourcesResponse) Reset() {
 	*x = ListEnterpriseResourcesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2105,7 +2781,7 @@ func (x *ListEnterpriseResourcesResponse) String() string {
 func (*ListEnterpriseResourcesResponse) ProtoMessage() {}
 
 func (x *ListEnterpriseResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2118,7 +2794,7 @@ func (x *ListEnterpriseResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{22}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListEnterpriseResourcesResponse) GetSuccess() bool {
@@ -2189,7 +2865,7 @@ type DeleteEnterpriseResourceResponse struct {
 
 func (x *DeleteEnterpriseResourceResponse) Reset() {
 	*x = DeleteEnterpriseResourceResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2201,7 +2877,7 @@ func (x *DeleteEnterpriseResourceResponse) String() string {
 func (*DeleteEnterpriseResourceResponse) ProtoMessage() {}
 
 func (x *DeleteEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2890,7 @@ func (x *DeleteEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{23}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DeleteEnterpriseResourceResponse) GetSuccess() bool {
@@ -2255,7 +2931,7 @@ type BatchCreateAssociationsRequest struct {
 
 func (x *BatchCreateAssociationsRequest) Reset() {
 	*x = BatchCreateAssociationsRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2267,7 +2943,7 @@ func (x *BatchCreateAssociationsRequest) String() string {
 func (*BatchCreateAssociationsRequest) ProtoMessage() {}
 
 func (x *BatchCreateAssociationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2280,7 +2956,7 @@ func (x *BatchCreateAssociationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateAssociationsRequest.ProtoReflect.Descriptor instead.
 func (*BatchCreateAssociationsRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{24}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *BatchCreateAssociationsRequest) GetResourceIds() []string {
@@ -2310,7 +2986,7 @@ type BatchCreateAssociationsResponse struct {
 
 func (x *BatchCreateAssociationsResponse) Reset() {
 	*x = BatchCreateAssociationsResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2322,7 +2998,7 @@ func (x *BatchCreateAssociationsResponse) String() string {
 func (*BatchCreateAssociationsResponse) ProtoMessage() {}
 
 func (x *BatchCreateAssociationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2335,7 +3011,7 @@ func (x *BatchCreateAssociationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateAssociationsResponse.ProtoReflect.Descriptor instead.
 func (*BatchCreateAssociationsResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{25}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *BatchCreateAssociationsResponse) GetSuccess() bool {
@@ -2383,7 +3059,7 @@ type BatchDeleteAssociationsRequest struct {
 
 func (x *BatchDeleteAssociationsRequest) Reset() {
 	*x = BatchDeleteAssociationsRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2395,7 +3071,7 @@ func (x *BatchDeleteAssociationsRequest) String() string {
 func (*BatchDeleteAssociationsRequest) ProtoMessage() {}
 
 func (x *BatchDeleteAssociationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2408,7 +3084,7 @@ func (x *BatchDeleteAssociationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchDeleteAssociationsRequest.ProtoReflect.Descriptor instead.
 func (*BatchDeleteAssociationsRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{26}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *BatchDeleteAssociationsRequest) GetResourceIds() []string {
@@ -2438,7 +3114,7 @@ type BatchDeleteAssociationsResponse struct {
 
 func (x *BatchDeleteAssociationsResponse) Reset() {
 	*x = BatchDeleteAssociationsResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2450,7 +3126,7 @@ func (x *BatchDeleteAssociationsResponse) String() string {
 func (*BatchDeleteAssociationsResponse) ProtoMessage() {}
 
 func (x *BatchDeleteAssociationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2463,7 +3139,7 @@ func (x *BatchDeleteAssociationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchDeleteAssociationsResponse.ProtoReflect.Descriptor instead.
 func (*BatchDeleteAssociationsResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{27}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *BatchDeleteAssociationsResponse) GetSuccess() bool {
@@ -2511,7 +3187,7 @@ type BatchAssignAddressTypesRequest struct {
 
 func (x *BatchAssignAddressTypesRequest) Reset() {
 	*x = BatchAssignAddressTypesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2523,7 +3199,7 @@ func (x *BatchAssignAddressTypesRequest) String() string {
 func (*BatchAssignAddressTypesRequest) ProtoMessage() {}
 
 func (x *BatchAssignAddressTypesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2536,7 +3212,7 @@ func (x *BatchAssignAddressTypesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchAssignAddressTypesRequest.ProtoReflect.Descriptor instead.
 func (*BatchAssignAddressTypesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{28}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *BatchAssignAddressTypesRequest) GetResourceIds() []string {
@@ -2566,7 +3242,7 @@ type BatchAssignAddressTypesResponse struct {
 
 func (x *BatchAssignAddressTypesResponse) Reset() {
 	*x = BatchAssignAddressTypesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2578,7 +3254,7 @@ func (x *BatchAssignAddressTypesResponse) String() string {
 func (*BatchAssignAddressTypesResponse) ProtoMessage() {}
 
 func (x *BatchAssignAddressTypesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2591,7 +3267,7 @@ func (x *BatchAssignAddressTypesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchAssignAddressTypesResponse.ProtoReflect.Descriptor instead.
 func (*BatchAssignAddressTypesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{29}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *BatchAssignAddressTypesResponse) GetSuccess() bool {
@@ -2639,7 +3315,7 @@ type BatchRemoveAddressTypesRequest struct {
 
 func (x *BatchRemoveAddressTypesRequest) Reset() {
 	*x = BatchRemoveAddressTypesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2651,7 +3327,7 @@ func (x *BatchRemoveAddressTypesRequest) String() string {
 func (*BatchRemoveAddressTypesRequest) ProtoMessage() {}
 
 func (x *BatchRemoveAddressTypesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2664,7 +3340,7 @@ func (x *BatchRemoveAddressTypesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchRemoveAddressTypesRequest.ProtoReflect.Descriptor instead.
 func (*BatchRemoveAddressTypesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{30}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *BatchRemoveAddressTypesRequest) GetResourceIds() []string {
@@ -2694,7 +3370,7 @@ type BatchRemoveAddressTypesResponse struct {
 
 func (x *BatchRemoveAddressTypesResponse) Reset() {
 	*x = BatchRemoveAddressTypesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2706,7 +3382,7 @@ func (x *BatchRemoveAddressTypesResponse) String() string {
 func (*BatchRemoveAddressTypesResponse) ProtoMessage() {}
 
 func (x *BatchRemoveAddressTypesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2719,7 +3395,7 @@ func (x *BatchRemoveAddressTypesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchRemoveAddressTypesResponse.ProtoReflect.Descriptor instead.
 func (*BatchRemoveAddressTypesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{31}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *BatchRemoveAddressTypesResponse) GetSuccess() bool {
@@ -2767,7 +3443,7 @@ type BatchAssignAssigneesRequest struct {
 
 func (x *BatchAssignAssigneesRequest) Reset() {
 	*x = BatchAssignAssigneesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2779,7 +3455,7 @@ func (x *BatchAssignAssigneesRequest) String() string {
 func (*BatchAssignAssigneesRequest) ProtoMessage() {}
 
 func (x *BatchAssignAssigneesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2792,7 +3468,7 @@ func (x *BatchAssignAssigneesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchAssignAssigneesRequest.ProtoReflect.Descriptor instead.
 func (*BatchAssignAssigneesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{32}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *BatchAssignAssigneesRequest) GetResourceIds() []string {
@@ -2822,7 +3498,7 @@ type BatchAssignAssigneesResponse struct {
 
 func (x *BatchAssignAssigneesResponse) Reset() {
 	*x = BatchAssignAssigneesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2834,7 +3510,7 @@ func (x *BatchAssignAssigneesResponse) String() string {
 func (*BatchAssignAssigneesResponse) ProtoMessage() {}
 
 func (x *BatchAssignAssigneesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2847,7 +3523,7 @@ func (x *BatchAssignAssigneesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchAssignAssigneesResponse.ProtoReflect.Descriptor instead.
 func (*BatchAssignAssigneesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{33}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *BatchAssignAssigneesResponse) GetSuccess() bool {
@@ -2895,7 +3571,7 @@ type BatchRemoveAssigneesRequest struct {
 
 func (x *BatchRemoveAssigneesRequest) Reset() {
 	*x = BatchRemoveAssigneesRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2907,7 +3583,7 @@ func (x *BatchRemoveAssigneesRequest) String() string {
 func (*BatchRemoveAssigneesRequest) ProtoMessage() {}
 
 func (x *BatchRemoveAssigneesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2920,7 +3596,7 @@ func (x *BatchRemoveAssigneesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchRemoveAssigneesRequest.ProtoReflect.Descriptor instead.
 func (*BatchRemoveAssigneesRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{34}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *BatchRemoveAssigneesRequest) GetResourceIds() []string {
@@ -2950,7 +3626,7 @@ type BatchRemoveAssigneesResponse struct {
 
 func (x *BatchRemoveAssigneesResponse) Reset() {
 	*x = BatchRemoveAssigneesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2962,7 +3638,7 @@ func (x *BatchRemoveAssigneesResponse) String() string {
 func (*BatchRemoveAssigneesResponse) ProtoMessage() {}
 
 func (x *BatchRemoveAssigneesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2975,7 +3651,7 @@ func (x *BatchRemoveAssigneesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchRemoveAssigneesResponse.ProtoReflect.Descriptor instead.
 func (*BatchRemoveAssigneesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{35}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *BatchRemoveAssigneesResponse) GetSuccess() bool {
@@ -3027,7 +3703,7 @@ type EnterpriseTagGroup struct {
 
 func (x *EnterpriseTagGroup) Reset() {
 	*x = EnterpriseTagGroup{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3039,7 +3715,7 @@ func (x *EnterpriseTagGroup) String() string {
 func (*EnterpriseTagGroup) ProtoMessage() {}
 
 func (x *EnterpriseTagGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3052,7 +3728,7 @@ func (x *EnterpriseTagGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseTagGroup.ProtoReflect.Descriptor instead.
 func (*EnterpriseTagGroup) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{36}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *EnterpriseTagGroup) GetId() string {
@@ -3108,7 +3784,7 @@ type EnterpriseTagGroupInput struct {
 
 func (x *EnterpriseTagGroupInput) Reset() {
 	*x = EnterpriseTagGroupInput{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3120,7 +3796,7 @@ func (x *EnterpriseTagGroupInput) String() string {
 func (*EnterpriseTagGroupInput) ProtoMessage() {}
 
 func (x *EnterpriseTagGroupInput) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3133,7 +3809,7 @@ func (x *EnterpriseTagGroupInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseTagGroupInput.ProtoReflect.Descriptor instead.
 func (*EnterpriseTagGroupInput) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{37}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *EnterpriseTagGroupInput) GetName() string {
@@ -3165,7 +3841,7 @@ type ListEnterpriseTagGroupsRequest struct {
 
 func (x *ListEnterpriseTagGroupsRequest) Reset() {
 	*x = ListEnterpriseTagGroupsRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3177,7 +3853,7 @@ func (x *ListEnterpriseTagGroupsRequest) String() string {
 func (*ListEnterpriseTagGroupsRequest) ProtoMessage() {}
 
 func (x *ListEnterpriseTagGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3190,7 +3866,7 @@ func (x *ListEnterpriseTagGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseTagGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseTagGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{38}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{47}
 }
 
 type ListEnterpriseTagGroupsResponse struct {
@@ -3206,7 +3882,7 @@ type ListEnterpriseTagGroupsResponse struct {
 
 func (x *ListEnterpriseTagGroupsResponse) Reset() {
 	*x = ListEnterpriseTagGroupsResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3218,7 +3894,7 @@ func (x *ListEnterpriseTagGroupsResponse) String() string {
 func (*ListEnterpriseTagGroupsResponse) ProtoMessage() {}
 
 func (x *ListEnterpriseTagGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3231,7 +3907,7 @@ func (x *ListEnterpriseTagGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseTagGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseTagGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{39}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListEnterpriseTagGroupsResponse) GetSuccess() bool {
@@ -3278,7 +3954,7 @@ type CreateEnterpriseTagGroupRequest struct {
 
 func (x *CreateEnterpriseTagGroupRequest) Reset() {
 	*x = CreateEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3290,7 +3966,7 @@ func (x *CreateEnterpriseTagGroupRequest) String() string {
 func (*CreateEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *CreateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3303,7 +3979,7 @@ func (x *CreateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{40}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *CreateEnterpriseTagGroupRequest) GetGroup() *EnterpriseTagGroupInput {
@@ -3323,7 +3999,7 @@ type UpdateEnterpriseTagGroupRequest struct {
 
 func (x *UpdateEnterpriseTagGroupRequest) Reset() {
 	*x = UpdateEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3335,7 +4011,7 @@ func (x *UpdateEnterpriseTagGroupRequest) String() string {
 func (*UpdateEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *UpdateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3348,7 +4024,7 @@ func (x *UpdateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{41}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UpdateEnterpriseTagGroupRequest) GetId() string {
@@ -3374,7 +4050,7 @@ type DeleteEnterpriseTagGroupRequest struct {
 
 func (x *DeleteEnterpriseTagGroupRequest) Reset() {
 	*x = DeleteEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3386,7 +4062,7 @@ func (x *DeleteEnterpriseTagGroupRequest) String() string {
 func (*DeleteEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *DeleteEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3399,7 +4075,7 @@ func (x *DeleteEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{42}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *DeleteEnterpriseTagGroupRequest) GetId() string {
@@ -3422,7 +4098,7 @@ type CreateEnterpriseTagGroupResponse struct {
 
 func (x *CreateEnterpriseTagGroupResponse) Reset() {
 	*x = CreateEnterpriseTagGroupResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3434,7 +4110,7 @@ func (x *CreateEnterpriseTagGroupResponse) String() string {
 func (*CreateEnterpriseTagGroupResponse) ProtoMessage() {}
 
 func (x *CreateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3447,7 +4123,7 @@ func (x *CreateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{43}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateEnterpriseTagGroupResponse) GetSuccess() bool {
@@ -3498,7 +4174,7 @@ type UpdateEnterpriseTagGroupResponse struct {
 
 func (x *UpdateEnterpriseTagGroupResponse) Reset() {
 	*x = UpdateEnterpriseTagGroupResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3510,7 +4186,7 @@ func (x *UpdateEnterpriseTagGroupResponse) String() string {
 func (*UpdateEnterpriseTagGroupResponse) ProtoMessage() {}
 
 func (x *UpdateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3523,7 +4199,7 @@ func (x *UpdateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{44}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *UpdateEnterpriseTagGroupResponse) GetSuccess() bool {
@@ -3573,7 +4249,7 @@ type DeleteEnterpriseTagGroupResponse struct {
 
 func (x *DeleteEnterpriseTagGroupResponse) Reset() {
 	*x = DeleteEnterpriseTagGroupResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3585,7 +4261,7 @@ func (x *DeleteEnterpriseTagGroupResponse) String() string {
 func (*DeleteEnterpriseTagGroupResponse) ProtoMessage() {}
 
 func (x *DeleteEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3598,7 +4274,7 @@ func (x *DeleteEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{45}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *DeleteEnterpriseTagGroupResponse) GetSuccess() bool {
@@ -3629,18 +4305,79 @@ func (x *DeleteEnterpriseTagGroupResponse) GetTraceId() string {
 	return ""
 }
 
+type EnterpriseResourceImportConflict struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ExistingResourceId string                 `protobuf:"bytes,1,opt,name=existing_resource_id,json=existingResourceId,proto3" json:"existing_resource_id,omitempty"`
+	ExistingShortName  string                 `protobuf:"bytes,2,opt,name=existing_short_name,json=existingShortName,proto3" json:"existing_short_name,omitempty"`
+	MatchedFields      []string               `protobuf:"bytes,3,rep,name=matched_fields,json=matchedFields,proto3" json:"matched_fields,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *EnterpriseResourceImportConflict) Reset() {
+	*x = EnterpriseResourceImportConflict{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnterpriseResourceImportConflict) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnterpriseResourceImportConflict) ProtoMessage() {}
+
+func (x *EnterpriseResourceImportConflict) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnterpriseResourceImportConflict.ProtoReflect.Descriptor instead.
+func (*EnterpriseResourceImportConflict) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *EnterpriseResourceImportConflict) GetExistingResourceId() string {
+	if x != nil {
+		return x.ExistingResourceId
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceImportConflict) GetExistingShortName() string {
+	if x != nil {
+		return x.ExistingShortName
+	}
+	return ""
+}
+
+func (x *EnterpriseResourceImportConflict) GetMatchedFields() []string {
+	if x != nil {
+		return x.MatchedFields
+	}
+	return nil
+}
+
 type EnterpriseResourceImportRow struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	RowNumber     int32                    `protobuf:"varint,1,opt,name=row_number,json=rowNumber,proto3" json:"row_number,omitempty"`
-	Resource      *EnterpriseResourceInput `protobuf:"bytes,2,opt,name=resource,proto3" json:"resource,omitempty"`
-	Errors        []string                 `protobuf:"bytes,3,rep,name=errors,proto3" json:"errors,omitempty"`
+	state         protoimpl.MessageState              `protogen:"open.v1"`
+	RowNumber     int32                               `protobuf:"varint,1,opt,name=row_number,json=rowNumber,proto3" json:"row_number,omitempty"`
+	Resource      *EnterpriseResourceInput            `protobuf:"bytes,2,opt,name=resource,proto3" json:"resource,omitempty"`
+	Errors        []string                            `protobuf:"bytes,3,rep,name=errors,proto3" json:"errors,omitempty"`
+	Conflicts     []*EnterpriseResourceImportConflict `protobuf:"bytes,4,rep,name=conflicts,proto3" json:"conflicts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EnterpriseResourceImportRow) Reset() {
 	*x = EnterpriseResourceImportRow{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3652,7 +4389,7 @@ func (x *EnterpriseResourceImportRow) String() string {
 func (*EnterpriseResourceImportRow) ProtoMessage() {}
 
 func (x *EnterpriseResourceImportRow) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3665,7 +4402,7 @@ func (x *EnterpriseResourceImportRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceImportRow.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceImportRow) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{46}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *EnterpriseResourceImportRow) GetRowNumber() int32 {
@@ -3689,6 +4426,13 @@ func (x *EnterpriseResourceImportRow) GetErrors() []string {
 	return nil
 }
 
+func (x *EnterpriseResourceImportRow) GetConflicts() []*EnterpriseResourceImportConflict {
+	if x != nil {
+		return x.Conflicts
+	}
+	return nil
+}
+
 type PreviewEnterpriseResourceImportRequest struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
 	ResourceType  EnterpriseResourceType     `protobuf:"varint,1,opt,name=resource_type,json=resourceType,proto3,enum=enterprise_resource.v1.EnterpriseResourceType" json:"resource_type,omitempty"`
@@ -3699,7 +4443,7 @@ type PreviewEnterpriseResourceImportRequest struct {
 
 func (x *PreviewEnterpriseResourceImportRequest) Reset() {
 	*x = PreviewEnterpriseResourceImportRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3711,7 +4455,7 @@ func (x *PreviewEnterpriseResourceImportRequest) String() string {
 func (*PreviewEnterpriseResourceImportRequest) ProtoMessage() {}
 
 func (x *PreviewEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3724,7 +4468,7 @@ func (x *PreviewEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use PreviewEnterpriseResourceImportRequest.ProtoReflect.Descriptor instead.
 func (*PreviewEnterpriseResourceImportRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{47}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *PreviewEnterpriseResourceImportRequest) GetResourceType() EnterpriseResourceType {
@@ -3742,16 +4486,17 @@ func (x *PreviewEnterpriseResourceImportRequest) GetRows() []*EnterpriseResource
 }
 
 type CommitEnterpriseResourceImportRequest struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	ResourceType  EnterpriseResourceType     `protobuf:"varint,1,opt,name=resource_type,json=resourceType,proto3,enum=enterprise_resource.v1.EnterpriseResourceType" json:"resource_type,omitempty"`
-	Rows          []*EnterpriseResourceInput `protobuf:"bytes,2,rep,name=rows,proto3" json:"rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState     `protogen:"open.v1"`
+	ResourceType       EnterpriseResourceType     `protobuf:"varint,1,opt,name=resource_type,json=resourceType,proto3,enum=enterprise_resource.v1.EnterpriseResourceType" json:"resource_type,omitempty"`
+	Rows               []*EnterpriseResourceInput `protobuf:"bytes,2,rep,name=rows,proto3" json:"rows,omitempty"`
+	OverwriteConflicts bool                       `protobuf:"varint,3,opt,name=overwrite_conflicts,json=overwriteConflicts,proto3" json:"overwrite_conflicts,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CommitEnterpriseResourceImportRequest) Reset() {
 	*x = CommitEnterpriseResourceImportRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3763,7 +4508,7 @@ func (x *CommitEnterpriseResourceImportRequest) String() string {
 func (*CommitEnterpriseResourceImportRequest) ProtoMessage() {}
 
 func (x *CommitEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3776,7 +4521,7 @@ func (x *CommitEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use CommitEnterpriseResourceImportRequest.ProtoReflect.Descriptor instead.
 func (*CommitEnterpriseResourceImportRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{48}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *CommitEnterpriseResourceImportRequest) GetResourceType() EnterpriseResourceType {
@@ -3793,23 +4538,32 @@ func (x *CommitEnterpriseResourceImportRequest) GetRows() []*EnterpriseResourceI
 	return nil
 }
 
+func (x *CommitEnterpriseResourceImportRequest) GetOverwriteConflicts() bool {
+	if x != nil {
+		return x.OverwriteConflicts
+	}
+	return false
+}
+
 type PreviewEnterpriseResourceImportResponse struct {
-	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Rows          []*EnterpriseResourceImportRow `protobuf:"bytes,4,rep,name=rows,proto3" json:"rows,omitempty"`
-	ValidCount    int32                          `protobuf:"varint,5,opt,name=valid_count,json=validCount,proto3" json:"valid_count,omitempty"`
-	InvalidCount  int32                          `protobuf:"varint,6,opt,name=invalid_count,json=invalidCount,proto3" json:"invalid_count,omitempty"`
-	CreatedCount  int32                          `protobuf:"varint,7,opt,name=created_count,json=createdCount,proto3" json:"created_count,omitempty"`
-	TraceId       string                         `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState         `protogen:"open.v1"`
+	Success          bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code             int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message          string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Rows             []*EnterpriseResourceImportRow `protobuf:"bytes,4,rep,name=rows,proto3" json:"rows,omitempty"`
+	ValidCount       int32                          `protobuf:"varint,5,opt,name=valid_count,json=validCount,proto3" json:"valid_count,omitempty"`
+	InvalidCount     int32                          `protobuf:"varint,6,opt,name=invalid_count,json=invalidCount,proto3" json:"invalid_count,omitempty"`
+	CreatedCount     int32                          `protobuf:"varint,7,opt,name=created_count,json=createdCount,proto3" json:"created_count,omitempty"`
+	TraceId          string                         `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	ConflictCount    int32                          `protobuf:"varint,9,opt,name=conflict_count,json=conflictCount,proto3" json:"conflict_count,omitempty"`
+	OverwriteAllowed bool                           `protobuf:"varint,10,opt,name=overwrite_allowed,json=overwriteAllowed,proto3" json:"overwrite_allowed,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *PreviewEnterpriseResourceImportResponse) Reset() {
 	*x = PreviewEnterpriseResourceImportResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3821,7 +4575,7 @@ func (x *PreviewEnterpriseResourceImportResponse) String() string {
 func (*PreviewEnterpriseResourceImportResponse) ProtoMessage() {}
 
 func (x *PreviewEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3834,7 +4588,7 @@ func (x *PreviewEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use PreviewEnterpriseResourceImportResponse.ProtoReflect.Descriptor instead.
 func (*PreviewEnterpriseResourceImportResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{49}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *PreviewEnterpriseResourceImportResponse) GetSuccess() bool {
@@ -3893,6 +4647,20 @@ func (x *PreviewEnterpriseResourceImportResponse) GetTraceId() string {
 	return ""
 }
 
+func (x *PreviewEnterpriseResourceImportResponse) GetConflictCount() int32 {
+	if x != nil {
+		return x.ConflictCount
+	}
+	return 0
+}
+
+func (x *PreviewEnterpriseResourceImportResponse) GetOverwriteAllowed() bool {
+	if x != nil {
+		return x.OverwriteAllowed
+	}
+	return false
+}
+
 type CommitEnterpriseResourceImportResponse struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
 	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -3903,13 +4671,15 @@ type CommitEnterpriseResourceImportResponse struct {
 	InvalidCount  int32                          `protobuf:"varint,6,opt,name=invalid_count,json=invalidCount,proto3" json:"invalid_count,omitempty"`
 	CreatedCount  int32                          `protobuf:"varint,7,opt,name=created_count,json=createdCount,proto3" json:"created_count,omitempty"`
 	TraceId       string                         `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	ConflictCount int32                          `protobuf:"varint,9,opt,name=conflict_count,json=conflictCount,proto3" json:"conflict_count,omitempty"`
+	UpdatedCount  int32                          `protobuf:"varint,10,opt,name=updated_count,json=updatedCount,proto3" json:"updated_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CommitEnterpriseResourceImportResponse) Reset() {
 	*x = CommitEnterpriseResourceImportResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3921,7 +4691,7 @@ func (x *CommitEnterpriseResourceImportResponse) String() string {
 func (*CommitEnterpriseResourceImportResponse) ProtoMessage() {}
 
 func (x *CommitEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3934,7 +4704,7 @@ func (x *CommitEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use CommitEnterpriseResourceImportResponse.ProtoReflect.Descriptor instead.
 func (*CommitEnterpriseResourceImportResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{50}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CommitEnterpriseResourceImportResponse) GetSuccess() bool {
@@ -3993,11 +4763,81 @@ func (x *CommitEnterpriseResourceImportResponse) GetTraceId() string {
 	return ""
 }
 
+func (x *CommitEnterpriseResourceImportResponse) GetConflictCount() int32 {
+	if x != nil {
+		return x.ConflictCount
+	}
+	return 0
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetUpdatedCount() int32 {
+	if x != nil {
+		return x.UpdatedCount
+	}
+	return 0
+}
+
 var File_enterprise_resource_v1_enterprise_resource_proto protoreflect.FileDescriptor
 
 const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\n" +
-	"0enterprise_resource/v1/enterprise_resource.proto\x12\x16enterprise_resource.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xac\x02\n" +
+	"0enterprise_resource/v1/enterprise_resource.proto\x12\x16enterprise_resource.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"Y\n" +
+	"\x1fEnterpriseResourcePartnerOption\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"q\n" +
+	" EnterpriseResourceAssigneeOption\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\x7f\n" +
+	"\x1eEnterpriseResourceRegionOption\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\x05R\x05level\x12\x1f\n" +
+	"\vparent_code\x18\x04 \x01(\tR\n" +
+	"parentCode\"z\n" +
+	"-SearchEnterpriseResourcePartnerOptionsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xa7\x02\n" +
+	".SearchEnterpriseResourcePartnerOptionsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12K\n" +
+	"\x04data\x18\x04 \x03(\v27.enterprise_resource.v1.EnterpriseResourcePartnerOptionR\x04data\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"{\n" +
+	".SearchEnterpriseResourceAssigneeOptionsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xa9\x02\n" +
+	"/SearchEnterpriseResourceAssigneeOptionsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12L\n" +
+	"\x04data\x18\x04 \x03(\v28.enterprise_resource.v1.EnterpriseResourceAssigneeOptionR\x04data\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xae\x01\n" +
+	"*ListEnterpriseResourceRegionOptionsRequest\x12\x19\n" +
+	"\x05level\x18\x01 \x01(\x05B\x03\xe0A\x02R\x05level\x12$\n" +
+	"\vparent_code\x18\x02 \x01(\tH\x00R\n" +
+	"parentCode\x88\x01\x01\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSizeB\x0e\n" +
+	"\f_parent_code\"\xa3\x02\n" +
+	"+ListEnterpriseResourceRegionOptionsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12J\n" +
+	"\x04data\x18\x04 \x03(\v26.enterprise_resource.v1.EnterpriseResourceRegionOptionR\x04data\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xac\x02\n" +
 	"\x19EnterpriseResourceAddress\x12!\n" +
 	"\fcontact_name\x18\x01 \x01(\tR\vcontactName\x12#\n" +
 	"\rcontact_phone\x18\x02 \x01(\tR\fcontactPhone\x12!\n" +
@@ -4290,18 +5130,24 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xa1\x01\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xab\x01\n" +
+	" EnterpriseResourceImportConflict\x120\n" +
+	"\x14existing_resource_id\x18\x01 \x01(\tR\x12existingResourceId\x12.\n" +
+	"\x13existing_short_name\x18\x02 \x01(\tR\x11existingShortName\x12%\n" +
+	"\x0ematched_fields\x18\x03 \x03(\tR\rmatchedFields\"\xf9\x01\n" +
 	"\x1bEnterpriseResourceImportRow\x12\x1d\n" +
 	"\n" +
 	"row_number\x18\x01 \x01(\x05R\trowNumber\x12K\n" +
 	"\bresource\x18\x02 \x01(\v2/.enterprise_resource.v1.EnterpriseResourceInputR\bresource\x12\x16\n" +
-	"\x06errors\x18\x03 \x03(\tR\x06errors\"\xcc\x01\n" +
+	"\x06errors\x18\x03 \x03(\tR\x06errors\x12V\n" +
+	"\tconflicts\x18\x04 \x03(\v28.enterprise_resource.v1.EnterpriseResourceImportConflictR\tconflicts\"\xcc\x01\n" +
 	"&PreviewEnterpriseResourceImportRequest\x12X\n" +
 	"\rresource_type\x18\x01 \x01(\x0e2..enterprise_resource.v1.EnterpriseResourceTypeB\x03\xe0A\x02R\fresourceType\x12H\n" +
-	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xcb\x01\n" +
+	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xfc\x01\n" +
 	"%CommitEnterpriseResourceImportRequest\x12X\n" +
 	"\rresource_type\x18\x01 \x01(\x0e2..enterprise_resource.v1.EnterpriseResourceTypeB\x03\xe0A\x02R\fresourceType\x12H\n" +
-	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xc0\x02\n" +
+	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\x12/\n" +
+	"\x13overwrite_conflicts\x18\x03 \x01(\bR\x12overwriteConflicts\"\x94\x03\n" +
 	"'PreviewEnterpriseResourceImportResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -4311,7 +5157,10 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"validCount\x12#\n" +
 	"\rinvalid_count\x18\x06 \x01(\x05R\finvalidCount\x12#\n" +
 	"\rcreated_count\x18\a \x01(\x05R\fcreatedCount\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xbf\x02\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\x12%\n" +
+	"\x0econflict_count\x18\t \x01(\x05R\rconflictCount\x12+\n" +
+	"\x11overwrite_allowed\x18\n" +
+	" \x01(\bR\x10overwriteAllowed\"\x8b\x03\n" +
 	"&CommitEnterpriseResourceImportResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -4321,7 +5170,10 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"validCount\x12#\n" +
 	"\rinvalid_count\x18\x06 \x01(\x05R\finvalidCount\x12#\n" +
 	"\rcreated_count\x18\a \x01(\x05R\fcreatedCount\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId*\xc7\x03\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\x12%\n" +
+	"\x0econflict_count\x18\t \x01(\x05R\rconflictCount\x12#\n" +
+	"\rupdated_count\x18\n" +
+	" \x01(\x05R\fupdatedCount*\xc7\x03\n" +
 	"\x16EnterpriseResourceType\x12(\n" +
 	"$ENTERPRISE_RESOURCE_TYPE_UNSPECIFIED\x10\x00\x12$\n" +
 	" ENTERPRISE_RESOURCE_TYPE_ADDRESS\x10\x01\x12#\n" +
@@ -4356,8 +5208,11 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"#ENTERPRISE_ADDRESS_TYPE_UNSPECIFIED\x10\x00\x12/\n" +
 	"+ENTERPRISE_ADDRESS_TYPE_CONTAINER_OPERATION\x10\x01\x12\"\n" +
 	"\x1eENTERPRISE_ADDRESS_TYPE_PICKUP\x10\x02\x12$\n" +
-	" ENTERPRISE_ADDRESS_TYPE_DELIVERY\x10\x032\xb6&\n" +
-	"\x19EnterpriseResourceService\x12\x85\x02\n" +
+	" ENTERPRISE_ADDRESS_TYPE_DELIVERY\x10\x032\x81-\n" +
+	"\x19EnterpriseResourceService\x12\x98\x02\n" +
+	"&SearchEnterpriseResourcePartnerOptions\x12E.enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsRequest\x1aF.enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse\"_\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/enterprise-resource-options/partners\x12\x9c\x02\n" +
+	"'SearchEnterpriseResourceAssigneeOptions\x12F.enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsRequest\x1aG.enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse\"`\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02/\x12-/api/v1/enterprise-resource-options/assignees\x12\x8e\x02\n" +
+	"#ListEnterpriseResourceRegionOptions\x12B.enterprise_resource.v1.ListEnterpriseResourceRegionOptionsRequest\x1aC.enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse\"^\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02-\x12+/api/v1/enterprise-resource-options/regions\x12\x85\x02\n" +
 	"!GetEnterpriseResourceCapabilities\x12@.enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest\x1aA.enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse\"[\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/enterprise-resource-capabilities\x12\x94\x02\n" +
 	"$PrepareEnterpriseResourceImageUpload\x12C.enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest\x1aD.enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse\"a\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/enterprise-resource-image-uploads\x12\x88\x02\n" +
 	" GetEnterpriseResourceImageAccess\x12?.enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest\x1a@.enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse\"a\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/enterprise-resources/{id}/image-access\x12\xdb\x01\n" +
@@ -4392,149 +5247,169 @@ func file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP() []byte 
 }
 
 var file_enterprise_resource_v1_enterprise_resource_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_enterprise_resource_v1_enterprise_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_enterprise_resource_v1_enterprise_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
 var file_enterprise_resource_v1_enterprise_resource_proto_goTypes = []any{
-	(EnterpriseResourceType)(0),                          // 0: enterprise_resource.v1.EnterpriseResourceType
-	(EnterpriseRemarkType)(0),                            // 1: enterprise_resource.v1.EnterpriseRemarkType
-	(EnterpriseAddressType)(0),                           // 2: enterprise_resource.v1.EnterpriseAddressType
-	(*EnterpriseResourceAddress)(nil),                    // 3: enterprise_resource.v1.EnterpriseResourceAddress
-	(*EnterpriseResourceRemark)(nil),                     // 4: enterprise_resource.v1.EnterpriseResourceRemark
-	(*EnterpriseResourceParty)(nil),                      // 5: enterprise_resource.v1.EnterpriseResourceParty
-	(*EnterpriseResourceImage)(nil),                      // 6: enterprise_resource.v1.EnterpriseResourceImage
-	(*GetEnterpriseResourceCapabilitiesRequest)(nil),     // 7: enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
-	(*GetEnterpriseResourceCapabilitiesResponse)(nil),    // 8: enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
-	(*PrepareEnterpriseResourceImageUploadRequest)(nil),  // 9: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
-	(*PrepareEnterpriseResourceImageUploadResponse)(nil), // 10: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
-	(*GetEnterpriseResourceImageAccessRequest)(nil),      // 11: enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
-	(*GetEnterpriseResourceImageAccessResponse)(nil),     // 12: enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
-	(*EnterpriseResourceTag)(nil),                        // 13: enterprise_resource.v1.EnterpriseResourceTag
-	(*EnterpriseResource)(nil),                           // 14: enterprise_resource.v1.EnterpriseResource
-	(*EnterpriseResourceInput)(nil),                      // 15: enterprise_resource.v1.EnterpriseResourceInput
-	(*PartnerAssociations)(nil),                          // 16: enterprise_resource.v1.PartnerAssociations
-	(*ListEnterpriseResourcesRequest)(nil),               // 17: enterprise_resource.v1.ListEnterpriseResourcesRequest
-	(*GetEnterpriseResourceRequest)(nil),                 // 18: enterprise_resource.v1.GetEnterpriseResourceRequest
-	(*CreateEnterpriseResourceRequest)(nil),              // 19: enterprise_resource.v1.CreateEnterpriseResourceRequest
-	(*UpdateEnterpriseResourceRequest)(nil),              // 20: enterprise_resource.v1.UpdateEnterpriseResourceRequest
-	(*DeleteEnterpriseResourceRequest)(nil),              // 21: enterprise_resource.v1.DeleteEnterpriseResourceRequest
-	(*GetEnterpriseResourceResponse)(nil),                // 22: enterprise_resource.v1.GetEnterpriseResourceResponse
-	(*CreateEnterpriseResourceResponse)(nil),             // 23: enterprise_resource.v1.CreateEnterpriseResourceResponse
-	(*UpdateEnterpriseResourceResponse)(nil),             // 24: enterprise_resource.v1.UpdateEnterpriseResourceResponse
-	(*ListEnterpriseResourcesResponse)(nil),              // 25: enterprise_resource.v1.ListEnterpriseResourcesResponse
-	(*DeleteEnterpriseResourceResponse)(nil),             // 26: enterprise_resource.v1.DeleteEnterpriseResourceResponse
-	(*BatchCreateAssociationsRequest)(nil),               // 27: enterprise_resource.v1.BatchCreateAssociationsRequest
-	(*BatchCreateAssociationsResponse)(nil),              // 28: enterprise_resource.v1.BatchCreateAssociationsResponse
-	(*BatchDeleteAssociationsRequest)(nil),               // 29: enterprise_resource.v1.BatchDeleteAssociationsRequest
-	(*BatchDeleteAssociationsResponse)(nil),              // 30: enterprise_resource.v1.BatchDeleteAssociationsResponse
-	(*BatchAssignAddressTypesRequest)(nil),               // 31: enterprise_resource.v1.BatchAssignAddressTypesRequest
-	(*BatchAssignAddressTypesResponse)(nil),              // 32: enterprise_resource.v1.BatchAssignAddressTypesResponse
-	(*BatchRemoveAddressTypesRequest)(nil),               // 33: enterprise_resource.v1.BatchRemoveAddressTypesRequest
-	(*BatchRemoveAddressTypesResponse)(nil),              // 34: enterprise_resource.v1.BatchRemoveAddressTypesResponse
-	(*BatchAssignAssigneesRequest)(nil),                  // 35: enterprise_resource.v1.BatchAssignAssigneesRequest
-	(*BatchAssignAssigneesResponse)(nil),                 // 36: enterprise_resource.v1.BatchAssignAssigneesResponse
-	(*BatchRemoveAssigneesRequest)(nil),                  // 37: enterprise_resource.v1.BatchRemoveAssigneesRequest
-	(*BatchRemoveAssigneesResponse)(nil),                 // 38: enterprise_resource.v1.BatchRemoveAssigneesResponse
-	(*EnterpriseTagGroup)(nil),                           // 39: enterprise_resource.v1.EnterpriseTagGroup
-	(*EnterpriseTagGroupInput)(nil),                      // 40: enterprise_resource.v1.EnterpriseTagGroupInput
-	(*ListEnterpriseTagGroupsRequest)(nil),               // 41: enterprise_resource.v1.ListEnterpriseTagGroupsRequest
-	(*ListEnterpriseTagGroupsResponse)(nil),              // 42: enterprise_resource.v1.ListEnterpriseTagGroupsResponse
-	(*CreateEnterpriseTagGroupRequest)(nil),              // 43: enterprise_resource.v1.CreateEnterpriseTagGroupRequest
-	(*UpdateEnterpriseTagGroupRequest)(nil),              // 44: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
-	(*DeleteEnterpriseTagGroupRequest)(nil),              // 45: enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
-	(*CreateEnterpriseTagGroupResponse)(nil),             // 46: enterprise_resource.v1.CreateEnterpriseTagGroupResponse
-	(*UpdateEnterpriseTagGroupResponse)(nil),             // 47: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
-	(*DeleteEnterpriseTagGroupResponse)(nil),             // 48: enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
-	(*EnterpriseResourceImportRow)(nil),                  // 49: enterprise_resource.v1.EnterpriseResourceImportRow
-	(*PreviewEnterpriseResourceImportRequest)(nil),       // 50: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
-	(*CommitEnterpriseResourceImportRequest)(nil),        // 51: enterprise_resource.v1.CommitEnterpriseResourceImportRequest
-	(*PreviewEnterpriseResourceImportResponse)(nil),      // 52: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
-	(*CommitEnterpriseResourceImportResponse)(nil),       // 53: enterprise_resource.v1.CommitEnterpriseResourceImportResponse
-	nil, // 54: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
+	(EnterpriseResourceType)(0),                             // 0: enterprise_resource.v1.EnterpriseResourceType
+	(EnterpriseRemarkType)(0),                               // 1: enterprise_resource.v1.EnterpriseRemarkType
+	(EnterpriseAddressType)(0),                              // 2: enterprise_resource.v1.EnterpriseAddressType
+	(*EnterpriseResourcePartnerOption)(nil),                 // 3: enterprise_resource.v1.EnterpriseResourcePartnerOption
+	(*EnterpriseResourceAssigneeOption)(nil),                // 4: enterprise_resource.v1.EnterpriseResourceAssigneeOption
+	(*EnterpriseResourceRegionOption)(nil),                  // 5: enterprise_resource.v1.EnterpriseResourceRegionOption
+	(*SearchEnterpriseResourcePartnerOptionsRequest)(nil),   // 6: enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsRequest
+	(*SearchEnterpriseResourcePartnerOptionsResponse)(nil),  // 7: enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse
+	(*SearchEnterpriseResourceAssigneeOptionsRequest)(nil),  // 8: enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsRequest
+	(*SearchEnterpriseResourceAssigneeOptionsResponse)(nil), // 9: enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse
+	(*ListEnterpriseResourceRegionOptionsRequest)(nil),      // 10: enterprise_resource.v1.ListEnterpriseResourceRegionOptionsRequest
+	(*ListEnterpriseResourceRegionOptionsResponse)(nil),     // 11: enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse
+	(*EnterpriseResourceAddress)(nil),                       // 12: enterprise_resource.v1.EnterpriseResourceAddress
+	(*EnterpriseResourceRemark)(nil),                        // 13: enterprise_resource.v1.EnterpriseResourceRemark
+	(*EnterpriseResourceParty)(nil),                         // 14: enterprise_resource.v1.EnterpriseResourceParty
+	(*EnterpriseResourceImage)(nil),                         // 15: enterprise_resource.v1.EnterpriseResourceImage
+	(*GetEnterpriseResourceCapabilitiesRequest)(nil),        // 16: enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
+	(*GetEnterpriseResourceCapabilitiesResponse)(nil),       // 17: enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
+	(*PrepareEnterpriseResourceImageUploadRequest)(nil),     // 18: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
+	(*PrepareEnterpriseResourceImageUploadResponse)(nil),    // 19: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
+	(*GetEnterpriseResourceImageAccessRequest)(nil),         // 20: enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
+	(*GetEnterpriseResourceImageAccessResponse)(nil),        // 21: enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
+	(*EnterpriseResourceTag)(nil),                           // 22: enterprise_resource.v1.EnterpriseResourceTag
+	(*EnterpriseResource)(nil),                              // 23: enterprise_resource.v1.EnterpriseResource
+	(*EnterpriseResourceInput)(nil),                         // 24: enterprise_resource.v1.EnterpriseResourceInput
+	(*PartnerAssociations)(nil),                             // 25: enterprise_resource.v1.PartnerAssociations
+	(*ListEnterpriseResourcesRequest)(nil),                  // 26: enterprise_resource.v1.ListEnterpriseResourcesRequest
+	(*GetEnterpriseResourceRequest)(nil),                    // 27: enterprise_resource.v1.GetEnterpriseResourceRequest
+	(*CreateEnterpriseResourceRequest)(nil),                 // 28: enterprise_resource.v1.CreateEnterpriseResourceRequest
+	(*UpdateEnterpriseResourceRequest)(nil),                 // 29: enterprise_resource.v1.UpdateEnterpriseResourceRequest
+	(*DeleteEnterpriseResourceRequest)(nil),                 // 30: enterprise_resource.v1.DeleteEnterpriseResourceRequest
+	(*GetEnterpriseResourceResponse)(nil),                   // 31: enterprise_resource.v1.GetEnterpriseResourceResponse
+	(*CreateEnterpriseResourceResponse)(nil),                // 32: enterprise_resource.v1.CreateEnterpriseResourceResponse
+	(*UpdateEnterpriseResourceResponse)(nil),                // 33: enterprise_resource.v1.UpdateEnterpriseResourceResponse
+	(*ListEnterpriseResourcesResponse)(nil),                 // 34: enterprise_resource.v1.ListEnterpriseResourcesResponse
+	(*DeleteEnterpriseResourceResponse)(nil),                // 35: enterprise_resource.v1.DeleteEnterpriseResourceResponse
+	(*BatchCreateAssociationsRequest)(nil),                  // 36: enterprise_resource.v1.BatchCreateAssociationsRequest
+	(*BatchCreateAssociationsResponse)(nil),                 // 37: enterprise_resource.v1.BatchCreateAssociationsResponse
+	(*BatchDeleteAssociationsRequest)(nil),                  // 38: enterprise_resource.v1.BatchDeleteAssociationsRequest
+	(*BatchDeleteAssociationsResponse)(nil),                 // 39: enterprise_resource.v1.BatchDeleteAssociationsResponse
+	(*BatchAssignAddressTypesRequest)(nil),                  // 40: enterprise_resource.v1.BatchAssignAddressTypesRequest
+	(*BatchAssignAddressTypesResponse)(nil),                 // 41: enterprise_resource.v1.BatchAssignAddressTypesResponse
+	(*BatchRemoveAddressTypesRequest)(nil),                  // 42: enterprise_resource.v1.BatchRemoveAddressTypesRequest
+	(*BatchRemoveAddressTypesResponse)(nil),                 // 43: enterprise_resource.v1.BatchRemoveAddressTypesResponse
+	(*BatchAssignAssigneesRequest)(nil),                     // 44: enterprise_resource.v1.BatchAssignAssigneesRequest
+	(*BatchAssignAssigneesResponse)(nil),                    // 45: enterprise_resource.v1.BatchAssignAssigneesResponse
+	(*BatchRemoveAssigneesRequest)(nil),                     // 46: enterprise_resource.v1.BatchRemoveAssigneesRequest
+	(*BatchRemoveAssigneesResponse)(nil),                    // 47: enterprise_resource.v1.BatchRemoveAssigneesResponse
+	(*EnterpriseTagGroup)(nil),                              // 48: enterprise_resource.v1.EnterpriseTagGroup
+	(*EnterpriseTagGroupInput)(nil),                         // 49: enterprise_resource.v1.EnterpriseTagGroupInput
+	(*ListEnterpriseTagGroupsRequest)(nil),                  // 50: enterprise_resource.v1.ListEnterpriseTagGroupsRequest
+	(*ListEnterpriseTagGroupsResponse)(nil),                 // 51: enterprise_resource.v1.ListEnterpriseTagGroupsResponse
+	(*CreateEnterpriseTagGroupRequest)(nil),                 // 52: enterprise_resource.v1.CreateEnterpriseTagGroupRequest
+	(*UpdateEnterpriseTagGroupRequest)(nil),                 // 53: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
+	(*DeleteEnterpriseTagGroupRequest)(nil),                 // 54: enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
+	(*CreateEnterpriseTagGroupResponse)(nil),                // 55: enterprise_resource.v1.CreateEnterpriseTagGroupResponse
+	(*UpdateEnterpriseTagGroupResponse)(nil),                // 56: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
+	(*DeleteEnterpriseTagGroupResponse)(nil),                // 57: enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
+	(*EnterpriseResourceImportConflict)(nil),                // 58: enterprise_resource.v1.EnterpriseResourceImportConflict
+	(*EnterpriseResourceImportRow)(nil),                     // 59: enterprise_resource.v1.EnterpriseResourceImportRow
+	(*PreviewEnterpriseResourceImportRequest)(nil),          // 60: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
+	(*CommitEnterpriseResourceImportRequest)(nil),           // 61: enterprise_resource.v1.CommitEnterpriseResourceImportRequest
+	(*PreviewEnterpriseResourceImportResponse)(nil),         // 62: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
+	(*CommitEnterpriseResourceImportResponse)(nil),          // 63: enterprise_resource.v1.CommitEnterpriseResourceImportResponse
+	nil, // 64: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
 }
 var file_enterprise_resource_v1_enterprise_resource_proto_depIdxs = []int32{
-	1,  // 0: enterprise_resource.v1.EnterpriseResourceRemark.remark_type:type_name -> enterprise_resource.v1.EnterpriseRemarkType
-	54, // 1: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.headers:type_name -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
-	0,  // 2: enterprise_resource.v1.EnterpriseResource.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	2,  // 3: enterprise_resource.v1.EnterpriseResource.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	3,  // 4: enterprise_resource.v1.EnterpriseResource.address:type_name -> enterprise_resource.v1.EnterpriseResourceAddress
-	4,  // 5: enterprise_resource.v1.EnterpriseResource.remark:type_name -> enterprise_resource.v1.EnterpriseResourceRemark
-	5,  // 6: enterprise_resource.v1.EnterpriseResource.party:type_name -> enterprise_resource.v1.EnterpriseResourceParty
-	6,  // 7: enterprise_resource.v1.EnterpriseResource.image:type_name -> enterprise_resource.v1.EnterpriseResourceImage
-	13, // 8: enterprise_resource.v1.EnterpriseResource.tag:type_name -> enterprise_resource.v1.EnterpriseResourceTag
-	0,  // 9: enterprise_resource.v1.EnterpriseResourceInput.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	16, // 10: enterprise_resource.v1.EnterpriseResourceInput.partner_associations:type_name -> enterprise_resource.v1.PartnerAssociations
-	2,  // 11: enterprise_resource.v1.EnterpriseResourceInput.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	3,  // 12: enterprise_resource.v1.EnterpriseResourceInput.address:type_name -> enterprise_resource.v1.EnterpriseResourceAddress
-	4,  // 13: enterprise_resource.v1.EnterpriseResourceInput.remark:type_name -> enterprise_resource.v1.EnterpriseResourceRemark
-	5,  // 14: enterprise_resource.v1.EnterpriseResourceInput.party:type_name -> enterprise_resource.v1.EnterpriseResourceParty
-	6,  // 15: enterprise_resource.v1.EnterpriseResourceInput.image:type_name -> enterprise_resource.v1.EnterpriseResourceImage
-	13, // 16: enterprise_resource.v1.EnterpriseResourceInput.tag:type_name -> enterprise_resource.v1.EnterpriseResourceTag
-	0,  // 17: enterprise_resource.v1.ListEnterpriseResourcesRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	2,  // 18: enterprise_resource.v1.ListEnterpriseResourcesRequest.address_type:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	15, // 19: enterprise_resource.v1.CreateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	15, // 20: enterprise_resource.v1.UpdateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	14, // 21: enterprise_resource.v1.GetEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	14, // 22: enterprise_resource.v1.CreateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	14, // 23: enterprise_resource.v1.UpdateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	14, // 24: enterprise_resource.v1.ListEnterpriseResourcesResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	2,  // 25: enterprise_resource.v1.BatchAssignAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	2,  // 26: enterprise_resource.v1.BatchRemoveAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	39, // 27: enterprise_resource.v1.ListEnterpriseTagGroupsResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
-	40, // 28: enterprise_resource.v1.CreateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
-	40, // 29: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
-	39, // 30: enterprise_resource.v1.CreateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
-	39, // 31: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
-	15, // 32: enterprise_resource.v1.EnterpriseResourceImportRow.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	0,  // 33: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	15, // 34: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	0,  // 35: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	15, // 36: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	49, // 37: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
-	49, // 38: enterprise_resource.v1.CommitEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
-	7,  // 39: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:input_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
-	9,  // 40: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:input_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
-	11, // 41: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:input_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
-	17, // 42: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:input_type -> enterprise_resource.v1.ListEnterpriseResourcesRequest
-	18, // 43: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:input_type -> enterprise_resource.v1.GetEnterpriseResourceRequest
-	19, // 44: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:input_type -> enterprise_resource.v1.CreateEnterpriseResourceRequest
-	20, // 45: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:input_type -> enterprise_resource.v1.UpdateEnterpriseResourceRequest
-	21, // 46: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:input_type -> enterprise_resource.v1.DeleteEnterpriseResourceRequest
-	27, // 47: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:input_type -> enterprise_resource.v1.BatchCreateAssociationsRequest
-	29, // 48: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:input_type -> enterprise_resource.v1.BatchDeleteAssociationsRequest
-	31, // 49: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:input_type -> enterprise_resource.v1.BatchAssignAddressTypesRequest
-	33, // 50: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:input_type -> enterprise_resource.v1.BatchRemoveAddressTypesRequest
-	35, // 51: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:input_type -> enterprise_resource.v1.BatchAssignAssigneesRequest
-	37, // 52: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:input_type -> enterprise_resource.v1.BatchRemoveAssigneesRequest
-	41, // 53: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:input_type -> enterprise_resource.v1.ListEnterpriseTagGroupsRequest
-	43, // 54: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:input_type -> enterprise_resource.v1.CreateEnterpriseTagGroupRequest
-	44, // 55: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:input_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
-	45, // 56: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:input_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
-	50, // 57: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:input_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
-	51, // 58: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:input_type -> enterprise_resource.v1.CommitEnterpriseResourceImportRequest
-	8,  // 59: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:output_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
-	10, // 60: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:output_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
-	12, // 61: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:output_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
-	25, // 62: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:output_type -> enterprise_resource.v1.ListEnterpriseResourcesResponse
-	22, // 63: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:output_type -> enterprise_resource.v1.GetEnterpriseResourceResponse
-	23, // 64: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:output_type -> enterprise_resource.v1.CreateEnterpriseResourceResponse
-	24, // 65: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:output_type -> enterprise_resource.v1.UpdateEnterpriseResourceResponse
-	26, // 66: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:output_type -> enterprise_resource.v1.DeleteEnterpriseResourceResponse
-	28, // 67: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:output_type -> enterprise_resource.v1.BatchCreateAssociationsResponse
-	30, // 68: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:output_type -> enterprise_resource.v1.BatchDeleteAssociationsResponse
-	32, // 69: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:output_type -> enterprise_resource.v1.BatchAssignAddressTypesResponse
-	34, // 70: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:output_type -> enterprise_resource.v1.BatchRemoveAddressTypesResponse
-	36, // 71: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:output_type -> enterprise_resource.v1.BatchAssignAssigneesResponse
-	38, // 72: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:output_type -> enterprise_resource.v1.BatchRemoveAssigneesResponse
-	42, // 73: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:output_type -> enterprise_resource.v1.ListEnterpriseTagGroupsResponse
-	46, // 74: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:output_type -> enterprise_resource.v1.CreateEnterpriseTagGroupResponse
-	47, // 75: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:output_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
-	48, // 76: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:output_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
-	52, // 77: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:output_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
-	53, // 78: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:output_type -> enterprise_resource.v1.CommitEnterpriseResourceImportResponse
-	59, // [59:79] is the sub-list for method output_type
-	39, // [39:59] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	3,  // 0: enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse.data:type_name -> enterprise_resource.v1.EnterpriseResourcePartnerOption
+	4,  // 1: enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse.data:type_name -> enterprise_resource.v1.EnterpriseResourceAssigneeOption
+	5,  // 2: enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse.data:type_name -> enterprise_resource.v1.EnterpriseResourceRegionOption
+	1,  // 3: enterprise_resource.v1.EnterpriseResourceRemark.remark_type:type_name -> enterprise_resource.v1.EnterpriseRemarkType
+	64, // 4: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.headers:type_name -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
+	0,  // 5: enterprise_resource.v1.EnterpriseResource.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	2,  // 6: enterprise_resource.v1.EnterpriseResource.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	12, // 7: enterprise_resource.v1.EnterpriseResource.address:type_name -> enterprise_resource.v1.EnterpriseResourceAddress
+	13, // 8: enterprise_resource.v1.EnterpriseResource.remark:type_name -> enterprise_resource.v1.EnterpriseResourceRemark
+	14, // 9: enterprise_resource.v1.EnterpriseResource.party:type_name -> enterprise_resource.v1.EnterpriseResourceParty
+	15, // 10: enterprise_resource.v1.EnterpriseResource.image:type_name -> enterprise_resource.v1.EnterpriseResourceImage
+	22, // 11: enterprise_resource.v1.EnterpriseResource.tag:type_name -> enterprise_resource.v1.EnterpriseResourceTag
+	0,  // 12: enterprise_resource.v1.EnterpriseResourceInput.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	25, // 13: enterprise_resource.v1.EnterpriseResourceInput.partner_associations:type_name -> enterprise_resource.v1.PartnerAssociations
+	2,  // 14: enterprise_resource.v1.EnterpriseResourceInput.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	12, // 15: enterprise_resource.v1.EnterpriseResourceInput.address:type_name -> enterprise_resource.v1.EnterpriseResourceAddress
+	13, // 16: enterprise_resource.v1.EnterpriseResourceInput.remark:type_name -> enterprise_resource.v1.EnterpriseResourceRemark
+	14, // 17: enterprise_resource.v1.EnterpriseResourceInput.party:type_name -> enterprise_resource.v1.EnterpriseResourceParty
+	15, // 18: enterprise_resource.v1.EnterpriseResourceInput.image:type_name -> enterprise_resource.v1.EnterpriseResourceImage
+	22, // 19: enterprise_resource.v1.EnterpriseResourceInput.tag:type_name -> enterprise_resource.v1.EnterpriseResourceTag
+	0,  // 20: enterprise_resource.v1.ListEnterpriseResourcesRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	2,  // 21: enterprise_resource.v1.ListEnterpriseResourcesRequest.address_type:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	24, // 22: enterprise_resource.v1.CreateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	24, // 23: enterprise_resource.v1.UpdateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	23, // 24: enterprise_resource.v1.GetEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	23, // 25: enterprise_resource.v1.CreateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	23, // 26: enterprise_resource.v1.UpdateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	23, // 27: enterprise_resource.v1.ListEnterpriseResourcesResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	2,  // 28: enterprise_resource.v1.BatchAssignAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	2,  // 29: enterprise_resource.v1.BatchRemoveAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	48, // 30: enterprise_resource.v1.ListEnterpriseTagGroupsResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	49, // 31: enterprise_resource.v1.CreateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
+	49, // 32: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
+	48, // 33: enterprise_resource.v1.CreateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	48, // 34: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	24, // 35: enterprise_resource.v1.EnterpriseResourceImportRow.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	58, // 36: enterprise_resource.v1.EnterpriseResourceImportRow.conflicts:type_name -> enterprise_resource.v1.EnterpriseResourceImportConflict
+	0,  // 37: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	24, // 38: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	0,  // 39: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	24, // 40: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	59, // 41: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
+	59, // 42: enterprise_resource.v1.CommitEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
+	6,  // 43: enterprise_resource.v1.EnterpriseResourceService.SearchEnterpriseResourcePartnerOptions:input_type -> enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsRequest
+	8,  // 44: enterprise_resource.v1.EnterpriseResourceService.SearchEnterpriseResourceAssigneeOptions:input_type -> enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsRequest
+	10, // 45: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResourceRegionOptions:input_type -> enterprise_resource.v1.ListEnterpriseResourceRegionOptionsRequest
+	16, // 46: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:input_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
+	18, // 47: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:input_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
+	20, // 48: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:input_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
+	26, // 49: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:input_type -> enterprise_resource.v1.ListEnterpriseResourcesRequest
+	27, // 50: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:input_type -> enterprise_resource.v1.GetEnterpriseResourceRequest
+	28, // 51: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:input_type -> enterprise_resource.v1.CreateEnterpriseResourceRequest
+	29, // 52: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:input_type -> enterprise_resource.v1.UpdateEnterpriseResourceRequest
+	30, // 53: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:input_type -> enterprise_resource.v1.DeleteEnterpriseResourceRequest
+	36, // 54: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:input_type -> enterprise_resource.v1.BatchCreateAssociationsRequest
+	38, // 55: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:input_type -> enterprise_resource.v1.BatchDeleteAssociationsRequest
+	40, // 56: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:input_type -> enterprise_resource.v1.BatchAssignAddressTypesRequest
+	42, // 57: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:input_type -> enterprise_resource.v1.BatchRemoveAddressTypesRequest
+	44, // 58: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:input_type -> enterprise_resource.v1.BatchAssignAssigneesRequest
+	46, // 59: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:input_type -> enterprise_resource.v1.BatchRemoveAssigneesRequest
+	50, // 60: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:input_type -> enterprise_resource.v1.ListEnterpriseTagGroupsRequest
+	52, // 61: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:input_type -> enterprise_resource.v1.CreateEnterpriseTagGroupRequest
+	53, // 62: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:input_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
+	54, // 63: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:input_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
+	60, // 64: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:input_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
+	61, // 65: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:input_type -> enterprise_resource.v1.CommitEnterpriseResourceImportRequest
+	7,  // 66: enterprise_resource.v1.EnterpriseResourceService.SearchEnterpriseResourcePartnerOptions:output_type -> enterprise_resource.v1.SearchEnterpriseResourcePartnerOptionsResponse
+	9,  // 67: enterprise_resource.v1.EnterpriseResourceService.SearchEnterpriseResourceAssigneeOptions:output_type -> enterprise_resource.v1.SearchEnterpriseResourceAssigneeOptionsResponse
+	11, // 68: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResourceRegionOptions:output_type -> enterprise_resource.v1.ListEnterpriseResourceRegionOptionsResponse
+	17, // 69: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:output_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
+	19, // 70: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:output_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
+	21, // 71: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:output_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
+	34, // 72: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:output_type -> enterprise_resource.v1.ListEnterpriseResourcesResponse
+	31, // 73: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:output_type -> enterprise_resource.v1.GetEnterpriseResourceResponse
+	32, // 74: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:output_type -> enterprise_resource.v1.CreateEnterpriseResourceResponse
+	33, // 75: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:output_type -> enterprise_resource.v1.UpdateEnterpriseResourceResponse
+	35, // 76: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:output_type -> enterprise_resource.v1.DeleteEnterpriseResourceResponse
+	37, // 77: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:output_type -> enterprise_resource.v1.BatchCreateAssociationsResponse
+	39, // 78: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:output_type -> enterprise_resource.v1.BatchDeleteAssociationsResponse
+	41, // 79: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:output_type -> enterprise_resource.v1.BatchAssignAddressTypesResponse
+	43, // 80: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:output_type -> enterprise_resource.v1.BatchRemoveAddressTypesResponse
+	45, // 81: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:output_type -> enterprise_resource.v1.BatchAssignAssigneesResponse
+	47, // 82: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:output_type -> enterprise_resource.v1.BatchRemoveAssigneesResponse
+	51, // 83: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:output_type -> enterprise_resource.v1.ListEnterpriseTagGroupsResponse
+	55, // 84: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:output_type -> enterprise_resource.v1.CreateEnterpriseTagGroupResponse
+	56, // 85: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:output_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
+	57, // 86: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:output_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
+	62, // 87: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:output_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
+	63, // 88: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:output_type -> enterprise_resource.v1.CommitEnterpriseResourceImportResponse
+	66, // [66:89] is the sub-list for method output_type
+	43, // [43:66] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_enterprise_resource_v1_enterprise_resource_proto_init() }
@@ -4542,29 +5417,30 @@ func file_enterprise_resource_v1_enterprise_resource_proto_init() {
 	if File_enterprise_resource_v1_enterprise_resource_proto != nil {
 		return
 	}
-	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[3].OneofWrappers = []any{}
-	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[11].OneofWrappers = []any{
+	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[7].OneofWrappers = []any{}
+	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12].OneofWrappers = []any{}
+	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20].OneofWrappers = []any{
 		(*EnterpriseResource_Address)(nil),
 		(*EnterpriseResource_Remark)(nil),
 		(*EnterpriseResource_Party)(nil),
 		(*EnterpriseResource_Image)(nil),
 		(*EnterpriseResource_Tag)(nil),
 	}
-	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[12].OneofWrappers = []any{
+	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21].OneofWrappers = []any{
 		(*EnterpriseResourceInput_Address)(nil),
 		(*EnterpriseResourceInput_Remark)(nil),
 		(*EnterpriseResourceInput_Party)(nil),
 		(*EnterpriseResourceInput_Image)(nil),
 		(*EnterpriseResourceInput_Tag)(nil),
 	}
-	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[14].OneofWrappers = []any{}
+	file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_enterprise_resource_v1_enterprise_resource_proto_rawDesc), len(file_enterprise_resource_v1_enterprise_resource_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   52,
+			NumMessages:   62,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

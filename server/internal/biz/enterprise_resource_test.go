@@ -37,14 +37,24 @@ func TestNormalizeEnterpriseResourceRejectsMismatchedDetail(t *testing.T) {
 }
 
 func TestPreviewEnterpriseResourceImportRejectsDuplicateBusinessCode(t *testing.T) {
-	usecase := &EnterpriseResourceUsecase{}
 	inputs := []*EnterpriseResource{
 		{ResourceType: EnterpriseResourceShipperType, ShortName: "发货人一", Enabled: true, Party: &EnterpriseResourceParty{CompanyName: "甲公司", BusinessCode: "ABC", CountryCode: "CN"}},
 		{ResourceType: EnterpriseResourceShipperType, ShortName: "发货人二", Enabled: true, Party: &EnterpriseResourceParty{CompanyName: "乙公司", BusinessCode: "abc", CountryCode: "CN"}},
 	}
-	_, errors := usecase.PreviewImport(inputs, EnterpriseResourceShipperType)
+	_, errors := validateEnterpriseResourceImport(inputs, EnterpriseResourceShipperType)
 	if errors[0] != nil || errors[1] != ErrEnterpriseResourceInvalidArgument {
 		t.Fatalf("导入批次内业务代码判重结果错误: %v", errors)
+	}
+}
+
+func TestPreviewEnterpriseResourceImportRejectsDuplicateCompanyName(t *testing.T) {
+	inputs := []*EnterpriseResource{
+		{ResourceType: EnterpriseResourceConsigneeType, ShortName: "收货人一", Enabled: true, Party: &EnterpriseResourceParty{CompanyName: "甲公司", BusinessCode: "A001", CountryCode: "CN"}},
+		{ResourceType: EnterpriseResourceConsigneeType, ShortName: "收货人二", Enabled: true, Party: &EnterpriseResourceParty{CompanyName: " 甲公司 ", BusinessCode: "A002", CountryCode: "CN"}},
+	}
+	_, errors := validateEnterpriseResourceImport(inputs, EnterpriseResourceConsigneeType)
+	if errors[0] != nil || errors[1] != ErrEnterpriseResourceInvalidArgument {
+		t.Fatalf("导入批次内企业名称判重结果错误: %v", errors)
 	}
 }
 
