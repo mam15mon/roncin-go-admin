@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	orderfeeenterprisetag "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
@@ -150,6 +151,9 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			lockedOrder = order.Not(lockedOrder)
 		}
 		predicates = append(predicates, orderfee.HasOrderWith(lockedOrder))
+	}
+	if len(filter.TagIDs) > 0 {
+		predicates = append(predicates, orderfee.HasEnterpriseTagLinksWith(orderfeeenterprisetag.TagResourceIDIn(filter.TagIDs...)))
 	}
 	if filter.FinancialProgress != "" {
 		predicates = append(predicates,

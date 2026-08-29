@@ -18,11 +18,12 @@ var plainDecimalPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)(\.[0-9]+)?$`)
 // OrderFeeService 订单费用服务，只做 DTO 转换、边界校验和用例调用。
 type OrderFeeService struct {
 	v1.UnimplementedOrderFeeServiceServer
-	usecase *biz.OrderFeeUsecase
+	usecase    *biz.OrderFeeUsecase
+	tagUsecase *biz.BusinessTagUsecase
 }
 
-func NewOrderFeeService(usecase *biz.OrderFeeUsecase) *OrderFeeService {
-	return &OrderFeeService{usecase: usecase}
+func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTagUsecase) *OrderFeeService {
+	return &OrderFeeService{usecase: usecase, tagUsecase: tagUsecase}
 }
 
 func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFeeOptionsRequest) (*v1.ListFeeOptionsResponse, error) {
@@ -78,9 +79,19 @@ func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequ
 	if err != nil {
 		return nil, err
 	}
+	feeIDs := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		feeIDs = append(feeIDs, item.ID)
+	}
+	feeTags, err := s.tagUsecase.LoadOrderFeeTags(ctx, feeIDs)
+	if err != nil {
+		return nil, err
+	}
 	data := make([]*v1.OrderFee, 0, len(items))
 	for _, item := range items {
-		data = append(data, orderFeeToAPI(item))
+		converted := orderFeeToAPI(item)
+		converted.Tags = businessTagSummariesToOrderAPI(feeTags[item.ID])
+		data = append(data, converted)
 	}
 	return &v1.ListFeesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
@@ -381,3 +392,74 @@ func orderFeeStatusToAPI(value biz.OrderFeeStatus) v1.OrderFeeStatus {
 }
 
 var _ v1.OrderFeeServiceServer = (*OrderFeeService)(nil)
+
+func businessTagSummariesToOrderAPI(items []*biz.BusinessTagSummary) []*v1.BusinessTagSummary {
+	if len(items) == 0 {
+		return nil
+	}
+	result := make([]*v1.BusinessTagSummary, 0, len(items))
+	for _, item := range items {
+		result = append(result, &v1.BusinessTagSummary{Id: item.ID.String(), Name: item.Name, GroupId: item.GroupID.String(), GroupName: item.GroupName, GroupColor: item.GroupColor, Enabled: item.Enabled})
+	}
+	return result
+}
+
+func (s *OrderFeeService) ListOrderFeeTagOptions(ctx context.Context, request *v1.ListOrderFeeTagOptionsRequest) (*v1.ListOrderFeeTagOptionsResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	items, total, err := s.tagUsecase.ListTagOptions(ctx, principal.Organization.ID, request.GetKeyword(), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListOrderFeeTagOptionsResponse{Tags: businessTagSummariesToOrderAPI(items), Total: total, TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) BatchAssignOrderFeeTags(ctx context.Context, request *v1.BatchAssignOrderFeeTagsRequest) (*v1.BatchAssignOrderFeeTagsResponse, error) {
+	principal, orderID, feeIDs, tagIDs, err := orderFeeTagRequest(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	affected, err := s.tagUsecase.AssignOrderFeesInOrder(ctx, principal.Organization.ID, principal.UserID, orderID, feeIDs, tagIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchAssignOrderFeeTagsResponse{AssignedCount: int32(affected), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *OrderFeeService) BatchRemoveOrderFeeTags(ctx context.Context, request *v1.BatchRemoveOrderFeeTagsRequest) (*v1.BatchRemoveOrderFeeTagsResponse, error) {
+	principal, orderID, feeIDs, tagIDs, err := orderFeeTagRequest(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	affected, err := s.tagUsecase.RemoveOrderFeesInOrder(ctx, principal.Organization.ID, principal.UserID, orderID, feeIDs, tagIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchRemoveOrderFeeTagsResponse{RemovedCount: int32(affected), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func orderFeeTagRequest[Req interface {
+	GetOrderId() string
+	GetFeeIds() []string
+	GetTagIds() []string
+}](ctx context.Context, request Req) (*biz.Principal, uuid.UUID, []uuid.UUID, []uuid.UUID, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, uuid.Nil, nil, nil, biz.ErrSessionRequired
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, uuid.Nil, nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	feeIDs, tagIDs, err := orderTagBatchIDs(request.GetFeeIds(), request.GetTagIds())
+	if err != nil {
+		return nil, uuid.Nil, nil, nil, err
+	}
+	return principal, orderID, feeIDs, tagIDs, nil
+}

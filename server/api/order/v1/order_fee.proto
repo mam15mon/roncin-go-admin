@@ -5,6 +5,7 @@ package order.v1;
 import "access/v1/access.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "order/v1/order.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -70,6 +71,19 @@ service OrderFeeService {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/fees/{id}"};
   }
+
+  rpc ListOrderFeeTagOptions(ListOrderFeeTagOptionsRequest) returns (ListOrderFeeTagOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-tag-options"};
+  }
+  rpc BatchAssignOrderFeeTags(BatchAssignOrderFeeTagsRequest) returns (BatchAssignOrderFeeTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-tags/batch-assign" body: "*"};
+  }
+  rpc BatchRemoveOrderFeeTags(BatchRemoveOrderFeeTagsRequest) returns (BatchRemoveOrderFeeTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-tags/batch-remove" body: "*"};
+  }
 }
 
 enum OrderFeeDirection {
@@ -124,6 +138,7 @@ message OrderFee {
   optional string cancelled_at = 33;
   optional string cancelled_by = 34;
   optional string cancellation_reason = 35;
+  repeated BusinessTagSummary tags = 36;
 }
 
 message ListFeesRequest {
@@ -308,4 +323,39 @@ message ReopenFeeResponse {
   string message = 3;
   OrderFee data = 4;
   string trace_id = 5;
+}
+
+message ListOrderFeeTagOptionsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListOrderFeeTagOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
+message BatchAssignOrderFeeTagsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string fee_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchAssignOrderFeeTagsResponse {
+  int32 assigned_count = 1;
+  string trace_id = 2;
+}
+
+message BatchRemoveOrderFeeTagsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string fee_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchRemoveOrderFeeTagsResponse {
+  int32 removed_count = 1;
+  string trace_id = 2;
 }

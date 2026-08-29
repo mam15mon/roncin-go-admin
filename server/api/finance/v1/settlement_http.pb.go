@@ -17,6 +17,8 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationSettlementServiceBatchAssignFinanceFeeTags = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
+const OperationSettlementServiceBatchRemoveFinanceFeeTags = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
 const OperationSettlementServiceCancelBill = "/finance.v1.SettlementService/CancelBill"
 const OperationSettlementServiceCancelCashflow = "/finance.v1.SettlementService/CancelCashflow"
 const OperationSettlementServiceCancelCommission = "/finance.v1.SettlementService/CancelCommission"
@@ -48,6 +50,7 @@ const OperationSettlementServiceListCommissionEmployees = "/finance.v1.Settlemen
 const OperationSettlementServiceListCommissionRules = "/finance.v1.SettlementService/ListCommissionRules"
 const OperationSettlementServiceListCommissions = "/finance.v1.SettlementService/ListCommissions"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
+const OperationSettlementServiceListFinanceFeeTagOptions = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
 const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
@@ -63,6 +66,8 @@ const OperationSettlementServiceUpdateCommissionRule = "/finance.v1.SettlementSe
 const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
+	BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error)
+	BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CancelCommissionResponse, error)
@@ -97,6 +102,7 @@ type SettlementServiceHTTPServer interface {
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
+	ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
@@ -125,6 +131,9 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("PUT", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills", _SettlementService_ListBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{id}", _SettlementService_GetBill0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/fee-tag-options", _SettlementService_ListFinanceFeeTagOptions0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/fee-tags/batch-assign", _SettlementService_BatchAssignFinanceFeeTags0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/fee-tags/batch-remove", _SettlementService_BatchRemoveFinanceFeeTags0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills", _SettlementService_CreateBill0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches/preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches", _SettlementService_CreateBillBatch0_HTTP_Handler(srv))
@@ -314,6 +323,63 @@ func _SettlementService_GetBill0_HTTP_Handler(srv SettlementServiceHTTPServer) f
 			return err
 		}
 		reply := out.(*GetBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListFinanceFeeTagOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFinanceFeeTagOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListFinanceFeeTagOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFinanceFeeTagOptions(ctx, req.(*ListFinanceFeeTagOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFinanceFeeTagOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_BatchAssignFinanceFeeTags0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchAssignFinanceFeeTagsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceBatchAssignFinanceFeeTags)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchAssignFinanceFeeTags(ctx, req.(*BatchAssignFinanceFeeTagsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchAssignFinanceFeeTagsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_BatchRemoveFinanceFeeTags0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchRemoveFinanceFeeTagsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceBatchRemoveFinanceFeeTags)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchRemoveFinanceFeeTags(ctx, req.(*BatchRemoveFinanceFeeTagsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchRemoveFinanceFeeTagsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1063,6 +1129,8 @@ func _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv SettlementS
 }
 
 type SettlementServiceHTTPClient interface {
+	BatchAssignFinanceFeeTags(ctx context.Context, req *BatchAssignFinanceFeeTagsRequest, opts ...http.CallOption) (rsp *BatchAssignFinanceFeeTagsResponse, err error)
+	BatchRemoveFinanceFeeTags(ctx context.Context, req *BatchRemoveFinanceFeeTagsRequest, opts ...http.CallOption) (rsp *BatchRemoveFinanceFeeTagsResponse, err error)
 	CancelBill(ctx context.Context, req *CancelBillRequest, opts ...http.CallOption) (rsp *CancelBillResponse, err error)
 	CancelCashflow(ctx context.Context, req *CancelCashflowRequest, opts ...http.CallOption) (rsp *CancelCashflowResponse, err error)
 	CancelCommission(ctx context.Context, req *CancelCommissionRequest, opts ...http.CallOption) (rsp *CancelCommissionResponse, err error)
@@ -1097,6 +1165,7 @@ type SettlementServiceHTTPClient interface {
 	ListCommissions(ctx context.Context, req *ListCommissionsRequest, opts ...http.CallOption) (rsp *ListCommissionsResponse, err error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
+	ListFinanceFeeTagOptions(ctx context.Context, req *ListFinanceFeeTagOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceFeeTagOptionsResponse, err error)
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
 	MarkCommissionAdjustmentPaid(ctx context.Context, req *MarkCommissionAdjustmentPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionAdjustmentPaidResponse, err error)
@@ -1121,6 +1190,40 @@ type SettlementServiceHTTPClientImpl struct {
 
 func NewSettlementServiceHTTPClient(client *http.Client) SettlementServiceHTTPClient {
 	return &SettlementServiceHTTPClientImpl{client}
+}
+
+func (c *SettlementServiceHTTPClientImpl) BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...http.CallOption) (*BatchAssignFinanceFeeTagsResponse, error) {
+	var out BatchAssignFinanceFeeTagsResponse
+	pattern := "/api/v1/finance/fee-tags/batch-assign"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceBatchAssignFinanceFeeTags),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...http.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error) {
+	var out BatchRemoveFinanceFeeTagsResponse
+	pattern := "/api/v1/finance/fee-tags/batch-remove"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceBatchRemoveFinanceFeeTags),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *SettlementServiceHTTPClientImpl) CancelBill(ctx context.Context, in *CancelBillRequest, opts ...http.CallOption) (*CancelBillResponse, error) {
@@ -1632,6 +1735,22 @@ func (c *SettlementServiceHTTPClientImpl) ListFeeLedger(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListFeeLedger),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...http.CallOption) (*ListFinanceFeeTagOptionsResponse, error) {
+	var out ListFinanceFeeTagOptionsResponse
+	pattern := "/api/v1/finance/fee-tag-options"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListFinanceFeeTagOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

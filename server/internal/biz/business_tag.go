@@ -25,6 +25,9 @@ type BusinessTagSummary struct {
 type BusinessTagRepo interface {
 	ListTagOptions(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*BusinessTagSummary, int64, error)
 	LoadOrderTags(ctx context.Context, orderIDs []uuid.UUID) (map[uuid.UUID][]*BusinessTagSummary, error)
+	LoadOrderFeeTags(ctx context.Context, feeIDs []uuid.UUID) (map[uuid.UUID][]*BusinessTagSummary, error)
+	AssignOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *AuditEvent) (int, error)
+	RemoveOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *AuditEvent) (int, error)
 	AssignOrderTags(ctx context.Context, organizationID uuid.UUID, businessType OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *AuditEvent) (int, error)
 	RemoveOrderTags(ctx context.Context, organizationID uuid.UUID, businessType OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *AuditEvent) (int, error)
 	CountTagUsages(ctx context.Context, organizationID, tagResourceID uuid.UUID) (partnerCount, orderCount, orderFeeCount, financeBillCount int, err error)
@@ -71,6 +74,63 @@ func (uc *BusinessTagUsecase) RemoveOrderTags(ctx context.Context, organizationI
 	return uc.repo.RemoveOrderTags(ctx, organizationID, businessType, orderIDs, tagResourceIDs, audit)
 }
 
+func (uc *BusinessTagUsecase) AssignOrderFeesInOrder(ctx context.Context, organizationID, actorID, orderID uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID) (int, error) {
+	feeIDs, tagResourceIDs, err := normalizeBusinessTagFeeBatch(organizationID, feeIDs, tagResourceIDs)
+	if err != nil {
+		return 0, err
+	}
+	audit := businessTagAudit(organizationID, actorID, "order.fee.tag.batch_assign", feeIDs, tagResourceIDs)
+	audit.Details["order.id"] = orderID.String()
+	return uc.repo.AssignOrderFeeTags(ctx, organizationID, &orderID, feeIDs, tagResourceIDs, audit)
+}
+
+func (uc *BusinessTagUsecase) RemoveOrderFeesInOrder(ctx context.Context, organizationID, actorID, orderID uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID) (int, error) {
+	feeIDs, tagResourceIDs, err := normalizeBusinessTagFeeBatch(organizationID, feeIDs, tagResourceIDs)
+	if err != nil {
+		return 0, err
+	}
+	audit := businessTagAudit(organizationID, actorID, "order.fee.tag.batch_remove", feeIDs, tagResourceIDs)
+	audit.Details["order.id"] = orderID.String()
+	return uc.repo.RemoveOrderFeeTags(ctx, organizationID, &orderID, feeIDs, tagResourceIDs, audit)
+}
+
+func (uc *BusinessTagUsecase) AssignOrderFeesInLedger(ctx context.Context, organizationID, actorID uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID) (int, error) {
+	feeIDs, tagResourceIDs, err := normalizeBusinessTagFeeBatch(organizationID, feeIDs, tagResourceIDs)
+	if err != nil {
+		return 0, err
+	}
+	audit := businessTagAudit(organizationID, actorID, "finance.fee.tag.batch_assign", feeIDs, tagResourceIDs)
+	return uc.repo.AssignOrderFeeTags(ctx, organizationID, nil, feeIDs, tagResourceIDs, audit)
+}
+
+func (uc *BusinessTagUsecase) RemoveOrderFeesInLedger(ctx context.Context, organizationID, actorID uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID) (int, error) {
+	feeIDs, tagResourceIDs, err := normalizeBusinessTagFeeBatch(organizationID, feeIDs, tagResourceIDs)
+	if err != nil {
+		return 0, err
+	}
+	audit := businessTagAudit(organizationID, actorID, "finance.fee.tag.batch_remove", feeIDs, tagResourceIDs)
+	return uc.repo.RemoveOrderFeeTags(ctx, organizationID, nil, feeIDs, tagResourceIDs, audit)
+}
+
+func (uc *BusinessTagUsecase) LoadOrderFeeTags(ctx context.Context, feeIDs []uuid.UUID) (map[uuid.UUID][]*BusinessTagSummary, error) {
+	if len(feeIDs) == 0 {
+		return map[uuid.UUID][]*BusinessTagSummary{}, nil
+	}
+	return uc.repo.LoadOrderFeeTags(ctx, feeIDs)
+}
+
+func normalizeBusinessTagFeeBatch(organizationID uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID) ([]uuid.UUID, []uuid.UUID, error) {
+	if organizationID == uuid.Nil {
+		return nil, nil, ErrBusinessTagInvalidArgument
+	}
+	feeIDs = uniqueBusinessTagUUIDs(feeIDs)
+	tagResourceIDs = uniqueBusinessTagUUIDs(tagResourceIDs)
+	if len(feeIDs) == 0 || len(tagResourceIDs) == 0 || len(feeIDs) > 200 || len(tagResourceIDs) > 200 {
+		return nil, nil, ErrBusinessTagInvalidArgument
+	}
+	return feeIDs, tagResourceIDs, nil
+}
+
 // CountTagUsages 供标签删除防线统计四类关联数量。
 func (uc *BusinessTagUsecase) CountTagUsages(ctx context.Context, organizationID, tagResourceID uuid.UUID) (int, int, int, int, error) {
 	if organizationID == uuid.Nil || tagResourceID == uuid.Nil {
@@ -109,8 +169,8 @@ func uniqueBusinessTagUUIDs(values []uuid.UUID) []uuid.UUID {
 
 func businessTagAudit(organizationID, actorID uuid.UUID, action string, targetIDs, tagResourceIDs []uuid.UUID) *AuditEvent {
 	details := map[string]string{
-		"order.ids": joinBusinessTagUUIDs(targetIDs),
-		"tag.ids":   joinBusinessTagUUIDs(tagResourceIDs),
+		"target.ids": joinBusinessTagUUIDs(targetIDs),
+		"tag.ids":    joinBusinessTagUUIDs(tagResourceIDs),
 	}
 	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, ResourceType: "enterprise_tag", Result: "success", Details: details}
 }

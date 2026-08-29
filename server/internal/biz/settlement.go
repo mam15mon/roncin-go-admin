@@ -42,6 +42,7 @@ type FeeLedgerFilter struct {
 	ExpenseDateFrom   string
 	ExpenseDateTo     string
 	FinanceLocked     *bool
+	TagIDs            []uuid.UUID
 }
 
 type FeeLedgerItem struct {

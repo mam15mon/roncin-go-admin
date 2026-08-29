@@ -19,14 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderFeeService_ListFeeOptions_FullMethodName         = "/order.v1.OrderFeeService/ListFeeOptions"
-	OrderFeeService_ListFees_FullMethodName               = "/order.v1.OrderFeeService/ListFees"
-	OrderFeeService_ResolveFeeExchangeRate_FullMethodName = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
-	OrderFeeService_AddFee_FullMethodName                 = "/order.v1.OrderFeeService/AddFee"
-	OrderFeeService_UpdateFee_FullMethodName              = "/order.v1.OrderFeeService/UpdateFee"
-	OrderFeeService_ConfirmFee_FullMethodName             = "/order.v1.OrderFeeService/ConfirmFee"
-	OrderFeeService_ReopenFee_FullMethodName              = "/order.v1.OrderFeeService/ReopenFee"
-	OrderFeeService_RemoveFee_FullMethodName              = "/order.v1.OrderFeeService/RemoveFee"
+	OrderFeeService_ListFeeOptions_FullMethodName          = "/order.v1.OrderFeeService/ListFeeOptions"
+	OrderFeeService_ListFees_FullMethodName                = "/order.v1.OrderFeeService/ListFees"
+	OrderFeeService_ResolveFeeExchangeRate_FullMethodName  = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
+	OrderFeeService_AddFee_FullMethodName                  = "/order.v1.OrderFeeService/AddFee"
+	OrderFeeService_UpdateFee_FullMethodName               = "/order.v1.OrderFeeService/UpdateFee"
+	OrderFeeService_ConfirmFee_FullMethodName              = "/order.v1.OrderFeeService/ConfirmFee"
+	OrderFeeService_ReopenFee_FullMethodName               = "/order.v1.OrderFeeService/ReopenFee"
+	OrderFeeService_RemoveFee_FullMethodName               = "/order.v1.OrderFeeService/RemoveFee"
+	OrderFeeService_ListOrderFeeTagOptions_FullMethodName  = "/order.v1.OrderFeeService/ListOrderFeeTagOptions"
+	OrderFeeService_BatchAssignOrderFeeTags_FullMethodName = "/order.v1.OrderFeeService/BatchAssignOrderFeeTags"
+	OrderFeeService_BatchRemoveOrderFeeTags_FullMethodName = "/order.v1.OrderFeeService/BatchRemoveOrderFeeTags"
 )
 
 // OrderFeeServiceClient is the client API for OrderFeeService service.
@@ -52,6 +55,9 @@ type OrderFeeServiceClient interface {
 	ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error)
 	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error)
+	ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListOrderFeeTagOptionsResponse, error)
+	BatchAssignOrderFeeTags(ctx context.Context, in *BatchAssignOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignOrderFeeTagsResponse, error)
+	BatchRemoveOrderFeeTags(ctx context.Context, in *BatchRemoveOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveOrderFeeTagsResponse, error)
 }
 
 type orderFeeServiceClient struct {
@@ -142,6 +148,36 @@ func (c *orderFeeServiceClient) RemoveFee(ctx context.Context, in *RemoveFeeRequ
 	return out, nil
 }
 
+func (c *orderFeeServiceClient) ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListOrderFeeTagOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOrderFeeTagOptionsResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ListOrderFeeTagOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) BatchAssignOrderFeeTags(ctx context.Context, in *BatchAssignOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignOrderFeeTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchAssignOrderFeeTagsResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_BatchAssignOrderFeeTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) BatchRemoveOrderFeeTags(ctx context.Context, in *BatchRemoveOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveOrderFeeTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchRemoveOrderFeeTagsResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_BatchRemoveOrderFeeTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderFeeServiceServer is the server API for OrderFeeService service.
 // All implementations must embed UnimplementedOrderFeeServiceServer
 // for forward compatibility.
@@ -165,6 +201,9 @@ type OrderFeeServiceServer interface {
 	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
 	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
+	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
+	BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error)
+	BatchRemoveOrderFeeTags(context.Context, *BatchRemoveOrderFeeTagsRequest) (*BatchRemoveOrderFeeTagsResponse, error)
 	mustEmbedUnimplementedOrderFeeServiceServer()
 }
 
@@ -198,6 +237,15 @@ func (UnimplementedOrderFeeServiceServer) ReopenFee(context.Context, *ReopenFeeR
 }
 func (UnimplementedOrderFeeServiceServer) RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveFee not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOrderFeeTagOptions not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchAssignOrderFeeTags not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) BatchRemoveOrderFeeTags(context.Context, *BatchRemoveOrderFeeTagsRequest) (*BatchRemoveOrderFeeTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchRemoveOrderFeeTags not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) mustEmbedUnimplementedOrderFeeServiceServer() {}
 func (UnimplementedOrderFeeServiceServer) testEmbeddedByValue()                         {}
@@ -364,6 +412,60 @@ func _OrderFeeService_RemoveFee_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderFeeService_ListOrderFeeTagOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrderFeeTagOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ListOrderFeeTagOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ListOrderFeeTagOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ListOrderFeeTagOptions(ctx, req.(*ListOrderFeeTagOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_BatchAssignOrderFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchAssignOrderFeeTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).BatchAssignOrderFeeTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_BatchAssignOrderFeeTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).BatchAssignOrderFeeTags(ctx, req.(*BatchAssignOrderFeeTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_BatchRemoveOrderFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRemoveOrderFeeTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).BatchRemoveOrderFeeTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_BatchRemoveOrderFeeTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).BatchRemoveOrderFeeTags(ctx, req.(*BatchRemoveOrderFeeTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderFeeService_ServiceDesc is the grpc.ServiceDesc for OrderFeeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -402,6 +504,18 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveFee",
 			Handler:    _OrderFeeService_RemoveFee_Handler,
+		},
+		{
+			MethodName: "ListOrderFeeTagOptions",
+			Handler:    _OrderFeeService_ListOrderFeeTagOptions_Handler,
+		},
+		{
+			MethodName: "BatchAssignOrderFeeTags",
+			Handler:    _OrderFeeService_BatchAssignOrderFeeTags_Handler,
+		},
+		{
+			MethodName: "BatchRemoveOrderFeeTags",
+			Handler:    _OrderFeeService_BatchRemoveOrderFeeTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

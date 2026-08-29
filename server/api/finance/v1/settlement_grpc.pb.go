@@ -27,6 +27,9 @@ const (
 	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName    = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 	SettlementService_ListBills_FullMethodName                    = "/finance.v1.SettlementService/ListBills"
 	SettlementService_GetBill_FullMethodName                      = "/finance.v1.SettlementService/GetBill"
+	SettlementService_ListFinanceFeeTagOptions_FullMethodName     = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
+	SettlementService_BatchAssignFinanceFeeTags_FullMethodName    = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
+	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName    = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
 	SettlementService_CreateBill_FullMethodName                   = "/finance.v1.SettlementService/CreateBill"
 	SettlementService_PreviewBillBatch_FullMethodName             = "/finance.v1.SettlementService/PreviewBillBatch"
 	SettlementService_CreateBillBatch_FullMethodName              = "/finance.v1.SettlementService/CreateBillBatch"
@@ -85,6 +88,9 @@ type SettlementServiceClient interface {
 	UpdateBilledFeeEditPolicy(ctx context.Context, in *UpdateBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(ctx context.Context, in *ListBillsRequest, opts ...grpc.CallOption) (*ListBillsResponse, error)
 	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
+	ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagOptionsResponse, error)
+	BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceFeeTagsResponse, error)
+	BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
 	PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...grpc.CallOption) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(ctx context.Context, in *CreateBillBatchRequest, opts ...grpc.CallOption) (*CreateBillBatchResponse, error)
@@ -205,6 +211,36 @@ func (c *settlementServiceClient) GetBill(ctx context.Context, in *GetBillReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBillResponse)
 	err := c.cc.Invoke(ctx, SettlementService_GetBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFinanceFeeTagOptionsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListFinanceFeeTagOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceFeeTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchAssignFinanceFeeTagsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_BatchAssignFinanceFeeTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchRemoveFinanceFeeTagsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_BatchRemoveFinanceFeeTags_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -591,6 +627,9 @@ type SettlementServiceServer interface {
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
+	ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error)
+	BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error)
+	BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
@@ -660,6 +699,15 @@ func (UnimplementedSettlementServiceServer) ListBills(context.Context, *ListBill
 }
 func (UnimplementedSettlementServiceServer) GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFinanceFeeTagOptions not implemented")
+}
+func (UnimplementedSettlementServiceServer) BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchAssignFinanceFeeTags not implemented")
+}
+func (UnimplementedSettlementServiceServer) BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchRemoveFinanceFeeTags not implemented")
 }
 func (UnimplementedSettlementServiceServer) CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateBill not implemented")
@@ -930,6 +978,60 @@ func _SettlementService_GetBill_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).GetBill(ctx, req.(*GetBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListFinanceFeeTagOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFinanceFeeTagOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListFinanceFeeTagOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListFinanceFeeTagOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListFinanceFeeTagOptions(ctx, req.(*ListFinanceFeeTagOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_BatchAssignFinanceFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchAssignFinanceFeeTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).BatchAssignFinanceFeeTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_BatchAssignFinanceFeeTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).BatchAssignFinanceFeeTags(ctx, req.(*BatchAssignFinanceFeeTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_BatchRemoveFinanceFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRemoveFinanceFeeTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).BatchRemoveFinanceFeeTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_BatchRemoveFinanceFeeTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).BatchRemoveFinanceFeeTags(ctx, req.(*BatchRemoveFinanceFeeTagsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1620,6 +1722,18 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBill",
 			Handler:    _SettlementService_GetBill_Handler,
+		},
+		{
+			MethodName: "ListFinanceFeeTagOptions",
+			Handler:    _SettlementService_ListFinanceFeeTagOptions_Handler,
+		},
+		{
+			MethodName: "BatchAssignFinanceFeeTags",
+			Handler:    _SettlementService_BatchAssignFinanceFeeTags_Handler,
+		},
+		{
+			MethodName: "BatchRemoveFinanceFeeTags",
+			Handler:    _SettlementService_BatchRemoveFinanceFeeTags_Handler,
 		},
 		{
 			MethodName: "CreateBill",

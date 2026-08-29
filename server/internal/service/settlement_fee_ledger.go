@@ -41,6 +41,11 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
 	filter.ExpenseDateTo = financeOptionalString(request.ExpenseDateTo)
 	filter.FinanceLocked = request.FinanceLocked
+	tagIDs, err := parseUUIDList(request.GetTagIds())
+	if err != nil {
+		return nil, biz.ErrFinanceLedgerInvalidArgument
+	}
+	filter.TagIDs = tagIDs
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
 		if err != nil {
@@ -59,6 +64,14 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	if err != nil {
 		return nil, err
 	}
+	feeIDs := make([]uuid.UUID, 0, len(result.Items))
+	for _, item := range result.Items {
+		feeIDs = append(feeIDs, item.Fee.ID)
+	}
+	feeTags, err := s.tagUsecase.LoadOrderFeeTags(ctx, feeIDs)
+	if err != nil {
+		return nil, err
+	}
 	data := make([]*v1.FeeLedgerItem, 0, len(result.Items))
 	for _, item := range result.Items {
 		fee := item.Fee
@@ -74,6 +87,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
 			FinancialProgress: string(item.FinancialProgress),
 			FinanceLocked:     item.FinanceLocked,
+			Tags: businessTagSummariesToFinanceAPI(feeTags[fee.ID]),
 		})
 		if item.BillNo != "" {
 			data[len(data)-1].BillNo = &item.BillNo

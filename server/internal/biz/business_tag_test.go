@@ -54,7 +54,7 @@ func TestBusinessTagAuditRecordsBatchDetails(t *testing.T) {
 	if audit.ResourceID != "" {
 		t.Fatalf("批量操作 ResourceID 应留空，实际为 %s", audit.ResourceID)
 	}
-	if audit.Details["order.ids"] != orderID.String() || audit.Details["tag.ids"] != tagID.String() {
+	if audit.Details["target.ids"] != orderID.String() || audit.Details["tag.ids"] != tagID.String() {
 		t.Fatalf("审计详情缺少批量 ID: %v", audit.Details)
 	}
 }

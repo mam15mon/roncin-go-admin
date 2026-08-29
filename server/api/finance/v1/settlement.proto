@@ -57,6 +57,19 @@ service SettlementService {
     option (google.api.http) = {get: "/api/v1/finance/bills/{id}"};
   }
 
+  rpc ListFinanceFeeTagOptions(ListFinanceFeeTagOptionsRequest) returns (ListFinanceFeeTagOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fee-tag-options"};
+  }
+  rpc BatchAssignFinanceFeeTags(BatchAssignFinanceFeeTagsRequest) returns (BatchAssignFinanceFeeTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.tag" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/fee-tags/batch-assign" body: "*"};
+  }
+  rpc BatchRemoveFinanceFeeTags(BatchRemoveFinanceFeeTagsRequest) returns (BatchRemoveFinanceFeeTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.tag" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/fee-tags/batch-remove" body: "*"};
+  }
+
   rpc CreateBill(CreateBillRequest) returns (CreateBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/bills" body: "*"};
@@ -137,6 +150,7 @@ message ListFeeLedgerRequest {
   optional string financial_progress = 12;
   optional string bill_no = 13;
   optional bool finance_locked = 14;
+  repeated string tag_ids = 15;
 }
 
 message FeeLedgerItem {
@@ -171,6 +185,7 @@ message FeeLedgerItem {
   string financial_progress = 29;
   optional string bill_no = 30;
   bool finance_locked = 31;
+  repeated finance.v1.BusinessTagSummary tags = 34;
   reserved 32 to 33;
 }
 
@@ -622,3 +637,44 @@ message CreateCommissionAdjustmentResponse { bool success=1; int32 code=2; strin
 message ConfirmCommissionAdjustmentResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
 message MarkCommissionAdjustmentPaidResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
 message CancelCommissionAdjustmentResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionAdjustment data=4; string trace_id=5; }
+
+message BusinessTagSummary {
+  string id = 1;
+  string name = 2;
+  string group_id = 3;
+  string group_name = 4;
+  string group_color = 5;
+  bool enabled = 6;
+}
+
+message ListFinanceFeeTagOptionsRequest {
+  string keyword = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListFinanceFeeTagOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
+message BatchAssignFinanceFeeTagsRequest {
+  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchAssignFinanceFeeTagsResponse {
+  int32 assigned_count = 1;
+  string trace_id = 2;
+}
+
+message BatchRemoveFinanceFeeTagsRequest {
+  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchRemoveFinanceFeeTagsResponse {
+  int32 removed_count = 1;
+  string trace_id = 2;
+}

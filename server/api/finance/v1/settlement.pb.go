@@ -101,6 +101,7 @@ type ListFeeLedgerRequest struct {
 	FinancialProgress *string                `protobuf:"bytes,12,opt,name=financial_progress,json=financialProgress,proto3,oneof" json:"financial_progress,omitempty"`
 	BillNo            *string                `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
 	FinanceLocked     *bool                  `protobuf:"varint,14,opt,name=finance_locked,json=financeLocked,proto3,oneof" json:"finance_locked,omitempty"`
+	TagIds            []string               `protobuf:"bytes,15,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -233,6 +234,13 @@ func (x *ListFeeLedgerRequest) GetFinanceLocked() bool {
 	return false
 }
 
+func (x *ListFeeLedgerRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
 type FeeLedgerItem struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -266,6 +274,7 @@ type FeeLedgerItem struct {
 	FinancialProgress   string                 `protobuf:"bytes,29,opt,name=financial_progress,json=financialProgress,proto3" json:"financial_progress,omitempty"`
 	BillNo              *string                `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
 	FinanceLocked       bool                   `protobuf:"varint,31,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
+	Tags                []*BusinessTagSummary  `protobuf:"bytes,34,rep,name=tags,proto3" json:"tags,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -515,6 +524,13 @@ func (x *FeeLedgerItem) GetFinanceLocked() bool {
 		return x.FinanceLocked
 	}
 	return false
+}
+
+func (x *FeeLedgerItem) GetTags() []*BusinessTagSummary {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
 }
 
 type FeeLedgerSummary struct {
@@ -10934,12 +10950,424 @@ func (x *CancelCommissionAdjustmentResponse) GetTraceId() string {
 	return ""
 }
 
+type BusinessTagSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	GroupId       string                 `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	GroupName     string                 `protobuf:"bytes,4,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	GroupColor    string                 `protobuf:"bytes,5,opt,name=group_color,json=groupColor,proto3" json:"group_color,omitempty"`
+	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BusinessTagSummary) Reset() {
+	*x = BusinessTagSummary{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[117]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BusinessTagSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BusinessTagSummary) ProtoMessage() {}
+
+func (x *BusinessTagSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[117]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BusinessTagSummary.ProtoReflect.Descriptor instead.
+func (*BusinessTagSummary) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{117}
+}
+
+func (x *BusinessTagSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BusinessTagSummary) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *BusinessTagSummary) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *BusinessTagSummary) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+func (x *BusinessTagSummary) GetGroupColor() string {
+	if x != nil {
+		return x.GroupColor
+	}
+	return ""
+}
+
+func (x *BusinessTagSummary) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type ListFinanceFeeTagOptionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFinanceFeeTagOptionsRequest) Reset() {
+	*x = ListFinanceFeeTagOptionsRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[118]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFinanceFeeTagOptionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFinanceFeeTagOptionsRequest) ProtoMessage() {}
+
+func (x *ListFinanceFeeTagOptionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[118]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFinanceFeeTagOptionsRequest.ProtoReflect.Descriptor instead.
+func (*ListFinanceFeeTagOptionsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{118}
+}
+
+func (x *ListFinanceFeeTagOptionsRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListFinanceFeeTagOptionsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListFinanceFeeTagOptionsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListFinanceFeeTagOptionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tags          []*BusinessTagSummary  `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	TraceId       string                 `protobuf:"bytes,3,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFinanceFeeTagOptionsResponse) Reset() {
+	*x = ListFinanceFeeTagOptionsResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[119]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFinanceFeeTagOptionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFinanceFeeTagOptionsResponse) ProtoMessage() {}
+
+func (x *ListFinanceFeeTagOptionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[119]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFinanceFeeTagOptionsResponse.ProtoReflect.Descriptor instead.
+func (*ListFinanceFeeTagOptionsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{119}
+}
+
+func (x *ListFinanceFeeTagOptionsResponse) GetTags() []*BusinessTagSummary {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *ListFinanceFeeTagOptionsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListFinanceFeeTagOptionsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchAssignFinanceFeeTagsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FeeIds        []string               `protobuf:"bytes,1,rep,name=fee_ids,json=feeIds,proto3" json:"fee_ids,omitempty"`
+	TagIds        []string               `protobuf:"bytes,2,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchAssignFinanceFeeTagsRequest) Reset() {
+	*x = BatchAssignFinanceFeeTagsRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[120]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchAssignFinanceFeeTagsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchAssignFinanceFeeTagsRequest) ProtoMessage() {}
+
+func (x *BatchAssignFinanceFeeTagsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[120]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchAssignFinanceFeeTagsRequest.ProtoReflect.Descriptor instead.
+func (*BatchAssignFinanceFeeTagsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{120}
+}
+
+func (x *BatchAssignFinanceFeeTagsRequest) GetFeeIds() []string {
+	if x != nil {
+		return x.FeeIds
+	}
+	return nil
+}
+
+func (x *BatchAssignFinanceFeeTagsRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
+type BatchAssignFinanceFeeTagsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AssignedCount int32                  `protobuf:"varint,1,opt,name=assigned_count,json=assignedCount,proto3" json:"assigned_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchAssignFinanceFeeTagsResponse) Reset() {
+	*x = BatchAssignFinanceFeeTagsResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[121]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchAssignFinanceFeeTagsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchAssignFinanceFeeTagsResponse) ProtoMessage() {}
+
+func (x *BatchAssignFinanceFeeTagsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[121]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchAssignFinanceFeeTagsResponse.ProtoReflect.Descriptor instead.
+func (*BatchAssignFinanceFeeTagsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{121}
+}
+
+func (x *BatchAssignFinanceFeeTagsResponse) GetAssignedCount() int32 {
+	if x != nil {
+		return x.AssignedCount
+	}
+	return 0
+}
+
+func (x *BatchAssignFinanceFeeTagsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchRemoveFinanceFeeTagsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FeeIds        []string               `protobuf:"bytes,1,rep,name=fee_ids,json=feeIds,proto3" json:"fee_ids,omitempty"`
+	TagIds        []string               `protobuf:"bytes,2,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveFinanceFeeTagsRequest) Reset() {
+	*x = BatchRemoveFinanceFeeTagsRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[122]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveFinanceFeeTagsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveFinanceFeeTagsRequest) ProtoMessage() {}
+
+func (x *BatchRemoveFinanceFeeTagsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[122]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveFinanceFeeTagsRequest.ProtoReflect.Descriptor instead.
+func (*BatchRemoveFinanceFeeTagsRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{122}
+}
+
+func (x *BatchRemoveFinanceFeeTagsRequest) GetFeeIds() []string {
+	if x != nil {
+		return x.FeeIds
+	}
+	return nil
+}
+
+func (x *BatchRemoveFinanceFeeTagsRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
+type BatchRemoveFinanceFeeTagsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RemovedCount  int32                  `protobuf:"varint,1,opt,name=removed_count,json=removedCount,proto3" json:"removed_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveFinanceFeeTagsResponse) Reset() {
+	*x = BatchRemoveFinanceFeeTagsResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[123]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveFinanceFeeTagsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveFinanceFeeTagsResponse) ProtoMessage() {}
+
+func (x *BatchRemoveFinanceFeeTagsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[123]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveFinanceFeeTagsResponse.ProtoReflect.Descriptor instead.
+func (*BatchRemoveFinanceFeeTagsResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{123}
+}
+
+func (x *BatchRemoveFinanceFeeTagsResponse) GetRemovedCount() int32 {
+	if x != nil {
+		return x.RemovedCount
+	}
+	return 0
+}
+
+func (x *BatchRemoveFinanceFeeTagsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xf4\x05\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x8d\x06\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -10957,7 +11385,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x12financial_progress\x18\f \x01(\tH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
 	"\abill_no\x18\r \x01(\tH\n" +
 	"R\x06billNo\x88\x01\x01\x12*\n" +
-	"\x0efinance_locked\x18\x0e \x01(\bH\vR\rfinanceLocked\x88\x01\x01B\n" +
+	"\x0efinance_locked\x18\x0e \x01(\bH\vR\rfinanceLocked\x88\x01\x01\x12\x17\n" +
+	"\atag_ids\x18\x0f \x03(\tR\x06tagIdsB\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -10972,7 +11401,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x13_financial_progressB\n" +
 	"\n" +
 	"\b_bill_noB\x11\n" +
-	"\x0f_finance_locked\"\xb7\b\n" +
+	"\x0f_finance_locked\"\xeb\b\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -11011,7 +11440,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12-\n" +
 	"\x12financial_progress\x18\x1d \x01(\tR\x11financialProgress\x12\x1c\n" +
 	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12%\n" +
-	"\x0efinance_locked\x18\x1f \x01(\bR\rfinanceLockedB\a\n" +
+	"\x0efinance_locked\x18\x1f \x01(\bR\rfinanceLocked\x122\n" +
+	"\x04tags\x18\" \x03(\v2\x1e.finance.v1.BusinessTagSummaryR\x04tagsB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +
@@ -12132,7 +12562,36 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12;\n" +
 	"\x04data\x18\x04 \x01(\v2'.finance.v1.FinanceCommissionAdjustmentR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xba\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xad\x01\n" +
+	"\x12BusinessTagSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
+	"\bgroup_id\x18\x03 \x01(\tR\agroupId\x12\x1d\n" +
+	"\n" +
+	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
+	"\vgroup_color\x18\x05 \x01(\tR\n" +
+	"groupColor\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"l\n" +
+	"\x1fListFinanceFeeTagOptionsRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x87\x01\n" +
+	" ListFinanceFeeTagOptionsResponse\x122\n" +
+	"\x04tags\x18\x01 \x03(\v2\x1e.finance.v1.BusinessTagSummaryR\x04tags\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x19\n" +
+	"\btrace_id\x18\x03 \x01(\tR\atraceId\"^\n" +
+	" BatchAssignFinanceFeeTagsRequest\x12\x1c\n" +
+	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12\x1c\n" +
+	"\atag_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\x06tagIds\"e\n" +
+	"!BatchAssignFinanceFeeTagsResponse\x12%\n" +
+	"\x0eassigned_count\x18\x01 \x01(\x05R\rassignedCount\x12\x19\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"^\n" +
+	" BatchRemoveFinanceFeeTagsRequest\x12\x1c\n" +
+	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12\x1c\n" +
+	"\atag_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\x06tagIds\"c\n" +
+	"!BatchRemoveFinanceFeeTagsResponse\x12#\n" +
+	"\rremoved_count\x18\x01 \x01(\x05R\fremovedCount\x12\x19\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId*\xba\x02\n" +
 	"\x16BilledFeeEditableField\x12)\n" +
 	"%BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"BILLED_FEE_EDITABLE_FIELD_FEE_NAME\x10\x01\x12&\n" +
@@ -12140,7 +12599,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"'BILLED_FEE_EDITABLE_FIELD_EXCHANGE_RATE\x10\x03\x12&\n" +
 	"\"BILLED_FEE_EDITABLE_FIELD_QUANTITY\x10\x04\x12(\n" +
 	"$BILLED_FEE_EDITABLE_FIELD_UNIT_PRICE\x10\x05\x12&\n" +
-	"\"BILLED_FEE_EDITABLE_FIELD_TAX_RATE\x10\x062\xb2?\n" +
+	"\"BILLED_FEE_EDITABLE_FIELD_TAX_RATE\x10\x062\x8eD\n" +
 	"\x11SettlementService\x12\x93\x01\n" +
 	"\rListFeeLedger\x12 .finance.v1.ListFeeLedgerRequest\x1a!.finance.v1.ListFeeLedgerResponse\"=\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/finance/fees\x12\xb9\x01\n" +
 	"\x16GetFeeLedgerPreference\x12).finance.v1.GetFeeLedgerPreferenceRequest\x1a*.finance.v1.GetFeeLedgerPreferenceResponse\"H\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/finance/fees/preference\x12\xc5\x01\n" +
@@ -12149,7 +12608,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x16GetBilledFeeEditPolicy\x12).finance.v1.GetBilledFeeEditPolicyRequest\x1a*.finance.v1.GetBilledFeeEditPolicyResponse\"`\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x028\x126/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\xdf\x01\n" +
 	"\x19UpdateBilledFeeEditPolicy\x12,.finance.v1.UpdateBilledFeeEditPolicyRequest\x1a-.finance.v1.UpdateBilledFeeEditPolicyResponse\"e\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02;:\x01*\x1a6/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\x89\x01\n" +
 	"\tListBills\x12\x1c.finance.v1.ListBillsRequest\x1a\x1d.finance.v1.ListBillsResponse\"?\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/finance/bills\x12\x88\x01\n" +
-	"\aGetBill\x12\x1a.finance.v1.GetBillRequest\x1a\x1b.finance.v1.GetBillResponse\"D\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/finance/bills/{id}\x12\x91\x01\n" +
+	"\aGetBill\x12\x1a.finance.v1.GetBillRequest\x1a\x1b.finance.v1.GetBillResponse\"D\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/finance/bills/{id}\x12\xbf\x01\n" +
+	"\x18ListFinanceFeeTagOptions\x12+.finance.v1.ListFinanceFeeTagOptionsRequest\x1a,.finance.v1.ListFinanceFeeTagOptionsResponse\"H\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/finance/fee-tag-options\x12\xca\x01\n" +
+	"\x19BatchAssignFinanceFeeTags\x12,.finance.v1.BatchAssignFinanceFeeTagsRequest\x1a-.finance.v1.BatchAssignFinanceFeeTagsResponse\"P\x82\xb5\x18\x1c\b\x03\x12\x16system.finance.fee.tag \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/fee-tags/batch-assign\x12\xca\x01\n" +
+	"\x19BatchRemoveFinanceFeeTags\x12,.finance.v1.BatchRemoveFinanceFeeTagsRequest\x1a-.finance.v1.BatchRemoveFinanceFeeTagsResponse\"P\x82\xb5\x18\x1c\b\x03\x12\x16system.finance.fee.tag \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/fee-tags/batch-remove\x12\x91\x01\n" +
 	"\n" +
 	"CreateBill\x12\x1d.finance.v1.CreateBillRequest\x1a\x1e.finance.v1.CreateBillResponse\"D\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/finance/bills\x12\xb2\x01\n" +
 	"\x10PreviewBillBatch\x12#.finance.v1.PreviewBillBatchRequest\x1a$.finance.v1.PreviewBillBatchResponse\"S\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/finance/bill-batches/preview\x12\xa7\x01\n" +
@@ -12204,7 +12666,7 @@ func file_finance_v1_settlement_proto_rawDescGZIP() []byte {
 }
 
 var file_finance_v1_settlement_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 117)
+var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 124)
 var file_finance_v1_settlement_proto_goTypes = []any{
 	(BilledFeeEditableField)(0),                  // 0: finance.v1.BilledFeeEditableField
 	(*ListFeeLedgerRequest)(nil),                 // 1: finance.v1.ListFeeLedgerRequest
@@ -12324,171 +12786,186 @@ var file_finance_v1_settlement_proto_goTypes = []any{
 	(*ConfirmCommissionAdjustmentResponse)(nil),  // 115: finance.v1.ConfirmCommissionAdjustmentResponse
 	(*MarkCommissionAdjustmentPaidResponse)(nil), // 116: finance.v1.MarkCommissionAdjustmentPaidResponse
 	(*CancelCommissionAdjustmentResponse)(nil),   // 117: finance.v1.CancelCommissionAdjustmentResponse
-	(*wrapperspb.UInt64Value)(nil),               // 118: google.protobuf.UInt64Value
+	(*BusinessTagSummary)(nil),                   // 118: finance.v1.BusinessTagSummary
+	(*ListFinanceFeeTagOptionsRequest)(nil),      // 119: finance.v1.ListFinanceFeeTagOptionsRequest
+	(*ListFinanceFeeTagOptionsResponse)(nil),     // 120: finance.v1.ListFinanceFeeTagOptionsResponse
+	(*BatchAssignFinanceFeeTagsRequest)(nil),     // 121: finance.v1.BatchAssignFinanceFeeTagsRequest
+	(*BatchAssignFinanceFeeTagsResponse)(nil),    // 122: finance.v1.BatchAssignFinanceFeeTagsResponse
+	(*BatchRemoveFinanceFeeTagsRequest)(nil),     // 123: finance.v1.BatchRemoveFinanceFeeTagsRequest
+	(*BatchRemoveFinanceFeeTagsResponse)(nil),    // 124: finance.v1.BatchRemoveFinanceFeeTagsResponse
+	(*wrapperspb.UInt64Value)(nil),               // 125: google.protobuf.UInt64Value
 }
 var file_finance_v1_settlement_proto_depIdxs = []int32{
-	2,   // 0: finance.v1.ListFeeLedgerResponse.data:type_name -> finance.v1.FeeLedgerItem
-	3,   // 1: finance.v1.ListFeeLedgerResponse.summary:type_name -> finance.v1.FeeLedgerSummary
-	6,   // 2: finance.v1.FeeLedgerPreference.columns:type_name -> finance.v1.FeeLedgerColumnPreference
-	7,   // 3: finance.v1.FeeLedgerPreference.row_colors:type_name -> finance.v1.FeeLedgerRowColors
-	8,   // 4: finance.v1.GetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	6,   // 5: finance.v1.UpdateFeeLedgerPreferenceRequest.columns:type_name -> finance.v1.FeeLedgerColumnPreference
-	7,   // 6: finance.v1.UpdateFeeLedgerPreferenceRequest.row_colors:type_name -> finance.v1.FeeLedgerRowColors
-	8,   // 7: finance.v1.UpdateFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	8,   // 8: finance.v1.ResetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	0,   // 9: finance.v1.BilledFeeEditPolicy.editable_fields:type_name -> finance.v1.BilledFeeEditableField
-	14,  // 10: finance.v1.GetBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
-	0,   // 11: finance.v1.UpdateBilledFeeEditPolicyRequest.editable_fields:type_name -> finance.v1.BilledFeeEditableField
-	118, // 12: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
-	14,  // 13: finance.v1.UpdateBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
-	25,  // 14: finance.v1.FinanceBill.lines:type_name -> finance.v1.FinanceBillLine
-	27,  // 15: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	2,   // 16: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
-	29,  // 17: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
-	27,  // 18: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	31,  // 19: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
-	26,  // 20: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
-	33,  // 21: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
-	35,  // 22: finance.v1.ConfirmBillBatchRequest.bills:type_name -> finance.v1.BillExpectedVersion
-	33,  // 23: finance.v1.ConfirmBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
-	26,  // 24: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 25: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 26: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 27: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 28: finance.v1.ConfirmBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 29: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
-	50,  // 30: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
-	51,  // 31: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
-	52,  // 32: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
-	52,  // 33: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	52,  // 34: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	52,  // 35: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	52,  // 36: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	52,  // 37: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	63,  // 38: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
-	63,  // 39: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	63,  // 40: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	63,  // 41: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	68,  // 42: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
-	72,  // 43: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
-	73,  // 44: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
-	73,  // 45: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	73,  // 46: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	81,  // 47: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
-	84,  // 48: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	84,  // 49: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	87,  // 50: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	87,  // 51: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	87,  // 52: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	100, // 53: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
-	101, // 54: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
-	103, // 55: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
-	101, // 56: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
-	105, // 57: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
-	106, // 58: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
-	102, // 59: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
-	106, // 60: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	106, // 61: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	106, // 62: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	106, // 63: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
-	106, // 64: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	105, // 65: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	105, // 66: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	105, // 67: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	105, // 68: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	1,   // 69: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
-	5,   // 70: finance.v1.SettlementService.GetFeeLedgerPreference:input_type -> finance.v1.GetFeeLedgerPreferenceRequest
-	10,  // 71: finance.v1.SettlementService.UpdateFeeLedgerPreference:input_type -> finance.v1.UpdateFeeLedgerPreferenceRequest
-	12,  // 72: finance.v1.SettlementService.ResetFeeLedgerPreference:input_type -> finance.v1.ResetFeeLedgerPreferenceRequest
-	15,  // 73: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
-	17,  // 74: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
-	19,  // 75: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
-	20,  // 76: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
-	21,  // 77: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
-	28,  // 78: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
-	32,  // 79: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
-	36,  // 80: finance.v1.SettlementService.ConfirmBillBatch:input_type -> finance.v1.ConfirmBillBatchRequest
-	22,  // 81: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
-	23,  // 82: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
-	24,  // 83: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
-	44,  // 84: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
-	45,  // 85: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
-	46,  // 86: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
-	47,  // 87: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
-	48,  // 88: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
-	49,  // 89: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
-	59,  // 90: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
-	60,  // 91: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
-	61,  // 92: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
-	62,  // 93: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
-	69,  // 94: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
-	70,  // 95: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
-	71,  // 96: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
-	77,  // 97: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
-	78,  // 98: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
-	79,  // 99: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
-	80,  // 100: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
-	83,  // 101: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
-	85,  // 102: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
-	86,  // 103: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
-	91,  // 104: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
-	92,  // 105: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
-	93,  // 106: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
-	94,  // 107: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
-	95,  // 108: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
-	96,  // 109: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
-	97,  // 110: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
-	98,  // 111: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
-	99,  // 112: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
-	4,   // 113: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
-	9,   // 114: finance.v1.SettlementService.GetFeeLedgerPreference:output_type -> finance.v1.GetFeeLedgerPreferenceResponse
-	11,  // 115: finance.v1.SettlementService.UpdateFeeLedgerPreference:output_type -> finance.v1.UpdateFeeLedgerPreferenceResponse
-	13,  // 116: finance.v1.SettlementService.ResetFeeLedgerPreference:output_type -> finance.v1.ResetFeeLedgerPreferenceResponse
-	16,  // 117: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
-	18,  // 118: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
-	38,  // 119: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
-	39,  // 120: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
-	40,  // 121: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
-	30,  // 122: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
-	34,  // 123: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
-	37,  // 124: finance.v1.SettlementService.ConfirmBillBatch:output_type -> finance.v1.ConfirmBillBatchResponse
-	41,  // 125: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
-	42,  // 126: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
-	43,  // 127: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
-	53,  // 128: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
-	54,  // 129: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
-	55,  // 130: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
-	56,  // 131: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
-	57,  // 132: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
-	58,  // 133: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
-	64,  // 134: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
-	65,  // 135: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
-	66,  // 136: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
-	67,  // 137: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
-	74,  // 138: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
-	75,  // 139: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
-	76,  // 140: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
-	107, // 141: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
-	110, // 142: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
-	82,  // 143: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
-	104, // 144: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
-	88,  // 145: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
-	89,  // 146: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
-	90,  // 147: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
-	108, // 148: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
-	109, // 149: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
-	111, // 150: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
-	112, // 151: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
-	113, // 152: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
-	114, // 153: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
-	115, // 154: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
-	116, // 155: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
-	117, // 156: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
-	113, // [113:157] is the sub-list for method output_type
-	69,  // [69:113] is the sub-list for method input_type
-	69,  // [69:69] is the sub-list for extension type_name
-	69,  // [69:69] is the sub-list for extension extendee
-	0,   // [0:69] is the sub-list for field type_name
+	118, // 0: finance.v1.FeeLedgerItem.tags:type_name -> finance.v1.BusinessTagSummary
+	2,   // 1: finance.v1.ListFeeLedgerResponse.data:type_name -> finance.v1.FeeLedgerItem
+	3,   // 2: finance.v1.ListFeeLedgerResponse.summary:type_name -> finance.v1.FeeLedgerSummary
+	6,   // 3: finance.v1.FeeLedgerPreference.columns:type_name -> finance.v1.FeeLedgerColumnPreference
+	7,   // 4: finance.v1.FeeLedgerPreference.row_colors:type_name -> finance.v1.FeeLedgerRowColors
+	8,   // 5: finance.v1.GetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	6,   // 6: finance.v1.UpdateFeeLedgerPreferenceRequest.columns:type_name -> finance.v1.FeeLedgerColumnPreference
+	7,   // 7: finance.v1.UpdateFeeLedgerPreferenceRequest.row_colors:type_name -> finance.v1.FeeLedgerRowColors
+	8,   // 8: finance.v1.UpdateFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	8,   // 9: finance.v1.ResetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	0,   // 10: finance.v1.BilledFeeEditPolicy.editable_fields:type_name -> finance.v1.BilledFeeEditableField
+	14,  // 11: finance.v1.GetBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
+	0,   // 12: finance.v1.UpdateBilledFeeEditPolicyRequest.editable_fields:type_name -> finance.v1.BilledFeeEditableField
+	125, // 13: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
+	14,  // 14: finance.v1.UpdateBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
+	25,  // 15: finance.v1.FinanceBill.lines:type_name -> finance.v1.FinanceBillLine
+	27,  // 16: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	2,   // 17: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
+	29,  // 18: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
+	27,  // 19: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	31,  // 20: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
+	26,  // 21: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
+	33,  // 22: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
+	35,  // 23: finance.v1.ConfirmBillBatchRequest.bills:type_name -> finance.v1.BillExpectedVersion
+	33,  // 24: finance.v1.ConfirmBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
+	26,  // 25: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
+	26,  // 26: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
+	26,  // 27: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
+	26,  // 28: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
+	26,  // 29: finance.v1.ConfirmBillResponse.data:type_name -> finance.v1.FinanceBill
+	26,  // 30: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
+	50,  // 31: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
+	51,  // 32: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
+	52,  // 33: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
+	52,  // 34: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	52,  // 35: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	52,  // 36: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	52,  // 37: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	52,  // 38: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	63,  // 39: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
+	63,  // 40: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	63,  // 41: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	63,  // 42: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	68,  // 43: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
+	72,  // 44: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
+	73,  // 45: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
+	73,  // 46: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	73,  // 47: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	81,  // 48: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
+	84,  // 49: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	84,  // 50: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	87,  // 51: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	87,  // 52: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	87,  // 53: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	100, // 54: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
+	101, // 55: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
+	103, // 56: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
+	101, // 57: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
+	105, // 58: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
+	106, // 59: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
+	102, // 60: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
+	106, // 61: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	106, // 62: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	106, // 63: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	106, // 64: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
+	106, // 65: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	105, // 66: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	105, // 67: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	105, // 68: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	105, // 69: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	118, // 70: finance.v1.ListFinanceFeeTagOptionsResponse.tags:type_name -> finance.v1.BusinessTagSummary
+	1,   // 71: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
+	5,   // 72: finance.v1.SettlementService.GetFeeLedgerPreference:input_type -> finance.v1.GetFeeLedgerPreferenceRequest
+	10,  // 73: finance.v1.SettlementService.UpdateFeeLedgerPreference:input_type -> finance.v1.UpdateFeeLedgerPreferenceRequest
+	12,  // 74: finance.v1.SettlementService.ResetFeeLedgerPreference:input_type -> finance.v1.ResetFeeLedgerPreferenceRequest
+	15,  // 75: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
+	17,  // 76: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
+	19,  // 77: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
+	20,  // 78: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
+	119, // 79: finance.v1.SettlementService.ListFinanceFeeTagOptions:input_type -> finance.v1.ListFinanceFeeTagOptionsRequest
+	121, // 80: finance.v1.SettlementService.BatchAssignFinanceFeeTags:input_type -> finance.v1.BatchAssignFinanceFeeTagsRequest
+	123, // 81: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:input_type -> finance.v1.BatchRemoveFinanceFeeTagsRequest
+	21,  // 82: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
+	28,  // 83: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
+	32,  // 84: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
+	36,  // 85: finance.v1.SettlementService.ConfirmBillBatch:input_type -> finance.v1.ConfirmBillBatchRequest
+	22,  // 86: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
+	23,  // 87: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
+	24,  // 88: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
+	44,  // 89: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
+	45,  // 90: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
+	46,  // 91: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
+	47,  // 92: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
+	48,  // 93: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
+	49,  // 94: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
+	59,  // 95: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
+	60,  // 96: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
+	61,  // 97: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
+	62,  // 98: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
+	69,  // 99: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
+	70,  // 100: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
+	71,  // 101: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
+	77,  // 102: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
+	78,  // 103: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
+	79,  // 104: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
+	80,  // 105: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
+	83,  // 106: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
+	85,  // 107: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
+	86,  // 108: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
+	91,  // 109: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
+	92,  // 110: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
+	93,  // 111: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
+	94,  // 112: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
+	95,  // 113: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
+	96,  // 114: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
+	97,  // 115: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
+	98,  // 116: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
+	99,  // 117: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
+	4,   // 118: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
+	9,   // 119: finance.v1.SettlementService.GetFeeLedgerPreference:output_type -> finance.v1.GetFeeLedgerPreferenceResponse
+	11,  // 120: finance.v1.SettlementService.UpdateFeeLedgerPreference:output_type -> finance.v1.UpdateFeeLedgerPreferenceResponse
+	13,  // 121: finance.v1.SettlementService.ResetFeeLedgerPreference:output_type -> finance.v1.ResetFeeLedgerPreferenceResponse
+	16,  // 122: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
+	18,  // 123: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
+	38,  // 124: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
+	39,  // 125: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
+	120, // 126: finance.v1.SettlementService.ListFinanceFeeTagOptions:output_type -> finance.v1.ListFinanceFeeTagOptionsResponse
+	122, // 127: finance.v1.SettlementService.BatchAssignFinanceFeeTags:output_type -> finance.v1.BatchAssignFinanceFeeTagsResponse
+	124, // 128: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:output_type -> finance.v1.BatchRemoveFinanceFeeTagsResponse
+	40,  // 129: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
+	30,  // 130: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
+	34,  // 131: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
+	37,  // 132: finance.v1.SettlementService.ConfirmBillBatch:output_type -> finance.v1.ConfirmBillBatchResponse
+	41,  // 133: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
+	42,  // 134: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
+	43,  // 135: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
+	53,  // 136: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
+	54,  // 137: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
+	55,  // 138: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
+	56,  // 139: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
+	57,  // 140: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
+	58,  // 141: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
+	64,  // 142: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
+	65,  // 143: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
+	66,  // 144: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
+	67,  // 145: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
+	74,  // 146: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
+	75,  // 147: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
+	76,  // 148: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
+	107, // 149: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
+	110, // 150: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
+	82,  // 151: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
+	104, // 152: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
+	88,  // 153: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
+	89,  // 154: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
+	90,  // 155: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
+	108, // 156: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
+	109, // 157: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
+	111, // 158: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
+	112, // 159: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
+	113, // 160: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
+	114, // 161: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
+	115, // 162: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
+	116, // 163: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
+	117, // 164: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
+	118, // [118:165] is the sub-list for method output_type
+	71,  // [71:118] is the sub-list for method input_type
+	71,  // [71:71] is the sub-list for extension type_name
+	71,  // [71:71] is the sub-list for extension extendee
+	0,   // [0:71] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_settlement_proto_init() }
@@ -12533,7 +13010,7 @@ func file_finance_v1_settlement_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_settlement_proto_rawDesc), len(file_finance_v1_settlement_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   117,
+			NumMessages:   124,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
