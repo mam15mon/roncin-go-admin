@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
@@ -58,12 +58,12 @@ func (s *enterpriseImageStorage) PrepareUpload(ctx context.Context, organization
 	if !s.enabled {
 		return nil, biz.ErrEnterpriseImageStorageUnavailable
 	}
-	extension := strings.ToLower(filepath.Ext(fileName))
+	extension := enterpriseImageExtension(mimeType)
 	key := fmt.Sprintf("enterprise-resources/%s/%s%s", organizationID.String(), uuid.Must(uuid.NewV7()).String(), extension)
 	expires := 10 * time.Minute
 	request, err := s.presign.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(s.bucket), Key: aws.String(key), ContentType: aws.String(mimeType), ContentLength: aws.Int64(fileSize),
-		Metadata: map[string]string{"checksum": checksum, "organization-id": organizationID.String()},
+		Bucket: aws.String(s.bucket), Key: aws.String(key), ContentType: aws.String(mimeType), ContentLength: aws.Int64(fileSize), ChecksumSHA256: aws.String(checksum),
+		Metadata: map[string]string{"organization-id": organizationID.String()},
 	}, s3.WithPresignExpires(expires))
 	if err != nil {
 		return nil, err
@@ -84,14 +84,29 @@ func (s *enterpriseImageStorage) VerifyUpload(ctx context.Context, organizationI
 	if !strings.HasPrefix(image.ObjectKey, "enterprise-resources/"+organizationID.String()+"/") {
 		return biz.ErrEnterpriseResourceInvalidArgument
 	}
-	result, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(image.ObjectKey)})
+	result, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(image.ObjectKey), ChecksumMode: types.ChecksumModeEnabled})
 	if err != nil {
 		return biz.ErrEnterpriseResourceInvalidArgument
 	}
-	if result.ContentLength == nil || *result.ContentLength != image.FileSize || result.ContentType == nil || *result.ContentType != image.MIMEType || result.Metadata["checksum"] != image.Checksum || result.Metadata["organization-id"] != organizationID.String() {
+	if result.ContentLength == nil || *result.ContentLength != image.FileSize || result.ContentType == nil || *result.ContentType != image.MIMEType || result.ChecksumSHA256 == nil || *result.ChecksumSHA256 != image.Checksum || result.Metadata["organization-id"] != organizationID.String() {
 		return biz.ErrEnterpriseResourceInvalidArgument
 	}
 	return nil
+}
+
+func enterpriseImageExtension(mimeType string) string {
+	switch mimeType {
+	case "image/jpeg":
+		return ".jpg"
+	case "image/png":
+		return ".png"
+	case "image/bmp":
+		return ".bmp"
+	case "image/gif":
+		return ".gif"
+	default:
+		return ""
+	}
 }
 
 func (s *enterpriseImageStorage) PresignGet(ctx context.Context, organizationID uuid.UUID, objectKey string) (string, time.Time, error) {
