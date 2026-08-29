@@ -52,10 +52,12 @@ func (s *loginRateLimitRepoStub) RecordLoginFailure(_ context.Context, keyHashes
 	return exceeded, nil
 }
 
-func (s *loginRateLimitRepoStub) ClearLoginFailures(_ context.Context, keyHash string) error {
-	delete(s.counts, keyHash)
-	s.cleared = append(s.cleared, keyHash)
-	return nil
+func (s *loginRateLimitRepoStub) CreateSession(ctx context.Context, session *Session, clearLoginFailureKey string, audit *AuditEvent) error {
+	if clearLoginFailureKey != "" {
+		delete(s.counts, clearLoginFailureKey)
+		s.cleared = append(s.cleared, clearLoginFailureKey)
+	}
+	return s.wecomAuthRepoStub.CreateSession(ctx, session, clearLoginFailureKey, audit)
 }
 
 func newLoginRateLimitUsecase(repo AuthRepo) *AuthUsecase {

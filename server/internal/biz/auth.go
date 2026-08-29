@@ -247,12 +247,11 @@ type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
 	LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error)
 	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int, *AuditEvent) (bool, error)
-	ClearLoginFailures(context.Context, string) error
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *AuditEvent) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
-	CreateSession(context.Context, *Session, *AuditEvent) error
+	CreateSession(context.Context, *Session, string, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
 	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time, *AuditEvent) error
 	RevokeSession(context.Context, string, time.Time, *AuditEvent) error
@@ -327,10 +326,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userA
 	if !matched {
 		return "", nil, time.Time{}, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
-	if err := uc.repo.ClearLoginFailures(ctx, accountKeyHash); err != nil {
-		return "", nil, time.Time{}, err
-	}
-	return uc.createSession(ctx, credential, userAgent, "auth.login")
+	return uc.createSession(ctx, credential, userAgent, "auth.login", accountKeyHash)
 }
 
 func (uc *AuthUsecase) recordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, event *AuditEvent) error {
@@ -394,7 +390,7 @@ func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedStat
 	if !credential.Enabled {
 		return "", nil, time.Time{}, ErrWeComAuthorizationPending
 	}
-	return uc.createSession(ctx, credential, userAgent, "auth.wecom.login")
+	return uc.createSession(ctx, credential, userAgent, "auth.wecom.login", "")
 }
 
 func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, error) {
@@ -446,7 +442,7 @@ func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expec
 	if !credential.Enabled {
 		return nil, ErrDingTalkAuthorizationPending
 	}
-	token, principal, expiresAt, err := uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login")
+	token, principal, expiresAt, err := uc.createSession(ctx, credential, userAgent, "auth.dingtalk.login", "")
 	if err != nil {
 		return nil, err
 	}
@@ -471,7 +467,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 	return &DingTalkRegistration{DisplayName: credential.DisplayName, Status: "PENDING"}, nil
 }
 
-func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction string) (string, *Principal, time.Time, error) {
+func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential, userAgent, auditAction, clearLoginFailureKey string) (string, *Principal, time.Time, error) {
 	principal, err := uc.repo.ResolvePrincipal(ctx, credential.UserID, credential.PrimaryOrganizationID)
 	if err != nil {
 		return "", nil, time.Time{}, err
@@ -481,7 +477,7 @@ func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential
 		return "", nil, time.Time{}, err
 	}
 	expiresAt := time.Now().UTC().Add(uc.policy.TTL)
-	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
+	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, clearLoginFailureKey, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
 		return "", nil, time.Time{}, err
 	}
 	principal.SessionTokenHash = tokenHash

@@ -100,11 +100,6 @@ VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, uuid.Must(uuid.
 	return exceeded, nil
 }
 
-func (r *authRepo) ClearLoginFailures(ctx context.Context, keyHash string) error {
-	_, err := r.data.db.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(keyHash)).Exec(ctx)
-	return err
-}
-
 func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *biz.WeComIdentity, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
 	if identity == nil || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrWeComLoginFailed
@@ -432,10 +427,16 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
 }
 
-func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, audit *biz.AuditEvent) error {
+func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearLoginFailureKey string, audit *biz.AuditEvent) error {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
+	}
+	if clearLoginFailureKey != "" {
+		if _, err = tx.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(clearLoginFailureKey)).Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 	if _, err = tx.Session.Create().SetTokenHash(input.TokenHash).SetUserID(input.UserID).SetOrganizationID(input.OrganizationID).SetExpiresAt(input.ExpiresAt).SetUserAgent(input.UserAgent).Save(ctx); err != nil {
 		_ = tx.Rollback()

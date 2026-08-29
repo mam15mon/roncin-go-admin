@@ -43,8 +43,6 @@ func (s *wecomAuthRepoStub) RecordLoginFailure(_ context.Context, _ []string, _ 
 	return false, nil
 }
 
-func (s *wecomAuthRepoStub) ClearLoginFailures(context.Context, string) error { return nil }
-
 func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(_ context.Context, _ *WeComIdentity, audit *AuditEvent) (*Credential, bool, error) {
 	if s.created {
 		s.auditActions = append(s.auditActions, audit.Action)
@@ -70,7 +68,7 @@ func (s *wecomAuthRepoStub) ResolvePrincipal(_ context.Context, userID, organiza
 	return &Principal{UserID: userID, Organization: Organization{ID: organizationID}}, nil
 }
 
-func (s *wecomAuthRepoStub) CreateSession(_ context.Context, session *Session, audit *AuditEvent) error {
+func (s *wecomAuthRepoStub) CreateSession(_ context.Context, session *Session, _ string, audit *AuditEvent) error {
 	s.createdSession = session
 	s.auditActions = append(s.auditActions, audit.Action)
 	return nil
