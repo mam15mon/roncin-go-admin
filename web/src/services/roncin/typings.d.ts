@@ -377,22 +377,77 @@ declare namespace API {
     id: string;
   };
 
-  type BatchAddressTypeRequest = {
+  type BatchAssignAddressTypesRequest = {
     resourceIds: string[];
     addressTypes: number[];
   };
 
-  type BatchAssigneeRequest = {
+  type BatchAssignAddressTypesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchAssignAssigneesRequest = {
     resourceIds: string[];
     assigneeIds: string[];
   };
 
-  type BatchAssociationRequest = {
+  type BatchAssignAssigneesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchCreateAssociationsRequest = {
     resourceIds: string[];
     partnerIds: string[];
   };
 
-  type BatchMutationResponse = {
+  type BatchCreateAssociationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchDeleteAssociationsRequest = {
+    resourceIds: string[];
+    partnerIds: string[];
+  };
+
+  type BatchDeleteAssociationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchRemoveAddressTypesRequest = {
+    resourceIds: string[];
+    addressTypes: number[];
+  };
+
+  type BatchRemoveAddressTypesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    affectedCount?: number;
+    traceId?: string;
+  };
+
+  type BatchRemoveAssigneesRequest = {
+    resourceIds: string[];
+    assigneeIds: string[];
+  };
+
+  type BatchRemoveAssigneesResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -604,6 +659,17 @@ declare namespace API {
   type CommitEnterpriseResourceImportRequest = {
     resourceType: number;
     rows: EnterpriseResourceInput[];
+  };
+
+  type CommitEnterpriseResourceImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    rows?: EnterpriseResourceImportRow[];
+    validCount?: number;
+    invalidCount?: number;
+    createdCount?: number;
+    traceId?: string;
   };
 
   type ConfirmBillBatchRequest = {
@@ -869,8 +935,24 @@ declare namespace API {
     resource: EnterpriseResourceInput;
   };
 
+  type CreateEnterpriseResourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResource;
+    traceId?: string;
+  };
+
   type CreateEnterpriseTagGroupRequest = {
     group: EnterpriseTagGroupInput;
+  };
+
+  type CreateEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseTagGroup;
+    traceId?: string;
   };
 
   type CreateExchangeRateSettingRequest = {
@@ -1290,6 +1372,20 @@ declare namespace API {
     avatarUrl?: string;
   };
 
+  type DeleteEnterpriseResourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
+  type DeleteEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type DeleteUserMembershipResponse = {
     success?: boolean;
     code?: number;
@@ -1389,17 +1485,6 @@ declare namespace API {
     height?: number;
   };
 
-  type EnterpriseResourceImportResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    rows?: EnterpriseResourceImportRow[];
-    validCount?: number;
-    invalidCount?: number;
-    createdCount?: number;
-    traceId?: string;
-  };
-
   type EnterpriseResourceImportRow = {
     rowNumber?: number;
     resource?: EnterpriseResourceInput;
@@ -1439,14 +1524,6 @@ declare namespace API {
   type EnterpriseResourceRemark = {
     remarkType?: number;
     content?: string;
-  };
-
-  type EnterpriseResourceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: EnterpriseResource;
-    traceId?: string;
   };
 
   type EnterpriseResourceServiceDeleteEnterpriseResourceParams = {
@@ -1504,14 +1581,6 @@ declare namespace API {
     name: string;
     color?: string;
     sortOrder?: number;
-  };
-
-  type EnterpriseTagGroupResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: EnterpriseTagGroup;
-    traceId?: string;
   };
 
   type ExchangeRateCustomSetting = {
@@ -2089,6 +2158,14 @@ declare namespace API {
     message?: string;
     url?: string;
     expiresAt?: string;
+    traceId?: string;
+  };
+
+  type GetEnterpriseResourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResource;
     traceId?: string;
   };
 
@@ -2890,13 +2967,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: CurrentUser;
-    traceId?: string;
-  };
-
-  type MutationResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
     traceId?: string;
   };
 
@@ -3973,6 +4043,17 @@ declare namespace API {
     rows: EnterpriseResourceInput[];
   };
 
+  type PreviewEnterpriseResourceImportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    rows?: EnterpriseResourceImportRow[];
+    validCount?: number;
+    invalidCount?: number;
+    createdCount?: number;
+    traceId?: string;
+  };
+
   type PreviewExchangeRateImportRequest = {
     fileName: string;
     fileContent: string;
@@ -4723,9 +4804,25 @@ declare namespace API {
     resource: EnterpriseResourceInput;
   };
 
+  type UpdateEnterpriseResourceResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseResource;
+    traceId?: string;
+  };
+
   type UpdateEnterpriseTagGroupRequest = {
     id: string;
     group: EnterpriseTagGroupInput;
+  };
+
+  type UpdateEnterpriseTagGroupResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: EnterpriseTagGroup;
+    traceId?: string;
   };
 
   type UpdateExchangeRateCustomSettingRequest = {

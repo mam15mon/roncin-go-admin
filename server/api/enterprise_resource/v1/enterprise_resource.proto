@@ -25,43 +25,43 @@ service EnterpriseResourceService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/enterprise-resources"};
   }
-  rpc GetEnterpriseResource(GetEnterpriseResourceRequest) returns (EnterpriseResourceResponse) {
+  rpc GetEnterpriseResource(GetEnterpriseResourceRequest) returns (GetEnterpriseResourceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/enterprise-resources/{id}"};
   }
-  rpc CreateEnterpriseResource(CreateEnterpriseResourceRequest) returns (EnterpriseResourceResponse) {
+  rpc CreateEnterpriseResource(CreateEnterpriseResourceRequest) returns (CreateEnterpriseResourceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resources" body: "*"};
   }
-  rpc UpdateEnterpriseResource(UpdateEnterpriseResourceRequest) returns (EnterpriseResourceResponse) {
+  rpc UpdateEnterpriseResource(UpdateEnterpriseResourceRequest) returns (UpdateEnterpriseResourceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/enterprise-resources/{id}" body: "*"};
   }
-  rpc DeleteEnterpriseResource(DeleteEnterpriseResourceRequest) returns (MutationResponse) {
+  rpc DeleteEnterpriseResource(DeleteEnterpriseResourceRequest) returns (DeleteEnterpriseResourceResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/enterprise-resources/{id}"};
   }
-  rpc BatchCreateAssociations(BatchAssociationRequest) returns (BatchMutationResponse) {
+  rpc BatchCreateAssociations(BatchCreateAssociationsRequest) returns (BatchCreateAssociationsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-associations/batch-create" body: "*"};
   }
-  rpc BatchDeleteAssociations(BatchAssociationRequest) returns (BatchMutationResponse) {
+  rpc BatchDeleteAssociations(BatchDeleteAssociationsRequest) returns (BatchDeleteAssociationsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-associations/batch-delete" body: "*"};
   }
-  rpc BatchAssignAddressTypes(BatchAddressTypeRequest) returns (BatchMutationResponse) {
+  rpc BatchAssignAddressTypes(BatchAssignAddressTypesRequest) returns (BatchAssignAddressTypesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-address-types/batch-assign" body: "*"};
   }
-  rpc BatchRemoveAddressTypes(BatchAddressTypeRequest) returns (BatchMutationResponse) {
+  rpc BatchRemoveAddressTypes(BatchRemoveAddressTypesRequest) returns (BatchRemoveAddressTypesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-address-types/batch-remove" body: "*"};
   }
-  rpc BatchAssignAssignees(BatchAssigneeRequest) returns (BatchMutationResponse) {
+  rpc BatchAssignAssignees(BatchAssignAssigneesRequest) returns (BatchAssignAssigneesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-assignees/batch-assign" body: "*"};
   }
-  rpc BatchRemoveAssignees(BatchAssigneeRequest) returns (BatchMutationResponse) {
+  rpc BatchRemoveAssignees(BatchRemoveAssigneesRequest) returns (BatchRemoveAssigneesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-assignees/batch-remove" body: "*"};
   }
@@ -69,23 +69,23 @@ service EnterpriseResourceService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/enterprise-tag-groups"};
   }
-  rpc CreateEnterpriseTagGroup(CreateEnterpriseTagGroupRequest) returns (EnterpriseTagGroupResponse) {
+  rpc CreateEnterpriseTagGroup(CreateEnterpriseTagGroupRequest) returns (CreateEnterpriseTagGroupResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-tag-groups" body: "*"};
   }
-  rpc UpdateEnterpriseTagGroup(UpdateEnterpriseTagGroupRequest) returns (EnterpriseTagGroupResponse) {
+  rpc UpdateEnterpriseTagGroup(UpdateEnterpriseTagGroupRequest) returns (UpdateEnterpriseTagGroupResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/enterprise-tag-groups/{id}" body: "*"};
   }
-  rpc DeleteEnterpriseTagGroup(DeleteEnterpriseTagGroupRequest) returns (MutationResponse) {
+  rpc DeleteEnterpriseTagGroup(DeleteEnterpriseTagGroupRequest) returns (DeleteEnterpriseTagGroupResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/enterprise-tag-groups/{id}"};
   }
-  rpc PreviewEnterpriseResourceImport(PreviewEnterpriseResourceImportRequest) returns (EnterpriseResourceImportResponse) {
+  rpc PreviewEnterpriseResourceImport(PreviewEnterpriseResourceImportRequest) returns (PreviewEnterpriseResourceImportResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resources/import-preview" body: "*"};
   }
-  rpc CommitEnterpriseResourceImport(CommitEnterpriseResourceImportRequest) returns (EnterpriseResourceImportResponse) {
+  rpc CommitEnterpriseResourceImport(CommitEnterpriseResourceImportRequest) returns (CommitEnterpriseResourceImportResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resources/import-commit" body: "*"};
   }
@@ -234,13 +234,23 @@ message GetEnterpriseResourceRequest { string id = 1 [(google.api.field_behavior
 message CreateEnterpriseResourceRequest { EnterpriseResourceInput resource = 1 [(google.api.field_behavior) = REQUIRED]; }
 message UpdateEnterpriseResourceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; EnterpriseResourceInput resource = 2 [(google.api.field_behavior) = REQUIRED]; }
 message DeleteEnterpriseResourceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
-message EnterpriseResourceResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseResource data = 4; string trace_id = 5; }
+message GetEnterpriseResourceResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseResource data = 4; string trace_id = 5; }
+message CreateEnterpriseResourceResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseResource data = 4; string trace_id = 5; }
+message UpdateEnterpriseResourceResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseResource data = 4; string trace_id = 5; }
 message ListEnterpriseResourcesResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResource data = 4; int64 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8; }
-message MutationResponse { bool success = 1; int32 code = 2; string message = 3; string trace_id = 4; }
-message BatchMutationResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
-message BatchAssociationRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string partner_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
-message BatchAddressTypeRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseAddressType address_types = 2 [(google.api.field_behavior) = REQUIRED]; }
-message BatchAssigneeRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string assignee_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
+message DeleteEnterpriseResourceResponse { bool success = 1; int32 code = 2; string message = 3; string trace_id = 4; }
+message BatchCreateAssociationsRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string partner_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchCreateAssociationsResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
+message BatchDeleteAssociationsRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string partner_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchDeleteAssociationsResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
+message BatchAssignAddressTypesRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseAddressType address_types = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchAssignAddressTypesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
+message BatchRemoveAddressTypesRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseAddressType address_types = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchRemoveAddressTypesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
+message BatchAssignAssigneesRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string assignee_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchAssignAssigneesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
+message BatchRemoveAssigneesRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string assignee_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
+message BatchRemoveAssigneesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
 
 message EnterpriseTagGroup { string id = 1; string name = 2; string color = 3; int32 sort_order = 4; string created_at = 5; string updated_at = 6; }
 message EnterpriseTagGroupInput { string name = 1 [(google.api.field_behavior) = REQUIRED]; string color = 2; int32 sort_order = 3; }
@@ -249,9 +259,12 @@ message ListEnterpriseTagGroupsResponse { bool success = 1; int32 code = 2; stri
 message CreateEnterpriseTagGroupRequest { EnterpriseTagGroupInput group = 1 [(google.api.field_behavior) = REQUIRED]; }
 message UpdateEnterpriseTagGroupRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; EnterpriseTagGroupInput group = 2 [(google.api.field_behavior) = REQUIRED]; }
 message DeleteEnterpriseTagGroupRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
-message EnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
+message CreateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
+message UpdateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
+message DeleteEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; string trace_id = 4; }
 
 message EnterpriseResourceImportRow { int32 row_number = 1; EnterpriseResourceInput resource = 2; repeated string errors = 3; }
 message PreviewEnterpriseResourceImportRequest { EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseResourceInput rows = 2 [(google.api.field_behavior) = REQUIRED]; }
 message CommitEnterpriseResourceImportRequest { EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED]; repeated EnterpriseResourceInput rows = 2 [(google.api.field_behavior) = REQUIRED]; }
-message EnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; }
+message PreviewEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; }
+message CommitEnterpriseResourceImportResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseResourceImportRow rows = 4; int32 valid_count = 5; int32 invalid_count = 6; int32 created_count = 7; string trace_id = 8; }

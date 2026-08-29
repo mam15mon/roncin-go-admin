@@ -49,22 +49,22 @@ type EnterpriseResourceServiceClient interface {
 	PrepareEnterpriseResourceImageUpload(ctx context.Context, in *PrepareEnterpriseResourceImageUploadRequest, opts ...grpc.CallOption) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	GetEnterpriseResourceImageAccess(ctx context.Context, in *GetEnterpriseResourceImageAccessRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceImageAccessResponse, error)
 	ListEnterpriseResources(ctx context.Context, in *ListEnterpriseResourcesRequest, opts ...grpc.CallOption) (*ListEnterpriseResourcesResponse, error)
-	GetEnterpriseResource(ctx context.Context, in *GetEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error)
-	CreateEnterpriseResource(ctx context.Context, in *CreateEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error)
-	UpdateEnterpriseResource(ctx context.Context, in *UpdateEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error)
-	DeleteEnterpriseResource(ctx context.Context, in *DeleteEnterpriseResourceRequest, opts ...grpc.CallOption) (*MutationResponse, error)
-	BatchCreateAssociations(ctx context.Context, in *BatchAssociationRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
-	BatchDeleteAssociations(ctx context.Context, in *BatchAssociationRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
-	BatchAssignAddressTypes(ctx context.Context, in *BatchAddressTypeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
-	BatchRemoveAddressTypes(ctx context.Context, in *BatchAddressTypeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
-	BatchAssignAssignees(ctx context.Context, in *BatchAssigneeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
-	BatchRemoveAssignees(ctx context.Context, in *BatchAssigneeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error)
+	GetEnterpriseResource(ctx context.Context, in *GetEnterpriseResourceRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceResponse, error)
+	CreateEnterpriseResource(ctx context.Context, in *CreateEnterpriseResourceRequest, opts ...grpc.CallOption) (*CreateEnterpriseResourceResponse, error)
+	UpdateEnterpriseResource(ctx context.Context, in *UpdateEnterpriseResourceRequest, opts ...grpc.CallOption) (*UpdateEnterpriseResourceResponse, error)
+	DeleteEnterpriseResource(ctx context.Context, in *DeleteEnterpriseResourceRequest, opts ...grpc.CallOption) (*DeleteEnterpriseResourceResponse, error)
+	BatchCreateAssociations(ctx context.Context, in *BatchCreateAssociationsRequest, opts ...grpc.CallOption) (*BatchCreateAssociationsResponse, error)
+	BatchDeleteAssociations(ctx context.Context, in *BatchDeleteAssociationsRequest, opts ...grpc.CallOption) (*BatchDeleteAssociationsResponse, error)
+	BatchAssignAddressTypes(ctx context.Context, in *BatchAssignAddressTypesRequest, opts ...grpc.CallOption) (*BatchAssignAddressTypesResponse, error)
+	BatchRemoveAddressTypes(ctx context.Context, in *BatchRemoveAddressTypesRequest, opts ...grpc.CallOption) (*BatchRemoveAddressTypesResponse, error)
+	BatchAssignAssignees(ctx context.Context, in *BatchAssignAssigneesRequest, opts ...grpc.CallOption) (*BatchAssignAssigneesResponse, error)
+	BatchRemoveAssignees(ctx context.Context, in *BatchRemoveAssigneesRequest, opts ...grpc.CallOption) (*BatchRemoveAssigneesResponse, error)
 	ListEnterpriseTagGroups(ctx context.Context, in *ListEnterpriseTagGroupsRequest, opts ...grpc.CallOption) (*ListEnterpriseTagGroupsResponse, error)
-	CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*EnterpriseTagGroupResponse, error)
-	UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*EnterpriseTagGroupResponse, error)
-	DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*MutationResponse, error)
-	PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*EnterpriseResourceImportResponse, error)
-	CommitEnterpriseResourceImport(ctx context.Context, in *CommitEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*EnterpriseResourceImportResponse, error)
+	CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*CreateEnterpriseTagGroupResponse, error)
+	UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*UpdateEnterpriseTagGroupResponse, error)
+	DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*DeleteEnterpriseTagGroupResponse, error)
+	PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*PreviewEnterpriseResourceImportResponse, error)
+	CommitEnterpriseResourceImport(ctx context.Context, in *CommitEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*CommitEnterpriseResourceImportResponse, error)
 }
 
 type enterpriseResourceServiceClient struct {
@@ -115,9 +115,9 @@ func (c *enterpriseResourceServiceClient) ListEnterpriseResources(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) GetEnterpriseResource(ctx context.Context, in *GetEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error) {
+func (c *enterpriseResourceServiceClient) GetEnterpriseResource(ctx context.Context, in *GetEnterpriseResourceRequest, opts ...grpc.CallOption) (*GetEnterpriseResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseResourceResponse)
+	out := new(GetEnterpriseResourceResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_GetEnterpriseResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -125,9 +125,9 @@ func (c *enterpriseResourceServiceClient) GetEnterpriseResource(ctx context.Cont
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) CreateEnterpriseResource(ctx context.Context, in *CreateEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error) {
+func (c *enterpriseResourceServiceClient) CreateEnterpriseResource(ctx context.Context, in *CreateEnterpriseResourceRequest, opts ...grpc.CallOption) (*CreateEnterpriseResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseResourceResponse)
+	out := new(CreateEnterpriseResourceResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_CreateEnterpriseResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -135,9 +135,9 @@ func (c *enterpriseResourceServiceClient) CreateEnterpriseResource(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) UpdateEnterpriseResource(ctx context.Context, in *UpdateEnterpriseResourceRequest, opts ...grpc.CallOption) (*EnterpriseResourceResponse, error) {
+func (c *enterpriseResourceServiceClient) UpdateEnterpriseResource(ctx context.Context, in *UpdateEnterpriseResourceRequest, opts ...grpc.CallOption) (*UpdateEnterpriseResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseResourceResponse)
+	out := new(UpdateEnterpriseResourceResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_UpdateEnterpriseResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -145,9 +145,9 @@ func (c *enterpriseResourceServiceClient) UpdateEnterpriseResource(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) DeleteEnterpriseResource(ctx context.Context, in *DeleteEnterpriseResourceRequest, opts ...grpc.CallOption) (*MutationResponse, error) {
+func (c *enterpriseResourceServiceClient) DeleteEnterpriseResource(ctx context.Context, in *DeleteEnterpriseResourceRequest, opts ...grpc.CallOption) (*DeleteEnterpriseResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MutationResponse)
+	out := new(DeleteEnterpriseResourceResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_DeleteEnterpriseResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -155,9 +155,9 @@ func (c *enterpriseResourceServiceClient) DeleteEnterpriseResource(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchCreateAssociations(ctx context.Context, in *BatchAssociationRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchCreateAssociations(ctx context.Context, in *BatchCreateAssociationsRequest, opts ...grpc.CallOption) (*BatchCreateAssociationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchCreateAssociationsResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchCreateAssociations_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -165,9 +165,9 @@ func (c *enterpriseResourceServiceClient) BatchCreateAssociations(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchDeleteAssociations(ctx context.Context, in *BatchAssociationRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchDeleteAssociations(ctx context.Context, in *BatchDeleteAssociationsRequest, opts ...grpc.CallOption) (*BatchDeleteAssociationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchDeleteAssociationsResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchDeleteAssociations_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -175,9 +175,9 @@ func (c *enterpriseResourceServiceClient) BatchDeleteAssociations(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchAssignAddressTypes(ctx context.Context, in *BatchAddressTypeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchAssignAddressTypes(ctx context.Context, in *BatchAssignAddressTypesRequest, opts ...grpc.CallOption) (*BatchAssignAddressTypesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchAssignAddressTypesResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchAssignAddressTypes_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -185,9 +185,9 @@ func (c *enterpriseResourceServiceClient) BatchAssignAddressTypes(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchRemoveAddressTypes(ctx context.Context, in *BatchAddressTypeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchRemoveAddressTypes(ctx context.Context, in *BatchRemoveAddressTypesRequest, opts ...grpc.CallOption) (*BatchRemoveAddressTypesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchRemoveAddressTypesResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchRemoveAddressTypes_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -195,9 +195,9 @@ func (c *enterpriseResourceServiceClient) BatchRemoveAddressTypes(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchAssignAssignees(ctx context.Context, in *BatchAssigneeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchAssignAssignees(ctx context.Context, in *BatchAssignAssigneesRequest, opts ...grpc.CallOption) (*BatchAssignAssigneesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchAssignAssigneesResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchAssignAssignees_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -205,9 +205,9 @@ func (c *enterpriseResourceServiceClient) BatchAssignAssignees(ctx context.Conte
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) BatchRemoveAssignees(ctx context.Context, in *BatchAssigneeRequest, opts ...grpc.CallOption) (*BatchMutationResponse, error) {
+func (c *enterpriseResourceServiceClient) BatchRemoveAssignees(ctx context.Context, in *BatchRemoveAssigneesRequest, opts ...grpc.CallOption) (*BatchRemoveAssigneesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchMutationResponse)
+	out := new(BatchRemoveAssigneesResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_BatchRemoveAssignees_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -225,9 +225,9 @@ func (c *enterpriseResourceServiceClient) ListEnterpriseTagGroups(ctx context.Co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*EnterpriseTagGroupResponse, error) {
+func (c *enterpriseResourceServiceClient) CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*CreateEnterpriseTagGroupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseTagGroupResponse)
+	out := new(CreateEnterpriseTagGroupResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -235,9 +235,9 @@ func (c *enterpriseResourceServiceClient) CreateEnterpriseTagGroup(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*EnterpriseTagGroupResponse, error) {
+func (c *enterpriseResourceServiceClient) UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*UpdateEnterpriseTagGroupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseTagGroupResponse)
+	out := new(UpdateEnterpriseTagGroupResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -245,9 +245,9 @@ func (c *enterpriseResourceServiceClient) UpdateEnterpriseTagGroup(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*MutationResponse, error) {
+func (c *enterpriseResourceServiceClient) DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*DeleteEnterpriseTagGroupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MutationResponse)
+	out := new(DeleteEnterpriseTagGroupResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -255,9 +255,9 @@ func (c *enterpriseResourceServiceClient) DeleteEnterpriseTagGroup(ctx context.C
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*EnterpriseResourceImportResponse, error) {
+func (c *enterpriseResourceServiceClient) PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*PreviewEnterpriseResourceImportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseResourceImportResponse)
+	out := new(PreviewEnterpriseResourceImportResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_PreviewEnterpriseResourceImport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -265,9 +265,9 @@ func (c *enterpriseResourceServiceClient) PreviewEnterpriseResourceImport(ctx co
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) CommitEnterpriseResourceImport(ctx context.Context, in *CommitEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*EnterpriseResourceImportResponse, error) {
+func (c *enterpriseResourceServiceClient) CommitEnterpriseResourceImport(ctx context.Context, in *CommitEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*CommitEnterpriseResourceImportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnterpriseResourceImportResponse)
+	out := new(CommitEnterpriseResourceImportResponse)
 	err := c.cc.Invoke(ctx, EnterpriseResourceService_CommitEnterpriseResourceImport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -283,22 +283,22 @@ type EnterpriseResourceServiceServer interface {
 	PrepareEnterpriseResourceImageUpload(context.Context, *PrepareEnterpriseResourceImageUploadRequest) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	GetEnterpriseResourceImageAccess(context.Context, *GetEnterpriseResourceImageAccessRequest) (*GetEnterpriseResourceImageAccessResponse, error)
 	ListEnterpriseResources(context.Context, *ListEnterpriseResourcesRequest) (*ListEnterpriseResourcesResponse, error)
-	GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*EnterpriseResourceResponse, error)
-	CreateEnterpriseResource(context.Context, *CreateEnterpriseResourceRequest) (*EnterpriseResourceResponse, error)
-	UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*EnterpriseResourceResponse, error)
-	DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*MutationResponse, error)
-	BatchCreateAssociations(context.Context, *BatchAssociationRequest) (*BatchMutationResponse, error)
-	BatchDeleteAssociations(context.Context, *BatchAssociationRequest) (*BatchMutationResponse, error)
-	BatchAssignAddressTypes(context.Context, *BatchAddressTypeRequest) (*BatchMutationResponse, error)
-	BatchRemoveAddressTypes(context.Context, *BatchAddressTypeRequest) (*BatchMutationResponse, error)
-	BatchAssignAssignees(context.Context, *BatchAssigneeRequest) (*BatchMutationResponse, error)
-	BatchRemoveAssignees(context.Context, *BatchAssigneeRequest) (*BatchMutationResponse, error)
+	GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*GetEnterpriseResourceResponse, error)
+	CreateEnterpriseResource(context.Context, *CreateEnterpriseResourceRequest) (*CreateEnterpriseResourceResponse, error)
+	UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*UpdateEnterpriseResourceResponse, error)
+	DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*DeleteEnterpriseResourceResponse, error)
+	BatchCreateAssociations(context.Context, *BatchCreateAssociationsRequest) (*BatchCreateAssociationsResponse, error)
+	BatchDeleteAssociations(context.Context, *BatchDeleteAssociationsRequest) (*BatchDeleteAssociationsResponse, error)
+	BatchAssignAddressTypes(context.Context, *BatchAssignAddressTypesRequest) (*BatchAssignAddressTypesResponse, error)
+	BatchRemoveAddressTypes(context.Context, *BatchRemoveAddressTypesRequest) (*BatchRemoveAddressTypesResponse, error)
+	BatchAssignAssignees(context.Context, *BatchAssignAssigneesRequest) (*BatchAssignAssigneesResponse, error)
+	BatchRemoveAssignees(context.Context, *BatchRemoveAssigneesRequest) (*BatchRemoveAssigneesResponse, error)
 	ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error)
-	CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*EnterpriseTagGroupResponse, error)
-	UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*EnterpriseTagGroupResponse, error)
-	DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*MutationResponse, error)
-	PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*EnterpriseResourceImportResponse, error)
-	CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*EnterpriseResourceImportResponse, error)
+	CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*CreateEnterpriseTagGroupResponse, error)
+	UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*UpdateEnterpriseTagGroupResponse, error)
+	DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*DeleteEnterpriseTagGroupResponse, error)
+	PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*PreviewEnterpriseResourceImportResponse, error)
+	CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*CommitEnterpriseResourceImportResponse, error)
 	mustEmbedUnimplementedEnterpriseResourceServiceServer()
 }
 
@@ -321,52 +321,52 @@ func (UnimplementedEnterpriseResourceServiceServer) GetEnterpriseResourceImageAc
 func (UnimplementedEnterpriseResourceServiceServer) ListEnterpriseResources(context.Context, *ListEnterpriseResourcesRequest) (*ListEnterpriseResourcesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListEnterpriseResources not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*EnterpriseResourceResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*GetEnterpriseResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEnterpriseResource not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) CreateEnterpriseResource(context.Context, *CreateEnterpriseResourceRequest) (*EnterpriseResourceResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) CreateEnterpriseResource(context.Context, *CreateEnterpriseResourceRequest) (*CreateEnterpriseResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateEnterpriseResource not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*EnterpriseResourceResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*UpdateEnterpriseResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateEnterpriseResource not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*MutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*DeleteEnterpriseResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteEnterpriseResource not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchCreateAssociations(context.Context, *BatchAssociationRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchCreateAssociations(context.Context, *BatchCreateAssociationsRequest) (*BatchCreateAssociationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCreateAssociations not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchDeleteAssociations(context.Context, *BatchAssociationRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchDeleteAssociations(context.Context, *BatchDeleteAssociationsRequest) (*BatchDeleteAssociationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchDeleteAssociations not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchAssignAddressTypes(context.Context, *BatchAddressTypeRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchAssignAddressTypes(context.Context, *BatchAssignAddressTypesRequest) (*BatchAssignAddressTypesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchAssignAddressTypes not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchRemoveAddressTypes(context.Context, *BatchAddressTypeRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchRemoveAddressTypes(context.Context, *BatchRemoveAddressTypesRequest) (*BatchRemoveAddressTypesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchRemoveAddressTypes not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchAssignAssignees(context.Context, *BatchAssigneeRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchAssignAssignees(context.Context, *BatchAssignAssigneesRequest) (*BatchAssignAssigneesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchAssignAssignees not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) BatchRemoveAssignees(context.Context, *BatchAssigneeRequest) (*BatchMutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) BatchRemoveAssignees(context.Context, *BatchRemoveAssigneesRequest) (*BatchRemoveAssigneesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchRemoveAssignees not implemented")
 }
 func (UnimplementedEnterpriseResourceServiceServer) ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListEnterpriseTagGroups not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*EnterpriseTagGroupResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*CreateEnterpriseTagGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateEnterpriseTagGroup not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*EnterpriseTagGroupResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*UpdateEnterpriseTagGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateEnterpriseTagGroup not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*MutationResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*DeleteEnterpriseTagGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteEnterpriseTagGroup not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*EnterpriseResourceImportResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*PreviewEnterpriseResourceImportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PreviewEnterpriseResourceImport not implemented")
 }
-func (UnimplementedEnterpriseResourceServiceServer) CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*EnterpriseResourceImportResponse, error) {
+func (UnimplementedEnterpriseResourceServiceServer) CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*CommitEnterpriseResourceImportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CommitEnterpriseResourceImport not implemented")
 }
 func (UnimplementedEnterpriseResourceServiceServer) mustEmbedUnimplementedEnterpriseResourceServiceServer() {
@@ -536,7 +536,7 @@ func _EnterpriseResourceService_DeleteEnterpriseResource_Handler(srv interface{}
 }
 
 func _EnterpriseResourceService_BatchCreateAssociations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssociationRequest)
+	in := new(BatchCreateAssociationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -548,13 +548,13 @@ func _EnterpriseResourceService_BatchCreateAssociations_Handler(srv interface{},
 		FullMethod: EnterpriseResourceService_BatchCreateAssociations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchCreateAssociations(ctx, req.(*BatchAssociationRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchCreateAssociations(ctx, req.(*BatchCreateAssociationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_BatchDeleteAssociations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssociationRequest)
+	in := new(BatchDeleteAssociationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -566,13 +566,13 @@ func _EnterpriseResourceService_BatchDeleteAssociations_Handler(srv interface{},
 		FullMethod: EnterpriseResourceService_BatchDeleteAssociations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchDeleteAssociations(ctx, req.(*BatchAssociationRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchDeleteAssociations(ctx, req.(*BatchDeleteAssociationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_BatchAssignAddressTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAddressTypeRequest)
+	in := new(BatchAssignAddressTypesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -584,13 +584,13 @@ func _EnterpriseResourceService_BatchAssignAddressTypes_Handler(srv interface{},
 		FullMethod: EnterpriseResourceService_BatchAssignAddressTypes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchAssignAddressTypes(ctx, req.(*BatchAddressTypeRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchAssignAddressTypes(ctx, req.(*BatchAssignAddressTypesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_BatchRemoveAddressTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAddressTypeRequest)
+	in := new(BatchRemoveAddressTypesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -602,13 +602,13 @@ func _EnterpriseResourceService_BatchRemoveAddressTypes_Handler(srv interface{},
 		FullMethod: EnterpriseResourceService_BatchRemoveAddressTypes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchRemoveAddressTypes(ctx, req.(*BatchAddressTypeRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchRemoveAddressTypes(ctx, req.(*BatchRemoveAddressTypesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_BatchAssignAssignees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssigneeRequest)
+	in := new(BatchAssignAssigneesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -620,13 +620,13 @@ func _EnterpriseResourceService_BatchAssignAssignees_Handler(srv interface{}, ct
 		FullMethod: EnterpriseResourceService_BatchAssignAssignees_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchAssignAssignees(ctx, req.(*BatchAssigneeRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchAssignAssignees(ctx, req.(*BatchAssignAssigneesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _EnterpriseResourceService_BatchRemoveAssignees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssigneeRequest)
+	in := new(BatchRemoveAssigneesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -638,7 +638,7 @@ func _EnterpriseResourceService_BatchRemoveAssignees_Handler(srv interface{}, ct
 		FullMethod: EnterpriseResourceService_BatchRemoveAssignees_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).BatchRemoveAssignees(ctx, req.(*BatchAssigneeRequest))
+		return srv.(EnterpriseResourceServiceServer).BatchRemoveAssignees(ctx, req.(*BatchRemoveAssigneesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

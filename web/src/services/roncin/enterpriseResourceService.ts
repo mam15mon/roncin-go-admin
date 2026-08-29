@@ -4,10 +4,10 @@ import { request } from "@umijs/max";
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-address-types/batch-assign */
 export async function enterpriseResourceServiceBatchAssignAddressTypes(
-  body: API.BatchAddressTypeRequest,
+  body: API.BatchAssignAddressTypesRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchAssignAddressTypesResponse>(
     "/api/v1/enterprise-resource-address-types/batch-assign",
     {
       method: "POST",
@@ -22,10 +22,10 @@ export async function enterpriseResourceServiceBatchAssignAddressTypes(
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-address-types/batch-remove */
 export async function enterpriseResourceServiceBatchRemoveAddressTypes(
-  body: API.BatchAddressTypeRequest,
+  body: API.BatchRemoveAddressTypesRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchRemoveAddressTypesResponse>(
     "/api/v1/enterprise-resource-address-types/batch-remove",
     {
       method: "POST",
@@ -40,10 +40,10 @@ export async function enterpriseResourceServiceBatchRemoveAddressTypes(
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-assignees/batch-assign */
 export async function enterpriseResourceServiceBatchAssignAssignees(
-  body: API.BatchAssigneeRequest,
+  body: API.BatchAssignAssigneesRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchAssignAssigneesResponse>(
     "/api/v1/enterprise-resource-assignees/batch-assign",
     {
       method: "POST",
@@ -58,10 +58,10 @@ export async function enterpriseResourceServiceBatchAssignAssignees(
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-assignees/batch-remove */
 export async function enterpriseResourceServiceBatchRemoveAssignees(
-  body: API.BatchAssigneeRequest,
+  body: API.BatchRemoveAssigneesRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchRemoveAssigneesResponse>(
     "/api/v1/enterprise-resource-assignees/batch-remove",
     {
       method: "POST",
@@ -76,10 +76,10 @@ export async function enterpriseResourceServiceBatchRemoveAssignees(
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-associations/batch-create */
 export async function enterpriseResourceServiceBatchCreateAssociations(
-  body: API.BatchAssociationRequest,
+  body: API.BatchCreateAssociationsRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchCreateAssociationsResponse>(
     "/api/v1/enterprise-resource-associations/batch-create",
     {
       method: "POST",
@@ -94,10 +94,10 @@ export async function enterpriseResourceServiceBatchCreateAssociations(
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-associations/batch-delete */
 export async function enterpriseResourceServiceBatchDeleteAssociations(
-  body: API.BatchAssociationRequest,
+  body: API.BatchDeleteAssociationsRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BatchMutationResponse>(
+  return request<API.BatchDeleteAssociationsResponse>(
     "/api/v1/enterprise-resource-associations/batch-delete",
     {
       method: "POST",
@@ -164,7 +164,7 @@ export async function enterpriseResourceServiceCreateEnterpriseResource(
   body: API.CreateEnterpriseResourceRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.EnterpriseResourceResponse>(
+  return request<API.CreateEnterpriseResourceResponse>(
     "/api/v1/enterprise-resources",
     {
       method: "POST",
@@ -184,7 +184,7 @@ export async function enterpriseResourceServiceGetEnterpriseResource(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.EnterpriseResourceResponse>(
+  return request<API.GetEnterpriseResourceResponse>(
     `/api/v1/enterprise-resources/${param0}`,
     {
       method: "GET",
@@ -202,7 +202,7 @@ export async function enterpriseResourceServiceUpdateEnterpriseResource(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.EnterpriseResourceResponse>(
+  return request<API.UpdateEnterpriseResourceResponse>(
     `/api/v1/enterprise-resources/${param0}`,
     {
       method: "PUT",
@@ -223,7 +223,7 @@ export async function enterpriseResourceServiceDeleteEnterpriseResource(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.MutationResponse>(
+  return request<API.DeleteEnterpriseResourceResponse>(
     `/api/v1/enterprise-resources/${param0}`,
     {
       method: "DELETE",
@@ -255,7 +255,7 @@ export async function enterpriseResourceServiceCommitEnterpriseResourceImport(
   body: API.CommitEnterpriseResourceImportRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.EnterpriseResourceImportResponse>(
+  return request<API.CommitEnterpriseResourceImportResponse>(
     "/api/v1/enterprise-resources/import-commit",
     {
       method: "POST",
@@ -273,7 +273,7 @@ export async function enterpriseResourceServicePreviewEnterpriseResourceImport(
   body: API.PreviewEnterpriseResourceImportRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.EnterpriseResourceImportResponse>(
+  return request<API.PreviewEnterpriseResourceImportResponse>(
     "/api/v1/enterprise-resources/import-preview",
     {
       method: "POST",
@@ -304,7 +304,7 @@ export async function enterpriseResourceServiceCreateEnterpriseTagGroup(
   body: API.CreateEnterpriseTagGroupRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.EnterpriseTagGroupResponse>(
+  return request<API.CreateEnterpriseTagGroupResponse>(
     "/api/v1/enterprise-tag-groups",
     {
       method: "POST",
@@ -325,7 +325,7 @@ export async function enterpriseResourceServiceUpdateEnterpriseTagGroup(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.EnterpriseTagGroupResponse>(
+  return request<API.UpdateEnterpriseTagGroupResponse>(
     `/api/v1/enterprise-tag-groups/${param0}`,
     {
       method: "PUT",
@@ -346,7 +346,7 @@ export async function enterpriseResourceServiceDeleteEnterpriseTagGroup(
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.MutationResponse>(
+  return request<API.DeleteEnterpriseTagGroupResponse>(
     `/api/v1/enterprise-tag-groups/${param0}`,
     {
       method: "DELETE",

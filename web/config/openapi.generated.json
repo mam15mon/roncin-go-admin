@@ -1136,7 +1136,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAddressTypeRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssignAddressTypesRequest"
               }
             }
           },
@@ -1148,7 +1148,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssignAddressTypesResponse"
                 }
               }
             }
@@ -1166,7 +1166,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAddressTypeRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchRemoveAddressTypesRequest"
               }
             }
           },
@@ -1178,7 +1178,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchRemoveAddressTypesResponse"
                 }
               }
             }
@@ -1196,7 +1196,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssigneeRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssignAssigneesRequest"
               }
             }
           },
@@ -1208,7 +1208,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssignAssigneesResponse"
                 }
               }
             }
@@ -1226,7 +1226,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssigneeRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchRemoveAssigneesRequest"
               }
             }
           },
@@ -1238,7 +1238,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchRemoveAssigneesResponse"
                 }
               }
             }
@@ -1256,7 +1256,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssociationRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchCreateAssociationsRequest"
               }
             }
           },
@@ -1268,7 +1268,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchCreateAssociationsResponse"
                 }
               }
             }
@@ -1286,7 +1286,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.BatchAssociationRequest"
+                "$ref": "#/components/schemas/enterprise_resource.v1.BatchDeleteAssociationsRequest"
               }
             }
           },
@@ -1298,7 +1298,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchMutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.BatchDeleteAssociationsResponse"
                 }
               }
             }
@@ -1479,7 +1479,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.CreateEnterpriseResourceResponse"
                 }
               }
             }
@@ -1509,7 +1509,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.CommitEnterpriseResourceImportResponse"
                 }
               }
             }
@@ -1539,7 +1539,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.PreviewEnterpriseResourceImportResponse"
                 }
               }
             }
@@ -1569,7 +1569,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.GetEnterpriseResourceResponse"
                 }
               }
             }
@@ -1607,7 +1607,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.UpdateEnterpriseResourceResponse"
                 }
               }
             }
@@ -1635,7 +1635,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.MutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.DeleteEnterpriseResourceResponse"
                 }
               }
             }
@@ -1713,7 +1713,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.CreateEnterpriseTagGroupResponse"
                 }
               }
             }
@@ -1753,7 +1753,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.UpdateEnterpriseTagGroupResponse"
                 }
               }
             }
@@ -1781,7 +1781,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.MutationResponse"
+                  "$ref": "#/components/schemas/enterprise_resource.v1.DeleteEnterpriseTagGroupResponse"
                 }
               }
             }
@@ -9838,7 +9838,7 @@
           }
         }
       },
-      "enterprise_resource.v1.BatchAddressTypeRequest": {
+      "enterprise_resource.v1.BatchAssignAddressTypesRequest": {
         "required": [
           "resourceIds",
           "addressTypes"
@@ -9860,7 +9860,29 @@
           }
         }
       },
-      "enterprise_resource.v1.BatchAssigneeRequest": {
+      "enterprise_resource.v1.BatchAssignAddressTypesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "affectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchAssignAssigneesRequest": {
         "required": [
           "resourceIds",
           "assigneeIds"
@@ -9881,7 +9903,29 @@
           }
         }
       },
-      "enterprise_resource.v1.BatchAssociationRequest": {
+      "enterprise_resource.v1.BatchAssignAssigneesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "affectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchCreateAssociationsRequest": {
         "required": [
           "resourceIds",
           "partnerIds"
@@ -9902,7 +9946,137 @@
           }
         }
       },
-      "enterprise_resource.v1.BatchMutationResponse": {
+      "enterprise_resource.v1.BatchCreateAssociationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "affectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchDeleteAssociationsRequest": {
+        "required": [
+          "resourceIds",
+          "partnerIds"
+        ],
+        "type": "object",
+        "properties": {
+          "resourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "partnerIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchDeleteAssociationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "affectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchRemoveAddressTypesRequest": {
+        "required": [
+          "resourceIds",
+          "addressTypes"
+        ],
+        "type": "object",
+        "properties": {
+          "resourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "addressTypes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchRemoveAddressTypesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "affectedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchRemoveAssigneesRequest": {
+        "required": [
+          "resourceIds",
+          "assigneeIds"
+        ],
+        "type": "object",
+        "properties": {
+          "resourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assigneeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "enterprise_resource.v1.BatchRemoveAssigneesResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -9943,6 +10117,42 @@
           }
         }
       },
+      "enterprise_resource.v1.CommitEnterpriseResourceImportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow"
+            }
+          },
+          "validCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "enterprise_resource.v1.CreateEnterpriseResourceRequest": {
         "required": [
           "resource"
@@ -9954,6 +10164,27 @@
           }
         }
       },
+      "enterprise_resource.v1.CreateEnterpriseResourceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResource"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "enterprise_resource.v1.CreateEnterpriseTagGroupRequest": {
         "required": [
           "group"
@@ -9962,6 +10193,63 @@
         "properties": {
           "group": {
             "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput"
+          }
+        }
+      },
+      "enterprise_resource.v1.CreateEnterpriseTagGroupResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.DeleteEnterpriseResourceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.DeleteEnterpriseTagGroupResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -10090,42 +10378,6 @@
           }
         }
       },
-      "enterprise_resource.v1.EnterpriseResourceImportResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow"
-            }
-          },
-          "validCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "invalidCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "enterprise_resource.v1.EnterpriseResourceImportRow": {
         "type": "object",
         "properties": {
@@ -10251,27 +10503,6 @@
           }
         }
       },
-      "enterprise_resource.v1.EnterpriseResourceResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResource"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "enterprise_resource.v1.EnterpriseResourceTag": {
         "type": "object",
         "properties": {
@@ -10319,27 +10550,6 @@
           "sortOrder": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "enterprise_resource.v1.EnterpriseTagGroupResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },
@@ -10391,6 +10601,27 @@
           },
           "expiresAt": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.GetEnterpriseResourceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResource"
           },
           "traceId": {
             "type": "string"
@@ -10450,24 +10681,6 @@
             "items": {
               "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
             }
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.MutationResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
           },
           "traceId": {
             "type": "string"
@@ -10560,6 +10773,42 @@
           }
         }
       },
+      "enterprise_resource.v1.PreviewEnterpriseResourceImportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow"
+            }
+          },
+          "validCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "enterprise_resource.v1.UpdateEnterpriseResourceRequest": {
         "required": [
           "id",
@@ -10575,6 +10824,27 @@
           }
         }
       },
+      "enterprise_resource.v1.UpdateEnterpriseResourceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResource"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "enterprise_resource.v1.UpdateEnterpriseTagGroupRequest": {
         "required": [
           "id",
@@ -10587,6 +10857,27 @@
           },
           "group": {
             "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput"
+          }
+        }
+      },
+      "enterprise_resource.v1.UpdateEnterpriseTagGroupResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

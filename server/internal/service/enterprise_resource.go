@@ -108,7 +108,7 @@ func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context,
 	return &v1.ListEnterpriseResourcesResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, request *v1.GetEnterpriseResourceRequest) (*v1.EnterpriseResourceResponse, error) {
+func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, request *v1.GetEnterpriseResourceRequest) (*v1.GetEnterpriseResourceResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -117,10 +117,10 @@ func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, r
 	if err != nil {
 		return nil, err
 	}
-	return enterpriseResourceResponse(ctx, item), nil
+	return &v1.GetEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context, request *v1.CreateEnterpriseResourceRequest) (*v1.EnterpriseResourceResponse, error) {
+func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context, request *v1.CreateEnterpriseResourceRequest) (*v1.CreateEnterpriseResourceResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -133,10 +133,10 @@ func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return enterpriseResourceResponse(ctx, item), nil
+	return &v1.CreateEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) UpdateEnterpriseResource(ctx context.Context, request *v1.UpdateEnterpriseResourceRequest) (*v1.EnterpriseResourceResponse, error) {
+func (s *EnterpriseResourceService) UpdateEnterpriseResource(ctx context.Context, request *v1.UpdateEnterpriseResourceRequest) (*v1.UpdateEnterpriseResourceResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -149,10 +149,10 @@ func (s *EnterpriseResourceService) UpdateEnterpriseResource(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return enterpriseResourceResponse(ctx, item), nil
+	return &v1.UpdateEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) DeleteEnterpriseResource(ctx context.Context, request *v1.DeleteEnterpriseResourceRequest) (*v1.MutationResponse, error) {
+func (s *EnterpriseResourceService) DeleteEnterpriseResource(ctx context.Context, request *v1.DeleteEnterpriseResourceRequest) (*v1.DeleteEnterpriseResourceResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -160,83 +160,107 @@ func (s *EnterpriseResourceService) DeleteEnterpriseResource(ctx context.Context
 	if err := s.usecase.Delete(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
 		return nil, err
 	}
-	return &v1.MutationResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.DeleteEnterpriseResourceResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) BatchCreateAssociations(ctx context.Context, request *v1.BatchAssociationRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAssociations(ctx, request, true)
+func (s *EnterpriseResourceService) BatchCreateAssociations(ctx context.Context, request *v1.BatchCreateAssociationsRequest) (*v1.BatchCreateAssociationsResponse, error) {
+	count, err := s.batchAssociations(ctx, request.GetResourceIds(), request.GetPartnerIds(), true)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchCreateAssociationsResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) BatchDeleteAssociations(ctx context.Context, request *v1.BatchAssociationRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAssociations(ctx, request, false)
+func (s *EnterpriseResourceService) BatchDeleteAssociations(ctx context.Context, request *v1.BatchDeleteAssociationsRequest) (*v1.BatchDeleteAssociationsResponse, error) {
+	count, err := s.batchAssociations(ctx, request.GetResourceIds(), request.GetPartnerIds(), false)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchDeleteAssociationsResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) batchAssociations(ctx context.Context, request *v1.BatchAssociationRequest, create bool) (*v1.BatchMutationResponse, error) {
+func (s *EnterpriseResourceService) batchAssociations(ctx context.Context, resourceIDValues, partnerIDValues []string, create bool) (int, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return 0, biz.ErrSessionRequired
 	}
-	resourceIDs, err := enterpriseParseUUIDs(request.GetResourceIds())
+	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	partnerIDs, err := enterpriseParseUUIDs(request.GetPartnerIds())
+	partnerIDs, err := enterpriseParseUUIDs(partnerIDValues)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	count, err := s.usecase.BatchPartners(ctx, principal.Organization.ID, principal.UserID, resourceIDs, partnerIDs, create)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return batchMutationResponse(ctx, count), nil
+	return count, nil
 }
-func (s *EnterpriseResourceService) BatchAssignAddressTypes(ctx context.Context, request *v1.BatchAddressTypeRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAddressTypes(ctx, request, true)
-}
-func (s *EnterpriseResourceService) BatchRemoveAddressTypes(ctx context.Context, request *v1.BatchAddressTypeRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAddressTypes(ctx, request, false)
-}
-func (s *EnterpriseResourceService) batchAddressTypes(ctx context.Context, request *v1.BatchAddressTypeRequest, assign bool) (*v1.BatchMutationResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
-	}
-	resourceIDs, err := enterpriseParseUUIDs(request.GetResourceIds())
+func (s *EnterpriseResourceService) BatchAssignAddressTypes(ctx context.Context, request *v1.BatchAssignAddressTypesRequest) (*v1.BatchAssignAddressTypesResponse, error) {
+	count, err := s.batchAddressTypes(ctx, request.GetResourceIds(), request.GetAddressTypes(), true)
 	if err != nil {
 		return nil, err
 	}
-	values := make([]biz.EnterpriseAddressType, len(request.GetAddressTypes()))
-	for i, value := range request.GetAddressTypes() {
+	return &v1.BatchAssignAddressTypesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *EnterpriseResourceService) BatchRemoveAddressTypes(ctx context.Context, request *v1.BatchRemoveAddressTypesRequest) (*v1.BatchRemoveAddressTypesResponse, error) {
+	count, err := s.batchAddressTypes(ctx, request.GetResourceIds(), request.GetAddressTypes(), false)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchRemoveAddressTypesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+func (s *EnterpriseResourceService) batchAddressTypes(ctx context.Context, resourceIDValues []string, addressTypeValues []v1.EnterpriseAddressType, assign bool) (int, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return 0, biz.ErrSessionRequired
+	}
+	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
+	if err != nil {
+		return 0, err
+	}
+	values := make([]biz.EnterpriseAddressType, len(addressTypeValues))
+	for i, value := range addressTypeValues {
 		values[i] = enterpriseAddressTypeFromAPI(value)
 	}
 	count, err := s.usecase.BatchAddressTypes(ctx, principal.Organization.ID, principal.UserID, resourceIDs, values, assign)
 	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+func (s *EnterpriseResourceService) BatchAssignAssignees(ctx context.Context, request *v1.BatchAssignAssigneesRequest) (*v1.BatchAssignAssigneesResponse, error) {
+	count, err := s.batchAssignees(ctx, request.GetResourceIds(), request.GetAssigneeIds(), true)
+	if err != nil {
 		return nil, err
 	}
-	return batchMutationResponse(ctx, count), nil
+	return &v1.BatchAssignAssigneesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) BatchAssignAssignees(ctx context.Context, request *v1.BatchAssigneeRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAssignees(ctx, request, true)
+func (s *EnterpriseResourceService) BatchRemoveAssignees(ctx context.Context, request *v1.BatchRemoveAssigneesRequest) (*v1.BatchRemoveAssigneesResponse, error) {
+	count, err := s.batchAssignees(ctx, request.GetResourceIds(), request.GetAssigneeIds(), false)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.BatchRemoveAssigneesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) BatchRemoveAssignees(ctx context.Context, request *v1.BatchAssigneeRequest) (*v1.BatchMutationResponse, error) {
-	return s.batchAssignees(ctx, request, false)
-}
-func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, request *v1.BatchAssigneeRequest, assign bool) (*v1.BatchMutationResponse, error) {
+func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resourceIDValues, assigneeIDValues []string, assign bool) (int, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
-		return nil, biz.ErrSessionRequired
+		return 0, biz.ErrSessionRequired
 	}
-	resourceIDs, err := enterpriseParseUUIDs(request.GetResourceIds())
+	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	userIDs, err := enterpriseParseUUIDs(request.GetAssigneeIds())
+	userIDs, err := enterpriseParseUUIDs(assigneeIDValues)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	count, err := s.usecase.BatchAssignees(ctx, principal.Organization.ID, principal.UserID, resourceIDs, userIDs, assign)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return batchMutationResponse(ctx, count), nil
+	return count, nil
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context, _ *v1.ListEnterpriseTagGroupsRequest) (*v1.ListEnterpriseTagGroupsResponse, error) {
@@ -254,7 +278,7 @@ func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context,
 	}
 	return &v1.ListEnterpriseTagGroupsResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context, request *v1.CreateEnterpriseTagGroupRequest) (*v1.EnterpriseTagGroupResponse, error) {
+func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context, request *v1.CreateEnterpriseTagGroupRequest) (*v1.CreateEnterpriseTagGroupResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -264,9 +288,9 @@ func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return enterpriseTagGroupResponse(ctx, item), nil
+	return &v1.CreateEnterpriseTagGroupResponse{Success: true, Message: "OK", Data: enterpriseTagGroupToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context, request *v1.UpdateEnterpriseTagGroupRequest) (*v1.EnterpriseTagGroupResponse, error) {
+func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context, request *v1.UpdateEnterpriseTagGroupRequest) (*v1.UpdateEnterpriseTagGroupResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -275,9 +299,9 @@ func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return enterpriseTagGroupResponse(ctx, item), nil
+	return &v1.UpdateEnterpriseTagGroupResponse{Success: true, Message: "OK", Data: enterpriseTagGroupToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context, request *v1.DeleteEnterpriseTagGroupRequest) (*v1.MutationResponse, error) {
+func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context, request *v1.DeleteEnterpriseTagGroupRequest) (*v1.DeleteEnterpriseTagGroupResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -285,10 +309,10 @@ func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context
 	if err := s.usecase.DeleteTagGroup(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
 		return nil, err
 	}
-	return &v1.MutationResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.DeleteEnterpriseTagGroupResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
-func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.EnterpriseResourceImportResponse, error) {
+func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.PreviewEnterpriseResourceImportResponse, error) {
 	if _, ok := biz.PrincipalFromContext(ctx); !ok {
 		return nil, biz.ErrSessionRequired
 	}
@@ -297,9 +321,10 @@ func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.
 		return nil, err
 	}
 	values, errs := s.usecase.PreviewImport(inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()))
-	return enterpriseResourceImportResponse(ctx, values, errs, 0), nil
+	result := enterpriseResourceImportResult(values, errs, 0)
+	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.success, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: result.createdCount, TraceId: requestmeta.TraceID(ctx)}, nil
 }
-func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.Context, request *v1.CommitEnterpriseResourceImportRequest) (*v1.EnterpriseResourceImportResponse, error) {
+func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.Context, request *v1.CommitEnterpriseResourceImportRequest) (*v1.CommitEnterpriseResourceImportResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
 		return nil, biz.ErrSessionRequired
@@ -312,7 +337,8 @@ func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.C
 	if err != nil && len(rowErrors) == 0 {
 		return nil, err
 	}
-	return enterpriseResourceImportResponse(ctx, values, rowErrors, len(values)), nil
+	result := enterpriseResourceImportResult(values, rowErrors, len(values))
+	return &v1.CommitEnterpriseResourceImportResponse{Success: result.success, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: result.createdCount, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 
 func enterpriseResourceFromAPI(value *v1.EnterpriseResourceInput) (*biz.EnterpriseResource, error) {
@@ -459,12 +485,6 @@ func enterpriseUUIDStrings(values []uuid.UUID) []string {
 	}
 	return result
 }
-func enterpriseResourceResponse(ctx context.Context, item *biz.EnterpriseResource) *v1.EnterpriseResourceResponse {
-	return &v1.EnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}
-}
-func batchMutationResponse(ctx context.Context, count int) *v1.BatchMutationResponse {
-	return &v1.BatchMutationResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}
-}
 func enterpriseTagGroupFromAPI(value *v1.EnterpriseTagGroupInput) *biz.EnterpriseTagGroup {
 	if value == nil {
 		return nil
@@ -473,9 +493,6 @@ func enterpriseTagGroupFromAPI(value *v1.EnterpriseTagGroupInput) *biz.Enterpris
 }
 func enterpriseTagGroupToAPI(value *biz.EnterpriseTagGroup) *v1.EnterpriseTagGroup {
 	return &v1.EnterpriseTagGroup{Id: value.ID.String(), Name: value.Name, Color: value.Color, SortOrder: int32(value.SortOrder), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
-}
-func enterpriseTagGroupResponse(ctx context.Context, item *biz.EnterpriseTagGroup) *v1.EnterpriseTagGroupResponse {
-	return &v1.EnterpriseTagGroupResponse{Success: true, Message: "OK", Data: enterpriseTagGroupToAPI(item), TraceId: requestmeta.TraceID(ctx)}
 }
 func enterpriseResourceInputsFromAPI(values []*v1.EnterpriseResourceInput) ([]*biz.EnterpriseResource, error) {
 	result := make([]*biz.EnterpriseResource, len(values))
@@ -488,7 +505,15 @@ func enterpriseResourceInputsFromAPI(values []*v1.EnterpriseResourceInput) ([]*b
 	}
 	return result, nil
 }
-func enterpriseResourceImportResponse(ctx context.Context, values []*biz.EnterpriseResource, errs []error, created int) *v1.EnterpriseResourceImportResponse {
+
+type enterpriseResourceImportResultValue struct {
+	success                  bool
+	rows                     []*v1.EnterpriseResourceImportRow
+	validCount, invalidCount int32
+	createdCount             int32
+}
+
+func enterpriseResourceImportResult(values []*biz.EnterpriseResource, errs []error, created int) enterpriseResourceImportResultValue {
 	rows := make([]*v1.EnterpriseResourceImportRow, len(errs))
 	valid := 0
 	for i, err := range errs {
@@ -503,7 +528,7 @@ func enterpriseResourceImportResponse(ctx context.Context, values []*biz.Enterpr
 		}
 		rows[i] = row
 	}
-	return &v1.EnterpriseResourceImportResponse{Success: len(errs)-valid == 0, Message: "OK", Rows: rows, ValidCount: int32(valid), InvalidCount: int32(len(errs) - valid), CreatedCount: int32(created), TraceId: requestmeta.TraceID(ctx)}
+	return enterpriseResourceImportResultValue{success: len(errs)-valid == 0, rows: rows, validCount: int32(valid), invalidCount: int32(len(errs) - valid), createdCount: int32(created)}
 }
 func enterpriseResourceToInputAPI(value *biz.EnterpriseResource) *v1.EnterpriseResourceInput {
 	result := &v1.EnterpriseResourceInput{ResourceType: enterpriseResourceTypeToAPI(value.ResourceType), ShortName: value.ShortName, Enabled: value.Enabled, SortOrder: int32(value.SortOrder)}

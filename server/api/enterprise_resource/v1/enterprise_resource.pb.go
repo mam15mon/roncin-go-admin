@@ -1849,7 +1849,7 @@ func (x *DeleteEnterpriseResourceRequest) GetId() string {
 	return ""
 }
 
-type EnterpriseResourceResponse struct {
+type GetEnterpriseResourceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -1860,20 +1860,20 @@ type EnterpriseResourceResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EnterpriseResourceResponse) Reset() {
-	*x = EnterpriseResourceResponse{}
+func (x *GetEnterpriseResourceResponse) Reset() {
+	*x = GetEnterpriseResourceResponse{}
 	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EnterpriseResourceResponse) String() string {
+func (x *GetEnterpriseResourceResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnterpriseResourceResponse) ProtoMessage() {}
+func (*GetEnterpriseResourceResponse) ProtoMessage() {}
 
-func (x *EnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
+func (x *GetEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1885,40 +1885,192 @@ func (x *EnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnterpriseResourceResponse.ProtoReflect.Descriptor instead.
-func (*EnterpriseResourceResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
+func (*GetEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
 	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *EnterpriseResourceResponse) GetSuccess() bool {
+func (x *GetEnterpriseResourceResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *EnterpriseResourceResponse) GetCode() int32 {
+func (x *GetEnterpriseResourceResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *EnterpriseResourceResponse) GetMessage() string {
+func (x *GetEnterpriseResourceResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *EnterpriseResourceResponse) GetData() *EnterpriseResource {
+func (x *GetEnterpriseResourceResponse) GetData() *EnterpriseResource {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *EnterpriseResourceResponse) GetTraceId() string {
+func (x *GetEnterpriseResourceResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type CreateEnterpriseResourceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *EnterpriseResource    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateEnterpriseResourceResponse) Reset() {
+	*x = CreateEnterpriseResourceResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateEnterpriseResourceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateEnterpriseResourceResponse) ProtoMessage() {}
+
+func (x *CreateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
+func (*CreateEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreateEnterpriseResourceResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateEnterpriseResourceResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateEnterpriseResourceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateEnterpriseResourceResponse) GetData() *EnterpriseResource {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateEnterpriseResourceResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateEnterpriseResourceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *EnterpriseResource    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEnterpriseResourceResponse) Reset() {
+	*x = UpdateEnterpriseResourceResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEnterpriseResourceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEnterpriseResourceResponse) ProtoMessage() {}
+
+func (x *UpdateEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
+func (*UpdateEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpdateEnterpriseResourceResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateEnterpriseResourceResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateEnterpriseResourceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateEnterpriseResourceResponse) GetData() *EnterpriseResource {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateEnterpriseResourceResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -1941,7 +2093,7 @@ type ListEnterpriseResourcesResponse struct {
 
 func (x *ListEnterpriseResourcesResponse) Reset() {
 	*x = ListEnterpriseResourcesResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1953,7 +2105,7 @@ func (x *ListEnterpriseResourcesResponse) String() string {
 func (*ListEnterpriseResourcesResponse) ProtoMessage() {}
 
 func (x *ListEnterpriseResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[20]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1966,7 +2118,7 @@ func (x *ListEnterpriseResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{20}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListEnterpriseResourcesResponse) GetSuccess() bool {
@@ -2025,7 +2177,7 @@ func (x *ListEnterpriseResourcesResponse) GetTraceId() string {
 	return ""
 }
 
-type MutationResponse struct {
+type DeleteEnterpriseResourceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2035,21 +2187,21 @@ type MutationResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *MutationResponse) Reset() {
-	*x = MutationResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+func (x *DeleteEnterpriseResourceResponse) Reset() {
+	*x = DeleteEnterpriseResourceResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *MutationResponse) String() string {
+func (x *DeleteEnterpriseResourceResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MutationResponse) ProtoMessage() {}
+func (*DeleteEnterpriseResourceResponse) ProtoMessage() {}
 
-func (x *MutationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[21]
+func (x *DeleteEnterpriseResourceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2060,40 +2212,92 @@ func (x *MutationResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MutationResponse.ProtoReflect.Descriptor instead.
-func (*MutationResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{21}
+// Deprecated: Use DeleteEnterpriseResourceResponse.ProtoReflect.Descriptor instead.
+func (*DeleteEnterpriseResourceResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{23}
 }
 
-func (x *MutationResponse) GetSuccess() bool {
+func (x *DeleteEnterpriseResourceResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *MutationResponse) GetCode() int32 {
+func (x *DeleteEnterpriseResourceResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *MutationResponse) GetMessage() string {
+func (x *DeleteEnterpriseResourceResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *MutationResponse) GetTraceId() string {
+func (x *DeleteEnterpriseResourceResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type BatchMutationResponse struct {
+type BatchCreateAssociationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ResourceIds   []string               `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
+	PartnerIds    []string               `protobuf:"bytes,2,rep,name=partner_ids,json=partnerIds,proto3" json:"partner_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchCreateAssociationsRequest) Reset() {
+	*x = BatchCreateAssociationsRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchCreateAssociationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchCreateAssociationsRequest) ProtoMessage() {}
+
+func (x *BatchCreateAssociationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchCreateAssociationsRequest.ProtoReflect.Descriptor instead.
+func (*BatchCreateAssociationsRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *BatchCreateAssociationsRequest) GetResourceIds() []string {
+	if x != nil {
+		return x.ResourceIds
+	}
+	return nil
+}
+
+func (x *BatchCreateAssociationsRequest) GetPartnerIds() []string {
+	if x != nil {
+		return x.PartnerIds
+	}
+	return nil
+}
+
+type BatchCreateAssociationsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2104,21 +2308,21 @@ type BatchMutationResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchMutationResponse) Reset() {
-	*x = BatchMutationResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
+func (x *BatchCreateAssociationsResponse) Reset() {
+	*x = BatchCreateAssociationsResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchMutationResponse) String() string {
+func (x *BatchCreateAssociationsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchMutationResponse) ProtoMessage() {}
+func (*BatchCreateAssociationsResponse) ProtoMessage() {}
 
-func (x *BatchMutationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[22]
+func (x *BatchCreateAssociationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2129,47 +2333,47 @@ func (x *BatchMutationResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchMutationResponse.ProtoReflect.Descriptor instead.
-func (*BatchMutationResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{22}
+// Deprecated: Use BatchCreateAssociationsResponse.ProtoReflect.Descriptor instead.
+func (*BatchCreateAssociationsResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *BatchMutationResponse) GetSuccess() bool {
+func (x *BatchCreateAssociationsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *BatchMutationResponse) GetCode() int32 {
+func (x *BatchCreateAssociationsResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *BatchMutationResponse) GetMessage() string {
+func (x *BatchCreateAssociationsResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *BatchMutationResponse) GetAffectedCount() int32 {
+func (x *BatchCreateAssociationsResponse) GetAffectedCount() int32 {
 	if x != nil {
 		return x.AffectedCount
 	}
 	return 0
 }
 
-func (x *BatchMutationResponse) GetTraceId() string {
+func (x *BatchCreateAssociationsResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type BatchAssociationRequest struct {
+type BatchDeleteAssociationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ResourceIds   []string               `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
 	PartnerIds    []string               `protobuf:"bytes,2,rep,name=partner_ids,json=partnerIds,proto3" json:"partner_ids,omitempty"`
@@ -2177,21 +2381,21 @@ type BatchAssociationRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchAssociationRequest) Reset() {
-	*x = BatchAssociationRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
+func (x *BatchDeleteAssociationsRequest) Reset() {
+	*x = BatchDeleteAssociationsRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchAssociationRequest) String() string {
+func (x *BatchDeleteAssociationsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchAssociationRequest) ProtoMessage() {}
+func (*BatchDeleteAssociationsRequest) ProtoMessage() {}
 
-func (x *BatchAssociationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[23]
+func (x *BatchDeleteAssociationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2202,26 +2406,102 @@ func (x *BatchAssociationRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchAssociationRequest.ProtoReflect.Descriptor instead.
-func (*BatchAssociationRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{23}
+// Deprecated: Use BatchDeleteAssociationsRequest.ProtoReflect.Descriptor instead.
+func (*BatchDeleteAssociationsRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *BatchAssociationRequest) GetResourceIds() []string {
+func (x *BatchDeleteAssociationsRequest) GetResourceIds() []string {
 	if x != nil {
 		return x.ResourceIds
 	}
 	return nil
 }
 
-func (x *BatchAssociationRequest) GetPartnerIds() []string {
+func (x *BatchDeleteAssociationsRequest) GetPartnerIds() []string {
 	if x != nil {
 		return x.PartnerIds
 	}
 	return nil
 }
 
-type BatchAddressTypeRequest struct {
+type BatchDeleteAssociationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	AffectedCount int32                  `protobuf:"varint,4,opt,name=affected_count,json=affectedCount,proto3" json:"affected_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchDeleteAssociationsResponse) Reset() {
+	*x = BatchDeleteAssociationsResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchDeleteAssociationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchDeleteAssociationsResponse) ProtoMessage() {}
+
+func (x *BatchDeleteAssociationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchDeleteAssociationsResponse.ProtoReflect.Descriptor instead.
+func (*BatchDeleteAssociationsResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *BatchDeleteAssociationsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BatchDeleteAssociationsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *BatchDeleteAssociationsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BatchDeleteAssociationsResponse) GetAffectedCount() int32 {
+	if x != nil {
+		return x.AffectedCount
+	}
+	return 0
+}
+
+func (x *BatchDeleteAssociationsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchAssignAddressTypesRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	ResourceIds   []string                `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
 	AddressTypes  []EnterpriseAddressType `protobuf:"varint,2,rep,packed,name=address_types,json=addressTypes,proto3,enum=enterprise_resource.v1.EnterpriseAddressType" json:"address_types,omitempty"`
@@ -2229,21 +2509,21 @@ type BatchAddressTypeRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchAddressTypeRequest) Reset() {
-	*x = BatchAddressTypeRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+func (x *BatchAssignAddressTypesRequest) Reset() {
+	*x = BatchAssignAddressTypesRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchAddressTypeRequest) String() string {
+func (x *BatchAssignAddressTypesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchAddressTypeRequest) ProtoMessage() {}
+func (*BatchAssignAddressTypesRequest) ProtoMessage() {}
 
-func (x *BatchAddressTypeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[24]
+func (x *BatchAssignAddressTypesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2254,26 +2534,230 @@ func (x *BatchAddressTypeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchAddressTypeRequest.ProtoReflect.Descriptor instead.
-func (*BatchAddressTypeRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{24}
+// Deprecated: Use BatchAssignAddressTypesRequest.ProtoReflect.Descriptor instead.
+func (*BatchAssignAddressTypesRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *BatchAddressTypeRequest) GetResourceIds() []string {
+func (x *BatchAssignAddressTypesRequest) GetResourceIds() []string {
 	if x != nil {
 		return x.ResourceIds
 	}
 	return nil
 }
 
-func (x *BatchAddressTypeRequest) GetAddressTypes() []EnterpriseAddressType {
+func (x *BatchAssignAddressTypesRequest) GetAddressTypes() []EnterpriseAddressType {
 	if x != nil {
 		return x.AddressTypes
 	}
 	return nil
 }
 
-type BatchAssigneeRequest struct {
+type BatchAssignAddressTypesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	AffectedCount int32                  `protobuf:"varint,4,opt,name=affected_count,json=affectedCount,proto3" json:"affected_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchAssignAddressTypesResponse) Reset() {
+	*x = BatchAssignAddressTypesResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchAssignAddressTypesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchAssignAddressTypesResponse) ProtoMessage() {}
+
+func (x *BatchAssignAddressTypesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchAssignAddressTypesResponse.ProtoReflect.Descriptor instead.
+func (*BatchAssignAddressTypesResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *BatchAssignAddressTypesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BatchAssignAddressTypesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *BatchAssignAddressTypesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BatchAssignAddressTypesResponse) GetAffectedCount() int32 {
+	if x != nil {
+		return x.AffectedCount
+	}
+	return 0
+}
+
+func (x *BatchAssignAddressTypesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchRemoveAddressTypesRequest struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	ResourceIds   []string                `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
+	AddressTypes  []EnterpriseAddressType `protobuf:"varint,2,rep,packed,name=address_types,json=addressTypes,proto3,enum=enterprise_resource.v1.EnterpriseAddressType" json:"address_types,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveAddressTypesRequest) Reset() {
+	*x = BatchRemoveAddressTypesRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveAddressTypesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveAddressTypesRequest) ProtoMessage() {}
+
+func (x *BatchRemoveAddressTypesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveAddressTypesRequest.ProtoReflect.Descriptor instead.
+func (*BatchRemoveAddressTypesRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *BatchRemoveAddressTypesRequest) GetResourceIds() []string {
+	if x != nil {
+		return x.ResourceIds
+	}
+	return nil
+}
+
+func (x *BatchRemoveAddressTypesRequest) GetAddressTypes() []EnterpriseAddressType {
+	if x != nil {
+		return x.AddressTypes
+	}
+	return nil
+}
+
+type BatchRemoveAddressTypesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	AffectedCount int32                  `protobuf:"varint,4,opt,name=affected_count,json=affectedCount,proto3" json:"affected_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveAddressTypesResponse) Reset() {
+	*x = BatchRemoveAddressTypesResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveAddressTypesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveAddressTypesResponse) ProtoMessage() {}
+
+func (x *BatchRemoveAddressTypesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveAddressTypesResponse.ProtoReflect.Descriptor instead.
+func (*BatchRemoveAddressTypesResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *BatchRemoveAddressTypesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BatchRemoveAddressTypesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *BatchRemoveAddressTypesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BatchRemoveAddressTypesResponse) GetAffectedCount() int32 {
+	if x != nil {
+		return x.AffectedCount
+	}
+	return 0
+}
+
+func (x *BatchRemoveAddressTypesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchAssignAssigneesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ResourceIds   []string               `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
 	AssigneeIds   []string               `protobuf:"bytes,2,rep,name=assignee_ids,json=assigneeIds,proto3" json:"assignee_ids,omitempty"`
@@ -2281,21 +2765,21 @@ type BatchAssigneeRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchAssigneeRequest) Reset() {
-	*x = BatchAssigneeRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
+func (x *BatchAssignAssigneesRequest) Reset() {
+	*x = BatchAssignAssigneesRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchAssigneeRequest) String() string {
+func (x *BatchAssignAssigneesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchAssigneeRequest) ProtoMessage() {}
+func (*BatchAssignAssigneesRequest) ProtoMessage() {}
 
-func (x *BatchAssigneeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[25]
+func (x *BatchAssignAssigneesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2306,23 +2790,227 @@ func (x *BatchAssigneeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchAssigneeRequest.ProtoReflect.Descriptor instead.
-func (*BatchAssigneeRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{25}
+// Deprecated: Use BatchAssignAssigneesRequest.ProtoReflect.Descriptor instead.
+func (*BatchAssignAssigneesRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *BatchAssigneeRequest) GetResourceIds() []string {
+func (x *BatchAssignAssigneesRequest) GetResourceIds() []string {
 	if x != nil {
 		return x.ResourceIds
 	}
 	return nil
 }
 
-func (x *BatchAssigneeRequest) GetAssigneeIds() []string {
+func (x *BatchAssignAssigneesRequest) GetAssigneeIds() []string {
 	if x != nil {
 		return x.AssigneeIds
 	}
 	return nil
+}
+
+type BatchAssignAssigneesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	AffectedCount int32                  `protobuf:"varint,4,opt,name=affected_count,json=affectedCount,proto3" json:"affected_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchAssignAssigneesResponse) Reset() {
+	*x = BatchAssignAssigneesResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchAssignAssigneesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchAssignAssigneesResponse) ProtoMessage() {}
+
+func (x *BatchAssignAssigneesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchAssignAssigneesResponse.ProtoReflect.Descriptor instead.
+func (*BatchAssignAssigneesResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *BatchAssignAssigneesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BatchAssignAssigneesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *BatchAssignAssigneesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BatchAssignAssigneesResponse) GetAffectedCount() int32 {
+	if x != nil {
+		return x.AffectedCount
+	}
+	return 0
+}
+
+func (x *BatchAssignAssigneesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type BatchRemoveAssigneesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ResourceIds   []string               `protobuf:"bytes,1,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
+	AssigneeIds   []string               `protobuf:"bytes,2,rep,name=assignee_ids,json=assigneeIds,proto3" json:"assignee_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveAssigneesRequest) Reset() {
+	*x = BatchRemoveAssigneesRequest{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveAssigneesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveAssigneesRequest) ProtoMessage() {}
+
+func (x *BatchRemoveAssigneesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveAssigneesRequest.ProtoReflect.Descriptor instead.
+func (*BatchRemoveAssigneesRequest) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *BatchRemoveAssigneesRequest) GetResourceIds() []string {
+	if x != nil {
+		return x.ResourceIds
+	}
+	return nil
+}
+
+func (x *BatchRemoveAssigneesRequest) GetAssigneeIds() []string {
+	if x != nil {
+		return x.AssigneeIds
+	}
+	return nil
+}
+
+type BatchRemoveAssigneesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	AffectedCount int32                  `protobuf:"varint,4,opt,name=affected_count,json=affectedCount,proto3" json:"affected_count,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchRemoveAssigneesResponse) Reset() {
+	*x = BatchRemoveAssigneesResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchRemoveAssigneesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchRemoveAssigneesResponse) ProtoMessage() {}
+
+func (x *BatchRemoveAssigneesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchRemoveAssigneesResponse.ProtoReflect.Descriptor instead.
+func (*BatchRemoveAssigneesResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *BatchRemoveAssigneesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BatchRemoveAssigneesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *BatchRemoveAssigneesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BatchRemoveAssigneesResponse) GetAffectedCount() int32 {
+	if x != nil {
+		return x.AffectedCount
+	}
+	return 0
+}
+
+func (x *BatchRemoveAssigneesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
 }
 
 type EnterpriseTagGroup struct {
@@ -2339,7 +3027,7 @@ type EnterpriseTagGroup struct {
 
 func (x *EnterpriseTagGroup) Reset() {
 	*x = EnterpriseTagGroup{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2351,7 +3039,7 @@ func (x *EnterpriseTagGroup) String() string {
 func (*EnterpriseTagGroup) ProtoMessage() {}
 
 func (x *EnterpriseTagGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[26]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2364,7 +3052,7 @@ func (x *EnterpriseTagGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseTagGroup.ProtoReflect.Descriptor instead.
 func (*EnterpriseTagGroup) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{26}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *EnterpriseTagGroup) GetId() string {
@@ -2420,7 +3108,7 @@ type EnterpriseTagGroupInput struct {
 
 func (x *EnterpriseTagGroupInput) Reset() {
 	*x = EnterpriseTagGroupInput{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2432,7 +3120,7 @@ func (x *EnterpriseTagGroupInput) String() string {
 func (*EnterpriseTagGroupInput) ProtoMessage() {}
 
 func (x *EnterpriseTagGroupInput) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[27]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2445,7 +3133,7 @@ func (x *EnterpriseTagGroupInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseTagGroupInput.ProtoReflect.Descriptor instead.
 func (*EnterpriseTagGroupInput) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{27}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *EnterpriseTagGroupInput) GetName() string {
@@ -2477,7 +3165,7 @@ type ListEnterpriseTagGroupsRequest struct {
 
 func (x *ListEnterpriseTagGroupsRequest) Reset() {
 	*x = ListEnterpriseTagGroupsRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2489,7 +3177,7 @@ func (x *ListEnterpriseTagGroupsRequest) String() string {
 func (*ListEnterpriseTagGroupsRequest) ProtoMessage() {}
 
 func (x *ListEnterpriseTagGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[28]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2502,7 +3190,7 @@ func (x *ListEnterpriseTagGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseTagGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseTagGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{28}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{38}
 }
 
 type ListEnterpriseTagGroupsResponse struct {
@@ -2518,7 +3206,7 @@ type ListEnterpriseTagGroupsResponse struct {
 
 func (x *ListEnterpriseTagGroupsResponse) Reset() {
 	*x = ListEnterpriseTagGroupsResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2530,7 +3218,7 @@ func (x *ListEnterpriseTagGroupsResponse) String() string {
 func (*ListEnterpriseTagGroupsResponse) ProtoMessage() {}
 
 func (x *ListEnterpriseTagGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[29]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2543,7 +3231,7 @@ func (x *ListEnterpriseTagGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEnterpriseTagGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListEnterpriseTagGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{29}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListEnterpriseTagGroupsResponse) GetSuccess() bool {
@@ -2590,7 +3278,7 @@ type CreateEnterpriseTagGroupRequest struct {
 
 func (x *CreateEnterpriseTagGroupRequest) Reset() {
 	*x = CreateEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2602,7 +3290,7 @@ func (x *CreateEnterpriseTagGroupRequest) String() string {
 func (*CreateEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *CreateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[30]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2615,7 +3303,7 @@ func (x *CreateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{30}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *CreateEnterpriseTagGroupRequest) GetGroup() *EnterpriseTagGroupInput {
@@ -2635,7 +3323,7 @@ type UpdateEnterpriseTagGroupRequest struct {
 
 func (x *UpdateEnterpriseTagGroupRequest) Reset() {
 	*x = UpdateEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2647,7 +3335,7 @@ func (x *UpdateEnterpriseTagGroupRequest) String() string {
 func (*UpdateEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *UpdateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[31]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2660,7 +3348,7 @@ func (x *UpdateEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{31}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *UpdateEnterpriseTagGroupRequest) GetId() string {
@@ -2686,7 +3374,7 @@ type DeleteEnterpriseTagGroupRequest struct {
 
 func (x *DeleteEnterpriseTagGroupRequest) Reset() {
 	*x = DeleteEnterpriseTagGroupRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2698,7 +3386,7 @@ func (x *DeleteEnterpriseTagGroupRequest) String() string {
 func (*DeleteEnterpriseTagGroupRequest) ProtoMessage() {}
 
 func (x *DeleteEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[32]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2711,7 +3399,7 @@ func (x *DeleteEnterpriseTagGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEnterpriseTagGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteEnterpriseTagGroupRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{32}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *DeleteEnterpriseTagGroupRequest) GetId() string {
@@ -2721,7 +3409,7 @@ func (x *DeleteEnterpriseTagGroupRequest) GetId() string {
 	return ""
 }
 
-type EnterpriseTagGroupResponse struct {
+type CreateEnterpriseTagGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2732,21 +3420,21 @@ type EnterpriseTagGroupResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EnterpriseTagGroupResponse) Reset() {
-	*x = EnterpriseTagGroupResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+func (x *CreateEnterpriseTagGroupResponse) Reset() {
+	*x = CreateEnterpriseTagGroupResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EnterpriseTagGroupResponse) String() string {
+func (x *CreateEnterpriseTagGroupResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnterpriseTagGroupResponse) ProtoMessage() {}
+func (*CreateEnterpriseTagGroupResponse) ProtoMessage() {}
 
-func (x *EnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[33]
+func (x *CreateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2757,40 +3445,184 @@ func (x *EnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
-func (*EnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{33}
+// Deprecated: Use CreateEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
+func (*CreateEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{43}
 }
 
-func (x *EnterpriseTagGroupResponse) GetSuccess() bool {
+func (x *CreateEnterpriseTagGroupResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *EnterpriseTagGroupResponse) GetCode() int32 {
+func (x *CreateEnterpriseTagGroupResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *EnterpriseTagGroupResponse) GetMessage() string {
+func (x *CreateEnterpriseTagGroupResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *EnterpriseTagGroupResponse) GetData() *EnterpriseTagGroup {
+func (x *CreateEnterpriseTagGroupResponse) GetData() *EnterpriseTagGroup {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *EnterpriseTagGroupResponse) GetTraceId() string {
+func (x *CreateEnterpriseTagGroupResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateEnterpriseTagGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *EnterpriseTagGroup    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) Reset() {
+	*x = UpdateEnterpriseTagGroupResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEnterpriseTagGroupResponse) ProtoMessage() {}
+
+func (x *UpdateEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
+func (*UpdateEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) GetData() *EnterpriseTagGroup {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateEnterpriseTagGroupResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type DeleteEnterpriseTagGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) Reset() {
+	*x = DeleteEnterpriseTagGroupResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteEnterpriseTagGroupResponse) ProtoMessage() {}
+
+func (x *DeleteEnterpriseTagGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteEnterpriseTagGroupResponse.ProtoReflect.Descriptor instead.
+func (*DeleteEnterpriseTagGroupResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *DeleteEnterpriseTagGroupResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -2808,7 +3640,7 @@ type EnterpriseResourceImportRow struct {
 
 func (x *EnterpriseResourceImportRow) Reset() {
 	*x = EnterpriseResourceImportRow{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2820,7 +3652,7 @@ func (x *EnterpriseResourceImportRow) String() string {
 func (*EnterpriseResourceImportRow) ProtoMessage() {}
 
 func (x *EnterpriseResourceImportRow) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[34]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2833,7 +3665,7 @@ func (x *EnterpriseResourceImportRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnterpriseResourceImportRow.ProtoReflect.Descriptor instead.
 func (*EnterpriseResourceImportRow) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{34}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *EnterpriseResourceImportRow) GetRowNumber() int32 {
@@ -2867,7 +3699,7 @@ type PreviewEnterpriseResourceImportRequest struct {
 
 func (x *PreviewEnterpriseResourceImportRequest) Reset() {
 	*x = PreviewEnterpriseResourceImportRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2879,7 +3711,7 @@ func (x *PreviewEnterpriseResourceImportRequest) String() string {
 func (*PreviewEnterpriseResourceImportRequest) ProtoMessage() {}
 
 func (x *PreviewEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[35]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2892,7 +3724,7 @@ func (x *PreviewEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use PreviewEnterpriseResourceImportRequest.ProtoReflect.Descriptor instead.
 func (*PreviewEnterpriseResourceImportRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{35}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *PreviewEnterpriseResourceImportRequest) GetResourceType() EnterpriseResourceType {
@@ -2919,7 +3751,7 @@ type CommitEnterpriseResourceImportRequest struct {
 
 func (x *CommitEnterpriseResourceImportRequest) Reset() {
 	*x = CommitEnterpriseResourceImportRequest{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2931,7 +3763,7 @@ func (x *CommitEnterpriseResourceImportRequest) String() string {
 func (*CommitEnterpriseResourceImportRequest) ProtoMessage() {}
 
 func (x *CommitEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[36]
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2944,7 +3776,7 @@ func (x *CommitEnterpriseResourceImportRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use CommitEnterpriseResourceImportRequest.ProtoReflect.Descriptor instead.
 func (*CommitEnterpriseResourceImportRequest) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{36}
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CommitEnterpriseResourceImportRequest) GetResourceType() EnterpriseResourceType {
@@ -2961,7 +3793,7 @@ func (x *CommitEnterpriseResourceImportRequest) GetRows() []*EnterpriseResourceI
 	return nil
 }
 
-type EnterpriseResourceImportResponse struct {
+type PreviewEnterpriseResourceImportResponse struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
 	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
@@ -2975,21 +3807,21 @@ type EnterpriseResourceImportResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EnterpriseResourceImportResponse) Reset() {
-	*x = EnterpriseResourceImportResponse{}
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
+func (x *PreviewEnterpriseResourceImportResponse) Reset() {
+	*x = PreviewEnterpriseResourceImportResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EnterpriseResourceImportResponse) String() string {
+func (x *PreviewEnterpriseResourceImportResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnterpriseResourceImportResponse) ProtoMessage() {}
+func (*PreviewEnterpriseResourceImportResponse) ProtoMessage() {}
 
-func (x *EnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[37]
+func (x *PreviewEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3000,61 +3832,161 @@ func (x *EnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnterpriseResourceImportResponse.ProtoReflect.Descriptor instead.
-func (*EnterpriseResourceImportResponse) Descriptor() ([]byte, []int) {
-	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{37}
+// Deprecated: Use PreviewEnterpriseResourceImportResponse.ProtoReflect.Descriptor instead.
+func (*PreviewEnterpriseResourceImportResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{49}
 }
 
-func (x *EnterpriseResourceImportResponse) GetSuccess() bool {
+func (x *PreviewEnterpriseResourceImportResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *EnterpriseResourceImportResponse) GetCode() int32 {
+func (x *PreviewEnterpriseResourceImportResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *EnterpriseResourceImportResponse) GetMessage() string {
+func (x *PreviewEnterpriseResourceImportResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *EnterpriseResourceImportResponse) GetRows() []*EnterpriseResourceImportRow {
+func (x *PreviewEnterpriseResourceImportResponse) GetRows() []*EnterpriseResourceImportRow {
 	if x != nil {
 		return x.Rows
 	}
 	return nil
 }
 
-func (x *EnterpriseResourceImportResponse) GetValidCount() int32 {
+func (x *PreviewEnterpriseResourceImportResponse) GetValidCount() int32 {
 	if x != nil {
 		return x.ValidCount
 	}
 	return 0
 }
 
-func (x *EnterpriseResourceImportResponse) GetInvalidCount() int32 {
+func (x *PreviewEnterpriseResourceImportResponse) GetInvalidCount() int32 {
 	if x != nil {
 		return x.InvalidCount
 	}
 	return 0
 }
 
-func (x *EnterpriseResourceImportResponse) GetCreatedCount() int32 {
+func (x *PreviewEnterpriseResourceImportResponse) GetCreatedCount() int32 {
 	if x != nil {
 		return x.CreatedCount
 	}
 	return 0
 }
 
-func (x *EnterpriseResourceImportResponse) GetTraceId() string {
+func (x *PreviewEnterpriseResourceImportResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type CommitEnterpriseResourceImportResponse struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Success       bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                          `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                         `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Rows          []*EnterpriseResourceImportRow `protobuf:"bytes,4,rep,name=rows,proto3" json:"rows,omitempty"`
+	ValidCount    int32                          `protobuf:"varint,5,opt,name=valid_count,json=validCount,proto3" json:"valid_count,omitempty"`
+	InvalidCount  int32                          `protobuf:"varint,6,opt,name=invalid_count,json=invalidCount,proto3" json:"invalid_count,omitempty"`
+	CreatedCount  int32                          `protobuf:"varint,7,opt,name=created_count,json=createdCount,proto3" json:"created_count,omitempty"`
+	TraceId       string                         `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitEnterpriseResourceImportResponse) Reset() {
+	*x = CommitEnterpriseResourceImportResponse{}
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitEnterpriseResourceImportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitEnterpriseResourceImportResponse) ProtoMessage() {}
+
+func (x *CommitEnterpriseResourceImportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_enterprise_resource_v1_enterprise_resource_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitEnterpriseResourceImportResponse.ProtoReflect.Descriptor instead.
+func (*CommitEnterpriseResourceImportResponse) Descriptor() ([]byte, []int) {
+	return file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetRows() []*EnterpriseResourceImportRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetValidCount() int32 {
+	if x != nil {
+		return x.ValidCount
+	}
+	return 0
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetInvalidCount() int32 {
+	if x != nil {
+		return x.InvalidCount
+	}
+	return 0
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetCreatedCount() int32 {
+	if x != nil {
+		return x.CreatedCount
+	}
+	return 0
+}
+
+func (x *CommitEnterpriseResourceImportResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -3224,8 +4156,20 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12P\n" +
 	"\bresource\x18\x02 \x01(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\bresource\"6\n" +
 	"\x1fDeleteEnterpriseResourceRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbf\x01\n" +
-	"\x1aEnterpriseResourceResponse\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xc2\x01\n" +
+	"\x1dGetEnterpriseResourceResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
+	"\x04data\x18\x04 \x01(\v2*.enterprise_resource.v1.EnterpriseResourceR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc5\x01\n" +
+	" CreateEnterpriseResourceResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
+	"\x04data\x18\x04 \x01(\v2*.enterprise_resource.v1.EnterpriseResourceR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc5\x01\n" +
+	" UpdateEnterpriseResourceResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
@@ -3239,28 +4183,68 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"u\n" +
-	"\x10MutationResponse\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\x85\x01\n" +
+	" DeleteEnterpriseResourceResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xa1\x01\n" +
-	"\x15BatchMutationResponse\x12\x18\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"n\n" +
+	"\x1eBatchCreateAssociationsRequest\x12&\n" +
+	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12$\n" +
+	"\vpartner_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\n" +
+	"partnerIds\"\xab\x01\n" +
+	"\x1fBatchCreateAssociationsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
 	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"g\n" +
-	"\x17BatchAssociationRequest\x12&\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"n\n" +
+	"\x1eBatchDeleteAssociationsRequest\x12&\n" +
 	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12$\n" +
 	"\vpartner_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\n" +
-	"partnerIds\"\x9a\x01\n" +
-	"\x17BatchAddressTypeRequest\x12&\n" +
+	"partnerIds\"\xab\x01\n" +
+	"\x1fBatchDeleteAssociationsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
+	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa1\x01\n" +
+	"\x1eBatchAssignAddressTypesRequest\x12&\n" +
 	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12W\n" +
-	"\raddress_types\x18\x02 \x03(\x0e2-.enterprise_resource.v1.EnterpriseAddressTypeB\x03\xe0A\x02R\faddressTypes\"f\n" +
-	"\x14BatchAssigneeRequest\x12&\n" +
+	"\raddress_types\x18\x02 \x03(\x0e2-.enterprise_resource.v1.EnterpriseAddressTypeB\x03\xe0A\x02R\faddressTypes\"\xab\x01\n" +
+	"\x1fBatchAssignAddressTypesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
+	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa1\x01\n" +
+	"\x1eBatchRemoveAddressTypesRequest\x12&\n" +
+	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12W\n" +
+	"\raddress_types\x18\x02 \x03(\x0e2-.enterprise_resource.v1.EnterpriseAddressTypeB\x03\xe0A\x02R\faddressTypes\"\xab\x01\n" +
+	"\x1fBatchRemoveAddressTypesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
+	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"m\n" +
+	"\x1bBatchAssignAssigneesRequest\x12&\n" +
 	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12&\n" +
-	"\fassignee_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\vassigneeIds\"\xab\x01\n" +
+	"\fassignee_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\vassigneeIds\"\xa8\x01\n" +
+	"\x1cBatchAssignAssigneesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
+	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"m\n" +
+	"\x1bBatchRemoveAssigneesRequest\x12&\n" +
+	"\fresource_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\vresourceIds\x12&\n" +
+	"\fassignee_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\vassigneeIds\"\xa8\x01\n" +
+	"\x1cBatchRemoveAssigneesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12%\n" +
+	"\x0eaffected_count\x18\x04 \x01(\x05R\raffectedCount\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
 	"\x12EnterpriseTagGroup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -3289,13 +4273,24 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12J\n" +
 	"\x05group\x18\x02 \x01(\v2/.enterprise_resource.v1.EnterpriseTagGroupInputB\x03\xe0A\x02R\x05group\"6\n" +
 	"\x1fDeleteEnterpriseTagGroupRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xbf\x01\n" +
-	"\x1aEnterpriseTagGroupResponse\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xc5\x01\n" +
+	" CreateEnterpriseTagGroupResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
 	"\x04data\x18\x04 \x01(\v2*.enterprise_resource.v1.EnterpriseTagGroupR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa1\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc5\x01\n" +
+	" UpdateEnterpriseTagGroupResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
+	"\x04data\x18\x04 \x01(\v2*.enterprise_resource.v1.EnterpriseTagGroupR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x85\x01\n" +
+	" DeleteEnterpriseTagGroupResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xa1\x01\n" +
 	"\x1bEnterpriseResourceImportRow\x12\x1d\n" +
 	"\n" +
 	"row_number\x18\x01 \x01(\x05R\trowNumber\x12K\n" +
@@ -3306,8 +4301,18 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xcb\x01\n" +
 	"%CommitEnterpriseResourceImportRequest\x12X\n" +
 	"\rresource_type\x18\x01 \x01(\x0e2..enterprise_resource.v1.EnterpriseResourceTypeB\x03\xe0A\x02R\fresourceType\x12H\n" +
-	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xb9\x02\n" +
-	" EnterpriseResourceImportResponse\x12\x18\n" +
+	"\x04rows\x18\x02 \x03(\v2/.enterprise_resource.v1.EnterpriseResourceInputB\x03\xe0A\x02R\x04rows\"\xc0\x02\n" +
+	"'PreviewEnterpriseResourceImportResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12G\n" +
+	"\x04rows\x18\x04 \x03(\v23.enterprise_resource.v1.EnterpriseResourceImportRowR\x04rows\x12\x1f\n" +
+	"\vvalid_count\x18\x05 \x01(\x05R\n" +
+	"validCount\x12#\n" +
+	"\rinvalid_count\x18\x06 \x01(\x05R\finvalidCount\x12#\n" +
+	"\rcreated_count\x18\a \x01(\x05R\fcreatedCount\x12\x19\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xbf\x02\n" +
+	"&CommitEnterpriseResourceImportResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12G\n" +
@@ -3351,28 +4356,28 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"#ENTERPRISE_ADDRESS_TYPE_UNSPECIFIED\x10\x00\x12/\n" +
 	"+ENTERPRISE_ADDRESS_TYPE_CONTAINER_OPERATION\x10\x01\x12\"\n" +
 	"\x1eENTERPRISE_ADDRESS_TYPE_PICKUP\x10\x02\x12$\n" +
-	" ENTERPRISE_ADDRESS_TYPE_DELIVERY\x10\x032\x8e%\n" +
+	" ENTERPRISE_ADDRESS_TYPE_DELIVERY\x10\x032\xb6&\n" +
 	"\x19EnterpriseResourceService\x12\x85\x02\n" +
 	"!GetEnterpriseResourceCapabilities\x12@.enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest\x1aA.enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse\"[\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/enterprise-resource-capabilities\x12\x94\x02\n" +
 	"$PrepareEnterpriseResourceImageUpload\x12C.enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest\x1aD.enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse\"a\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/enterprise-resource-image-uploads\x12\x88\x02\n" +
 	" GetEnterpriseResourceImageAccess\x12?.enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest\x1a@.enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse\"a\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x020\x12./api/v1/enterprise-resources/{id}/image-access\x12\xdb\x01\n" +
-	"\x17ListEnterpriseResources\x126.enterprise_resource.v1.ListEnterpriseResourcesRequest\x1a7.enterprise_resource.v1.ListEnterpriseResourcesResponse\"O\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/enterprise-resources\x12\xd7\x01\n" +
-	"\x15GetEnterpriseResource\x124.enterprise_resource.v1.GetEnterpriseResourceRequest\x1a2.enterprise_resource.v1.EnterpriseResourceResponse\"T\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02#\x12!/api/v1/enterprise-resources/{id}\x12\xdd\x01\n" +
-	"\x18CreateEnterpriseResource\x127.enterprise_resource.v1.CreateEnterpriseResourceRequest\x1a2.enterprise_resource.v1.EnterpriseResourceResponse\"T\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/enterprise-resources\x12\xe2\x01\n" +
-	"\x18UpdateEnterpriseResource\x127.enterprise_resource.v1.UpdateEnterpriseResourceRequest\x1a2.enterprise_resource.v1.EnterpriseResourceResponse\"Y\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/enterprise-resources/{id}\x12\xd5\x01\n" +
-	"\x18DeleteEnterpriseResource\x127.enterprise_resource.v1.DeleteEnterpriseResourceRequest\x1a(.enterprise_resource.v1.MutationResponse\"V\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.delete \x02\x82\xd3\xe4\x93\x02#*!/api/v1/enterprise-resources/{id}\x12\xe8\x01\n" +
-	"\x17BatchCreateAssociations\x12/.enterprise_resource.v1.BatchAssociationRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"m\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/enterprise-resource-associations/batch-create\x12\xe8\x01\n" +
-	"\x17BatchDeleteAssociations\x12/.enterprise_resource.v1.BatchAssociationRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"m\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/enterprise-resource-associations/batch-delete\x12\xe9\x01\n" +
-	"\x17BatchAssignAddressTypes\x12/.enterprise_resource.v1.BatchAddressTypeRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"n\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/enterprise-resource-address-types/batch-assign\x12\xe9\x01\n" +
-	"\x17BatchRemoveAddressTypes\x12/.enterprise_resource.v1.BatchAddressTypeRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"n\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/enterprise-resource-address-types/batch-remove\x12\xdf\x01\n" +
-	"\x14BatchAssignAssignees\x12,.enterprise_resource.v1.BatchAssigneeRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"j\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/enterprise-resource-assignees/batch-assign\x12\xdf\x01\n" +
-	"\x14BatchRemoveAssignees\x12,.enterprise_resource.v1.BatchAssigneeRequest\x1a-.enterprise_resource.v1.BatchMutationResponse\"j\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/enterprise-resource-assignees/batch-remove\x12\xdc\x01\n" +
-	"\x17ListEnterpriseTagGroups\x126.enterprise_resource.v1.ListEnterpriseTagGroupsRequest\x1a7.enterprise_resource.v1.ListEnterpriseTagGroupsResponse\"P\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/enterprise-tag-groups\x12\xde\x01\n" +
-	"\x18CreateEnterpriseTagGroup\x127.enterprise_resource.v1.CreateEnterpriseTagGroupRequest\x1a2.enterprise_resource.v1.EnterpriseTagGroupResponse\"U\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/enterprise-tag-groups\x12\xe3\x01\n" +
-	"\x18UpdateEnterpriseTagGroup\x127.enterprise_resource.v1.UpdateEnterpriseTagGroupRequest\x1a2.enterprise_resource.v1.EnterpriseTagGroupResponse\"Z\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/enterprise-tag-groups/{id}\x12\xd6\x01\n" +
-	"\x18DeleteEnterpriseTagGroup\x127.enterprise_resource.v1.DeleteEnterpriseTagGroupRequest\x1a(.enterprise_resource.v1.MutationResponse\"W\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.delete \x02\x82\xd3\xe4\x93\x02$*\"/api/v1/enterprise-tag-groups/{id}\x12\x80\x02\n" +
-	"\x1fPreviewEnterpriseResourceImport\x12>.enterprise_resource.v1.PreviewEnterpriseResourceImportRequest\x1a8.enterprise_resource.v1.EnterpriseResourceImportResponse\"c\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/enterprise-resources/import-preview\x12\xfd\x01\n" +
-	"\x1eCommitEnterpriseResourceImport\x12=.enterprise_resource.v1.CommitEnterpriseResourceImportRequest\x1a8.enterprise_resource.v1.EnterpriseResourceImportResponse\"b\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/enterprise-resources/import-commitBHZFgithub.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1;v1b\x06proto3"
+	"\x17ListEnterpriseResources\x126.enterprise_resource.v1.ListEnterpriseResourcesRequest\x1a7.enterprise_resource.v1.ListEnterpriseResourcesResponse\"O\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/enterprise-resources\x12\xda\x01\n" +
+	"\x15GetEnterpriseResource\x124.enterprise_resource.v1.GetEnterpriseResourceRequest\x1a5.enterprise_resource.v1.GetEnterpriseResourceResponse\"T\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02#\x12!/api/v1/enterprise-resources/{id}\x12\xe3\x01\n" +
+	"\x18CreateEnterpriseResource\x127.enterprise_resource.v1.CreateEnterpriseResourceRequest\x1a8.enterprise_resource.v1.CreateEnterpriseResourceResponse\"T\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/enterprise-resources\x12\xe8\x01\n" +
+	"\x18UpdateEnterpriseResource\x127.enterprise_resource.v1.UpdateEnterpriseResourceRequest\x1a8.enterprise_resource.v1.UpdateEnterpriseResourceResponse\"Y\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/enterprise-resources/{id}\x12\xe5\x01\n" +
+	"\x18DeleteEnterpriseResource\x127.enterprise_resource.v1.DeleteEnterpriseResourceRequest\x1a8.enterprise_resource.v1.DeleteEnterpriseResourceResponse\"V\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.delete \x02\x82\xd3\xe4\x93\x02#*!/api/v1/enterprise-resources/{id}\x12\xf9\x01\n" +
+	"\x17BatchCreateAssociations\x126.enterprise_resource.v1.BatchCreateAssociationsRequest\x1a7.enterprise_resource.v1.BatchCreateAssociationsResponse\"m\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/enterprise-resource-associations/batch-create\x12\xf9\x01\n" +
+	"\x17BatchDeleteAssociations\x126.enterprise_resource.v1.BatchDeleteAssociationsRequest\x1a7.enterprise_resource.v1.BatchDeleteAssociationsResponse\"m\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/enterprise-resource-associations/batch-delete\x12\xfa\x01\n" +
+	"\x17BatchAssignAddressTypes\x126.enterprise_resource.v1.BatchAssignAddressTypesRequest\x1a7.enterprise_resource.v1.BatchAssignAddressTypesResponse\"n\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/enterprise-resource-address-types/batch-assign\x12\xfa\x01\n" +
+	"\x17BatchRemoveAddressTypes\x126.enterprise_resource.v1.BatchRemoveAddressTypesRequest\x1a7.enterprise_resource.v1.BatchRemoveAddressTypesResponse\"n\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/enterprise-resource-address-types/batch-remove\x12\xed\x01\n" +
+	"\x14BatchAssignAssignees\x123.enterprise_resource.v1.BatchAssignAssigneesRequest\x1a4.enterprise_resource.v1.BatchAssignAssigneesResponse\"j\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/enterprise-resource-assignees/batch-assign\x12\xed\x01\n" +
+	"\x14BatchRemoveAssignees\x123.enterprise_resource.v1.BatchRemoveAssigneesRequest\x1a4.enterprise_resource.v1.BatchRemoveAssigneesResponse\"j\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/enterprise-resource-assignees/batch-remove\x12\xdc\x01\n" +
+	"\x17ListEnterpriseTagGroups\x126.enterprise_resource.v1.ListEnterpriseTagGroupsRequest\x1a7.enterprise_resource.v1.ListEnterpriseTagGroupsResponse\"P\x82\xb5\x18'\b\x03\x12!business.enterprise_resource.read \x02\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/enterprise-tag-groups\x12\xe4\x01\n" +
+	"\x18CreateEnterpriseTagGroup\x127.enterprise_resource.v1.CreateEnterpriseTagGroupRequest\x1a8.enterprise_resource.v1.CreateEnterpriseTagGroupResponse\"U\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/enterprise-tag-groups\x12\xe9\x01\n" +
+	"\x18UpdateEnterpriseTagGroup\x127.enterprise_resource.v1.UpdateEnterpriseTagGroupRequest\x1a8.enterprise_resource.v1.UpdateEnterpriseTagGroupResponse\"Z\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.update \x02\x82\xd3\xe4\x93\x02':\x01*\x1a\"/api/v1/enterprise-tag-groups/{id}\x12\xe6\x01\n" +
+	"\x18DeleteEnterpriseTagGroup\x127.enterprise_resource.v1.DeleteEnterpriseTagGroupRequest\x1a8.enterprise_resource.v1.DeleteEnterpriseTagGroupResponse\"W\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.delete \x02\x82\xd3\xe4\x93\x02$*\"/api/v1/enterprise-tag-groups/{id}\x12\x87\x02\n" +
+	"\x1fPreviewEnterpriseResourceImport\x12>.enterprise_resource.v1.PreviewEnterpriseResourceImportRequest\x1a?.enterprise_resource.v1.PreviewEnterpriseResourceImportResponse\"c\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/enterprise-resources/import-preview\x12\x83\x02\n" +
+	"\x1eCommitEnterpriseResourceImport\x12=.enterprise_resource.v1.CommitEnterpriseResourceImportRequest\x1a>.enterprise_resource.v1.CommitEnterpriseResourceImportResponse\"b\x82\xb5\x18)\b\x03\x12#business.enterprise_resource.create \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/enterprise-resources/import-commitBHZFgithub.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1;v1b\x06proto3"
 
 var (
 	file_enterprise_resource_v1_enterprise_resource_proto_rawDescOnce sync.Once
@@ -3387,7 +4392,7 @@ func file_enterprise_resource_v1_enterprise_resource_proto_rawDescGZIP() []byte 
 }
 
 var file_enterprise_resource_v1_enterprise_resource_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_enterprise_resource_v1_enterprise_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_enterprise_resource_v1_enterprise_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
 var file_enterprise_resource_v1_enterprise_resource_proto_goTypes = []any{
 	(EnterpriseResourceType)(0),                          // 0: enterprise_resource.v1.EnterpriseResourceType
 	(EnterpriseRemarkType)(0),                            // 1: enterprise_resource.v1.EnterpriseRemarkType
@@ -3411,30 +4416,43 @@ var file_enterprise_resource_v1_enterprise_resource_proto_goTypes = []any{
 	(*CreateEnterpriseResourceRequest)(nil),              // 19: enterprise_resource.v1.CreateEnterpriseResourceRequest
 	(*UpdateEnterpriseResourceRequest)(nil),              // 20: enterprise_resource.v1.UpdateEnterpriseResourceRequest
 	(*DeleteEnterpriseResourceRequest)(nil),              // 21: enterprise_resource.v1.DeleteEnterpriseResourceRequest
-	(*EnterpriseResourceResponse)(nil),                   // 22: enterprise_resource.v1.EnterpriseResourceResponse
-	(*ListEnterpriseResourcesResponse)(nil),              // 23: enterprise_resource.v1.ListEnterpriseResourcesResponse
-	(*MutationResponse)(nil),                             // 24: enterprise_resource.v1.MutationResponse
-	(*BatchMutationResponse)(nil),                        // 25: enterprise_resource.v1.BatchMutationResponse
-	(*BatchAssociationRequest)(nil),                      // 26: enterprise_resource.v1.BatchAssociationRequest
-	(*BatchAddressTypeRequest)(nil),                      // 27: enterprise_resource.v1.BatchAddressTypeRequest
-	(*BatchAssigneeRequest)(nil),                         // 28: enterprise_resource.v1.BatchAssigneeRequest
-	(*EnterpriseTagGroup)(nil),                           // 29: enterprise_resource.v1.EnterpriseTagGroup
-	(*EnterpriseTagGroupInput)(nil),                      // 30: enterprise_resource.v1.EnterpriseTagGroupInput
-	(*ListEnterpriseTagGroupsRequest)(nil),               // 31: enterprise_resource.v1.ListEnterpriseTagGroupsRequest
-	(*ListEnterpriseTagGroupsResponse)(nil),              // 32: enterprise_resource.v1.ListEnterpriseTagGroupsResponse
-	(*CreateEnterpriseTagGroupRequest)(nil),              // 33: enterprise_resource.v1.CreateEnterpriseTagGroupRequest
-	(*UpdateEnterpriseTagGroupRequest)(nil),              // 34: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
-	(*DeleteEnterpriseTagGroupRequest)(nil),              // 35: enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
-	(*EnterpriseTagGroupResponse)(nil),                   // 36: enterprise_resource.v1.EnterpriseTagGroupResponse
-	(*EnterpriseResourceImportRow)(nil),                  // 37: enterprise_resource.v1.EnterpriseResourceImportRow
-	(*PreviewEnterpriseResourceImportRequest)(nil),       // 38: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
-	(*CommitEnterpriseResourceImportRequest)(nil),        // 39: enterprise_resource.v1.CommitEnterpriseResourceImportRequest
-	(*EnterpriseResourceImportResponse)(nil),             // 40: enterprise_resource.v1.EnterpriseResourceImportResponse
-	nil,                                                  // 41: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
+	(*GetEnterpriseResourceResponse)(nil),                // 22: enterprise_resource.v1.GetEnterpriseResourceResponse
+	(*CreateEnterpriseResourceResponse)(nil),             // 23: enterprise_resource.v1.CreateEnterpriseResourceResponse
+	(*UpdateEnterpriseResourceResponse)(nil),             // 24: enterprise_resource.v1.UpdateEnterpriseResourceResponse
+	(*ListEnterpriseResourcesResponse)(nil),              // 25: enterprise_resource.v1.ListEnterpriseResourcesResponse
+	(*DeleteEnterpriseResourceResponse)(nil),             // 26: enterprise_resource.v1.DeleteEnterpriseResourceResponse
+	(*BatchCreateAssociationsRequest)(nil),               // 27: enterprise_resource.v1.BatchCreateAssociationsRequest
+	(*BatchCreateAssociationsResponse)(nil),              // 28: enterprise_resource.v1.BatchCreateAssociationsResponse
+	(*BatchDeleteAssociationsRequest)(nil),               // 29: enterprise_resource.v1.BatchDeleteAssociationsRequest
+	(*BatchDeleteAssociationsResponse)(nil),              // 30: enterprise_resource.v1.BatchDeleteAssociationsResponse
+	(*BatchAssignAddressTypesRequest)(nil),               // 31: enterprise_resource.v1.BatchAssignAddressTypesRequest
+	(*BatchAssignAddressTypesResponse)(nil),              // 32: enterprise_resource.v1.BatchAssignAddressTypesResponse
+	(*BatchRemoveAddressTypesRequest)(nil),               // 33: enterprise_resource.v1.BatchRemoveAddressTypesRequest
+	(*BatchRemoveAddressTypesResponse)(nil),              // 34: enterprise_resource.v1.BatchRemoveAddressTypesResponse
+	(*BatchAssignAssigneesRequest)(nil),                  // 35: enterprise_resource.v1.BatchAssignAssigneesRequest
+	(*BatchAssignAssigneesResponse)(nil),                 // 36: enterprise_resource.v1.BatchAssignAssigneesResponse
+	(*BatchRemoveAssigneesRequest)(nil),                  // 37: enterprise_resource.v1.BatchRemoveAssigneesRequest
+	(*BatchRemoveAssigneesResponse)(nil),                 // 38: enterprise_resource.v1.BatchRemoveAssigneesResponse
+	(*EnterpriseTagGroup)(nil),                           // 39: enterprise_resource.v1.EnterpriseTagGroup
+	(*EnterpriseTagGroupInput)(nil),                      // 40: enterprise_resource.v1.EnterpriseTagGroupInput
+	(*ListEnterpriseTagGroupsRequest)(nil),               // 41: enterprise_resource.v1.ListEnterpriseTagGroupsRequest
+	(*ListEnterpriseTagGroupsResponse)(nil),              // 42: enterprise_resource.v1.ListEnterpriseTagGroupsResponse
+	(*CreateEnterpriseTagGroupRequest)(nil),              // 43: enterprise_resource.v1.CreateEnterpriseTagGroupRequest
+	(*UpdateEnterpriseTagGroupRequest)(nil),              // 44: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
+	(*DeleteEnterpriseTagGroupRequest)(nil),              // 45: enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
+	(*CreateEnterpriseTagGroupResponse)(nil),             // 46: enterprise_resource.v1.CreateEnterpriseTagGroupResponse
+	(*UpdateEnterpriseTagGroupResponse)(nil),             // 47: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
+	(*DeleteEnterpriseTagGroupResponse)(nil),             // 48: enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
+	(*EnterpriseResourceImportRow)(nil),                  // 49: enterprise_resource.v1.EnterpriseResourceImportRow
+	(*PreviewEnterpriseResourceImportRequest)(nil),       // 50: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
+	(*CommitEnterpriseResourceImportRequest)(nil),        // 51: enterprise_resource.v1.CommitEnterpriseResourceImportRequest
+	(*PreviewEnterpriseResourceImportResponse)(nil),      // 52: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
+	(*CommitEnterpriseResourceImportResponse)(nil),       // 53: enterprise_resource.v1.CommitEnterpriseResourceImportResponse
+	nil, // 54: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
 }
 var file_enterprise_resource_v1_enterprise_resource_proto_depIdxs = []int32{
 	1,  // 0: enterprise_resource.v1.EnterpriseResourceRemark.remark_type:type_name -> enterprise_resource.v1.EnterpriseRemarkType
-	41, // 1: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.headers:type_name -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
+	54, // 1: enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.headers:type_name -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse.HeadersEntry
 	0,  // 2: enterprise_resource.v1.EnterpriseResource.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
 	2,  // 3: enterprise_resource.v1.EnterpriseResource.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
 	3,  // 4: enterprise_resource.v1.EnterpriseResource.address:type_name -> enterprise_resource.v1.EnterpriseResourceAddress
@@ -3454,64 +4472,69 @@ var file_enterprise_resource_v1_enterprise_resource_proto_depIdxs = []int32{
 	2,  // 18: enterprise_resource.v1.ListEnterpriseResourcesRequest.address_type:type_name -> enterprise_resource.v1.EnterpriseAddressType
 	15, // 19: enterprise_resource.v1.CreateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
 	15, // 20: enterprise_resource.v1.UpdateEnterpriseResourceRequest.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	14, // 21: enterprise_resource.v1.EnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	14, // 22: enterprise_resource.v1.ListEnterpriseResourcesResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
-	2,  // 23: enterprise_resource.v1.BatchAddressTypeRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
-	29, // 24: enterprise_resource.v1.ListEnterpriseTagGroupsResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
-	30, // 25: enterprise_resource.v1.CreateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
-	30, // 26: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
-	29, // 27: enterprise_resource.v1.EnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
-	15, // 28: enterprise_resource.v1.EnterpriseResourceImportRow.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	0,  // 29: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	15, // 30: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	0,  // 31: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
-	15, // 32: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
-	37, // 33: enterprise_resource.v1.EnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
-	7,  // 34: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:input_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
-	9,  // 35: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:input_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
-	11, // 36: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:input_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
-	17, // 37: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:input_type -> enterprise_resource.v1.ListEnterpriseResourcesRequest
-	18, // 38: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:input_type -> enterprise_resource.v1.GetEnterpriseResourceRequest
-	19, // 39: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:input_type -> enterprise_resource.v1.CreateEnterpriseResourceRequest
-	20, // 40: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:input_type -> enterprise_resource.v1.UpdateEnterpriseResourceRequest
-	21, // 41: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:input_type -> enterprise_resource.v1.DeleteEnterpriseResourceRequest
-	26, // 42: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:input_type -> enterprise_resource.v1.BatchAssociationRequest
-	26, // 43: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:input_type -> enterprise_resource.v1.BatchAssociationRequest
-	27, // 44: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:input_type -> enterprise_resource.v1.BatchAddressTypeRequest
-	27, // 45: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:input_type -> enterprise_resource.v1.BatchAddressTypeRequest
-	28, // 46: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:input_type -> enterprise_resource.v1.BatchAssigneeRequest
-	28, // 47: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:input_type -> enterprise_resource.v1.BatchAssigneeRequest
-	31, // 48: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:input_type -> enterprise_resource.v1.ListEnterpriseTagGroupsRequest
-	33, // 49: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:input_type -> enterprise_resource.v1.CreateEnterpriseTagGroupRequest
-	34, // 50: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:input_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
-	35, // 51: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:input_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
-	38, // 52: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:input_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
-	39, // 53: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:input_type -> enterprise_resource.v1.CommitEnterpriseResourceImportRequest
-	8,  // 54: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:output_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
-	10, // 55: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:output_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
-	12, // 56: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:output_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
-	23, // 57: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:output_type -> enterprise_resource.v1.ListEnterpriseResourcesResponse
-	22, // 58: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:output_type -> enterprise_resource.v1.EnterpriseResourceResponse
-	22, // 59: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:output_type -> enterprise_resource.v1.EnterpriseResourceResponse
-	22, // 60: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:output_type -> enterprise_resource.v1.EnterpriseResourceResponse
-	24, // 61: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:output_type -> enterprise_resource.v1.MutationResponse
-	25, // 62: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:output_type -> enterprise_resource.v1.BatchMutationResponse
-	25, // 63: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:output_type -> enterprise_resource.v1.BatchMutationResponse
-	25, // 64: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:output_type -> enterprise_resource.v1.BatchMutationResponse
-	25, // 65: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:output_type -> enterprise_resource.v1.BatchMutationResponse
-	25, // 66: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:output_type -> enterprise_resource.v1.BatchMutationResponse
-	25, // 67: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:output_type -> enterprise_resource.v1.BatchMutationResponse
-	32, // 68: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:output_type -> enterprise_resource.v1.ListEnterpriseTagGroupsResponse
-	36, // 69: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:output_type -> enterprise_resource.v1.EnterpriseTagGroupResponse
-	36, // 70: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:output_type -> enterprise_resource.v1.EnterpriseTagGroupResponse
-	24, // 71: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:output_type -> enterprise_resource.v1.MutationResponse
-	40, // 72: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:output_type -> enterprise_resource.v1.EnterpriseResourceImportResponse
-	40, // 73: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:output_type -> enterprise_resource.v1.EnterpriseResourceImportResponse
-	54, // [54:74] is the sub-list for method output_type
-	34, // [34:54] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	14, // 21: enterprise_resource.v1.GetEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	14, // 22: enterprise_resource.v1.CreateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	14, // 23: enterprise_resource.v1.UpdateEnterpriseResourceResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	14, // 24: enterprise_resource.v1.ListEnterpriseResourcesResponse.data:type_name -> enterprise_resource.v1.EnterpriseResource
+	2,  // 25: enterprise_resource.v1.BatchAssignAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	2,  // 26: enterprise_resource.v1.BatchRemoveAddressTypesRequest.address_types:type_name -> enterprise_resource.v1.EnterpriseAddressType
+	39, // 27: enterprise_resource.v1.ListEnterpriseTagGroupsResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	40, // 28: enterprise_resource.v1.CreateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
+	40, // 29: enterprise_resource.v1.UpdateEnterpriseTagGroupRequest.group:type_name -> enterprise_resource.v1.EnterpriseTagGroupInput
+	39, // 30: enterprise_resource.v1.CreateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	39, // 31: enterprise_resource.v1.UpdateEnterpriseTagGroupResponse.data:type_name -> enterprise_resource.v1.EnterpriseTagGroup
+	15, // 32: enterprise_resource.v1.EnterpriseResourceImportRow.resource:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	0,  // 33: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	15, // 34: enterprise_resource.v1.PreviewEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	0,  // 35: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.resource_type:type_name -> enterprise_resource.v1.EnterpriseResourceType
+	15, // 36: enterprise_resource.v1.CommitEnterpriseResourceImportRequest.rows:type_name -> enterprise_resource.v1.EnterpriseResourceInput
+	49, // 37: enterprise_resource.v1.PreviewEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
+	49, // 38: enterprise_resource.v1.CommitEnterpriseResourceImportResponse.rows:type_name -> enterprise_resource.v1.EnterpriseResourceImportRow
+	7,  // 39: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:input_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesRequest
+	9,  // 40: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:input_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest
+	11, // 41: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:input_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessRequest
+	17, // 42: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:input_type -> enterprise_resource.v1.ListEnterpriseResourcesRequest
+	18, // 43: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:input_type -> enterprise_resource.v1.GetEnterpriseResourceRequest
+	19, // 44: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:input_type -> enterprise_resource.v1.CreateEnterpriseResourceRequest
+	20, // 45: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:input_type -> enterprise_resource.v1.UpdateEnterpriseResourceRequest
+	21, // 46: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:input_type -> enterprise_resource.v1.DeleteEnterpriseResourceRequest
+	27, // 47: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:input_type -> enterprise_resource.v1.BatchCreateAssociationsRequest
+	29, // 48: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:input_type -> enterprise_resource.v1.BatchDeleteAssociationsRequest
+	31, // 49: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:input_type -> enterprise_resource.v1.BatchAssignAddressTypesRequest
+	33, // 50: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:input_type -> enterprise_resource.v1.BatchRemoveAddressTypesRequest
+	35, // 51: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:input_type -> enterprise_resource.v1.BatchAssignAssigneesRequest
+	37, // 52: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:input_type -> enterprise_resource.v1.BatchRemoveAssigneesRequest
+	41, // 53: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:input_type -> enterprise_resource.v1.ListEnterpriseTagGroupsRequest
+	43, // 54: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:input_type -> enterprise_resource.v1.CreateEnterpriseTagGroupRequest
+	44, // 55: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:input_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupRequest
+	45, // 56: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:input_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupRequest
+	50, // 57: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:input_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportRequest
+	51, // 58: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:input_type -> enterprise_resource.v1.CommitEnterpriseResourceImportRequest
+	8,  // 59: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceCapabilities:output_type -> enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse
+	10, // 60: enterprise_resource.v1.EnterpriseResourceService.PrepareEnterpriseResourceImageUpload:output_type -> enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse
+	12, // 61: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResourceImageAccess:output_type -> enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse
+	25, // 62: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseResources:output_type -> enterprise_resource.v1.ListEnterpriseResourcesResponse
+	22, // 63: enterprise_resource.v1.EnterpriseResourceService.GetEnterpriseResource:output_type -> enterprise_resource.v1.GetEnterpriseResourceResponse
+	23, // 64: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseResource:output_type -> enterprise_resource.v1.CreateEnterpriseResourceResponse
+	24, // 65: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseResource:output_type -> enterprise_resource.v1.UpdateEnterpriseResourceResponse
+	26, // 66: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseResource:output_type -> enterprise_resource.v1.DeleteEnterpriseResourceResponse
+	28, // 67: enterprise_resource.v1.EnterpriseResourceService.BatchCreateAssociations:output_type -> enterprise_resource.v1.BatchCreateAssociationsResponse
+	30, // 68: enterprise_resource.v1.EnterpriseResourceService.BatchDeleteAssociations:output_type -> enterprise_resource.v1.BatchDeleteAssociationsResponse
+	32, // 69: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAddressTypes:output_type -> enterprise_resource.v1.BatchAssignAddressTypesResponse
+	34, // 70: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAddressTypes:output_type -> enterprise_resource.v1.BatchRemoveAddressTypesResponse
+	36, // 71: enterprise_resource.v1.EnterpriseResourceService.BatchAssignAssignees:output_type -> enterprise_resource.v1.BatchAssignAssigneesResponse
+	38, // 72: enterprise_resource.v1.EnterpriseResourceService.BatchRemoveAssignees:output_type -> enterprise_resource.v1.BatchRemoveAssigneesResponse
+	42, // 73: enterprise_resource.v1.EnterpriseResourceService.ListEnterpriseTagGroups:output_type -> enterprise_resource.v1.ListEnterpriseTagGroupsResponse
+	46, // 74: enterprise_resource.v1.EnterpriseResourceService.CreateEnterpriseTagGroup:output_type -> enterprise_resource.v1.CreateEnterpriseTagGroupResponse
+	47, // 75: enterprise_resource.v1.EnterpriseResourceService.UpdateEnterpriseTagGroup:output_type -> enterprise_resource.v1.UpdateEnterpriseTagGroupResponse
+	48, // 76: enterprise_resource.v1.EnterpriseResourceService.DeleteEnterpriseTagGroup:output_type -> enterprise_resource.v1.DeleteEnterpriseTagGroupResponse
+	52, // 77: enterprise_resource.v1.EnterpriseResourceService.PreviewEnterpriseResourceImport:output_type -> enterprise_resource.v1.PreviewEnterpriseResourceImportResponse
+	53, // 78: enterprise_resource.v1.EnterpriseResourceService.CommitEnterpriseResourceImport:output_type -> enterprise_resource.v1.CommitEnterpriseResourceImportResponse
+	59, // [59:79] is the sub-list for method output_type
+	39, // [39:59] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_enterprise_resource_v1_enterprise_resource_proto_init() }
@@ -3541,7 +4564,7 @@ func file_enterprise_resource_v1_enterprise_resource_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_enterprise_resource_v1_enterprise_resource_proto_rawDesc), len(file_enterprise_resource_v1_enterprise_resource_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   39,
+			NumMessages:   52,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -157,7 +157,7 @@ const EnterpriseResourcesPage: React.FC = () => {
   const [imageFiles, setImageFiles] = useState<UploadFile[]>([]);
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
-  const [importPreview, setImportPreview] = useState<API.EnterpriseResourceImportResponse>();
+  const [importPreview, setImportPreview] = useState<API.PreviewEnterpriseResourceImportResponse>();
   const countryCode = Form.useWatch('countryCode', form);
   const provinceCode = Form.useWatch('provinceCode', form);
   const cityCode = Form.useWatch('cityCode', form);

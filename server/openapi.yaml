@@ -690,7 +690,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAddressTypeRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssignAddressTypesRequest'
                 required: true
             responses:
                 "200":
@@ -698,7 +698,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchAssignAddressTypesResponse'
     /api/v1/enterprise-resource-address-types/batch-remove:
         post:
             tags:
@@ -708,7 +708,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAddressTypeRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchRemoveAddressTypesRequest'
                 required: true
             responses:
                 "200":
@@ -716,7 +716,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchRemoveAddressTypesResponse'
     /api/v1/enterprise-resource-assignees/batch-assign:
         post:
             tags:
@@ -726,7 +726,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssigneeRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssignAssigneesRequest'
                 required: true
             responses:
                 "200":
@@ -734,7 +734,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchAssignAssigneesResponse'
     /api/v1/enterprise-resource-assignees/batch-remove:
         post:
             tags:
@@ -744,7 +744,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssigneeRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchRemoveAssigneesRequest'
                 required: true
             responses:
                 "200":
@@ -752,7 +752,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchRemoveAssigneesResponse'
     /api/v1/enterprise-resource-associations/batch-create:
         post:
             tags:
@@ -762,7 +762,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssociationRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchCreateAssociationsRequest'
                 required: true
             responses:
                 "200":
@@ -770,7 +770,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchCreateAssociationsResponse'
     /api/v1/enterprise-resource-associations/batch-delete:
         post:
             tags:
@@ -780,7 +780,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/enterprise_resource.v1.BatchAssociationRequest'
+                            $ref: '#/components/schemas/enterprise_resource.v1.BatchDeleteAssociationsRequest'
                 required: true
             responses:
                 "200":
@@ -788,7 +788,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.BatchMutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.BatchDeleteAssociationsResponse'
     /api/v1/enterprise-resource-capabilities:
         get:
             tags:
@@ -896,7 +896,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.CreateEnterpriseResourceResponse'
     /api/v1/enterprise-resources/import-commit:
         post:
             tags:
@@ -914,7 +914,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.CommitEnterpriseResourceImportResponse'
     /api/v1/enterprise-resources/import-preview:
         post:
             tags:
@@ -932,7 +932,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.PreviewEnterpriseResourceImportResponse'
     /api/v1/enterprise-resources/{id}:
         get:
             tags:
@@ -950,7 +950,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.GetEnterpriseResourceResponse'
         put:
             tags:
                 - EnterpriseResourceService
@@ -973,7 +973,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.UpdateEnterpriseResourceResponse'
         delete:
             tags:
                 - EnterpriseResourceService
@@ -990,7 +990,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.MutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.DeleteEnterpriseResourceResponse'
     /api/v1/enterprise-resources/{id}/image-access:
         get:
             tags:
@@ -1037,7 +1037,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.CreateEnterpriseTagGroupResponse'
     /api/v1/enterprise-tag-groups/{id}:
         put:
             tags:
@@ -1061,7 +1061,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.UpdateEnterpriseTagGroupResponse'
         delete:
             tags:
                 - EnterpriseResourceService
@@ -1078,7 +1078,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/enterprise_resource.v1.MutationResponse'
+                                $ref: '#/components/schemas/enterprise_resource.v1.DeleteEnterpriseTagGroupResponse'
     /api/v1/finance/bill-batches:
         post:
             tags:
@@ -6030,7 +6030,7 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 traceId:
                     type: string
-        enterprise_resource.v1.BatchAddressTypeRequest:
+        enterprise_resource.v1.BatchAssignAddressTypesRequest:
             required:
                 - resourceIds
                 - addressTypes
@@ -6045,7 +6045,22 @@ components:
                     items:
                         type: integer
                         format: enum
-        enterprise_resource.v1.BatchAssigneeRequest:
+        enterprise_resource.v1.BatchAssignAddressTypesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                affectedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.BatchAssignAssigneesRequest:
             required:
                 - resourceIds
                 - assigneeIds
@@ -6059,7 +6074,22 @@ components:
                     type: array
                     items:
                         type: string
-        enterprise_resource.v1.BatchAssociationRequest:
+        enterprise_resource.v1.BatchAssignAssigneesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                affectedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.BatchCreateAssociationsRequest:
             required:
                 - resourceIds
                 - partnerIds
@@ -6073,7 +6103,95 @@ components:
                     type: array
                     items:
                         type: string
-        enterprise_resource.v1.BatchMutationResponse:
+        enterprise_resource.v1.BatchCreateAssociationsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                affectedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.BatchDeleteAssociationsRequest:
+            required:
+                - resourceIds
+                - partnerIds
+            type: object
+            properties:
+                resourceIds:
+                    type: array
+                    items:
+                        type: string
+                partnerIds:
+                    type: array
+                    items:
+                        type: string
+        enterprise_resource.v1.BatchDeleteAssociationsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                affectedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.BatchRemoveAddressTypesRequest:
+            required:
+                - resourceIds
+                - addressTypes
+            type: object
+            properties:
+                resourceIds:
+                    type: array
+                    items:
+                        type: string
+                addressTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+        enterprise_resource.v1.BatchRemoveAddressTypesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                affectedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        enterprise_resource.v1.BatchRemoveAssigneesRequest:
+            required:
+                - resourceIds
+                - assigneeIds
+            type: object
+            properties:
+                resourceIds:
+                    type: array
+                    items:
+                        type: string
+                assigneeIds:
+                    type: array
+                    items:
+                        type: string
+        enterprise_resource.v1.BatchRemoveAssigneesResponse:
             type: object
             properties:
                 success:
@@ -6101,6 +6219,31 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceInput'
+        enterprise_resource.v1.CommitEnterpriseResourceImportResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                rows:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow'
+                validCount:
+                    type: integer
+                    format: int32
+                invalidCount:
+                    type: integer
+                    format: int32
+                createdCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
         enterprise_resource.v1.CreateEnterpriseResourceRequest:
             required:
                 - resource
@@ -6108,6 +6251,20 @@ components:
             properties:
                 resource:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceInput'
+        enterprise_resource.v1.CreateEnterpriseResourceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResource'
+                traceId:
+                    type: string
         enterprise_resource.v1.CreateEnterpriseTagGroupRequest:
             required:
                 - group
@@ -6115,6 +6272,44 @@ components:
             properties:
                 group:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput'
+        enterprise_resource.v1.CreateEnterpriseTagGroupResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
+                traceId:
+                    type: string
+        enterprise_resource.v1.DeleteEnterpriseResourceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+        enterprise_resource.v1.DeleteEnterpriseTagGroupResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
         enterprise_resource.v1.EnterpriseResource:
             type: object
             properties:
@@ -6199,31 +6394,6 @@ components:
                 height:
                     type: integer
                     format: int32
-        enterprise_resource.v1.EnterpriseResourceImportResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                rows:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow'
-                validCount:
-                    type: integer
-                    format: int32
-                invalidCount:
-                    type: integer
-                    format: int32
-                createdCount:
-                    type: integer
-                    format: int32
-                traceId:
-                    type: string
         enterprise_resource.v1.EnterpriseResourceImportRow:
             type: object
             properties:
@@ -6308,20 +6478,6 @@ components:
                     format: enum
                 content:
                     type: string
-        enterprise_resource.v1.EnterpriseResourceResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResource'
-                traceId:
-                    type: string
         enterprise_resource.v1.EnterpriseResourceTag:
             type: object
             properties:
@@ -6355,20 +6511,6 @@ components:
                 sortOrder:
                     type: integer
                     format: int32
-        enterprise_resource.v1.EnterpriseTagGroupResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
-                traceId:
-                    type: string
         enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse:
             type: object
             properties:
@@ -6403,6 +6545,20 @@ components:
                     type: string
                 expiresAt:
                     type: string
+                traceId:
+                    type: string
+        enterprise_resource.v1.GetEnterpriseResourceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResource'
                 traceId:
                     type: string
         enterprise_resource.v1.ListEnterpriseResourcesResponse:
@@ -6443,18 +6599,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
-                traceId:
-                    type: string
-        enterprise_resource.v1.MutationResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
                 traceId:
                     type: string
         enterprise_resource.v1.PartnerAssociations:
@@ -6515,6 +6659,31 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceInput'
+        enterprise_resource.v1.PreviewEnterpriseResourceImportResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                rows:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceImportRow'
+                validCount:
+                    type: integer
+                    format: int32
+                invalidCount:
+                    type: integer
+                    format: int32
+                createdCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
         enterprise_resource.v1.UpdateEnterpriseResourceRequest:
             required:
                 - id
@@ -6525,6 +6694,20 @@ components:
                     type: string
                 resource:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResourceInput'
+        enterprise_resource.v1.UpdateEnterpriseResourceResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseResource'
+                traceId:
+                    type: string
         enterprise_resource.v1.UpdateEnterpriseTagGroupRequest:
             required:
                 - id
@@ -6535,6 +6718,20 @@ components:
                     type: string
                 group:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput'
+        enterprise_resource.v1.UpdateEnterpriseTagGroupResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
+                traceId:
+                    type: string
         finance.v1.BillBatchPreviewGroup:
             type: object
             properties:
