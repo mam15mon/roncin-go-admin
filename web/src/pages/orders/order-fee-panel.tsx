@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
@@ -10,31 +10,32 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import FeeFormModal, {
-  type FeeFormValues,
-} from './components/fees/FeeFormModal';
-import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
-import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
-import {
-  FEE_BILLED,
-  RECEIVABLE,
-  feeDirectionCode,
-  feeStatusCode,
-} from './components/fees/feeConstants';
-import { confirmWithReason } from './fee-reason-confirm';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
-import { orderFeeServiceBatchAssignOrderFeeTags, orderFeeServiceBatchRemoveOrderFeeTags, orderFeeServiceListOrderFeeTagOptions } from '@/services/roncin/orderFeeService';
-import { TagOutlined } from '@ant-design/icons';
-import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import {
   orderFeeServiceAddFee,
+  orderFeeServiceBatchAssignOrderFeeTags,
+  orderFeeServiceBatchRemoveOrderFeeTags,
   orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
   orderFeeServiceListFees,
+  orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceRemoveFee,
   orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
+import FeeFormModal, {
+  type FeeFormValues,
+} from './components/fees/FeeFormModal';
+import {
+  FEE_BILLED,
+  feeDirectionCode,
+  feeStatusCode,
+  RECEIVABLE,
+} from './components/fees/feeConstants';
+import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
+import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
+import { confirmWithReason } from './fee-reason-confirm';
+import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import { useOrderFeePanelExchangeRate } from './use-order-fee-panel-rate';
 
 type FeeRequestError = Error & {
@@ -55,6 +56,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
+    const [selectedFees, setSelectedFees] = useState<API.OrderFee[]>([]);
     const [tagModalOpen, setTagModalOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
@@ -122,6 +124,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         const requestSequence = ++feeOptionsRequestRef.current;
         setOrder(targetOrder);
         setDrawerOpen(true);
+        setSelectedFeeIds([]);
+        setSelectedFees([]);
+        setTagModalOpen(false);
         setModalOpen(false);
         setEditingFee(undefined);
         setCurrencies([]);
@@ -175,6 +180,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       !financeLocked &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.update');
+    const canManageTags =
+      businessType !== undefined && access.canOrder(businessType, 'fee.update');
     const canDelete =
       feeOptionsReady &&
       !financeLocked &&
@@ -201,19 +208,23 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       const feeId = record.id;
       const version = record.version;
       if (!orderId || !feeId || !version) return;
-      confirmWithReason({ modal, message }, '撤回费用确认？', async (reason) => {
-        await orderFeeServiceReopenFee(
-          { orderId, id: feeId },
-          {
-            orderId,
-            id: feeId,
-            expectedVersion: version,
-            reason,
-          },
-        );
-        message.success('费用已撤回为草稿');
-        actionRef.current?.reload();
-      });
+      confirmWithReason(
+        { modal, message },
+        '撤回费用确认？',
+        async (reason) => {
+          await orderFeeServiceReopenFee(
+            { orderId, id: feeId },
+            {
+              orderId,
+              id: feeId,
+              expectedVersion: version,
+              reason,
+            },
+          );
+          message.success('费用已撤回为草稿');
+          actionRef.current?.reload();
+        },
+      );
     };
 
     const handleCancelFee = (record: API.OrderFee) => {
@@ -221,16 +232,20 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       const feeId = record.id;
       const version = record.version;
       if (!orderId || !feeId || !version) return;
-      confirmWithReason({ modal, message }, '确认作废该费用？', async (reason) => {
-        await orderFeeServiceRemoveFee({
-          orderId,
-          id: feeId,
-          expectedVersion: version,
-          reason,
-        });
-        message.success('费用已作废并保留历史记录');
-        actionRef.current?.reload();
-      });
+      confirmWithReason(
+        { modal, message },
+        '确认作废该费用？',
+        async (reason) => {
+          await orderFeeServiceRemoveFee({
+            orderId,
+            id: feeId,
+            expectedVersion: version,
+            reason,
+          });
+          message.success('费用已作废并保留历史记录');
+          actionRef.current?.reload();
+        },
+      );
     };
 
     const columns = buildOrderFeePanelColumns({
@@ -317,6 +332,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             feeOptionsRequestRef.current += 1;
             setDrawerOpen(false);
             setOrder(undefined);
+            setSelectedFeeIds([]);
+            setSelectedFees([]);
+            setTagModalOpen(false);
             setCurrencies([]);
             setSettlementParties([]);
             setFeeSettings([]);
@@ -365,7 +383,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               columns={columns}
               rowSelection={{
                 selectedRowKeys: selectedFeeIds,
-                onChange: setSelectedFeeIds,
+                onChange: (keys, rows) => {
+                  setSelectedFeeIds(keys);
+                  setSelectedFees(rows);
+                },
               }}
               bordered
               search={false}
@@ -391,8 +412,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                     录入费用
                   </Button>
                 ),
-                canUpdate && selectedFeeIds.length > 0 && (
-                  <Button key="tags" icon={<TagOutlined />} onClick={() => setTagModalOpen(true)}>
+                canManageTags && selectedFeeIds.length > 0 && (
+                  <Button
+                    key="tags"
+                    icon={<TagOutlined />}
+                    onClick={() => setTagModalOpen(true)}
+                  >
                     标签管理
                   </Button>
                 ),
@@ -410,16 +435,24 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             })
           }
           targetCount={selectedFeeIds.length}
+          existingTags={selectedFees.flatMap((fee) => fee.tags ?? [])}
           canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
           onSubmit={async (mode, tagIds) => {
             if (!order?.id || selectedFeeIds.length === 0) return;
             const feeIds = selectedFeeIds.map(String);
             if (mode === 'assign') {
-              await orderFeeServiceBatchAssignOrderFeeTags({ orderId: order.id as string }, { orderId: order.id as string, feeIds, tagIds });
+              await orderFeeServiceBatchAssignOrderFeeTags(
+                { orderId: order.id as string },
+                { orderId: order.id as string, feeIds, tagIds },
+              );
             } else {
-              await orderFeeServiceBatchRemoveOrderFeeTags({ orderId: order.id as string }, { orderId: order.id as string, feeIds, tagIds });
+              await orderFeeServiceBatchRemoveOrderFeeTags(
+                { orderId: order.id as string },
+                { orderId: order.id as string, feeIds, tagIds },
+              );
             }
             setSelectedFeeIds([]);
+            setSelectedFees([]);
             actionRef.current?.reload();
           }}
           onCancel={() => setTagModalOpen(false)}
@@ -430,9 +463,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           onOpenChange={setModalOpen}
           editingFee={editingFee}
           modalDirection={
-            editingFee
-              ? feeDirectionCode(editingFee.direction)
-              : RECEIVABLE
+            editingFee ? feeDirectionCode(editingFee.direction) : RECEIVABLE
           }
           isFeeBilled={feeStatusCode(editingFee?.status) === FEE_BILLED}
           feeSettings={feeSettings}
@@ -452,7 +483,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             if (setting?.defaultCurrency && order?.id) {
               resolveExchangeRate(
                 order.id,
-                editingFee ? feeDirectionCode(editingFee.direction) : RECEIVABLE,
+                editingFee
+                  ? feeDirectionCode(editingFee.direction)
+                  : RECEIVABLE,
                 setting.defaultCurrency,
                 dayjs().format('YYYY-MM-DD'),
               );
@@ -490,7 +523,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           onCancel={() => setQuickAddPartnerModalOpen(false)}
           onSuccess={(newOption) => {
             setSettlementParties((prev) => [newOption, ...prev]);
-            message.success(`已成功新建往来单位【${newOption.name}】并自动选用`);
+            message.success(
+              `已成功新建往来单位【${newOption.name}】并自动选用`,
+            );
             setQuickAddPartnerModalOpen(false);
           }}
         />

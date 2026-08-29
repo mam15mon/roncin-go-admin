@@ -1,5 +1,15 @@
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  message,
+  Segmented,
+  Select,
+  Space,
+  Tag,
+} from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Form, Input, message, Modal, Segmented, Select, Space, Tag } from 'antd';
 import {
   enterpriseResourceServiceCreateEnterpriseResource,
   enterpriseResourceServiceListEnterpriseTagGroups,
@@ -21,14 +31,22 @@ interface BusinessTagModalProps {
     keyword?: string;
     page: number;
     pageSize: number;
-  }) => Promise<API.ListOrderTagOptionsResponse | API.ListFinanceFeeTagOptionsResponse | API.ListFinanceBillTagOptionsResponse>;
+  }) => Promise<
+    | API.ListOrderTagOptionsResponse
+    | API.ListFinanceFeeTagOptionsResponse
+    | API.ListFinanceBillTagOptionsResponse
+  >;
   /** 提交选中标签 ID，由调用方执行对应领域的批量接口 */
   onSubmit: (mode: BusinessTagModalMode, tagIds: string[]) => Promise<void>;
   onCancel: () => void;
 }
 
-function tagColorStyle(tag: API.BusinessTagSummary): React.CSSProperties | undefined {
-  return tag.groupColor ? { color: tag.groupColor, borderColor: tag.groupColor } : undefined;
+function tagColorStyle(
+  tag: API.BusinessTagSummary,
+): React.CSSProperties | undefined {
+  return tag.groupColor
+    ? { color: tag.groupColor, borderColor: tag.groupColor }
+    : undefined;
 }
 
 /** 业务标签选择弹窗：订单、费用和账单页面共用。 */
@@ -47,7 +65,9 @@ export function BusinessTagModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
-  const [groupOptions, setGroupOptions] = useState<{ label: string; value: string }[]>([]);
+  const [groupOptions, setGroupOptions] = useState<
+    { label: string; value: string; color?: string }[]
+  >([]);
   const [quickForm] = Form.useForm<{ groupId: string; name: string }>();
 
   const fetchOptions = loadOptions ?? orderTagServiceListOrderTagOptions;
@@ -110,9 +130,25 @@ export function BusinessTagModal({
     message.success('标签已创建');
     setQuickCreateOpen(false);
     quickForm.resetFields();
-    await loadTagOptions();
     const createdID = response.data?.id;
-    if (createdID) setSelectedTagIds([createdID]);
+    if (createdID) {
+      const group = groupOptions.find(
+        (option) => option.value === values.groupId,
+      );
+      const createdTag: API.BusinessTagSummary = {
+        id: createdID,
+        name: response.data?.shortName ?? values.name.trim(),
+        groupId: values.groupId,
+        groupName: group?.label,
+        groupColor: group?.color,
+        enabled: response.data?.enabled ?? true,
+      };
+      setTagOptions((current) => [
+        createdTag,
+        ...current.filter((tag) => tag.id !== createdID),
+      ]);
+      setSelectedTagIds([createdID]);
+    }
   };
 
   return (
@@ -145,7 +181,9 @@ export function BusinessTagModal({
           mode="multiple"
           style={{ width: '100%' }}
           placeholder={
-            mode === 'assign' ? '搜索并选择要添加的标签' : '选择要移除的标签（含已停用）'
+            mode === 'assign'
+              ? '搜索并选择要添加的标签'
+              : '选择要移除的标签（含已停用）'
           }
           value={selectedTagIds}
           onChange={setSelectedTagIds}
@@ -169,8 +207,12 @@ export function BusinessTagModal({
                   />
                 ) : null}
                 <span>{tag.name}</span>
-                {tag.groupName ? <span style={{ color: '#999' }}>{tag.groupName}</span> : null}
-                {!tag.enabled ? <Tag style={{ marginRight: 0 }}>已停用</Tag> : null}
+                {tag.groupName ? (
+                  <span style={{ color: '#999' }}>{tag.groupName}</span>
+                ) : null}
+                {!tag.enabled ? (
+                  <Tag style={{ marginRight: 0 }}>已停用</Tag>
+                ) : null}
               </Space>
             ),
           }))}
@@ -188,23 +230,37 @@ export function BusinessTagModal({
           </Space>
         )}
         {canQuickCreate && mode === 'assign' && !quickCreateOpen && (
-          <Button type="link" size="small" onClick={() => {
-            setQuickCreateOpen(true);
-            void enterpriseResourceServiceListEnterpriseTagGroups().then((response) => {
-              setGroupOptions(
-                (response.data ?? []).map((group) => ({
-                  label: group.name ?? '',
-                  value: group.id ?? '',
-                })),
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setQuickCreateOpen(true);
+              void enterpriseResourceServiceListEnterpriseTagGroups().then(
+                (response) => {
+                  setGroupOptions(
+                    (response.data ?? []).map((group) => ({
+                      label: group.name ?? '',
+                      value: group.id ?? '',
+                      color: group.color,
+                    })),
+                  );
+                },
               );
-            });
-          }}>
+            }}
+          >
             + 新增标签
           </Button>
         )}
         {canQuickCreate && mode === 'assign' && quickCreateOpen && (
-          <Form form={quickForm} layout="inline" onFinish={() => void submitQuickCreate()}>
-            <Form.Item name="groupId" rules={[{ required: true, message: '选择标签组' }]}>
+          <Form
+            form={quickForm}
+            layout="inline"
+            onFinish={() => void submitQuickCreate()}
+          >
+            <Form.Item
+              name="groupId"
+              rules={[{ required: true, message: '选择标签组' }]}
+            >
               <Select
                 style={{ width: 160 }}
                 placeholder="标签组"
@@ -213,7 +269,10 @@ export function BusinessTagModal({
                 options={groupOptions}
               />
             </Form.Item>
-            <Form.Item name="name" rules={[{ required: true, message: '输入标签名称' }]}>
+            <Form.Item
+              name="name"
+              rules={[{ required: true, message: '输入标签名称' }]}
+            >
               <Input placeholder="标签名称" maxLength={200} />
             </Form.Item>
             <Button htmlType="submit">创建</Button>
