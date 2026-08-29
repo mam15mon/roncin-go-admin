@@ -10362,6 +10362,12 @@
           "imageMaxFileSize": {
             "type": "string"
           },
+          "imageUsedStorageBytes": {
+            "type": "string"
+          },
+          "imageStorageQuotaBytes": {
+            "type": "string"
+          },
           "traceId": {
             "type": "string"
           }

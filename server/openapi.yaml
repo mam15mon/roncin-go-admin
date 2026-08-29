@@ -6383,6 +6383,10 @@ components:
                     type: boolean
                 imageMaxFileSize:
                     type: string
+                imageUsedStorageBytes:
+                    type: string
+                imageStorageQuotaBytes:
+                    type: string
                 traceId:
                     type: string
         enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse:

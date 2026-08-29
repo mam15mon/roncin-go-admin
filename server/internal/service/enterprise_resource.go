@@ -22,12 +22,22 @@ func NewEnterpriseResourceService(usecase *biz.EnterpriseResourceUsecase) *Enter
 }
 
 func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx context.Context, _ *v1.GetEnterpriseResourceCapabilitiesRequest) (*v1.GetEnterpriseResourceCapabilitiesResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	usedStorage, err := s.usecase.ImageUsage(ctx, principal.Organization.ID)
+	if err != nil {
+		return nil, err
+	}
 	return &v1.GetEnterpriseResourceCapabilitiesResponse{
-		Success:          true,
-		Message:          "OK",
-		ImageEnabled:     s.usecase.ImageStorageEnabled(),
-		ImageMaxFileSize: biz.EnterpriseImageMaxFileSize,
-		TraceId:          requestmeta.TraceID(ctx),
+		Success:                true,
+		Message:                "OK",
+		ImageEnabled:           s.usecase.ImageStorageEnabled(),
+		ImageMaxFileSize:       biz.EnterpriseImageMaxFileSize,
+		ImageUsedStorageBytes:  usedStorage,
+		ImageStorageQuotaBytes: 0,
+		TraceId:                requestmeta.TraceID(ctx),
 	}, nil
 }
 

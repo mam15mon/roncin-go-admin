@@ -13,6 +13,7 @@ import (
 	addressent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	addresstypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
 	assigneeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	imageent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	remarkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
@@ -32,6 +33,23 @@ func enterpriseResourceQuery(client *ent.Client) *ent.EnterpriseResourceQuery {
 	return client.EnterpriseResource.Query().
 		WithAddress().WithRemark().WithImage().WithParty().WithTag().
 		WithPartnerLinks().WithAssignees().WithAddressTypes()
+}
+
+func (r *enterpriseResourceRepo) ImageUsage(ctx context.Context, organizationID uuid.UUID) (int64, error) {
+	var result []struct {
+		Total *int64 `json:"total"`
+	}
+	err := r.data.db.EnterpriseResourceImage.Query().
+		Where(imageent.HasResourceWith(resourceent.OrganizationIDEQ(organizationID))).
+		Aggregate(ent.As(ent.Sum(imageent.FieldFileSize), "total")).
+		Scan(ctx, &result)
+	if err != nil {
+		return 0, err
+	}
+	if len(result) == 0 || result[0].Total == nil {
+		return 0, nil
+	}
+	return *result[0].Total, nil
 }
 
 func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.EnterpriseResourceListOptions) ([]*biz.EnterpriseResource, int64, error) {

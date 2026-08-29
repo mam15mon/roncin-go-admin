@@ -2078,6 +2078,8 @@ declare namespace API {
     message?: string;
     imageEnabled?: boolean;
     imageMaxFileSize?: string;
+    imageUsedStorageBytes?: string;
+    imageStorageQuotaBytes?: string;
     traceId?: string;
   };
 

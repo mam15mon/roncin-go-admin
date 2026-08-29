@@ -116,6 +116,7 @@ type EnterpriseTagGroup struct {
 }
 
 type EnterpriseResourceRepo interface {
+	ImageUsage(context.Context, uuid.UUID) (int64, error)
 	List(context.Context, uuid.UUID, EnterpriseResourceListOptions) ([]*EnterpriseResource, int64, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*EnterpriseResource, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *EnterpriseResource, *AuditEvent) (*EnterpriseResource, error)
@@ -156,6 +157,13 @@ func NewEnterpriseResourceUsecase(repo EnterpriseResourceRepo, storage Enterpris
 
 func (uc *EnterpriseResourceUsecase) ImageStorageEnabled() bool {
 	return uc.storage.Enabled()
+}
+
+func (uc *EnterpriseResourceUsecase) ImageUsage(ctx context.Context, organizationID uuid.UUID) (int64, error) {
+	if organizationID == uuid.Nil {
+		return 0, ErrEnterpriseResourceInvalidArgument
+	}
+	return uc.repo.ImageUsage(ctx, organizationID)
 }
 
 func (uc *EnterpriseResourceUsecase) PrepareImageUpload(ctx context.Context, organizationID uuid.UUID, fileName, mimeType string, fileSize int64, checksum string) (*EnterpriseImageUpload, error) {

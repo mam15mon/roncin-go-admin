@@ -646,15 +646,17 @@ func (*GetEnterpriseResourceCapabilitiesRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetEnterpriseResourceCapabilitiesResponse struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Success          bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code             int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message          string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	ImageEnabled     bool                   `protobuf:"varint,4,opt,name=image_enabled,json=imageEnabled,proto3" json:"image_enabled,omitempty"`
-	ImageMaxFileSize int64                  `protobuf:"varint,5,opt,name=image_max_file_size,json=imageMaxFileSize,proto3" json:"image_max_file_size,omitempty"`
-	TraceId          string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	Success                bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code                   int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message                string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	ImageEnabled           bool                   `protobuf:"varint,4,opt,name=image_enabled,json=imageEnabled,proto3" json:"image_enabled,omitempty"`
+	ImageMaxFileSize       int64                  `protobuf:"varint,5,opt,name=image_max_file_size,json=imageMaxFileSize,proto3" json:"image_max_file_size,omitempty"`
+	ImageUsedStorageBytes  int64                  `protobuf:"varint,6,opt,name=image_used_storage_bytes,json=imageUsedStorageBytes,proto3" json:"image_used_storage_bytes,omitempty"`
+	ImageStorageQuotaBytes int64                  `protobuf:"varint,7,opt,name=image_storage_quota_bytes,json=imageStorageQuotaBytes,proto3" json:"image_storage_quota_bytes,omitempty"`
+	TraceId                string                 `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *GetEnterpriseResourceCapabilitiesResponse) Reset() {
@@ -718,6 +720,20 @@ func (x *GetEnterpriseResourceCapabilitiesResponse) GetImageEnabled() bool {
 func (x *GetEnterpriseResourceCapabilitiesResponse) GetImageMaxFileSize() int64 {
 	if x != nil {
 		return x.ImageMaxFileSize
+	}
+	return 0
+}
+
+func (x *GetEnterpriseResourceCapabilitiesResponse) GetImageUsedStorageBytes() int64 {
+	if x != nil {
+		return x.ImageUsedStorageBytes
+	}
+	return 0
+}
+
+func (x *GetEnterpriseResourceCapabilitiesResponse) GetImageStorageQuotaBytes() int64 {
+	if x != nil {
+		return x.ImageStorageQuotaBytes
 	}
 	return 0
 }
@@ -3088,14 +3104,16 @@ const file_enterprise_resource_v1_enterprise_resource_proto_rawDesc = "" +
 	"\x06height\x18\a \x01(\x05H\x01R\x06height\x88\x01\x01B\b\n" +
 	"\x06_widthB\t\n" +
 	"\a_height\"*\n" +
-	"(GetEnterpriseResourceCapabilitiesRequest\"\xe2\x01\n" +
+	"(GetEnterpriseResourceCapabilitiesRequest\"\xd6\x02\n" +
 	")GetEnterpriseResourceCapabilitiesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
 	"\rimage_enabled\x18\x04 \x01(\bR\fimageEnabled\x12-\n" +
-	"\x13image_max_file_size\x18\x05 \x01(\x03R\x10imageMaxFileSize\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x13image_max_file_size\x18\x05 \x01(\x03R\x10imageMaxFileSize\x127\n" +
+	"\x18image_used_storage_bytes\x18\x06 \x01(\x03R\x15imageUsedStorageBytes\x129\n" +
+	"\x19image_storage_quota_bytes\x18\a \x01(\x03R\x16imageStorageQuotaBytes\x12\x19\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb4\x01\n" +
 	"+PrepareEnterpriseResourceImageUploadRequest\x12 \n" +
 	"\tfile_name\x18\x01 \x01(\tB\x03\xe0A\x02R\bfileName\x12 \n" +
 	"\tmime_type\x18\x02 \x01(\tB\x03\xe0A\x02R\bmimeType\x12 \n" +
