@@ -55,3 +55,30 @@ func TestEnterpriseResourceBatchRejectsEmptyTargets(t *testing.T) {
 		t.Fatalf("空资源集合应被拒绝，实际为 %v", err)
 	}
 }
+
+func TestNormalizeEnterpriseResourceValidatesImageTypeAndSize(t *testing.T) {
+	valid := &EnterpriseResource{
+		ResourceType: EnterpriseResourceImageType,
+		ShortName:    "装箱照片",
+		Enabled:      true,
+		Image: &EnterpriseResourceImage{
+			FileName: "packing.png", MIMEType: "image/png", FileSize: EnterpriseImageMaxFileSize,
+			ObjectKey: "enterprise-resources/example/packing.png", Checksum: "checksum",
+		},
+	}
+	if _, err := normalizeEnterpriseResource(valid); err != nil {
+		t.Fatalf("合法图片应通过校验: %v", err)
+	}
+
+	invalidMIME := *valid
+	invalidMIME.Image = &EnterpriseResourceImage{FileName: "document.pdf", MIMEType: "application/pdf", FileSize: 1024, ObjectKey: "object", Checksum: "checksum"}
+	if _, err := normalizeEnterpriseResource(&invalidMIME); err != ErrEnterpriseResourceInvalidArgument {
+		t.Fatalf("非图片 MIME 应被拒绝，实际为 %v", err)
+	}
+
+	oversized := *valid
+	oversized.Image = &EnterpriseResourceImage{FileName: "large.png", MIMEType: "image/png", FileSize: EnterpriseImageMaxFileSize + 1, ObjectKey: "object", Checksum: "checksum"}
+	if _, err := normalizeEnterpriseResource(&oversized); err != ErrEnterpriseResourceInvalidArgument {
+		t.Fatalf("超限图片应被拒绝，实际为 %v", err)
+	}
+}
