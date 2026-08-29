@@ -63,17 +63,14 @@ export function CustomSettingsPanel() {
     setLoading(true);
     try {
       const [rateRes, policyRes] = await Promise.all([
-        exchangeRateServiceGetExchangeRateCustomSetting().catch((e) => {
-          console.error(e);
-          return { data: undefined };
-        }),
-        settlementServiceGetBilledFeeEditPolicy().catch((e) => {
-          console.error(e);
-          return { data: undefined };
-        }),
+        exchangeRateServiceGetExchangeRateCustomSetting(),
+        settlementServiceGetBilledFeeEditPolicy(),
       ]);
-      if (rateRes.data) setRateSetting(rateRes.data);
-      if (policyRes.data) setBilledFeePolicy(policyRes.data);
+      if (!rateRes.data || !policyRes.data) {
+        throw new Error('自定义设置响应不完整');
+      }
+      setRateSetting(rateRes.data);
+      setBilledFeePolicy(policyRes.data);
     } catch (e: any) {
       message.error(e.message || '获取自定义设置失败');
     } finally {
@@ -104,7 +101,9 @@ export function CustomSettingsPanel() {
       try {
         const res = await exchangeRateServiceGetExchangeRateCustomSetting();
         if (res.data) setRateSetting(res.data);
-      } catch {}
+      } catch (reloadError: any) {
+        message.error(reloadError.message || '重新加载汇率设置失败');
+      }
     } finally {
       setSavingRate(false);
     }
@@ -130,7 +129,9 @@ export function CustomSettingsPanel() {
       try {
         const res = await settlementServiceGetBilledFeeEditPolicy();
         if (res.data) setBilledFeePolicy(res.data);
-      } catch {}
+      } catch (reloadError: any) {
+        message.error(reloadError.message || '重新加载账单费用策略失败');
+      }
     } finally {
       setSavingPolicy(false);
     }
@@ -152,7 +153,9 @@ export function CustomSettingsPanel() {
       try {
         const res = await settlementServiceGetBilledFeeEditPolicy();
         if (res.data) setBilledFeePolicy(res.data);
-      } catch {}
+      } catch (reloadError: any) {
+        message.error(reloadError.message || '重新加载账单费用策略失败');
+      }
     } finally {
       setSavingPolicy(false);
     }

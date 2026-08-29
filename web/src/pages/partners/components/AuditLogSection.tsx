@@ -1,7 +1,7 @@
 import { ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
-import { Empty, Pagination, Space, Spin, Tag, Timeline, Typography } from 'antd';
+import { Alert, Button, Empty, Pagination, Space, Spin, Tag, Timeline, Typography } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { partnerServiceListPartnerAuditLogs } from '@/services/roncin/partnerService';
 
 const { Text } = Typography;
@@ -16,28 +16,41 @@ export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [loadError, setLoadError] = useState('');
+  const requestSequenceRef = useRef(0);
 
-  const fetchLogs = async (currentPage = 1, size = 10) => {
+  const fetchLogs = useCallback(async (currentPage = 1, size = 10) => {
     if (!partnerId) return;
+    const requestSequence = ++requestSequenceRef.current;
     setLoading(true);
+    setLoadError('');
     try {
       const res = await partnerServiceListPartnerAuditLogs({
         partnerId,
         page: currentPage,
         pageSize: size,
       });
+      if (requestSequence !== requestSequenceRef.current) return;
       setLogs(res.data || []);
       setTotal(res.total || 0);
-    } catch {
-      // Keep silent on log fetch failure
+    } catch (error) {
+      if (requestSequence !== requestSequenceRef.current) return;
+      setLogs([]);
+      setTotal(0);
+      setLoadError((error as Error).message || '操作日志加载失败');
     } finally {
-      setLoading(false);
+      if (requestSequence === requestSequenceRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [partnerId]);
 
   useEffect(() => {
-    fetchLogs(page, pageSize);
-  }, [partnerId, page, pageSize]);
+    void fetchLogs(page, pageSize);
+    return () => {
+      requestSequenceRef.current += 1;
+    };
+  }, [fetchLogs, page, pageSize]);
 
   if (!partnerId) {
     return (
@@ -51,7 +64,15 @@ export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
 
   return (
     <Spin spinning={loading}>
-      {logs.length === 0 ? (
+      {loadError ? (
+        <Alert
+          type="error"
+          showIcon
+          title="操作日志加载失败"
+          description={loadError}
+          action={<Button size="small" onClick={() => void fetchLogs(page, pageSize)}>重试</Button>}
+        />
+      ) : logs.length === 0 ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description="暂无操作记录流水"

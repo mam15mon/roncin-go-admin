@@ -1,4 +1,4 @@
-import { Alert, Form, type FormInstance, Modal } from 'antd';
+import { Alert, App, Form, type FormInstance, Modal } from 'antd';
 import React, { useState, type ReactNode } from 'react';
 
 export interface QuickCreateModalProps<TFormValues = any, TResult = any> {
@@ -33,20 +33,27 @@ export function QuickCreateModal<TFormValues = any, TResult = any>({
   children,
 }: QuickCreateModalProps<TFormValues, TResult>) {
   const [internalForm] = Form.useForm<TFormValues>();
+  const { message } = App.useApp();
   const form = externalForm || internalForm;
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    let values: TFormValues;
     try {
-      const values = await form.validateFields();
-      setSaving(true);
+      values = await form.validateFields();
+    } catch {
+      return;
+    }
+
+    setSaving(true);
+    try {
       const result = await onSubmit(values);
       if (result !== undefined && result !== null) {
         onSuccess?.(result);
       }
       form.resetFields();
-    } catch {
-      // Form validation error
+    } catch (error) {
+      message.error((error as Error).message || '保存失败');
     } finally {
       setSaving(false);
     }

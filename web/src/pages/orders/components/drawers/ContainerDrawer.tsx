@@ -5,8 +5,8 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { Typography } from 'antd';
-import React, { forwardRef, useState } from 'react';
+import { App, Typography } from 'antd';
+import React, { forwardRef, useRef, useState } from 'react';
 import {
   SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
@@ -52,6 +52,8 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     },
     ref,
   ) {
+    const { message } = App.useApp();
+    const documentRequestRef = useRef(0);
     const [containerDocuments, setContainerDocuments] = useState<
       API.OrderShippingDocument[]
     >([]);
@@ -148,11 +150,21 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
         columns={columns}
         onOpen={(order) => {
           if (!order?.id) return;
+          const requestSequence = ++documentRequestRef.current;
+          setContainerDocuments([]);
           orderShippingDocumentServiceListShippingDocuments({
             orderId: order.id as string,
           })
-            .then((res) => setContainerDocuments(res.data ?? []))
-            .catch(() => setContainerDocuments([]));
+            .then((res) => {
+              if (requestSequence === documentRequestRef.current) {
+                setContainerDocuments(res.data ?? []);
+              }
+            })
+            .catch((error: Error) => {
+              if (requestSequence === documentRequestRef.current) {
+                message.error(error.message || '关联提单加载失败');
+              }
+            });
         }}
         fetchList={(order) =>
           orderContainerServiceListContainers({

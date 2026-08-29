@@ -11,7 +11,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
+import { Alert, App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
@@ -68,6 +68,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
     const [documents, setDocuments] = useState<API.OrderShippingDocument[]>([]);
+    const [documentsError, setDocumentsError] = useState('');
     const [editingRecord, setEditingRecord] = useState<API.OrderReleasePod>();
     const activeOrderIdRef = useRef<string | undefined>(undefined);
 
@@ -75,6 +76,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
       open: (record) => {
         setOrder(record);
         setDocuments([]);
+        setDocumentsError('');
         setDrawerOpen(true);
         const orderId = record.id as string;
         activeOrderIdRef.current = orderId;
@@ -86,9 +88,10 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
               setDocuments(response.data ?? []);
             }
           })
-          .catch(() => {
+          .catch((error: Error) => {
             if (activeOrderIdRef.current === orderId) {
               setDocuments([]);
+              setDocumentsError(error.message || '关联提单加载失败');
             }
           });
       },
@@ -284,10 +287,20 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             setDrawerOpen(false);
             setOrder(undefined);
             setDocuments([]);
+            setDocumentsError('');
           }}
           size={920}
           destroyOnHidden
         >
+          {documentsError && (
+            <Alert
+              type="error"
+              showIcon
+              title="关联提单加载失败"
+              description={documentsError}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           {order?.id && (
             <ProTable<API.OrderReleasePod>
               headerTitle={
