@@ -133,13 +133,12 @@ type OrderConfigRepo interface {
 }
 
 type OrderConfigUsecase struct {
-	repo  OrderConfigRepo
-	audit AuditRepo
-	now   func() time.Time
+	repo OrderConfigRepo
+	now  func() time.Time
 }
 
-func NewOrderConfigUsecase(repo OrderConfigRepo, audit AuditRepo) *OrderConfigUsecase {
-	return &OrderConfigUsecase{repo: repo, audit: audit, now: time.Now}
+func NewOrderConfigUsecase(repo OrderConfigRepo) *OrderConfigUsecase {
+	return &OrderConfigUsecase{repo: repo, now: time.Now}
 }
 
 func (uc *OrderConfigUsecase) ListNumberRules(ctx context.Context, organizationID uuid.UUID) ([]*NumberRule, error) {

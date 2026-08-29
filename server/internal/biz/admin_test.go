@@ -182,15 +182,6 @@ func (s *adminRepoStub) GetRolesPrivilegeProfiles(_ context.Context, _ uuid.UUID
 	return profiles, nil
 }
 
-type auditRepoStub struct {
-	events []*AuditEvent
-}
-
-func (s *auditRepoStub) WriteAudit(_ context.Context, event *AuditEvent) error {
-	s.events = append(s.events, event)
-	return nil
-}
-
 func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	repo := &adminRepoStub{}
 	usecase := NewAdminUsecase(repo)
@@ -772,4 +763,3 @@ func TestPrincipalOrderOrganizationAccess(t *testing.T) {
 func stringPtr(value string) *string { return &value }
 
 var _ AdminRepo = (*adminRepoStub)(nil)
-var _ AuditRepo = (*auditRepoStub)(nil)

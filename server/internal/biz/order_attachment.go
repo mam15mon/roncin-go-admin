@@ -39,12 +39,11 @@ type OrderAttachmentRepo interface {
 }
 
 type OrderAttachmentUsecase struct {
-	repo  OrderAttachmentRepo
-	audit AuditRepo
+	repo OrderAttachmentRepo
 }
 
-func NewOrderAttachmentUsecase(repo OrderAttachmentRepo, audit AuditRepo) *OrderAttachmentUsecase {
-	return &OrderAttachmentUsecase{repo: repo, audit: audit}
+func NewOrderAttachmentUsecase(repo OrderAttachmentRepo) *OrderAttachmentUsecase {
+	return &OrderAttachmentUsecase{repo: repo}
 }
 
 func (uc *OrderAttachmentUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderAttachment, error) {

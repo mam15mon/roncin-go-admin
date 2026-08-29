@@ -43,9 +43,8 @@ type OrderRepo interface {
 type OrderUsecase struct {
 	repo   OrderRepo
 	config *OrderConfigUsecase
-	audit  AuditRepo
 }
 
-func NewOrderUsecase(repo OrderRepo, config *OrderConfigUsecase, audit AuditRepo) *OrderUsecase {
-	return &OrderUsecase{repo: repo, config: config, audit: audit}
+func NewOrderUsecase(repo OrderRepo, config *OrderConfigUsecase) *OrderUsecase {
+	return &OrderUsecase{repo: repo, config: config}
 }

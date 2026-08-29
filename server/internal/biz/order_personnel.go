@@ -63,12 +63,11 @@ type OrderPersonnelRepo interface {
 }
 
 type OrderPersonnelUsecase struct {
-	repo  OrderPersonnelRepo
-	audit AuditRepo
+	repo OrderPersonnelRepo
 }
 
-func NewOrderPersonnelUsecase(repo OrderPersonnelRepo, audit AuditRepo) *OrderPersonnelUsecase {
-	return &OrderPersonnelUsecase{repo: repo, audit: audit}
+func NewOrderPersonnelUsecase(repo OrderPersonnelRepo) *OrderPersonnelUsecase {
+	return &OrderPersonnelUsecase{repo: repo}
 }
 
 func (uc *OrderPersonnelUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error) {

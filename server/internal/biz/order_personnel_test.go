@@ -78,8 +78,7 @@ func TestOrderPersonnelRoleValid(t *testing.T) {
 
 func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
 	repo := &orderPersonnelRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderPersonnelUsecase(repo, audit)
+	usecase := NewOrderPersonnelUsecase(repo)
 	organizationID, actorID, orderID, userID, memberOrganizationID := uuid.New(), uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Empty IDs
@@ -122,8 +121,7 @@ func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
 
 func TestOrderPersonnelRemoveValidatesAndAudits(t *testing.T) {
 	repo := &orderPersonnelRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderPersonnelUsecase(repo, audit)
+	usecase := NewOrderPersonnelUsecase(repo)
 	organizationID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
 	// Empty IDs
@@ -154,8 +152,7 @@ func TestOrderPersonnelRemoveValidatesAndAudits(t *testing.T) {
 
 func TestOrderPersonnelListValidates(t *testing.T) {
 	repo := &orderPersonnelRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderPersonnelUsecase(repo, audit)
+	usecase := NewOrderPersonnelUsecase(repo)
 
 	if _, err := usecase.List(context.Background(), uuid.Nil, uuid.New()); err != ErrOrderPersonnelInvalidArgument {
 		t.Fatalf("expected ErrOrderPersonnelInvalidArgument, got %v", err)

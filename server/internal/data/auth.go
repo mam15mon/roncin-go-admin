@@ -24,8 +24,6 @@ type authRepo struct{ data *Data }
 
 func NewAuthRepo(data *Data) biz.AuthRepo { return &authRepo{data: data} }
 
-func NewAuditRepo(data *Data) biz.AuditRepo { return &authRepo{data: data} }
-
 func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Credential, error) {
 	account, err := r.data.db.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {
@@ -506,9 +504,4 @@ func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time
 	return tx.Commit()
 }
 
-func (r *authRepo) WriteAudit(ctx context.Context, event *biz.AuditEvent) error {
-	return writeAudit(ctx, r.data.db.AuditLog, event)
-}
-
 var _ biz.AuthRepo = (*authRepo)(nil)
-var _ biz.AuditRepo = (*authRepo)(nil)

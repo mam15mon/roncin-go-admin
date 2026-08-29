@@ -28,12 +28,11 @@ type OrderMilestoneRepo interface {
 }
 
 type OrderMilestoneUsecase struct {
-	repo  OrderMilestoneRepo
-	audit AuditRepo
+	repo OrderMilestoneRepo
 }
 
-func NewOrderMilestoneUsecase(repo OrderMilestoneRepo, audit AuditRepo) *OrderMilestoneUsecase {
-	return &OrderMilestoneUsecase{repo: repo, audit: audit}
+func NewOrderMilestoneUsecase(repo OrderMilestoneRepo) *OrderMilestoneUsecase {
+	return &OrderMilestoneUsecase{repo: repo}
 }
 
 func (uc *OrderMilestoneUsecase) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderMilestone, error) {

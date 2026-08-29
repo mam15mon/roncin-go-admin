@@ -27,8 +27,7 @@ func (s *orderAttachmentRepoStub) Create(_ context.Context, _, actorID, orderID 
 
 func TestOrderAttachmentRegisterNormalizesAndAudits(t *testing.T) {
 	repo := &orderAttachmentRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderAttachmentUsecase(repo, audit)
+	usecase := NewOrderAttachmentUsecase(repo)
 	organizationID, actorID, orderID := uuid.New(), uuid.New(), uuid.New()
 
 	created, err := usecase.Register(context.Background(), organizationID, actorID, orderID, &OrderAttachment{
@@ -52,7 +51,7 @@ func TestOrderAttachmentRegisterNormalizesAndAudits(t *testing.T) {
 }
 
 func TestOrderAttachmentRejectsUnsafeMetadata(t *testing.T) {
-	usecase := NewOrderAttachmentUsecase(&orderAttachmentRepoStub{}, &auditRepoStub{})
+	usecase := NewOrderAttachmentUsecase(&orderAttachmentRepoStub{})
 	cases := []*OrderAttachment{
 		{DocType: "BL", IdempotencyKey: "k", FileName: "../secret.pdf", MIMEType: "text/plain", FileSize: 1, ObjectKey: "key"},
 		{DocType: "BL", IdempotencyKey: "k", FileName: "foo/bar.pdf", MIMEType: "text/plain", FileSize: 1, ObjectKey: "key"},

@@ -122,8 +122,7 @@ func TestDefaultCountryOptions(t *testing.T) {
 
 func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 	repo := &masterDataRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewMasterDataUsecase(repo, audit)
+	usecase := NewMasterDataUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -140,7 +139,7 @@ func TestMasterDataCreateNormalizesAndAudits(t *testing.T) {
 }
 
 func TestMasterDataRejectsInvalidTEUFactor(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -153,7 +152,7 @@ func TestMasterDataRejectsInvalidTEUFactor(t *testing.T) {
 }
 
 func TestMasterDataListRejectsInvalidPage(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
 	if _, err := usecase.List(context.Background(), uuid.New(), MasterDataListOptions{Page: 0, PageSize: 20}); err != ErrMasterDataInvalidArgument {
 		t.Fatalf("List() error = %v, want ErrMasterDataInvalidArgument", err)
 	}
@@ -167,8 +166,7 @@ func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 			Updated: 1,
 		},
 	}
-	audit := &auditRepoStub{}
-	usecase := NewMasterDataUsecase(repo, audit)
+	usecase := NewMasterDataUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -250,7 +248,7 @@ func TestMasterDataImportNormalizesAndAudits(t *testing.T) {
 
 // 测试 Import 各种非法参数返回 ErrMasterDataInvalidArgument：空批次、超过500条、重复编码（含大小写空格）、非法 kind、非法 mode、空 source
 func TestMasterDataImportRejectsInvalidArguments(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -364,7 +362,7 @@ func TestMasterDataImportRejectsInvalidArguments(t *testing.T) {
 
 // 验证字段专属规则：ParentCode 只允许 region，TEUFactor 只允许 container_spec
 func TestMasterDataFieldConstraints(t *testing.T) {
-	usecase := NewMasterDataUsecase(&masterDataRepoStub{}, &auditRepoStub{})
+	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -435,8 +433,7 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 // 测试 upsert 模式原样传仓储
 func TestMasterDataImportUpsertModePassThrough(t *testing.T) {
 	repo := &masterDataRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewMasterDataUsecase(repo, audit)
+	usecase := NewMasterDataUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 

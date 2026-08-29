@@ -278,12 +278,11 @@ type MasterDataRepo interface {
 }
 
 type MasterDataUsecase struct {
-	repo  MasterDataRepo
-	audit AuditRepo
+	repo MasterDataRepo
 }
 
-func NewMasterDataUsecase(repo MasterDataRepo, audit AuditRepo) *MasterDataUsecase {
-	return &MasterDataUsecase{repo: repo, audit: audit}
+func NewMasterDataUsecase(repo MasterDataRepo) *MasterDataUsecase {
+	return &MasterDataUsecase{repo: repo}
 }
 
 func (uc *MasterDataUsecase) List(ctx context.Context, organizationID uuid.UUID, options MasterDataListOptions) (*MasterDataList, error) {

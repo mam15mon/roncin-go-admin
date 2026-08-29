@@ -138,12 +138,11 @@ type IndustryReferenceRepo interface {
 }
 
 type IndustryReferenceUsecase struct {
-	repo  IndustryReferenceRepo
-	audit AuditRepo
+	repo IndustryReferenceRepo
 }
 
-func NewIndustryReferenceUsecase(repo IndustryReferenceRepo, audit AuditRepo) *IndustryReferenceUsecase {
-	return &IndustryReferenceUsecase{repo: repo, audit: audit}
+func NewIndustryReferenceUsecase(repo IndustryReferenceRepo) *IndustryReferenceUsecase {
+	return &IndustryReferenceUsecase{repo: repo}
 }
 
 func (uc *IndustryReferenceUsecase) ListPorts(ctx context.Context, organizationID uuid.UUID, options IndustryReferenceListOptions) (*PortList, error) {

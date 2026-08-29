@@ -81,8 +81,7 @@ func TestDefaultNumberRules(t *testing.T) {
 
 func TestOrderConfigCreateNumberRuleNormalizesAndAudits(t *testing.T) {
 	repo := &orderConfigRepoStub{}
-	audit := &auditRepoStub{}
-	usecase := NewOrderConfigUsecase(repo, audit)
+	usecase := NewOrderConfigUsecase(repo)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -191,7 +190,7 @@ func TestOrderConfigNextNumberFormatAndRepoArguments(t *testing.T) {
 				allocatedRule:     tc.rule,
 				allocatedSequence: tc.sequence,
 			}
-			usecase := NewOrderConfigUsecase(repo, &auditRepoStub{})
+			usecase := NewOrderConfigUsecase(repo)
 			usecase.now = func() time.Time {
 				return fixedTime
 			}
@@ -225,7 +224,7 @@ func TestOrderConfigNextNumberSequenceExhausted(t *testing.T) {
 		},
 		allocatedSequence: 1000,
 	}
-	usecase := NewOrderConfigUsecase(repo, &auditRepoStub{})
+	usecase := NewOrderConfigUsecase(repo)
 
 	_, err := usecase.NextNumber(context.Background(), uuid.New(), DocumentTypeOrder)
 	if err != ErrNumberSequenceExhausted {
@@ -240,7 +239,7 @@ func TestOrderConfigNextOrderNumberUsesSupportedBusinessType(t *testing.T) {
 				allocatedRule:     &NumberRule{DateFormat: DateFormatNone, SequenceLength: 5},
 				allocatedSequence: 7,
 			}
-			usecase := NewOrderConfigUsecase(repo, &auditRepoStub{})
+			usecase := NewOrderConfigUsecase(repo)
 
 			got, err := usecase.NextOrderNumber(context.Background(), uuid.New(), businessType)
 			if err != nil {
@@ -257,7 +256,7 @@ func TestOrderConfigNextOrderNumberUsesSupportedBusinessType(t *testing.T) {
 }
 
 func TestOrderConfigNextOrderNumberRejectsUnimplementedBusinessType(t *testing.T) {
-	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{}, &auditRepoStub{})
+	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{})
 
 	for _, businessType := range []OrderBusinessType{OrderBusinessSI, OrderBusinessAE, OrderBusinessAI, OrderBusinessLand, OrderBusinessRail} {
 		if _, err := usecase.NextOrderNumber(context.Background(), uuid.New(), businessType); err != ErrMasterDataInvalidArgument {
@@ -267,7 +266,7 @@ func TestOrderConfigNextOrderNumberRejectsUnimplementedBusinessType(t *testing.T
 }
 
 func TestOrderConfigNumberRuleValidationBoundaries(t *testing.T) {
-	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{}, &auditRepoStub{})
+	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
