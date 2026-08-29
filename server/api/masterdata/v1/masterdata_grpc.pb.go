@@ -19,33 +19,29 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MasterDataService_ListItems_FullMethodName                   = "/masterdata.v1.MasterDataService/ListItems"
-	MasterDataService_CreateItem_FullMethodName                  = "/masterdata.v1.MasterDataService/CreateItem"
-	MasterDataService_UpdateItem_FullMethodName                  = "/masterdata.v1.MasterDataService/UpdateItem"
-	MasterDataService_ImportItems_FullMethodName                 = "/masterdata.v1.MasterDataService/ImportItems"
-	MasterDataService_ListOptions_FullMethodName                 = "/masterdata.v1.MasterDataService/ListOptions"
-	MasterDataService_ListPorts_FullMethodName                   = "/masterdata.v1.MasterDataService/ListPorts"
-	MasterDataService_CreatePort_FullMethodName                  = "/masterdata.v1.MasterDataService/CreatePort"
-	MasterDataService_UpdatePort_FullMethodName                  = "/masterdata.v1.MasterDataService/UpdatePort"
-	MasterDataService_ListAirports_FullMethodName                = "/masterdata.v1.MasterDataService/ListAirports"
-	MasterDataService_CreateAirport_FullMethodName               = "/masterdata.v1.MasterDataService/CreateAirport"
-	MasterDataService_UpdateAirport_FullMethodName               = "/masterdata.v1.MasterDataService/UpdateAirport"
-	MasterDataService_ListAirlines_FullMethodName                = "/masterdata.v1.MasterDataService/ListAirlines"
-	MasterDataService_CreateAirline_FullMethodName               = "/masterdata.v1.MasterDataService/CreateAirline"
-	MasterDataService_UpdateAirline_FullMethodName               = "/masterdata.v1.MasterDataService/UpdateAirline"
-	MasterDataService_ListShippingLines_FullMethodName           = "/masterdata.v1.MasterDataService/ListShippingLines"
-	MasterDataService_CreateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/CreateShippingLine"
-	MasterDataService_UpdateShippingLine_FullMethodName          = "/masterdata.v1.MasterDataService/UpdateShippingLine"
-	MasterDataService_ListCurrencies_FullMethodName              = "/masterdata.v1.MasterDataService/ListCurrencies"
-	MasterDataService_SearchCurrencies_FullMethodName            = "/masterdata.v1.MasterDataService/SearchCurrencies"
-	MasterDataService_ListAdministrativeRegions_FullMethodName   = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
-	MasterDataService_ListNumberRules_FullMethodName             = "/masterdata.v1.MasterDataService/ListNumberRules"
-	MasterDataService_CreateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/CreateNumberRule"
-	MasterDataService_UpdateNumberRule_FullMethodName            = "/masterdata.v1.MasterDataService/UpdateNumberRule"
-	MasterDataService_ListMilestoneTemplates_FullMethodName      = "/masterdata.v1.MasterDataService/ListMilestoneTemplates"
-	MasterDataService_CreateMilestoneTemplate_FullMethodName     = "/masterdata.v1.MasterDataService/CreateMilestoneTemplate"
-	MasterDataService_PublishMilestoneTemplate_FullMethodName    = "/masterdata.v1.MasterDataService/PublishMilestoneTemplate"
-	MasterDataService_SetDefaultMilestoneTemplate_FullMethodName = "/masterdata.v1.MasterDataService/SetDefaultMilestoneTemplate"
+	MasterDataService_ListItems_FullMethodName                 = "/masterdata.v1.MasterDataService/ListItems"
+	MasterDataService_CreateItem_FullMethodName                = "/masterdata.v1.MasterDataService/CreateItem"
+	MasterDataService_UpdateItem_FullMethodName                = "/masterdata.v1.MasterDataService/UpdateItem"
+	MasterDataService_ImportItems_FullMethodName               = "/masterdata.v1.MasterDataService/ImportItems"
+	MasterDataService_ListOptions_FullMethodName               = "/masterdata.v1.MasterDataService/ListOptions"
+	MasterDataService_ListPorts_FullMethodName                 = "/masterdata.v1.MasterDataService/ListPorts"
+	MasterDataService_CreatePort_FullMethodName                = "/masterdata.v1.MasterDataService/CreatePort"
+	MasterDataService_UpdatePort_FullMethodName                = "/masterdata.v1.MasterDataService/UpdatePort"
+	MasterDataService_ListAirports_FullMethodName              = "/masterdata.v1.MasterDataService/ListAirports"
+	MasterDataService_CreateAirport_FullMethodName             = "/masterdata.v1.MasterDataService/CreateAirport"
+	MasterDataService_UpdateAirport_FullMethodName             = "/masterdata.v1.MasterDataService/UpdateAirport"
+	MasterDataService_ListAirlines_FullMethodName              = "/masterdata.v1.MasterDataService/ListAirlines"
+	MasterDataService_CreateAirline_FullMethodName             = "/masterdata.v1.MasterDataService/CreateAirline"
+	MasterDataService_UpdateAirline_FullMethodName             = "/masterdata.v1.MasterDataService/UpdateAirline"
+	MasterDataService_ListShippingLines_FullMethodName         = "/masterdata.v1.MasterDataService/ListShippingLines"
+	MasterDataService_CreateShippingLine_FullMethodName        = "/masterdata.v1.MasterDataService/CreateShippingLine"
+	MasterDataService_UpdateShippingLine_FullMethodName        = "/masterdata.v1.MasterDataService/UpdateShippingLine"
+	MasterDataService_ListCurrencies_FullMethodName            = "/masterdata.v1.MasterDataService/ListCurrencies"
+	MasterDataService_SearchCurrencies_FullMethodName          = "/masterdata.v1.MasterDataService/SearchCurrencies"
+	MasterDataService_ListAdministrativeRegions_FullMethodName = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
+	MasterDataService_ListNumberRules_FullMethodName           = "/masterdata.v1.MasterDataService/ListNumberRules"
+	MasterDataService_CreateNumberRule_FullMethodName          = "/masterdata.v1.MasterDataService/CreateNumberRule"
+	MasterDataService_UpdateNumberRule_FullMethodName          = "/masterdata.v1.MasterDataService/UpdateNumberRule"
 )
 
 // MasterDataServiceClient is the client API for MasterDataService service.
@@ -75,10 +71,6 @@ type MasterDataServiceClient interface {
 	ListNumberRules(ctx context.Context, in *ListNumberRulesRequest, opts ...grpc.CallOption) (*ListNumberRulesResponse, error)
 	CreateNumberRule(ctx context.Context, in *CreateNumberRuleRequest, opts ...grpc.CallOption) (*CreateNumberRuleResponse, error)
 	UpdateNumberRule(ctx context.Context, in *UpdateNumberRuleRequest, opts ...grpc.CallOption) (*UpdateNumberRuleResponse, error)
-	ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error)
-	CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*CreateMilestoneTemplateResponse, error)
-	PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*PublishMilestoneTemplateResponse, error)
-	SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*SetDefaultMilestoneTemplateResponse, error)
 }
 
 type masterDataServiceClient struct {
@@ -319,46 +311,6 @@ func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *Upda
 	return out, nil
 }
 
-func (c *masterDataServiceClient) ListMilestoneTemplates(ctx context.Context, in *ListMilestoneTemplatesRequest, opts ...grpc.CallOption) (*ListMilestoneTemplatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListMilestoneTemplatesResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_ListMilestoneTemplates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) CreateMilestoneTemplate(ctx context.Context, in *CreateMilestoneTemplateRequest, opts ...grpc.CallOption) (*CreateMilestoneTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateMilestoneTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_CreateMilestoneTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) PublishMilestoneTemplate(ctx context.Context, in *PublishMilestoneTemplateRequest, opts ...grpc.CallOption) (*PublishMilestoneTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PublishMilestoneTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_PublishMilestoneTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterDataServiceClient) SetDefaultMilestoneTemplate(ctx context.Context, in *SetDefaultMilestoneTemplateRequest, opts ...grpc.CallOption) (*SetDefaultMilestoneTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetDefaultMilestoneTemplateResponse)
-	err := c.cc.Invoke(ctx, MasterDataService_SetDefaultMilestoneTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MasterDataServiceServer is the server API for MasterDataService service.
 // All implementations must embed UnimplementedMasterDataServiceServer
 // for forward compatibility.
@@ -386,10 +338,6 @@ type MasterDataServiceServer interface {
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
 	CreateNumberRule(context.Context, *CreateNumberRuleRequest) (*CreateNumberRuleResponse, error)
 	UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error)
-	ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error)
-	CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error)
-	PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error)
-	SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error)
 	mustEmbedUnimplementedMasterDataServiceServer()
 }
 
@@ -468,18 +416,6 @@ func (UnimplementedMasterDataServiceServer) CreateNumberRule(context.Context, *C
 }
 func (UnimplementedMasterDataServiceServer) UpdateNumberRule(context.Context, *UpdateNumberRuleRequest) (*UpdateNumberRuleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateNumberRule not implemented")
-}
-func (UnimplementedMasterDataServiceServer) ListMilestoneTemplates(context.Context, *ListMilestoneTemplatesRequest) (*ListMilestoneTemplatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListMilestoneTemplates not implemented")
-}
-func (UnimplementedMasterDataServiceServer) CreateMilestoneTemplate(context.Context, *CreateMilestoneTemplateRequest) (*CreateMilestoneTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateMilestoneTemplate not implemented")
-}
-func (UnimplementedMasterDataServiceServer) PublishMilestoneTemplate(context.Context, *PublishMilestoneTemplateRequest) (*PublishMilestoneTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PublishMilestoneTemplate not implemented")
-}
-func (UnimplementedMasterDataServiceServer) SetDefaultMilestoneTemplate(context.Context, *SetDefaultMilestoneTemplateRequest) (*SetDefaultMilestoneTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetDefaultMilestoneTemplate not implemented")
 }
 func (UnimplementedMasterDataServiceServer) mustEmbedUnimplementedMasterDataServiceServer() {}
 func (UnimplementedMasterDataServiceServer) testEmbeddedByValue()                           {}
@@ -916,78 +852,6 @@ func _MasterDataService_UpdateNumberRule_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterDataService_ListMilestoneTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMilestoneTemplatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).ListMilestoneTemplates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_ListMilestoneTemplates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).ListMilestoneTemplates(ctx, req.(*ListMilestoneTemplatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_CreateMilestoneTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMilestoneTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).CreateMilestoneTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_CreateMilestoneTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).CreateMilestoneTemplate(ctx, req.(*CreateMilestoneTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_PublishMilestoneTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishMilestoneTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).PublishMilestoneTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_PublishMilestoneTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).PublishMilestoneTemplate(ctx, req.(*PublishMilestoneTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterDataService_SetDefaultMilestoneTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetDefaultMilestoneTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterDataServiceServer).SetDefaultMilestoneTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterDataService_SetDefaultMilestoneTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterDataServiceServer).SetDefaultMilestoneTemplate(ctx, req.(*SetDefaultMilestoneTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // MasterDataService_ServiceDesc is the grpc.ServiceDesc for MasterDataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1086,22 +950,6 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateNumberRule",
 			Handler:    _MasterDataService_UpdateNumberRule_Handler,
-		},
-		{
-			MethodName: "ListMilestoneTemplates",
-			Handler:    _MasterDataService_ListMilestoneTemplates_Handler,
-		},
-		{
-			MethodName: "CreateMilestoneTemplate",
-			Handler:    _MasterDataService_CreateMilestoneTemplate_Handler,
-		},
-		{
-			MethodName: "PublishMilestoneTemplate",
-			Handler:    _MasterDataService_PublishMilestoneTemplate_Handler,
-		},
-		{
-			MethodName: "SetDefaultMilestoneTemplate",
-			Handler:    _MasterDataService_SetDefaultMilestoneTemplate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

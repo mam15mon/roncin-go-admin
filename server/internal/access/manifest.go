@@ -80,35 +80,30 @@ const (
 	PartnerAuditRead            = "business.partner.audit.read"
 	PartnerAssignmentOptionRead = "business.partner.assignment_option.read"
 
-	MasterDataCurrencyRead                = "system.master_data.currency.read"
-	MasterDataAdministrativeRegionRead    = "system.master_data.administrative_region.read"
-	MasterDataOptionRead                  = "system.master_data.option.read"
-	MasterDataItemRead                    = "system.master_data.item.read"
-	MasterDataItemCreate                  = "system.master_data.item.create"
-	MasterDataItemUpdate                  = "system.master_data.item.update"
-	MasterDataItemImport                  = "system.master_data.item.import"
-	MasterDataPortRead                    = "system.master_data.port.read"
-	MasterDataPortCreate                  = "system.master_data.port.create"
-	MasterDataPortUpdate                  = "system.master_data.port.update"
-	MasterDataAirportRead                 = "system.master_data.airport.read"
-	MasterDataAirportCreate               = "system.master_data.airport.create"
-	MasterDataAirportUpdate               = "system.master_data.airport.update"
-	MasterDataAirlineRead                 = "system.master_data.airline.read"
-	MasterDataAirlineCreate               = "system.master_data.airline.create"
-	MasterDataAirlineUpdate               = "system.master_data.airline.update"
-	MasterDataShippingLineRead            = "system.master_data.shipping_line.read"
-	MasterDataShippingLineCreate          = "system.master_data.shipping_line.create"
-	MasterDataShippingLineUpdate          = "system.master_data.shipping_line.update"
-	MasterDataNumberRuleRead              = "system.master_data.number_rule.read"
-	MasterDataNumberRuleCreate            = "system.master_data.number_rule.create"
-	MasterDataNumberRuleUpdate            = "system.master_data.number_rule.update"
-	MasterDataMilestoneTemplateRead       = "system.master_data.milestone_template.read"
-	MasterDataMilestoneTemplateCreate     = "system.master_data.milestone_template.create"
-	MasterDataMilestoneTemplatePublish    = "system.master_data.milestone_template.publish"
-	MasterDataMilestoneTemplateSetDefault = "system.master_data.milestone_template.set_default"
-
-	TaskRead    = "system.task.read"
-	TaskRequeue = "system.task.requeue"
+	MasterDataCurrencyRead             = "system.master_data.currency.read"
+	MasterDataAdministrativeRegionRead = "system.master_data.administrative_region.read"
+	MasterDataOptionRead               = "system.master_data.option.read"
+	MasterDataItemRead                 = "system.master_data.item.read"
+	MasterDataItemCreate               = "system.master_data.item.create"
+	MasterDataItemUpdate               = "system.master_data.item.update"
+	MasterDataItemImport               = "system.master_data.item.import"
+	MasterDataPortRead                 = "system.master_data.port.read"
+	MasterDataPortCreate               = "system.master_data.port.create"
+	MasterDataPortUpdate               = "system.master_data.port.update"
+	MasterDataAirportRead              = "system.master_data.airport.read"
+	MasterDataAirportCreate            = "system.master_data.airport.create"
+	MasterDataAirportUpdate            = "system.master_data.airport.update"
+	MasterDataAirlineRead              = "system.master_data.airline.read"
+	MasterDataAirlineCreate            = "system.master_data.airline.create"
+	MasterDataAirlineUpdate            = "system.master_data.airline.update"
+	MasterDataShippingLineRead         = "system.master_data.shipping_line.read"
+	MasterDataShippingLineCreate       = "system.master_data.shipping_line.create"
+	MasterDataShippingLineUpdate       = "system.master_data.shipping_line.update"
+	MasterDataNumberRuleRead           = "system.master_data.number_rule.read"
+	MasterDataNumberRuleCreate         = "system.master_data.number_rule.create"
+	MasterDataNumberRuleUpdate         = "system.master_data.number_rule.update"
+	TaskRead                           = "system.task.read"
+	TaskRequeue                        = "system.task.requeue"
 )
 
 const UserAuthorizeDingTalk = "system.user.authorize_dingtalk"
@@ -202,28 +197,28 @@ var manifest = append([]Permission{
 	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配", Requires: []string{FinanceVerificationRead}},
 	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
 	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成", Requires: []string{FinanceCommissionRead}},
-	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 往来单位", Description: "查看客户、供应商和国外代理档案"},
-	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 往来单位", Description: "新建客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
-	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 往来单位", Description: "修改客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
-	{Key: PartnerBlacklist, Name: "管理供应商黑名单", Group: "业务资料 · 往来单位", Description: "调整供应商黑名单状态", Requires: []string{PartnerRead}},
-	{Key: PartnerImport, Name: "导入往来单位", Group: "业务资料 · 往来单位", Description: "批量导入往来单位档案", Requires: []string{PartnerRead}},
-	{Key: PartnerExport, Name: "导出往来单位", Group: "业务资料 · 往来单位", Description: "批量导出往来单位档案", Requires: []string{PartnerRead}},
-	{Key: PartnerAccountRead, Name: "查看收付款账户", Group: "业务资料 · 往来单位", Description: "查看往来单位收付款账户"},
-	{Key: PartnerAccountCreate, Name: "新建收付款账户", Group: "业务资料 · 往来单位", Description: "新建往来单位收付款账户", Requires: []string{PartnerAccountRead}},
-	{Key: PartnerAccountUpdate, Name: "编辑收付款账户", Group: "业务资料 · 往来单位", Description: "修改往来单位收付款账户", Requires: []string{PartnerAccountRead}},
-	{Key: PartnerContractRead, Name: "查看合同", Group: "业务资料 · 往来单位", Description: "查看往来单位合同"},
-	{Key: PartnerContractCreate, Name: "新建合同", Group: "业务资料 · 往来单位", Description: "新建往来单位合同", Requires: []string{PartnerContractRead}},
-	{Key: PartnerContractUpdate, Name: "编辑合同", Group: "业务资料 · 往来单位", Description: "修改往来单位合同", Requires: []string{PartnerContractRead}},
-	{Key: PartnerSettlementRuleRead, Name: "查看结算规则", Group: "业务资料 · 往来单位", Description: "查看往来单位结算规则"},
-	{Key: PartnerSettlementRuleCreate, Name: "新建结算规则", Group: "业务资料 · 往来单位", Description: "新建往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
-	{Key: PartnerSettlementRuleUpdate, Name: "编辑结算规则", Group: "业务资料 · 往来单位", Description: "修改往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
-	{Key: PartnerAttachmentRead, Name: "查看单位附件", Group: "业务资料 · 往来单位", Description: "查看往来单位附件"},
-	{Key: PartnerAttachmentRegister, Name: "登记单位附件", Group: "业务资料 · 往来单位", Description: "登记往来单位附件元数据", Requires: []string{PartnerAttachmentRead}},
-	{Key: PartnerShippingPresetRead, Name: "查看单证预设", Group: "业务资料 · 往来单位", Description: "查看往来单位常用单证预设"},
-	{Key: PartnerShippingPresetCreate, Name: "新建单证预设", Group: "业务资料 · 往来单位", Description: "新建往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
-	{Key: PartnerShippingPresetUpdate, Name: "编辑单证预设", Group: "业务资料 · 往来单位", Description: "修改往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
-	{Key: PartnerAuditRead, Name: "查看单位操作记录", Group: "业务资料 · 往来单位", Description: "查看往来单位操作记录"},
-	{Key: PartnerAssignmentOptionRead, Name: "查看责任人选项", Group: "业务资料 · 往来单位", Description: "查看往来单位责任人候选项"},
+	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
+	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "新建客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
+	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "修改客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
+	{Key: PartnerBlacklist, Name: "管理供应商黑名单", Group: "业务资料 · 往来单位 · 单位档案", Description: "调整供应商黑名单状态", Requires: []string{PartnerRead}},
+	{Key: PartnerImport, Name: "导入往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "批量导入往来单位档案", Requires: []string{PartnerRead}},
+	{Key: PartnerExport, Name: "导出往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "批量导出往来单位档案", Requires: []string{PartnerRead}},
+	{Key: PartnerAccountRead, Name: "查看收付款账户", Group: "业务资料 · 往来单位 · 收付款账户", Description: "查看往来单位收付款账户"},
+	{Key: PartnerAccountCreate, Name: "新建收付款账户", Group: "业务资料 · 往来单位 · 收付款账户", Description: "新建往来单位收付款账户", Requires: []string{PartnerAccountRead}},
+	{Key: PartnerAccountUpdate, Name: "编辑收付款账户", Group: "业务资料 · 往来单位 · 收付款账户", Description: "修改往来单位收付款账户", Requires: []string{PartnerAccountRead}},
+	{Key: PartnerContractRead, Name: "查看合同", Group: "业务资料 · 往来单位 · 合同", Description: "查看往来单位合同"},
+	{Key: PartnerContractCreate, Name: "新建合同", Group: "业务资料 · 往来单位 · 合同", Description: "新建往来单位合同", Requires: []string{PartnerContractRead}},
+	{Key: PartnerContractUpdate, Name: "编辑合同", Group: "业务资料 · 往来单位 · 合同", Description: "修改往来单位合同", Requires: []string{PartnerContractRead}},
+	{Key: PartnerSettlementRuleRead, Name: "查看结算规则", Group: "业务资料 · 往来单位 · 结算规则", Description: "查看往来单位结算规则"},
+	{Key: PartnerSettlementRuleCreate, Name: "新建结算规则", Group: "业务资料 · 往来单位 · 结算规则", Description: "新建往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
+	{Key: PartnerSettlementRuleUpdate, Name: "编辑结算规则", Group: "业务资料 · 往来单位 · 结算规则", Description: "修改往来单位结算规则", Requires: []string{PartnerSettlementRuleRead}},
+	{Key: PartnerAttachmentRead, Name: "查看单位附件", Group: "业务资料 · 往来单位 · 附件", Description: "查看往来单位附件"},
+	{Key: PartnerAttachmentRegister, Name: "登记单位附件", Group: "业务资料 · 往来单位 · 附件", Description: "登记往来单位附件元数据", Requires: []string{PartnerAttachmentRead}},
+	{Key: PartnerShippingPresetRead, Name: "查看单证预设", Group: "业务资料 · 往来单位 · 单证预设", Description: "查看往来单位常用单证预设"},
+	{Key: PartnerShippingPresetCreate, Name: "新建单证预设", Group: "业务资料 · 往来单位 · 单证预设", Description: "新建往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
+	{Key: PartnerShippingPresetUpdate, Name: "编辑单证预设", Group: "业务资料 · 往来单位 · 单证预设", Description: "修改往来单位常用单证预设", Requires: []string{PartnerShippingPresetRead}},
+	{Key: PartnerAuditRead, Name: "查看单位操作记录", Group: "业务资料 · 往来单位 · 审计", Description: "查看往来单位操作记录"},
+	{Key: PartnerAssignmentOptionRead, Name: "查看责任人选项", Group: "业务资料 · 往来单位 · 责任人", Description: "查看往来单位责任人候选项"},
 	{Key: MasterDataCurrencyRead, Name: "查看币种", Group: "主数据 · 公共字典", Description: "查看币种字典"},
 	{Key: MasterDataAdministrativeRegionRead, Name: "查看行政区划", Group: "主数据 · 公共字典", Description: "查看行政区划字典"},
 	{Key: MasterDataOptionRead, Name: "查看订单选项", Group: "主数据 · 公共字典", Description: "查看订单表单的聚合选项"},
@@ -246,10 +241,6 @@ var manifest = append([]Permission{
 	{Key: MasterDataNumberRuleRead, Name: "查看编号规则", Group: "主数据 · 编号规则", Description: "查看业务编号规则"},
 	{Key: MasterDataNumberRuleCreate, Name: "新建编号规则", Group: "主数据 · 编号规则", Description: "新建业务编号规则", Requires: []string{MasterDataNumberRuleRead}},
 	{Key: MasterDataNumberRuleUpdate, Name: "编辑编号规则", Group: "主数据 · 编号规则", Description: "修改业务编号规则", Requires: []string{MasterDataNumberRuleRead}},
-	{Key: MasterDataMilestoneTemplateRead, Name: "查看里程碑模板", Group: "主数据 · 里程碑模板", Description: "查看订单里程碑模板"},
-	{Key: MasterDataMilestoneTemplateCreate, Name: "新建里程碑模板", Group: "主数据 · 里程碑模板", Description: "新建订单里程碑模板", Requires: []string{MasterDataMilestoneTemplateRead}},
-	{Key: MasterDataMilestoneTemplatePublish, Name: "发布里程碑模板", Group: "主数据 · 里程碑模板", Description: "发布订单里程碑模板版本", Requires: []string{MasterDataMilestoneTemplateRead}},
-	{Key: MasterDataMilestoneTemplateSetDefault, Name: "设置默认里程碑模板", Group: "主数据 · 里程碑模板", Description: "设置订单默认里程碑模板", Requires: []string{MasterDataMilestoneTemplateRead}},
 }, orderManifest()...)
 
 type orderPermissionDefinition struct {

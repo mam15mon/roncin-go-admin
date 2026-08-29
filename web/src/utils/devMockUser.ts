@@ -102,10 +102,6 @@ export const DEV_MOCK_USER: API.CurrentUser = {
     'system.master_data.number_rule.read',
     'system.master_data.number_rule.create',
     'system.master_data.number_rule.update',
-    'system.master_data.milestone_template.read',
-    'system.master_data.milestone_template.create',
-    'system.master_data.milestone_template.publish',
-    'system.master_data.milestone_template.set_default',
     'system.task.read',
     'system.task.requeue',
     // 海运出口全部权限

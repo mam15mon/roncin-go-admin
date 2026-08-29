@@ -91,13 +91,6 @@ const permissions = {
   masterDataNumberRuleRead: 'system.master_data.number_rule.read',
   masterDataNumberRuleCreate: 'system.master_data.number_rule.create',
   masterDataNumberRuleUpdate: 'system.master_data.number_rule.update',
-  masterDataMilestoneTemplateRead: 'system.master_data.milestone_template.read',
-  masterDataMilestoneTemplateCreate:
-    'system.master_data.milestone_template.create',
-  masterDataMilestoneTemplatePublish:
-    'system.master_data.milestone_template.publish',
-  masterDataMilestoneTemplateSetDefault:
-    'system.master_data.milestone_template.set_default',
   taskRead: 'system.task.read',
   taskRequeue: 'system.task.requeue',
 } as const satisfies Record<string, ManifestPermissionKey>;
@@ -306,14 +299,6 @@ export default function access(
       has(permissions.masterDataNumberRuleCreate) && inOrganization,
     canUpdateMasterDataNumberRules:
       has(permissions.masterDataNumberRuleUpdate) && inOrganization,
-    canReadMasterDataMilestoneTemplates:
-      has(permissions.masterDataMilestoneTemplateRead) && inOrganization,
-    canCreateMasterDataMilestoneTemplates:
-      has(permissions.masterDataMilestoneTemplateCreate) && inOrganization,
-    canPublishMasterDataMilestoneTemplates:
-      has(permissions.masterDataMilestoneTemplatePublish) && inOrganization,
-    canSetDefaultMasterDataMilestoneTemplates:
-      has(permissions.masterDataMilestoneTemplateSetDefault) && inOrganization,
     canReadTasks: has(permissions.taskRead) && inOrganization,
     canRequeueTasks: has(permissions.taskRequeue) && inOrganization,
   };
@@ -363,7 +348,6 @@ export default function access(
     canReadParameterSettings:
       result.canReadMasterDataNumberRules ||
       result.canReadFeeSettings ||
-      result.canReadExchangeRates ||
-      result.canReadMasterDataMilestoneTemplates,
+      result.canReadExchangeRates,
   };
 }

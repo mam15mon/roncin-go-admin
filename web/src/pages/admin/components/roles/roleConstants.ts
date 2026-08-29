@@ -50,9 +50,12 @@ export type PermissionGroupNode = {
   key: string;
   title: string;
   groupName: string;
+  path: string[];
   isLeaf: boolean;
-  children: PermissionLeafNode[];
+  children: PermissionTreeNode[];
 };
+
+export type PermissionTreeNode = PermissionGroupNode | PermissionLeafNode;
 
 export type OrderOrganizationAccess = {
   organizationId: string;

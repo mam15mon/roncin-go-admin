@@ -2446,97 +2446,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.UpdateItemResponse'
-    /api/v1/master-data/milestone-templates:
-        get:
-            tags:
-                - MasterDataService
-            operationId: MasterDataService_ListMilestoneTemplates
-            parameters:
-                - name: businessType
-                  in: query
-                  schema:
-                    type: integer
-                    format: enum
-                - name: tradeTerm
-                  in: query
-                  schema:
-                    type: string
-                - name: published
-                  in: query
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/masterdata.v1.ListMilestoneTemplatesResponse'
-        post:
-            tags:
-                - MasterDataService
-            operationId: MasterDataService_CreateMilestoneTemplate
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/masterdata.v1.CreateMilestoneTemplateRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/masterdata.v1.CreateMilestoneTemplateResponse'
-    /api/v1/master-data/milestone-templates/{id}/publish:
-        post:
-            tags:
-                - MasterDataService
-            operationId: MasterDataService_PublishMilestoneTemplate
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/masterdata.v1.PublishMilestoneTemplateRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/masterdata.v1.PublishMilestoneTemplateResponse'
-    /api/v1/master-data/milestone-templates/{id}/set-default:
-        post:
-            tags:
-                - MasterDataService
-            operationId: MasterDataService_SetDefaultMilestoneTemplate
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/masterdata.v1.SetDefaultMilestoneTemplateRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/masterdata.v1.SetDefaultMilestoneTemplateResponse'
     /api/v1/master-data/number-rules:
         get:
             tags:
@@ -8927,45 +8836,6 @@ components:
                     $ref: '#/components/schemas/masterdata.v1.MasterDataItem'
                 traceId:
                     type: string
-        masterdata.v1.CreateMilestoneTemplateRequest:
-            required:
-                - code
-                - name
-                - businessType
-                - version
-                - items
-            type: object
-            properties:
-                code:
-                    type: string
-                name:
-                    type: string
-                businessType:
-                    type: integer
-                    format: enum
-                tradeTerm:
-                    type: string
-                version:
-                    type: integer
-                    format: int32
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/masterdata.v1.MilestoneTemplateItemInput'
-        masterdata.v1.CreateMilestoneTemplateResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/masterdata.v1.MilestoneTemplate'
-                traceId:
-                    type: string
         masterdata.v1.CreateNumberRuleRequest:
             required:
                 - documentType
@@ -9269,22 +9139,6 @@ components:
                     format: int32
                 traceId:
                     type: string
-        masterdata.v1.ListMilestoneTemplatesResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/masterdata.v1.MilestoneTemplate'
-                traceId:
-                    type: string
         masterdata.v1.ListNumberRulesResponse:
             type: object
             properties:
@@ -9434,84 +9288,6 @@ components:
                     type: string
                 attributes:
                     $ref: '#/components/schemas/masterdata.v1.MasterDataAttributes'
-        masterdata.v1.MilestoneTemplate:
-            type: object
-            properties:
-                id:
-                    type: string
-                organizationId:
-                    type: string
-                code:
-                    type: string
-                name:
-                    type: string
-                businessType:
-                    type: integer
-                    format: enum
-                tradeTerm:
-                    type: string
-                version:
-                    type: integer
-                    format: int32
-                isDefault:
-                    type: boolean
-                publishedAt:
-                    type: string
-                enabled:
-                    type: boolean
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/masterdata.v1.MilestoneTemplateItem'
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-        masterdata.v1.MilestoneTemplateItem:
-            type: object
-            properties:
-                id:
-                    type: string
-                code:
-                    type: string
-                label:
-                    type: string
-                description:
-                    type: string
-                category:
-                    type: string
-                sortOrder:
-                    type: integer
-                    format: int32
-                enabled:
-                    type: boolean
-                dependsOn:
-                    type: array
-                    items:
-                        type: string
-        masterdata.v1.MilestoneTemplateItemInput:
-            required:
-                - code
-                - label
-            type: object
-            properties:
-                code:
-                    type: string
-                label:
-                    type: string
-                description:
-                    type: string
-                category:
-                    type: string
-                sortOrder:
-                    type: integer
-                    format: int32
-                enabled:
-                    type: boolean
-                dependsOn:
-                    type: array
-                    items:
-                        type: string
         masterdata.v1.NumberRule:
             type: object
             properties:
@@ -9573,29 +9349,6 @@ components:
                     type: string
                 sourceHash:
                     type: string
-        masterdata.v1.PublishMilestoneTemplateRequest:
-            required:
-                - id
-            type: object
-            properties:
-                id:
-                    type: string
-                isDefault:
-                    type: boolean
-        masterdata.v1.PublishMilestoneTemplateResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/masterdata.v1.MilestoneTemplate'
-                traceId:
-                    type: string
         masterdata.v1.SearchCurrenciesResponse:
             type: object
             properties:
@@ -9621,27 +9374,6 @@ components:
                 pageSize:
                     type: integer
                     format: int32
-        masterdata.v1.SetDefaultMilestoneTemplateRequest:
-            required:
-                - id
-            type: object
-            properties:
-                id:
-                    type: string
-        masterdata.v1.SetDefaultMilestoneTemplateResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/masterdata.v1.MilestoneTemplate'
-                traceId:
-                    type: string
         masterdata.v1.ShippingLine:
             type: object
             properties:

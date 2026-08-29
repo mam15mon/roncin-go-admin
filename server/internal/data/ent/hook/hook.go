@@ -369,30 +369,6 @@ func (f MembershipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MembershipMutation", m)
 }
 
-// The MilestoneTemplateFunc type is an adapter to allow the use of ordinary
-// function as MilestoneTemplate mutator.
-type MilestoneTemplateFunc func(context.Context, *ent.MilestoneTemplateMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f MilestoneTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.MilestoneTemplateMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MilestoneTemplateMutation", m)
-}
-
-// The MilestoneTemplateItemFunc type is an adapter to allow the use of ordinary
-// function as MilestoneTemplateItem mutator.
-type MilestoneTemplateItemFunc func(context.Context, *ent.MilestoneTemplateItemMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f MilestoneTemplateItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.MilestoneTemplateItemMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MilestoneTemplateItemMutation", m)
-}
-
 // The NotificationDeliveryFunc type is an adapter to allow the use of ordinary
 // function as NotificationDelivery mutator.
 type NotificationDeliveryFunc func(context.Context, *ent.NotificationDeliveryMutation) (ent.Value, error)

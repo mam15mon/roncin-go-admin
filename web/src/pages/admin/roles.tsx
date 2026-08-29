@@ -24,8 +24,11 @@ import {
 } from '@/services/roncin/adminService';
 import RoleFormModal from './components/roles/RoleFormModal';
 import {
+  buildPermissionTree,
+  filterPermissionTree,
+} from './components/roles/permissionTree';
+import {
   type OrderOrganizationAccess,
-  type PermissionGroupNode,
   dataScopeMap,
   dataScopeOptions,
 } from './components/roles/roleConstants';
@@ -99,79 +102,22 @@ export default function RolesPanel() {
     [organizations],
   );
 
-  // Construct permission tree by group
-  const { fullTreeData, allGroupKeys, allLeafKeys, requiresByPermission, permissionNameByKey } = useMemo(() => {
-    const groupMap = new Map<string, API.AdminPermission[]>();
-    const leafKeys: string[] = [];
-    const groupKeys: string[] = [];
-    const requires: Record<string, string[]> = {};
-    const names: Record<string, string> = {};
+  const permissionTree = useMemo(
+    () => buildPermissionTree(permissions),
+    [permissions],
+  );
 
-    (permissions ?? []).forEach((p) => {
-      const groupName = p.group || '其他功能权限';
-      if (!groupMap.has(groupName)) {
-        groupMap.set(groupName, []);
-        groupKeys.push(`group:${groupName}`);
-      }
-      groupMap.get(groupName)?.push(p);
-      if (p.key) {
-        leafKeys.push(p.key);
-        requires[p.key] = p.requires ?? [];
-        names[p.key] = p.name ?? p.key;
-      }
-    });
-
-    const tree: PermissionGroupNode[] = Array.from(groupMap.entries()).map(
-      ([groupName, items]) => ({
-        key: `group:${groupName}`,
-        title: groupName,
-        groupName,
-        isLeaf: false,
-        children: items.map((p) => ({
-          key: p.key ?? '',
-          title: p.name ?? p.key ?? '',
-          name: p.name ?? p.key ?? '',
-          group: groupName,
-          description: p.description,
-          requires: p.requires ?? [],
-          isLeaf: true,
-        })),
-      }),
-    );
-
-    return { fullTreeData: tree, allGroupKeys: groupKeys, allLeafKeys: leafKeys, requiresByPermission: requires, permissionNameByKey: names };
-  }, [permissions]);
-
-  // Filter permission tree by search keyword
-  const filteredTreeData = useMemo(() => {
-    const kw = permissionKeyword.trim().toLowerCase();
-    if (!kw) return fullTreeData;
-
-    return fullTreeData
-      .map((group) => {
-        const matchedChildren = group.children.filter(
-          (leaf) =>
-            leaf.name.toLowerCase().includes(kw) ||
-            leaf.key.toLowerCase().includes(kw) ||
-            leaf.description?.toLowerCase().includes(kw),
-        );
-        if (matchedChildren.length > 0) {
-          return {
-            ...group,
-            children: matchedChildren,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean) as PermissionGroupNode[];
-  }, [fullTreeData, permissionKeyword]);
+  const filteredTreeData = useMemo(
+    () => filterPermissionTree(permissionTree.treeData, permissionKeyword),
+    [permissionKeyword, permissionTree.treeData],
+  );
 
   const openCreate = () => {
     setEditing(undefined);
     setSelectedPermissionKeys([]);
     setOrderOrganizationAccesses([]);
     setPermissionKeyword('');
-    setExpandedKeys(allGroupKeys);
+    setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
     setModalOpen(true);
   };
@@ -186,7 +132,7 @@ export default function RolesPanel() {
       })),
     );
     setPermissionKeyword('');
-    setExpandedKeys(allGroupKeys);
+    setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
     setModalOpen(true);
   };
@@ -435,11 +381,11 @@ export default function RolesPanel() {
         editing={editing}
         formRef={formRef}
         companyOptions={companyOptions}
-        allLeafKeys={allLeafKeys}
-        allGroupKeys={allGroupKeys}
+        allLeafKeys={permissionTree.allLeafKeys}
+        allGroupKeys={permissionTree.allBranchKeys}
         filteredTreeData={filteredTreeData}
-        requiresByPermission={requiresByPermission}
-        permissionNameByKey={permissionNameByKey}
+        requiresByPermission={permissionTree.requiresByPermission}
+        permissionNameByKey={permissionTree.permissionNameByKey}
         selectedPermissionKeys={selectedPermissionKeys}
         setSelectedPermissionKeys={setSelectedPermissionKeys}
         orderOrganizationAccesses={orderOrganizationAccesses}

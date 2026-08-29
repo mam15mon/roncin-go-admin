@@ -4,7 +4,6 @@ import {
   CalculatorOutlined,
   DollarOutlined,
   FileTextOutlined,
-  NodeIndexOutlined,
   NumberOutlined,
   SlidersOutlined,
 } from '@ant-design/icons';
@@ -16,7 +15,6 @@ import BillingUnitsPanel from './components/BillingUnitsPanel';
 import CustomSettingsPanel from './components/CustomSettingsPanel';
 import ExchangeRatesPanel from './components/ExchangeRatesPanel';
 import FeeItemsPanel from './components/FeeItemsPanel';
-import MilestoneTemplatesPanel from './components/MilestoneTemplatesPanel';
 import NumberRulesPanel from './components/NumberRulesPanel';
 import TaxableServicesPanel from './components/TaxableServicesPanel';
 
@@ -71,14 +69,6 @@ export default function SettingsPage() {
       visible: access.canReadFeeSettings,
       tooltip: '维护商品编码、发票货物或应税劳务名称与默认开票税率',
       children: <TaxableServicesPanel />,
-    },
-    {
-      key: 'milestones',
-      label: '业务履约里程碑',
-      icon: <NodeIndexOutlined />,
-      visible: access.canReadMasterDataMilestoneTemplates,
-      tooltip: '各业务类型履约进度节点与时序流程模板',
-      children: <MilestoneTemplatesPanel />,
     },
     {
       key: 'custom-settings',

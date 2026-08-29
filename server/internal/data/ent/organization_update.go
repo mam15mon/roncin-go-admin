@@ -31,7 +31,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/milestonetemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
@@ -394,21 +393,6 @@ func (_u *OrganizationUpdate) AddNumberRules(v ...*NumberRule) *OrganizationUpda
 		ids[i] = v[i].ID
 	}
 	return _u.AddNumberRuleIDs(ids...)
-}
-
-// AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by IDs.
-func (_u *OrganizationUpdate) AddMilestoneTemplateIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.AddMilestoneTemplateIDs(ids...)
-	return _u
-}
-
-// AddMilestoneTemplates adds the "milestone_templates" edges to the MilestoneTemplate entity.
-func (_u *OrganizationUpdate) AddMilestoneTemplates(v ...*MilestoneTemplate) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddMilestoneTemplateIDs(ids...)
 }
 
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
@@ -1026,27 +1010,6 @@ func (_u *OrganizationUpdate) RemoveNumberRules(v ...*NumberRule) *OrganizationU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNumberRuleIDs(ids...)
-}
-
-// ClearMilestoneTemplates clears all "milestone_templates" edges to the MilestoneTemplate entity.
-func (_u *OrganizationUpdate) ClearMilestoneTemplates() *OrganizationUpdate {
-	_u.mutation.ClearMilestoneTemplates()
-	return _u
-}
-
-// RemoveMilestoneTemplateIDs removes the "milestone_templates" edge to MilestoneTemplate entities by IDs.
-func (_u *OrganizationUpdate) RemoveMilestoneTemplateIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.RemoveMilestoneTemplateIDs(ids...)
-	return _u
-}
-
-// RemoveMilestoneTemplates removes "milestone_templates" edges to MilestoneTemplate entities.
-func (_u *OrganizationUpdate) RemoveMilestoneTemplates(v ...*MilestoneTemplate) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveMilestoneTemplateIDs(ids...)
 }
 
 // ClearOrders clears all "orders" edges to the Order entity.
@@ -2263,51 +2226,6 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.MilestoneTemplatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedMilestoneTemplatesIDs(); len(nodes) > 0 && !_u.mutation.MilestoneTemplatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.MilestoneTemplatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.OrdersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -3471,21 +3389,6 @@ func (_u *OrganizationUpdateOne) AddNumberRules(v ...*NumberRule) *OrganizationU
 	return _u.AddNumberRuleIDs(ids...)
 }
 
-// AddMilestoneTemplateIDs adds the "milestone_templates" edge to the MilestoneTemplate entity by IDs.
-func (_u *OrganizationUpdateOne) AddMilestoneTemplateIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.AddMilestoneTemplateIDs(ids...)
-	return _u
-}
-
-// AddMilestoneTemplates adds the "milestone_templates" edges to the MilestoneTemplate entity.
-func (_u *OrganizationUpdateOne) AddMilestoneTemplates(v ...*MilestoneTemplate) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddMilestoneTemplateIDs(ids...)
-}
-
 // AddOrderIDs adds the "orders" edge to the Order entity by IDs.
 func (_u *OrganizationUpdateOne) AddOrderIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddOrderIDs(ids...)
@@ -4101,27 +4004,6 @@ func (_u *OrganizationUpdateOne) RemoveNumberRules(v ...*NumberRule) *Organizati
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveNumberRuleIDs(ids...)
-}
-
-// ClearMilestoneTemplates clears all "milestone_templates" edges to the MilestoneTemplate entity.
-func (_u *OrganizationUpdateOne) ClearMilestoneTemplates() *OrganizationUpdateOne {
-	_u.mutation.ClearMilestoneTemplates()
-	return _u
-}
-
-// RemoveMilestoneTemplateIDs removes the "milestone_templates" edge to MilestoneTemplate entities by IDs.
-func (_u *OrganizationUpdateOne) RemoveMilestoneTemplateIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.RemoveMilestoneTemplateIDs(ids...)
-	return _u
-}
-
-// RemoveMilestoneTemplates removes "milestone_templates" edges to MilestoneTemplate entities.
-func (_u *OrganizationUpdateOne) RemoveMilestoneTemplates(v ...*MilestoneTemplate) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveMilestoneTemplateIDs(ids...)
 }
 
 // ClearOrders clears all "orders" edges to the Order entity.
@@ -5361,51 +5243,6 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(numberrule.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.MilestoneTemplatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedMilestoneTemplatesIDs(); len(nodes) > 0 && !_u.mutation.MilestoneTemplatesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.MilestoneTemplatesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.MilestoneTemplatesTable,
-			Columns: []string{organization.MilestoneTemplatesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(milestonetemplate.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

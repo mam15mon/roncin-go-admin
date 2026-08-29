@@ -156,24 +156,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'cyan',
     objectType: '编号规则',
   },
-  'milestone_template.create': {
-    title: '新增里程碑模板',
-    category: '基础资料',
-    color: 'cyan',
-    objectType: '里程碑模板',
-  },
-  'milestone_template.publish': {
-    title: '发布里程碑模板',
-    category: '基础资料',
-    color: 'cyan',
-    objectType: '里程碑模板',
-  },
-  'milestone_template.set_default': {
-    title: '设置默认里程碑模板',
-    category: '基础资料',
-    color: 'cyan',
-    objectType: '里程碑模板',
-  },
   'port.create': {
     title: '新增港口',
     category: '基础资料',
@@ -721,7 +703,6 @@ const detailLabels: Record<string, string> = {
   'partner.code': '单位编号',
   'master_data.code': '资料编号',
   'master_data.kind': '资料类型',
-  'milestone_template.code': '模板编号',
   'fee.code': '费用编号',
   standard_code: '业务代码',
   resource_id: '业务对象 ID',
@@ -763,7 +744,6 @@ export function auditBusinessObject(record: API.AdminAuditLog): {
     details['order.no'] ??
     details['partner.code'] ??
     details['master_data.code'] ??
-    details['milestone_template.code'] ??
     details['fee.code'] ??
     details.standard_code ??
     details.value;

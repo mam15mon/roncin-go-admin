@@ -69,8 +69,6 @@ const (
 	EdgeShippingLines = "shipping_lines"
 	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
 	EdgeNumberRules = "number_rules"
-	// EdgeMilestoneTemplates holds the string denoting the milestone_templates edge name in mutations.
-	EdgeMilestoneTemplates = "milestone_templates"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
 	EdgeOrders = "orders"
 	// EdgeOrderConsolidations holds the string denoting the order_consolidations edge name in mutations.
@@ -222,13 +220,6 @@ const (
 	NumberRulesInverseTable = "number_rules"
 	// NumberRulesColumn is the table column denoting the number_rules relation/edge.
 	NumberRulesColumn = "organization_id"
-	// MilestoneTemplatesTable is the table that holds the milestone_templates relation/edge.
-	MilestoneTemplatesTable = "milestone_templates"
-	// MilestoneTemplatesInverseTable is the table name for the MilestoneTemplate entity.
-	// It exists in this package in order to avoid circular dependency with the "milestonetemplate" package.
-	MilestoneTemplatesInverseTable = "milestone_templates"
-	// MilestoneTemplatesColumn is the table column denoting the milestone_templates relation/edge.
-	MilestoneTemplatesColumn = "organization_id"
 	// OrdersTable is the table that holds the orders relation/edge.
 	OrdersTable = "orders"
 	// OrdersInverseTable is the table name for the Order entity.
@@ -717,20 +708,6 @@ func ByNumberRules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByMilestoneTemplatesCount orders the results by milestone_templates count.
-func ByMilestoneTemplatesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMilestoneTemplatesStep(), opts...)
-	}
-}
-
-// ByMilestoneTemplates orders the results by milestone_templates terms.
-func ByMilestoneTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMilestoneTemplatesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByOrdersCount orders the results by orders count.
 func ByOrdersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1099,13 +1076,6 @@ func newNumberRulesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NumberRulesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NumberRulesTable, NumberRulesColumn),
-	)
-}
-func newMilestoneTemplatesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MilestoneTemplatesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MilestoneTemplatesTable, MilestoneTemplatesColumn),
 	)
 }
 func newOrdersStep() *sqlgraph.Step {

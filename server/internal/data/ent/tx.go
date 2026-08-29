@@ -72,10 +72,6 @@ type Tx struct {
 	MasterDataItem *MasterDataItemClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
-	// MilestoneTemplate is the client for interacting with the MilestoneTemplate builders.
-	MilestoneTemplate *MilestoneTemplateClient
-	// MilestoneTemplateItem is the client for interacting with the MilestoneTemplateItem builders.
-	MilestoneTemplateItem *MilestoneTemplateItemClient
 	// NotificationDelivery is the client for interacting with the NotificationDelivery builders.
 	NotificationDelivery *NotificationDeliveryClient
 	// NumberRule is the client for interacting with the NumberRule builders.
@@ -321,8 +317,6 @@ func (tx *Tx) init() {
 	tx.LoginRateLimitBucket = NewLoginRateLimitBucketClient(tx.config)
 	tx.MasterDataItem = NewMasterDataItemClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
-	tx.MilestoneTemplate = NewMilestoneTemplateClient(tx.config)
-	tx.MilestoneTemplateItem = NewMilestoneTemplateItemClient(tx.config)
 	tx.NotificationDelivery = NewNotificationDeliveryClient(tx.config)
 	tx.NumberRule = NewNumberRuleClient(tx.config)
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)

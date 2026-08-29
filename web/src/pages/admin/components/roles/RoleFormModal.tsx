@@ -38,9 +38,13 @@ import {
   mergeVisiblePermissionSelection,
 } from './permissionLinkage';
 import {
+  collectPermissionLeafKeys,
+  isPermissionGroupNode,
+} from './permissionTree';
+import {
   type OrderOrganizationAccess,
-  type PermissionGroupNode,
   type PermissionLeafNode,
+  type PermissionTreeNode,
   type RoleFormValues,
   dataScopeOptions,
 } from './roleConstants';
@@ -55,7 +59,7 @@ interface RoleFormModalProps {
   companyOptions: { label: string; value: string }[];
   allLeafKeys: string[];
   allGroupKeys: string[];
-  filteredTreeData: PermissionGroupNode[];
+  filteredTreeData: PermissionTreeNode[];
   requiresByPermission: Record<string, string[]>;
   permissionNameByKey: Record<string, string>;
   selectedPermissionKeys: string[];
@@ -123,9 +127,7 @@ export default function RoleFormModal({
     const leafKeys = (checkedKeys as string[]).filter(
       (key) => !key.startsWith('group:'),
     );
-    const visibleKeys = filteredTreeData.flatMap((group) =>
-      group.children.map((leaf) => leaf.key),
-    );
+    const visibleKeys = collectPermissionLeafKeys(filteredTreeData);
     const mergedKeys = mergeVisiblePermissionSelection(
       selectedPermissionKeys,
       visibleKeys,
@@ -155,7 +157,7 @@ export default function RoleFormModal({
       }
       modalProps={{
         destroyOnClose: true,
-        width: 800,
+        width: 960,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
@@ -378,7 +380,7 @@ export default function RoleFormModal({
 
           <div
             style={{
-              maxHeight: 280,
+              maxHeight: 420,
               overflowY: 'auto',
               backgroundColor: '#ffffff',
               border: '1px solid #f1f5f9',
@@ -400,14 +402,13 @@ export default function RoleFormModal({
                 }}
                 onCheck={handleTreeCheck}
                 titleRender={(nodeData) => {
-                  const node = nodeData as unknown as
-                    | PermissionGroupNode
-                    | PermissionLeafNode;
-                  if ('children' in node && Array.isArray(node.children)) {
-                    // Group Node
-                    const groupLeaves = node.children;
-                    const checkedInGroup = groupLeaves.filter((c) =>
-                      selectedPermissionKeys.includes(c.key),
+                  const node = nodeData as unknown as PermissionTreeNode;
+                  if (isPermissionGroupNode(node)) {
+                    const groupLeafKeys = collectPermissionLeafKeys(
+                      node.children,
+                    );
+                    const checkedInGroup = groupLeafKeys.filter((key) =>
+                      selectedPermissionKeys.includes(key),
                     ).length;
                     return (
                       <span
@@ -432,7 +433,7 @@ export default function RoleFormModal({
                               checkedInGroup > 0 ? '#1677ff' : '#94a3b8',
                           }}
                         >
-                          ({checkedInGroup}/{groupLeaves.length})
+                          ({checkedInGroup}/{groupLeafKeys.length})
                         </span>
                       </span>
                     );

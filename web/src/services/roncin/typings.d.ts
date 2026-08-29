@@ -914,23 +914,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type CreateMilestoneTemplateRequest = {
-    code: string;
-    name: string;
-    businessType: number;
-    tradeTerm?: string;
-    version: number;
-    items: MilestoneTemplateItemInput[];
-  };
-
-  type CreateMilestoneTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate;
-    traceId?: string;
-  };
-
   type CreateNumberRuleRequest = {
     documentType: number;
     prefix?: string;
@@ -2248,14 +2231,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListMilestoneTemplatesResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate[];
-    traceId?: string;
-  };
-
   type ListNumberRulesResponse = {
     success?: boolean;
     code?: number;
@@ -2625,12 +2600,6 @@ declare namespace API {
     enabled?: boolean;
   };
 
-  type MasterDataServiceListMilestoneTemplatesParams = {
-    businessType?: number;
-    tradeTerm?: string;
-    published?: boolean;
-  };
-
   type MasterDataServiceListPortsParams = {
     page?: number;
     pageSize?: number;
@@ -2645,18 +2614,10 @@ declare namespace API {
     enabled?: boolean;
   };
 
-  type MasterDataServicePublishMilestoneTemplateParams = {
-    id: string;
-  };
-
   type MasterDataServiceSearchCurrenciesParams = {
     keyword?: string;
     page?: number;
     pageSize?: number;
-  };
-
-  type MasterDataServiceSetDefaultMilestoneTemplateParams = {
-    id: string;
   };
 
   type MasterDataServiceUpdateAirlineParams = {
@@ -2689,43 +2650,6 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
-  };
-
-  type MilestoneTemplate = {
-    id?: string;
-    organizationId?: string;
-    code?: string;
-    name?: string;
-    businessType?: number;
-    tradeTerm?: string;
-    version?: number;
-    isDefault?: boolean;
-    publishedAt?: string;
-    enabled?: boolean;
-    items?: MilestoneTemplateItem[];
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type MilestoneTemplateItem = {
-    id?: string;
-    code?: string;
-    label?: string;
-    description?: string;
-    category?: string;
-    sortOrder?: number;
-    enabled?: boolean;
-    dependsOn?: string[];
-  };
-
-  type MilestoneTemplateItemInput = {
-    code: string;
-    label: string;
-    description?: string;
-    category?: string;
-    sortOrder?: number;
-    enabled?: boolean;
-    dependsOn?: string[];
   };
 
   type NumberRule = {
@@ -3788,19 +3712,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type PublishMilestoneTemplateRequest = {
-    id: string;
-    isDefault?: boolean;
-  };
-
-  type PublishMilestoneTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate;
-    traceId?: string;
-  };
-
   type RedFlushInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -4057,18 +3968,6 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
-  };
-
-  type SetDefaultMilestoneTemplateRequest = {
-    id: string;
-  };
-
-  type SetDefaultMilestoneTemplateResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: MilestoneTemplate;
-    traceId?: string;
   };
 
   type SetMilestoneRequest = {
