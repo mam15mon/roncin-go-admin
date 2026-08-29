@@ -72,19 +72,13 @@ export function PersonnelAssignmentFields({
             placeholder="请选择所属公司"
             fieldProps={{
               onChange: (value) => {
-                if (!value) {
-                  return;
-                }
                 const currentMatched = options.some(
                   (item) =>
                     item.userId === selectedUserID &&
                     item.organizationId === value,
                 );
                 if (!currentMatched) {
-                  const fallbackUser = options.find(
-                    (item) => item.organizationId === value && item.userId,
-                  );
-                  form?.setFieldValue(userField, fallbackUser?.userId);
+                  form?.setFieldValue(userField, undefined);
                 }
               },
             }}
