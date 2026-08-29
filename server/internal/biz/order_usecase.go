@@ -14,7 +14,29 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 	if organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrOrderNotFound
 	}
-	return uc.repo.Get(ctx, organizationID, id)
+	order, err := uc.repo.Get(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	attachOrderTags(ctx, uc.tagRepo, order)
+	return order, nil
+}
+
+func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Order) {
+	if tagRepo == nil || len(orders) == 0 {
+		return
+	}
+	ids := make([]uuid.UUID, 0, len(orders))
+	for _, order := range orders {
+		ids = append(ids, order.ID)
+	}
+	tags, err := tagRepo.LoadOrderTags(ctx, ids)
+	if err != nil {
+		return
+	}
+	for _, order := range orders {
+		order.Tags = tags[order.ID]
+	}
 }
 
 func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) {
@@ -51,7 +73,12 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	return uc.repo.List(ctx, organizationIDs, options)
+	result, err := uc.repo.List(ctx, organizationIDs, options)
+	if err != nil {
+		return nil, err
+	}
+	attachOrderTags(ctx, uc.tagRepo, result.Items...)
+	return result, nil
 }
 
 func (uc *OrderUsecase) CheckReference(ctx context.Context, organizationID uuid.UUID, check OrderReferenceCheck) (*OrderReferenceMatch, error) {

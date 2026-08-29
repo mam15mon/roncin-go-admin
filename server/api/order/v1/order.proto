@@ -207,6 +207,16 @@ enum OrderAllowedAction {
 }
 
 // Order 订单核心信息。
+// BusinessTagSummary 订单返回的组织标签概要。
+message BusinessTagSummary {
+  string id = 1;
+  string name = 2;
+  string group_id = 3;
+  string group_name = 4;
+  string group_color = 5;
+  bool enabled = 6;
+}
+
 message Order {
   string id = 1;
   string organization_id = 2;
@@ -287,6 +297,7 @@ message Order {
   optional string consignee_short_name = 76;
   optional string locked_at = 77;
   bool is_shared = 78;
+  repeated BusinessTagSummary tags = 79;
 }
 
 message OrderCargoMeasurement {
@@ -427,6 +438,7 @@ message ListOrdersRequest {
   string customer_service_organization_id = 32;
   string creator_id = 33;
   string creator_organization_id = 34;
+  repeated string tag_ids = 35;
   optional bool is_locked = 37;
   optional bool is_shared = 38;
 }

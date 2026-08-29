@@ -122,7 +122,7 @@ func (s *orderRepoStub) TransitionClosure(_ context.Context, organizationID, id 
 func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	repo := &orderRepoStub{}
 	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 7}
-	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(configRepo))
+	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(configRepo), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	customerID := uuid.New()
@@ -149,7 +149,7 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 
 func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{Prefix: "ORD", DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 1}
-	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, NewOrderConfigUsecase(configRepo))
+	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, NewOrderConfigUsecase(configRepo), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	duplicateID := uuid.New()
@@ -317,7 +317,7 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 
 func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 	repo := &orderRepoStub{hasContainers: true}
-	usecase := NewOrderUsecase(repo, nil)
+	usecase := NewOrderUsecase(repo, nil, nil)
 	breakBulk := OrderShipmentBreakBulk
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
@@ -336,7 +336,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 	customerID := uuid.New()
 	match := &OrderReferenceMatch{OrderID: uuid.New(), OrderNo: "SE0001"}
 	repo := &orderRepoStub{referenceMatch: match}
-	usecase := NewOrderUsecase(repo, nil)
+	usecase := NewOrderUsecase(repo, nil, nil)
 
 	result, err := usecase.CheckReference(context.Background(), organizationID, OrderReferenceCheck{
 		ReferenceType: OrderReferenceCustomer,
@@ -361,7 +361,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 
 func TestOrderTransitionValidatesEdgeAndAudits(t *testing.T) {
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}
-	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(&orderConfigRepoStub{}))
+	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(&orderConfigRepoStub{}), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -381,7 +381,7 @@ func TestOrderTransitionValidatesEdgeAndAudits(t *testing.T) {
 func TestOrderTerminationTransitionRequiresReasonAndValidEdge(t *testing.T) {
 	terminationType := OrderTerminationCustomsReturn
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 4}}
-	usecase := NewOrderUsecase(repo, nil)
+	usecase := NewOrderUsecase(repo, nil, nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -422,7 +422,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 	for _, testCase := range blockedCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			usecase := NewOrderUsecase(&orderRepoStub{closureReadiness: testCase.readiness}, nil)
+			usecase := NewOrderUsecase(&orderRepoStub{closureReadiness: testCase.readiness}, nil, nil)
 			_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
 			if err != ErrOrderClosureBlocked {
 				t.Fatalf("TransitionClosure() error = %v, want ErrOrderClosureBlocked", err)
@@ -431,7 +431,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 
 	repo := &orderRepoStub{closureReadiness: &OrderClosureReadiness{FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationTerminated, ClosureStatus: OrderClosureOpen}}
-	usecase := NewOrderUsecase(repo, nil)
+	usecase := NewOrderUsecase(repo, nil, nil)
 	updated, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "  退关费用已处理  ")
 	if err != nil {
 		t.Fatalf("terminated order closure error = %v", err)

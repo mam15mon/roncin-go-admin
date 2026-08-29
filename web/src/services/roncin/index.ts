@@ -11,6 +11,7 @@ import * as feeCatalogService from "./feeCatalogService";
 import * as exchangeRateService from "./exchangeRateService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
+import * as orderTagService from "./orderTagService";
 import * as orderAbnormalCaseService from "./orderAbnormalCaseService";
 import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderCargoItemService from "./orderCargoItemService";
@@ -31,6 +32,7 @@ export default {
   exchangeRateService,
   masterDataService,
   orderService,
+  orderTagService,
   orderAbnormalCaseService,
   orderAttachmentService,
   orderCargoItemService,

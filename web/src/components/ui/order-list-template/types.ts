@@ -69,8 +69,7 @@ export interface OrderListFilterParams {
   stage?: string; // 进程（未退关、已完结等）
   shareStatus?: 'all' | 'shared' | 'unshared'; // 分享状态
   isLocked?: 'all' | 'locked' | 'unlocked'; // 是否锁定
-  tags?: string[]; // 订单标签
-  tagMatchMode?: 'fuzzy_or' | 'exact_and';
+  tagIds?: string[]; // 订单标签（字典 ID，任一命中）
 
   // 分页与排序
   page?: number;
@@ -90,6 +89,7 @@ export interface OrderListItem {
   customerId?: string;
   customerReferenceNo?: string;
   createdAt?: string;
+  tags?: API.BusinessTagSummary[]; // 组织标签（字典）
 
   // 航程与船运
   bookingAgentName?: string;

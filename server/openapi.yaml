@@ -3201,6 +3201,74 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.CheckOrderReferenceResponse'
+    /api/v1/order-tag-options:
+        get:
+            tags:
+                - OrderTagService
+            operationId: OrderTagService_ListOrderTagOptions
+            parameters:
+                - name: businessType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ListOrderTagOptionsResponse'
+    /api/v1/order-tags/batch-assign:
+        post:
+            tags:
+                - OrderTagService
+            operationId: OrderTagService_BatchAssignOrderTags
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.BatchAssignOrderTagsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.BatchAssignOrderTagsResponse'
+    /api/v1/order-tags/batch-remove:
+        post:
+            tags:
+                - OrderTagService
+            operationId: OrderTagService_BatchRemoveOrderTags
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.BatchRemoveOrderTagsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.BatchRemoveOrderTagsResponse'
     /api/v1/orders:
         get:
             tags:
@@ -3350,17 +3418,12 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: tags
+                - name: tagIds
                   in: query
                   schema:
                     type: array
                     items:
                         type: string
-                - name: tagMatchMode
-                  in: query
-                  schema:
-                    type: integer
-                    format: enum
                 - name: isLocked
                   in: query
                   schema:
@@ -11216,6 +11279,76 @@ components:
                 traceId:
                     type: string
             description: AssignPersonnelResponse 单条订单协作人员响应。
+        order.v1.BatchAssignOrderTagsRequest:
+            required:
+                - businessType
+                - orderIds
+                - tagIds
+            type: object
+            properties:
+                businessType:
+                    type: integer
+                    format: enum
+                orderIds:
+                    type: array
+                    items:
+                        type: string
+                tagIds:
+                    type: array
+                    items:
+                        type: string
+        order.v1.BatchAssignOrderTagsResponse:
+            type: object
+            properties:
+                assignedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        order.v1.BatchRemoveOrderTagsRequest:
+            required:
+                - businessType
+                - orderIds
+                - tagIds
+            type: object
+            properties:
+                businessType:
+                    type: integer
+                    format: enum
+                orderIds:
+                    type: array
+                    items:
+                        type: string
+                tagIds:
+                    type: array
+                    items:
+                        type: string
+        order.v1.BatchRemoveOrderTagsResponse:
+            type: object
+            properties:
+                removedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        order.v1.BusinessTagSummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                groupId:
+                    type: string
+                groupName:
+                    type: string
+                groupColor:
+                    type: string
+                enabled:
+                    type: boolean
+            description: |-
+                Order 订单核心信息。
+                 BusinessTagSummary 订单返回的组织标签概要。
         order.v1.CheckOrderReferenceResponse:
             type: object
             properties:
@@ -11397,8 +11530,6 @@ components:
                     type: string
                 consigneeShortName:
                     type: string
-                tags:
-                    $ref: '#/components/schemas/order.v1.OrderTagsInput'
             description: CreateOrderRequest 创建订单请求。
         order.v1.CreateOrderResponse:
             type: object
@@ -11586,6 +11717,17 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.OrderConsolidationSummary'
+                traceId:
+                    type: string
+        order.v1.ListOrderTagOptionsResponse:
+            type: object
+            properties:
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.BusinessTagSummary'
+                total:
+                    type: string
                 traceId:
                     type: string
         order.v1.ListOrdersResponse:
@@ -11902,8 +12044,7 @@ components:
                 tags:
                     type: array
                     items:
-                        type: string
-            description: Order 订单核心信息。
+                        $ref: '#/components/schemas/order.v1.BusinessTagSummary'
         order.v1.OrderAbnormalCase:
             type: object
             properties:
@@ -12381,14 +12522,6 @@ components:
                 masterReleaseMethod:
                     type: string
             description: OrderShippingDocumentInput 订单表单中的主分单输入。
-        order.v1.OrderTagsInput:
-            type: object
-            properties:
-                values:
-                    type: array
-                    items:
-                        type: string
-            description: OrderTagsInput 订单标签写入值；消息存在但 values 为空表示明确清空标签。
         order.v1.RegisterAttachmentRequest:
             required:
                 - orderId
@@ -13084,8 +13217,6 @@ components:
                     type: string
                 consigneeShortName:
                     type: string
-                tags:
-                    $ref: '#/components/schemas/order.v1.OrderTagsInput'
             description: UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
         order.v1.UpdateOrderResponse:
             type: object
@@ -14628,6 +14759,8 @@ tags:
         OrderShippingDocumentService 订单提单服务。
          新建提单固定为草稿态；字段编辑仅允许草稿/已确认；状态仅允许
          DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。
+    - name: OrderTagService
+      description: OrderTagService 提供订单标签候选与批量维护能力。
     - name: PartnerService
     - name: SettlementService
       description: SettlementService 提供跨业务费用台账及后续账单、开票、收付和核销能力。

@@ -41,10 +41,11 @@ type OrderRepo interface {
 }
 
 type OrderUsecase struct {
-	repo   OrderRepo
-	config *OrderConfigUsecase
+	repo    OrderRepo
+	config  *OrderConfigUsecase
+	tagRepo BusinessTagRepo
 }
 
-func NewOrderUsecase(repo OrderRepo, config *OrderConfigUsecase) *OrderUsecase {
-	return &OrderUsecase{repo: repo, config: config}
+func NewOrderUsecase(repo OrderRepo, config *OrderConfigUsecase, tagRepo BusinessTagRepo) *OrderUsecase {
+	return &OrderUsecase{repo: repo, config: config, tagRepo: tagRepo}
 }

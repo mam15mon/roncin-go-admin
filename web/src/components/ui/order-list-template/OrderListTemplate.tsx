@@ -172,6 +172,32 @@ export function OrderListTemplate({
         sorter: true,
         renderText: (val) => val || '-',
       },
+      // 6.1 标签
+      {
+        title: '标签',
+        dataIndex: 'tags',
+        width: 150,
+        render: (_, record) =>
+          record.tags?.length ? (
+            <Space size={4} wrap>
+              {record.tags.map((tag) => (
+                <Tag
+                  key={tag.id}
+                  color={tag.groupColor || undefined}
+                  style={
+                    tag.groupColor
+                      ? { color: tag.groupColor, borderColor: tag.groupColor }
+                      : undefined
+                  }
+                >
+                  {tag.name}
+                </Tag>
+              ))}
+            </Space>
+          ) : (
+            '-'
+          ),
+      },
       // 7. 创建时间
       {
         title: '创建时间',

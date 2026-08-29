@@ -134,6 +134,12 @@ func requestOrderBusinessType(ctx context.Context, request any, organizationID u
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.ListPersonnelOptionsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.ListOrderTagOptionsRequest:
+		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.BatchAssignOrderTagsRequest:
+		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.BatchRemoveOrderTagsRequest:
+		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	}
 
 	var orderID string

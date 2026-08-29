@@ -158,7 +158,7 @@ describe('OrderListSearchFilter', () => {
     expect(screen.getByText('业务人员')).toBeInTheDocument();
     expect(screen.getByText('客服人员')).toBeInTheDocument();
     expect(screen.getByText('订单创建人员')).toBeInTheDocument();
-    expect(screen.getByText('标签匹配模式')).toBeInTheDocument();
+    expect(screen.getByText('订单标签')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(loadPorts).toHaveBeenCalled();

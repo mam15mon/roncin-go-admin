@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "order/v1/order.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// OrderTagService 提供订单标签候选与批量维护能力。
+service OrderTagService {
+  rpc ListOrderTagOptions(ListOrderTagOptionsRequest) returns (ListOrderTagOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/order-tag-options"};
+  }
+  rpc BatchAssignOrderTags(BatchAssignOrderTagsRequest) returns (BatchAssignOrderTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/order-tags/batch-assign" body: "*"};
+  }
+  rpc BatchRemoveOrderTags(BatchRemoveOrderTagsRequest) returns (BatchRemoveOrderTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/order-tags/batch-remove" body: "*"};
+  }
+}
+
+message ListOrderTagOptionsRequest {
+  BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListOrderTagOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
+message BatchAssignOrderTagsRequest {
+  BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string order_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchAssignOrderTagsResponse {
+  int32 assigned_count = 1;
+  string trace_id = 2;
+}
+
+message BatchRemoveOrderTagsRequest {
+  BusinessType business_type = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string order_ids = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchRemoveOrderTagsResponse {
+  int32 removed_count = 1;
+  string trace_id = 2;
+}

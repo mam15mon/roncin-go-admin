@@ -2,8 +2,9 @@ import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useAccess, useLocation } from '@umijs/max';
 import { OrderListTemplate } from '@/components/ui';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { Result } from 'antd';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -16,6 +17,13 @@ import {
 } from './common';
 import { seStatusTabs } from './list-constants';
 import { queryOrderList } from './list-query';
+import {
+  orderTagServiceBatchAssignOrderTags,
+  orderTagServiceBatchRemoveOrderTags,
+  orderTagServiceListOrderTagOptions,
+} from '@/services/roncin/orderTagService';
+import { message } from 'antd';
+import type { OrderListItem } from '@/components/ui/order-list-template/types';
 import { useOrderListResources } from './list-resources';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
@@ -67,6 +75,24 @@ export default function OrderListPage() {
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const access = useAccess();
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagRows, setTagRows] = useState<OrderListItem[]>([]);
+  const [tagFilterOptions, setTagFilterOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (!config) return;
+    void orderTagServiceListOrderTagOptions({
+      businessType: config.businessType as number,
+      page: 1,
+      pageSize: 200,
+    }).then((response) => {
+      setTagFilterOptions(
+        (response.tags ?? []).map((tag) => ({ label: tag.name ?? '', value: tag.id ?? '' })),
+      );
+    });
+  }, [config?.businessType]);
   const {
     masterOptions,
     ports,
@@ -109,6 +135,13 @@ export default function OrderListPage() {
           loadPartners: searchCustomers,
           loadCarriers: searchOrderCarriers,
           loadPersonnel: searchOrderPersonnel,
+          tags: tagFilterOptions,
+        }}
+        onBatchAction={(actionKey, rows) => {
+          if (actionKey === 'manage-tags') {
+            setTagRows(rows);
+            setTagModalOpen(true);
+          }
         }}
         queryOrders={(params) =>
           queryOrderList(params, config, {
@@ -177,6 +210,33 @@ export default function OrderListPage() {
       <TransitionModal
         ref={transitionModalRef}
         onSuccess={() => actionRef.current?.reload()}
+      />
+      <BusinessTagModal
+        open={tagModalOpen}
+        targetCount={tagRows.length}
+        existingTags={tagRows.flatMap((row) => row.rawRecord?.tags ?? row.tags ?? [])}
+        canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
+        onSubmit={async (mode, tagIds) => {
+          if (!tagRows.length) return;
+          const orderIds = tagRows.map((row) => row.id);
+          if (mode === 'assign') {
+            await orderTagServiceBatchAssignOrderTags({
+              businessType: config.businessType as number,
+              orderIds,
+              tagIds,
+            });
+            message.success(`已为 ${orderIds.length} 个订单添加标签`);
+          } else {
+            await orderTagServiceBatchRemoveOrderTags({
+              businessType: config.businessType as number,
+              orderIds,
+              tagIds,
+            });
+            message.success(`已从 ${orderIds.length} 个订单移除标签`);
+          }
+          actionRef.current?.reload();
+        }}
+        onCancel={() => setTagModalOpen(false)}
       />
       <MilestoneDrawer
         ref={milestoneDrawerRef}

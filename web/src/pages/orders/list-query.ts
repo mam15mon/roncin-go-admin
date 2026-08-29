@@ -63,13 +63,7 @@ export async function queryOrderList(
     customerServiceOrganizationId: params.customerServiceDeptId,
     creatorId: params.creatorId,
     creatorOrganizationId: params.creatorDeptId,
-    tags: params.tags,
-    tagMatchMode:
-      params.tagMatchMode === 'fuzzy_or'
-        ? 1
-        : params.tagMatchMode === 'exact_and'
-          ? 2
-          : undefined,
+    tagIds: params.tagIds,
     isLocked:
       params.isLocked === 'locked'
         ? true

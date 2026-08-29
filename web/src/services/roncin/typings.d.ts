@@ -403,6 +403,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BatchAssignOrderTagsRequest = {
+    businessType: number;
+    orderIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchAssignOrderTagsResponse = {
+    assignedCount?: number;
+    traceId?: string;
+  };
+
   type BatchCreateAssociationsRequest = {
     resourceIds: string[];
     partnerIds: string[];
@@ -455,6 +466,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BatchRemoveOrderTagsRequest = {
+    businessType: number;
+    orderIds: string[];
+    tagIds: string[];
+  };
+
+  type BatchRemoveOrderTagsResponse = {
+    removedCount?: number;
+    traceId?: string;
+  };
+
   type BillBatchPreviewGroup = {
     groupKey?: string;
     direction?: string;
@@ -502,6 +524,15 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     isContainerUnit?: boolean;
+  };
+
+  type BusinessTagSummary = {
+    id?: string;
+    name?: string;
+    groupId?: string;
+    groupName?: string;
+    groupColor?: string;
+    enabled?: boolean;
   };
 
   type CancelBillRequest = {
@@ -1107,7 +1138,6 @@ declare namespace API {
     totalVolumeCbm?: number;
     shipperShortName?: string;
     consigneeShortName?: string;
-    tags?: OrderTagsInput;
   };
 
   type CreateOrderResponse = {
@@ -2644,6 +2674,12 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListOrderTagOptionsResponse = {
+    tags?: BusinessTagSummary[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListOrganizationRolesResponse = {
     success?: boolean;
     code?: number;
@@ -3121,7 +3157,7 @@ declare namespace API {
     consigneeShortName?: string;
     lockedAt?: string;
     isShared?: boolean;
-    tags?: string[];
+    tags?: BusinessTagSummary[];
   };
 
   type OrderAbnormalCase = {
@@ -3547,8 +3583,7 @@ declare namespace API {
     customerServiceOrganizationId?: string;
     creatorId?: string;
     creatorOrganizationId?: string;
-    tags?: string[];
-    tagMatchMode?: number;
+    tagIds?: string[];
     isLocked?: boolean;
     isShared?: boolean;
   };
@@ -3626,8 +3661,11 @@ declare namespace API {
     id: string;
   };
 
-  type OrderTagsInput = {
-    values?: string[];
+  type OrderTagServiceListOrderTagOptionsParams = {
+    businessType?: number;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type Organization = {
@@ -5119,7 +5157,6 @@ declare namespace API {
     totalVolumeCbm?: number;
     shipperShortName?: string;
     consigneeShortName?: string;
-    tags?: OrderTagsInput;
   };
 
   type UpdateOrderResponse = {

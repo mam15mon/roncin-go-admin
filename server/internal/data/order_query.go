@@ -11,6 +11,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	orderconsolidationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderconsolidation"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -141,6 +142,9 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	}
 	if options.IsShared != nil {
 		query.Where(orderent.IsSharedEQ(*options.IsShared))
+	}
+	if len(options.TagIDs) > 0 {
+		query.Where(orderent.HasEnterpriseTagLinksWith(ordertaglinkent.TagResourceIDIn(options.TagIDs...)))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {

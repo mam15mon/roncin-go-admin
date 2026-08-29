@@ -231,7 +231,7 @@ export function OrderListSearchFilter({
             string,
           ])
         : undefined;
-    const tags = (rawValues.tags as string[] | undefined)?.filter(Boolean);
+    const tagIds = (rawValues.tagIds as string[] | undefined)?.filter(Boolean);
     const numberKeyword = rawValues.numberKeyword?.trim() || undefined;
 
     onSearch({
@@ -260,10 +260,7 @@ export function OrderListSearchFilter({
       shareStatus:
         rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
       isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
-      tagMatchMode: tags?.length
-        ? rawValues.tagMatchMode || 'fuzzy_or'
-        : undefined,
-      tags: tags?.length ? tags : undefined,
+      tagIds: tagIds?.length ? tagIds : undefined,
     });
   };
 
@@ -286,7 +283,6 @@ export function OrderListSearchFilter({
         onFinish={handleFinish}
         initialValues={{
           numberType: 'order',
-          tagMatchMode: 'fuzzy_or',
           shareStatus: 'all',
           isLocked: 'all',
         }}
@@ -446,23 +442,14 @@ export function OrderListSearchFilter({
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={5}>
-                <Form.Item name="tagMatchMode" label="标签匹配模式">
-                  <Select
-                    options={[
-                      { label: '模糊（或）', value: 'fuzzy_or' },
-                      { label: '精确（且）', value: 'exact_and' },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
               <Col xs={24} sm={12} lg={11}>
-                <Form.Item name="tags" label="订单标签">
+                <Form.Item name="tagIds" label="订单标签">
                   <Select
-                    mode="tags"
+                    mode="multiple"
                     allowClear
-                    tokenSeparators={[',', '，']}
-                    placeholder="选择或输入多个标签"
+                    showSearch
+                    optionFilterProp="label"
+                    placeholder="选择标签筛选订单"
                     options={options.tags}
                   />
                 </Form.Item>

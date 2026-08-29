@@ -25,8 +25,7 @@ describe('queryOrderList', () => {
         numberKeyword: 'MBL-001',
         isLocked: 'locked',
         shareStatus: 'unshared',
-        tagMatchMode: 'exact_and',
-        tags: ['重点'],
+        tagIds: ['tag-1'],
       },
       ORDER_KIND_CONFIGS['sea-export'],
       { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
@@ -42,8 +41,7 @@ describe('queryOrderList', () => {
         numberKeyword: 'MBL-001',
         isLocked: true,
         isShared: false,
-        tagMatchMode: 2,
-        tags: ['重点'],
+        tagIds: ['tag-1'],
       }),
     );
   });
