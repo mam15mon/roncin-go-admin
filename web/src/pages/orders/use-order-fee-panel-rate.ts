@@ -1,15 +1,18 @@
+import { App } from 'antd';
 import { useRef, useState } from 'react';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
 import { trimExactDecimal } from './order-fee-decimal';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
-/**
- * 订单费用抽屉面板的汇率解析与预览状态。
- * 注意：与费用工作台的 useFeeExchangePreview 语义不同——面板版不区分
- * FEE_EXCHANGE_RATE_MISSING，任何未命中或失败都转为手动录入。
- */
+type FeeRequestError = Error & {
+  data?: { reason?: string };
+  response?: { data?: { reason?: string } };
+};
+
+/** 订单费用抽屉面板的汇率解析与预览状态。 */
 export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
+  const { message } = App.useApp();
   const exchangeRateRequestRef = useRef(0);
   const [totalPreview, setTotalPreview] = useState<string>();
   const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
@@ -41,12 +44,12 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
   ) => {
     const currentRequestId = ++exchangeRateRequestRef.current;
     setExchangeRateStatus('loading');
-    orderFeeServiceResolveFeeExchangeRate({
-      orderId,
-      direction,
-      currency,
-      expenseDate,
-    })
+    setExchangeRatePreview(undefined);
+    setManualExchangeRate(false);
+    orderFeeServiceResolveFeeExchangeRate(
+      { orderId, direction, currency, expenseDate },
+      { skipErrorHandler: true },
+    )
       .then((response) => {
         if (currentRequestId !== exchangeRateRequestRef.current) return;
         if (response.success && response.exchangeRate) {
@@ -56,16 +59,20 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
             setManualExchangeRate(false);
           }
         } else {
-          setExchangeRateStatus('missing');
-          setExchangeRatePreview(undefined);
-          setManualExchangeRate(true);
+          setExchangeRateStatus('error');
+          message.error('汇率解析结果不完整');
         }
       })
-      .catch(() => {
+      .catch((error: FeeRequestError) => {
         if (currentRequestId !== exchangeRateRequestRef.current) return;
+        const reason = error.data?.reason ?? error.response?.data?.reason;
+        if (reason === 'FEE_EXCHANGE_RATE_MISSING') {
+          setExchangeRateStatus('missing');
+          setManualExchangeRate(true);
+          return;
+        }
         setExchangeRateStatus('error');
-        setExchangeRatePreview(undefined);
-        setManualExchangeRate(true);
+        message.error(error.message || '汇率解析失败');
       });
   };
 

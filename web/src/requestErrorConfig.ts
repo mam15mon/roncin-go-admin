@@ -11,7 +11,7 @@ interface ErrorEnvelope {
   traceId?: string;
 }
 
-interface RequestError extends Error {
+export interface RequestError extends Error {
   response?: { status?: number; data?: ErrorEnvelope };
   data?: ErrorEnvelope;
 }
@@ -23,6 +23,13 @@ function redirectToLogin() {
   const { pathname, search, hash } = history.location;
   history.replace(
     `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,
+  );
+}
+
+export function getRequestErrorStatus(rawError: unknown): number | undefined {
+  const error = rawError as RequestError;
+  return (
+    error.response?.status ?? error.data?.code ?? error.response?.data?.code
   );
 }
 
@@ -41,7 +48,7 @@ export const errorConfig: RequestConfig = {
       if (options?.skipErrorHandler) throw rawError;
       const error = rawError as RequestError;
       const envelope = error.data ?? error.response?.data;
-      const status = error.response?.status ?? envelope?.code;
+      const status = getRequestErrorStatus(error);
 
       if (status === 401) {
         redirectToLogin();

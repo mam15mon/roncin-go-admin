@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { errorConfig, getRequestErrorStatus } from './requestErrorConfig';
 import { showErrorMessage, showErrorNotification } from './utils/appFeedback';
-import { errorConfig } from './requestErrorConfig';
 
 const replace = vi.hoisted(() => vi.fn());
 
@@ -49,7 +49,9 @@ describe('requestErrorConfig', () => {
   });
 
   it('should not throw for a successful envelope', () => {
-    expect(() => errorThrower({ success: true, data: { id: 1 } })).not.toThrow();
+    expect(() =>
+      errorThrower({ success: true, data: { id: 1 } }),
+    ).not.toThrow();
   });
 
   it('should redirect unauthorized requests to login', () => {
@@ -58,6 +60,17 @@ describe('requestErrorConfig', () => {
     expect(replace).toHaveBeenCalledWith('/user/login?redirect=%2Fwelcome');
     expect(showErrorMessage).not.toHaveBeenCalled();
     expect(showErrorNotification).not.toHaveBeenCalled();
+  });
+
+  it('只把明确的未认证错误识别为 401', () => {
+    expect(getRequestErrorStatus({ response: { status: 401 } })).toBe(401);
+    expect(
+      getRequestErrorStatus({
+        data: { success: false, code: 401, message: '未登录' },
+      }),
+    ).toBe(401);
+    expect(getRequestErrorStatus({ response: { status: 500 } })).toBe(500);
+    expect(getRequestErrorStatus(new Error('Network error'))).toBeUndefined();
   });
 
   it('should show a direct error for forbidden requests', () => {

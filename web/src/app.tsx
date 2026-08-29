@@ -11,7 +11,7 @@ import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
 import { AppFeedbackBridge } from '@/utils/appFeedback';
 import defaultSettings from '../config/defaultSettings';
-import { errorConfig } from './requestErrorConfig';
+import { errorConfig, getRequestErrorStatus } from './requestErrorConfig';
 
 const loginPath = '/user/login';
 const publicAuthPaths = new Set([
@@ -61,7 +61,7 @@ export async function getInitialState(): Promise<InitialState> {
       currentUser: user,
       settings: layoutSettings,
     };
-  } catch {
+  } catch (error) {
     if (isDevMockEnabled()) {
       return {
         fetchUserInfo,
@@ -69,11 +69,14 @@ export async function getInitialState(): Promise<InitialState> {
         settings: layoutSettings,
       };
     }
-    const { pathname, search, hash } = history.location;
-    history.replace(
-      `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,
-    );
-    return { fetchUserInfo, settings: layoutSettings };
+    if (getRequestErrorStatus(error) === 401) {
+      const { pathname, search, hash } = history.location;
+      history.replace(
+        `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,
+      );
+      return { fetchUserInfo, settings: layoutSettings };
+    }
+    throw error;
   }
 }
 

@@ -48,6 +48,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const access = useAccess();
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
+    const feeOptionsRequestRef = useRef(0);
     const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
@@ -73,6 +74,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       string[]
     >([]);
     const [customerName, setCustomerName] = useState('');
+    const [feeOptionsReady, setFeeOptionsReady] = useState(false);
+    const [feeOptionsError, setFeeOptionsError] = useState('');
     const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
     const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
       useState(false);
@@ -111,13 +114,29 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     useImperativeHandle(ref, () => ({
       open: async (targetOrder) => {
+        const requestSequence = ++feeOptionsRequestRef.current;
         setOrder(targetOrder);
         setDrawerOpen(true);
+        setModalOpen(false);
+        setEditingFee(undefined);
+        setCurrencies([]);
+        setSettlementParties([]);
+        setFeeSettings([]);
+        setBillingUnits([]);
+        setSelectedFeeSetting(undefined);
+        setFinanceLocked(false);
+        setFinanceLockReason('');
+        setFinanceLockCommissionNos([]);
+        setCustomerName('');
+        setFeeOptionsReady(false);
+        setFeeOptionsError('');
+        resetPreview();
         if (!targetOrder?.id) return;
         try {
           const response = await orderFeeServiceListFeeOptions({
             orderId: targetOrder.id,
           });
+          if (requestSequence !== feeOptionsRequestRef.current) return;
           setCurrencies(response.currencies ?? []);
           setSettlementParties(response.settlementParties ?? []);
           setFeeSettings(response.feeSettings ?? []);
@@ -126,7 +145,15 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           setFinanceLockReason(response.financeLockReason ?? '');
           setFinanceLockCommissionNos(response.financeLockCommissionNos ?? []);
           setCustomerName(response.customerName ?? '');
-        } catch {
+          setFeeOptionsReady(true);
+        } catch (error) {
+          if (requestSequence !== feeOptionsRequestRef.current) return;
+          const requestError = error as FeeRequestError;
+          const errorMessage =
+            requestError.data?.message ??
+            requestError.response?.data?.message ??
+            '加载费用基础选项失败';
+          setFeeOptionsError(errorMessage);
           message.error('加载费用基础选项失败');
         }
       },
@@ -134,14 +161,17 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const businessType = order?.businessType;
     const canCreate =
+      feeOptionsReady &&
       !financeLocked &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.create');
     const canUpdate =
+      feeOptionsReady &&
       !financeLocked &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.update');
     const canDelete =
+      feeOptionsReady &&
       !financeLocked &&
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.delete');
@@ -279,6 +309,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           title={order ? `费用录入 - ${order.orderNo || order.id}` : '费用录入'}
           open={drawerOpen}
           onClose={() => {
+            feeOptionsRequestRef.current += 1;
             setDrawerOpen(false);
             setOrder(undefined);
             setCurrencies([]);
@@ -290,10 +321,21 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFinanceLockReason('');
             setFinanceLockCommissionNos([]);
             setCustomerName('');
+            setFeeOptionsReady(false);
+            setFeeOptionsError('');
           }}
           size={1280}
           destroyOnHidden
         >
+          {feeOptionsError && (
+            <Alert
+              type="error"
+              showIcon
+              title="费用基础选项加载失败"
+              description={feeOptionsError}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           {customerName && (
             <Alert
               type="info"
