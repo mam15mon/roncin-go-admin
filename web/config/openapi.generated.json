@@ -1306,6 +1306,56 @@
         }
       }
     },
+    "/api/v1/enterprise-resource-capabilities": {
+      "get": {
+        "tags": [
+          "EnterpriseResourceService"
+        ],
+        "operationId": "EnterpriseResourceService_GetEnterpriseResourceCapabilities",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enterprise-resource-image-uploads": {
+      "post": {
+        "tags": [
+          "EnterpriseResourceService"
+        ],
+        "operationId": "EnterpriseResourceService_PrepareEnterpriseResourceImageUpload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/enterprise-resources": {
       "get": {
         "tags": [
@@ -1375,6 +1425,20 @@
           },
           {
             "name": "assigneeId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1572,6 +1636,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/enterprise_resource.v1.MutationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enterprise-resources/{id}/image-access": {
+      "get": {
+        "tags": [
+          "EnterpriseResourceService"
+        ],
+        "operationId": "EnterpriseResourceService_GetEnterpriseResourceImageAccess",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse"
                 }
               }
             }
@@ -10249,6 +10343,54 @@
           }
         }
       },
+      "enterprise_resource.v1.GetEnterpriseResourceCapabilitiesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "imageEnabled": {
+            "type": "boolean"
+          },
+          "imageMaxFileSize": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.GetEnterpriseResourceImageAccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "enterprise_resource.v1.ListEnterpriseResourcesResponse": {
         "type": "object",
         "properties": {
@@ -10334,6 +10476,62 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest": {
+        "required": [
+          "fileName",
+          "mimeType",
+          "fileSize",
+          "checksum"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string"
+          }
+        }
+      },
+      "enterprise_resource.v1.PrepareEnterpriseResourceImageUploadResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "uploadUrl": {
+            "type": "string"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

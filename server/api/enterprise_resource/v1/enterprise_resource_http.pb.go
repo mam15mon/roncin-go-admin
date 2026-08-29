@@ -29,8 +29,11 @@ const OperationEnterpriseResourceServiceCreateEnterpriseTagGroup = "/enterprise_
 const OperationEnterpriseResourceServiceDeleteEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseResource"
 const OperationEnterpriseResourceServiceDeleteEnterpriseTagGroup = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseTagGroup"
 const OperationEnterpriseResourceServiceGetEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResource"
+const OperationEnterpriseResourceServiceGetEnterpriseResourceCapabilities = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceCapabilities"
+const OperationEnterpriseResourceServiceGetEnterpriseResourceImageAccess = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceImageAccess"
 const OperationEnterpriseResourceServiceListEnterpriseResources = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResources"
 const OperationEnterpriseResourceServiceListEnterpriseTagGroups = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseTagGroups"
+const OperationEnterpriseResourceServicePrepareEnterpriseResourceImageUpload = "/enterprise_resource.v1.EnterpriseResourceService/PrepareEnterpriseResourceImageUpload"
 const OperationEnterpriseResourceServicePreviewEnterpriseResourceImport = "/enterprise_resource.v1.EnterpriseResourceService/PreviewEnterpriseResourceImport"
 const OperationEnterpriseResourceServiceUpdateEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseResource"
 const OperationEnterpriseResourceServiceUpdateEnterpriseTagGroup = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseTagGroup"
@@ -48,8 +51,11 @@ type EnterpriseResourceServiceHTTPServer interface {
 	DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*MutationResponse, error)
 	DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*MutationResponse, error)
 	GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*EnterpriseResourceResponse, error)
+	GetEnterpriseResourceCapabilities(context.Context, *GetEnterpriseResourceCapabilitiesRequest) (*GetEnterpriseResourceCapabilitiesResponse, error)
+	GetEnterpriseResourceImageAccess(context.Context, *GetEnterpriseResourceImageAccessRequest) (*GetEnterpriseResourceImageAccessResponse, error)
 	ListEnterpriseResources(context.Context, *ListEnterpriseResourcesRequest) (*ListEnterpriseResourcesResponse, error)
 	ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error)
+	PrepareEnterpriseResourceImageUpload(context.Context, *PrepareEnterpriseResourceImageUploadRequest) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*EnterpriseResourceImportResponse, error)
 	UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*EnterpriseResourceResponse, error)
 	UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*EnterpriseTagGroupResponse, error)
@@ -57,6 +63,9 @@ type EnterpriseResourceServiceHTTPServer interface {
 
 func RegisterEnterpriseResourceServiceHTTPServer(s *http.Server, srv EnterpriseResourceServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("GET", "/api/v1/enterprise-resource-capabilities", _EnterpriseResourceService_GetEnterpriseResourceCapabilities0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/enterprise-resource-image-uploads", _EnterpriseResourceService_PrepareEnterpriseResourceImageUpload0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/enterprise-resources/{id}/image-access", _EnterpriseResourceService_GetEnterpriseResourceImageAccess0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/enterprise-resources", _EnterpriseResourceService_ListEnterpriseResources0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/enterprise-resources/{id}", _EnterpriseResourceService_GetEnterpriseResource0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resources", _EnterpriseResourceService_CreateEnterpriseResource0_HTTP_Handler(srv))
@@ -74,6 +83,66 @@ func RegisterEnterpriseResourceServiceHTTPServer(s *http.Server, srv EnterpriseR
 	r.Handle("DELETE", "/api/v1/enterprise-tag-groups/{id}", _EnterpriseResourceService_DeleteEnterpriseTagGroup0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resources/import-preview", _EnterpriseResourceService_PreviewEnterpriseResourceImport0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resources/import-commit", _EnterpriseResourceService_CommitEnterpriseResourceImport0_HTTP_Handler(srv))
+}
+
+func _EnterpriseResourceService_GetEnterpriseResourceCapabilities0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetEnterpriseResourceCapabilitiesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationEnterpriseResourceServiceGetEnterpriseResourceCapabilities)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetEnterpriseResourceCapabilities(ctx, req.(*GetEnterpriseResourceCapabilitiesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetEnterpriseResourceCapabilitiesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _EnterpriseResourceService_PrepareEnterpriseResourceImageUpload0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PrepareEnterpriseResourceImageUploadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationEnterpriseResourceServicePrepareEnterpriseResourceImageUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PrepareEnterpriseResourceImageUpload(ctx, req.(*PrepareEnterpriseResourceImageUploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PrepareEnterpriseResourceImageUploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _EnterpriseResourceService_GetEnterpriseResourceImageAccess0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetEnterpriseResourceImageAccessRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationEnterpriseResourceServiceGetEnterpriseResourceImageAccess)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetEnterpriseResourceImageAccess(ctx, req.(*GetEnterpriseResourceImageAccessRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetEnterpriseResourceImageAccessResponse)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _EnterpriseResourceService_ListEnterpriseResources0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
@@ -427,8 +496,11 @@ type EnterpriseResourceServiceHTTPClient interface {
 	DeleteEnterpriseResource(ctx context.Context, req *DeleteEnterpriseResourceRequest, opts ...http.CallOption) (rsp *MutationResponse, err error)
 	DeleteEnterpriseTagGroup(ctx context.Context, req *DeleteEnterpriseTagGroupRequest, opts ...http.CallOption) (rsp *MutationResponse, err error)
 	GetEnterpriseResource(ctx context.Context, req *GetEnterpriseResourceRequest, opts ...http.CallOption) (rsp *EnterpriseResourceResponse, err error)
+	GetEnterpriseResourceCapabilities(ctx context.Context, req *GetEnterpriseResourceCapabilitiesRequest, opts ...http.CallOption) (rsp *GetEnterpriseResourceCapabilitiesResponse, err error)
+	GetEnterpriseResourceImageAccess(ctx context.Context, req *GetEnterpriseResourceImageAccessRequest, opts ...http.CallOption) (rsp *GetEnterpriseResourceImageAccessResponse, err error)
 	ListEnterpriseResources(ctx context.Context, req *ListEnterpriseResourcesRequest, opts ...http.CallOption) (rsp *ListEnterpriseResourcesResponse, err error)
 	ListEnterpriseTagGroups(ctx context.Context, req *ListEnterpriseTagGroupsRequest, opts ...http.CallOption) (rsp *ListEnterpriseTagGroupsResponse, err error)
+	PrepareEnterpriseResourceImageUpload(ctx context.Context, req *PrepareEnterpriseResourceImageUploadRequest, opts ...http.CallOption) (rsp *PrepareEnterpriseResourceImageUploadResponse, err error)
 	PreviewEnterpriseResourceImport(ctx context.Context, req *PreviewEnterpriseResourceImportRequest, opts ...http.CallOption) (rsp *EnterpriseResourceImportResponse, err error)
 	UpdateEnterpriseResource(ctx context.Context, req *UpdateEnterpriseResourceRequest, opts ...http.CallOption) (rsp *EnterpriseResourceResponse, err error)
 	UpdateEnterpriseTagGroup(ctx context.Context, req *UpdateEnterpriseTagGroupRequest, opts ...http.CallOption) (rsp *EnterpriseTagGroupResponse, err error)
@@ -643,6 +715,38 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) GetEnterpriseResource(ctx cont
 	return &out, nil
 }
 
+func (c *EnterpriseResourceServiceHTTPClientImpl) GetEnterpriseResourceCapabilities(ctx context.Context, in *GetEnterpriseResourceCapabilitiesRequest, opts ...http.CallOption) (*GetEnterpriseResourceCapabilitiesResponse, error) {
+	var out GetEnterpriseResourceCapabilitiesResponse
+	pattern := "/api/v1/enterprise-resource-capabilities"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationEnterpriseResourceServiceGetEnterpriseResourceCapabilities),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *EnterpriseResourceServiceHTTPClientImpl) GetEnterpriseResourceImageAccess(ctx context.Context, in *GetEnterpriseResourceImageAccessRequest, opts ...http.CallOption) (*GetEnterpriseResourceImageAccessResponse, error) {
+	var out GetEnterpriseResourceImageAccessResponse
+	pattern := "/api/v1/enterprise-resources/{id}/image-access"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationEnterpriseResourceServiceGetEnterpriseResourceImageAccess),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *EnterpriseResourceServiceHTTPClientImpl) ListEnterpriseResources(ctx context.Context, in *ListEnterpriseResourcesRequest, opts ...http.CallOption) (*ListEnterpriseResourcesResponse, error) {
 	var out ListEnterpriseResourcesResponse
 	pattern := "/api/v1/enterprise-resources"
@@ -669,6 +773,23 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) ListEnterpriseTagGroups(ctx co
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *EnterpriseResourceServiceHTTPClientImpl) PrepareEnterpriseResourceImageUpload(ctx context.Context, in *PrepareEnterpriseResourceImageUploadRequest, opts ...http.CallOption) (*PrepareEnterpriseResourceImageUploadResponse, error) {
+	var out PrepareEnterpriseResourceImageUploadResponse
+	pattern := "/api/v1/enterprise-resource-image-uploads"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationEnterpriseResourceServicePrepareEnterpriseResourceImageUpload),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

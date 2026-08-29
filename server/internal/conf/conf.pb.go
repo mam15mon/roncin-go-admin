@@ -218,6 +218,7 @@ type Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Database      *Data_Database         `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 	Redis         *Data_Redis            `protobuf:"bytes,2,opt,name=redis,proto3" json:"redis,omitempty"`
+	ObjectStorage *Data_ObjectStorage    `protobuf:"bytes,3,opt,name=object_storage,json=objectStorage,proto3" json:"object_storage,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -262,6 +263,13 @@ func (x *Data) GetDatabase() *Data_Database {
 func (x *Data) GetRedis() *Data_Redis {
 	if x != nil {
 		return x.Redis
+	}
+	return nil
+}
+
+func (x *Data) GetObjectStorage() *Data_ObjectStorage {
+	if x != nil {
+		return x.ObjectStorage
 	}
 	return nil
 }
@@ -611,6 +619,98 @@ func (x *Data_Redis) GetWriteTimeout() *durationpb.Duration {
 	return nil
 }
 
+type Data_ObjectStorage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Endpoint      string                 `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Region        string                 `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
+	Bucket        string                 `protobuf:"bytes,4,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	AccessKey     string                 `protobuf:"bytes,5,opt,name=access_key,json=accessKey,proto3" json:"access_key,omitempty"`
+	SecretKey     string                 `protobuf:"bytes,6,opt,name=secret_key,json=secretKey,proto3" json:"secret_key,omitempty"`
+	PathStyle     bool                   `protobuf:"varint,7,opt,name=path_style,json=pathStyle,proto3" json:"path_style,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Data_ObjectStorage) Reset() {
+	*x = Data_ObjectStorage{}
+	mi := &file_conf_v1_conf_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Data_ObjectStorage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Data_ObjectStorage) ProtoMessage() {}
+
+func (x *Data_ObjectStorage) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_v1_conf_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Data_ObjectStorage.ProtoReflect.Descriptor instead.
+func (*Data_ObjectStorage) Descriptor() ([]byte, []int) {
+	return file_conf_v1_conf_proto_rawDescGZIP(), []int{3, 2}
+}
+
+func (x *Data_ObjectStorage) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Data_ObjectStorage) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Data_ObjectStorage) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *Data_ObjectStorage) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *Data_ObjectStorage) GetAccessKey() string {
+	if x != nil {
+		return x.AccessKey
+	}
+	return ""
+}
+
+func (x *Data_ObjectStorage) GetSecretKey() string {
+	if x != nil {
+		return x.SecretKey
+	}
+	return ""
+}
+
+func (x *Data_ObjectStorage) GetPathStyle() bool {
+	if x != nil {
+		return x.PathStyle
+	}
+	return false
+}
+
 type Security_Session struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CookieName    string                 `protobuf:"bytes,1,opt,name=cookie_name,json=cookieName,proto3" json:"cookie_name,omitempty"`
@@ -623,7 +723,7 @@ type Security_Session struct {
 
 func (x *Security_Session) Reset() {
 	*x = Security_Session{}
-	mi := &file_conf_v1_conf_proto_msgTypes[9]
+	mi := &file_conf_v1_conf_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +735,7 @@ func (x *Security_Session) String() string {
 func (*Security_Session) ProtoMessage() {}
 
 func (x *Security_Session) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[9]
+	mi := &file_conf_v1_conf_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,7 +792,7 @@ type Security_WeCom struct {
 
 func (x *Security_WeCom) Reset() {
 	*x = Security_WeCom{}
-	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -704,7 +804,7 @@ func (x *Security_WeCom) String() string {
 func (*Security_WeCom) ProtoMessage() {}
 
 func (x *Security_WeCom) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,7 +869,7 @@ type Security_DingTalk struct {
 
 func (x *Security_DingTalk) Reset() {
 	*x = Security_DingTalk{}
-	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +881,7 @@ func (x *Security_DingTalk) String() string {
 func (*Security_DingTalk) ProtoMessage() {}
 
 func (x *Security_DingTalk) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -864,10 +964,11 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\x04GRPC\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xc8\x04\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xe1\x06\n" +
 	"\x04Data\x122\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x16.conf.v1.Data.DatabaseR\bdatabase\x12)\n" +
-	"\x05redis\x18\x02 \x01(\v2\x13.conf.v1.Data.RedisR\x05redis\x1a\xaa\x02\n" +
+	"\x05redis\x18\x02 \x01(\v2\x13.conf.v1.Data.RedisR\x05redis\x12B\n" +
+	"\x0eobject_storage\x18\x03 \x01(\v2\x1b.conf.v1.Data.ObjectStorageR\robjectStorage\x1a\xaa\x02\n" +
 	"\bDatabase\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x12\x14\n" +
@@ -880,7 +981,18 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xa9\x05\n" +
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\x1a\xd2\x01\n" +
+	"\rObjectStorage\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
+	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12\x16\n" +
+	"\x06region\x18\x03 \x01(\tR\x06region\x12\x16\n" +
+	"\x06bucket\x18\x04 \x01(\tR\x06bucket\x12\x1d\n" +
+	"\n" +
+	"access_key\x18\x05 \x01(\tR\taccessKey\x12\x1d\n" +
+	"\n" +
+	"secret_key\x18\x06 \x01(\tR\tsecretKey\x12\x1d\n" +
+	"\n" +
+	"path_style\x18\a \x01(\bR\tpathStyle\"\xa9\x05\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x12-\n" +
 	"\x05wecom\x18\x02 \x01(\v2\x17.conf.v1.Security.WeComR\x05wecom\x126\n" +
@@ -917,7 +1029,7 @@ func file_conf_v1_conf_proto_rawDescGZIP() []byte {
 	return file_conf_v1_conf_proto_rawDescData
 }
 
-var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_conf_v1_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: conf.v1.Bootstrap
 	(*Telemetry)(nil),           // 1: conf.v1.Telemetry
@@ -928,10 +1040,11 @@ var file_conf_v1_conf_proto_goTypes = []any{
 	(*Server_GRPC)(nil),         // 6: conf.v1.Server.GRPC
 	(*Data_Database)(nil),       // 7: conf.v1.Data.Database
 	(*Data_Redis)(nil),          // 8: conf.v1.Data.Redis
-	(*Security_Session)(nil),    // 9: conf.v1.Security.Session
-	(*Security_WeCom)(nil),      // 10: conf.v1.Security.WeCom
-	(*Security_DingTalk)(nil),   // 11: conf.v1.Security.DingTalk
-	(*durationpb.Duration)(nil), // 12: google.protobuf.Duration
+	(*Data_ObjectStorage)(nil),  // 9: conf.v1.Data.ObjectStorage
+	(*Security_Session)(nil),    // 10: conf.v1.Security.Session
+	(*Security_WeCom)(nil),      // 11: conf.v1.Security.WeCom
+	(*Security_DingTalk)(nil),   // 12: conf.v1.Security.DingTalk
+	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
 }
 var file_conf_v1_conf_proto_depIdxs = []int32{
 	2,  // 0: conf.v1.Bootstrap.server:type_name -> conf.v1.Server
@@ -942,20 +1055,21 @@ var file_conf_v1_conf_proto_depIdxs = []int32{
 	6,  // 5: conf.v1.Server.grpc:type_name -> conf.v1.Server.GRPC
 	7,  // 6: conf.v1.Data.database:type_name -> conf.v1.Data.Database
 	8,  // 7: conf.v1.Data.redis:type_name -> conf.v1.Data.Redis
-	9,  // 8: conf.v1.Security.session:type_name -> conf.v1.Security.Session
-	10, // 9: conf.v1.Security.wecom:type_name -> conf.v1.Security.WeCom
-	11, // 10: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
-	12, // 11: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	12, // 12: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	12, // 13: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
-	12, // 14: conf.v1.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
-	12, // 15: conf.v1.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
-	12, // 16: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	9,  // 8: conf.v1.Data.object_storage:type_name -> conf.v1.Data.ObjectStorage
+	10, // 9: conf.v1.Security.session:type_name -> conf.v1.Security.Session
+	11, // 10: conf.v1.Security.wecom:type_name -> conf.v1.Security.WeCom
+	12, // 11: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
+	13, // 12: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	13, // 13: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	13, // 14: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	13, // 15: conf.v1.Data.Redis.read_timeout:type_name -> google.protobuf.Duration
+	13, // 16: conf.v1.Data.Redis.write_timeout:type_name -> google.protobuf.Duration
+	13, // 17: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_conf_v1_conf_proto_init() }
@@ -969,7 +1083,7 @@ func file_conf_v1_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_v1_conf_proto_rawDesc), len(file_conf_v1_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

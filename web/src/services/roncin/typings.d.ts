@@ -1457,6 +1457,10 @@ declare namespace API {
     id: string;
   };
 
+  type EnterpriseResourceServiceGetEnterpriseResourceImageAccessParams = {
+    id: string;
+  };
+
   type EnterpriseResourceServiceGetEnterpriseResourceParams = {
     id: string;
   };
@@ -1471,6 +1475,8 @@ declare namespace API {
     pageSize?: number;
     addressType?: number;
     assigneeId?: string;
+    sortBy?: string;
+    sortOrder?: string;
   };
 
   type EnterpriseResourceServiceUpdateEnterpriseResourceParams = {
@@ -2063,6 +2069,24 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkLoginConfig;
+    traceId?: string;
+  };
+
+  type GetEnterpriseResourceCapabilitiesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    imageEnabled?: boolean;
+    imageMaxFileSize?: string;
+    traceId?: string;
+  };
+
+  type GetEnterpriseResourceImageAccessResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    url?: string;
+    expiresAt?: string;
     traceId?: string;
   };
 
@@ -3894,6 +3918,24 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
+  };
+
+  type PrepareEnterpriseResourceImageUploadRequest = {
+    fileName: string;
+    mimeType: string;
+    fileSize: string;
+    checksum: string;
+  };
+
+  type PrepareEnterpriseResourceImageUploadResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    uploadUrl?: string;
+    objectKey?: string;
+    headers?: Record<string, any>;
+    expiresAt?: string;
+    traceId?: string;
   };
 
   type PreviewBillBatchRequest = {

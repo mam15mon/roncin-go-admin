@@ -60,8 +60,18 @@ message Data {
     google.protobuf.Duration read_timeout = 3;
     google.protobuf.Duration write_timeout = 4;
   }
+  message ObjectStorage {
+    bool enabled = 1;
+    string endpoint = 2;
+    string region = 3;
+    string bucket = 4;
+    string access_key = 5;
+    string secret_key = 6;
+    bool path_style = 7;
+  }
   Database database = 1;
   Redis redis = 2;
+  ObjectStorage object_storage = 3;
 }
 
 message Security {

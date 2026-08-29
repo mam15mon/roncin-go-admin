@@ -8,7 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	regionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	addressent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
 	addresstypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
 	assigneeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
@@ -58,13 +60,31 @@ func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.U
 	}
 	if options.Keyword != "" {
 		keyword := options.Keyword
-		query.Where(resourceent.Or(resourceent.ShortNameContainsFold(keyword), resourceent.SearchKeywordsContainsFold(keyword), resourceent.HasPartyWith(partyent.Or(partyent.CompanyNameContainsFold(keyword), partyent.BusinessCodeContainsFold(keyword), partyent.AddressContainsFold(keyword), partyent.ContactNameContainsFold(keyword)))))
+		query.Where(resourceent.Or(
+			resourceent.ShortNameContainsFold(keyword), resourceent.SearchKeywordsContainsFold(keyword),
+			resourceent.HasAddressWith(addressent.Or(addressent.AddressDetailContainsFold(keyword), addressent.ContactNameContainsFold(keyword), addressent.ContactPhoneContainsFold(keyword))),
+			resourceent.HasRemarkWith(remarkent.ContentContainsFold(keyword)),
+			resourceent.HasPartyWith(partyent.Or(partyent.CompanyNameContainsFold(keyword), partyent.BusinessCodeContainsFold(keyword), partyent.AddressContainsFold(keyword), partyent.ContactNameContainsFold(keyword))),
+		))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	items, err := query.Order(resourceent.BySortOrder(), resourceent.ByUpdatedAt(sql.OrderDesc())).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
+	order := sql.OrderAsc()
+	if options.SortDesc {
+		order = sql.OrderDesc()
+	}
+	orders := []resourceent.OrderOption{resourceent.BySortOrder(), resourceent.ByUpdatedAt(sql.OrderDesc())}
+	switch options.SortBy {
+	case "short_name":
+		orders = []resourceent.OrderOption{resourceent.ByShortName(order), resourceent.ByID()}
+	case "updated_at":
+		orders = []resourceent.OrderOption{resourceent.ByUpdatedAt(order), resourceent.ByID()}
+	case "sort_order":
+		orders = []resourceent.OrderOption{resourceent.BySortOrder(order), resourceent.ByID()}
+	}
+	items, err := query.Order(orders...).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -546,6 +566,11 @@ func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, act
 }
 
 func validateEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, input *biz.EnterpriseResource) error {
+	if input.Address != nil {
+		if err := validateEnterpriseAddressRegions(ctx, tx, input.Address); err != nil {
+			return err
+		}
+	}
 	if input.PartnerIDs != nil {
 		count, err := tx.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(input.PartnerIDs...)).Count(ctx)
 		if err != nil {
@@ -572,6 +597,40 @@ func validateEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, organi
 	}
 	if input.Tag != nil {
 		exists, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(input.Tag.GroupID), taggroupent.OrganizationIDEQ(organizationID)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
+	}
+	return nil
+}
+
+func validateEnterpriseAddressRegions(ctx context.Context, tx *ent.Tx, address *biz.EnterpriseResourceAddress) error {
+	codes := []string{address.ProvinceCode, address.CityCode, address.DistrictCode}
+	if address.CountryCode != "CN" {
+		for _, code := range codes {
+			if code != "" {
+				return biz.ErrEnterpriseResourceInvalidArgument
+			}
+		}
+		return nil
+	}
+	if address.CityCode != "" && address.ProvinceCode == "" || address.DistrictCode != "" && address.CityCode == "" {
+		return biz.ErrEnterpriseResourceInvalidArgument
+	}
+	levels := []int{1, 2, 3}
+	parents := []string{"", address.ProvinceCode, address.CityCode}
+	for i, code := range codes {
+		if code == "" {
+			continue
+		}
+		query := tx.AdministrativeRegion.Query().Where(regionent.CodeEQ(code), regionent.LevelEQ(levels[i]), regionent.EnabledEQ(true))
+		if parents[i] != "" {
+			query.Where(regionent.ParentCodeEQ(parents[i]))
+		}
+		exists, err := query.Exist(ctx)
 		if err != nil {
 			return err
 		}

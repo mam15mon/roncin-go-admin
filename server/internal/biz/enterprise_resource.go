@@ -16,11 +16,13 @@ var (
 	ErrEnterpriseResourceNotFound        = errors.NotFound("ENTERPRISE_RESOURCE_NOT_FOUND", "企业资源不存在")
 	ErrEnterpriseResourceInvalidArgument = errors.BadRequest("ENTERPRISE_RESOURCE_INVALID_ARGUMENT", "企业资源字段不合法")
 	ErrEnterpriseTagGroupNotEmpty        = errors.Conflict("ENTERPRISE_TAG_GROUP_NOT_EMPTY", "标签组下仍有标签")
+	ErrEnterpriseImageStorageUnavailable = errors.ServiceUnavailable("ENTERPRISE_IMAGE_STORAGE_UNAVAILABLE", "图片对象存储未配置")
 )
 
 type EnterpriseResourceType string
 
 const (
+	EnterpriseImageMaxFileSize             int64                  = 20 * 1024 * 1024
 	EnterpriseResourceAddressType          EnterpriseResourceType = "ADDRESS"
 	EnterpriseResourceRemarkType           EnterpriseResourceType = "REMARK"
 	EnterpriseResourceImageType            EnterpriseResourceType = "IMAGE"
@@ -101,6 +103,8 @@ type EnterpriseResourceListOptions struct {
 	Linked, Enabled       *bool
 	AddressType           *EnterpriseAddressType
 	Keyword               string
+	SortBy                string
+	SortDesc              bool
 	Page, PageSize        int
 }
 
@@ -127,10 +131,50 @@ type EnterpriseResourceRepo interface {
 	Import(context.Context, uuid.UUID, uuid.UUID, []*EnterpriseResource, *AuditEvent) ([]*EnterpriseResource, error)
 }
 
-type EnterpriseResourceUsecase struct{ repo EnterpriseResourceRepo }
+type EnterpriseImageUpload struct {
+	UploadURL, ObjectKey string
+	Headers              map[string]string
+	ExpiresAt            time.Time
+}
 
-func NewEnterpriseResourceUsecase(repo EnterpriseResourceRepo) *EnterpriseResourceUsecase {
-	return &EnterpriseResourceUsecase{repo: repo}
+type EnterpriseImageStorage interface {
+	Enabled() bool
+	PrepareUpload(context.Context, uuid.UUID, string, string, int64, string) (*EnterpriseImageUpload, error)
+	VerifyUpload(context.Context, uuid.UUID, *EnterpriseResourceImage) error
+	PresignGet(context.Context, uuid.UUID, string) (string, time.Time, error)
+	Delete(context.Context, uuid.UUID, string) error
+}
+
+type EnterpriseResourceUsecase struct {
+	repo    EnterpriseResourceRepo
+	storage EnterpriseImageStorage
+}
+
+func NewEnterpriseResourceUsecase(repo EnterpriseResourceRepo, storage EnterpriseImageStorage) *EnterpriseResourceUsecase {
+	return &EnterpriseResourceUsecase{repo: repo, storage: storage}
+}
+
+func (uc *EnterpriseResourceUsecase) ImageStorageEnabled() bool {
+	return uc.storage.Enabled()
+}
+
+func (uc *EnterpriseResourceUsecase) PrepareImageUpload(ctx context.Context, organizationID uuid.UUID, fileName, mimeType string, fileSize int64, checksum string) (*EnterpriseImageUpload, error) {
+	image := &EnterpriseResourceImage{FileName: strings.TrimSpace(fileName), MIMEType: mimeType, FileSize: fileSize, ObjectKey: "pending", Checksum: strings.TrimSpace(checksum)}
+	if _, err := normalizeEnterpriseResource(&EnterpriseResource{ResourceType: EnterpriseResourceImageType, ShortName: image.FileName, Enabled: true, Image: image}); err != nil {
+		return nil, err
+	}
+	return uc.storage.PrepareUpload(ctx, organizationID, image.FileName, image.MIMEType, image.FileSize, image.Checksum)
+}
+
+func (uc *EnterpriseResourceUsecase) GetImageAccess(ctx context.Context, organizationID, id uuid.UUID) (string, time.Time, error) {
+	resource, err := uc.repo.Get(ctx, organizationID, id)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if resource.ResourceType != EnterpriseResourceImageType || resource.Image == nil {
+		return "", time.Time{}, ErrEnterpriseResourceInvalidArgument
+	}
+	return uc.storage.PresignGet(ctx, organizationID, resource.Image.ObjectKey)
 }
 
 func (uc *EnterpriseResourceUsecase) List(ctx context.Context, organizationID uuid.UUID, options EnterpriseResourceListOptions) ([]*EnterpriseResource, int64, error) {
@@ -138,6 +182,9 @@ func (uc *EnterpriseResourceUsecase) List(ctx context.Context, organizationID uu
 		return nil, 0, ErrEnterpriseResourceInvalidArgument
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
+	if options.SortBy != "" && options.SortBy != "short_name" && options.SortBy != "updated_at" && options.SortBy != "sort_order" {
+		return nil, 0, ErrEnterpriseResourceInvalidArgument
+	}
 	return uc.repo.List(ctx, organizationID, options)
 }
 
@@ -152,6 +199,11 @@ func (uc *EnterpriseResourceUsecase) Create(ctx context.Context, organizationID,
 	value, err := normalizeEnterpriseResource(input)
 	if err != nil {
 		return nil, err
+	}
+	if value.ResourceType == EnterpriseResourceImageType {
+		if err := uc.storage.VerifyUpload(ctx, organizationID, value.Image); err != nil {
+			return nil, err
+		}
 	}
 	action := "enterprise_resource.create"
 	if value.ResourceType == EnterpriseResourceTagType {
@@ -179,7 +231,20 @@ func (uc *EnterpriseResourceUsecase) Delete(ctx context.Context, organizationID,
 	if id == uuid.Nil {
 		return ErrEnterpriseResourceInvalidArgument
 	}
-	return uc.repo.Delete(ctx, organizationID, id, enterpriseResourceAudit(organizationID, actorID, "enterprise_resource.delete", id, ""))
+	resource, err := uc.repo.Get(ctx, organizationID, id)
+	if err != nil {
+		return err
+	}
+	if resource.ResourceType == EnterpriseResourceImageType && resource.Image != nil {
+		if err := uc.storage.Delete(ctx, organizationID, resource.Image.ObjectKey); err != nil {
+			return err
+		}
+	}
+	action := "enterprise_resource.delete"
+	if resource.ResourceType == EnterpriseResourceTagType {
+		action = "enterprise_tag.delete"
+	}
+	return uc.repo.Delete(ctx, organizationID, id, enterpriseResourceAudit(organizationID, actorID, action, id, resource.ResourceType))
 }
 
 func (uc *EnterpriseResourceUsecase) BatchPartners(ctx context.Context, organizationID, actorID uuid.UUID, resourceIDs, partnerIDs []uuid.UUID, create bool) (int, error) {
@@ -330,7 +395,7 @@ func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource
 		}
 		value.Remark = &detail
 	case EnterpriseResourceImageType:
-		if value.Image == nil || value.Image.FileSize <= 0 || value.Image.FileSize > 20*1024*1024 || strings.TrimSpace(value.Image.ObjectKey) == "" || strings.TrimSpace(value.Image.Checksum) == "" {
+		if value.Image == nil || value.Image.FileSize <= 0 || value.Image.FileSize > EnterpriseImageMaxFileSize || strings.TrimSpace(value.Image.ObjectKey) == "" || strings.TrimSpace(value.Image.Checksum) == "" {
 			return nil, ErrEnterpriseResourceInvalidArgument
 		}
 		switch value.Image.MIMEType {

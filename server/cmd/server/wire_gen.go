@@ -29,7 +29,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		return nil, nil, err
 	}
 	enterpriseResourceRepo := data.NewEnterpriseResourceRepo(dataData)
-	enterpriseResourceUsecase := biz.NewEnterpriseResourceUsecase(enterpriseResourceRepo)
+	enterpriseImageStorage, err := data.NewEnterpriseImageStorage(confData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	enterpriseResourceUsecase := biz.NewEnterpriseResourceUsecase(enterpriseResourceRepo, enterpriseImageStorage)
 	enterpriseResourceService := service.NewEnterpriseResourceService(enterpriseResourceUsecase)
 	authRepo := data.NewAuthRepo(dataData)
 	sessionPolicy, err := server.NewSessionPolicy(security)

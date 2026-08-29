@@ -21,6 +21,40 @@ func NewEnterpriseResourceService(usecase *biz.EnterpriseResourceUsecase) *Enter
 	return &EnterpriseResourceService{usecase: usecase}
 }
 
+func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx context.Context, _ *v1.GetEnterpriseResourceCapabilitiesRequest) (*v1.GetEnterpriseResourceCapabilitiesResponse, error) {
+	return &v1.GetEnterpriseResourceCapabilitiesResponse{
+		Success:          true,
+		Message:          "OK",
+		ImageEnabled:     s.usecase.ImageStorageEnabled(),
+		ImageMaxFileSize: biz.EnterpriseImageMaxFileSize,
+		TraceId:          requestmeta.TraceID(ctx),
+	}, nil
+}
+
+func (s *EnterpriseResourceService) PrepareEnterpriseResourceImageUpload(ctx context.Context, request *v1.PrepareEnterpriseResourceImageUploadRequest) (*v1.PrepareEnterpriseResourceImageUploadResponse, error) {
+	principal, ok := biz.PrincipalFromContext(ctx)
+	if !ok {
+		return nil, biz.ErrSessionRequired
+	}
+	result, err := s.usecase.PrepareImageUpload(ctx, principal.Organization.ID, request.GetFileName(), request.GetMimeType(), request.GetFileSize(), request.GetChecksum())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PrepareEnterpriseResourceImageUploadResponse{Success: true, Message: "OK", UploadUrl: result.UploadURL, ObjectKey: result.ObjectKey, Headers: result.Headers, ExpiresAt: result.ExpiresAt.Format(time.RFC3339), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
+func (s *EnterpriseResourceService) GetEnterpriseResourceImageAccess(ctx context.Context, request *v1.GetEnterpriseResourceImageAccessRequest) (*v1.GetEnterpriseResourceImageAccessResponse, error) {
+	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	url, expiresAt, err := s.usecase.GetImageAccess(ctx, principal.Organization.ID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetEnterpriseResourceImageAccessResponse{Success: true, Message: "OK", Url: url, ExpiresAt: expiresAt.Format(time.RFC3339), TraceId: requestmeta.TraceID(ctx)}, nil
+}
+
 func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context, request *v1.ListEnterpriseResourcesRequest) (*v1.ListEnterpriseResourcesResponse, error) {
 	principal, ok := biz.PrincipalFromContext(ctx)
 	if !ok {
@@ -31,7 +65,10 @@ func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context,
 		return nil, err
 	}
 	resourceType := enterpriseResourceTypeFromAPI(request.GetResourceType())
-	options := biz.EnterpriseResourceListOptions{ResourceType: resourceType, Keyword: request.GetKeyword(), Page: page, PageSize: pageSize, Linked: request.Linked, Enabled: request.Enabled}
+	options := biz.EnterpriseResourceListOptions{ResourceType: resourceType, Keyword: request.GetKeyword(), SortBy: request.GetSortBy(), SortDesc: request.GetSortOrder() == "desc", Page: page, PageSize: pageSize, Linked: request.Linked, Enabled: request.Enabled}
+	if request.GetSortOrder() != "" && request.GetSortOrder() != "asc" && request.GetSortOrder() != "desc" {
+		return nil, biz.ErrEnterpriseResourceInvalidArgument
+	}
 	if request.PartnerId != nil {
 		value, err := uuid.Parse(request.GetPartnerId())
 		if err != nil {

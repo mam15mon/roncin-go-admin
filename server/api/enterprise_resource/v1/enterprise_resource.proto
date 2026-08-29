@@ -9,6 +9,18 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1;v1";
 
 service EnterpriseResourceService {
+  rpc GetEnterpriseResourceCapabilities(GetEnterpriseResourceCapabilitiesRequest) returns (GetEnterpriseResourceCapabilitiesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/enterprise-resource-capabilities"};
+  }
+  rpc PrepareEnterpriseResourceImageUpload(PrepareEnterpriseResourceImageUploadRequest) returns (PrepareEnterpriseResourceImageUploadResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/enterprise-resource-image-uploads" body: "*"};
+  }
+  rpc GetEnterpriseResourceImageAccess(GetEnterpriseResourceImageAccessRequest) returns (GetEnterpriseResourceImageAccessResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/enterprise-resources/{id}/image-access"};
+  }
   rpc ListEnterpriseResources(ListEnterpriseResourcesRequest) returns (ListEnterpriseResourcesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/enterprise-resources"};
@@ -156,6 +168,13 @@ message EnterpriseResourceImage {
   optional int32 height = 7;
 }
 
+message GetEnterpriseResourceCapabilitiesRequest {}
+message GetEnterpriseResourceCapabilitiesResponse { bool success = 1; int32 code = 2; string message = 3; bool image_enabled = 4; int64 image_max_file_size = 5; string trace_id = 6; }
+message PrepareEnterpriseResourceImageUploadRequest { string file_name = 1 [(google.api.field_behavior) = REQUIRED]; string mime_type = 2 [(google.api.field_behavior) = REQUIRED]; int64 file_size = 3 [(google.api.field_behavior) = REQUIRED]; string checksum = 4 [(google.api.field_behavior) = REQUIRED]; }
+message PrepareEnterpriseResourceImageUploadResponse { bool success = 1; int32 code = 2; string message = 3; string upload_url = 4; string object_key = 5; map<string, string> headers = 6; string expires_at = 7; string trace_id = 8; }
+message GetEnterpriseResourceImageAccessRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message GetEnterpriseResourceImageAccessResponse { bool success = 1; int32 code = 2; string message = 3; string url = 4; string expires_at = 5; string trace_id = 6; }
+
 message EnterpriseResourceTag { string group_id = 1; }
 
 message EnterpriseResource {
@@ -208,6 +227,8 @@ message ListEnterpriseResourcesRequest {
   int32 page_size = 7;
   optional EnterpriseAddressType address_type = 8;
   optional string assignee_id = 9;
+  string sort_by = 10;
+  string sort_order = 11;
 }
 message GetEnterpriseResourceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message CreateEnterpriseResourceRequest { EnterpriseResourceInput resource = 1 [(google.api.field_behavior) = REQUIRED]; }
