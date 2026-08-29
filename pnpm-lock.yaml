@@ -69,8 +69,8 @@ importers:
         version: 19.2.8(react@19.2.8)
     devDependencies:
       '@ant-design/cli':
-        specifier: ^6.6.0
-        version: 6.6.1
+        specifier: ^6.6.2
+        version: 6.6.2
       '@biomejs/biome':
         specifier: ^2.5.3
         version: 2.5.9
@@ -201,8 +201,8 @@ packages:
       react: '>=16.8.4'
       react-dom: '>=16.8.4'
 
-  '@ant-design/cli@6.6.1':
-    resolution: {integrity: sha512-A6tskhXtth6I5ynsC06Nk9CPnC2+7X/OtrPossKni397b4ea3NC2JmL7W8dCBOup63CUH3SDSfhrgr9kj9ZAXw==}
+  '@ant-design/cli@6.6.2':
+    resolution: {integrity: sha512-HrOc5t6SlBXCjdNjOQs3JP9PaDA07yBno9YPz6sajhl0SxpHwxj2N6y3+gEFeA6IpYB6Jdx+myMj242m7Rk20Q==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -10003,7 +10003,7 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@ant-design/cli@6.6.1':
+  '@ant-design/cli@6.6.2':
     dependencies:
       cfonts: 3.3.1
       fast-glob: 3.3.3
