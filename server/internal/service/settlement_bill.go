@@ -36,13 +36,28 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		}
 		filter.SettlementPartyID = &id
 	}
+	tagIDs, err := parseUUIDList(request.GetTagIds())
+	if err != nil {
+		return nil, biz.ErrFinanceBillInvalidArgument
+	}
+	filter.TagIDs = tagIDs
 	result, err := s.billUsecase.List(ctx, principal.Organization.ID, filter)
+	if err != nil {
+		return nil, err
+	}
+	billIDs := make([]uuid.UUID, 0, len(result.Items))
+	for _, item := range result.Items {
+		billIDs = append(billIDs, item.ID)
+	}
+	billTags, err := s.tagUsecase.LoadFinanceBillTags(ctx, billIDs)
 	if err != nil {
 		return nil, err
 	}
 	data := make([]*v1.FinanceBill, 0, len(result.Items))
 	for _, item := range result.Items {
-		data = append(data, financeBillToAPI(item))
+		converted := financeBillToAPI(item)
+		converted.Tags = businessTagSummariesToFinanceAPI(billTags[item.ID])
+		data = append(data, converted)
 	}
 	return &v1.ListBillsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }

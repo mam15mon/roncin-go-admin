@@ -119,6 +119,7 @@ type FinanceBillFilter struct {
 	Currency          string
 	BillDateFrom      string
 	BillDateTo        string
+	TagIDs            []uuid.UUID
 }
 
 type FinanceBillListResult struct {

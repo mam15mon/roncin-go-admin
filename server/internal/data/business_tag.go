@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
+	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
@@ -354,6 +355,110 @@ func upsertOrderFeeTagLinks(ctx context.Context, tx *ent.Tx, organizationID uuid
 	}
 	affected, err := tx.OrderFeeEnterpriseTag.Delete().Where(feetaglinkent.OrganizationIDEQ(organizationID), feetaglinkent.OrderFeeIDIn(feeIDs...), feetaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
 	if err != nil {
+		return 0, err
+	}
+	return affected, nil
+}
+
+func (r *businessTagRepo) LoadFinanceBillTags(ctx context.Context, billIDs []uuid.UUID) (map[uuid.UUID][]*biz.BusinessTagSummary, error) {
+	links, err := r.data.db.FinanceBillEnterpriseTag.Query().
+		Where(billtaglinkent.FinanceBillIDIn(billIDs...)).
+		WithTagResource(func(q *ent.EnterpriseResourceQuery) { q.WithTag(func(tq *ent.EnterpriseTagQuery) { tq.WithGroup() }) }).
+		Order(billtaglinkent.ByCreatedAt()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[uuid.UUID][]*biz.BusinessTagSummary, len(billIDs))
+	for _, link := range links {
+		result[link.FinanceBillID] = append(result[link.FinanceBillID], enterpriseTagResourceToSummary(link.Edges.TagResource))
+	}
+	return result, nil
+}
+
+func (r *businessTagRepo) AssignFinanceBillTags(ctx context.Context, organizationID uuid.UUID, billIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return 0, err
+	}
+	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	count, err := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
+	if err != nil || count != len(billIDs) {
+		_ = tx.Rollback()
+		if err != nil {
+			return 0, err
+		}
+		return 0, biz.ErrBusinessTagInvalidArgument
+	}
+	existing, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	existingKeys := make(map[[2]uuid.UUID]struct{}, len(existing))
+	for _, link := range existing {
+		existingKeys[[2]uuid.UUID{link.FinanceBillID, link.TagResourceID}] = struct{}{}
+	}
+	builders := make([]*ent.FinanceBillEnterpriseTagCreate, 0, len(billIDs)*len(tagResourceIDs))
+	for _, billID := range billIDs {
+		for _, tagResourceID := range tagResourceIDs {
+			if _, exists := existingKeys[[2]uuid.UUID{billID, tagResourceID}]; exists {
+				continue
+			}
+			builders = append(builders, tx.FinanceBillEnterpriseTag.Create().SetOrganizationID(organizationID).SetFinanceBillID(billID).SetTagResourceID(tagResourceID))
+		}
+	}
+	affected := 0
+	if len(builders) > 0 {
+		created, err := tx.FinanceBillEnterpriseTag.CreateBulk(builders...).Save(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return 0, err
+		}
+		affected = len(created)
+	}
+	audit.Details["assigned_count"] = stringInt(affected)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return affected, nil
+}
+
+func (r *businessTagRepo) RemoveFinanceBillTags(ctx context.Context, organizationID uuid.UUID, billIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return 0, err
+	}
+	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	count, err := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
+	if err != nil || count != len(billIDs) {
+		_ = tx.Rollback()
+		if err != nil {
+			return 0, err
+		}
+		return 0, biz.ErrBusinessTagInvalidArgument
+	}
+	affected, err := tx.FinanceBillEnterpriseTag.Delete().Where(billtaglinkent.OrganizationIDEQ(organizationID), billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	audit.Details["removed_count"] = stringInt(affected)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 	return affected, nil

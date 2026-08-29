@@ -57,6 +57,19 @@ service SettlementService {
     option (google.api.http) = {get: "/api/v1/finance/bills/{id}"};
   }
 
+  rpc ListFinanceBillTagOptions(ListFinanceBillTagOptionsRequest) returns (ListFinanceBillTagOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bill-tag-options"};
+  }
+  rpc BatchAssignFinanceBillTags(BatchAssignFinanceBillTagsRequest) returns (BatchAssignFinanceBillTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bill-tags/batch-assign" body: "*"};
+  }
+  rpc BatchRemoveFinanceBillTags(BatchRemoveFinanceBillTagsRequest) returns (BatchRemoveFinanceBillTagsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bill-tags/batch-remove" body: "*"};
+  }
+
   rpc ListFinanceFeeTagOptions(ListFinanceFeeTagOptionsRequest) returns (ListFinanceFeeTagOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fee-tag-options"};
@@ -326,6 +339,7 @@ message ListBillsRequest {
   optional string currency = 7;
   optional string bill_date_from = 8;
   optional string bill_date_to = 9;
+  repeated string tag_ids = 10;
 }
 
 message GetBillRequest {
@@ -420,6 +434,7 @@ message FinanceBill {
   string exchange_rate_source = 33;
   string exchange_rate_date = 34;
   optional string exchange_rate_setting_id = 35;
+  repeated finance.v1.BusinessTagSummary tags = 36;
 }
 
 message BillGroupingPolicy {
@@ -675,6 +690,38 @@ message BatchRemoveFinanceFeeTagsRequest {
 }
 
 message BatchRemoveFinanceFeeTagsResponse {
+  int32 removed_count = 1;
+  string trace_id = 2;
+}
+
+message ListFinanceBillTagOptionsRequest {
+  string keyword = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListFinanceBillTagOptionsResponse {
+  repeated BusinessTagSummary tags = 1;
+  int64 total = 2;
+  string trace_id = 3;
+}
+
+message BatchAssignFinanceBillTagsRequest {
+  repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchAssignFinanceBillTagsResponse {
+  int32 assigned_count = 1;
+  string trace_id = 2;
+}
+
+message BatchRemoveFinanceBillTagsRequest {
+  repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string tag_ids = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchRemoveFinanceBillTagsResponse {
   int32 removed_count = 1;
   string trace_id = 2;
 }

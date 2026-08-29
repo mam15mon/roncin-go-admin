@@ -11,6 +11,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	billtaglink "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoicebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
@@ -51,6 +52,9 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	}
 	if filter.BillDateTo != "" {
 		predicates = append(predicates, financebillent.BillDateLTE(filter.BillDateTo))
+	}
+	if len(filter.TagIDs) > 0 {
+		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
 	query := r.data.db.FinanceBill.Query().Where(predicates...).WithBatch()
 	total, err := query.Clone().Count(ctx)

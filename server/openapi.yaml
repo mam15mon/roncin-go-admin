@@ -1225,6 +1225,69 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ConfirmBillBatchResponse'
+    /api/v1/finance/bill-tag-options:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListFinanceBillTagOptions
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListFinanceBillTagOptionsResponse'
+    /api/v1/finance/bill-tags/batch-assign:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_BatchAssignFinanceBillTags
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.BatchAssignFinanceBillTagsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.BatchAssignFinanceBillTagsResponse'
+    /api/v1/finance/bill-tags/batch-remove:
+        post:
+            tags:
+                - SettlementService
+            operationId: SettlementService_BatchRemoveFinanceBillTags
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsResponse'
     /api/v1/finance/billing-units:
         get:
             tags:
@@ -1349,6 +1412,12 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: tagIds
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK
@@ -7160,6 +7229,28 @@ components:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
                 traceId:
                     type: string
+        finance.v1.BatchAssignFinanceBillTagsRequest:
+            required:
+                - billIds
+                - tagIds
+            type: object
+            properties:
+                billIds:
+                    type: array
+                    items:
+                        type: string
+                tagIds:
+                    type: array
+                    items:
+                        type: string
+        finance.v1.BatchAssignFinanceBillTagsResponse:
+            type: object
+            properties:
+                assignedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
         finance.v1.BatchAssignFinanceFeeTagsRequest:
             required:
                 - feeIds
@@ -7178,6 +7269,28 @@ components:
             type: object
             properties:
                 assignedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        finance.v1.BatchRemoveFinanceBillTagsRequest:
+            required:
+                - billIds
+                - tagIds
+            type: object
+            properties:
+                billIds:
+                    type: array
+                    items:
+                        type: string
+                tagIds:
+                    type: array
+                    items:
+                        type: string
+        finance.v1.BatchRemoveFinanceBillTagsResponse:
+            type: object
+            properties:
+                removedCount:
                     type: integer
                     format: int32
                 traceId:
@@ -8603,6 +8716,10 @@ components:
                     type: string
                 exchangeRateSettingId:
                     type: string
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
         finance.v1.FinanceBillBatch:
             type: object
             properties:
@@ -9498,6 +9615,17 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        finance.v1.ListFinanceBillTagOptionsResponse:
+            type: object
+            properties:
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.BusinessTagSummary'
+                total:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.ListFinanceFeeTagOptionsResponse:
             type: object
             properties:
