@@ -1,20 +1,8 @@
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProColumns,
-} from '@ant-design/pro-components';
+import { PlusOutlined } from '@ant-design/icons';
+import type { ActionType } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import {
-  Alert,
-  App,
-  Button,
-  Drawer,
-  Input,
-  Popconfirm,
-  Space,
-  Tag,
-} from 'antd';
+import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {
   forwardRef,
@@ -29,15 +17,12 @@ import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import {
   FEE_BILLED,
-  FEE_CANCELLED,
-  FEE_CONFIRMED,
-  FEE_DRAFT,
-  PAYABLE,
   RECEIVABLE,
   feeDirectionCode,
   feeStatusCode,
 } from './components/fees/feeConstants';
-import { trimExactDecimal } from './order-fee-decimal';
+import { confirmWithReason } from './fee-reason-confirm';
+import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
@@ -45,11 +30,9 @@ import {
   orderFeeServiceListFees,
   orderFeeServiceRemoveFee,
   orderFeeServiceReopenFee,
-  orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-
-type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
+import { useOrderFeePanelExchangeRate } from './use-order-fee-panel-rate';
 
 type FeeRequestError = Error & {
   data?: { message?: string; reason?: string };
@@ -65,7 +48,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const access = useAccess();
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
-    const exchangeRateRequestRef = useRef(0);
     const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
@@ -85,11 +67,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     >([]);
     const [_selectedFeeSetting, setSelectedFeeSetting] =
       useState<API.OrderFeeSettingOption>();
-    const [totalPreview, setTotalPreview] = useState<string>();
-    const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
-    const [exchangeRateStatus, setExchangeRateStatus] =
-      useState<ExchangeRateStatus>('idle');
-    const [manualExchangeRate, setManualExchangeRate] = useState(false);
     const [financeLocked, setFinanceLocked] = useState(false);
     const [financeLockReason, setFinanceLockReason] = useState('');
     const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
@@ -101,41 +78,16 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       useState(false);
     const [taxableServices] = useState<API.TaxableService[]>([]);
 
-    const resolveExchangeRate = (
-      orderId: string,
-      direction: number,
-      currency: string,
-      expenseDate: string,
-    ) => {
-      const currentRequestId = ++exchangeRateRequestRef.current;
-      setExchangeRateStatus('loading');
-      orderFeeServiceResolveFeeExchangeRate({
-        orderId,
-        direction,
-        currency,
-        expenseDate,
-      })
-        .then((response) => {
-          if (currentRequestId !== exchangeRateRequestRef.current) return;
-          if (response.success && response.exchangeRate) {
-            setExchangeRateStatus('resolved');
-            setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
-            if (!editingFee) {
-              setManualExchangeRate(false);
-            }
-          } else {
-            setExchangeRateStatus('missing');
-            setExchangeRatePreview(undefined);
-            setManualExchangeRate(true);
-          }
-        })
-        .catch(() => {
-          if (currentRequestId !== exchangeRateRequestRef.current) return;
-          setExchangeRateStatus('error');
-          setExchangeRatePreview(undefined);
-          setManualExchangeRate(true);
-        });
-    };
+    const {
+      totalPreview,
+      exchangeRatePreview,
+      exchangeRateStatus,
+      manualExchangeRate,
+      setManualExchangeRate,
+      resetPreview,
+      seedFromFee,
+      resolveExchangeRate,
+    } = useOrderFeePanelExchangeRate(editingFee);
 
     const handleValuesChange = () => {
       // values change handler for fee total calculation
@@ -145,10 +97,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       createIdempotencyKeyRef.current = globalThis.crypto.randomUUID();
       setEditingFee(undefined);
       setSelectedFeeSetting(undefined);
-      setTotalPreview(undefined);
-      setExchangeRatePreview(undefined);
-      setExchangeRateStatus('idle');
-      setManualExchangeRate(false);
+      resetPreview();
       setModalOpen(true);
     };
 
@@ -156,12 +105,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       setEditingFee(fee);
       const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
       setSelectedFeeSetting(setting);
-      setTotalPreview(trimExactDecimal(fee.totalAmount));
-      setExchangeRatePreview(
-        fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
-      );
-      setExchangeRateStatus(fee.exchangeRate ? 'resolved' : 'missing');
-      setManualExchangeRate(fee.exchangeRateSource === 'MANUAL');
+      seedFromFee(fee);
       setModalOpen(true);
     };
 
@@ -202,231 +146,66 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.delete');
 
-    const requestReason = (
-      title: string,
-      onSubmit: (reason: string) => Promise<void>,
-    ) => {
-      let reason = '';
-      modal.confirm({
-        title,
-        content: (
-          <Input.TextArea
-            autoFocus
-            maxLength={500}
-            showCount
-            placeholder="请输入操作原因（必填）"
-            onChange={(event) => {
-              reason = event.target.value.trim();
-            }}
-          />
-        ),
-        onOk: async () => {
-          if (!reason) {
-            message.warning('请输入操作原因');
-            throw new Error('操作原因不能为空');
-          }
-          await onSubmit(reason);
+    const handleConfirmFee = async (record: API.OrderFee) => {
+      const orderId = order?.id;
+      if (!orderId || !record.id || !record.version) return;
+      await orderFeeServiceConfirmFee(
+        { orderId, id: record.id },
+        {
+          orderId,
+          id: record.id,
+          expectedVersion: record.version,
         },
+      );
+      message.success('费用已确认');
+      actionRef.current?.reload();
+    };
+
+    const handleReopenFee = (record: API.OrderFee) => {
+      const orderId = order?.id;
+      const feeId = record.id;
+      const version = record.version;
+      if (!orderId || !feeId || !version) return;
+      confirmWithReason({ modal, message }, '撤回费用确认？', async (reason) => {
+        await orderFeeServiceReopenFee(
+          { orderId, id: feeId },
+          {
+            orderId,
+            id: feeId,
+            expectedVersion: version,
+            reason,
+          },
+        );
+        message.success('费用已撤回为草稿');
+        actionRef.current?.reload();
       });
     };
 
-    const columns: ProColumns<API.OrderFee>[] = [
-      {
-        title: '状态',
-        dataIndex: 'status',
-        width: 90,
-        render: (_, record) => {
-          if (feeStatusCode(record.status) === FEE_CONFIRMED)
-            return <Tag color="green">已确认</Tag>;
-          if (feeStatusCode(record.status) === FEE_BILLED)
-            return <Tag color="blue">已进账单</Tag>;
-          if (feeStatusCode(record.status) === FEE_CANCELLED)
-            return <Tag>已作废</Tag>;
-          return <Tag color="gold">草稿</Tag>;
-        },
-      },
-      {
-        title: '收付方向',
-        dataIndex: 'direction',
-        width: 90,
-        render: (_, record) =>
-          feeDirectionCode(record.direction) === PAYABLE ? (
-            <Tag color="volcano">应付</Tag>
-          ) : (
-            <Tag color="green">应收</Tag>
-          ),
-      },
-      {
-        title: '费用代码',
-        dataIndex: 'feeCode',
-        width: 130,
-        copyable: true,
-      },
-      {
-        title: '费用名称',
-        dataIndex: 'feeName',
-        width: 150,
-        ellipsis: true,
-      },
-      {
-        title: '结算单位',
-        dataIndex: 'settlementPartyName',
-        width: 190,
-        ellipsis: true,
-      },
-      {
-        title: '计费单位',
-        dataIndex: 'billingUnit',
-        width: 90,
-      },
-      {
-        title: '数量',
-        dataIndex: 'quantity',
-        width: 110,
-        align: 'right',
-        render: (_, record) => trimExactDecimal(record.quantity),
-      },
-      {
-        title: '单价',
-        dataIndex: 'unitPrice',
-        width: 130,
-        align: 'right',
-        render: (_, record) => trimExactDecimal(record.unitPrice),
-      },
-      {
-        title: '总金额',
-        dataIndex: 'totalAmount',
-        width: 150,
-        align: 'right',
-        render: (_, record) => (
-          <strong>
-            {trimExactDecimal(record.totalAmount)} {record.currency}
-          </strong>
-        ),
-      },
-      {
-        title: '汇率',
-        dataIndex: 'exchangeRate',
-        width: 160,
-        align: 'right',
-        render: (_, record) => (
-          <Space size={4}>
-            {trimExactDecimal(record.exchangeRate)}
-            {record.exchangeRateSource === 'MANUAL' && (
-              <Tag color="gold">手工</Tag>
-            )}
-            {record.exchangeRateSource === 'SYSTEM' && (
-              <Tag color="blue">系统</Tag>
-            )}
-            {record.exchangeRateSource === 'BASE_CURRENCY' && <Tag>本币</Tag>}
-          </Space>
-        ),
-      },
-      {
-        title: '费用日期',
-        dataIndex: 'expenseDate',
-        width: 110,
-      },
-      {
-        title: '备注',
-        dataIndex: 'note',
-        width: 180,
-        ellipsis: true,
-        render: (_, record) => record.note || '-',
-      },
-      {
-        title: '操作',
-        valueType: 'option',
-        width: 120,
-        fixed: 'right',
-        render: (_, record) => (
-          <Space size="small">
-            {canUpdate &&
-              (feeStatusCode(record.status) === FEE_DRAFT ||
-                feeStatusCode(record.status) === FEE_BILLED) && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => openEdit(record)}
-                >
-                  编辑
-                </Button>
-              )}
-            {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
-              <Popconfirm
-                title="确认后该费用才能进入账单，确定继续？"
-                onConfirm={async () => {
-                  if (!order?.id || !record.id || !record.version) return;
-                  await orderFeeServiceConfirmFee(
-                    { orderId: order.id, id: record.id },
-                    {
-                      orderId: order.id,
-                      id: record.id,
-                      expectedVersion: record.version,
-                    },
-                  );
-                  message.success('费用已确认');
-                  actionRef.current?.reload();
-                }}
-              >
-                <Button type="link" size="small">
-                  确认
-                </Button>
-              </Popconfirm>
-            )}
-            {canUpdate && feeStatusCode(record.status) === FEE_CONFIRMED && (
-              <Button
-                type="link"
-                size="small"
-                onClick={() =>
-                  requestReason('撤回费用确认？', async (reason) => {
-                    if (!order?.id || !record.id || !record.version) return;
-                    await orderFeeServiceReopenFee(
-                      { orderId: order.id, id: record.id },
-                      {
-                        orderId: order.id,
-                        id: record.id,
-                        expectedVersion: record.version,
-                        reason,
-                      },
-                    );
-                    message.success('费用已撤回为草稿');
-                    actionRef.current?.reload();
-                  })
-                }
-              >
-                撤回
-              </Button>
-            )}
-            {canDelete &&
-              (feeStatusCode(record.status) === FEE_DRAFT ||
-                feeStatusCode(record.status) === FEE_CONFIRMED) && (
-                <Button
-                  type="link"
-                  danger
-                  size="small"
-                  onClick={() =>
-                    requestReason('确认作废该费用？', async (reason) => {
-                      if (!order?.id || !record.id || !record.version) return;
-                      await orderFeeServiceRemoveFee({
-                        orderId: order.id,
-                        id: record.id,
-                        expectedVersion: record.version,
-                        reason,
-                      });
-                      message.success('费用已作废并保留历史记录');
-                      actionRef.current?.reload();
-                    })
-                  }
-                >
-                  作废
-                </Button>
-              )}
-          </Space>
-        ),
-      },
-    ];
+    const handleCancelFee = (record: API.OrderFee) => {
+      const orderId = order?.id;
+      const feeId = record.id;
+      const version = record.version;
+      if (!orderId || !feeId || !version) return;
+      confirmWithReason({ modal, message }, '确认作废该费用？', async (reason) => {
+        await orderFeeServiceRemoveFee({
+          orderId,
+          id: feeId,
+          expectedVersion: version,
+          reason,
+        });
+        message.success('费用已作废并保留历史记录');
+        actionRef.current?.reload();
+      });
+    };
+
+    const columns = buildOrderFeePanelColumns({
+      canUpdate,
+      canDelete,
+      onEdit: openEdit,
+      onConfirmFee: handleConfirmFee,
+      onReopenFee: handleReopenFee,
+      onCancelFee: handleCancelFee,
+    });
 
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id) return false;
