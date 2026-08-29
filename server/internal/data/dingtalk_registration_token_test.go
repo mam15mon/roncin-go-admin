@@ -37,7 +37,11 @@ func TestDingTalkRegistrationTokenRejectsTamperingAndExpiry(t *testing.T) {
 		t.Fatalf("Seal() error = %v", err)
 	}
 
-	tampered := token[:len(token)-1] + map[bool]string{true: "A", false: "B"}[strings.HasSuffix(token, "A")]
+	replacement := "A"
+	if strings.HasSuffix(token, replacement) {
+		replacement = "B"
+	}
+	tampered := token[:len(token)-1] + replacement
 	if _, err := codec.Open(tampered, time.Now().UTC()); err != biz.ErrDingTalkRegistrationExpired {
 		t.Fatalf("Open(tampered) error = %v", err)
 	}
