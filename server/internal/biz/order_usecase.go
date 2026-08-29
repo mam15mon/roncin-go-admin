@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -105,12 +104,20 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, actorID, number, normalized)
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "order.create",
+		Result:         "success",
+		Details: map[string]string{
+			"order.no":      number,
+			"customer.id":   normalized.CustomerID.String(),
+			"business_type": string(normalized.BusinessType),
+		},
+	}
+	created, err := uc.repo.Create(ctx, organizationID, actorID, number, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.create", Result: "success", Details: map[string]string{"order.id": created.ID.String(), "order.no": created.OrderNo, "customer.id": created.CustomerID.String(), "business_type": string(created.BusinessType)}}); err != nil {
-		return nil, fmt.Errorf("write order create audit: %w", err)
 	}
 	return created, nil
 }
@@ -132,12 +139,16 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 			return nil, ErrOrderContainerShipmentType
 		}
 	}
-	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, expectedVersion, normalized)
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "order.update",
+		Result:         "success",
+		Details:        map[string]string{"order.id": id.String()},
+	}
+	updated, err := uc.repo.UpdateDraft(ctx, organizationID, id, expectedVersion, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.update", Result: "success", Details: map[string]string{"order.id": updated.ID.String(), "order.no": updated.OrderNo}}); err != nil {
-		return nil, fmt.Errorf("write order update audit: %w", err)
 	}
 	return updated, nil
 }

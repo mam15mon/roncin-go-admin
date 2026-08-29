@@ -16,7 +16,7 @@ import (
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 )
 
-func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order) (*biz.Order, error) {
+func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -115,6 +115,11 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["order.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -158,7 +163,7 @@ func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organi
 	return err
 }
 
-func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order) (*biz.Order, error) {
+func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -265,6 +270,11 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			_ = tx.Rollback()
 			return nil, err
 		}
+	}
+	audit.Details["order.no"] = existing.OrderNo
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err

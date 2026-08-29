@@ -11,6 +11,8 @@ import (
 type orderRepoStub struct {
 	created                    *Order
 	createdNumber              string
+	createdAudit               *AuditEvent
+	updatedAudit               *AuditEvent
 	referenceCheck             *OrderReferenceCheck
 	referenceMatch             *OrderReferenceMatch
 	transitioned               *Order
@@ -63,9 +65,10 @@ func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, u
 	return nil, nil
 }
 
-func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order) (*Order, error) {
+func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order, audit *AuditEvent) (*Order, error) {
 	s.created = input
 	s.createdNumber = number
+	s.createdAudit = audit
 	input.ID = uuid.New()
 	input.OrganizationID = organizationID
 	input.OrderNo = number
@@ -76,7 +79,8 @@ func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, n
 	return input, nil
 }
 
-func (s *orderRepoStub) UpdateDraft(_ context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *Order) (*Order, error) {
+func (s *orderRepoStub) UpdateDraft(_ context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *Order, audit *AuditEvent) (*Order, error) {
+	s.updatedAudit = audit
 	input.ID = id
 	input.OrganizationID = organizationID
 	input.Version = expectedVersion + 1
@@ -136,8 +140,8 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	if created.OrderNo != "SE0007" || repo.createdNumber != "SE0007" || configRepo.lastAllocDocType != DocumentTypeOrder {
 		t.Fatalf("created order = %#v, allocated document type = %s", created, configRepo.lastAllocDocType)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.create" || audit.events[0].Details["order.no"] != "SE0007" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.createdAudit == nil || repo.createdAudit.Action != "order.create" || repo.createdAudit.Details["order.no"] != "SE0007" {
+		t.Fatalf("create audit = %#v", repo.createdAudit)
 	}
 	if len(repo.created.PersonnelAssignments) != 1 || repo.created.PersonnelAssignments[0].Notification == nil || repo.created.PersonnelAssignments[0].Notification.RecipientUserID != personnelUserID {
 		t.Fatalf("personnel notification = %#v", repo.created.PersonnelAssignments)
