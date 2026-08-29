@@ -33,6 +33,13 @@ export interface MasterDataFilterOption {
   width?: number;
 }
 
+export interface MasterDataListQuery {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+  enabled?: boolean;
+}
+
 export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMasterDataItem> {
   // Page Header
   title: string;
@@ -44,6 +51,10 @@ export interface MasterDataTemplateProps<T extends BaseMasterDataItem = BaseMast
   items: T[];
   loading?: boolean;
   total?: number;
+  activeTotal?: number;
+  disabledTotal?: number;
+  query?: MasterDataListQuery;
+  onQueryChange?: (query: MasterDataListQuery) => void;
   onRefresh?: () => Promise<void> | void;
 
   // Search & Filter

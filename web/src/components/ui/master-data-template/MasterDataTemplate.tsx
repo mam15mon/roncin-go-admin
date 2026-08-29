@@ -39,7 +39,7 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { BaseMasterDataItem, MasterDataTemplateProps } from './types';
 
 const { Text } = Typography;
@@ -51,6 +51,11 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   codeLabel = '代码',
   items,
   loading = false,
+  total,
+  activeTotal,
+  disabledTotal,
+  query,
+  onQueryChange,
   onRefresh,
   searchPlaceholder = '输入代码或名称搜索...',
   filterOptions = [],
@@ -64,6 +69,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   extraStats = [],
 }: MasterDataTemplateProps<T>) {
   const { message } = App.useApp();
+  const serverMode = query !== undefined && onQueryChange !== undefined;
 
   // Search & Filter state
   const [search, setSearch] = useState('');
@@ -71,6 +77,14 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
   const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>('all');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    if (!serverMode || search === (query.keyword ?? '')) return;
+    const timer = window.setTimeout(() => {
+      onQueryChange({ ...query, page: 1, keyword: search || undefined });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [onQueryChange, query, search, serverMode]);
 
   // Syncing state
   const [syncing, setSyncing] = useState(false);
@@ -82,6 +96,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
 
   // Filter items
   const filteredItems = useMemo(() => {
+    if (serverMode) return items;
     return items.filter((item) => {
       // 1. Keyword search (code, name, nameEn)
       if (search.trim()) {
@@ -119,18 +134,32 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
 
       return true;
     });
-  }, [items, search, activeFilter, filterValues]);
+  }, [items, search, activeFilter, filterValues, serverMode]);
 
   // Paged items
   const pagedItems = useMemo(() => {
+    if (serverMode) return filteredItems;
     const start = (page - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, page, pageSize]);
+  }, [filteredItems, page, pageSize, serverMode]);
 
   // Stats calculation
-  const totalCount = items.length;
-  const activeCount = useMemo(() => items.filter((i) => i.enabled).length, [items]);
-  const disabledCount = totalCount - activeCount;
+  const filteredTotal = serverMode ? (total ?? 0) : filteredItems.length;
+  const activeCount = serverMode
+    ? (activeTotal ?? 0)
+    : items.filter((item) => item.enabled).length;
+  const disabledCount = serverMode
+    ? (disabledTotal ?? 0)
+    : items.length - activeCount;
+  const totalCount = serverMode ? activeCount + disabledCount : items.length;
+  const currentSearch = search;
+  const currentActiveFilter = serverMode
+    ? query.enabled === undefined
+      ? 'all'
+      : String(query.enabled)
+    : activeFilter;
+  const currentPage = serverMode ? query.page : page;
+  const currentPageSize = serverMode ? query.pageSize : pageSize;
 
   // Copy code to clipboard
   const handleCopyCode = (code: string) => {
@@ -456,7 +485,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
             />
           </Card>
         </Col>
-        {extraStats.map((stat, idx) => (
+        {!serverMode && extraStats.map((stat, idx) => (
           <Col xs={12} sm={6} md={6} key={stat.label || idx}>
             <Card
               size="small"
@@ -493,10 +522,14 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               <Input
                 placeholder={searchPlaceholder}
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-                value={search}
+                value={currentSearch}
                 onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
+                  if (serverMode) {
+                    setSearch(e.target.value);
+                  } else {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }
                 }}
                 style={{ width: 220 }}
                 allowClear
@@ -504,10 +537,18 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
 
               {/* Status Select */}
               <Select
-                value={activeFilter}
+                value={currentActiveFilter}
                 onChange={(val) => {
-                  setActiveFilter(val);
-                  setPage(1);
+                  if (serverMode) {
+                    onQueryChange({
+                      ...query,
+                      page: 1,
+                      enabled: val === 'all' ? undefined : val === 'true',
+                    });
+                  } else {
+                    setActiveFilter(val as 'all' | 'true' | 'false');
+                    setPage(1);
+                  }
                 }}
                 options={[
                   { label: '全部状态', value: 'all' },
@@ -518,7 +559,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               />
 
               {/* Dynamic Filter Dropdowns */}
-              {filterOptions.map((opt) => (
+              {!serverMode && filterOptions.map((opt) => (
                 <Select
                   key={opt.key}
                   placeholder={opt.placeholder || opt.label}
@@ -537,11 +578,16 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
               <Button
                 icon={<ReloadOutlined />}
                 onClick={() => {
-                  setSearch('');
-                  setActiveFilter('all');
-                  setFilterValues({});
-                  setPage(1);
-                  void handleRefresh();
+                  if (serverMode) {
+                    setSearch('');
+                    onQueryChange({ page: 1, pageSize: query.pageSize });
+                  } else {
+                    setSearch('');
+                    setActiveFilter('all');
+                    setFilterValues({});
+                    setPage(1);
+                    void handleRefresh();
+                  }
                 }}
               >
                 重置
@@ -551,7 +597,7 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
 
           <Col xs={24} lg={6} style={{ textAlign: 'right' }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              当前筛选显示 <Text strong style={{ color: '#1677ff' }}>{filteredItems.length}</Text> / {totalCount} 条
+              当前筛选显示 <Text strong style={{ color: '#1677ff' }}>{filteredTotal}</Text> 条
             </Text>
           </Col>
         </Row>
@@ -586,18 +632,22 @@ export function MasterDataTemplate<T extends BaseMasterDataItem = BaseMasterData
             }}
           >
             <Text type="secondary" style={{ fontSize: 12 }}>
-              第 {page} 页 / 共 {Math.ceil(filteredItems.length / pageSize) || 1} 页
+              第 {currentPage} 页 / 共 {Math.ceil(filteredTotal / currentPageSize) || 1} 页
             </Text>
             <Pagination
-              current={page}
-              pageSize={pageSize}
-              total={filteredItems.length}
+              current={currentPage}
+              pageSize={currentPageSize}
+              total={filteredTotal}
               size="small"
               showSizeChanger
               pageSizeOptions={['10', '20', '50', '100']}
               onChange={(p, ps) => {
-                setPage(p);
-                setPageSize(ps);
+                if (serverMode) {
+                  onQueryChange({ ...query, page: p, pageSize: ps });
+                } else {
+                  setPage(p);
+                  setPageSize(ps);
+                }
               }}
             />
           </div>

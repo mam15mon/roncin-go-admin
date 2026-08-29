@@ -51,16 +51,26 @@ const mapAirline = (item: API.Airline): AirlineItem => {
 };
 
 export default function AirlinesPanel() {
+  const fetchAirlines = React.useCallback(
+    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
+      masterDataServiceListAirlines(query),
+    [],
+  );
   const {
     data,
     loading,
+    total,
+    activeTotal,
+    disabledTotal,
+    query,
+    setQuery,
     reload,
     handleCreate,
     handleUpdate,
     handleToggleActive,
   } = useMasterDataCrud<AirlineItem, API.Airline>({
     entityName: '航司',
-    fetchList: () => masterDataServiceListAirlines({ page: 1, pageSize: 200 }),
+    fetchList: fetchAirlines,
     mapItem: mapAirline,
     createItem: (values) =>
       masterDataServiceCreateAirline({
@@ -100,6 +110,11 @@ export default function AirlinesPanel() {
       codeLabel="IATA 二字码"
       items={data}
       loading={loading}
+      total={total}
+      activeTotal={activeTotal}
+      disabledTotal={disabledTotal}
+      query={query}
+      onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索二字码(如 CA) / 运单前缀(如 999) / 航司中英文名..."
       extraStats={[

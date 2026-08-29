@@ -51,16 +51,26 @@ const mapPort = (item: API.Port): PortItem => {
 };
 
 export default function PortsPanel() {
+  const fetchPorts = React.useCallback(
+    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
+      masterDataServiceListPorts(query),
+    [],
+  );
   const {
     data,
     loading,
+    total,
+    activeTotal,
+    disabledTotal,
+    query,
+    setQuery,
     reload,
     handleCreate,
     handleUpdate,
     handleToggleActive,
   } = useMasterDataCrud<PortItem, API.Port>({
     entityName: '港口',
-    fetchList: () => masterDataServiceListPorts({ page: 1, pageSize: 200 }),
+    fetchList: fetchPorts,
     mapItem: mapPort,
     createItem: (values) =>
       masterDataServiceCreatePort({
@@ -94,6 +104,11 @@ export default function PortsPanel() {
       codeLabel="UN/LOCODE 五字码"
       items={data}
       loading={loading}
+      total={total}
+      activeTotal={activeTotal}
+      disabledTotal={disabledTotal}
+      query={query}
+      onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索五字码(如 CNSHG) / 港口中英文名..."
       extraStats={[

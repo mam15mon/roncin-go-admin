@@ -59,17 +59,26 @@ const parseContainerPrefixes = (value?: string) =>
     .filter(Boolean) ?? [];
 
 export default function ShippingLinesPanel() {
+  const fetchShippingLines = React.useCallback(
+    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
+      masterDataServiceListShippingLines(query),
+    [],
+  );
   const {
     data,
     loading,
+    total,
+    activeTotal,
+    disabledTotal,
+    query,
+    setQuery,
     reload,
     handleCreate,
     handleUpdate,
     handleToggleActive,
   } = useMasterDataCrud<ShippingLineItem, API.ShippingLine>({
     entityName: '船司',
-    fetchList: () =>
-      masterDataServiceListShippingLines({ page: 1, pageSize: 200 }),
+    fetchList: fetchShippingLines,
     mapItem: mapShippingLine,
     createItem: (values) =>
       masterDataServiceCreateShippingLine({
@@ -113,6 +122,11 @@ export default function ShippingLinesPanel() {
       codeLabel="SCAC 标准代码"
       items={data}
       loading={loading}
+      total={total}
+      activeTotal={activeTotal}
+      disabledTotal={disabledTotal}
+      query={query}
+      onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索 SCAC（如 MAEU）/ BIC 箱主前缀（如 MSKU）/ 船司中英文名称..."
       extraStats={[

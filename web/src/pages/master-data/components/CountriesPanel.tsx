@@ -28,17 +28,26 @@ const mapCountry = (item: API.MasterDataItem): CountryItem => ({
 });
 
 export default function CountriesPanel() {
+  const fetchCountries = React.useCallback(
+    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
+      masterDataServiceListItems({ ...query, kind: 2 }),
+    [],
+  );
   const {
     data,
     loading,
+    total,
+    activeTotal,
+    disabledTotal,
+    query,
+    setQuery,
     reload,
     handleCreate,
     handleUpdate,
     handleToggleActive,
   } = useMasterDataCrud<CountryItem, API.MasterDataItem>({
     entityName: '国家',
-    fetchList: () =>
-      masterDataServiceListItems({ kind: 2, page: 1, pageSize: 200 }),
+    fetchList: fetchCountries,
     mapItem: mapCountry,
     createItem: async (values) => {
       const res = await masterDataServiceCreateItem({
@@ -84,6 +93,11 @@ export default function CountriesPanel() {
       codeLabel="ISO 二字码"
       items={data}
       loading={loading}
+      total={total}
+      activeTotal={activeTotal}
+      disabledTotal={disabledTotal}
+      query={query}
+      onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索国家代码(如 CN) / 国家中英文名称..."
       extraStats={[

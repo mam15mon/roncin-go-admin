@@ -49,17 +49,26 @@ const mapAirport = (item: API.Airport): AirportItem => {
 };
 
 export default function AirportsPanel() {
+  const fetchAirports = React.useCallback(
+    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
+      masterDataServiceListAirports(query),
+    [],
+  );
   const {
     data,
     loading,
+    total,
+    activeTotal,
+    disabledTotal,
+    query,
+    setQuery,
     reload,
     handleCreate,
     handleUpdate,
     handleToggleActive,
   } = useMasterDataCrud<AirportItem, API.Airport>({
     entityName: '机场',
-    fetchList: () =>
-      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
+    fetchList: fetchAirports,
     mapItem: mapAirport,
     createItem: (values) =>
       masterDataServiceCreateAirport({
@@ -97,6 +106,11 @@ export default function AirportsPanel() {
       codeLabel="IATA 三字码"
       items={data}
       loading={loading}
+      total={total}
+      activeTotal={activeTotal}
+      disabledTotal={disabledTotal}
+      query={query}
+      onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索三字码(如 PVG) / 四字码(如 ZSPD) / 机场中英文名..."
       extraStats={[
