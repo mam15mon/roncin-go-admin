@@ -9,9 +9,11 @@ import (
 )
 
 type orderPersonnelRepoStub struct {
-	assigned     *OrderPersonnel
-	notification *NotificationIntent
-	removed      bool
+	assigned      *OrderPersonnel
+	notification  *NotificationIntent
+	assignedAudit *AuditEvent
+	removedAudit  *AuditEvent
+	removed       bool
 }
 
 func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error) {
@@ -26,8 +28,9 @@ func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, order
 	}, nil
 }
 
-func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent) (*OrderPersonnel, error) {
+func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error) {
 	s.notification = notification
+	s.assignedAudit = audit
 	s.assigned = &OrderPersonnel{
 		ID:             uuid.New(),
 		OrderID:        orderID,
@@ -39,8 +42,9 @@ func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, ord
 	return s.assigned, nil
 }
 
-func (s *orderPersonnelRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
+func (s *orderPersonnelRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error {
 	s.removed = true
+	s.removedAudit = audit
 	return nil
 }
 
@@ -111,8 +115,8 @@ func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
 	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateOrderPersonnelAssign {
 		t.Fatalf("unexpected notification intent: %#v", repo.notification)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.personnel.assign" {
-		t.Fatalf("unexpected audit events: %#v", audit.events)
+	if repo.assignedAudit == nil || repo.assignedAudit.Action != "order.personnel.assign" {
+		t.Fatalf("unexpected audit event: %#v", repo.assignedAudit)
 	}
 }
 
@@ -143,8 +147,8 @@ func TestOrderPersonnelRemoveValidatesAndAudits(t *testing.T) {
 	if !repo.removed {
 		t.Fatalf("expected repo.Remove to have been called")
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.personnel.remove" {
-		t.Fatalf("unexpected audit events: %#v", audit.events)
+	if repo.removedAudit == nil || repo.removedAudit.Action != "order.personnel.remove" {
+		t.Fatalf("unexpected audit event: %#v", repo.removedAudit)
 	}
 }
 

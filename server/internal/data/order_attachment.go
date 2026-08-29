@@ -47,11 +47,19 @@ func (r *orderAttachmentRepo) List(ctx context.Context, organizationID, orderID 
 	return result, nil
 }
 
-func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *biz.OrderAttachment) (*biz.OrderAttachment, error) {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *biz.OrderAttachment, audit *biz.AuditEvent) (*biz.OrderAttachment, error) {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
 		return nil, err
 	}
-	create := r.data.db.OrderAttachment.Create().
+	if _, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrOrderAttachmentNotFound
+		}
+		return nil, err
+	}
+	create := tx.OrderAttachment.Create().
 		SetOrderID(orderID).
 		SetDocType(input.DocType).
 		SetIdempotencyKey(input.IdempotencyKey).
@@ -65,9 +73,18 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 	}
 	created, err := create.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_attachment_idempotency_key") {
 			return nil, biz.ErrOrderAttachmentExists
 		}
+		return nil, err
+	}
+	audit.Details["attachment.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderAttachmentToBiz(created), nil

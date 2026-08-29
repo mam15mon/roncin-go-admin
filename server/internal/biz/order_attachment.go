@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -36,7 +35,7 @@ type OrderAttachment struct {
 
 type OrderAttachmentRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderAttachment, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *OrderAttachment) (*OrderAttachment, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, *OrderAttachment, *AuditEvent) (*OrderAttachment, error)
 }
 
 type OrderAttachmentUsecase struct {
@@ -63,21 +62,16 @@ func (uc *OrderAttachmentUsecase) Register(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.Create(ctx, organizationID, actorID, orderID, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.attachment.register",
 		Result:         "success",
-		Details: map[string]string{
-			"attachment.id": created.ID.String(),
-			"order.id":      orderID.String(),
-		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order attachment register audit: %w", err)
+		Details:        map[string]string{"order.id": orderID.String()},
+	}
+	created, err := uc.repo.Create(ctx, organizationID, actorID, orderID, normalized, audit)
+	if err != nil {
+		return nil, err
 	}
 	return created, nil
 }

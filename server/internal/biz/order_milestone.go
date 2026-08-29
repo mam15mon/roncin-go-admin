@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -25,7 +24,7 @@ type OrderMilestone struct {
 
 type OrderMilestoneRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderMilestone, error)
-	Set(context.Context, uuid.UUID, uuid.UUID, string, uint64, *time.Time, *string, bool, uuid.UUID) (*OrderMilestone, error)
+	Set(context.Context, uuid.UUID, uuid.UUID, string, uint64, *time.Time, *string, bool, uuid.UUID, *AuditEvent) (*OrderMilestone, error)
 }
 
 type OrderMilestoneUsecase struct {
@@ -56,12 +55,19 @@ func (uc *OrderMilestoneUsecase) Set(ctx context.Context, organizationID, actorI
 		value := strings.TrimSpace(*note)
 		note = &value
 	}
-	updated, err := uc.repo.Set(ctx, organizationID, orderID, milestoneType, expectedVersion, occurredAt, note, clearOccurredAt, actorID)
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "order.milestone.set",
+		Result:         "success",
+		Details: map[string]string{
+			"order.id":       orderID.String(),
+			"milestone.type": milestoneType,
+		},
+	}
+	updated, err := uc.repo.Set(ctx, organizationID, orderID, milestoneType, expectedVersion, occurredAt, note, clearOccurredAt, actorID, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "order.milestone.set", Result: "success", Details: map[string]string{"order.id": orderID.String(), "milestone.type": milestoneType, "occurred": fmt.Sprintf("%t", updated.OccurredAt != nil)}}); err != nil {
-		return nil, fmt.Errorf("write order milestone audit: %w", err)
 	}
 	return updated, nil
 }

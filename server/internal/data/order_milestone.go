@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,7 +34,7 @@ func (r *orderMilestoneRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uuid.UUID, milestoneType string, expectedVersion uint64, occurredAt *time.Time, note *string, clearOccurredAt bool, actorID uuid.UUID) (*biz.OrderMilestone, error) {
+func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uuid.UUID, milestoneType string, expectedVersion uint64, occurredAt *time.Time, note *string, clearOccurredAt bool, actorID uuid.UUID, audit *biz.AuditEvent) (*biz.OrderMilestone, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -58,6 +59,11 @@ func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uu
 			_ = tx.Rollback()
 			return nil, saveErr
 		}
+		audit.Details["occurred"] = strconv.FormatBool(created.OccurredAt != nil)
+		if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
 		if err := tx.Commit(); err != nil {
 			return nil, err
 		}
@@ -75,6 +81,11 @@ func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uu
 	}
 	updated, err := update.Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["occurred"] = strconv.FormatBool(updated.OccurredAt != nil)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}

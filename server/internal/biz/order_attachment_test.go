@@ -9,14 +9,16 @@ import (
 
 type orderAttachmentRepoStub struct {
 	created *OrderAttachment
+	audit   *AuditEvent
 }
 
 func (s *orderAttachmentRepoStub) List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderAttachment, error) {
 	return nil, nil
 }
 
-func (s *orderAttachmentRepoStub) Create(_ context.Context, _, actorID, orderID uuid.UUID, input *OrderAttachment) (*OrderAttachment, error) {
+func (s *orderAttachmentRepoStub) Create(_ context.Context, _, actorID, orderID uuid.UUID, input *OrderAttachment, audit *AuditEvent) (*OrderAttachment, error) {
 	s.created = input
+	s.audit = audit
 	input.ID = uuid.New()
 	input.OrderID = orderID
 	input.UploadedBy = &actorID
@@ -44,8 +46,8 @@ func TestOrderAttachmentRegisterNormalizesAndAudits(t *testing.T) {
 	if created.DocType != "BL" || created.IdempotencyKey != "upload-order-001" || created.FileName != "提单.pdf" || created.MIMEType != "application/pdf" || created.ObjectKey != "orders/bl-001" || created.Checksum != "sha256:fedcba" || created.UploadedBy == nil || *created.UploadedBy != actorID {
 		t.Fatalf("normalized attachment = %#v", created)
 	}
-	if len(audit.events) != 1 || audit.events[0].Action != "order.attachment.register" {
-		t.Fatalf("audit events = %#v", audit.events)
+	if repo.audit == nil || repo.audit.Action != "order.attachment.register" {
+		t.Fatalf("audit event = %#v", repo.audit)
 	}
 }
 

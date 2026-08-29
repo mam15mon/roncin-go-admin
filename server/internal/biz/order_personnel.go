@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-kratos/kratos/v3/errors"
@@ -59,8 +58,8 @@ type OrderPersonnel struct {
 
 type OrderPersonnelRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error)
-	Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent) (*OrderPersonnel, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error
+	Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error)
+	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderPersonnelUsecase struct {
@@ -90,24 +89,21 @@ func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, act
 	if role != OrderPersonnelRoleCreator {
 		notification = NewOrderPersonnelNotification(userID)
 	}
-	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, memberOrganizationID, role, notification)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.personnel.assign",
 		Result:         "success",
 		Details: map[string]string{
-			"personnel.id":    created.ID.String(),
 			"order.id":        orderID.String(),
 			"user.id":         userID.String(),
 			"organization.id": memberOrganizationID.String(),
 			"role":            string(role),
 		},
-	}); err != nil {
-		return nil, fmt.Errorf("write order personnel assign audit: %w", err)
+	}
+	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, memberOrganizationID, role, notification, audit)
+	if err != nil {
+		return nil, err
 	}
 	return created, nil
 }
@@ -116,10 +112,7 @@ func (uc *OrderPersonnelUsecase) Remove(ctx context.Context, organizationID, act
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
 		return ErrOrderPersonnelInvalidArgument
 	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id); err != nil {
-		return err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{
+	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.personnel.remove",
@@ -128,8 +121,9 @@ func (uc *OrderPersonnelUsecase) Remove(ctx context.Context, organizationID, act
 			"personnel.id": id.String(),
 			"order.id":     orderID.String(),
 		},
-	}); err != nil {
-		return fmt.Errorf("write order personnel remove audit: %w", err)
+	}
+	if err := uc.repo.Remove(ctx, organizationID, orderID, id, audit); err != nil {
+		return err
 	}
 	return nil
 }

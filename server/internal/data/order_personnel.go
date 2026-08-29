@@ -49,7 +49,7 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 	return result, nil
 }
 
-func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent) (*biz.OrderPersonnel, error) {
+func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.OrderPersonnel, error) {
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -112,29 +112,48 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.Details["personnel.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderPersonnelToBiz(created), nil
 }
 
-func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID) error {
-	if err := r.order(ctx, organizationID, orderID); err != nil {
+func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
 		return err
 	}
-	n, err := r.data.db.OrderPersonnel.Delete().
+	if _, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
+		_ = tx.Rollback()
+		if ent.IsNotFound(err) {
+			return biz.ErrOrderPersonnelNotFound
+		}
+		return err
+	}
+	n, err := tx.OrderPersonnel.Delete().
 		Where(
 			orderpersonnelent.IDEQ(id),
 			orderpersonnelent.OrderIDEQ(orderID),
 		).
 		Exec(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 	if n == 0 {
+		_ = tx.Rollback()
 		return biz.ErrOrderPersonnelNotFound
 	}
-	return nil
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func orderPersonnelToBiz(item *ent.OrderPersonnel) *biz.OrderPersonnel {
