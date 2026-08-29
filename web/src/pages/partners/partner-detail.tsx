@@ -69,12 +69,7 @@ export default function PartnerDetailPage() {
   >([]);
   const [currencyOptions, setCurrencyOptions] = useState<
     { label: string; value: string }[]
-  >([
-    { label: 'CNY (人民币)', value: 'CNY' },
-    { label: 'USD (美元)', value: 'USD' },
-    { label: 'EUR (欧元)', value: 'EUR' },
-    { label: 'HKD (港币)', value: 'HKD' },
-  ]);
+  >([]);
 
   // Collapsible active keys (all expanded by default)
   const [activeCollapseKeys, setActiveCollapseKeys] = useState<string[]>([
@@ -114,43 +109,49 @@ export default function PartnerDetailPage() {
   // Load auxiliary options
   useEffect(() => {
     const fetchOptions = async () => {
-      try {
-        const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled(
-          [
-            adminServiceListUsers({ page: 1, pageSize: 200 }),
-            adminServiceListOrganizations(),
-            masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
-            partnerServiceListPartnerAssignmentOptions(),
-          ],
-        );
+      const [usersRes, orgsRes, curRes, assignRes] = await Promise.allSettled([
+        adminServiceListUsers(
+          { page: 1, pageSize: 200 },
+          { skipErrorHandler: true },
+        ),
+        adminServiceListOrganizations({ skipErrorHandler: true }),
+        masterDataServiceListCurrencies({ skipErrorHandler: true }),
+        partnerServiceListPartnerAssignmentOptions({ skipErrorHandler: true }),
+      ]);
 
-        if (usersRes.status === 'fulfilled' && usersRes.value.data) {
-          setUsers(usersRes.value.data);
-        }
-        if (orgsRes.status === 'fulfilled' && orgsRes.value.data) {
-          setOrganizations(orgsRes.value.data);
-        }
-        if (assignRes.status === 'fulfilled' && assignRes.value.data) {
-          setAssignmentOptions(assignRes.value.data);
-        }
-        if (curRes.status === 'fulfilled' && curRes.value.data) {
-          const list = curRes.value.data
-            .filter((c) => c.code)
-            .map((c) => ({
-              label: `${c.code} (${c.name || c.code})`,
-              value: c.code ?? '',
-            }));
-          if (list.length > 0) {
-            setCurrencyOptions(list);
-          }
-        }
-      } catch {
-        // Keep fallbacks
+      if (usersRes.status === 'fulfilled' && usersRes.value.data) {
+        setUsers(usersRes.value.data);
+      }
+      if (orgsRes.status === 'fulfilled' && orgsRes.value.data) {
+        setOrganizations(orgsRes.value.data);
+      }
+      if (assignRes.status === 'fulfilled' && assignRes.value.data) {
+        setAssignmentOptions(assignRes.value.data);
+      }
+      if (curRes.status === 'fulfilled' && curRes.value.data) {
+        setCurrencyOptions(
+          curRes.value.data
+            .filter((currency) => currency.code)
+            .map((currency) => ({
+              label: `${currency.code} (${currency.name || currency.code})`,
+              value: currency.code ?? '',
+            })),
+        );
+      }
+
+      const failedLabels = [
+        usersRes.status === 'rejected' ? '用户' : '',
+        orgsRes.status === 'rejected' ? '组织' : '',
+        curRes.status === 'rejected' ? '币种' : '',
+        assignRes.status === 'rejected' ? '人员归属' : '',
+      ].filter(Boolean);
+      if (failedLabels.length > 0) {
+        message.warning(`${failedLabels.join('、')}选项加载失败`);
       }
     };
 
     fetchOptions();
-  }, []);
+  }, [message]);
 
   // Map user ID to organization ID for auto-fill
   const userOrgMap = useMemo(() => {

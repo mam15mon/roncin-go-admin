@@ -69,7 +69,7 @@ export default function FinanceFeeDetailPage() {
       if (ord?.customerId) {
         partnerServiceGetPartner({
           id: ord.customerId,
-        })
+        }, { skipErrorHandler: true })
           .then((res) => {
             if (res.data) {
               setCustomerName(
@@ -77,7 +77,10 @@ export default function FinanceFeeDetailPage() {
               );
             }
           })
-          .catch(() => {});
+          .catch(() => {
+            setCustomerName('');
+            message.warning('客户信息加载失败');
+          });
       }
     } catch (err: any) {
       message.error(err.message || '加载费用详情失败');

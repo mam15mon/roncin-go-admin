@@ -88,14 +88,16 @@ export default function FinanceFeeLedgerPage() {
 
   // 加载当前用户云端表头偏好配置
   useEffect(() => {
-    settlementServiceGetFeeLedgerPreference({})
+    settlementServiceGetFeeLedgerPreference({ skipErrorHandler: true })
       .then((res) => {
         if (res.data) {
           setPreference(res.data);
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        message.warning('费用表格偏好加载失败，当前未应用个人配置');
+      });
+  }, [message]);
 
   const metricCards: FinanceLedgerMetricCard[] = [
     {
