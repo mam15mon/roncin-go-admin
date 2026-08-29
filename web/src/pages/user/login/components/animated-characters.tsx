@@ -252,11 +252,15 @@ export const AnimatedCharacters = memo(
     // Blinking effect for purple character
     useEffect(() => {
       let blinkTimer: ReturnType<typeof setTimeout> | undefined;
+      let resetTimer: ReturnType<typeof setTimeout> | undefined;
+      let cancelled = false;
       const getRandomBlinkInterval = () => Math.random() * 4000 + 3000;
       const scheduleBlink = () => {
         blinkTimer = setTimeout(() => {
+          if (cancelled) return;
           setIsPurpleBlinking(true);
-          setTimeout(() => {
+          resetTimer = setTimeout(() => {
+            if (cancelled) return;
             setIsPurpleBlinking(false);
             scheduleBlink();
           }, 150);
@@ -264,18 +268,24 @@ export const AnimatedCharacters = memo(
       };
       scheduleBlink();
       return () => {
+        cancelled = true;
         if (blinkTimer) clearTimeout(blinkTimer);
+        if (resetTimer) clearTimeout(resetTimer);
       };
     }, []);
 
     // Blinking effect for black character
     useEffect(() => {
       let blinkTimer: ReturnType<typeof setTimeout> | undefined;
+      let resetTimer: ReturnType<typeof setTimeout> | undefined;
+      let cancelled = false;
       const getRandomBlinkInterval = () => Math.random() * 4000 + 3000;
       const scheduleBlink = () => {
         blinkTimer = setTimeout(() => {
+          if (cancelled) return;
           setIsBlackBlinking(true);
-          setTimeout(() => {
+          resetTimer = setTimeout(() => {
+            if (cancelled) return;
             setIsBlackBlinking(false);
             scheduleBlink();
           }, 150);
@@ -283,7 +293,9 @@ export const AnimatedCharacters = memo(
       };
       scheduleBlink();
       return () => {
+        cancelled = true;
         if (blinkTimer) clearTimeout(blinkTimer);
+        if (resetTimer) clearTimeout(resetTimer);
       };
     }, []);
 

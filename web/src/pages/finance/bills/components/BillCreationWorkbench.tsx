@@ -152,11 +152,14 @@ export default function BillCreationWorkbench({
   );
 
   const selectedIdsRef = useRef<string[]>([]);
-  selectedIdsRef.current = selectedIds;
   const splitByOrderRef = useRef(splitByOrder);
-  splitByOrderRef.current = splitByOrder;
   const splitByTaxRateRef = useRef(splitByTaxRate);
-  splitByTaxRateRef.current = splitByTaxRate;
+
+  useEffect(() => {
+    selectedIdsRef.current = selectedIds;
+    splitByOrderRef.current = splitByOrder;
+    splitByTaxRateRef.current = splitByTaxRate;
+  }, [selectedIds, splitByOrder, splitByTaxRate]);
 
   const loadPreview = useCallback(
     async (

@@ -345,6 +345,7 @@ export function FinanceLedgerTemplate<
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     message.success(`已导出 ${list.length} 条数据`);
   };
 
