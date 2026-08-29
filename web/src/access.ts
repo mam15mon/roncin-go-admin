@@ -68,6 +68,10 @@ const permissions = {
   partnerShippingPresetUpdate: 'business.partner.shipping_preset.update',
   partnerAuditRead: 'business.partner.audit.read',
   partnerAssignmentOptionRead: 'business.partner.assignment_option.read',
+  enterpriseResourceRead: 'business.enterprise_resource.read',
+  enterpriseResourceCreate: 'business.enterprise_resource.create',
+  enterpriseResourceUpdate: 'business.enterprise_resource.update',
+  enterpriseResourceDelete: 'business.enterprise_resource.delete',
   masterDataCurrencyRead: 'system.master_data.currency.read',
   masterDataAdministrativeRegionRead:
     'system.master_data.administrative_region.read',
@@ -219,6 +223,14 @@ export default function access(
     canManageFinanceCommissions:
       has(permissions.financeCommissionManage) && inOrganization,
     canReadPartners: has(permissions.partnerRead) && inOrganization,
+    canReadEnterpriseResources:
+      has(permissions.enterpriseResourceRead) && inOrganization,
+    canCreateEnterpriseResources:
+      has(permissions.enterpriseResourceCreate) && inOrganization,
+    canUpdateEnterpriseResources:
+      has(permissions.enterpriseResourceUpdate) && inOrganization,
+    canDeleteEnterpriseResources:
+      has(permissions.enterpriseResourceDelete) && inOrganization,
     canCreatePartners: has(permissions.partnerCreate) && inOrganization,
     canUpdatePartners: has(permissions.partnerUpdate) && inOrganization,
     canBlacklistPartners: has(permissions.partnerBlacklist) && inOrganization,

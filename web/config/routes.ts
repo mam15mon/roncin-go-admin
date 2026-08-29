@@ -37,6 +37,13 @@ export default [
     redirect: '/partners/customers',
   },
   {
+    path: '/enterprise-resources/config',
+    name: '企业资源配置管理',
+    access: 'canReadEnterpriseResources',
+    hideInMenu: true,
+    component: './enterprise-resources',
+  },
+  {
     path: '/partners/customers',
     name: '客户',
     icon: 'contacts',

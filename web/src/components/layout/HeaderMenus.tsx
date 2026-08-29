@@ -4,6 +4,7 @@ import {
   ClockCircleOutlined,
   ContactsOutlined,
   DatabaseOutlined,
+  FormOutlined,
   DownOutlined,
   GlobalOutlined,
   HistoryOutlined,
@@ -129,8 +130,22 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
       });
     }
 
+    if (access?.canReadEnterpriseResources) {
+      items.push({
+        type: 'group',
+        label: '资源备忘',
+        children: [
+          {
+            key: '/enterprise-resources/config',
+            icon: <FormOutlined />,
+            label: '配置管理',
+          },
+        ],
+      });
+    }
+
     return items;
-  }, [access?.canReadPartners]);
+  }, [access?.canReadEnterpriseResources, access?.canReadPartners]);
 
   const hasSettings = Boolean(settingsItems && settingsItems.length > 0);
   const hasEnterprise = Boolean(
@@ -153,7 +168,8 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
 
   const isEnterpriseActive =
     location.pathname === '/partners' ||
-    location.pathname.startsWith('/partners/');
+    location.pathname.startsWith('/partners/') ||
+    location.pathname.startsWith('/enterprise-resources/');
 
   return (
     <Space size={4} className={className} align="center">
