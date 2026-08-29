@@ -49,20 +49,38 @@ func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uu
 	return result, nil
 }
 
-func (r *orderConfigRepo) CreateNumberRule(ctx context.Context, organizationID uuid.UUID, input *biz.NumberRule) (*biz.NumberRule, error) {
-	created, err := r.data.db.NumberRule.Create().SetOrganizationID(organizationID).SetDocumentType(numberrule.DocumentType(input.DocumentType)).SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(true).Save(ctx)
+func (r *orderConfigRepo) CreateNumberRule(ctx context.Context, organizationID uuid.UUID, input *biz.NumberRule, audit *biz.AuditEvent) (*biz.NumberRule, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	created, err := tx.NumberRule.Create().SetOrganizationID(organizationID).SetDocumentType(numberrule.DocumentType(input.DocumentType)).SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(true).Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsConstraintError(err) {
 			return nil, biz.ErrNumberRuleExists
 		}
 		return nil, err
 	}
+	audit.Details["number_rule.id"] = created.ID.String()
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return numberRuleToBiz(created), nil
 }
 
-func (r *orderConfigRepo) UpdateNumberRule(ctx context.Context, organizationID, id uuid.UUID, input *biz.NumberRule) (*biz.NumberRule, error) {
-	existing, err := r.data.db.NumberRule.Query().Where(numberrule.IDEQ(id), numberrule.OrganizationIDEQ(organizationID)).Only(ctx)
+func (r *orderConfigRepo) UpdateNumberRule(ctx context.Context, organizationID, id uuid.UUID, input *biz.NumberRule, audit *biz.AuditEvent) (*biz.NumberRule, error) {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
+		return nil, err
+	}
+	existing, err := tx.NumberRule.Query().Where(numberrule.IDEQ(id), numberrule.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		_ = tx.Rollback()
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrNumberRuleNotFound
 		}
@@ -70,6 +88,15 @@ func (r *orderConfigRepo) UpdateNumberRule(ctx context.Context, organizationID, 
 	}
 	updated, err := existing.Update().SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(input.Enabled).Save(ctx)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	audit.Details["document_type"] = string(updated.DocumentType)
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return numberRuleToBiz(updated), nil

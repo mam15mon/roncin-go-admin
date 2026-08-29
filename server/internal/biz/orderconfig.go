@@ -127,8 +127,8 @@ func DefaultNumberRules() []NumberRule {
 
 type OrderConfigRepo interface {
 	ListNumberRules(context.Context, uuid.UUID) ([]*NumberRule, error)
-	CreateNumberRule(context.Context, uuid.UUID, *NumberRule) (*NumberRule, error)
-	UpdateNumberRule(context.Context, uuid.UUID, uuid.UUID, *NumberRule) (*NumberRule, error)
+	CreateNumberRule(context.Context, uuid.UUID, *NumberRule, *AuditEvent) (*NumberRule, error)
+	UpdateNumberRule(context.Context, uuid.UUID, uuid.UUID, *NumberRule, *AuditEvent) (*NumberRule, error)
 	AllocateNumber(context.Context, uuid.UUID, DocumentType, time.Time) (*NumberRule, int64, error)
 }
 
@@ -154,12 +154,16 @@ func (uc *OrderConfigUsecase) CreateNumberRule(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	created, err := uc.repo.CreateNumberRule(ctx, organizationID, normalized)
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "number_rule.create",
+		Result:         "success",
+		Details:        map[string]string{"document_type": string(normalized.DocumentType)},
+	}
+	created, err := uc.repo.CreateNumberRule(ctx, organizationID, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "number_rule.create", Result: "success", Details: map[string]string{"number_rule.id": created.ID.String(), "document_type": string(created.DocumentType)}}); err != nil {
-		return nil, fmt.Errorf("write number rule create audit: %w", err)
 	}
 	return created, nil
 }
@@ -172,12 +176,16 @@ func (uc *OrderConfigUsecase) UpdateNumberRule(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	updated, err := uc.repo.UpdateNumberRule(ctx, organizationID, id, normalized)
+	audit := &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "number_rule.update",
+		Result:         "success",
+		Details:        map[string]string{"number_rule.id": id.String()},
+	}
+	updated, err := uc.repo.UpdateNumberRule(ctx, organizationID, id, normalized, audit)
 	if err != nil {
 		return nil, err
-	}
-	if err := uc.audit.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: "number_rule.update", Result: "success", Details: map[string]string{"number_rule.id": updated.ID.String(), "document_type": string(updated.DocumentType)}}); err != nil {
-		return nil, fmt.Errorf("write number rule update audit: %w", err)
 	}
 	return updated, nil
 }

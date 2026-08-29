@@ -13,6 +13,8 @@ type orderConfigRepoStub struct {
 	numberRules       []*NumberRule
 	createdNumberRule *NumberRule
 	updatedNumberRule *NumberRule
+	createdAudit      *AuditEvent
+	updatedAudit      *AuditEvent
 	allocatedRule     *NumberRule
 	allocatedSequence int64
 	allocateErr       error
@@ -25,8 +27,9 @@ func (s *orderConfigRepoStub) ListNumberRules(_ context.Context, _ uuid.UUID) ([
 	return s.numberRules, nil
 }
 
-func (s *orderConfigRepoStub) CreateNumberRule(_ context.Context, organizationID uuid.UUID, input *NumberRule) (*NumberRule, error) {
+func (s *orderConfigRepoStub) CreateNumberRule(_ context.Context, organizationID uuid.UUID, input *NumberRule, audit *AuditEvent) (*NumberRule, error) {
 	s.createdNumberRule = input
+	s.createdAudit = audit
 	input.OrganizationID = organizationID
 	if input.ID == uuid.Nil {
 		input.ID = uuid.New()
@@ -34,8 +37,9 @@ func (s *orderConfigRepoStub) CreateNumberRule(_ context.Context, organizationID
 	return input, nil
 }
 
-func (s *orderConfigRepoStub) UpdateNumberRule(_ context.Context, organizationID, id uuid.UUID, input *NumberRule) (*NumberRule, error) {
+func (s *orderConfigRepoStub) UpdateNumberRule(_ context.Context, organizationID, id uuid.UUID, input *NumberRule, audit *AuditEvent) (*NumberRule, error) {
 	s.updatedNumberRule = input
+	s.updatedAudit = audit
 	input.OrganizationID = organizationID
 	input.ID = id
 	return input, nil
@@ -102,11 +106,11 @@ func TestOrderConfigCreateNumberRuleNormalizesAndAudits(t *testing.T) {
 	if repo.createdNumberRule == nil || repo.createdNumberRule.Prefix != "ORD-SE" {
 		t.Fatalf("repo.createdNumberRule prefix = %v, want ORD-SE", repo.createdNumberRule)
 	}
-	if len(audit.events) != 1 {
-		t.Fatalf("audit events count = %d, want 1", len(audit.events))
+	if repo.createdAudit == nil {
+		t.Fatal("create audit event is nil")
 	}
 
-	event := audit.events[0]
+	event := repo.createdAudit
 	if event.Action != "number_rule.create" {
 		t.Fatalf("audit event action = %q, want number_rule.create", event.Action)
 	}
@@ -120,8 +124,7 @@ func TestOrderConfigCreateNumberRuleNormalizesAndAudits(t *testing.T) {
 		t.Fatalf("audit event result = %q, want success", event.Result)
 	}
 	wantDetails := map[string]string{
-		"number_rule.id": created.ID.String(),
-		"document_type":  string(DocumentTypeOrder),
+		"document_type": string(DocumentTypeOrder),
 	}
 	if !reflect.DeepEqual(event.Details, wantDetails) {
 		t.Fatalf("audit event details = %#v, want %#v", event.Details, wantDetails)
