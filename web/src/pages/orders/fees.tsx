@@ -14,7 +14,6 @@ import {
   Button,
   Card,
   Empty,
-  Input,
   Space,
   Spin,
   Tag,
@@ -35,31 +34,20 @@ import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatal
 import {
   orderFeeServiceAddFee,
   orderFeeServiceConfirmFee,
-  orderFeeServiceListFeeOptions,
   orderFeeServiceRemoveFee,
   orderFeeServiceReopenFee,
-  orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { parseOrderKind } from './common';
-import {
-  calculateExactFeeTotal,
-  quantityOrPricePattern,
-  trimExactDecimal,
-} from './order-fee-decimal';
+import { trimExactDecimal } from './order-fee-decimal';
 import {
   FEE_BILLED,
   RECEIVABLE,
   feeStatusCode,
 } from './components/fees/feeConstants';
-
-type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
-
-type FeeRequestError = Error & {
-  data?: { message?: string; reason?: string };
-  response?: { data?: { message?: string; reason?: string } };
-};
+import { confirmWithReason } from './fee-reason-confirm';
+import { useFeeExchangePreview } from './use-fee-exchange-preview';
+import { useOrderFeeOptions } from './use-order-fee-options';
 
 export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
@@ -78,11 +66,35 @@ export default function OrderFeesPage() {
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
-  const exchangeRateRequestRef = useRef(0);
   const createIdempotencyKeyRef = useRef(globalThis.crypto.randomUUID());
 
-  const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<API.Order>();
+  const {
+    loading,
+    order,
+    currencies,
+    settlementParties,
+    setSettlementParties,
+    feeSettings,
+    setFeeSettings,
+    billingUnits,
+    financeLocked,
+    financeLockReason,
+    financeLockCommissionNos,
+    customerName,
+    loadData,
+  } = useOrderFeeOptions(orderId);
+
+  const {
+    totalPreview,
+    exchangeRatePreview,
+    exchangeRateStatus,
+    manualExchangeRate,
+    setManualExchangeRate,
+    resetPreview,
+    seedFromFee,
+    handleValuesChange,
+  } = useFeeExchangePreview(orderId, formRef);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
   const [editingFee, setEditingFee] = useState<API.OrderFee>();
@@ -98,33 +110,8 @@ export default function OrderFeesPage() {
     [],
   );
   const [allPayableItems, setAllPayableItems] = useState<API.OrderFee[]>([]);
-
-  const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
-    [],
-  );
-  const [settlementParties, setSettlementParties] = useState<
-    API.OrderFeeSettlementPartyOption[]
-  >([]);
-  const [feeSettings, setFeeSettings] = useState<API.OrderFeeSettingOption[]>(
-    [],
-  );
-  const [billingUnits, setBillingUnits] = useState<
-    API.OrderFeeBillingUnitOption[]
-  >([]);
-  const [financeLocked, setFinanceLocked] = useState(false);
-  const [financeLockReason, setFinanceLockReason] = useState('');
-  const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
-    string[]
-  >([]);
-  const [customerName, setCustomerName] = useState('');
   const [_selectedFeeSetting, setSelectedFeeSetting] =
     useState<API.OrderFeeSettingOption>();
-
-  const [totalPreview, setTotalPreview] = useState<string>();
-  const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
-  const [exchangeRateStatus, setExchangeRateStatus] =
-    useState<ExchangeRateStatus>('idle');
-  const [manualExchangeRate, setManualExchangeRate] = useState(false);
 
   // 汇总统计数据
   const [receivableSummary, setReceivableSummary] = useState<{
@@ -143,6 +130,19 @@ export default function OrderFeesPage() {
   // 快捷新建结算单位状态
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (order?.orderNo && typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('roncin:update-tab-title', {
+          detail: {
+            path: window.location.pathname,
+            title: `${order.orderNo}_费用录入`,
+          },
+        }),
+      );
+    }
+  }, [order?.orderNo]);
+
   const handleOpenQuickAddFee = async () => {
     setQuickAddFeeModalOpen(true);
     try {
@@ -159,109 +159,6 @@ export default function OrderFeesPage() {
     setQuickAddPartnerModalOpen(true);
   };
 
-  const loadData = async () => {
-    if (!orderId) return;
-    setLoading(true);
-    try {
-      const [orderRes, optionsRes] = await Promise.all([
-        orderServiceGetOrder({ id: orderId }),
-        orderFeeServiceListFeeOptions({ orderId }),
-      ]);
-      setOrder(orderRes.data);
-      setCurrencies(optionsRes.currencies ?? []);
-      setSettlementParties(optionsRes.settlementParties ?? []);
-      setFeeSettings(optionsRes.feeSettings ?? []);
-      setBillingUnits(optionsRes.billingUnits ?? []);
-      setFinanceLocked(Boolean(optionsRes.financeLocked));
-      setFinanceLockReason(optionsRes.financeLockReason || '');
-      setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
-      setCustomerName(optionsRes.customerName || '');
-    } catch (error: any) {
-      message.error(error.message || '加载费用信息失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadData();
-  }, [orderId]);
-
-  useEffect(() => {
-    if (order?.orderNo && typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('roncin:update-tab-title', {
-          detail: {
-            path: window.location.pathname,
-            title: `${order.orderNo}_费用录入`,
-          },
-        }),
-      );
-    }
-  }, [order?.orderNo]);
-
-  const resolveExchangeRate = (
-    currentOrderId: string,
-    direction: number,
-    currency: string,
-    expenseDate: string,
-  ) => {
-    const requestSequence = ++exchangeRateRequestRef.current;
-    setExchangeRateStatus('loading');
-    setExchangeRatePreview(undefined);
-    setManualExchangeRate(false);
-    formRef.current?.setFieldValue('exchangeRateOverride', undefined);
-    void orderFeeServiceResolveFeeExchangeRate(
-      { orderId: currentOrderId, direction, currency, expenseDate },
-      { skipErrorHandler: true },
-    )
-      .then((response) => {
-        if (requestSequence !== exchangeRateRequestRef.current) return;
-        if (!response.exchangeRate) {
-          setExchangeRateStatus('error');
-          message.error('汇率解析结果不完整');
-          return;
-        }
-        setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
-        setExchangeRateStatus('resolved');
-      })
-      .catch((error: FeeRequestError) => {
-        if (requestSequence !== exchangeRateRequestRef.current) return;
-        const code = error.data?.reason || error.response?.data?.reason;
-        if (code === 'FEE_EXCHANGE_RATE_MISSING') {
-          setExchangeRateStatus('missing');
-          setManualExchangeRate(true);
-          return;
-        }
-        setExchangeRateStatus('error');
-        message.error(error.message || '汇率解析失败');
-      });
-  };
-
-  const handleValuesChange = () => {
-    const values = formRef.current?.getFieldsValue();
-    if (!values) return;
-    const { quantity, unitPrice, currency, expenseDate, direction } = values;
-    if (
-      quantity &&
-      unitPrice &&
-      quantityOrPricePattern.test(quantity) &&
-      quantityOrPricePattern.test(unitPrice)
-    ) {
-      setTotalPreview(calculateExactFeeTotal(quantity, unitPrice));
-    } else {
-      setTotalPreview(undefined);
-    }
-    if (orderId && direction && currency && expenseDate) {
-      resolveExchangeRate(
-        orderId,
-        Number(direction),
-        currency,
-        dayjs(expenseDate).format('YYYY-MM-DD'),
-      );
-    }
-  };
-
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
     if (financeLocked) {
       message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
@@ -271,20 +168,13 @@ export default function OrderFeesPage() {
     setEditingFee(fee);
     setModalDirection(direction);
     setSelectedFeeSetting(undefined);
-    setTotalPreview(undefined);
-    setExchangeRatePreview(undefined);
-    setExchangeRateStatus('idle');
-    setManualExchangeRate(false);
+    resetPreview();
     setModalOpen(true);
 
     if (fee) {
       const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
       setSelectedFeeSetting(setting);
-      setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
-      setExchangeRatePreview(
-        fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
-      );
-      setExchangeRateStatus('resolved');
+      seedFromFee(fee);
       setTimeout(() => {
         formRef.current?.setFieldsValue({
           direction: fee.direction ?? direction,
@@ -371,41 +261,11 @@ export default function OrderFeesPage() {
     payableActionRef.current?.reload();
   };
 
-  const requestReason = (
-    title: string,
-    onSubmit: (reason: string) => Promise<void>,
-  ) => {
-    let reason = '';
-    modal.confirm({
-      title,
-      content: (
-        <Input.TextArea
-          autoFocus
-          maxLength={500}
-          showCount
-          placeholder="请输入操作原因（必填）"
-          onChange={(event) => {
-            reason = event.target.value.trim();
-          }}
-        />
-      ),
-      okText: '确认',
-      cancelText: '取消',
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入操作原因');
-          throw new Error('操作原因不能为空');
-        }
-        await onSubmit(reason);
-      },
-    });
-  };
-
   const handleCancelFee = (fee: API.OrderFee) => {
     const feeId = fee.id;
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
-    requestReason('确认作废该笔费用？', async (reason) => {
+    confirmWithReason({ modal, message }, '确认作废该笔费用？', async (reason) => {
       await orderFeeServiceRemoveFee({
         orderId,
         id: feeId,
@@ -435,7 +295,7 @@ export default function OrderFeesPage() {
     const feeId = fee.id;
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
-    requestReason('撤回费用确认？', async (reason) => {
+    confirmWithReason({ modal, message }, '撤回费用确认？', async (reason) => {
       await orderFeeServiceReopenFee(
         { orderId, id: feeId },
         { orderId, id: feeId, expectedVersion: version, reason },
