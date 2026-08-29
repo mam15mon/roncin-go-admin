@@ -16,6 +16,9 @@ import (
 	assigneeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
 	imageent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
+	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
+	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	remarkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	tagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
@@ -303,6 +306,37 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 		return err
 	}
 	audit.Details["resource.type"] = string(item.ResourceType)
+	if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
+		partnerCount, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).Count(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		orderTagCount, err := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.TagResourceIDEQ(id)).Count(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		feeTagCount, err := tx.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.TagResourceIDEQ(id)).Count(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		billTagCount, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.TagResourceIDEQ(id)).Count(ctx)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		if partnerCount > 0 || orderTagCount > 0 || feeTagCount > 0 || billTagCount > 0 {
+			_ = tx.Rollback()
+			return biz.ErrEnterpriseTagInUse.WithMetadata(map[string]string{
+				"partner_count":      stringInt(partnerCount),
+				"order_count":        stringInt(orderTagCount),
+				"order_fee_count":    stringInt(feeTagCount),
+				"finance_bill_count": stringInt(billTagCount),
+			})
+		}
+	}
 	for _, deleteRows := range []func(context.Context) (int, error){
 		func(ctx context.Context) (int, error) {
 			return tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDEQ(id)).Exec(ctx)

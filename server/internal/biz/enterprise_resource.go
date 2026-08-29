@@ -17,6 +17,7 @@ var (
 	ErrEnterpriseResourceInvalidArgument = errors.BadRequest("ENTERPRISE_RESOURCE_INVALID_ARGUMENT", "企业资源字段不合法")
 	ErrEnterpriseTagGroupNotEmpty        = errors.Conflict("ENTERPRISE_TAG_GROUP_NOT_EMPTY", "标签组下仍有标签")
 	ErrEnterpriseImageStorageUnavailable = errors.ServiceUnavailable("ENTERPRISE_IMAGE_STORAGE_UNAVAILABLE", "图片对象存储未配置")
+	ErrEnterpriseTagInUse             = errors.Conflict("ENTERPRISE_TAG_IN_USE", "标签正在被使用，请先移除关联")
 	ErrEnterpriseResourceImportAmbiguous = errors.Conflict("ENTERPRISE_RESOURCE_IMPORT_AMBIGUOUS", "导入行匹配到多个现有资源，请先修正企业名称或业务代码")
 )
 
