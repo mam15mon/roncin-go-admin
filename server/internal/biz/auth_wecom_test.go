@@ -38,7 +38,8 @@ func (s *wecomAuthRepoStub) LoginRateLimitExceeded(context.Context, []string, ti
 	return false, nil
 }
 
-func (s *wecomAuthRepoStub) RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error) {
+func (s *wecomAuthRepoStub) RecordLoginFailure(_ context.Context, _ []string, _ time.Time, _ time.Duration, _ int, audit *AuditEvent) (bool, error) {
+	s.auditActions = append(s.auditActions, audit.Action)
 	return false, nil
 }
 
@@ -86,11 +87,6 @@ func (s *wecomAuthRepoStub) SwitchSessionOrganization(_ context.Context, _ strin
 
 func (s *wecomAuthRepoStub) RevokeSession(_ context.Context, _ string, _ time.Time, audit *AuditEvent) error {
 	s.auditActions = append(s.auditActions, audit.Action)
-	return nil
-}
-
-func (s *wecomAuthRepoStub) WriteAudit(_ context.Context, event *AuditEvent) error {
-	s.auditActions = append(s.auditActions, event.Action)
 	return nil
 }
 

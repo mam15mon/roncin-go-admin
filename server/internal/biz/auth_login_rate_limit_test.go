@@ -18,6 +18,7 @@ type loginRateLimitRepoStub struct {
 	recordErr       error
 	counts          map[string]int
 	cleared         []string
+	auditActions    []string
 }
 
 func (s *loginRateLimitRepoStub) FindCredential(context.Context, string) (*Credential, error) {
@@ -36,10 +37,11 @@ func (s *loginRateLimitRepoStub) LoginRateLimitExceeded(_ context.Context, keyHa
 	return false, nil
 }
 
-func (s *loginRateLimitRepoStub) RecordLoginFailure(_ context.Context, keyHashes []string, _ time.Time, _ time.Duration, maxAttempts int) (bool, error) {
+func (s *loginRateLimitRepoStub) RecordLoginFailure(_ context.Context, keyHashes []string, _ time.Time, _ time.Duration, maxAttempts int, audit *AuditEvent) (bool, error) {
 	if s.recordErr != nil {
 		return false, s.recordErr
 	}
+	s.auditActions = append(s.auditActions, audit.Action)
 	exceeded := false
 	for _, keyHash := range keyHashes {
 		s.counts[keyHash]++
@@ -138,6 +140,9 @@ func TestAuthUsecaseUnknownAccountRecordsFailure(t *testing.T) {
 		if repo.counts[key] != 1 {
 			t.Fatalf("bucket %s attempts = %d, want 1", key, repo.counts[key])
 		}
+	}
+	if len(repo.auditActions) != 1 || repo.auditActions[0] != "auth.login" {
+		t.Fatalf("auditActions = %v, want [auth.login]", repo.auditActions)
 	}
 }
 

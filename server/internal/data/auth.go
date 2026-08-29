@@ -45,7 +45,7 @@ func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []strin
 	).Exist(ctx)
 }
 
-func (r *authRepo) RecordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
+func (r *authRepo) RecordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int, audit *biz.AuditEvent) (bool, error) {
 	tx, err := r.data.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
@@ -76,6 +76,25 @@ RETURNING "attempts"`, uuid.Must(uuid.NewV7()), now, keyHash, now.Add(-window)).
 		if attempts > maxAttempts {
 			exceeded = true
 		}
+	}
+	requestID, traceID, ipAddress, details, err := resolveAuditValues(ctx, audit)
+	if err != nil {
+		return false, err
+	}
+	var resourceType, resourceID, auditDetails any
+	if audit.ResourceType != "" {
+		resourceType = audit.ResourceType
+	}
+	if audit.ResourceID != "" {
+		resourceID = audit.ResourceID
+	}
+	if len(details) > 0 {
+		auditDetails = string(details)
+	}
+	if _, err = tx.ExecContext(ctx, `
+INSERT INTO "audit_logs" ("id", "created_at", "updated_at", "organization_id", "user_id", "action", "resource_type", "resource_id", "result", "request_id", "trace_id", "ip_address", "details")
+VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, uuid.Must(uuid.NewV7()), now, audit.OrganizationID, audit.UserID, audit.Action, resourceType, resourceID, audit.Result, requestID, traceID, ipAddress, auditDetails); err != nil {
+		return false, err
 	}
 	if err := tx.Commit(); err != nil {
 		return false, err
@@ -492,3 +511,4 @@ func (r *authRepo) WriteAudit(ctx context.Context, event *biz.AuditEvent) error 
 }
 
 var _ biz.AuthRepo = (*authRepo)(nil)
+var _ biz.AuditRepo = (*authRepo)(nil)

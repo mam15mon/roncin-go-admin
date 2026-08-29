@@ -246,7 +246,7 @@ type AuditLog struct {
 type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
 	LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error)
-	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error)
+	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int, *AuditEvent) (bool, error)
 	ClearLoginFailures(context.Context, string) error
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
@@ -256,7 +256,6 @@ type AuthRepo interface {
 	FindSession(context.Context, string, time.Time) (*Session, error)
 	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time, *AuditEvent) error
 	RevokeSession(context.Context, string, time.Time, *AuditEvent) error
-	WriteAudit(context.Context, *AuditEvent) error
 }
 
 type DingTalkRegistration struct {
@@ -339,11 +338,8 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword, userA
 }
 
 func (uc *AuthUsecase) recordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, event *AuditEvent) error {
-	exceeded, err := uc.repo.RecordLoginFailure(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
+	exceeded, err := uc.repo.RecordLoginFailure(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures, event)
 	if err != nil {
-		return err
-	}
-	if err := uc.repo.WriteAudit(ctx, event); err != nil {
 		return err
 	}
 	if exceeded {
