@@ -206,6 +206,6 @@ Airport、Port 均为组织级实体（唯一键含 `organization_id`），而�
   海港；重复执行新增为 0，验证幂等。
 - 根目录提供 `pnpm run sync:airports`、`pnpm run sync:unlocode` 正式写入入口。
 
-本方案对应 `PLAN.md` D11/D14 中 AirportDictionary、Unlocode 系列模型的外部
-文件解析要求。后台定时执行、导入批次查询和多组织共享策略仍按「已知限制」
-处理，不在本次实现中伪装完成。
+本方案对应 `docs/migration-matrix.md` D11/D14 中 AirportDictionary、Unlocode 系
+列模型的外部文件解析要求。后台定时执行、导入批次查询和多组织共享策略仍按「已知
+限制」处理，不在本次实现中伪装完成。

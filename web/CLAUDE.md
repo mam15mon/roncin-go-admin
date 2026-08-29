@@ -6,18 +6,19 @@ Ant Design Pro — React enterprise boilerplate on Umi Max v4, antd v6, ProCompo
 
 ## Commands
 
-`npm start` (dev+mock), `npm run dev` (no mock), `npm run build` (utoopack), `npm run lint` (Biome+tsc), `npm run test` (Jest), `npx antd lint ./src` (antd-specific checks).
+Run from `web/` (or via `pnpm --dir web <script>` from the repo root; this repo uses **pnpm only** for dependency management — no npm/Yarn installs):
 
-Other: `npm run openapi` (regenerate `src/services/`), `npm run simple` (**irreversible** — commit first), `npm run biome` (auto-fix), `npm run tsc` (type-check only).
+`pnpm dev` (dev server on :8001, mock disabled), `pnpm start` (dev server, mock enabled), `pnpm build`, `pnpm lint` (Biome+tsc), `pnpm test` (Vitest), `pnpm test:e2e` (Playwright), `npx antd lint ./src` (antd-specific checks).
+
+Other: `pnpm openapi` (regenerate `src/services/` from the server OpenAPI document; root shortcut `pnpm run generate:web-client`), `pnpm biome` (auto-fix), `pnpm tsc` (type-check only).
 
 ## Critical Rules
 
-- **Never edit `src/services/ant-design-pro/`** — auto-generated, regenerate with `npm run openapi`
-- **Biome only** — no ESLint, no Prettier. Both `npm run lint` and `npx antd lint ./src` must pass before commit
+- **Never edit `src/services/roncin/`** — auto-generated, regenerate with `pnpm openapi`
+- **Biome only** — no ESLint, no Prettier. `pnpm lint` must pass before commit; run `npx antd lint ./src` for antd-specific checks
 - **Always `npx antd info <Component>` before writing antd code** — don't guess APIs from memory
-- **`npm run simple` is irreversible** — always commit/branch first
 - **Conventional commits** required (commitlint enforced)
-- **TypeScript strict** · **Node ≥ 22** · **`package-lock.json`** (not yarn/pnpm)
+- **TypeScript strict** · **Node ≥ 24.14.1** · **pnpm** with the repo-root `pnpm-lock.yaml` (not npm/Yarn)
 - **`.umi` dir is auto-generated** — delete `src/.umi` and restart if dev server acts up
 
 ## Architecture Essentials
@@ -26,19 +27,17 @@ Other: `npm run openapi` (regenerate `src/services/`), `npm run simple` (**irrev
 
 **Convention files** (`src/`): `app.tsx` (runtime config + `getInitialState`), `access.ts` (permissions), `global.tsx` (side effects), `loading.tsx`, `typings.d.ts`.
 
-**Auth**: `getInitialState()` → `GET /api/currentUser`; 401 → redirect login. `access.ts`: `canAdmin = currentUser.access === 'admin'`. Mock creds: `admin`/`ant.design` or `user`/`ant.design`.
+**Auth**: `getInitialState()` calls `authServiceMe()` (`/api/v1/auth/me`, proxied to the Go server in dev); 401 → redirect login. `access.ts` derives every gate from `currentUser.permissions` + `roleScopes`; permission key names are generated into `src/permissions.generated.ts` from the backend manifest — never hardcode a second source of truth.
 
-**State**: `useModel('filename')` for global hooks (`src/models/`). `useModel('@@initialState')` for currentUser/settings. ProTable `request` prop for most data loading. `@tanstack/react-query` for complex server state.
+**State**: `useModel('@@initialState')` for currentUser/settings. ProTable `request` prop for most data loading. `@tanstack/react-query` for complex server state.
 
 **Styling priority**: Tailwind CSS v4 (layout) → antd-style v4 / `createStyles` (theme tokens) → CSS Modules → Less (legacy only).
 
-**Request**: built-in `request` from `@umijs/max`, configured in `src/requestErrorConfig.ts`. Per-page `service.ts` for non-generated APIs.
+**Request**: built-in `request` from `@umijs/max`, configured in `src/requestErrorConfig.ts`. Page-specific requests/types/styles live next to the page — no ad-hoc backend host strings.
 
 **i18n**: 8 locales in `src/locales/`. `useIntl().formatMessage({ id, defaultMessage })`.
 
-**Mock**: `mock/` (global) + `src/pages/**/_mock.ts` (co-located). Express-style handlers.
-
-**Cloudflare Worker**: `cloudflare-worker/` — separate Hono app, own `package.json`, not an npm workspace.
+**Dev mock**: there is no global `mock/` directory. For offline local development, `src/utils/devMockUser.ts` provides a full-permission placeholder user, enabled in dev via a localStorage flag (`enableDevMock()`).
 
 ## AI Skills
 
@@ -59,7 +58,7 @@ Run `/antd` in Claude Code for any antd-related work. It provides access to `@an
 
 ## Page Co-location
 
-Each page dir: `index.tsx`, optional `service.ts`, `_mock.ts`, `data.d.ts`, style files. Keep page-specific code with the page.
+Each page dir keeps page-specific code next to the page: `index.tsx` / `detail.tsx` entry points, a `components/` subfolder, co-located `*.test.ts` files, and plain TS helpers/constants (`common.ts`, `*-constants.ts`, `list-query.ts`, …). Generated API calls come from `src/services/roncin/`.
 
 # CLAUDE.md
 

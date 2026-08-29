@@ -1,128 +1,73 @@
-# Kratos Project Template
+# Roncin Go Admin 服务端
 
-A project template for creating new Kratos services with HTTP and gRPC
-transports, protobuf-first APIs, Wire dependency injection, OpenAPI generation,
-and a small CRUD example.
+基于 [go-kratos/kratos](https://github.com/go-kratos/kratos) v3 的货代后台服务：
+Protobuf 契约优先（HTTP + gRPC 双传输）、Ent + PostgreSQL 持久化、Wire 依赖注入。
+目录约定、分层边界与权限清单规则见根目录 `AGENTS.md` 与 `server/AGENTS.md`。
 
-Use this repository as a starting point for a new service. The included sample
-resource is only reference code for API shape, layering, code generation, and
-testing. Replace it with your own domain model when creating a real project.
-
-## Create a New Project
-
-1. Copy or generate a repository from this template.
-2. Update the Go module path:
-
-```bash
-go mod edit -module github.com/your-org/your-service
-```
-
-3. Replace existing import paths that reference this template module.
-4. Rename the command, service metadata, and sample API package to match your
-   service.
-5. Replace the sample CRUD resource with your own resource.
-6. Regenerate code and verify the project:
-
-```bash
-make all
-go test ./...
-```
-
-## What Is Included
-
-- Kratos HTTP and gRPC server setup.
-- Protobuf API definitions and generated Go code.
-- OpenAPI generation.
-- Wire-based dependency injection.
-- Layered `service`, `biz`, and `data` packages.
-- A lightweight in-memory repository for the sample resource.
-- Unit tests for the service layer.
-- Server-streaming and bidirectional-streaming examples.
-
-## Project Layout
+## 目录结构
 
 ```text
-api/                  Protobuf APIs and generated bindings
-cmd/                  Application entrypoints
-configs/              Local configuration
-internal/server/      HTTP and gRPC server construction
-internal/service/     Transport-facing service methods
-internal/biz/         Usecases, entities, errors, repository interfaces
-internal/data/        Repository implementations
-third_party/          Protobuf dependencies
-openapi.yaml          Generated OpenAPI document
+api/                  Protobuf 契约与生成的绑定代码（唯一契约真相源）
+cmd/                  入口指令
+  server/               主服务入口
+  bootstrap-admin/      冷启动初始化根组织与超级管理员；--sync-permissions 手工同步权限
+  migrate/              版本化迁移执行器（迁移后自动同步权限清单）
+  sync-airports/        OurAirports 机场同步 CLI
+  sync-regions/         全国行政区划同步 CLI
+  sync-unlocode/        UN/LOCODE 海港同步 CLI（需人工下载发布包）
+  export-permission-manifest/   导出权限码清单供前端权限键生成
+  generate-access-rules/        由 Proto 契约生成接口权限规则
+configs/              运行配置（config.yaml、config.production.yaml 等，不含凭据）
+internal/
+  biz/                  领域对象、用例、仓储接口与业务规则
+  data/                 Ent 仓储实现与持久化转换
+  service/              传输层 DTO 转换与用例调用
+  server/               HTTP/gRPC 注册、中间件与静态资源服务
+  access/               权限 Manifest 与权限码
+  conf/                 配置 Protobuf（make config 生成）
+  platform/             日志、遥测等平台能力
+  webassets/            生产前端静态资源内嵌
+migrations/           版本化 SQL 迁移脚本（用法见 migrations/README.md）
+openapi.yaml          生成的 OpenAPI 文档
 ```
 
-## API Template Practices
-
-The sample CRUD API demonstrates common conventions for Kratos projects:
-
-- Resource-oriented methods: create, get, list, update, delete.
-- HTTP annotations with `google.api.http`.
-- Required fields with `google.api.field_behavior`.
-- List requests with `page_size`, `page_token`, `filter`, and `order_by`.
-- Pagination with `go.einride.tech/aip/pagination`.
-- Partial updates with `google.protobuf.FieldMask` and `fieldmask.Update`.
-- Streaming RPC definitions for one-way and bidirectional streams.
-
-The in-memory data layer intentionally stays simple. It demonstrates flow across
-layers, but does not implement a full query engine. Real repositories can apply
-parsed filters and ordering in SQL, Ent, or another storage layer.
-
-## Development Commands
-
-Install generators:
+## 代码生成
 
 ```bash
-make init
+make init      # 安装 wire、buf 等生成器
+make api       # 生成 API 绑定代码（含 go:generate 权限规则）
+make config    # 生成配置 Protobuf
+make all       # 全量生成、Wire 与模块整理
 ```
 
-Regenerate API bindings and OpenAPI:
+修改 `.proto`、权限 Manifest 或 Ent Schema 后必须重新生成对应代码，不手工修改
+生成物。前端 OpenAPI 客户端在仓库根目录执行 `pnpm run generate:web-client` 更新。
 
-```bash
-make api
-```
-
-Regenerate config protobufs:
-
-```bash
-make config
-```
-
-Run all generation steps, Wire, and module cleanup:
-
-```bash
-make all
-```
-
-Build:
-
-```bash
-make build
-```
-
-Test:
-
-```bash
-go test ./...
-```
-
-## Run Locally
+## 本地运行
 
 ```bash
 go run ./cmd/server -conf ./configs
 ```
 
-Default local ports are configured in `configs/config.yaml`:
+默认端口见 `configs/config.yaml`：HTTP `0.0.0.0:8000`、gRPC `0.0.0.0:9000`。
+开发期推荐在仓库根目录使用 `pnpm dev` / `pnpm run dev:server`（Air 热重载），
+数据库迁移与初始化使用 `pnpm run migrate:server` 和 `pnpm run bootstrap:admin`。
 
-- HTTP: `0.0.0.0:8000`
-- gRPC: `0.0.0.0:9000`
-
-## Docker
+## 测试与检查
 
 ```bash
-docker build -t <your-image-name> .
-docker run --rm -p 8000:8000 -p 9000:9000 \
-  -v </path/to/your/configs>:/data/conf \
-  <your-image-name>
+go test ./...
+go vet ./...
 ```
+
+仓库根目录的 `pnpm run check:server` 会额外执行 Proto lint 和 govulncheck。
+
+## 构建与部署
+
+```bash
+make build     # 输出 bin/ 下的可执行文件
+```
+
+生产构建使用仓库根目录 `pnpm run build`：前端产物内嵌进单一二进制
+`server/bin/roncin-server`，同域提供 `/api/*`、健康检查与 React 静态资源，
+容器化部署使用仓库根目录 `Dockerfile`。

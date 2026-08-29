@@ -6,7 +6,8 @@
 
 ## 🌟 核心业务特性
 
-- **多模式订单管理**：海运出口 (FCL/LCL)、海运进口、空运出口、空运进口全生命周期状态流转与单证处理（提单、箱单、订舱单、POD 放货证明）。
+- **海运出口订单管理**：海运出口 (FCL/LCL) 全生命周期状态流转与单证处理（提单、集装箱、POD 放货凭证）；海运进口、空运、陆运与铁路目前仅作为统一订单聚合的线路类型预留，录单入口尚未开放。
+- **通用业务标签**：组织级标签字典可关联企业、订单、费用与账单，订单列表、费用台账与账单均支持标签展示、筛选和批量打标。
 - **多币种费用录入工作台**：支持原币/本位币实时折算、汇率基准自动匹配、手动汇率重写与防重校验。
 - **财务对账与结算中心**：
   - 双向应收/应付账单管理与批量合并账单 (`BillCreationWorkbench`)。
@@ -16,7 +17,7 @@
 - **行业基础主数据**：
   - 集成 ISO 4217 货币代码、标准箱型 (20GP/40HQ 等)、增值税税目。
   - 支持联合国 UN/LOCODE 全球海运港口、IATA 全球民航机场、民政部全国五级行政区划实时同步。
-- **安全与权限体系**：基于 RBAC 的 70+ 个细粒度业务权限清单、组织机构隔离、支持企业微信与钉钉扫码登录。
+- **安全与权限体系**：基于 RBAC 的 200+ 个细粒度业务权限清单、组织机构隔离、支持企业微信与钉钉扫码登录。
 
 ---
 
@@ -24,10 +25,10 @@
 
 | 领域 | 核心技术选型 |
 | :--- | :--- |
-| **后端框架** | Go 1.24+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
+| **后端框架** | Go 1.25+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
 | **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16 (支持 GIN 模糊全文检索) |
 | **依赖注入与安全** | Google Wire, JWT Session, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
-| **前端架构** | React 19, TypeScript 5.7+, [@umijs/max](https://umijs.org), [Ant Design](https://ant.design) 5.x / 6.x, Ant Design ProComponents |
+| **前端架构** | React 19, TypeScript 7.x, [@umijs/max](https://umijs.org), [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
 | **前端工具链** | Vite / Webpack, Biome (高极速 Lint & Format), Vitest |
 | **包管理** | pnpm (Workspace Monorepo) |
 
@@ -42,10 +43,12 @@ roncin-go-admin/
 │   ├── cmd/                    # 入口指令
 │   │   ├── server/             # 主服务入口
 │   │   ├── bootstrap-admin/    # 超级管理员与权限初始化 CLI
-│   │   ├── migrate/            # 数据库版本迁移执行器
+│   │   ├── migrate/            # 数据库版本迁移执行器（迁移后自动同步权限清单）
 │   │   ├── sync-unlocode/      # 联合国港口代码同步 CLI
 │   │   ├── sync-airports/      # 全球机场代码同步 CLI
-│   │   └── sync-regions/       # 全国行政区划同步 CLI
+│   │   ├── sync-regions/       # 全国行政区划同步 CLI
+│   │   ├── export-permission-manifest/  # 导出权限码清单供前端权限键生成
+│   │   └── generate-access-rules/       # 由 Proto 契约生成接口权限规则
 │   ├── configs/                # 配置文件 (config.yaml, config.production.yaml)
 │   ├── internal/               # 领域业务逻辑 (biz), 数据访问 (data), 传输服务 (service)
 │   └── migrations/             # 数据库 SQL 版本迁移脚本库
@@ -68,7 +71,7 @@ roncin-go-admin/
 ### 1. 环境准备 (Prerequisites)
 
 - **Node.js** >= `24.14.1` 及 **pnpm** >= `10.0`
-- **Go** >= `1.24`
+- **Go** >= `1.25`
 - **PostgreSQL** >= `16`
 
 ### 2. 克隆项目与安装依赖
@@ -105,7 +108,7 @@ pnpm run migrate:server
 pnpm run bootstrap:admin
 ```
 > **初始管理员账号**：`admin`  
-> **初始管理员密码**：在 `.env.local` 中的 `BOOTSTRAP_ADMIN_PASSWORD`（默认 `Admin@123456` 或自定义密码）。
+> **初始管理员密码**：由 `.env.local` 中的 `BOOTSTRAP_ADMIN_PASSWORD` 指定（必须至少 12 位，命令不会使用任何默认密码）。
 
 ### 5. 启动本地开发服务
 
@@ -128,17 +131,18 @@ pnpm run dev:server
 
 ## 🌐 行业公共主数据同步 (可选)
 
-系统默认预置了国内主要口岸与国际枢纽港。如需全球全量标准字典，可运行以下官方同步命令：
+系统初始化时已预置标准箱型、服务类型、货类与国家等基础字典。机场、港口等全球
+标准字典通过以下官方数据链路按需同步：
 
 ```bash
 # 1. 同步民政部全国 12 位五级行政区划 (省市区县街道)
 pnpm run sync:regions
 
-# 2. 同步联合国 UN/LOCODE 全球海运港口及地点代码 (100,000+ 记录)
-pnpm run sync:unlocode
-
-# 3. 同步全球 IATA / ICAO 民航机场数据 (10,000+ 记录)
+# 2. 同步 OurAirports 全球机场数据 (仅导入含合法 IATA 代码的记录，直接联网下载)
 pnpm run sync:airports
+
+# 3. 同步 UNECE UN/LOCODE 官方发布包 (仅导入海港；需人工下载 ZIP 后显式指定)
+pnpm run sync:unlocode -- -source /path/to/loc251csv.zip -release 2025-1
 ```
 
 ---
@@ -151,7 +155,8 @@ pnpm run sync:airports
 # 当修改 protobuf 或 openapi 定义后，重新生成前端 TypeScript SDK 客户端
 pnpm run generate:web-client
 
-# 当更新后端权限清单 (access.Manifest) 后，增量同步权限并补挂至系统管理员
+# 权限清单 (access.Manifest) 由 pnpm run migrate:server 在迁移后自动同步并补挂至系统管理员；
+# 如需在不执行迁移的情况下手工同步，可单独运行：
 pnpm run dev:permit
 ```
 
