@@ -15,6 +15,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -683,6 +685,36 @@ func (_c *OrganizationCreate) AddFinanceCustomSetting(v ...*FinanceCustomSetting
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCustomSettingIDs(ids...)
+}
+
+// AddEnterpriseResourceIDs adds the "enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_c *OrganizationCreate) AddEnterpriseResourceIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddEnterpriseResourceIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseResources adds the "enterprise_resources" edges to the EnterpriseResource entity.
+func (_c *OrganizationCreate) AddEnterpriseResources(v ...*EnterpriseResource) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseResourceIDs(ids...)
+}
+
+// AddEnterpriseTagGroupIDs adds the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by IDs.
+func (_c *OrganizationCreate) AddEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddEnterpriseTagGroupIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseTagGroups adds the "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
+func (_c *OrganizationCreate) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseTagGroupIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1418,6 +1450,38 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseTagGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -108,9 +108,17 @@ type UserEdges struct {
 	UpdatedExchangeRateCustomSettings []*ExchangeRateCustomSetting `json:"updated_exchange_rate_custom_settings,omitempty"`
 	// UpdatedFinanceCustomSettings holds the value of the updated_finance_custom_settings edge.
 	UpdatedFinanceCustomSettings []*FinanceCustomSetting `json:"updated_finance_custom_settings,omitempty"`
+	// CreatedEnterpriseResources holds the value of the created_enterprise_resources edge.
+	CreatedEnterpriseResources []*EnterpriseResource `json:"created_enterprise_resources,omitempty"`
+	// UpdatedEnterpriseResources holds the value of the updated_enterprise_resources edge.
+	UpdatedEnterpriseResources []*EnterpriseResource `json:"updated_enterprise_resources,omitempty"`
+	// UploadedEnterpriseResourceImages holds the value of the uploaded_enterprise_resource_images edge.
+	UploadedEnterpriseResourceImages []*EnterpriseResourceImage `json:"uploaded_enterprise_resource_images,omitempty"`
+	// EnterpriseResourceAssignments holds the value of the enterprise_resource_assignments edge.
+	EnterpriseResourceAssignments []*EnterpriseResourceAssignee `json:"enterprise_resource_assignments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [27]bool
+	loadedTypes [31]bool
 }
 
 // MembershipsOrErr returns the Memberships value or an error if the edge
@@ -354,6 +362,42 @@ func (e UserEdges) UpdatedFinanceCustomSettingsOrErr() ([]*FinanceCustomSetting,
 		return e.UpdatedFinanceCustomSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "updated_finance_custom_settings"}
+}
+
+// CreatedEnterpriseResourcesOrErr returns the CreatedEnterpriseResources value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CreatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
+	if e.loadedTypes[27] {
+		return e.CreatedEnterpriseResources, nil
+	}
+	return nil, &NotLoadedError{edge: "created_enterprise_resources"}
+}
+
+// UpdatedEnterpriseResourcesOrErr returns the UpdatedEnterpriseResources value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UpdatedEnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
+	if e.loadedTypes[28] {
+		return e.UpdatedEnterpriseResources, nil
+	}
+	return nil, &NotLoadedError{edge: "updated_enterprise_resources"}
+}
+
+// UploadedEnterpriseResourceImagesOrErr returns the UploadedEnterpriseResourceImages value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UploadedEnterpriseResourceImagesOrErr() ([]*EnterpriseResourceImage, error) {
+	if e.loadedTypes[29] {
+		return e.UploadedEnterpriseResourceImages, nil
+	}
+	return nil, &NotLoadedError{edge: "uploaded_enterprise_resource_images"}
+}
+
+// EnterpriseResourceAssignmentsOrErr returns the EnterpriseResourceAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EnterpriseResourceAssignmentsOrErr() ([]*EnterpriseResourceAssignee, error) {
+	if e.loadedTypes[30] {
+		return e.EnterpriseResourceAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "enterprise_resource_assignments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -628,6 +672,26 @@ func (_m *User) QueryUpdatedExchangeRateCustomSettings() *ExchangeRateCustomSett
 // QueryUpdatedFinanceCustomSettings queries the "updated_finance_custom_settings" edge of the User entity.
 func (_m *User) QueryUpdatedFinanceCustomSettings() *FinanceCustomSettingQuery {
 	return NewUserClient(_m.config).QueryUpdatedFinanceCustomSettings(_m)
+}
+
+// QueryCreatedEnterpriseResources queries the "created_enterprise_resources" edge of the User entity.
+func (_m *User) QueryCreatedEnterpriseResources() *EnterpriseResourceQuery {
+	return NewUserClient(_m.config).QueryCreatedEnterpriseResources(_m)
+}
+
+// QueryUpdatedEnterpriseResources queries the "updated_enterprise_resources" edge of the User entity.
+func (_m *User) QueryUpdatedEnterpriseResources() *EnterpriseResourceQuery {
+	return NewUserClient(_m.config).QueryUpdatedEnterpriseResources(_m)
+}
+
+// QueryUploadedEnterpriseResourceImages queries the "uploaded_enterprise_resource_images" edge of the User entity.
+func (_m *User) QueryUploadedEnterpriseResourceImages() *EnterpriseResourceImageQuery {
+	return NewUserClient(_m.config).QueryUploadedEnterpriseResourceImages(_m)
+}
+
+// QueryEnterpriseResourceAssignments queries the "enterprise_resource_assignments" edge of the User entity.
+func (_m *User) QueryEnterpriseResourceAssignments() *EnterpriseResourceAssigneeQuery {
+	return NewUserClient(_m.config).QueryEnterpriseResourceAssignments(_m)
 }
 
 // Update returns a builder for updating this User.

@@ -357,6 +357,514 @@ var (
 			},
 		},
 	}
+	// EnterpriseResourcesColumns holds the columns for the "enterprise_resources" table.
+	EnterpriseResourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "resource_type", Type: field.TypeEnum, Enums: []string{"ADDRESS", "REMARK", "IMAGE", "TAG", "SHIPPER", "CONSIGNEE", "NOTIFY_PARTY", "ENGLISH_CARGO_NAME", "HS_CODE", "MARKS"}},
+		{Name: "short_name", Type: field.TypeString, Size: 200},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "created_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "updated_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// EnterpriseResourcesTable holds the schema information for the "enterprise_resources" table.
+	EnterpriseResourcesTable = &schema.Table{
+		Name:       "enterprise_resources",
+		Columns:    EnterpriseResourcesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resources_organizations_enterprise_resources",
+				Columns:    []*schema.Column{EnterpriseResourcesColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "enterprise_resources_users_created_enterprise_resources",
+				Columns:    []*schema.Column{EnterpriseResourcesColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "enterprise_resources_users_updated_enterprise_resources",
+				Columns:    []*schema.Column{EnterpriseResourcesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresource_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresource_organization_id_resource_type_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcesColumns[8], EnterpriseResourcesColumns[3], EnterpriseResourcesColumns[5], EnterpriseResourcesColumns[6]},
+			},
+			{
+				Name:    "enterpriseresource_organization_id_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcesColumns[8], EnterpriseResourcesColumns[2]},
+			},
+		},
+	}
+	// EnterpriseResourceAddressesColumns holds the columns for the "enterprise_resource_addresses" table.
+	EnterpriseResourceAddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "contact_phone", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "country_code", Type: field.TypeString, Size: 2},
+		{Name: "province_code", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "city_code", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "district_code", Type: field.TypeString, Nullable: true, Size: 32},
+		{Name: "address_detail", Type: field.TypeString, Size: 1000},
+		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+	}
+	// EnterpriseResourceAddressesTable holds the schema information for the "enterprise_resource_addresses" table.
+	EnterpriseResourceAddressesTable = &schema.Table{
+		Name:       "enterprise_resource_addresses",
+		Columns:    EnterpriseResourceAddressesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceAddressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_addresses_enterprise_resources_address",
+				Columns:    []*schema.Column{EnterpriseResourceAddressesColumns[11]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceaddress_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceaddress_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[11]},
+			},
+		},
+	}
+	// EnterpriseResourceAddressTypesColumns holds the columns for the "enterprise_resource_address_types" table.
+	EnterpriseResourceAddressTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "address_type", Type: field.TypeEnum, Enums: []string{"CONTAINER_OPERATION", "PICKUP", "DELIVERY"}},
+		{Name: "resource_id", Type: field.TypeUUID},
+	}
+	// EnterpriseResourceAddressTypesTable holds the schema information for the "enterprise_resource_address_types" table.
+	EnterpriseResourceAddressTypesTable = &schema.Table{
+		Name:       "enterprise_resource_address_types",
+		Columns:    EnterpriseResourceAddressTypesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceAddressTypesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_address_types_enterprise_resources_address_types",
+				Columns:    []*schema.Column{EnterpriseResourceAddressTypesColumns[4]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceaddresstype_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAddressTypesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceaddresstype_resource_id_address_type",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceAddressTypesColumns[4], EnterpriseResourceAddressTypesColumns[3]},
+			},
+			{
+				Name:    "enterpriseresourceaddresstype_address_type",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAddressTypesColumns[3]},
+			},
+		},
+	}
+	// EnterpriseResourceAssigneesColumns holds the columns for the "enterprise_resource_assignees" table.
+	EnterpriseResourceAssigneesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "resource_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// EnterpriseResourceAssigneesTable holds the schema information for the "enterprise_resource_assignees" table.
+	EnterpriseResourceAssigneesTable = &schema.Table{
+		Name:       "enterprise_resource_assignees",
+		Columns:    EnterpriseResourceAssigneesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceAssigneesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_assignees_enterprise_resources_assignees",
+				Columns:    []*schema.Column{EnterpriseResourceAssigneesColumns[3]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "enterprise_resource_assignees_users_enterprise_resource_assignments",
+				Columns:    []*schema.Column{EnterpriseResourceAssigneesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceassignee_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAssigneesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceassignee_resource_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceAssigneesColumns[3], EnterpriseResourceAssigneesColumns[4]},
+			},
+			{
+				Name:    "enterpriseresourceassignee_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAssigneesColumns[4]},
+			},
+		},
+	}
+	// EnterpriseResourceImagesColumns holds the columns for the "enterprise_resource_images" table.
+	EnterpriseResourceImagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "file_name", Type: field.TypeString, Size: 255},
+		{Name: "mime_type", Type: field.TypeString, Size: 127},
+		{Name: "file_size", Type: field.TypeInt64},
+		{Name: "object_key", Type: field.TypeString, Size: 1024},
+		{Name: "checksum", Type: field.TypeString, Size: 128},
+		{Name: "width", Type: field.TypeInt, Nullable: true},
+		{Name: "height", Type: field.TypeInt, Nullable: true},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+		{Name: "uploaded_by", Type: field.TypeUUID},
+	}
+	// EnterpriseResourceImagesTable holds the schema information for the "enterprise_resource_images" table.
+	EnterpriseResourceImagesTable = &schema.Table{
+		Name:       "enterprise_resource_images",
+		Columns:    EnterpriseResourceImagesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceImagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_images_enterprise_resources_image",
+				Columns:    []*schema.Column{EnterpriseResourceImagesColumns[10]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "enterprise_resource_images_users_uploaded_enterprise_resource_images",
+				Columns:    []*schema.Column{EnterpriseResourceImagesColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceimage_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceImagesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceimage_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceImagesColumns[10]},
+			},
+			{
+				Name:    "enterpriseresourceimage_object_key",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceImagesColumns[6]},
+			},
+		},
+	}
+	// EnterpriseResourcePartnersColumns holds the columns for the "enterprise_resource_partners" table.
+	EnterpriseResourcePartnersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "resource_type", Type: field.TypeEnum, Enums: []string{"ADDRESS", "REMARK", "IMAGE", "TAG", "SHIPPER", "CONSIGNEE", "NOTIFY_PARTY", "ENGLISH_CARGO_NAME", "HS_CODE", "MARKS"}},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "resource_id", Type: field.TypeUUID},
+		{Name: "partner_id", Type: field.TypeUUID},
+	}
+	// EnterpriseResourcePartnersTable holds the schema information for the "enterprise_resource_partners" table.
+	EnterpriseResourcePartnersTable = &schema.Table{
+		Name:       "enterprise_resource_partners",
+		Columns:    EnterpriseResourcePartnersColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourcePartnersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_partners_enterprise_resources_partner_links",
+				Columns:    []*schema.Column{EnterpriseResourcePartnersColumns[5]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "enterprise_resource_partners_partners_enterprise_resource_links",
+				Columns:    []*schema.Column{EnterpriseResourcePartnersColumns[6]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourcepartner_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcePartnersColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourcepartner_resource_id_partner_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourcePartnersColumns[5], EnterpriseResourcePartnersColumns[6]},
+			},
+			{
+				Name:    "enterpriseresourcepartner_partner_id_resource_type",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcePartnersColumns[6], EnterpriseResourcePartnersColumns[3]},
+			},
+		},
+	}
+	// EnterpriseResourcePartiesColumns holds the columns for the "enterprise_resource_parties" table.
+	EnterpriseResourcePartiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "resource_type", Type: field.TypeEnum, Enums: []string{"SHIPPER", "CONSIGNEE", "NOTIFY_PARTY"}},
+		{Name: "company_name", Type: field.TypeString, Size: 200},
+		{Name: "business_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "normalized_business_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "country_code", Type: field.TypeString, Size: 2, Default: "CN"},
+		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "contact_phone", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
+		{Name: "tax_identifier", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "aeo_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "custom_display", Type: field.TypeBool, Default: false},
+		{Name: "display_content", Type: field.TypeString, Nullable: true, Size: 4000},
+		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+	}
+	// EnterpriseResourcePartiesTable holds the schema information for the "enterprise_resource_parties" table.
+	EnterpriseResourcePartiesTable = &schema.Table{
+		Name:       "enterprise_resource_parties",
+		Columns:    EnterpriseResourcePartiesColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourcePartiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_parties_enterprise_resources_party",
+				Columns:    []*schema.Column{EnterpriseResourcePartiesColumns[18]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceparty_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceparty_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[18]},
+			},
+			{
+				Name:    "enterpriseresourceparty_organization_id_resource_type_normalized_business_code",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[3], EnterpriseResourcePartiesColumns[4], EnterpriseResourcePartiesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "normalized_business_code IS NOT NULL AND normalized_business_code <> ''",
+				},
+			},
+		},
+	}
+	// EnterpriseResourceRemarksColumns holds the columns for the "enterprise_resource_remarks" table.
+	EnterpriseResourceRemarksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "remark_type", Type: field.TypeEnum, Enums: []string{"BOOKING", "ALLOCATION", "TRANSPORT", "ORDER", "BILL_OF_LADING", "CUSTOMER", "SUPPLIER", "FOREIGN_AGENT", "QUOTATION", "MANIFEST", "PACKING_LIST", "OPERATION", "COMMISSION", "WAREHOUSE"}},
+		{Name: "content", Type: field.TypeString, Size: 4000},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+	}
+	// EnterpriseResourceRemarksTable holds the schema information for the "enterprise_resource_remarks" table.
+	EnterpriseResourceRemarksTable = &schema.Table{
+		Name:       "enterprise_resource_remarks",
+		Columns:    EnterpriseResourceRemarksColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceRemarksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_remarks_enterprise_resources_remark",
+				Columns:    []*schema.Column{EnterpriseResourceRemarksColumns[5]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceremark_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceremark_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[5]},
+			},
+			{
+				Name:    "enterpriseresourceremark_remark_type",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[3]},
+			},
+		},
+	}
+	// EnterpriseResourceShippingTextsColumns holds the columns for the "enterprise_resource_shipping_texts" table.
+	EnterpriseResourceShippingTextsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "content", Type: field.TypeString, Nullable: true, Size: 4000},
+		{Name: "code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "remark", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+	}
+	// EnterpriseResourceShippingTextsTable holds the schema information for the "enterprise_resource_shipping_texts" table.
+	EnterpriseResourceShippingTextsTable = &schema.Table{
+		Name:       "enterprise_resource_shipping_texts",
+		Columns:    EnterpriseResourceShippingTextsColumns,
+		PrimaryKey: []*schema.Column{EnterpriseResourceShippingTextsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_resource_shipping_texts_enterprise_resources_shipping_text",
+				Columns:    []*schema.Column{EnterpriseResourceShippingTextsColumns[6]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterpriseresourceshippingtext_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceShippingTextsColumns[2]},
+			},
+			{
+				Name:    "enterpriseresourceshippingtext_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseResourceShippingTextsColumns[6]},
+			},
+		},
+	}
+	// EnterpriseTagsColumns holds the columns for the "enterprise_tags" table.
+	EnterpriseTagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "normalized_name", Type: field.TypeString, Size: 200},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
+		{Name: "group_id", Type: field.TypeUUID},
+	}
+	// EnterpriseTagsTable holds the schema information for the "enterprise_tags" table.
+	EnterpriseTagsTable = &schema.Table{
+		Name:       "enterprise_tags",
+		Columns:    EnterpriseTagsColumns,
+		PrimaryKey: []*schema.Column{EnterpriseTagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_tags_enterprise_resources_tag",
+				Columns:    []*schema.Column{EnterpriseTagsColumns[6]},
+				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "enterprise_tags_enterprise_tag_groups_tags",
+				Columns:    []*schema.Column{EnterpriseTagsColumns[7]},
+				RefColumns: []*schema.Column{EnterpriseTagGroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterprisetag_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseTagsColumns[2]},
+			},
+			{
+				Name:    "enterprisetag_resource_id",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseTagsColumns[6]},
+			},
+			{
+				Name:    "enterprisetag_group_id_normalized_name",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseTagsColumns[7], EnterpriseTagsColumns[4]},
+			},
+			{
+				Name:    "enterprisetag_organization_id_group_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseTagsColumns[3], EnterpriseTagsColumns[7], EnterpriseTagsColumns[5]},
+			},
+		},
+	}
+	// EnterpriseTagGroupsColumns holds the columns for the "enterprise_tag_groups" table.
+	EnterpriseTagGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "normalized_name", Type: field.TypeString, Size: 100},
+		{Name: "color", Type: field.TypeString, Nullable: true, Size: 7},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// EnterpriseTagGroupsTable holds the schema information for the "enterprise_tag_groups" table.
+	EnterpriseTagGroupsTable = &schema.Table{
+		Name:       "enterprise_tag_groups",
+		Columns:    EnterpriseTagGroupsColumns,
+		PrimaryKey: []*schema.Column{EnterpriseTagGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "enterprise_tag_groups_organizations_enterprise_tag_groups",
+				Columns:    []*schema.Column{EnterpriseTagGroupsColumns[7]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "enterprisetaggroup_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseTagGroupsColumns[2]},
+			},
+			{
+				Name:    "enterprisetaggroup_organization_id_normalized_name",
+				Unique:  true,
+				Columns: []*schema.Column{EnterpriseTagGroupsColumns[7], EnterpriseTagGroupsColumns[4]},
+			},
+			{
+				Name:    "enterprisetaggroup_organization_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseTagGroupsColumns[7], EnterpriseTagGroupsColumns[6]},
+			},
+		},
+	}
 	// ExchangeRateCustomSettingsColumns holds the columns for the "exchange_rate_custom_settings" table.
 	ExchangeRateCustomSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4138,6 +4646,17 @@ var (
 		BackgroundTasksTable,
 		BillingUnitsTable,
 		CurrenciesTable,
+		EnterpriseResourcesTable,
+		EnterpriseResourceAddressesTable,
+		EnterpriseResourceAddressTypesTable,
+		EnterpriseResourceAssigneesTable,
+		EnterpriseResourceImagesTable,
+		EnterpriseResourcePartnersTable,
+		EnterpriseResourcePartiesTable,
+		EnterpriseResourceRemarksTable,
+		EnterpriseResourceShippingTextsTable,
+		EnterpriseTagsTable,
+		EnterpriseTagGroupsTable,
 		ExchangeRateCustomSettingsTable,
 		ExchangeRateImportBatchesTable,
 		ExchangeRateSettingsTable,
@@ -4212,6 +4731,23 @@ func init() {
 	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BillingUnitsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	EnterpriseResourcesTable.ForeignKeys[0].RefTable = OrganizationsTable
+	EnterpriseResourcesTable.ForeignKeys[1].RefTable = UsersTable
+	EnterpriseResourcesTable.ForeignKeys[2].RefTable = UsersTable
+	EnterpriseResourceAddressesTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceAddressTypesTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceAssigneesTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceAssigneesTable.ForeignKeys[1].RefTable = UsersTable
+	EnterpriseResourceImagesTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceImagesTable.ForeignKeys[1].RefTable = UsersTable
+	EnterpriseResourcePartnersTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourcePartnersTable.ForeignKeys[1].RefTable = PartnersTable
+	EnterpriseResourcePartiesTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceRemarksTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseResourceShippingTextsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
+	EnterpriseTagsTable.ForeignKeys[1].RefTable = EnterpriseTagGroupsTable
+	EnterpriseTagGroupsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	ExchangeRateCustomSettingsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	ExchangeRateCustomSettingsTable.ForeignKeys[1].RefTable = UsersTable
 	FeeSettingsTable.ForeignKeys[0].RefTable = BillingUnitsTable

@@ -26,6 +26,28 @@ type Tx struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
+	EnterpriseResource *EnterpriseResourceClient
+	// EnterpriseResourceAddress is the client for interacting with the EnterpriseResourceAddress builders.
+	EnterpriseResourceAddress *EnterpriseResourceAddressClient
+	// EnterpriseResourceAddressType is the client for interacting with the EnterpriseResourceAddressType builders.
+	EnterpriseResourceAddressType *EnterpriseResourceAddressTypeClient
+	// EnterpriseResourceAssignee is the client for interacting with the EnterpriseResourceAssignee builders.
+	EnterpriseResourceAssignee *EnterpriseResourceAssigneeClient
+	// EnterpriseResourceImage is the client for interacting with the EnterpriseResourceImage builders.
+	EnterpriseResourceImage *EnterpriseResourceImageClient
+	// EnterpriseResourcePartner is the client for interacting with the EnterpriseResourcePartner builders.
+	EnterpriseResourcePartner *EnterpriseResourcePartnerClient
+	// EnterpriseResourceParty is the client for interacting with the EnterpriseResourceParty builders.
+	EnterpriseResourceParty *EnterpriseResourcePartyClient
+	// EnterpriseResourceRemark is the client for interacting with the EnterpriseResourceRemark builders.
+	EnterpriseResourceRemark *EnterpriseResourceRemarkClient
+	// EnterpriseResourceShippingText is the client for interacting with the EnterpriseResourceShippingText builders.
+	EnterpriseResourceShippingText *EnterpriseResourceShippingTextClient
+	// EnterpriseTag is the client for interacting with the EnterpriseTag builders.
+	EnterpriseTag *EnterpriseTagClient
+	// EnterpriseTagGroup is the client for interacting with the EnterpriseTagGroup builders.
+	EnterpriseTagGroup *EnterpriseTagGroupClient
 	// ExchangeRateCustomSetting is the client for interacting with the ExchangeRateCustomSetting builders.
 	ExchangeRateCustomSetting *ExchangeRateCustomSettingClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
@@ -294,6 +316,17 @@ func (tx *Tx) init() {
 	tx.BackgroundTask = NewBackgroundTaskClient(tx.config)
 	tx.BillingUnit = NewBillingUnitClient(tx.config)
 	tx.Currency = NewCurrencyClient(tx.config)
+	tx.EnterpriseResource = NewEnterpriseResourceClient(tx.config)
+	tx.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(tx.config)
+	tx.EnterpriseResourceAddressType = NewEnterpriseResourceAddressTypeClient(tx.config)
+	tx.EnterpriseResourceAssignee = NewEnterpriseResourceAssigneeClient(tx.config)
+	tx.EnterpriseResourceImage = NewEnterpriseResourceImageClient(tx.config)
+	tx.EnterpriseResourcePartner = NewEnterpriseResourcePartnerClient(tx.config)
+	tx.EnterpriseResourceParty = NewEnterpriseResourcePartyClient(tx.config)
+	tx.EnterpriseResourceRemark = NewEnterpriseResourceRemarkClient(tx.config)
+	tx.EnterpriseResourceShippingText = NewEnterpriseResourceShippingTextClient(tx.config)
+	tx.EnterpriseTag = NewEnterpriseTagClient(tx.config)
+	tx.EnterpriseTagGroup = NewEnterpriseTagGroupClient(tx.config)
 	tx.ExchangeRateCustomSetting = NewExchangeRateCustomSettingClient(tx.config)
 	tx.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)

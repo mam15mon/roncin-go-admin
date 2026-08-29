@@ -20,6 +20,17 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
@@ -98,78 +109,89 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAdministrativeRegion          = "AdministrativeRegion"
-	TypeAirline                       = "Airline"
-	TypeAirport                       = "Airport"
-	TypeAuditLog                      = "AuditLog"
-	TypeBackgroundTask                = "BackgroundTask"
-	TypeBillingUnit                   = "BillingUnit"
-	TypeCurrency                      = "Currency"
-	TypeExchangeRateCustomSetting     = "ExchangeRateCustomSetting"
-	TypeExchangeRateImportBatch       = "ExchangeRateImportBatch"
-	TypeExchangeRateSetting           = "ExchangeRateSetting"
-	TypeExchangeRateTimeStandard      = "ExchangeRateTimeStandard"
-	TypeFeeSetting                    = "FeeSetting"
-	TypeFinanceBill                   = "FinanceBill"
-	TypeFinanceBillBatch              = "FinanceBillBatch"
-	TypeFinanceBillLine               = "FinanceBillLine"
-	TypeFinanceCashflow               = "FinanceCashflow"
-	TypeFinanceCommission             = "FinanceCommission"
-	TypeFinanceCommissionAdjustment   = "FinanceCommissionAdjustment"
-	TypeFinanceCommissionLine         = "FinanceCommissionLine"
-	TypeFinanceCommissionRule         = "FinanceCommissionRule"
-	TypeFinanceCustomSetting          = "FinanceCustomSetting"
-	TypeFinanceFeeLedgerPreference    = "FinanceFeeLedgerPreference"
-	TypeFinanceInvoice                = "FinanceInvoice"
-	TypeFinanceInvoiceBill            = "FinanceInvoiceBill"
-	TypeFinanceInvoiceLine            = "FinanceInvoiceLine"
-	TypeFinanceVerification           = "FinanceVerification"
-	TypeFinanceVerificationAllocation = "FinanceVerificationAllocation"
-	TypeLoginRateLimitBucket          = "LoginRateLimitBucket"
-	TypeMasterDataItem                = "MasterDataItem"
-	TypeMembership                    = "Membership"
-	TypeNotificationDelivery          = "NotificationDelivery"
-	TypeNumberRule                    = "NumberRule"
-	TypeNumberSequence                = "NumberSequence"
-	TypeOrder                         = "Order"
-	TypeOrderAbnormalCase             = "OrderAbnormalCase"
-	TypeOrderAttachment               = "OrderAttachment"
-	TypeOrderCargoCategory            = "OrderCargoCategory"
-	TypeOrderCargoItem                = "OrderCargoItem"
-	TypeOrderCommissionAttribution    = "OrderCommissionAttribution"
-	TypeOrderConsolidation            = "OrderConsolidation"
-	TypeOrderContainer                = "OrderContainer"
-	TypeOrderContainerRequest         = "OrderContainerRequest"
-	TypeOrderFee                      = "OrderFee"
-	TypeOrderLifecycleEvent           = "OrderLifecycleEvent"
-	TypeOrderMilestone                = "OrderMilestone"
-	TypeOrderPersonnel                = "OrderPersonnel"
-	TypeOrderReleasePod               = "OrderReleasePod"
-	TypeOrderServiceType              = "OrderServiceType"
-	TypeOrderShippingDocument         = "OrderShippingDocument"
-	TypeOrganization                  = "Organization"
-	TypePartner                       = "Partner"
-	TypePartnerAccount                = "PartnerAccount"
-	TypePartnerAlias                  = "PartnerAlias"
-	TypePartnerAssignment             = "PartnerAssignment"
-	TypePartnerAttachment             = "PartnerAttachment"
-	TypePartnerContact                = "PartnerContact"
-	TypePartnerContract               = "PartnerContract"
-	TypePartnerInvoiceProfile         = "PartnerInvoiceProfile"
-	TypePartnerProfile                = "PartnerProfile"
-	TypePartnerRole                   = "PartnerRole"
-	TypePartnerSettlementRule         = "PartnerSettlementRule"
-	TypePartnerShippingPreset         = "PartnerShippingPreset"
-	TypePermission                    = "Permission"
-	TypePort                          = "Port"
-	TypeRole                          = "Role"
-	TypeRoleAssignment                = "RoleAssignment"
-	TypeRoleOrderOrganizationAccess   = "RoleOrderOrganizationAccess"
-	TypeSession                       = "Session"
-	TypeShippingLine                  = "ShippingLine"
-	TypeShippingLineContainerPrefix   = "ShippingLineContainerPrefix"
-	TypeTaxableService                = "TaxableService"
-	TypeUser                          = "User"
+	TypeAdministrativeRegion           = "AdministrativeRegion"
+	TypeAirline                        = "Airline"
+	TypeAirport                        = "Airport"
+	TypeAuditLog                       = "AuditLog"
+	TypeBackgroundTask                 = "BackgroundTask"
+	TypeBillingUnit                    = "BillingUnit"
+	TypeCurrency                       = "Currency"
+	TypeEnterpriseResource             = "EnterpriseResource"
+	TypeEnterpriseResourceAddress      = "EnterpriseResourceAddress"
+	TypeEnterpriseResourceAddressType  = "EnterpriseResourceAddressType"
+	TypeEnterpriseResourceAssignee     = "EnterpriseResourceAssignee"
+	TypeEnterpriseResourceImage        = "EnterpriseResourceImage"
+	TypeEnterpriseResourcePartner      = "EnterpriseResourcePartner"
+	TypeEnterpriseResourceParty        = "EnterpriseResourceParty"
+	TypeEnterpriseResourceRemark       = "EnterpriseResourceRemark"
+	TypeEnterpriseResourceShippingText = "EnterpriseResourceShippingText"
+	TypeEnterpriseTag                  = "EnterpriseTag"
+	TypeEnterpriseTagGroup             = "EnterpriseTagGroup"
+	TypeExchangeRateCustomSetting      = "ExchangeRateCustomSetting"
+	TypeExchangeRateImportBatch        = "ExchangeRateImportBatch"
+	TypeExchangeRateSetting            = "ExchangeRateSetting"
+	TypeExchangeRateTimeStandard       = "ExchangeRateTimeStandard"
+	TypeFeeSetting                     = "FeeSetting"
+	TypeFinanceBill                    = "FinanceBill"
+	TypeFinanceBillBatch               = "FinanceBillBatch"
+	TypeFinanceBillLine                = "FinanceBillLine"
+	TypeFinanceCashflow                = "FinanceCashflow"
+	TypeFinanceCommission              = "FinanceCommission"
+	TypeFinanceCommissionAdjustment    = "FinanceCommissionAdjustment"
+	TypeFinanceCommissionLine          = "FinanceCommissionLine"
+	TypeFinanceCommissionRule          = "FinanceCommissionRule"
+	TypeFinanceCustomSetting           = "FinanceCustomSetting"
+	TypeFinanceFeeLedgerPreference     = "FinanceFeeLedgerPreference"
+	TypeFinanceInvoice                 = "FinanceInvoice"
+	TypeFinanceInvoiceBill             = "FinanceInvoiceBill"
+	TypeFinanceInvoiceLine             = "FinanceInvoiceLine"
+	TypeFinanceVerification            = "FinanceVerification"
+	TypeFinanceVerificationAllocation  = "FinanceVerificationAllocation"
+	TypeLoginRateLimitBucket           = "LoginRateLimitBucket"
+	TypeMasterDataItem                 = "MasterDataItem"
+	TypeMembership                     = "Membership"
+	TypeNotificationDelivery           = "NotificationDelivery"
+	TypeNumberRule                     = "NumberRule"
+	TypeNumberSequence                 = "NumberSequence"
+	TypeOrder                          = "Order"
+	TypeOrderAbnormalCase              = "OrderAbnormalCase"
+	TypeOrderAttachment                = "OrderAttachment"
+	TypeOrderCargoCategory             = "OrderCargoCategory"
+	TypeOrderCargoItem                 = "OrderCargoItem"
+	TypeOrderCommissionAttribution     = "OrderCommissionAttribution"
+	TypeOrderConsolidation             = "OrderConsolidation"
+	TypeOrderContainer                 = "OrderContainer"
+	TypeOrderContainerRequest          = "OrderContainerRequest"
+	TypeOrderFee                       = "OrderFee"
+	TypeOrderLifecycleEvent            = "OrderLifecycleEvent"
+	TypeOrderMilestone                 = "OrderMilestone"
+	TypeOrderPersonnel                 = "OrderPersonnel"
+	TypeOrderReleasePod                = "OrderReleasePod"
+	TypeOrderServiceType               = "OrderServiceType"
+	TypeOrderShippingDocument          = "OrderShippingDocument"
+	TypeOrganization                   = "Organization"
+	TypePartner                        = "Partner"
+	TypePartnerAccount                 = "PartnerAccount"
+	TypePartnerAlias                   = "PartnerAlias"
+	TypePartnerAssignment              = "PartnerAssignment"
+	TypePartnerAttachment              = "PartnerAttachment"
+	TypePartnerContact                 = "PartnerContact"
+	TypePartnerContract                = "PartnerContract"
+	TypePartnerInvoiceProfile          = "PartnerInvoiceProfile"
+	TypePartnerProfile                 = "PartnerProfile"
+	TypePartnerRole                    = "PartnerRole"
+	TypePartnerSettlementRule          = "PartnerSettlementRule"
+	TypePartnerShippingPreset          = "PartnerShippingPreset"
+	TypePermission                     = "Permission"
+	TypePort                           = "Port"
+	TypeRole                           = "Role"
+	TypeRoleAssignment                 = "RoleAssignment"
+	TypeRoleOrderOrganizationAccess    = "RoleOrderOrganizationAccess"
+	TypeSession                        = "Session"
+	TypeShippingLine                   = "ShippingLine"
+	TypeShippingLineContainerPrefix    = "ShippingLineContainerPrefix"
+	TypeTaxableService                 = "TaxableService"
+	TypeUser                           = "User"
 )
 
 // AdministrativeRegionMutation represents an operation that mutates the AdministrativeRegion nodes in the graph.
@@ -7689,6 +7711,10155 @@ func (m *CurrencyMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *CurrencyMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Currency edge %s", name)
+}
+
+// EnterpriseResourceMutation represents an operation that mutates the EnterpriseResource nodes in the graph.
+type EnterpriseResourceMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	updated_at           *time.Time
+	resource_type        *enterpriseresource.ResourceType
+	short_name           *string
+	enabled              *bool
+	sort_order           *int
+	addsort_order        *int
+	search_keywords      *string
+	clearedFields        map[string]struct{}
+	organization         *uuid.UUID
+	clearedorganization  bool
+	creator              *uuid.UUID
+	clearedcreator       bool
+	updater              *uuid.UUID
+	clearedupdater       bool
+	address              *uuid.UUID
+	clearedaddress       bool
+	remark               *uuid.UUID
+	clearedremark        bool
+	image                *uuid.UUID
+	clearedimage         bool
+	party                *uuid.UUID
+	clearedparty         bool
+	shipping_text        *uuid.UUID
+	clearedshipping_text bool
+	tag                  *uuid.UUID
+	clearedtag           bool
+	partner_links        map[uuid.UUID]struct{}
+	removedpartner_links map[uuid.UUID]struct{}
+	clearedpartner_links bool
+	assignees            map[uuid.UUID]struct{}
+	removedassignees     map[uuid.UUID]struct{}
+	clearedassignees     bool
+	address_types        map[uuid.UUID]struct{}
+	removedaddress_types map[uuid.UUID]struct{}
+	clearedaddress_types bool
+	done                 bool
+	oldValue             func(context.Context) (*EnterpriseResource, error)
+	predicates           []predicate.EnterpriseResource
+}
+
+var _ ent.Mutation = (*EnterpriseResourceMutation)(nil)
+
+// enterpriseresourceOption allows management of the mutation configuration using functional options.
+type enterpriseresourceOption func(*EnterpriseResourceMutation)
+
+// newEnterpriseResourceMutation creates new mutation for the EnterpriseResource entity.
+func newEnterpriseResourceMutation(c config, op Op, opts ...enterpriseresourceOption) *EnterpriseResourceMutation {
+	m := &EnterpriseResourceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResource,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceID sets the ID field of the mutation.
+func withEnterpriseResourceID(id uuid.UUID) enterpriseresourceOption {
+	return func(m *EnterpriseResourceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResource
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResource, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResource.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResource sets the old EnterpriseResource of the mutation.
+func withEnterpriseResource(node *EnterpriseResource) enterpriseresourceOption {
+	return func(m *EnterpriseResourceMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResource, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResource entities.
+func (m *EnterpriseResourceMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResource.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *EnterpriseResourceMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *EnterpriseResourceMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *EnterpriseResourceMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetResourceType sets the "resource_type" field.
+func (m *EnterpriseResourceMutation) SetResourceType(et enterpriseresource.ResourceType) {
+	m.resource_type = &et
+}
+
+// ResourceType returns the value of the "resource_type" field in the mutation.
+func (m *EnterpriseResourceMutation) ResourceType() (r enterpriseresource.ResourceType, exists bool) {
+	v := m.resource_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceType returns the old "resource_type" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldResourceType(ctx context.Context) (v enterpriseresource.ResourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceType: %w", err)
+	}
+	return oldValue.ResourceType, nil
+}
+
+// ResetResourceType resets all changes to the "resource_type" field.
+func (m *EnterpriseResourceMutation) ResetResourceType() {
+	m.resource_type = nil
+}
+
+// SetShortName sets the "short_name" field.
+func (m *EnterpriseResourceMutation) SetShortName(s string) {
+	m.short_name = &s
+}
+
+// ShortName returns the value of the "short_name" field in the mutation.
+func (m *EnterpriseResourceMutation) ShortName() (r string, exists bool) {
+	v := m.short_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShortName returns the old "short_name" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldShortName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShortName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShortName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShortName: %w", err)
+	}
+	return oldValue.ShortName, nil
+}
+
+// ResetShortName resets all changes to the "short_name" field.
+func (m *EnterpriseResourceMutation) ResetShortName() {
+	m.short_name = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *EnterpriseResourceMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *EnterpriseResourceMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *EnterpriseResourceMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *EnterpriseResourceMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *EnterpriseResourceMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *EnterpriseResourceMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *EnterpriseResourceMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *EnterpriseResourceMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (m *EnterpriseResourceMutation) SetCreatedBy(u uuid.UUID) {
+	m.creator = &u
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *EnterpriseResourceMutation) CreatedBy() (r uuid.UUID, exists bool) {
+	v := m.creator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldCreatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ClearCreatedBy clears the value of the "created_by" field.
+func (m *EnterpriseResourceMutation) ClearCreatedBy() {
+	m.creator = nil
+	m.clearedFields[enterpriseresource.FieldCreatedBy] = struct{}{}
+}
+
+// CreatedByCleared returns if the "created_by" field was cleared in this mutation.
+func (m *EnterpriseResourceMutation) CreatedByCleared() bool {
+	_, ok := m.clearedFields[enterpriseresource.FieldCreatedBy]
+	return ok
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *EnterpriseResourceMutation) ResetCreatedBy() {
+	m.creator = nil
+	delete(m.clearedFields, enterpriseresource.FieldCreatedBy)
+}
+
+// SetUpdatedBy sets the "updated_by" field.
+func (m *EnterpriseResourceMutation) SetUpdatedBy(u uuid.UUID) {
+	m.updater = &u
+}
+
+// UpdatedBy returns the value of the "updated_by" field in the mutation.
+func (m *EnterpriseResourceMutation) UpdatedBy() (r uuid.UUID, exists bool) {
+	v := m.updater
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedBy returns the old "updated_by" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldUpdatedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedBy: %w", err)
+	}
+	return oldValue.UpdatedBy, nil
+}
+
+// ClearUpdatedBy clears the value of the "updated_by" field.
+func (m *EnterpriseResourceMutation) ClearUpdatedBy() {
+	m.updater = nil
+	m.clearedFields[enterpriseresource.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdatedByCleared returns if the "updated_by" field was cleared in this mutation.
+func (m *EnterpriseResourceMutation) UpdatedByCleared() bool {
+	_, ok := m.clearedFields[enterpriseresource.FieldUpdatedBy]
+	return ok
+}
+
+// ResetUpdatedBy resets all changes to the "updated_by" field.
+func (m *EnterpriseResourceMutation) ResetUpdatedBy() {
+	m.updater = nil
+	delete(m.clearedFields, enterpriseresource.FieldUpdatedBy)
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *EnterpriseResourceMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *EnterpriseResourceMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the EnterpriseResource entity.
+// If the EnterpriseResource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *EnterpriseResourceMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *EnterpriseResourceMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[enterpriseresource.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *EnterpriseResourceMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *EnterpriseResourceMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *EnterpriseResourceMutation) SetCreatorID(id uuid.UUID) {
+	m.creator = &id
+}
+
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *EnterpriseResourceMutation) ClearCreator() {
+	m.clearedcreator = true
+	m.clearedFields[enterpriseresource.FieldCreatedBy] = struct{}{}
+}
+
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *EnterpriseResourceMutation) CreatorCleared() bool {
+	return m.CreatedByCleared() || m.clearedcreator
+}
+
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) CreatorID() (id uuid.UUID, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the "creator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) CreatorIDs() (ids []uuid.UUID) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator resets all changes to the "creator" edge.
+func (m *EnterpriseResourceMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
+// SetUpdaterID sets the "updater" edge to the User entity by id.
+func (m *EnterpriseResourceMutation) SetUpdaterID(id uuid.UUID) {
+	m.updater = &id
+}
+
+// ClearUpdater clears the "updater" edge to the User entity.
+func (m *EnterpriseResourceMutation) ClearUpdater() {
+	m.clearedupdater = true
+	m.clearedFields[enterpriseresource.FieldUpdatedBy] = struct{}{}
+}
+
+// UpdaterCleared reports if the "updater" edge to the User entity was cleared.
+func (m *EnterpriseResourceMutation) UpdaterCleared() bool {
+	return m.UpdatedByCleared() || m.clearedupdater
+}
+
+// UpdaterID returns the "updater" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) UpdaterID() (id uuid.UUID, exists bool) {
+	if m.updater != nil {
+		return *m.updater, true
+	}
+	return
+}
+
+// UpdaterIDs returns the "updater" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UpdaterID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) UpdaterIDs() (ids []uuid.UUID) {
+	if id := m.updater; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUpdater resets all changes to the "updater" edge.
+func (m *EnterpriseResourceMutation) ResetUpdater() {
+	m.updater = nil
+	m.clearedupdater = false
+}
+
+// SetAddressID sets the "address" edge to the EnterpriseResourceAddress entity by id.
+func (m *EnterpriseResourceMutation) SetAddressID(id uuid.UUID) {
+	m.address = &id
+}
+
+// ClearAddress clears the "address" edge to the EnterpriseResourceAddress entity.
+func (m *EnterpriseResourceMutation) ClearAddress() {
+	m.clearedaddress = true
+}
+
+// AddressCleared reports if the "address" edge to the EnterpriseResourceAddress entity was cleared.
+func (m *EnterpriseResourceMutation) AddressCleared() bool {
+	return m.clearedaddress
+}
+
+// AddressID returns the "address" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) AddressID() (id uuid.UUID, exists bool) {
+	if m.address != nil {
+		return *m.address, true
+	}
+	return
+}
+
+// AddressIDs returns the "address" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AddressID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) AddressIDs() (ids []uuid.UUID) {
+	if id := m.address; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAddress resets all changes to the "address" edge.
+func (m *EnterpriseResourceMutation) ResetAddress() {
+	m.address = nil
+	m.clearedaddress = false
+}
+
+// SetRemarkID sets the "remark" edge to the EnterpriseResourceRemark entity by id.
+func (m *EnterpriseResourceMutation) SetRemarkID(id uuid.UUID) {
+	m.remark = &id
+}
+
+// ClearRemark clears the "remark" edge to the EnterpriseResourceRemark entity.
+func (m *EnterpriseResourceMutation) ClearRemark() {
+	m.clearedremark = true
+}
+
+// RemarkCleared reports if the "remark" edge to the EnterpriseResourceRemark entity was cleared.
+func (m *EnterpriseResourceMutation) RemarkCleared() bool {
+	return m.clearedremark
+}
+
+// RemarkID returns the "remark" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) RemarkID() (id uuid.UUID, exists bool) {
+	if m.remark != nil {
+		return *m.remark, true
+	}
+	return
+}
+
+// RemarkIDs returns the "remark" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RemarkID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) RemarkIDs() (ids []uuid.UUID) {
+	if id := m.remark; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRemark resets all changes to the "remark" edge.
+func (m *EnterpriseResourceMutation) ResetRemark() {
+	m.remark = nil
+	m.clearedremark = false
+}
+
+// SetImageID sets the "image" edge to the EnterpriseResourceImage entity by id.
+func (m *EnterpriseResourceMutation) SetImageID(id uuid.UUID) {
+	m.image = &id
+}
+
+// ClearImage clears the "image" edge to the EnterpriseResourceImage entity.
+func (m *EnterpriseResourceMutation) ClearImage() {
+	m.clearedimage = true
+}
+
+// ImageCleared reports if the "image" edge to the EnterpriseResourceImage entity was cleared.
+func (m *EnterpriseResourceMutation) ImageCleared() bool {
+	return m.clearedimage
+}
+
+// ImageID returns the "image" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) ImageID() (id uuid.UUID, exists bool) {
+	if m.image != nil {
+		return *m.image, true
+	}
+	return
+}
+
+// ImageIDs returns the "image" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ImageID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) ImageIDs() (ids []uuid.UUID) {
+	if id := m.image; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetImage resets all changes to the "image" edge.
+func (m *EnterpriseResourceMutation) ResetImage() {
+	m.image = nil
+	m.clearedimage = false
+}
+
+// SetPartyID sets the "party" edge to the EnterpriseResourceParty entity by id.
+func (m *EnterpriseResourceMutation) SetPartyID(id uuid.UUID) {
+	m.party = &id
+}
+
+// ClearParty clears the "party" edge to the EnterpriseResourceParty entity.
+func (m *EnterpriseResourceMutation) ClearParty() {
+	m.clearedparty = true
+}
+
+// PartyCleared reports if the "party" edge to the EnterpriseResourceParty entity was cleared.
+func (m *EnterpriseResourceMutation) PartyCleared() bool {
+	return m.clearedparty
+}
+
+// PartyID returns the "party" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) PartyID() (id uuid.UUID, exists bool) {
+	if m.party != nil {
+		return *m.party, true
+	}
+	return
+}
+
+// PartyIDs returns the "party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) PartyIDs() (ids []uuid.UUID) {
+	if id := m.party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParty resets all changes to the "party" edge.
+func (m *EnterpriseResourceMutation) ResetParty() {
+	m.party = nil
+	m.clearedparty = false
+}
+
+// SetShippingTextID sets the "shipping_text" edge to the EnterpriseResourceShippingText entity by id.
+func (m *EnterpriseResourceMutation) SetShippingTextID(id uuid.UUID) {
+	m.shipping_text = &id
+}
+
+// ClearShippingText clears the "shipping_text" edge to the EnterpriseResourceShippingText entity.
+func (m *EnterpriseResourceMutation) ClearShippingText() {
+	m.clearedshipping_text = true
+}
+
+// ShippingTextCleared reports if the "shipping_text" edge to the EnterpriseResourceShippingText entity was cleared.
+func (m *EnterpriseResourceMutation) ShippingTextCleared() bool {
+	return m.clearedshipping_text
+}
+
+// ShippingTextID returns the "shipping_text" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) ShippingTextID() (id uuid.UUID, exists bool) {
+	if m.shipping_text != nil {
+		return *m.shipping_text, true
+	}
+	return
+}
+
+// ShippingTextIDs returns the "shipping_text" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShippingTextID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) ShippingTextIDs() (ids []uuid.UUID) {
+	if id := m.shipping_text; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShippingText resets all changes to the "shipping_text" edge.
+func (m *EnterpriseResourceMutation) ResetShippingText() {
+	m.shipping_text = nil
+	m.clearedshipping_text = false
+}
+
+// SetTagID sets the "tag" edge to the EnterpriseTag entity by id.
+func (m *EnterpriseResourceMutation) SetTagID(id uuid.UUID) {
+	m.tag = &id
+}
+
+// ClearTag clears the "tag" edge to the EnterpriseTag entity.
+func (m *EnterpriseResourceMutation) ClearTag() {
+	m.clearedtag = true
+}
+
+// TagCleared reports if the "tag" edge to the EnterpriseTag entity was cleared.
+func (m *EnterpriseResourceMutation) TagCleared() bool {
+	return m.clearedtag
+}
+
+// TagID returns the "tag" edge ID in the mutation.
+func (m *EnterpriseResourceMutation) TagID() (id uuid.UUID, exists bool) {
+	if m.tag != nil {
+		return *m.tag, true
+	}
+	return
+}
+
+// TagIDs returns the "tag" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TagID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceMutation) TagIDs() (ids []uuid.UUID) {
+	if id := m.tag; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTag resets all changes to the "tag" edge.
+func (m *EnterpriseResourceMutation) ResetTag() {
+	m.tag = nil
+	m.clearedtag = false
+}
+
+// AddPartnerLinkIDs adds the "partner_links" edge to the EnterpriseResourcePartner entity by ids.
+func (m *EnterpriseResourceMutation) AddPartnerLinkIDs(ids ...uuid.UUID) {
+	if m.partner_links == nil {
+		m.partner_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.partner_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPartnerLinks clears the "partner_links" edge to the EnterpriseResourcePartner entity.
+func (m *EnterpriseResourceMutation) ClearPartnerLinks() {
+	m.clearedpartner_links = true
+}
+
+// PartnerLinksCleared reports if the "partner_links" edge to the EnterpriseResourcePartner entity was cleared.
+func (m *EnterpriseResourceMutation) PartnerLinksCleared() bool {
+	return m.clearedpartner_links
+}
+
+// RemovePartnerLinkIDs removes the "partner_links" edge to the EnterpriseResourcePartner entity by IDs.
+func (m *EnterpriseResourceMutation) RemovePartnerLinkIDs(ids ...uuid.UUID) {
+	if m.removedpartner_links == nil {
+		m.removedpartner_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.partner_links, ids[i])
+		m.removedpartner_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPartnerLinks returns the removed IDs of the "partner_links" edge to the EnterpriseResourcePartner entity.
+func (m *EnterpriseResourceMutation) RemovedPartnerLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedpartner_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PartnerLinksIDs returns the "partner_links" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) PartnerLinksIDs() (ids []uuid.UUID) {
+	for id := range m.partner_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPartnerLinks resets all changes to the "partner_links" edge.
+func (m *EnterpriseResourceMutation) ResetPartnerLinks() {
+	m.partner_links = nil
+	m.clearedpartner_links = false
+	m.removedpartner_links = nil
+}
+
+// AddAssigneeIDs adds the "assignees" edge to the EnterpriseResourceAssignee entity by ids.
+func (m *EnterpriseResourceMutation) AddAssigneeIDs(ids ...uuid.UUID) {
+	if m.assignees == nil {
+		m.assignees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.assignees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAssignees clears the "assignees" edge to the EnterpriseResourceAssignee entity.
+func (m *EnterpriseResourceMutation) ClearAssignees() {
+	m.clearedassignees = true
+}
+
+// AssigneesCleared reports if the "assignees" edge to the EnterpriseResourceAssignee entity was cleared.
+func (m *EnterpriseResourceMutation) AssigneesCleared() bool {
+	return m.clearedassignees
+}
+
+// RemoveAssigneeIDs removes the "assignees" edge to the EnterpriseResourceAssignee entity by IDs.
+func (m *EnterpriseResourceMutation) RemoveAssigneeIDs(ids ...uuid.UUID) {
+	if m.removedassignees == nil {
+		m.removedassignees = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.assignees, ids[i])
+		m.removedassignees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAssignees returns the removed IDs of the "assignees" edge to the EnterpriseResourceAssignee entity.
+func (m *EnterpriseResourceMutation) RemovedAssigneesIDs() (ids []uuid.UUID) {
+	for id := range m.removedassignees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AssigneesIDs returns the "assignees" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) AssigneesIDs() (ids []uuid.UUID) {
+	for id := range m.assignees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAssignees resets all changes to the "assignees" edge.
+func (m *EnterpriseResourceMutation) ResetAssignees() {
+	m.assignees = nil
+	m.clearedassignees = false
+	m.removedassignees = nil
+}
+
+// AddAddressTypeIDs adds the "address_types" edge to the EnterpriseResourceAddressType entity by ids.
+func (m *EnterpriseResourceMutation) AddAddressTypeIDs(ids ...uuid.UUID) {
+	if m.address_types == nil {
+		m.address_types = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.address_types[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddressTypes clears the "address_types" edge to the EnterpriseResourceAddressType entity.
+func (m *EnterpriseResourceMutation) ClearAddressTypes() {
+	m.clearedaddress_types = true
+}
+
+// AddressTypesCleared reports if the "address_types" edge to the EnterpriseResourceAddressType entity was cleared.
+func (m *EnterpriseResourceMutation) AddressTypesCleared() bool {
+	return m.clearedaddress_types
+}
+
+// RemoveAddressTypeIDs removes the "address_types" edge to the EnterpriseResourceAddressType entity by IDs.
+func (m *EnterpriseResourceMutation) RemoveAddressTypeIDs(ids ...uuid.UUID) {
+	if m.removedaddress_types == nil {
+		m.removedaddress_types = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.address_types, ids[i])
+		m.removedaddress_types[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddressTypes returns the removed IDs of the "address_types" edge to the EnterpriseResourceAddressType entity.
+func (m *EnterpriseResourceMutation) RemovedAddressTypesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddress_types {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressTypesIDs returns the "address_types" edge IDs in the mutation.
+func (m *EnterpriseResourceMutation) AddressTypesIDs() (ids []uuid.UUID) {
+	for id := range m.address_types {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddressTypes resets all changes to the "address_types" edge.
+func (m *EnterpriseResourceMutation) ResetAddressTypes() {
+	m.address_types = nil
+	m.clearedaddress_types = false
+	m.removedaddress_types = nil
+}
+
+// Where appends a list predicates to the EnterpriseResourceMutation builder.
+func (m *EnterpriseResourceMutation) Where(ps ...predicate.EnterpriseResource) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResource, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResource).
+func (m *EnterpriseResourceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresource.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresource.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, enterpriseresource.FieldOrganizationID)
+	}
+	if m.resource_type != nil {
+		fields = append(fields, enterpriseresource.FieldResourceType)
+	}
+	if m.short_name != nil {
+		fields = append(fields, enterpriseresource.FieldShortName)
+	}
+	if m.enabled != nil {
+		fields = append(fields, enterpriseresource.FieldEnabled)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, enterpriseresource.FieldSortOrder)
+	}
+	if m.creator != nil {
+		fields = append(fields, enterpriseresource.FieldCreatedBy)
+	}
+	if m.updater != nil {
+		fields = append(fields, enterpriseresource.FieldUpdatedBy)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, enterpriseresource.FieldSearchKeywords)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresource.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresource.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresource.FieldOrganizationID:
+		return m.OrganizationID()
+	case enterpriseresource.FieldResourceType:
+		return m.ResourceType()
+	case enterpriseresource.FieldShortName:
+		return m.ShortName()
+	case enterpriseresource.FieldEnabled:
+		return m.Enabled()
+	case enterpriseresource.FieldSortOrder:
+		return m.SortOrder()
+	case enterpriseresource.FieldCreatedBy:
+		return m.CreatedBy()
+	case enterpriseresource.FieldUpdatedBy:
+		return m.UpdatedBy()
+	case enterpriseresource.FieldSearchKeywords:
+		return m.SearchKeywords()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresource.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresource.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresource.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case enterpriseresource.FieldResourceType:
+		return m.OldResourceType(ctx)
+	case enterpriseresource.FieldShortName:
+		return m.OldShortName(ctx)
+	case enterpriseresource.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case enterpriseresource.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case enterpriseresource.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
+	case enterpriseresource.FieldUpdatedBy:
+		return m.OldUpdatedBy(ctx)
+	case enterpriseresource.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResource field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresource.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresource.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresource.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case enterpriseresource.FieldResourceType:
+		v, ok := value.(enterpriseresource.ResourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceType(v)
+		return nil
+	case enterpriseresource.FieldShortName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShortName(v)
+		return nil
+	case enterpriseresource.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case enterpriseresource.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case enterpriseresource.FieldCreatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
+		return nil
+	case enterpriseresource.FieldUpdatedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedBy(v)
+		return nil
+	case enterpriseresource.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, enterpriseresource.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresource.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresource.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterpriseresource.FieldCreatedBy) {
+		fields = append(fields, enterpriseresource.FieldCreatedBy)
+	}
+	if m.FieldCleared(enterpriseresource.FieldUpdatedBy) {
+		fields = append(fields, enterpriseresource.FieldUpdatedBy)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceMutation) ClearField(name string) error {
+	switch name {
+	case enterpriseresource.FieldCreatedBy:
+		m.ClearCreatedBy()
+		return nil
+	case enterpriseresource.FieldUpdatedBy:
+		m.ClearUpdatedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresource.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresource.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresource.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case enterpriseresource.FieldResourceType:
+		m.ResetResourceType()
+		return nil
+	case enterpriseresource.FieldShortName:
+		m.ResetShortName()
+		return nil
+	case enterpriseresource.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case enterpriseresource.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case enterpriseresource.FieldCreatedBy:
+		m.ResetCreatedBy()
+		return nil
+	case enterpriseresource.FieldUpdatedBy:
+		m.ResetUpdatedBy()
+		return nil
+	case enterpriseresource.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 12)
+	if m.organization != nil {
+		edges = append(edges, enterpriseresource.EdgeOrganization)
+	}
+	if m.creator != nil {
+		edges = append(edges, enterpriseresource.EdgeCreator)
+	}
+	if m.updater != nil {
+		edges = append(edges, enterpriseresource.EdgeUpdater)
+	}
+	if m.address != nil {
+		edges = append(edges, enterpriseresource.EdgeAddress)
+	}
+	if m.remark != nil {
+		edges = append(edges, enterpriseresource.EdgeRemark)
+	}
+	if m.image != nil {
+		edges = append(edges, enterpriseresource.EdgeImage)
+	}
+	if m.party != nil {
+		edges = append(edges, enterpriseresource.EdgeParty)
+	}
+	if m.shipping_text != nil {
+		edges = append(edges, enterpriseresource.EdgeShippingText)
+	}
+	if m.tag != nil {
+		edges = append(edges, enterpriseresource.EdgeTag)
+	}
+	if m.partner_links != nil {
+		edges = append(edges, enterpriseresource.EdgePartnerLinks)
+	}
+	if m.assignees != nil {
+		edges = append(edges, enterpriseresource.EdgeAssignees)
+	}
+	if m.address_types != nil {
+		edges = append(edges, enterpriseresource.EdgeAddressTypes)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresource.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeUpdater:
+		if id := m.updater; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeAddress:
+		if id := m.address; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeRemark:
+		if id := m.remark; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeImage:
+		if id := m.image; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeParty:
+		if id := m.party; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeShippingText:
+		if id := m.shipping_text; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgeTag:
+		if id := m.tag; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresource.EdgePartnerLinks:
+		ids := make([]ent.Value, 0, len(m.partner_links))
+		for id := range m.partner_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeAssignees:
+		ids := make([]ent.Value, 0, len(m.assignees))
+		for id := range m.assignees {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeAddressTypes:
+		ids := make([]ent.Value, 0, len(m.address_types))
+		for id := range m.address_types {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 12)
+	if m.removedpartner_links != nil {
+		edges = append(edges, enterpriseresource.EdgePartnerLinks)
+	}
+	if m.removedassignees != nil {
+		edges = append(edges, enterpriseresource.EdgeAssignees)
+	}
+	if m.removedaddress_types != nil {
+		edges = append(edges, enterpriseresource.EdgeAddressTypes)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresource.EdgePartnerLinks:
+		ids := make([]ent.Value, 0, len(m.removedpartner_links))
+		for id := range m.removedpartner_links {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeAssignees:
+		ids := make([]ent.Value, 0, len(m.removedassignees))
+		for id := range m.removedassignees {
+			ids = append(ids, id)
+		}
+		return ids
+	case enterpriseresource.EdgeAddressTypes:
+		ids := make([]ent.Value, 0, len(m.removedaddress_types))
+		for id := range m.removedaddress_types {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 12)
+	if m.clearedorganization {
+		edges = append(edges, enterpriseresource.EdgeOrganization)
+	}
+	if m.clearedcreator {
+		edges = append(edges, enterpriseresource.EdgeCreator)
+	}
+	if m.clearedupdater {
+		edges = append(edges, enterpriseresource.EdgeUpdater)
+	}
+	if m.clearedaddress {
+		edges = append(edges, enterpriseresource.EdgeAddress)
+	}
+	if m.clearedremark {
+		edges = append(edges, enterpriseresource.EdgeRemark)
+	}
+	if m.clearedimage {
+		edges = append(edges, enterpriseresource.EdgeImage)
+	}
+	if m.clearedparty {
+		edges = append(edges, enterpriseresource.EdgeParty)
+	}
+	if m.clearedshipping_text {
+		edges = append(edges, enterpriseresource.EdgeShippingText)
+	}
+	if m.clearedtag {
+		edges = append(edges, enterpriseresource.EdgeTag)
+	}
+	if m.clearedpartner_links {
+		edges = append(edges, enterpriseresource.EdgePartnerLinks)
+	}
+	if m.clearedassignees {
+		edges = append(edges, enterpriseresource.EdgeAssignees)
+	}
+	if m.clearedaddress_types {
+		edges = append(edges, enterpriseresource.EdgeAddressTypes)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresource.EdgeOrganization:
+		return m.clearedorganization
+	case enterpriseresource.EdgeCreator:
+		return m.clearedcreator
+	case enterpriseresource.EdgeUpdater:
+		return m.clearedupdater
+	case enterpriseresource.EdgeAddress:
+		return m.clearedaddress
+	case enterpriseresource.EdgeRemark:
+		return m.clearedremark
+	case enterpriseresource.EdgeImage:
+		return m.clearedimage
+	case enterpriseresource.EdgeParty:
+		return m.clearedparty
+	case enterpriseresource.EdgeShippingText:
+		return m.clearedshipping_text
+	case enterpriseresource.EdgeTag:
+		return m.clearedtag
+	case enterpriseresource.EdgePartnerLinks:
+		return m.clearedpartner_links
+	case enterpriseresource.EdgeAssignees:
+		return m.clearedassignees
+	case enterpriseresource.EdgeAddressTypes:
+		return m.clearedaddress_types
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresource.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case enterpriseresource.EdgeCreator:
+		m.ClearCreator()
+		return nil
+	case enterpriseresource.EdgeUpdater:
+		m.ClearUpdater()
+		return nil
+	case enterpriseresource.EdgeAddress:
+		m.ClearAddress()
+		return nil
+	case enterpriseresource.EdgeRemark:
+		m.ClearRemark()
+		return nil
+	case enterpriseresource.EdgeImage:
+		m.ClearImage()
+		return nil
+	case enterpriseresource.EdgeParty:
+		m.ClearParty()
+		return nil
+	case enterpriseresource.EdgeShippingText:
+		m.ClearShippingText()
+		return nil
+	case enterpriseresource.EdgeTag:
+		m.ClearTag()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresource.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case enterpriseresource.EdgeCreator:
+		m.ResetCreator()
+		return nil
+	case enterpriseresource.EdgeUpdater:
+		m.ResetUpdater()
+		return nil
+	case enterpriseresource.EdgeAddress:
+		m.ResetAddress()
+		return nil
+	case enterpriseresource.EdgeRemark:
+		m.ResetRemark()
+		return nil
+	case enterpriseresource.EdgeImage:
+		m.ResetImage()
+		return nil
+	case enterpriseresource.EdgeParty:
+		m.ResetParty()
+		return nil
+	case enterpriseresource.EdgeShippingText:
+		m.ResetShippingText()
+		return nil
+	case enterpriseresource.EdgeTag:
+		m.ResetTag()
+		return nil
+	case enterpriseresource.EdgePartnerLinks:
+		m.ResetPartnerLinks()
+		return nil
+	case enterpriseresource.EdgeAssignees:
+		m.ResetAssignees()
+		return nil
+	case enterpriseresource.EdgeAddressTypes:
+		m.ResetAddressTypes()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResource edge %s", name)
+}
+
+// EnterpriseResourceAddressMutation represents an operation that mutates the EnterpriseResourceAddress nodes in the graph.
+type EnterpriseResourceAddressMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	contact_name    *string
+	contact_phone   *string
+	country_code    *string
+	province_code   *string
+	city_code       *string
+	district_code   *string
+	address_detail  *string
+	remark          *string
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceAddress, error)
+	predicates      []predicate.EnterpriseResourceAddress
+}
+
+var _ ent.Mutation = (*EnterpriseResourceAddressMutation)(nil)
+
+// enterpriseresourceaddressOption allows management of the mutation configuration using functional options.
+type enterpriseresourceaddressOption func(*EnterpriseResourceAddressMutation)
+
+// newEnterpriseResourceAddressMutation creates new mutation for the EnterpriseResourceAddress entity.
+func newEnterpriseResourceAddressMutation(c config, op Op, opts ...enterpriseresourceaddressOption) *EnterpriseResourceAddressMutation {
+	m := &EnterpriseResourceAddressMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceAddress,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceAddressID sets the ID field of the mutation.
+func withEnterpriseResourceAddressID(id uuid.UUID) enterpriseresourceaddressOption {
+	return func(m *EnterpriseResourceAddressMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceAddress
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceAddress, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceAddress.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceAddress sets the old EnterpriseResourceAddress of the mutation.
+func withEnterpriseResourceAddress(node *EnterpriseResourceAddress) enterpriseresourceaddressOption {
+	return func(m *EnterpriseResourceAddressMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceAddress, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceAddressMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceAddressMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceAddress entities.
+func (m *EnterpriseResourceAddressMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceAddressMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceAddressMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceAddress.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceAddressMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceAddressMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceAddressMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceAddressMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceAddressMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceAddressMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetContactName sets the "contact_name" field.
+func (m *EnterpriseResourceAddressMutation) SetContactName(s string) {
+	m.contact_name = &s
+}
+
+// ContactName returns the value of the "contact_name" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) ContactName() (r string, exists bool) {
+	v := m.contact_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactName returns the old "contact_name" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldContactName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactName: %w", err)
+	}
+	return oldValue.ContactName, nil
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (m *EnterpriseResourceAddressMutation) ClearContactName() {
+	m.contact_name = nil
+	m.clearedFields[enterpriseresourceaddress.FieldContactName] = struct{}{}
+}
+
+// ContactNameCleared returns if the "contact_name" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) ContactNameCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldContactName]
+	return ok
+}
+
+// ResetContactName resets all changes to the "contact_name" field.
+func (m *EnterpriseResourceAddressMutation) ResetContactName() {
+	m.contact_name = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldContactName)
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (m *EnterpriseResourceAddressMutation) SetContactPhone(s string) {
+	m.contact_phone = &s
+}
+
+// ContactPhone returns the value of the "contact_phone" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) ContactPhone() (r string, exists bool) {
+	v := m.contact_phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactPhone returns the old "contact_phone" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldContactPhone(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactPhone: %w", err)
+	}
+	return oldValue.ContactPhone, nil
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (m *EnterpriseResourceAddressMutation) ClearContactPhone() {
+	m.contact_phone = nil
+	m.clearedFields[enterpriseresourceaddress.FieldContactPhone] = struct{}{}
+}
+
+// ContactPhoneCleared returns if the "contact_phone" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) ContactPhoneCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldContactPhone]
+	return ok
+}
+
+// ResetContactPhone resets all changes to the "contact_phone" field.
+func (m *EnterpriseResourceAddressMutation) ResetContactPhone() {
+	m.contact_phone = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldContactPhone)
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *EnterpriseResourceAddressMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *EnterpriseResourceAddressMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetProvinceCode sets the "province_code" field.
+func (m *EnterpriseResourceAddressMutation) SetProvinceCode(s string) {
+	m.province_code = &s
+}
+
+// ProvinceCode returns the value of the "province_code" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) ProvinceCode() (r string, exists bool) {
+	v := m.province_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProvinceCode returns the old "province_code" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldProvinceCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProvinceCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProvinceCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProvinceCode: %w", err)
+	}
+	return oldValue.ProvinceCode, nil
+}
+
+// ClearProvinceCode clears the value of the "province_code" field.
+func (m *EnterpriseResourceAddressMutation) ClearProvinceCode() {
+	m.province_code = nil
+	m.clearedFields[enterpriseresourceaddress.FieldProvinceCode] = struct{}{}
+}
+
+// ProvinceCodeCleared returns if the "province_code" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) ProvinceCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldProvinceCode]
+	return ok
+}
+
+// ResetProvinceCode resets all changes to the "province_code" field.
+func (m *EnterpriseResourceAddressMutation) ResetProvinceCode() {
+	m.province_code = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldProvinceCode)
+}
+
+// SetCityCode sets the "city_code" field.
+func (m *EnterpriseResourceAddressMutation) SetCityCode(s string) {
+	m.city_code = &s
+}
+
+// CityCode returns the value of the "city_code" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) CityCode() (r string, exists bool) {
+	v := m.city_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCityCode returns the old "city_code" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldCityCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCityCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCityCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCityCode: %w", err)
+	}
+	return oldValue.CityCode, nil
+}
+
+// ClearCityCode clears the value of the "city_code" field.
+func (m *EnterpriseResourceAddressMutation) ClearCityCode() {
+	m.city_code = nil
+	m.clearedFields[enterpriseresourceaddress.FieldCityCode] = struct{}{}
+}
+
+// CityCodeCleared returns if the "city_code" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) CityCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldCityCode]
+	return ok
+}
+
+// ResetCityCode resets all changes to the "city_code" field.
+func (m *EnterpriseResourceAddressMutation) ResetCityCode() {
+	m.city_code = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldCityCode)
+}
+
+// SetDistrictCode sets the "district_code" field.
+func (m *EnterpriseResourceAddressMutation) SetDistrictCode(s string) {
+	m.district_code = &s
+}
+
+// DistrictCode returns the value of the "district_code" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) DistrictCode() (r string, exists bool) {
+	v := m.district_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDistrictCode returns the old "district_code" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldDistrictCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDistrictCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDistrictCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDistrictCode: %w", err)
+	}
+	return oldValue.DistrictCode, nil
+}
+
+// ClearDistrictCode clears the value of the "district_code" field.
+func (m *EnterpriseResourceAddressMutation) ClearDistrictCode() {
+	m.district_code = nil
+	m.clearedFields[enterpriseresourceaddress.FieldDistrictCode] = struct{}{}
+}
+
+// DistrictCodeCleared returns if the "district_code" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) DistrictCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldDistrictCode]
+	return ok
+}
+
+// ResetDistrictCode resets all changes to the "district_code" field.
+func (m *EnterpriseResourceAddressMutation) ResetDistrictCode() {
+	m.district_code = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldDistrictCode)
+}
+
+// SetAddressDetail sets the "address_detail" field.
+func (m *EnterpriseResourceAddressMutation) SetAddressDetail(s string) {
+	m.address_detail = &s
+}
+
+// AddressDetail returns the value of the "address_detail" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) AddressDetail() (r string, exists bool) {
+	v := m.address_detail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddressDetail returns the old "address_detail" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldAddressDetail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddressDetail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddressDetail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddressDetail: %w", err)
+	}
+	return oldValue.AddressDetail, nil
+}
+
+// ResetAddressDetail resets all changes to the "address_detail" field.
+func (m *EnterpriseResourceAddressMutation) ResetAddressDetail() {
+	m.address_detail = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *EnterpriseResourceAddressMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *EnterpriseResourceAddressMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[enterpriseresourceaddress.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceaddress.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *EnterpriseResourceAddressMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, enterpriseresourceaddress.FieldRemark)
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceAddressMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceaddress.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceAddressMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceAddressMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceAddressMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceAddressMutation builder.
+func (m *EnterpriseResourceAddressMutation) Where(ps ...predicate.EnterpriseResourceAddress) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceAddressMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceAddressMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceAddress, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceAddressMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceAddressMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceAddress).
+func (m *EnterpriseResourceAddressMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceAddressMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldResourceID)
+	}
+	if m.contact_name != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldContactName)
+	}
+	if m.contact_phone != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldContactPhone)
+	}
+	if m.country_code != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldCountryCode)
+	}
+	if m.province_code != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldProvinceCode)
+	}
+	if m.city_code != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldCityCode)
+	}
+	if m.district_code != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldDistrictCode)
+	}
+	if m.address_detail != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldAddressDetail)
+	}
+	if m.remark != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceAddressMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceaddress.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceaddress.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceaddress.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceaddress.FieldContactName:
+		return m.ContactName()
+	case enterpriseresourceaddress.FieldContactPhone:
+		return m.ContactPhone()
+	case enterpriseresourceaddress.FieldCountryCode:
+		return m.CountryCode()
+	case enterpriseresourceaddress.FieldProvinceCode:
+		return m.ProvinceCode()
+	case enterpriseresourceaddress.FieldCityCode:
+		return m.CityCode()
+	case enterpriseresourceaddress.FieldDistrictCode:
+		return m.DistrictCode()
+	case enterpriseresourceaddress.FieldAddressDetail:
+		return m.AddressDetail()
+	case enterpriseresourceaddress.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceAddressMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceaddress.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceaddress.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceaddress.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceaddress.FieldContactName:
+		return m.OldContactName(ctx)
+	case enterpriseresourceaddress.FieldContactPhone:
+		return m.OldContactPhone(ctx)
+	case enterpriseresourceaddress.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case enterpriseresourceaddress.FieldProvinceCode:
+		return m.OldProvinceCode(ctx)
+	case enterpriseresourceaddress.FieldCityCode:
+		return m.OldCityCode(ctx)
+	case enterpriseresourceaddress.FieldDistrictCode:
+		return m.OldDistrictCode(ctx)
+	case enterpriseresourceaddress.FieldAddressDetail:
+		return m.OldAddressDetail(ctx)
+	case enterpriseresourceaddress.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceAddress field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAddressMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceaddress.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceaddress.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceaddress.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceaddress.FieldContactName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactName(v)
+		return nil
+	case enterpriseresourceaddress.FieldContactPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactPhone(v)
+		return nil
+	case enterpriseresourceaddress.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case enterpriseresourceaddress.FieldProvinceCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProvinceCode(v)
+		return nil
+	case enterpriseresourceaddress.FieldCityCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCityCode(v)
+		return nil
+	case enterpriseresourceaddress.FieldDistrictCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDistrictCode(v)
+		return nil
+	case enterpriseresourceaddress.FieldAddressDetail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddressDetail(v)
+		return nil
+	case enterpriseresourceaddress.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceAddressMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceAddressMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAddressMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceAddressMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterpriseresourceaddress.FieldContactName) {
+		fields = append(fields, enterpriseresourceaddress.FieldContactName)
+	}
+	if m.FieldCleared(enterpriseresourceaddress.FieldContactPhone) {
+		fields = append(fields, enterpriseresourceaddress.FieldContactPhone)
+	}
+	if m.FieldCleared(enterpriseresourceaddress.FieldProvinceCode) {
+		fields = append(fields, enterpriseresourceaddress.FieldProvinceCode)
+	}
+	if m.FieldCleared(enterpriseresourceaddress.FieldCityCode) {
+		fields = append(fields, enterpriseresourceaddress.FieldCityCode)
+	}
+	if m.FieldCleared(enterpriseresourceaddress.FieldDistrictCode) {
+		fields = append(fields, enterpriseresourceaddress.FieldDistrictCode)
+	}
+	if m.FieldCleared(enterpriseresourceaddress.FieldRemark) {
+		fields = append(fields, enterpriseresourceaddress.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceAddressMutation) ClearField(name string) error {
+	switch name {
+	case enterpriseresourceaddress.FieldContactName:
+		m.ClearContactName()
+		return nil
+	case enterpriseresourceaddress.FieldContactPhone:
+		m.ClearContactPhone()
+		return nil
+	case enterpriseresourceaddress.FieldProvinceCode:
+		m.ClearProvinceCode()
+		return nil
+	case enterpriseresourceaddress.FieldCityCode:
+		m.ClearCityCode()
+		return nil
+	case enterpriseresourceaddress.FieldDistrictCode:
+		m.ClearDistrictCode()
+		return nil
+	case enterpriseresourceaddress.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceAddressMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceaddress.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceaddress.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceaddress.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceaddress.FieldContactName:
+		m.ResetContactName()
+		return nil
+	case enterpriseresourceaddress.FieldContactPhone:
+		m.ResetContactPhone()
+		return nil
+	case enterpriseresourceaddress.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case enterpriseresourceaddress.FieldProvinceCode:
+		m.ResetProvinceCode()
+		return nil
+	case enterpriseresourceaddress.FieldCityCode:
+		m.ResetCityCode()
+		return nil
+	case enterpriseresourceaddress.FieldDistrictCode:
+		m.ResetDistrictCode()
+		return nil
+	case enterpriseresourceaddress.FieldAddressDetail:
+		m.ResetAddressDetail()
+		return nil
+	case enterpriseresourceaddress.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceAddressMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceaddress.EdgeResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceAddressMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceaddress.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceAddressMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceAddressMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceaddress.EdgeResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceAddressMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceaddress.EdgeResource:
+		return m.clearedresource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceAddressMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceaddress.EdgeResource:
+		m.ClearResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceAddressMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceaddress.EdgeResource:
+		m.ResetResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddress edge %s", name)
+}
+
+// EnterpriseResourceAddressTypeMutation represents an operation that mutates the EnterpriseResourceAddressType nodes in the graph.
+type EnterpriseResourceAddressTypeMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	address_type    *enterpriseresourceaddresstype.AddressType
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceAddressType, error)
+	predicates      []predicate.EnterpriseResourceAddressType
+}
+
+var _ ent.Mutation = (*EnterpriseResourceAddressTypeMutation)(nil)
+
+// enterpriseresourceaddresstypeOption allows management of the mutation configuration using functional options.
+type enterpriseresourceaddresstypeOption func(*EnterpriseResourceAddressTypeMutation)
+
+// newEnterpriseResourceAddressTypeMutation creates new mutation for the EnterpriseResourceAddressType entity.
+func newEnterpriseResourceAddressTypeMutation(c config, op Op, opts ...enterpriseresourceaddresstypeOption) *EnterpriseResourceAddressTypeMutation {
+	m := &EnterpriseResourceAddressTypeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceAddressType,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceAddressTypeID sets the ID field of the mutation.
+func withEnterpriseResourceAddressTypeID(id uuid.UUID) enterpriseresourceaddresstypeOption {
+	return func(m *EnterpriseResourceAddressTypeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceAddressType
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceAddressType, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceAddressType.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceAddressType sets the old EnterpriseResourceAddressType of the mutation.
+func withEnterpriseResourceAddressType(node *EnterpriseResourceAddressType) enterpriseresourceaddresstypeOption {
+	return func(m *EnterpriseResourceAddressTypeMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceAddressType, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceAddressTypeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceAddressTypeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceAddressType entities.
+func (m *EnterpriseResourceAddressTypeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceAddressTypeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceAddressTypeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceAddressType.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceAddressTypeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceAddressTypeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceAddressType entity.
+// If the EnterpriseResourceAddressType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressTypeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceAddressTypeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceAddressTypeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceAddressTypeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceAddressType entity.
+// If the EnterpriseResourceAddressType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressTypeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceAddressTypeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceAddressTypeMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceAddressTypeMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceAddressType entity.
+// If the EnterpriseResourceAddressType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressTypeMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceAddressTypeMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetAddressType sets the "address_type" field.
+func (m *EnterpriseResourceAddressTypeMutation) SetAddressType(et enterpriseresourceaddresstype.AddressType) {
+	m.address_type = &et
+}
+
+// AddressType returns the value of the "address_type" field in the mutation.
+func (m *EnterpriseResourceAddressTypeMutation) AddressType() (r enterpriseresourceaddresstype.AddressType, exists bool) {
+	v := m.address_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddressType returns the old "address_type" field's value of the EnterpriseResourceAddressType entity.
+// If the EnterpriseResourceAddressType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressTypeMutation) OldAddressType(ctx context.Context) (v enterpriseresourceaddresstype.AddressType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddressType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddressType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddressType: %w", err)
+	}
+	return oldValue.AddressType, nil
+}
+
+// ResetAddressType resets all changes to the "address_type" field.
+func (m *EnterpriseResourceAddressTypeMutation) ResetAddressType() {
+	m.address_type = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceAddressTypeMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceaddresstype.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceAddressTypeMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceAddressTypeMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceAddressTypeMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceAddressTypeMutation builder.
+func (m *EnterpriseResourceAddressTypeMutation) Where(ps ...predicate.EnterpriseResourceAddressType) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceAddressTypeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceAddressTypeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceAddressType, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceAddressTypeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceAddressTypeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceAddressType).
+func (m *EnterpriseResourceAddressTypeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceAddressTypeMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceaddresstype.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceaddresstype.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceaddresstype.FieldResourceID)
+	}
+	if m.address_type != nil {
+		fields = append(fields, enterpriseresourceaddresstype.FieldAddressType)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceAddressTypeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceaddresstype.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceaddresstype.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceaddresstype.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceaddresstype.FieldAddressType:
+		return m.AddressType()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceAddressTypeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceaddresstype.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceaddresstype.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceaddresstype.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceaddresstype.FieldAddressType:
+		return m.OldAddressType(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceAddressType field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAddressTypeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceaddresstype.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceaddresstype.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceaddresstype.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceaddresstype.FieldAddressType:
+		v, ok := value.(enterpriseresourceaddresstype.AddressType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddressType(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddressType field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceAddressTypeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAddressTypeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddressType numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceAddressTypeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceAddressTypeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnterpriseResourceAddressType nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceAddressTypeMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceaddresstype.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceaddresstype.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceaddresstype.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceaddresstype.FieldAddressType:
+		m.ResetAddressType()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddressType field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceaddresstype.EdgeResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceaddresstype.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceaddresstype.EdgeResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceAddressTypeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceaddresstype.EdgeResource:
+		return m.clearedresource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceAddressTypeMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceaddresstype.EdgeResource:
+		m.ClearResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddressType unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceAddressTypeMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceaddresstype.EdgeResource:
+		m.ResetResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAddressType edge %s", name)
+}
+
+// EnterpriseResourceAssigneeMutation represents an operation that mutates the EnterpriseResourceAssignee nodes in the graph.
+type EnterpriseResourceAssigneeMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	user            *uuid.UUID
+	cleareduser     bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceAssignee, error)
+	predicates      []predicate.EnterpriseResourceAssignee
+}
+
+var _ ent.Mutation = (*EnterpriseResourceAssigneeMutation)(nil)
+
+// enterpriseresourceassigneeOption allows management of the mutation configuration using functional options.
+type enterpriseresourceassigneeOption func(*EnterpriseResourceAssigneeMutation)
+
+// newEnterpriseResourceAssigneeMutation creates new mutation for the EnterpriseResourceAssignee entity.
+func newEnterpriseResourceAssigneeMutation(c config, op Op, opts ...enterpriseresourceassigneeOption) *EnterpriseResourceAssigneeMutation {
+	m := &EnterpriseResourceAssigneeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceAssignee,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceAssigneeID sets the ID field of the mutation.
+func withEnterpriseResourceAssigneeID(id uuid.UUID) enterpriseresourceassigneeOption {
+	return func(m *EnterpriseResourceAssigneeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceAssignee
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceAssignee, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceAssignee.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceAssignee sets the old EnterpriseResourceAssignee of the mutation.
+func withEnterpriseResourceAssignee(node *EnterpriseResourceAssignee) enterpriseresourceassigneeOption {
+	return func(m *EnterpriseResourceAssigneeMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceAssignee, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceAssigneeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceAssigneeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceAssignee entities.
+func (m *EnterpriseResourceAssigneeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceAssigneeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceAssigneeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceAssignee.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceAssigneeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceAssigneeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceAssignee entity.
+// If the EnterpriseResourceAssignee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAssigneeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceAssigneeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceAssigneeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceAssigneeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceAssignee entity.
+// If the EnterpriseResourceAssignee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAssigneeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceAssigneeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceAssigneeMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceAssigneeMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceAssignee entity.
+// If the EnterpriseResourceAssignee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAssigneeMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceAssigneeMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *EnterpriseResourceAssigneeMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *EnterpriseResourceAssigneeMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the EnterpriseResourceAssignee entity.
+// If the EnterpriseResourceAssignee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAssigneeMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *EnterpriseResourceAssigneeMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceAssigneeMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceassignee.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceAssigneeMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceAssigneeMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceAssigneeMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *EnterpriseResourceAssigneeMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[enterpriseresourceassignee.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *EnterpriseResourceAssigneeMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceAssigneeMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *EnterpriseResourceAssigneeMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceAssigneeMutation builder.
+func (m *EnterpriseResourceAssigneeMutation) Where(ps ...predicate.EnterpriseResourceAssignee) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceAssigneeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceAssigneeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceAssignee, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceAssigneeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceAssigneeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceAssignee).
+func (m *EnterpriseResourceAssigneeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceAssigneeMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceassignee.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceassignee.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceassignee.FieldResourceID)
+	}
+	if m.user != nil {
+		fields = append(fields, enterpriseresourceassignee.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceAssigneeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceassignee.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceassignee.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceassignee.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceassignee.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceAssigneeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceassignee.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceassignee.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceassignee.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceassignee.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceAssignee field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAssigneeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceassignee.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceassignee.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceassignee.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceassignee.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAssignee field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceAssigneeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceAssigneeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceAssigneeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAssignee numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceAssigneeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceAssigneeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnterpriseResourceAssignee nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceAssigneeMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceassignee.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceassignee.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceassignee.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceassignee.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAssignee field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceassignee.EdgeResource)
+	}
+	if m.user != nil {
+		edges = append(edges, enterpriseresourceassignee.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceassignee.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresourceassignee.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceassignee.EdgeResource)
+	}
+	if m.cleareduser {
+		edges = append(edges, enterpriseresourceassignee.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceAssigneeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceassignee.EdgeResource:
+		return m.clearedresource
+	case enterpriseresourceassignee.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceAssigneeMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceassignee.EdgeResource:
+		m.ClearResource()
+		return nil
+	case enterpriseresourceassignee.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAssignee unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceAssigneeMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceassignee.EdgeResource:
+		m.ResetResource()
+		return nil
+	case enterpriseresourceassignee.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceAssignee edge %s", name)
+}
+
+// EnterpriseResourceImageMutation represents an operation that mutates the EnterpriseResourceImage nodes in the graph.
+type EnterpriseResourceImageMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	file_name       *string
+	mime_type       *string
+	file_size       *int64
+	addfile_size    *int64
+	object_key      *string
+	checksum        *string
+	width           *int
+	addwidth        *int
+	height          *int
+	addheight       *int
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	uploader        *uuid.UUID
+	cleareduploader bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceImage, error)
+	predicates      []predicate.EnterpriseResourceImage
+}
+
+var _ ent.Mutation = (*EnterpriseResourceImageMutation)(nil)
+
+// enterpriseresourceimageOption allows management of the mutation configuration using functional options.
+type enterpriseresourceimageOption func(*EnterpriseResourceImageMutation)
+
+// newEnterpriseResourceImageMutation creates new mutation for the EnterpriseResourceImage entity.
+func newEnterpriseResourceImageMutation(c config, op Op, opts ...enterpriseresourceimageOption) *EnterpriseResourceImageMutation {
+	m := &EnterpriseResourceImageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceImage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceImageID sets the ID field of the mutation.
+func withEnterpriseResourceImageID(id uuid.UUID) enterpriseresourceimageOption {
+	return func(m *EnterpriseResourceImageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceImage
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceImage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceImage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceImage sets the old EnterpriseResourceImage of the mutation.
+func withEnterpriseResourceImage(node *EnterpriseResourceImage) enterpriseresourceimageOption {
+	return func(m *EnterpriseResourceImageMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceImage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceImageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceImageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceImage entities.
+func (m *EnterpriseResourceImageMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceImageMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceImageMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceImage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceImageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceImageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceImageMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceImageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceImageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceImageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceImageMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceImageMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceImageMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetFileName sets the "file_name" field.
+func (m *EnterpriseResourceImageMutation) SetFileName(s string) {
+	m.file_name = &s
+}
+
+// FileName returns the value of the "file_name" field in the mutation.
+func (m *EnterpriseResourceImageMutation) FileName() (r string, exists bool) {
+	v := m.file_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "file_name" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "file_name" field.
+func (m *EnterpriseResourceImageMutation) ResetFileName() {
+	m.file_name = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *EnterpriseResourceImageMutation) SetMimeType(s string) {
+	m.mime_type = &s
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *EnterpriseResourceImageMutation) MimeType() (r string, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldMimeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *EnterpriseResourceImageMutation) ResetMimeType() {
+	m.mime_type = nil
+}
+
+// SetFileSize sets the "file_size" field.
+func (m *EnterpriseResourceImageMutation) SetFileSize(i int64) {
+	m.file_size = &i
+	m.addfile_size = nil
+}
+
+// FileSize returns the value of the "file_size" field in the mutation.
+func (m *EnterpriseResourceImageMutation) FileSize() (r int64, exists bool) {
+	v := m.file_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileSize returns the old "file_size" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldFileSize(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileSize: %w", err)
+	}
+	return oldValue.FileSize, nil
+}
+
+// AddFileSize adds i to the "file_size" field.
+func (m *EnterpriseResourceImageMutation) AddFileSize(i int64) {
+	if m.addfile_size != nil {
+		*m.addfile_size += i
+	} else {
+		m.addfile_size = &i
+	}
+}
+
+// AddedFileSize returns the value that was added to the "file_size" field in this mutation.
+func (m *EnterpriseResourceImageMutation) AddedFileSize() (r int64, exists bool) {
+	v := m.addfile_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFileSize resets all changes to the "file_size" field.
+func (m *EnterpriseResourceImageMutation) ResetFileSize() {
+	m.file_size = nil
+	m.addfile_size = nil
+}
+
+// SetObjectKey sets the "object_key" field.
+func (m *EnterpriseResourceImageMutation) SetObjectKey(s string) {
+	m.object_key = &s
+}
+
+// ObjectKey returns the value of the "object_key" field in the mutation.
+func (m *EnterpriseResourceImageMutation) ObjectKey() (r string, exists bool) {
+	v := m.object_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldObjectKey returns the old "object_key" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldObjectKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldObjectKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldObjectKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldObjectKey: %w", err)
+	}
+	return oldValue.ObjectKey, nil
+}
+
+// ResetObjectKey resets all changes to the "object_key" field.
+func (m *EnterpriseResourceImageMutation) ResetObjectKey() {
+	m.object_key = nil
+}
+
+// SetChecksum sets the "checksum" field.
+func (m *EnterpriseResourceImageMutation) SetChecksum(s string) {
+	m.checksum = &s
+}
+
+// Checksum returns the value of the "checksum" field in the mutation.
+func (m *EnterpriseResourceImageMutation) Checksum() (r string, exists bool) {
+	v := m.checksum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChecksum returns the old "checksum" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldChecksum(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChecksum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChecksum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChecksum: %w", err)
+	}
+	return oldValue.Checksum, nil
+}
+
+// ResetChecksum resets all changes to the "checksum" field.
+func (m *EnterpriseResourceImageMutation) ResetChecksum() {
+	m.checksum = nil
+}
+
+// SetWidth sets the "width" field.
+func (m *EnterpriseResourceImageMutation) SetWidth(i int) {
+	m.width = &i
+	m.addwidth = nil
+}
+
+// Width returns the value of the "width" field in the mutation.
+func (m *EnterpriseResourceImageMutation) Width() (r int, exists bool) {
+	v := m.width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWidth returns the old "width" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldWidth(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
+	}
+	return oldValue.Width, nil
+}
+
+// AddWidth adds i to the "width" field.
+func (m *EnterpriseResourceImageMutation) AddWidth(i int) {
+	if m.addwidth != nil {
+		*m.addwidth += i
+	} else {
+		m.addwidth = &i
+	}
+}
+
+// AddedWidth returns the value that was added to the "width" field in this mutation.
+func (m *EnterpriseResourceImageMutation) AddedWidth() (r int, exists bool) {
+	v := m.addwidth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearWidth clears the value of the "width" field.
+func (m *EnterpriseResourceImageMutation) ClearWidth() {
+	m.width = nil
+	m.addwidth = nil
+	m.clearedFields[enterpriseresourceimage.FieldWidth] = struct{}{}
+}
+
+// WidthCleared returns if the "width" field was cleared in this mutation.
+func (m *EnterpriseResourceImageMutation) WidthCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceimage.FieldWidth]
+	return ok
+}
+
+// ResetWidth resets all changes to the "width" field.
+func (m *EnterpriseResourceImageMutation) ResetWidth() {
+	m.width = nil
+	m.addwidth = nil
+	delete(m.clearedFields, enterpriseresourceimage.FieldWidth)
+}
+
+// SetHeight sets the "height" field.
+func (m *EnterpriseResourceImageMutation) SetHeight(i int) {
+	m.height = &i
+	m.addheight = nil
+}
+
+// Height returns the value of the "height" field in the mutation.
+func (m *EnterpriseResourceImageMutation) Height() (r int, exists bool) {
+	v := m.height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeight returns the old "height" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldHeight(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
+	}
+	return oldValue.Height, nil
+}
+
+// AddHeight adds i to the "height" field.
+func (m *EnterpriseResourceImageMutation) AddHeight(i int) {
+	if m.addheight != nil {
+		*m.addheight += i
+	} else {
+		m.addheight = &i
+	}
+}
+
+// AddedHeight returns the value that was added to the "height" field in this mutation.
+func (m *EnterpriseResourceImageMutation) AddedHeight() (r int, exists bool) {
+	v := m.addheight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearHeight clears the value of the "height" field.
+func (m *EnterpriseResourceImageMutation) ClearHeight() {
+	m.height = nil
+	m.addheight = nil
+	m.clearedFields[enterpriseresourceimage.FieldHeight] = struct{}{}
+}
+
+// HeightCleared returns if the "height" field was cleared in this mutation.
+func (m *EnterpriseResourceImageMutation) HeightCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceimage.FieldHeight]
+	return ok
+}
+
+// ResetHeight resets all changes to the "height" field.
+func (m *EnterpriseResourceImageMutation) ResetHeight() {
+	m.height = nil
+	m.addheight = nil
+	delete(m.clearedFields, enterpriseresourceimage.FieldHeight)
+}
+
+// SetUploadedBy sets the "uploaded_by" field.
+func (m *EnterpriseResourceImageMutation) SetUploadedBy(u uuid.UUID) {
+	m.uploader = &u
+}
+
+// UploadedBy returns the value of the "uploaded_by" field in the mutation.
+func (m *EnterpriseResourceImageMutation) UploadedBy() (r uuid.UUID, exists bool) {
+	v := m.uploader
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadedBy returns the old "uploaded_by" field's value of the EnterpriseResourceImage entity.
+// If the EnterpriseResourceImage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceImageMutation) OldUploadedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadedBy: %w", err)
+	}
+	return oldValue.UploadedBy, nil
+}
+
+// ResetUploadedBy resets all changes to the "uploaded_by" field.
+func (m *EnterpriseResourceImageMutation) ResetUploadedBy() {
+	m.uploader = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceImageMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceimage.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceImageMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceImageMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceImageMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// SetUploaderID sets the "uploader" edge to the User entity by id.
+func (m *EnterpriseResourceImageMutation) SetUploaderID(id uuid.UUID) {
+	m.uploader = &id
+}
+
+// ClearUploader clears the "uploader" edge to the User entity.
+func (m *EnterpriseResourceImageMutation) ClearUploader() {
+	m.cleareduploader = true
+	m.clearedFields[enterpriseresourceimage.FieldUploadedBy] = struct{}{}
+}
+
+// UploaderCleared reports if the "uploader" edge to the User entity was cleared.
+func (m *EnterpriseResourceImageMutation) UploaderCleared() bool {
+	return m.cleareduploader
+}
+
+// UploaderID returns the "uploader" edge ID in the mutation.
+func (m *EnterpriseResourceImageMutation) UploaderID() (id uuid.UUID, exists bool) {
+	if m.uploader != nil {
+		return *m.uploader, true
+	}
+	return
+}
+
+// UploaderIDs returns the "uploader" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UploaderID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceImageMutation) UploaderIDs() (ids []uuid.UUID) {
+	if id := m.uploader; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUploader resets all changes to the "uploader" edge.
+func (m *EnterpriseResourceImageMutation) ResetUploader() {
+	m.uploader = nil
+	m.cleareduploader = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceImageMutation builder.
+func (m *EnterpriseResourceImageMutation) Where(ps ...predicate.EnterpriseResourceImage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceImageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceImageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceImage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceImageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceImageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceImage).
+func (m *EnterpriseResourceImageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceImageMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceimage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceimage.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceimage.FieldResourceID)
+	}
+	if m.file_name != nil {
+		fields = append(fields, enterpriseresourceimage.FieldFileName)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, enterpriseresourceimage.FieldMimeType)
+	}
+	if m.file_size != nil {
+		fields = append(fields, enterpriseresourceimage.FieldFileSize)
+	}
+	if m.object_key != nil {
+		fields = append(fields, enterpriseresourceimage.FieldObjectKey)
+	}
+	if m.checksum != nil {
+		fields = append(fields, enterpriseresourceimage.FieldChecksum)
+	}
+	if m.width != nil {
+		fields = append(fields, enterpriseresourceimage.FieldWidth)
+	}
+	if m.height != nil {
+		fields = append(fields, enterpriseresourceimage.FieldHeight)
+	}
+	if m.uploader != nil {
+		fields = append(fields, enterpriseresourceimage.FieldUploadedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceImageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceimage.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceimage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceimage.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceimage.FieldFileName:
+		return m.FileName()
+	case enterpriseresourceimage.FieldMimeType:
+		return m.MimeType()
+	case enterpriseresourceimage.FieldFileSize:
+		return m.FileSize()
+	case enterpriseresourceimage.FieldObjectKey:
+		return m.ObjectKey()
+	case enterpriseresourceimage.FieldChecksum:
+		return m.Checksum()
+	case enterpriseresourceimage.FieldWidth:
+		return m.Width()
+	case enterpriseresourceimage.FieldHeight:
+		return m.Height()
+	case enterpriseresourceimage.FieldUploadedBy:
+		return m.UploadedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceImageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceimage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceimage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceimage.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceimage.FieldFileName:
+		return m.OldFileName(ctx)
+	case enterpriseresourceimage.FieldMimeType:
+		return m.OldMimeType(ctx)
+	case enterpriseresourceimage.FieldFileSize:
+		return m.OldFileSize(ctx)
+	case enterpriseresourceimage.FieldObjectKey:
+		return m.OldObjectKey(ctx)
+	case enterpriseresourceimage.FieldChecksum:
+		return m.OldChecksum(ctx)
+	case enterpriseresourceimage.FieldWidth:
+		return m.OldWidth(ctx)
+	case enterpriseresourceimage.FieldHeight:
+		return m.OldHeight(ctx)
+	case enterpriseresourceimage.FieldUploadedBy:
+		return m.OldUploadedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceImage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceImageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceimage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceimage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceimage.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceimage.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case enterpriseresourceimage.FieldMimeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
+		return nil
+	case enterpriseresourceimage.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileSize(v)
+		return nil
+	case enterpriseresourceimage.FieldObjectKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetObjectKey(v)
+		return nil
+	case enterpriseresourceimage.FieldChecksum:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChecksum(v)
+		return nil
+	case enterpriseresourceimage.FieldWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWidth(v)
+		return nil
+	case enterpriseresourceimage.FieldHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeight(v)
+		return nil
+	case enterpriseresourceimage.FieldUploadedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceImageMutation) AddedFields() []string {
+	var fields []string
+	if m.addfile_size != nil {
+		fields = append(fields, enterpriseresourceimage.FieldFileSize)
+	}
+	if m.addwidth != nil {
+		fields = append(fields, enterpriseresourceimage.FieldWidth)
+	}
+	if m.addheight != nil {
+		fields = append(fields, enterpriseresourceimage.FieldHeight)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceImageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceimage.FieldFileSize:
+		return m.AddedFileSize()
+	case enterpriseresourceimage.FieldWidth:
+		return m.AddedWidth()
+	case enterpriseresourceimage.FieldHeight:
+		return m.AddedHeight()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceImageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceimage.FieldFileSize:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFileSize(v)
+		return nil
+	case enterpriseresourceimage.FieldWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWidth(v)
+		return nil
+	case enterpriseresourceimage.FieldHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHeight(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceImageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterpriseresourceimage.FieldWidth) {
+		fields = append(fields, enterpriseresourceimage.FieldWidth)
+	}
+	if m.FieldCleared(enterpriseresourceimage.FieldHeight) {
+		fields = append(fields, enterpriseresourceimage.FieldHeight)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceImageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceImageMutation) ClearField(name string) error {
+	switch name {
+	case enterpriseresourceimage.FieldWidth:
+		m.ClearWidth()
+		return nil
+	case enterpriseresourceimage.FieldHeight:
+		m.ClearHeight()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceImageMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceimage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceimage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceimage.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceimage.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case enterpriseresourceimage.FieldMimeType:
+		m.ResetMimeType()
+		return nil
+	case enterpriseresourceimage.FieldFileSize:
+		m.ResetFileSize()
+		return nil
+	case enterpriseresourceimage.FieldObjectKey:
+		m.ResetObjectKey()
+		return nil
+	case enterpriseresourceimage.FieldChecksum:
+		m.ResetChecksum()
+		return nil
+	case enterpriseresourceimage.FieldWidth:
+		m.ResetWidth()
+		return nil
+	case enterpriseresourceimage.FieldHeight:
+		m.ResetHeight()
+		return nil
+	case enterpriseresourceimage.FieldUploadedBy:
+		m.ResetUploadedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceImageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceimage.EdgeResource)
+	}
+	if m.uploader != nil {
+		edges = append(edges, enterpriseresourceimage.EdgeUploader)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceImageMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceimage.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresourceimage.EdgeUploader:
+		if id := m.uploader; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceImageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceImageMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceImageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceimage.EdgeResource)
+	}
+	if m.cleareduploader {
+		edges = append(edges, enterpriseresourceimage.EdgeUploader)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceImageMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceimage.EdgeResource:
+		return m.clearedresource
+	case enterpriseresourceimage.EdgeUploader:
+		return m.cleareduploader
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceImageMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceimage.EdgeResource:
+		m.ClearResource()
+		return nil
+	case enterpriseresourceimage.EdgeUploader:
+		m.ClearUploader()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceImageMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceimage.EdgeResource:
+		m.ResetResource()
+		return nil
+	case enterpriseresourceimage.EdgeUploader:
+		m.ResetUploader()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceImage edge %s", name)
+}
+
+// EnterpriseResourcePartnerMutation represents an operation that mutates the EnterpriseResourcePartner nodes in the graph.
+type EnterpriseResourcePartnerMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	resource_type   *enterpriseresourcepartner.ResourceType
+	is_default      *bool
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	partner         *uuid.UUID
+	clearedpartner  bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourcePartner, error)
+	predicates      []predicate.EnterpriseResourcePartner
+}
+
+var _ ent.Mutation = (*EnterpriseResourcePartnerMutation)(nil)
+
+// enterpriseresourcepartnerOption allows management of the mutation configuration using functional options.
+type enterpriseresourcepartnerOption func(*EnterpriseResourcePartnerMutation)
+
+// newEnterpriseResourcePartnerMutation creates new mutation for the EnterpriseResourcePartner entity.
+func newEnterpriseResourcePartnerMutation(c config, op Op, opts ...enterpriseresourcepartnerOption) *EnterpriseResourcePartnerMutation {
+	m := &EnterpriseResourcePartnerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourcePartner,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourcePartnerID sets the ID field of the mutation.
+func withEnterpriseResourcePartnerID(id uuid.UUID) enterpriseresourcepartnerOption {
+	return func(m *EnterpriseResourcePartnerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourcePartner
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourcePartner, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourcePartner.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourcePartner sets the old EnterpriseResourcePartner of the mutation.
+func withEnterpriseResourcePartner(node *EnterpriseResourcePartner) enterpriseresourcepartnerOption {
+	return func(m *EnterpriseResourcePartnerMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourcePartner, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourcePartnerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourcePartnerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourcePartner entities.
+func (m *EnterpriseResourcePartnerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourcePartnerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourcePartnerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourcePartner.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourcePartnerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourcePartnerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourcePartnerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourcePartnerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourcePartnerMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourcePartnerMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetPartnerID sets the "partner_id" field.
+func (m *EnterpriseResourcePartnerMutation) SetPartnerID(u uuid.UUID) {
+	m.partner = &u
+}
+
+// PartnerID returns the value of the "partner_id" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) PartnerID() (r uuid.UUID, exists bool) {
+	v := m.partner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartnerID returns the old "partner_id" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldPartnerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartnerID: %w", err)
+	}
+	return oldValue.PartnerID, nil
+}
+
+// ResetPartnerID resets all changes to the "partner_id" field.
+func (m *EnterpriseResourcePartnerMutation) ResetPartnerID() {
+	m.partner = nil
+}
+
+// SetResourceType sets the "resource_type" field.
+func (m *EnterpriseResourcePartnerMutation) SetResourceType(et enterpriseresourcepartner.ResourceType) {
+	m.resource_type = &et
+}
+
+// ResourceType returns the value of the "resource_type" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) ResourceType() (r enterpriseresourcepartner.ResourceType, exists bool) {
+	v := m.resource_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceType returns the old "resource_type" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldResourceType(ctx context.Context) (v enterpriseresourcepartner.ResourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceType: %w", err)
+	}
+	return oldValue.ResourceType, nil
+}
+
+// ResetResourceType resets all changes to the "resource_type" field.
+func (m *EnterpriseResourcePartnerMutation) ResetResourceType() {
+	m.resource_type = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *EnterpriseResourcePartnerMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *EnterpriseResourcePartnerMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the EnterpriseResourcePartner entity.
+// If the EnterpriseResourcePartner object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartnerMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *EnterpriseResourcePartnerMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourcePartnerMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourcepartner.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourcePartnerMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourcePartnerMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourcePartnerMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// ClearPartner clears the "partner" edge to the Partner entity.
+func (m *EnterpriseResourcePartnerMutation) ClearPartner() {
+	m.clearedpartner = true
+	m.clearedFields[enterpriseresourcepartner.FieldPartnerID] = struct{}{}
+}
+
+// PartnerCleared reports if the "partner" edge to the Partner entity was cleared.
+func (m *EnterpriseResourcePartnerMutation) PartnerCleared() bool {
+	return m.clearedpartner
+}
+
+// PartnerIDs returns the "partner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartnerID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourcePartnerMutation) PartnerIDs() (ids []uuid.UUID) {
+	if id := m.partner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPartner resets all changes to the "partner" edge.
+func (m *EnterpriseResourcePartnerMutation) ResetPartner() {
+	m.partner = nil
+	m.clearedpartner = false
+}
+
+// Where appends a list predicates to the EnterpriseResourcePartnerMutation builder.
+func (m *EnterpriseResourcePartnerMutation) Where(ps ...predicate.EnterpriseResourcePartner) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourcePartnerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourcePartnerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourcePartner, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourcePartnerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourcePartnerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourcePartner).
+func (m *EnterpriseResourcePartnerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourcePartnerMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldResourceID)
+	}
+	if m.partner != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldPartnerID)
+	}
+	if m.resource_type != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldResourceType)
+	}
+	if m.is_default != nil {
+		fields = append(fields, enterpriseresourcepartner.FieldIsDefault)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourcePartnerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourcepartner.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourcepartner.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourcepartner.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourcepartner.FieldPartnerID:
+		return m.PartnerID()
+	case enterpriseresourcepartner.FieldResourceType:
+		return m.ResourceType()
+	case enterpriseresourcepartner.FieldIsDefault:
+		return m.IsDefault()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourcePartnerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourcepartner.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourcepartner.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourcepartner.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourcepartner.FieldPartnerID:
+		return m.OldPartnerID(ctx)
+	case enterpriseresourcepartner.FieldResourceType:
+		return m.OldResourceType(ctx)
+	case enterpriseresourcepartner.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourcePartner field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourcePartnerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourcepartner.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourcepartner.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourcepartner.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourcepartner.FieldPartnerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartnerID(v)
+		return nil
+	case enterpriseresourcepartner.FieldResourceType:
+		v, ok := value.(enterpriseresourcepartner.ResourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceType(v)
+		return nil
+	case enterpriseresourcepartner.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourcePartner field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourcePartnerMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourcePartnerMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourcePartnerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourcePartner numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourcePartnerMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourcePartnerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourcePartnerMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnterpriseResourcePartner nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourcePartnerMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourcepartner.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourcepartner.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourcepartner.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourcepartner.FieldPartnerID:
+		m.ResetPartnerID()
+		return nil
+	case enterpriseresourcepartner.FieldResourceType:
+		m.ResetResourceType()
+		return nil
+	case enterpriseresourcepartner.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourcePartner field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourcePartnerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourcepartner.EdgeResource)
+	}
+	if m.partner != nil {
+		edges = append(edges, enterpriseresourcepartner.EdgePartner)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourcePartnerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourcepartner.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterpriseresourcepartner.EdgePartner:
+		if id := m.partner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourcePartnerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourcePartnerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourcePartnerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourcepartner.EdgeResource)
+	}
+	if m.clearedpartner {
+		edges = append(edges, enterpriseresourcepartner.EdgePartner)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourcePartnerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourcepartner.EdgeResource:
+		return m.clearedresource
+	case enterpriseresourcepartner.EdgePartner:
+		return m.clearedpartner
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourcePartnerMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourcepartner.EdgeResource:
+		m.ClearResource()
+		return nil
+	case enterpriseresourcepartner.EdgePartner:
+		m.ClearPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourcePartner unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourcePartnerMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourcepartner.EdgeResource:
+		m.ResetResource()
+		return nil
+	case enterpriseresourcepartner.EdgePartner:
+		m.ResetPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourcePartner edge %s", name)
+}
+
+// EnterpriseResourcePartyMutation represents an operation that mutates the EnterpriseResourceParty nodes in the graph.
+type EnterpriseResourcePartyMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	organization_id          *uuid.UUID
+	resource_type            *enterpriseresourceparty.ResourceType
+	company_name             *string
+	business_code            *string
+	normalized_business_code *string
+	address                  *string
+	country_code             *string
+	contact_name             *string
+	contact_phone            *string
+	email                    *string
+	tax_identifier           *string
+	aeo_code                 *string
+	custom_display           *bool
+	display_content          *string
+	remark                   *string
+	clearedFields            map[string]struct{}
+	resource                 *uuid.UUID
+	clearedresource          bool
+	done                     bool
+	oldValue                 func(context.Context) (*EnterpriseResourceParty, error)
+	predicates               []predicate.EnterpriseResourceParty
+}
+
+var _ ent.Mutation = (*EnterpriseResourcePartyMutation)(nil)
+
+// enterpriseresourcepartyOption allows management of the mutation configuration using functional options.
+type enterpriseresourcepartyOption func(*EnterpriseResourcePartyMutation)
+
+// newEnterpriseResourcePartyMutation creates new mutation for the EnterpriseResourceParty entity.
+func newEnterpriseResourcePartyMutation(c config, op Op, opts ...enterpriseresourcepartyOption) *EnterpriseResourcePartyMutation {
+	m := &EnterpriseResourcePartyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceParty,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourcePartyID sets the ID field of the mutation.
+func withEnterpriseResourcePartyID(id uuid.UUID) enterpriseresourcepartyOption {
+	return func(m *EnterpriseResourcePartyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceParty
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceParty, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceParty.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceParty sets the old EnterpriseResourceParty of the mutation.
+func withEnterpriseResourceParty(node *EnterpriseResourceParty) enterpriseresourcepartyOption {
+	return func(m *EnterpriseResourcePartyMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceParty, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourcePartyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourcePartyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceParty entities.
+func (m *EnterpriseResourcePartyMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourcePartyMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourcePartyMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceParty.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourcePartyMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourcePartyMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourcePartyMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourcePartyMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourcePartyMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourcePartyMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *EnterpriseResourcePartyMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *EnterpriseResourcePartyMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetResourceType sets the "resource_type" field.
+func (m *EnterpriseResourcePartyMutation) SetResourceType(et enterpriseresourceparty.ResourceType) {
+	m.resource_type = &et
+}
+
+// ResourceType returns the value of the "resource_type" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) ResourceType() (r enterpriseresourceparty.ResourceType, exists bool) {
+	v := m.resource_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceType returns the old "resource_type" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldResourceType(ctx context.Context) (v enterpriseresourceparty.ResourceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceType: %w", err)
+	}
+	return oldValue.ResourceType, nil
+}
+
+// ResetResourceType resets all changes to the "resource_type" field.
+func (m *EnterpriseResourcePartyMutation) ResetResourceType() {
+	m.resource_type = nil
+}
+
+// SetCompanyName sets the "company_name" field.
+func (m *EnterpriseResourcePartyMutation) SetCompanyName(s string) {
+	m.company_name = &s
+}
+
+// CompanyName returns the value of the "company_name" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) CompanyName() (r string, exists bool) {
+	v := m.company_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompanyName returns the old "company_name" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldCompanyName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompanyName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompanyName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompanyName: %w", err)
+	}
+	return oldValue.CompanyName, nil
+}
+
+// ResetCompanyName resets all changes to the "company_name" field.
+func (m *EnterpriseResourcePartyMutation) ResetCompanyName() {
+	m.company_name = nil
+}
+
+// SetBusinessCode sets the "business_code" field.
+func (m *EnterpriseResourcePartyMutation) SetBusinessCode(s string) {
+	m.business_code = &s
+}
+
+// BusinessCode returns the value of the "business_code" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) BusinessCode() (r string, exists bool) {
+	v := m.business_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessCode returns the old "business_code" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldBusinessCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessCode: %w", err)
+	}
+	return oldValue.BusinessCode, nil
+}
+
+// ClearBusinessCode clears the value of the "business_code" field.
+func (m *EnterpriseResourcePartyMutation) ClearBusinessCode() {
+	m.business_code = nil
+	m.clearedFields[enterpriseresourceparty.FieldBusinessCode] = struct{}{}
+}
+
+// BusinessCodeCleared returns if the "business_code" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) BusinessCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldBusinessCode]
+	return ok
+}
+
+// ResetBusinessCode resets all changes to the "business_code" field.
+func (m *EnterpriseResourcePartyMutation) ResetBusinessCode() {
+	m.business_code = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldBusinessCode)
+}
+
+// SetNormalizedBusinessCode sets the "normalized_business_code" field.
+func (m *EnterpriseResourcePartyMutation) SetNormalizedBusinessCode(s string) {
+	m.normalized_business_code = &s
+}
+
+// NormalizedBusinessCode returns the value of the "normalized_business_code" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) NormalizedBusinessCode() (r string, exists bool) {
+	v := m.normalized_business_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNormalizedBusinessCode returns the old "normalized_business_code" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldNormalizedBusinessCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNormalizedBusinessCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNormalizedBusinessCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNormalizedBusinessCode: %w", err)
+	}
+	return oldValue.NormalizedBusinessCode, nil
+}
+
+// ClearNormalizedBusinessCode clears the value of the "normalized_business_code" field.
+func (m *EnterpriseResourcePartyMutation) ClearNormalizedBusinessCode() {
+	m.normalized_business_code = nil
+	m.clearedFields[enterpriseresourceparty.FieldNormalizedBusinessCode] = struct{}{}
+}
+
+// NormalizedBusinessCodeCleared returns if the "normalized_business_code" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) NormalizedBusinessCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldNormalizedBusinessCode]
+	return ok
+}
+
+// ResetNormalizedBusinessCode resets all changes to the "normalized_business_code" field.
+func (m *EnterpriseResourcePartyMutation) ResetNormalizedBusinessCode() {
+	m.normalized_business_code = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldNormalizedBusinessCode)
+}
+
+// SetAddress sets the "address" field.
+func (m *EnterpriseResourcePartyMutation) SetAddress(s string) {
+	m.address = &s
+}
+
+// Address returns the value of the "address" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) Address() (r string, exists bool) {
+	v := m.address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddress returns the old "address" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldAddress(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
+	}
+	return oldValue.Address, nil
+}
+
+// ClearAddress clears the value of the "address" field.
+func (m *EnterpriseResourcePartyMutation) ClearAddress() {
+	m.address = nil
+	m.clearedFields[enterpriseresourceparty.FieldAddress] = struct{}{}
+}
+
+// AddressCleared returns if the "address" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) AddressCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldAddress]
+	return ok
+}
+
+// ResetAddress resets all changes to the "address" field.
+func (m *EnterpriseResourcePartyMutation) ResetAddress() {
+	m.address = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldAddress)
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *EnterpriseResourcePartyMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *EnterpriseResourcePartyMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetContactName sets the "contact_name" field.
+func (m *EnterpriseResourcePartyMutation) SetContactName(s string) {
+	m.contact_name = &s
+}
+
+// ContactName returns the value of the "contact_name" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) ContactName() (r string, exists bool) {
+	v := m.contact_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactName returns the old "contact_name" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldContactName(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactName: %w", err)
+	}
+	return oldValue.ContactName, nil
+}
+
+// ClearContactName clears the value of the "contact_name" field.
+func (m *EnterpriseResourcePartyMutation) ClearContactName() {
+	m.contact_name = nil
+	m.clearedFields[enterpriseresourceparty.FieldContactName] = struct{}{}
+}
+
+// ContactNameCleared returns if the "contact_name" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) ContactNameCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldContactName]
+	return ok
+}
+
+// ResetContactName resets all changes to the "contact_name" field.
+func (m *EnterpriseResourcePartyMutation) ResetContactName() {
+	m.contact_name = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldContactName)
+}
+
+// SetContactPhone sets the "contact_phone" field.
+func (m *EnterpriseResourcePartyMutation) SetContactPhone(s string) {
+	m.contact_phone = &s
+}
+
+// ContactPhone returns the value of the "contact_phone" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) ContactPhone() (r string, exists bool) {
+	v := m.contact_phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactPhone returns the old "contact_phone" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldContactPhone(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactPhone: %w", err)
+	}
+	return oldValue.ContactPhone, nil
+}
+
+// ClearContactPhone clears the value of the "contact_phone" field.
+func (m *EnterpriseResourcePartyMutation) ClearContactPhone() {
+	m.contact_phone = nil
+	m.clearedFields[enterpriseresourceparty.FieldContactPhone] = struct{}{}
+}
+
+// ContactPhoneCleared returns if the "contact_phone" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) ContactPhoneCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldContactPhone]
+	return ok
+}
+
+// ResetContactPhone resets all changes to the "contact_phone" field.
+func (m *EnterpriseResourcePartyMutation) ResetContactPhone() {
+	m.contact_phone = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldContactPhone)
+}
+
+// SetEmail sets the "email" field.
+func (m *EnterpriseResourcePartyMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldEmail(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ClearEmail clears the value of the "email" field.
+func (m *EnterpriseResourcePartyMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[enterpriseresourceparty.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the "email" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldEmail]
+	return ok
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *EnterpriseResourcePartyMutation) ResetEmail() {
+	m.email = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldEmail)
+}
+
+// SetTaxIdentifier sets the "tax_identifier" field.
+func (m *EnterpriseResourcePartyMutation) SetTaxIdentifier(s string) {
+	m.tax_identifier = &s
+}
+
+// TaxIdentifier returns the value of the "tax_identifier" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) TaxIdentifier() (r string, exists bool) {
+	v := m.tax_identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxIdentifier returns the old "tax_identifier" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldTaxIdentifier(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxIdentifier: %w", err)
+	}
+	return oldValue.TaxIdentifier, nil
+}
+
+// ClearTaxIdentifier clears the value of the "tax_identifier" field.
+func (m *EnterpriseResourcePartyMutation) ClearTaxIdentifier() {
+	m.tax_identifier = nil
+	m.clearedFields[enterpriseresourceparty.FieldTaxIdentifier] = struct{}{}
+}
+
+// TaxIdentifierCleared returns if the "tax_identifier" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) TaxIdentifierCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldTaxIdentifier]
+	return ok
+}
+
+// ResetTaxIdentifier resets all changes to the "tax_identifier" field.
+func (m *EnterpriseResourcePartyMutation) ResetTaxIdentifier() {
+	m.tax_identifier = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldTaxIdentifier)
+}
+
+// SetAeoCode sets the "aeo_code" field.
+func (m *EnterpriseResourcePartyMutation) SetAeoCode(s string) {
+	m.aeo_code = &s
+}
+
+// AeoCode returns the value of the "aeo_code" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) AeoCode() (r string, exists bool) {
+	v := m.aeo_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAeoCode returns the old "aeo_code" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldAeoCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAeoCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAeoCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAeoCode: %w", err)
+	}
+	return oldValue.AeoCode, nil
+}
+
+// ClearAeoCode clears the value of the "aeo_code" field.
+func (m *EnterpriseResourcePartyMutation) ClearAeoCode() {
+	m.aeo_code = nil
+	m.clearedFields[enterpriseresourceparty.FieldAeoCode] = struct{}{}
+}
+
+// AeoCodeCleared returns if the "aeo_code" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) AeoCodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldAeoCode]
+	return ok
+}
+
+// ResetAeoCode resets all changes to the "aeo_code" field.
+func (m *EnterpriseResourcePartyMutation) ResetAeoCode() {
+	m.aeo_code = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldAeoCode)
+}
+
+// SetCustomDisplay sets the "custom_display" field.
+func (m *EnterpriseResourcePartyMutation) SetCustomDisplay(b bool) {
+	m.custom_display = &b
+}
+
+// CustomDisplay returns the value of the "custom_display" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) CustomDisplay() (r bool, exists bool) {
+	v := m.custom_display
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomDisplay returns the old "custom_display" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldCustomDisplay(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomDisplay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomDisplay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomDisplay: %w", err)
+	}
+	return oldValue.CustomDisplay, nil
+}
+
+// ResetCustomDisplay resets all changes to the "custom_display" field.
+func (m *EnterpriseResourcePartyMutation) ResetCustomDisplay() {
+	m.custom_display = nil
+}
+
+// SetDisplayContent sets the "display_content" field.
+func (m *EnterpriseResourcePartyMutation) SetDisplayContent(s string) {
+	m.display_content = &s
+}
+
+// DisplayContent returns the value of the "display_content" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) DisplayContent() (r string, exists bool) {
+	v := m.display_content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayContent returns the old "display_content" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldDisplayContent(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayContent: %w", err)
+	}
+	return oldValue.DisplayContent, nil
+}
+
+// ClearDisplayContent clears the value of the "display_content" field.
+func (m *EnterpriseResourcePartyMutation) ClearDisplayContent() {
+	m.display_content = nil
+	m.clearedFields[enterpriseresourceparty.FieldDisplayContent] = struct{}{}
+}
+
+// DisplayContentCleared returns if the "display_content" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) DisplayContentCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldDisplayContent]
+	return ok
+}
+
+// ResetDisplayContent resets all changes to the "display_content" field.
+func (m *EnterpriseResourcePartyMutation) ResetDisplayContent() {
+	m.display_content = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldDisplayContent)
+}
+
+// SetRemark sets the "remark" field.
+func (m *EnterpriseResourcePartyMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *EnterpriseResourcePartyMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[enterpriseresourceparty.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceparty.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *EnterpriseResourcePartyMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, enterpriseresourceparty.FieldRemark)
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourcePartyMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceparty.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourcePartyMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourcePartyMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourcePartyMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// Where appends a list predicates to the EnterpriseResourcePartyMutation builder.
+func (m *EnterpriseResourcePartyMutation) Where(ps ...predicate.EnterpriseResourceParty) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourcePartyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourcePartyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceParty, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourcePartyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourcePartyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceParty).
+func (m *EnterpriseResourcePartyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourcePartyMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceparty.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceparty.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceparty.FieldResourceID)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, enterpriseresourceparty.FieldOrganizationID)
+	}
+	if m.resource_type != nil {
+		fields = append(fields, enterpriseresourceparty.FieldResourceType)
+	}
+	if m.company_name != nil {
+		fields = append(fields, enterpriseresourceparty.FieldCompanyName)
+	}
+	if m.business_code != nil {
+		fields = append(fields, enterpriseresourceparty.FieldBusinessCode)
+	}
+	if m.normalized_business_code != nil {
+		fields = append(fields, enterpriseresourceparty.FieldNormalizedBusinessCode)
+	}
+	if m.address != nil {
+		fields = append(fields, enterpriseresourceparty.FieldAddress)
+	}
+	if m.country_code != nil {
+		fields = append(fields, enterpriseresourceparty.FieldCountryCode)
+	}
+	if m.contact_name != nil {
+		fields = append(fields, enterpriseresourceparty.FieldContactName)
+	}
+	if m.contact_phone != nil {
+		fields = append(fields, enterpriseresourceparty.FieldContactPhone)
+	}
+	if m.email != nil {
+		fields = append(fields, enterpriseresourceparty.FieldEmail)
+	}
+	if m.tax_identifier != nil {
+		fields = append(fields, enterpriseresourceparty.FieldTaxIdentifier)
+	}
+	if m.aeo_code != nil {
+		fields = append(fields, enterpriseresourceparty.FieldAeoCode)
+	}
+	if m.custom_display != nil {
+		fields = append(fields, enterpriseresourceparty.FieldCustomDisplay)
+	}
+	if m.display_content != nil {
+		fields = append(fields, enterpriseresourceparty.FieldDisplayContent)
+	}
+	if m.remark != nil {
+		fields = append(fields, enterpriseresourceparty.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourcePartyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceparty.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceparty.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceparty.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceparty.FieldOrganizationID:
+		return m.OrganizationID()
+	case enterpriseresourceparty.FieldResourceType:
+		return m.ResourceType()
+	case enterpriseresourceparty.FieldCompanyName:
+		return m.CompanyName()
+	case enterpriseresourceparty.FieldBusinessCode:
+		return m.BusinessCode()
+	case enterpriseresourceparty.FieldNormalizedBusinessCode:
+		return m.NormalizedBusinessCode()
+	case enterpriseresourceparty.FieldAddress:
+		return m.Address()
+	case enterpriseresourceparty.FieldCountryCode:
+		return m.CountryCode()
+	case enterpriseresourceparty.FieldContactName:
+		return m.ContactName()
+	case enterpriseresourceparty.FieldContactPhone:
+		return m.ContactPhone()
+	case enterpriseresourceparty.FieldEmail:
+		return m.Email()
+	case enterpriseresourceparty.FieldTaxIdentifier:
+		return m.TaxIdentifier()
+	case enterpriseresourceparty.FieldAeoCode:
+		return m.AeoCode()
+	case enterpriseresourceparty.FieldCustomDisplay:
+		return m.CustomDisplay()
+	case enterpriseresourceparty.FieldDisplayContent:
+		return m.DisplayContent()
+	case enterpriseresourceparty.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourcePartyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceparty.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceparty.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceparty.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceparty.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case enterpriseresourceparty.FieldResourceType:
+		return m.OldResourceType(ctx)
+	case enterpriseresourceparty.FieldCompanyName:
+		return m.OldCompanyName(ctx)
+	case enterpriseresourceparty.FieldBusinessCode:
+		return m.OldBusinessCode(ctx)
+	case enterpriseresourceparty.FieldNormalizedBusinessCode:
+		return m.OldNormalizedBusinessCode(ctx)
+	case enterpriseresourceparty.FieldAddress:
+		return m.OldAddress(ctx)
+	case enterpriseresourceparty.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case enterpriseresourceparty.FieldContactName:
+		return m.OldContactName(ctx)
+	case enterpriseresourceparty.FieldContactPhone:
+		return m.OldContactPhone(ctx)
+	case enterpriseresourceparty.FieldEmail:
+		return m.OldEmail(ctx)
+	case enterpriseresourceparty.FieldTaxIdentifier:
+		return m.OldTaxIdentifier(ctx)
+	case enterpriseresourceparty.FieldAeoCode:
+		return m.OldAeoCode(ctx)
+	case enterpriseresourceparty.FieldCustomDisplay:
+		return m.OldCustomDisplay(ctx)
+	case enterpriseresourceparty.FieldDisplayContent:
+		return m.OldDisplayContent(ctx)
+	case enterpriseresourceparty.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceParty field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourcePartyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceparty.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceparty.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceparty.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceparty.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case enterpriseresourceparty.FieldResourceType:
+		v, ok := value.(enterpriseresourceparty.ResourceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceType(v)
+		return nil
+	case enterpriseresourceparty.FieldCompanyName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompanyName(v)
+		return nil
+	case enterpriseresourceparty.FieldBusinessCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessCode(v)
+		return nil
+	case enterpriseresourceparty.FieldNormalizedBusinessCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNormalizedBusinessCode(v)
+		return nil
+	case enterpriseresourceparty.FieldAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddress(v)
+		return nil
+	case enterpriseresourceparty.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case enterpriseresourceparty.FieldContactName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactName(v)
+		return nil
+	case enterpriseresourceparty.FieldContactPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactPhone(v)
+		return nil
+	case enterpriseresourceparty.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case enterpriseresourceparty.FieldTaxIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxIdentifier(v)
+		return nil
+	case enterpriseresourceparty.FieldAeoCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAeoCode(v)
+		return nil
+	case enterpriseresourceparty.FieldCustomDisplay:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomDisplay(v)
+		return nil
+	case enterpriseresourceparty.FieldDisplayContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayContent(v)
+		return nil
+	case enterpriseresourceparty.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourcePartyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourcePartyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourcePartyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourcePartyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterpriseresourceparty.FieldBusinessCode) {
+		fields = append(fields, enterpriseresourceparty.FieldBusinessCode)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldNormalizedBusinessCode) {
+		fields = append(fields, enterpriseresourceparty.FieldNormalizedBusinessCode)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldAddress) {
+		fields = append(fields, enterpriseresourceparty.FieldAddress)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldContactName) {
+		fields = append(fields, enterpriseresourceparty.FieldContactName)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldContactPhone) {
+		fields = append(fields, enterpriseresourceparty.FieldContactPhone)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldEmail) {
+		fields = append(fields, enterpriseresourceparty.FieldEmail)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldTaxIdentifier) {
+		fields = append(fields, enterpriseresourceparty.FieldTaxIdentifier)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldAeoCode) {
+		fields = append(fields, enterpriseresourceparty.FieldAeoCode)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldDisplayContent) {
+		fields = append(fields, enterpriseresourceparty.FieldDisplayContent)
+	}
+	if m.FieldCleared(enterpriseresourceparty.FieldRemark) {
+		fields = append(fields, enterpriseresourceparty.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourcePartyMutation) ClearField(name string) error {
+	switch name {
+	case enterpriseresourceparty.FieldBusinessCode:
+		m.ClearBusinessCode()
+		return nil
+	case enterpriseresourceparty.FieldNormalizedBusinessCode:
+		m.ClearNormalizedBusinessCode()
+		return nil
+	case enterpriseresourceparty.FieldAddress:
+		m.ClearAddress()
+		return nil
+	case enterpriseresourceparty.FieldContactName:
+		m.ClearContactName()
+		return nil
+	case enterpriseresourceparty.FieldContactPhone:
+		m.ClearContactPhone()
+		return nil
+	case enterpriseresourceparty.FieldEmail:
+		m.ClearEmail()
+		return nil
+	case enterpriseresourceparty.FieldTaxIdentifier:
+		m.ClearTaxIdentifier()
+		return nil
+	case enterpriseresourceparty.FieldAeoCode:
+		m.ClearAeoCode()
+		return nil
+	case enterpriseresourceparty.FieldDisplayContent:
+		m.ClearDisplayContent()
+		return nil
+	case enterpriseresourceparty.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourcePartyMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceparty.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceparty.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceparty.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceparty.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case enterpriseresourceparty.FieldResourceType:
+		m.ResetResourceType()
+		return nil
+	case enterpriseresourceparty.FieldCompanyName:
+		m.ResetCompanyName()
+		return nil
+	case enterpriseresourceparty.FieldBusinessCode:
+		m.ResetBusinessCode()
+		return nil
+	case enterpriseresourceparty.FieldNormalizedBusinessCode:
+		m.ResetNormalizedBusinessCode()
+		return nil
+	case enterpriseresourceparty.FieldAddress:
+		m.ResetAddress()
+		return nil
+	case enterpriseresourceparty.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case enterpriseresourceparty.FieldContactName:
+		m.ResetContactName()
+		return nil
+	case enterpriseresourceparty.FieldContactPhone:
+		m.ResetContactPhone()
+		return nil
+	case enterpriseresourceparty.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case enterpriseresourceparty.FieldTaxIdentifier:
+		m.ResetTaxIdentifier()
+		return nil
+	case enterpriseresourceparty.FieldAeoCode:
+		m.ResetAeoCode()
+		return nil
+	case enterpriseresourceparty.FieldCustomDisplay:
+		m.ResetCustomDisplay()
+		return nil
+	case enterpriseresourceparty.FieldDisplayContent:
+		m.ResetDisplayContent()
+		return nil
+	case enterpriseresourceparty.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourcePartyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceparty.EdgeResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourcePartyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceparty.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourcePartyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourcePartyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceparty.EdgeResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourcePartyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceparty.EdgeResource:
+		return m.clearedresource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourcePartyMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceparty.EdgeResource:
+		m.ClearResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourcePartyMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceparty.EdgeResource:
+		m.ResetResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceParty edge %s", name)
+}
+
+// EnterpriseResourceRemarkMutation represents an operation that mutates the EnterpriseResourceRemark nodes in the graph.
+type EnterpriseResourceRemarkMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	remark_type     *enterpriseresourceremark.RemarkType
+	content         *string
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceRemark, error)
+	predicates      []predicate.EnterpriseResourceRemark
+}
+
+var _ ent.Mutation = (*EnterpriseResourceRemarkMutation)(nil)
+
+// enterpriseresourceremarkOption allows management of the mutation configuration using functional options.
+type enterpriseresourceremarkOption func(*EnterpriseResourceRemarkMutation)
+
+// newEnterpriseResourceRemarkMutation creates new mutation for the EnterpriseResourceRemark entity.
+func newEnterpriseResourceRemarkMutation(c config, op Op, opts ...enterpriseresourceremarkOption) *EnterpriseResourceRemarkMutation {
+	m := &EnterpriseResourceRemarkMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceRemark,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceRemarkID sets the ID field of the mutation.
+func withEnterpriseResourceRemarkID(id uuid.UUID) enterpriseresourceremarkOption {
+	return func(m *EnterpriseResourceRemarkMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceRemark
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceRemark, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceRemark.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceRemark sets the old EnterpriseResourceRemark of the mutation.
+func withEnterpriseResourceRemark(node *EnterpriseResourceRemark) enterpriseresourceremarkOption {
+	return func(m *EnterpriseResourceRemarkMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceRemark, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceRemarkMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceRemarkMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceRemark entities.
+func (m *EnterpriseResourceRemarkMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceRemarkMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceRemarkMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceRemark.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceRemarkMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceRemarkMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceRemarkMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceRemarkMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceRemarkMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceRemarkMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetRemarkType sets the "remark_type" field.
+func (m *EnterpriseResourceRemarkMutation) SetRemarkType(et enterpriseresourceremark.RemarkType) {
+	m.remark_type = &et
+}
+
+// RemarkType returns the value of the "remark_type" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) RemarkType() (r enterpriseresourceremark.RemarkType, exists bool) {
+	v := m.remark_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemarkType returns the old "remark_type" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldRemarkType(ctx context.Context) (v enterpriseresourceremark.RemarkType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemarkType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemarkType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemarkType: %w", err)
+	}
+	return oldValue.RemarkType, nil
+}
+
+// ResetRemarkType resets all changes to the "remark_type" field.
+func (m *EnterpriseResourceRemarkMutation) ResetRemarkType() {
+	m.remark_type = nil
+}
+
+// SetContent sets the "content" field.
+func (m *EnterpriseResourceRemarkMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *EnterpriseResourceRemarkMutation) ResetContent() {
+	m.content = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceRemarkMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceremark.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceRemarkMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceRemarkMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceRemarkMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceRemarkMutation builder.
+func (m *EnterpriseResourceRemarkMutation) Where(ps ...predicate.EnterpriseResourceRemark) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceRemarkMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceRemarkMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceRemark, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceRemarkMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceRemarkMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceRemark).
+func (m *EnterpriseResourceRemarkMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceRemarkMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceremark.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceremark.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceremark.FieldResourceID)
+	}
+	if m.remark_type != nil {
+		fields = append(fields, enterpriseresourceremark.FieldRemarkType)
+	}
+	if m.content != nil {
+		fields = append(fields, enterpriseresourceremark.FieldContent)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceRemarkMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceremark.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceremark.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceremark.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceremark.FieldRemarkType:
+		return m.RemarkType()
+	case enterpriseresourceremark.FieldContent:
+		return m.Content()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceRemarkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceremark.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceremark.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceremark.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceremark.FieldRemarkType:
+		return m.OldRemarkType(ctx)
+	case enterpriseresourceremark.FieldContent:
+		return m.OldContent(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceRemark field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceRemarkMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceremark.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceremark.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceremark.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceremark.FieldRemarkType:
+		v, ok := value.(enterpriseresourceremark.RemarkType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemarkType(v)
+		return nil
+	case enterpriseresourceremark.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceRemark field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceRemarkMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceRemarkMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceRemarkMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceRemark numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceRemarkMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceRemarkMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceRemarkMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnterpriseResourceRemark nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceRemarkMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceremark.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceremark.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceremark.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceremark.FieldRemarkType:
+		m.ResetRemarkType()
+		return nil
+	case enterpriseresourceremark.FieldContent:
+		m.ResetContent()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceRemark field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceRemarkMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceremark.EdgeResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceRemarkMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceremark.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceRemarkMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceRemarkMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceRemarkMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceremark.EdgeResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceRemarkMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceremark.EdgeResource:
+		return m.clearedresource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceRemarkMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceremark.EdgeResource:
+		m.ClearResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceRemark unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceRemarkMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceremark.EdgeResource:
+		m.ResetResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceRemark edge %s", name)
+}
+
+// EnterpriseResourceShippingTextMutation represents an operation that mutates the EnterpriseResourceShippingText nodes in the graph.
+type EnterpriseResourceShippingTextMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	content         *string
+	code            *string
+	remark          *string
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseResourceShippingText, error)
+	predicates      []predicate.EnterpriseResourceShippingText
+}
+
+var _ ent.Mutation = (*EnterpriseResourceShippingTextMutation)(nil)
+
+// enterpriseresourceshippingtextOption allows management of the mutation configuration using functional options.
+type enterpriseresourceshippingtextOption func(*EnterpriseResourceShippingTextMutation)
+
+// newEnterpriseResourceShippingTextMutation creates new mutation for the EnterpriseResourceShippingText entity.
+func newEnterpriseResourceShippingTextMutation(c config, op Op, opts ...enterpriseresourceshippingtextOption) *EnterpriseResourceShippingTextMutation {
+	m := &EnterpriseResourceShippingTextMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseResourceShippingText,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseResourceShippingTextID sets the ID field of the mutation.
+func withEnterpriseResourceShippingTextID(id uuid.UUID) enterpriseresourceshippingtextOption {
+	return func(m *EnterpriseResourceShippingTextMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseResourceShippingText
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseResourceShippingText, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseResourceShippingText.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseResourceShippingText sets the old EnterpriseResourceShippingText of the mutation.
+func withEnterpriseResourceShippingText(node *EnterpriseResourceShippingText) enterpriseresourceshippingtextOption {
+	return func(m *EnterpriseResourceShippingTextMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseResourceShippingText, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseResourceShippingTextMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseResourceShippingTextMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseResourceShippingText entities.
+func (m *EnterpriseResourceShippingTextMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseResourceShippingTextMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseResourceShippingTextMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseResourceShippingText.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseResourceShippingTextMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseResourceShippingTextMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseResourceShippingTextMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetContent sets the "content" field.
+func (m *EnterpriseResourceShippingTextMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldContent(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ClearContent clears the value of the "content" field.
+func (m *EnterpriseResourceShippingTextMutation) ClearContent() {
+	m.content = nil
+	m.clearedFields[enterpriseresourceshippingtext.FieldContent] = struct{}{}
+}
+
+// ContentCleared returns if the "content" field was cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) ContentCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceshippingtext.FieldContent]
+	return ok
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetContent() {
+	m.content = nil
+	delete(m.clearedFields, enterpriseresourceshippingtext.FieldContent)
+}
+
+// SetCode sets the "code" field.
+func (m *EnterpriseResourceShippingTextMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ClearCode clears the value of the "code" field.
+func (m *EnterpriseResourceShippingTextMutation) ClearCode() {
+	m.code = nil
+	m.clearedFields[enterpriseresourceshippingtext.FieldCode] = struct{}{}
+}
+
+// CodeCleared returns if the "code" field was cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) CodeCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceshippingtext.FieldCode]
+	return ok
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetCode() {
+	m.code = nil
+	delete(m.clearedFields, enterpriseresourceshippingtext.FieldCode)
+}
+
+// SetRemark sets the "remark" field.
+func (m *EnterpriseResourceShippingTextMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *EnterpriseResourceShippingTextMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the EnterpriseResourceShippingText entity.
+// If the EnterpriseResourceShippingText object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceShippingTextMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *EnterpriseResourceShippingTextMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[enterpriseresourceshippingtext.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[enterpriseresourceshippingtext.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *EnterpriseResourceShippingTextMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, enterpriseresourceshippingtext.FieldRemark)
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseResourceShippingTextMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterpriseresourceshippingtext.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseResourceShippingTextMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseResourceShippingTextMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseResourceShippingTextMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// Where appends a list predicates to the EnterpriseResourceShippingTextMutation builder.
+func (m *EnterpriseResourceShippingTextMutation) Where(ps ...predicate.EnterpriseResourceShippingText) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseResourceShippingTextMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseResourceShippingTextMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseResourceShippingText, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseResourceShippingTextMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseResourceShippingTextMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseResourceShippingText).
+func (m *EnterpriseResourceShippingTextMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseResourceShippingTextMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldResourceID)
+	}
+	if m.content != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldContent)
+	}
+	if m.code != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldCode)
+	}
+	if m.remark != nil {
+		fields = append(fields, enterpriseresourceshippingtext.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseResourceShippingTextMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterpriseresourceshippingtext.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterpriseresourceshippingtext.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterpriseresourceshippingtext.FieldResourceID:
+		return m.ResourceID()
+	case enterpriseresourceshippingtext.FieldContent:
+		return m.Content()
+	case enterpriseresourceshippingtext.FieldCode:
+		return m.Code()
+	case enterpriseresourceshippingtext.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseResourceShippingTextMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterpriseresourceshippingtext.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterpriseresourceshippingtext.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceshippingtext.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterpriseresourceshippingtext.FieldContent:
+		return m.OldContent(ctx)
+	case enterpriseresourceshippingtext.FieldCode:
+		return m.OldCode(ctx)
+	case enterpriseresourceshippingtext.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseResourceShippingText field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceShippingTextMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterpriseresourceshippingtext.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterpriseresourceshippingtext.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceshippingtext.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterpriseresourceshippingtext.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case enterpriseresourceshippingtext.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case enterpriseresourceshippingtext.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseResourceShippingTextMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseResourceShippingTextMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseResourceShippingTextMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseResourceShippingTextMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterpriseresourceshippingtext.FieldContent) {
+		fields = append(fields, enterpriseresourceshippingtext.FieldContent)
+	}
+	if m.FieldCleared(enterpriseresourceshippingtext.FieldCode) {
+		fields = append(fields, enterpriseresourceshippingtext.FieldCode)
+	}
+	if m.FieldCleared(enterpriseresourceshippingtext.FieldRemark) {
+		fields = append(fields, enterpriseresourceshippingtext.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseResourceShippingTextMutation) ClearField(name string) error {
+	switch name {
+	case enterpriseresourceshippingtext.FieldContent:
+		m.ClearContent()
+		return nil
+	case enterpriseresourceshippingtext.FieldCode:
+		m.ClearCode()
+		return nil
+	case enterpriseresourceshippingtext.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseResourceShippingTextMutation) ResetField(name string) error {
+	switch name {
+	case enterpriseresourceshippingtext.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterpriseresourceshippingtext.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceshippingtext.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterpriseresourceshippingtext.FieldContent:
+		m.ResetContent()
+		return nil
+	case enterpriseresourceshippingtext.FieldCode:
+		m.ResetCode()
+		return nil
+	case enterpriseresourceshippingtext.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.resource != nil {
+		edges = append(edges, enterpriseresourceshippingtext.EdgeResource)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterpriseresourceshippingtext.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresource {
+		edges = append(edges, enterpriseresourceshippingtext.EdgeResource)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseResourceShippingTextMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterpriseresourceshippingtext.EdgeResource:
+		return m.clearedresource
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseResourceShippingTextMutation) ClearEdge(name string) error {
+	switch name {
+	case enterpriseresourceshippingtext.EdgeResource:
+		m.ClearResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseResourceShippingTextMutation) ResetEdge(name string) error {
+	switch name {
+	case enterpriseresourceshippingtext.EdgeResource:
+		m.ResetResource()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseResourceShippingText edge %s", name)
+}
+
+// EnterpriseTagMutation represents an operation that mutates the EnterpriseTag nodes in the graph.
+type EnterpriseTagMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	organization_id *uuid.UUID
+	normalized_name *string
+	sort_order      *int
+	addsort_order   *int
+	clearedFields   map[string]struct{}
+	resource        *uuid.UUID
+	clearedresource bool
+	group           *uuid.UUID
+	clearedgroup    bool
+	done            bool
+	oldValue        func(context.Context) (*EnterpriseTag, error)
+	predicates      []predicate.EnterpriseTag
+}
+
+var _ ent.Mutation = (*EnterpriseTagMutation)(nil)
+
+// enterprisetagOption allows management of the mutation configuration using functional options.
+type enterprisetagOption func(*EnterpriseTagMutation)
+
+// newEnterpriseTagMutation creates new mutation for the EnterpriseTag entity.
+func newEnterpriseTagMutation(c config, op Op, opts ...enterprisetagOption) *EnterpriseTagMutation {
+	m := &EnterpriseTagMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseTag,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseTagID sets the ID field of the mutation.
+func withEnterpriseTagID(id uuid.UUID) enterprisetagOption {
+	return func(m *EnterpriseTagMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseTag
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseTag, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseTag.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseTag sets the old EnterpriseTag of the mutation.
+func withEnterpriseTag(node *EnterpriseTag) enterprisetagOption {
+	return func(m *EnterpriseTagMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseTag, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseTagMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseTagMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseTag entities.
+func (m *EnterpriseTagMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseTagMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseTagMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseTag.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseTagMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseTagMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseTagMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseTagMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseTagMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseTagMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResourceID sets the "resource_id" field.
+func (m *EnterpriseTagMutation) SetResourceID(u uuid.UUID) {
+	m.resource = &u
+}
+
+// ResourceID returns the value of the "resource_id" field in the mutation.
+func (m *EnterpriseTagMutation) ResourceID() (r uuid.UUID, exists bool) {
+	v := m.resource
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceID returns the old "resource_id" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldResourceID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceID: %w", err)
+	}
+	return oldValue.ResourceID, nil
+}
+
+// ResetResourceID resets all changes to the "resource_id" field.
+func (m *EnterpriseTagMutation) ResetResourceID() {
+	m.resource = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *EnterpriseTagMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *EnterpriseTagMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *EnterpriseTagMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *EnterpriseTagMutation) SetGroupID(u uuid.UUID) {
+	m.group = &u
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *EnterpriseTagMutation) GroupID() (r uuid.UUID, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldGroupID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *EnterpriseTagMutation) ResetGroupID() {
+	m.group = nil
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (m *EnterpriseTagMutation) SetNormalizedName(s string) {
+	m.normalized_name = &s
+}
+
+// NormalizedName returns the value of the "normalized_name" field in the mutation.
+func (m *EnterpriseTagMutation) NormalizedName() (r string, exists bool) {
+	v := m.normalized_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNormalizedName returns the old "normalized_name" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldNormalizedName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNormalizedName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNormalizedName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNormalizedName: %w", err)
+	}
+	return oldValue.NormalizedName, nil
+}
+
+// ResetNormalizedName resets all changes to the "normalized_name" field.
+func (m *EnterpriseTagMutation) ResetNormalizedName() {
+	m.normalized_name = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *EnterpriseTagMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *EnterpriseTagMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the EnterpriseTag entity.
+// If the EnterpriseTag object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *EnterpriseTagMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *EnterpriseTagMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *EnterpriseTagMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// ClearResource clears the "resource" edge to the EnterpriseResource entity.
+func (m *EnterpriseTagMutation) ClearResource() {
+	m.clearedresource = true
+	m.clearedFields[enterprisetag.FieldResourceID] = struct{}{}
+}
+
+// ResourceCleared reports if the "resource" edge to the EnterpriseResource entity was cleared.
+func (m *EnterpriseTagMutation) ResourceCleared() bool {
+	return m.clearedresource
+}
+
+// ResourceIDs returns the "resource" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ResourceID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseTagMutation) ResourceIDs() (ids []uuid.UUID) {
+	if id := m.resource; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetResource resets all changes to the "resource" edge.
+func (m *EnterpriseTagMutation) ResetResource() {
+	m.resource = nil
+	m.clearedresource = false
+}
+
+// ClearGroup clears the "group" edge to the EnterpriseTagGroup entity.
+func (m *EnterpriseTagMutation) ClearGroup() {
+	m.clearedgroup = true
+	m.clearedFields[enterprisetag.FieldGroupID] = struct{}{}
+}
+
+// GroupCleared reports if the "group" edge to the EnterpriseTagGroup entity was cleared.
+func (m *EnterpriseTagMutation) GroupCleared() bool {
+	return m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseTagMutation) GroupIDs() (ids []uuid.UUID) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *EnterpriseTagMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
+// Where appends a list predicates to the EnterpriseTagMutation builder.
+func (m *EnterpriseTagMutation) Where(ps ...predicate.EnterpriseTag) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseTagMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseTagMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseTag, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseTagMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseTagMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseTag).
+func (m *EnterpriseTagMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseTagMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, enterprisetag.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterprisetag.FieldUpdatedAt)
+	}
+	if m.resource != nil {
+		fields = append(fields, enterprisetag.FieldResourceID)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, enterprisetag.FieldOrganizationID)
+	}
+	if m.group != nil {
+		fields = append(fields, enterprisetag.FieldGroupID)
+	}
+	if m.normalized_name != nil {
+		fields = append(fields, enterprisetag.FieldNormalizedName)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, enterprisetag.FieldSortOrder)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseTagMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterprisetag.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterprisetag.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterprisetag.FieldResourceID:
+		return m.ResourceID()
+	case enterprisetag.FieldOrganizationID:
+		return m.OrganizationID()
+	case enterprisetag.FieldGroupID:
+		return m.GroupID()
+	case enterprisetag.FieldNormalizedName:
+		return m.NormalizedName()
+	case enterprisetag.FieldSortOrder:
+		return m.SortOrder()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseTagMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterprisetag.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterprisetag.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterprisetag.FieldResourceID:
+		return m.OldResourceID(ctx)
+	case enterprisetag.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case enterprisetag.FieldGroupID:
+		return m.OldGroupID(ctx)
+	case enterprisetag.FieldNormalizedName:
+		return m.OldNormalizedName(ctx)
+	case enterprisetag.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseTag field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseTagMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterprisetag.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterprisetag.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterprisetag.FieldResourceID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceID(v)
+		return nil
+	case enterprisetag.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case enterprisetag.FieldGroupID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
+		return nil
+	case enterprisetag.FieldNormalizedName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNormalizedName(v)
+		return nil
+	case enterprisetag.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTag field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseTagMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, enterprisetag.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseTagMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case enterprisetag.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseTagMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case enterprisetag.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTag numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseTagMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseTagMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseTagMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnterpriseTag nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseTagMutation) ResetField(name string) error {
+	switch name {
+	case enterprisetag.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterprisetag.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterprisetag.FieldResourceID:
+		m.ResetResourceID()
+		return nil
+	case enterprisetag.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case enterprisetag.FieldGroupID:
+		m.ResetGroupID()
+		return nil
+	case enterprisetag.FieldNormalizedName:
+		m.ResetNormalizedName()
+		return nil
+	case enterprisetag.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTag field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseTagMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.resource != nil {
+		edges = append(edges, enterprisetag.EdgeResource)
+	}
+	if m.group != nil {
+		edges = append(edges, enterprisetag.EdgeGroup)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseTagMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterprisetag.EdgeResource:
+		if id := m.resource; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterprisetag.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseTagMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseTagMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseTagMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedresource {
+		edges = append(edges, enterprisetag.EdgeResource)
+	}
+	if m.clearedgroup {
+		edges = append(edges, enterprisetag.EdgeGroup)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseTagMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterprisetag.EdgeResource:
+		return m.clearedresource
+	case enterprisetag.EdgeGroup:
+		return m.clearedgroup
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseTagMutation) ClearEdge(name string) error {
+	switch name {
+	case enterprisetag.EdgeResource:
+		m.ClearResource()
+		return nil
+	case enterprisetag.EdgeGroup:
+		m.ClearGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTag unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseTagMutation) ResetEdge(name string) error {
+	switch name {
+	case enterprisetag.EdgeResource:
+		m.ResetResource()
+		return nil
+	case enterprisetag.EdgeGroup:
+		m.ResetGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTag edge %s", name)
+}
+
+// EnterpriseTagGroupMutation represents an operation that mutates the EnterpriseTagGroup nodes in the graph.
+type EnterpriseTagGroupMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	name                *string
+	normalized_name     *string
+	color               *string
+	sort_order          *int
+	addsort_order       *int
+	clearedFields       map[string]struct{}
+	organization        *uuid.UUID
+	clearedorganization bool
+	tags                map[uuid.UUID]struct{}
+	removedtags         map[uuid.UUID]struct{}
+	clearedtags         bool
+	done                bool
+	oldValue            func(context.Context) (*EnterpriseTagGroup, error)
+	predicates          []predicate.EnterpriseTagGroup
+}
+
+var _ ent.Mutation = (*EnterpriseTagGroupMutation)(nil)
+
+// enterprisetaggroupOption allows management of the mutation configuration using functional options.
+type enterprisetaggroupOption func(*EnterpriseTagGroupMutation)
+
+// newEnterpriseTagGroupMutation creates new mutation for the EnterpriseTagGroup entity.
+func newEnterpriseTagGroupMutation(c config, op Op, opts ...enterprisetaggroupOption) *EnterpriseTagGroupMutation {
+	m := &EnterpriseTagGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnterpriseTagGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnterpriseTagGroupID sets the ID field of the mutation.
+func withEnterpriseTagGroupID(id uuid.UUID) enterprisetaggroupOption {
+	return func(m *EnterpriseTagGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnterpriseTagGroup
+		)
+		m.oldValue = func(ctx context.Context) (*EnterpriseTagGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnterpriseTagGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnterpriseTagGroup sets the old EnterpriseTagGroup of the mutation.
+func withEnterpriseTagGroup(node *EnterpriseTagGroup) enterprisetaggroupOption {
+	return func(m *EnterpriseTagGroupMutation) {
+		m.oldValue = func(context.Context) (*EnterpriseTagGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnterpriseTagGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnterpriseTagGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EnterpriseTagGroup entities.
+func (m *EnterpriseTagGroupMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnterpriseTagGroupMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnterpriseTagGroupMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnterpriseTagGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EnterpriseTagGroupMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EnterpriseTagGroupMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EnterpriseTagGroupMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EnterpriseTagGroupMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EnterpriseTagGroupMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EnterpriseTagGroupMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *EnterpriseTagGroupMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *EnterpriseTagGroupMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *EnterpriseTagGroupMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetName sets the "name" field.
+func (m *EnterpriseTagGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *EnterpriseTagGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *EnterpriseTagGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetNormalizedName sets the "normalized_name" field.
+func (m *EnterpriseTagGroupMutation) SetNormalizedName(s string) {
+	m.normalized_name = &s
+}
+
+// NormalizedName returns the value of the "normalized_name" field in the mutation.
+func (m *EnterpriseTagGroupMutation) NormalizedName() (r string, exists bool) {
+	v := m.normalized_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNormalizedName returns the old "normalized_name" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldNormalizedName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNormalizedName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNormalizedName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNormalizedName: %w", err)
+	}
+	return oldValue.NormalizedName, nil
+}
+
+// ResetNormalizedName resets all changes to the "normalized_name" field.
+func (m *EnterpriseTagGroupMutation) ResetNormalizedName() {
+	m.normalized_name = nil
+}
+
+// SetColor sets the "color" field.
+func (m *EnterpriseTagGroupMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *EnterpriseTagGroupMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldColor(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *EnterpriseTagGroupMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[enterprisetaggroup.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *EnterpriseTagGroupMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[enterprisetaggroup.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *EnterpriseTagGroupMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, enterprisetaggroup.FieldColor)
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *EnterpriseTagGroupMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *EnterpriseTagGroupMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the EnterpriseTagGroup entity.
+// If the EnterpriseTagGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseTagGroupMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *EnterpriseTagGroupMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *EnterpriseTagGroupMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *EnterpriseTagGroupMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *EnterpriseTagGroupMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[enterprisetaggroup.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *EnterpriseTagGroupMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *EnterpriseTagGroupMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *EnterpriseTagGroupMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// AddTagIDs adds the "tags" edge to the EnterpriseTag entity by ids.
+func (m *EnterpriseTagGroupMutation) AddTagIDs(ids ...uuid.UUID) {
+	if m.tags == nil {
+		m.tags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.tags[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTags clears the "tags" edge to the EnterpriseTag entity.
+func (m *EnterpriseTagGroupMutation) ClearTags() {
+	m.clearedtags = true
+}
+
+// TagsCleared reports if the "tags" edge to the EnterpriseTag entity was cleared.
+func (m *EnterpriseTagGroupMutation) TagsCleared() bool {
+	return m.clearedtags
+}
+
+// RemoveTagIDs removes the "tags" edge to the EnterpriseTag entity by IDs.
+func (m *EnterpriseTagGroupMutation) RemoveTagIDs(ids ...uuid.UUID) {
+	if m.removedtags == nil {
+		m.removedtags = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.tags, ids[i])
+		m.removedtags[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTags returns the removed IDs of the "tags" edge to the EnterpriseTag entity.
+func (m *EnterpriseTagGroupMutation) RemovedTagsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TagsIDs returns the "tags" edge IDs in the mutation.
+func (m *EnterpriseTagGroupMutation) TagsIDs() (ids []uuid.UUID) {
+	for id := range m.tags {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTags resets all changes to the "tags" edge.
+func (m *EnterpriseTagGroupMutation) ResetTags() {
+	m.tags = nil
+	m.clearedtags = false
+	m.removedtags = nil
+}
+
+// Where appends a list predicates to the EnterpriseTagGroupMutation builder.
+func (m *EnterpriseTagGroupMutation) Where(ps ...predicate.EnterpriseTagGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnterpriseTagGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnterpriseTagGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnterpriseTagGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnterpriseTagGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnterpriseTagGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnterpriseTagGroup).
+func (m *EnterpriseTagGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnterpriseTagGroupMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, enterprisetaggroup.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, enterprisetaggroup.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, enterprisetaggroup.FieldOrganizationID)
+	}
+	if m.name != nil {
+		fields = append(fields, enterprisetaggroup.FieldName)
+	}
+	if m.normalized_name != nil {
+		fields = append(fields, enterprisetaggroup.FieldNormalizedName)
+	}
+	if m.color != nil {
+		fields = append(fields, enterprisetaggroup.FieldColor)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, enterprisetaggroup.FieldSortOrder)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnterpriseTagGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enterprisetaggroup.FieldCreatedAt:
+		return m.CreatedAt()
+	case enterprisetaggroup.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case enterprisetaggroup.FieldOrganizationID:
+		return m.OrganizationID()
+	case enterprisetaggroup.FieldName:
+		return m.Name()
+	case enterprisetaggroup.FieldNormalizedName:
+		return m.NormalizedName()
+	case enterprisetaggroup.FieldColor:
+		return m.Color()
+	case enterprisetaggroup.FieldSortOrder:
+		return m.SortOrder()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnterpriseTagGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enterprisetaggroup.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case enterprisetaggroup.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case enterprisetaggroup.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case enterprisetaggroup.FieldName:
+		return m.OldName(ctx)
+	case enterprisetaggroup.FieldNormalizedName:
+		return m.OldNormalizedName(ctx)
+	case enterprisetaggroup.FieldColor:
+		return m.OldColor(ctx)
+	case enterprisetaggroup.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnterpriseTagGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseTagGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enterprisetaggroup.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case enterprisetaggroup.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case enterprisetaggroup.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case enterprisetaggroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case enterprisetaggroup.FieldNormalizedName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNormalizedName(v)
+		return nil
+	case enterprisetaggroup.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case enterprisetaggroup.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnterpriseTagGroupMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort_order != nil {
+		fields = append(fields, enterprisetaggroup.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnterpriseTagGroupMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case enterprisetaggroup.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnterpriseTagGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case enterprisetaggroup.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnterpriseTagGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(enterprisetaggroup.FieldColor) {
+		fields = append(fields, enterprisetaggroup.FieldColor)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnterpriseTagGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnterpriseTagGroupMutation) ClearField(name string) error {
+	switch name {
+	case enterprisetaggroup.FieldColor:
+		m.ClearColor()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnterpriseTagGroupMutation) ResetField(name string) error {
+	switch name {
+	case enterprisetaggroup.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case enterprisetaggroup.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case enterprisetaggroup.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case enterprisetaggroup.FieldName:
+		m.ResetName()
+		return nil
+	case enterprisetaggroup.FieldNormalizedName:
+		m.ResetNormalizedName()
+		return nil
+	case enterprisetaggroup.FieldColor:
+		m.ResetColor()
+		return nil
+	case enterprisetaggroup.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnterpriseTagGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.organization != nil {
+		edges = append(edges, enterprisetaggroup.EdgeOrganization)
+	}
+	if m.tags != nil {
+		edges = append(edges, enterprisetaggroup.EdgeTags)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnterpriseTagGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case enterprisetaggroup.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case enterprisetaggroup.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.tags))
+		for id := range m.tags {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnterpriseTagGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedtags != nil {
+		edges = append(edges, enterprisetaggroup.EdgeTags)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnterpriseTagGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case enterprisetaggroup.EdgeTags:
+		ids := make([]ent.Value, 0, len(m.removedtags))
+		for id := range m.removedtags {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnterpriseTagGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedorganization {
+		edges = append(edges, enterprisetaggroup.EdgeOrganization)
+	}
+	if m.clearedtags {
+		edges = append(edges, enterprisetaggroup.EdgeTags)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnterpriseTagGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case enterprisetaggroup.EdgeOrganization:
+		return m.clearedorganization
+	case enterprisetaggroup.EdgeTags:
+		return m.clearedtags
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnterpriseTagGroupMutation) ClearEdge(name string) error {
+	switch name {
+	case enterprisetaggroup.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnterpriseTagGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case enterprisetaggroup.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case enterprisetaggroup.EdgeTags:
+		m.ResetTags()
+		return nil
+	}
+	return fmt.Errorf("unknown EnterpriseTagGroup edge %s", name)
 }
 
 // ExchangeRateCustomSettingMutation represents an operation that mutates the ExchangeRateCustomSetting nodes in the graph.
@@ -67441,6 +77612,12 @@ type OrganizationMutation struct {
 	finance_custom_setting                  map[uuid.UUID]struct{}
 	removedfinance_custom_setting           map[uuid.UUID]struct{}
 	clearedfinance_custom_setting           bool
+	enterprise_resources                    map[uuid.UUID]struct{}
+	removedenterprise_resources             map[uuid.UUID]struct{}
+	clearedenterprise_resources             bool
+	enterprise_tag_groups                   map[uuid.UUID]struct{}
+	removedenterprise_tag_groups            map[uuid.UUID]struct{}
+	clearedenterprise_tag_groups            bool
 	done                                    bool
 	oldValue                                func(context.Context) (*Organization, error)
 	predicates                              []predicate.Organization
@@ -69763,6 +79940,114 @@ func (m *OrganizationMutation) ResetFinanceCustomSetting() {
 	m.removedfinance_custom_setting = nil
 }
 
+// AddEnterpriseResourceIDs adds the "enterprise_resources" edge to the EnterpriseResource entity by ids.
+func (m *OrganizationMutation) AddEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.enterprise_resources == nil {
+		m.enterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseResources clears the "enterprise_resources" edge to the EnterpriseResource entity.
+func (m *OrganizationMutation) ClearEnterpriseResources() {
+	m.clearedenterprise_resources = true
+}
+
+// EnterpriseResourcesCleared reports if the "enterprise_resources" edge to the EnterpriseResource entity was cleared.
+func (m *OrganizationMutation) EnterpriseResourcesCleared() bool {
+	return m.clearedenterprise_resources
+}
+
+// RemoveEnterpriseResourceIDs removes the "enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (m *OrganizationMutation) RemoveEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_resources == nil {
+		m.removedenterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_resources, ids[i])
+		m.removedenterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseResources returns the removed IDs of the "enterprise_resources" edge to the EnterpriseResource entity.
+func (m *OrganizationMutation) RemovedEnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseResourcesIDs returns the "enterprise_resources" edge IDs in the mutation.
+func (m *OrganizationMutation) EnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseResources resets all changes to the "enterprise_resources" edge.
+func (m *OrganizationMutation) ResetEnterpriseResources() {
+	m.enterprise_resources = nil
+	m.clearedenterprise_resources = false
+	m.removedenterprise_resources = nil
+}
+
+// AddEnterpriseTagGroupIDs adds the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by ids.
+func (m *OrganizationMutation) AddEnterpriseTagGroupIDs(ids ...uuid.UUID) {
+	if m.enterprise_tag_groups == nil {
+		m.enterprise_tag_groups = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_tag_groups[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseTagGroups clears the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity.
+func (m *OrganizationMutation) ClearEnterpriseTagGroups() {
+	m.clearedenterprise_tag_groups = true
+}
+
+// EnterpriseTagGroupsCleared reports if the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity was cleared.
+func (m *OrganizationMutation) EnterpriseTagGroupsCleared() bool {
+	return m.clearedenterprise_tag_groups
+}
+
+// RemoveEnterpriseTagGroupIDs removes the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by IDs.
+func (m *OrganizationMutation) RemoveEnterpriseTagGroupIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_tag_groups == nil {
+		m.removedenterprise_tag_groups = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_tag_groups, ids[i])
+		m.removedenterprise_tag_groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseTagGroups returns the removed IDs of the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity.
+func (m *OrganizationMutation) RemovedEnterpriseTagGroupsIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_tag_groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseTagGroupsIDs returns the "enterprise_tag_groups" edge IDs in the mutation.
+func (m *OrganizationMutation) EnterpriseTagGroupsIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_tag_groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseTagGroups resets all changes to the "enterprise_tag_groups" edge.
+func (m *OrganizationMutation) ResetEnterpriseTagGroups() {
+	m.enterprise_tag_groups = nil
+	m.clearedenterprise_tag_groups = false
+	m.removedenterprise_tag_groups = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -70047,7 +80332,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 37)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -70152,6 +80437,12 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_custom_setting != nil {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
+	}
+	if m.enterprise_resources != nil {
+		edges = append(edges, organization.EdgeEnterpriseResources)
+	}
+	if m.enterprise_tag_groups != nil {
+		edges = append(edges, organization.EdgeEnterpriseTagGroups)
 	}
 	return edges
 }
@@ -70368,13 +80659,25 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.enterprise_resources))
+		for id := range m.enterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeEnterpriseTagGroups:
+		ids := make([]ent.Value, 0, len(m.enterprise_tag_groups))
+		for id := range m.enterprise_tag_groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 37)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -70476,6 +80779,12 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_custom_setting != nil {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
+	}
+	if m.removedenterprise_resources != nil {
+		edges = append(edges, organization.EdgeEnterpriseResources)
+	}
+	if m.removedenterprise_tag_groups != nil {
+		edges = append(edges, organization.EdgeEnterpriseTagGroups)
 	}
 	return edges
 }
@@ -70688,13 +80997,25 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_resources))
+		for id := range m.removedenterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeEnterpriseTagGroups:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_tag_groups))
+		for id := range m.removedenterprise_tag_groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 35)
+	edges := make([]string, 0, 37)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -70800,6 +81121,12 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	if m.clearedfinance_custom_setting {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
 	}
+	if m.clearedenterprise_resources {
+		edges = append(edges, organization.EdgeEnterpriseResources)
+	}
+	if m.clearedenterprise_tag_groups {
+		edges = append(edges, organization.EdgeEnterpriseTagGroups)
+	}
 	return edges
 }
 
@@ -70877,6 +81204,10 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedexchange_rate_custom_setting
 	case organization.EdgeFinanceCustomSetting:
 		return m.clearedfinance_custom_setting
+	case organization.EdgeEnterpriseResources:
+		return m.clearedenterprise_resources
+	case organization.EdgeEnterpriseTagGroups:
+		return m.clearedenterprise_tag_groups
 	}
 	return false
 }
@@ -71001,6 +81332,12 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 	case organization.EdgeFinanceCustomSetting:
 		m.ResetFinanceCustomSetting()
 		return nil
+	case organization.EdgeEnterpriseResources:
+		m.ResetEnterpriseResources()
+		return nil
+	case organization.EdgeEnterpriseTagGroups:
+		m.ResetEnterpriseTagGroups()
+		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
 }
@@ -71043,6 +81380,9 @@ type PartnerMutation struct {
 	shipping_presets                     map[uuid.UUID]struct{}
 	removedshipping_presets              map[uuid.UUID]struct{}
 	clearedshipping_presets              bool
+	enterprise_resource_links            map[uuid.UUID]struct{}
+	removedenterprise_resource_links     map[uuid.UUID]struct{}
+	clearedenterprise_resource_links     bool
 	contracts                            map[uuid.UUID]struct{}
 	removedcontracts                     map[uuid.UUID]struct{}
 	clearedcontracts                     bool
@@ -71955,6 +82295,60 @@ func (m *PartnerMutation) ResetShippingPresets() {
 	m.removedshipping_presets = nil
 }
 
+// AddEnterpriseResourceLinkIDs adds the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity by ids.
+func (m *PartnerMutation) AddEnterpriseResourceLinkIDs(ids ...uuid.UUID) {
+	if m.enterprise_resource_links == nil {
+		m.enterprise_resource_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_resource_links[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseResourceLinks clears the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity.
+func (m *PartnerMutation) ClearEnterpriseResourceLinks() {
+	m.clearedenterprise_resource_links = true
+}
+
+// EnterpriseResourceLinksCleared reports if the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity was cleared.
+func (m *PartnerMutation) EnterpriseResourceLinksCleared() bool {
+	return m.clearedenterprise_resource_links
+}
+
+// RemoveEnterpriseResourceLinkIDs removes the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity by IDs.
+func (m *PartnerMutation) RemoveEnterpriseResourceLinkIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_resource_links == nil {
+		m.removedenterprise_resource_links = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_resource_links, ids[i])
+		m.removedenterprise_resource_links[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseResourceLinks returns the removed IDs of the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity.
+func (m *PartnerMutation) RemovedEnterpriseResourceLinksIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_resource_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseResourceLinksIDs returns the "enterprise_resource_links" edge IDs in the mutation.
+func (m *PartnerMutation) EnterpriseResourceLinksIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_resource_links {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseResourceLinks resets all changes to the "enterprise_resource_links" edge.
+func (m *PartnerMutation) ResetEnterpriseResourceLinks() {
+	m.enterprise_resource_links = nil
+	m.clearedenterprise_resource_links = false
+	m.removedenterprise_resource_links = nil
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by ids.
 func (m *PartnerMutation) AddContractIDs(ids ...uuid.UUID) {
 	if m.contracts == nil {
@@ -72742,7 +83136,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -72766,6 +83160,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.shipping_presets != nil {
 		edges = append(edges, partner.EdgeShippingPresets)
+	}
+	if m.enterprise_resource_links != nil {
+		edges = append(edges, partner.EdgeEnterpriseResourceLinks)
 	}
 	if m.contracts != nil {
 		edges = append(edges, partner.EdgeContracts)
@@ -72845,6 +83242,12 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeEnterpriseResourceLinks:
+		ids := make([]ent.Value, 0, len(m.enterprise_resource_links))
+		for id := range m.enterprise_resource_links {
+			ids = append(ids, id)
+		}
+		return ids
 	case partner.EdgeContracts:
 		ids := make([]ent.Value, 0, len(m.contracts))
 		for id := range m.contracts {
@@ -72905,7 +83308,7 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -72923,6 +83326,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedshipping_presets != nil {
 		edges = append(edges, partner.EdgeShippingPresets)
+	}
+	if m.removedenterprise_resource_links != nil {
+		edges = append(edges, partner.EdgeEnterpriseResourceLinks)
 	}
 	if m.removedcontracts != nil {
 		edges = append(edges, partner.EdgeContracts)
@@ -72994,6 +83400,12 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeEnterpriseResourceLinks:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_resource_links))
+		for id := range m.removedenterprise_resource_links {
+			ids = append(ids, id)
+		}
+		return ids
 	case partner.EdgeContracts:
 		ids := make([]ent.Value, 0, len(m.removedcontracts))
 		for id := range m.removedcontracts {
@@ -73054,7 +83466,7 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -73078,6 +83490,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	}
 	if m.clearedshipping_presets {
 		edges = append(edges, partner.EdgeShippingPresets)
+	}
+	if m.clearedenterprise_resource_links {
+		edges = append(edges, partner.EdgeEnterpriseResourceLinks)
 	}
 	if m.clearedcontracts {
 		edges = append(edges, partner.EdgeContracts)
@@ -73129,6 +83544,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedassignments
 	case partner.EdgeShippingPresets:
 		return m.clearedshipping_presets
+	case partner.EdgeEnterpriseResourceLinks:
+		return m.clearedenterprise_resource_links
 	case partner.EdgeContracts:
 		return m.clearedcontracts
 	case partner.EdgeAttachments:
@@ -73192,6 +83609,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeShippingPresets:
 		m.ResetShippingPresets()
+		return nil
+	case partner.EdgeEnterpriseResourceLinks:
+		m.ResetEnterpriseResourceLinks()
 		return nil
 	case partner.EdgeContracts:
 		m.ResetContracts()
@@ -92998,6 +103418,18 @@ type UserMutation struct {
 	updated_finance_custom_settings                 map[uuid.UUID]struct{}
 	removedupdated_finance_custom_settings          map[uuid.UUID]struct{}
 	clearedupdated_finance_custom_settings          bool
+	created_enterprise_resources                    map[uuid.UUID]struct{}
+	removedcreated_enterprise_resources             map[uuid.UUID]struct{}
+	clearedcreated_enterprise_resources             bool
+	updated_enterprise_resources                    map[uuid.UUID]struct{}
+	removedupdated_enterprise_resources             map[uuid.UUID]struct{}
+	clearedupdated_enterprise_resources             bool
+	uploaded_enterprise_resource_images             map[uuid.UUID]struct{}
+	removeduploaded_enterprise_resource_images      map[uuid.UUID]struct{}
+	cleareduploaded_enterprise_resource_images      bool
+	enterprise_resource_assignments                 map[uuid.UUID]struct{}
+	removedenterprise_resource_assignments          map[uuid.UUID]struct{}
+	clearedenterprise_resource_assignments          bool
 	done                                            bool
 	oldValue                                        func(context.Context) (*User, error)
 	predicates                                      []predicate.User
@@ -95186,6 +105618,222 @@ func (m *UserMutation) ResetUpdatedFinanceCustomSettings() {
 	m.removedupdated_finance_custom_settings = nil
 }
 
+// AddCreatedEnterpriseResourceIDs adds the "created_enterprise_resources" edge to the EnterpriseResource entity by ids.
+func (m *UserMutation) AddCreatedEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.created_enterprise_resources == nil {
+		m.created_enterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.created_enterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCreatedEnterpriseResources clears the "created_enterprise_resources" edge to the EnterpriseResource entity.
+func (m *UserMutation) ClearCreatedEnterpriseResources() {
+	m.clearedcreated_enterprise_resources = true
+}
+
+// CreatedEnterpriseResourcesCleared reports if the "created_enterprise_resources" edge to the EnterpriseResource entity was cleared.
+func (m *UserMutation) CreatedEnterpriseResourcesCleared() bool {
+	return m.clearedcreated_enterprise_resources
+}
+
+// RemoveCreatedEnterpriseResourceIDs removes the "created_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (m *UserMutation) RemoveCreatedEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.removedcreated_enterprise_resources == nil {
+		m.removedcreated_enterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.created_enterprise_resources, ids[i])
+		m.removedcreated_enterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCreatedEnterpriseResources returns the removed IDs of the "created_enterprise_resources" edge to the EnterpriseResource entity.
+func (m *UserMutation) RemovedCreatedEnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcreated_enterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CreatedEnterpriseResourcesIDs returns the "created_enterprise_resources" edge IDs in the mutation.
+func (m *UserMutation) CreatedEnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.created_enterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCreatedEnterpriseResources resets all changes to the "created_enterprise_resources" edge.
+func (m *UserMutation) ResetCreatedEnterpriseResources() {
+	m.created_enterprise_resources = nil
+	m.clearedcreated_enterprise_resources = false
+	m.removedcreated_enterprise_resources = nil
+}
+
+// AddUpdatedEnterpriseResourceIDs adds the "updated_enterprise_resources" edge to the EnterpriseResource entity by ids.
+func (m *UserMutation) AddUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.updated_enterprise_resources == nil {
+		m.updated_enterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.updated_enterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUpdatedEnterpriseResources clears the "updated_enterprise_resources" edge to the EnterpriseResource entity.
+func (m *UserMutation) ClearUpdatedEnterpriseResources() {
+	m.clearedupdated_enterprise_resources = true
+}
+
+// UpdatedEnterpriseResourcesCleared reports if the "updated_enterprise_resources" edge to the EnterpriseResource entity was cleared.
+func (m *UserMutation) UpdatedEnterpriseResourcesCleared() bool {
+	return m.clearedupdated_enterprise_resources
+}
+
+// RemoveUpdatedEnterpriseResourceIDs removes the "updated_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (m *UserMutation) RemoveUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) {
+	if m.removedupdated_enterprise_resources == nil {
+		m.removedupdated_enterprise_resources = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.updated_enterprise_resources, ids[i])
+		m.removedupdated_enterprise_resources[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUpdatedEnterpriseResources returns the removed IDs of the "updated_enterprise_resources" edge to the EnterpriseResource entity.
+func (m *UserMutation) RemovedUpdatedEnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.removedupdated_enterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UpdatedEnterpriseResourcesIDs returns the "updated_enterprise_resources" edge IDs in the mutation.
+func (m *UserMutation) UpdatedEnterpriseResourcesIDs() (ids []uuid.UUID) {
+	for id := range m.updated_enterprise_resources {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUpdatedEnterpriseResources resets all changes to the "updated_enterprise_resources" edge.
+func (m *UserMutation) ResetUpdatedEnterpriseResources() {
+	m.updated_enterprise_resources = nil
+	m.clearedupdated_enterprise_resources = false
+	m.removedupdated_enterprise_resources = nil
+}
+
+// AddUploadedEnterpriseResourceImageIDs adds the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity by ids.
+func (m *UserMutation) AddUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) {
+	if m.uploaded_enterprise_resource_images == nil {
+		m.uploaded_enterprise_resource_images = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.uploaded_enterprise_resource_images[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUploadedEnterpriseResourceImages clears the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity.
+func (m *UserMutation) ClearUploadedEnterpriseResourceImages() {
+	m.cleareduploaded_enterprise_resource_images = true
+}
+
+// UploadedEnterpriseResourceImagesCleared reports if the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity was cleared.
+func (m *UserMutation) UploadedEnterpriseResourceImagesCleared() bool {
+	return m.cleareduploaded_enterprise_resource_images
+}
+
+// RemoveUploadedEnterpriseResourceImageIDs removes the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity by IDs.
+func (m *UserMutation) RemoveUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) {
+	if m.removeduploaded_enterprise_resource_images == nil {
+		m.removeduploaded_enterprise_resource_images = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.uploaded_enterprise_resource_images, ids[i])
+		m.removeduploaded_enterprise_resource_images[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUploadedEnterpriseResourceImages returns the removed IDs of the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity.
+func (m *UserMutation) RemovedUploadedEnterpriseResourceImagesIDs() (ids []uuid.UUID) {
+	for id := range m.removeduploaded_enterprise_resource_images {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UploadedEnterpriseResourceImagesIDs returns the "uploaded_enterprise_resource_images" edge IDs in the mutation.
+func (m *UserMutation) UploadedEnterpriseResourceImagesIDs() (ids []uuid.UUID) {
+	for id := range m.uploaded_enterprise_resource_images {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUploadedEnterpriseResourceImages resets all changes to the "uploaded_enterprise_resource_images" edge.
+func (m *UserMutation) ResetUploadedEnterpriseResourceImages() {
+	m.uploaded_enterprise_resource_images = nil
+	m.cleareduploaded_enterprise_resource_images = false
+	m.removeduploaded_enterprise_resource_images = nil
+}
+
+// AddEnterpriseResourceAssignmentIDs adds the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity by ids.
+func (m *UserMutation) AddEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) {
+	if m.enterprise_resource_assignments == nil {
+		m.enterprise_resource_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.enterprise_resource_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEnterpriseResourceAssignments clears the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity.
+func (m *UserMutation) ClearEnterpriseResourceAssignments() {
+	m.clearedenterprise_resource_assignments = true
+}
+
+// EnterpriseResourceAssignmentsCleared reports if the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity was cleared.
+func (m *UserMutation) EnterpriseResourceAssignmentsCleared() bool {
+	return m.clearedenterprise_resource_assignments
+}
+
+// RemoveEnterpriseResourceAssignmentIDs removes the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity by IDs.
+func (m *UserMutation) RemoveEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) {
+	if m.removedenterprise_resource_assignments == nil {
+		m.removedenterprise_resource_assignments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.enterprise_resource_assignments, ids[i])
+		m.removedenterprise_resource_assignments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEnterpriseResourceAssignments returns the removed IDs of the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity.
+func (m *UserMutation) RemovedEnterpriseResourceAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedenterprise_resource_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EnterpriseResourceAssignmentsIDs returns the "enterprise_resource_assignments" edge IDs in the mutation.
+func (m *UserMutation) EnterpriseResourceAssignmentsIDs() (ids []uuid.UUID) {
+	for id := range m.enterprise_resource_assignments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEnterpriseResourceAssignments resets all changes to the "enterprise_resource_assignments" edge.
+func (m *UserMutation) ResetEnterpriseResourceAssignments() {
+	m.enterprise_resource_assignments = nil
+	m.clearedenterprise_resource_assignments = false
+	m.removedenterprise_resource_assignments = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -95597,7 +106245,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 27)
+	edges := make([]string, 0, 31)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -95678,6 +106326,18 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.updated_finance_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
+	}
+	if m.created_enterprise_resources != nil {
+		edges = append(edges, user.EdgeCreatedEnterpriseResources)
+	}
+	if m.updated_enterprise_resources != nil {
+		edges = append(edges, user.EdgeUpdatedEnterpriseResources)
+	}
+	if m.uploaded_enterprise_resource_images != nil {
+		edges = append(edges, user.EdgeUploadedEnterpriseResourceImages)
+	}
+	if m.enterprise_resource_assignments != nil {
+		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
 	}
 	return edges
 }
@@ -95848,13 +106508,37 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.created_enterprise_resources))
+		for id := range m.created_enterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUpdatedEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.updated_enterprise_resources))
+		for id := range m.updated_enterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUploadedEnterpriseResourceImages:
+		ids := make([]ent.Value, 0, len(m.uploaded_enterprise_resource_images))
+		for id := range m.uploaded_enterprise_resource_images {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeEnterpriseResourceAssignments:
+		ids := make([]ent.Value, 0, len(m.enterprise_resource_assignments))
+		for id := range m.enterprise_resource_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 27)
+	edges := make([]string, 0, 31)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -95935,6 +106619,18 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedupdated_finance_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
+	}
+	if m.removedcreated_enterprise_resources != nil {
+		edges = append(edges, user.EdgeCreatedEnterpriseResources)
+	}
+	if m.removedupdated_enterprise_resources != nil {
+		edges = append(edges, user.EdgeUpdatedEnterpriseResources)
+	}
+	if m.removeduploaded_enterprise_resource_images != nil {
+		edges = append(edges, user.EdgeUploadedEnterpriseResourceImages)
+	}
+	if m.removedenterprise_resource_assignments != nil {
+		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
 	}
 	return edges
 }
@@ -96105,13 +106801,37 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCreatedEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.removedcreated_enterprise_resources))
+		for id := range m.removedcreated_enterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUpdatedEnterpriseResources:
+		ids := make([]ent.Value, 0, len(m.removedupdated_enterprise_resources))
+		for id := range m.removedupdated_enterprise_resources {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeUploadedEnterpriseResourceImages:
+		ids := make([]ent.Value, 0, len(m.removeduploaded_enterprise_resource_images))
+		for id := range m.removeduploaded_enterprise_resource_images {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeEnterpriseResourceAssignments:
+		ids := make([]ent.Value, 0, len(m.removedenterprise_resource_assignments))
+		for id := range m.removedenterprise_resource_assignments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 27)
+	edges := make([]string, 0, 31)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -96193,6 +106913,18 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedupdated_finance_custom_settings {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
 	}
+	if m.clearedcreated_enterprise_resources {
+		edges = append(edges, user.EdgeCreatedEnterpriseResources)
+	}
+	if m.clearedupdated_enterprise_resources {
+		edges = append(edges, user.EdgeUpdatedEnterpriseResources)
+	}
+	if m.cleareduploaded_enterprise_resource_images {
+		edges = append(edges, user.EdgeUploadedEnterpriseResourceImages)
+	}
+	if m.clearedenterprise_resource_assignments {
+		edges = append(edges, user.EdgeEnterpriseResourceAssignments)
+	}
 	return edges
 }
 
@@ -96254,6 +106986,14 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedupdated_exchange_rate_custom_settings
 	case user.EdgeUpdatedFinanceCustomSettings:
 		return m.clearedupdated_finance_custom_settings
+	case user.EdgeCreatedEnterpriseResources:
+		return m.clearedcreated_enterprise_resources
+	case user.EdgeUpdatedEnterpriseResources:
+		return m.clearedupdated_enterprise_resources
+	case user.EdgeUploadedEnterpriseResourceImages:
+		return m.cleareduploaded_enterprise_resource_images
+	case user.EdgeEnterpriseResourceAssignments:
+		return m.clearedenterprise_resource_assignments
 	}
 	return false
 }
@@ -96350,6 +107090,18 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeUpdatedFinanceCustomSettings:
 		m.ResetUpdatedFinanceCustomSettings()
+		return nil
+	case user.EdgeCreatedEnterpriseResources:
+		m.ResetCreatedEnterpriseResources()
+		return nil
+	case user.EdgeUpdatedEnterpriseResources:
+		m.ResetUpdatedEnterpriseResources()
+		return nil
+	case user.EdgeUploadedEnterpriseResourceImages:
+		m.ResetUploadedEnterpriseResourceImages()
+		return nil
+	case user.EdgeEnterpriseResourceAssignments:
+		m.ResetEnterpriseResourceAssignments()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

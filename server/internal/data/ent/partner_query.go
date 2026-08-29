@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -50,6 +51,7 @@ type PartnerQuery struct {
 	withInvoiceProfiles             *PartnerInvoiceProfileQuery
 	withAssignments                 *PartnerAssignmentQuery
 	withShippingPresets             *PartnerShippingPresetQuery
+	withEnterpriseResourceLinks     *EnterpriseResourcePartnerQuery
 	withContracts                   *PartnerContractQuery
 	withAttachments                 *PartnerAttachmentQuery
 	withOrders                      *OrderQuery
@@ -265,6 +267,28 @@ func (_q *PartnerQuery) QueryShippingPresets() *PartnerShippingPresetQuery {
 			sqlgraph.From(partner.Table, partner.FieldID, selector),
 			sqlgraph.To(partnershippingpreset.Table, partnershippingpreset.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.ShippingPresetsTable, partner.ShippingPresetsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEnterpriseResourceLinks chains the current query on the "enterprise_resource_links" edge.
+func (_q *PartnerQuery) QueryEnterpriseResourceLinks() *EnterpriseResourcePartnerQuery {
+	query := (&EnterpriseResourcePartnerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, selector),
+			sqlgraph.To(enterpriseresourcepartner.Table, enterpriseresourcepartner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.EnterpriseResourceLinksTable, partner.EnterpriseResourceLinksColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -670,6 +694,7 @@ func (_q *PartnerQuery) Clone() *PartnerQuery {
 		withInvoiceProfiles:             _q.withInvoiceProfiles.Clone(),
 		withAssignments:                 _q.withAssignments.Clone(),
 		withShippingPresets:             _q.withShippingPresets.Clone(),
+		withEnterpriseResourceLinks:     _q.withEnterpriseResourceLinks.Clone(),
 		withContracts:                   _q.withContracts.Clone(),
 		withAttachments:                 _q.withAttachments.Clone(),
 		withOrders:                      _q.withOrders.Clone(),
@@ -770,6 +795,17 @@ func (_q *PartnerQuery) WithShippingPresets(opts ...func(*PartnerShippingPresetQ
 		opt(query)
 	}
 	_q.withShippingPresets = query
+	return _q
+}
+
+// WithEnterpriseResourceLinks tells the query-builder to eager-load the nodes that are connected to
+// the "enterprise_resource_links" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartnerQuery) WithEnterpriseResourceLinks(opts ...func(*EnterpriseResourcePartnerQuery)) *PartnerQuery {
+	query := (&EnterpriseResourcePartnerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEnterpriseResourceLinks = query
 	return _q
 }
 
@@ -950,7 +986,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 	var (
 		nodes       = []*Partner{}
 		_spec       = _q.querySpec()
-		loadedTypes = [17]bool{
+		loadedTypes = [18]bool{
 			_q.withOrganization != nil,
 			_q.withRoles != nil,
 			_q.withContacts != nil,
@@ -959,6 +995,7 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			_q.withInvoiceProfiles != nil,
 			_q.withAssignments != nil,
 			_q.withShippingPresets != nil,
+			_q.withEnterpriseResourceLinks != nil,
 			_q.withContracts != nil,
 			_q.withAttachments != nil,
 			_q.withOrders != nil,
@@ -1045,6 +1082,15 @@ func (_q *PartnerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Part
 			func(n *Partner) { n.Edges.ShippingPresets = []*PartnerShippingPreset{} },
 			func(n *Partner, e *PartnerShippingPreset) {
 				n.Edges.ShippingPresets = append(n.Edges.ShippingPresets, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEnterpriseResourceLinks; query != nil {
+		if err := _q.loadEnterpriseResourceLinks(ctx, query, nodes,
+			func(n *Partner) { n.Edges.EnterpriseResourceLinks = []*EnterpriseResourcePartner{} },
+			func(n *Partner, e *EnterpriseResourcePartner) {
+				n.Edges.EnterpriseResourceLinks = append(n.Edges.EnterpriseResourceLinks, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1340,6 +1386,36 @@ func (_q *PartnerQuery) loadShippingPresets(ctx context.Context, query *PartnerS
 	}
 	query.Where(predicate.PartnerShippingPreset(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partner.ShippingPresetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "partner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartnerQuery) loadEnterpriseResourceLinks(ctx context.Context, query *EnterpriseResourcePartnerQuery, nodes []*Partner, init func(*Partner), assign func(*Partner, *EnterpriseResourcePartner)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Partner)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(enterpriseresourcepartner.FieldPartnerID)
+	}
+	query.Where(predicate.EnterpriseResourcePartner(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partner.EnterpriseResourceLinksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

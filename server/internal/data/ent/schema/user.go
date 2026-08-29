@@ -77,6 +77,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("updated_exchange_rate_custom_settings", ExchangeRateCustomSetting.Type),
 		edge.To("updated_finance_custom_settings", FinanceCustomSetting.Type),
+		edge.To("created_enterprise_resources", EnterpriseResource.Type),
+		edge.To("updated_enterprise_resources", EnterpriseResource.Type),
+		edge.To("uploaded_enterprise_resource_images", EnterpriseResourceImage.Type),
+		edge.To("enterprise_resource_assignments", EnterpriseResourceAssignee.Type),
 	}
 }
 

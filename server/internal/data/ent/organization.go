@@ -114,9 +114,13 @@ type OrganizationEdges struct {
 	ExchangeRateCustomSetting []*ExchangeRateCustomSetting `json:"exchange_rate_custom_setting,omitempty"`
 	// FinanceCustomSetting holds the value of the finance_custom_setting edge.
 	FinanceCustomSetting []*FinanceCustomSetting `json:"finance_custom_setting,omitempty"`
+	// EnterpriseResources holds the value of the enterprise_resources edge.
+	EnterpriseResources []*EnterpriseResource `json:"enterprise_resources,omitempty"`
+	// EnterpriseTagGroups holds the value of the enterprise_tag_groups edge.
+	EnterpriseTagGroups []*EnterpriseTagGroup `json:"enterprise_tag_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [35]bool
+	loadedTypes [37]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -436,6 +440,24 @@ func (e OrganizationEdges) FinanceCustomSettingOrErr() ([]*FinanceCustomSetting,
 	return nil, &NotLoadedError{edge: "finance_custom_setting"}
 }
 
+// EnterpriseResourcesOrErr returns the EnterpriseResources value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) EnterpriseResourcesOrErr() ([]*EnterpriseResource, error) {
+	if e.loadedTypes[35] {
+		return e.EnterpriseResources, nil
+	}
+	return nil, &NotLoadedError{edge: "enterprise_resources"}
+}
+
+// EnterpriseTagGroupsOrErr returns the EnterpriseTagGroups value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) EnterpriseTagGroupsOrErr() ([]*EnterpriseTagGroup, error) {
+	if e.loadedTypes[36] {
+		return e.EnterpriseTagGroups, nil
+	}
+	return nil, &NotLoadedError{edge: "enterprise_tag_groups"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -714,6 +736,16 @@ func (_m *Organization) QueryExchangeRateCustomSetting() *ExchangeRateCustomSett
 // QueryFinanceCustomSetting queries the "finance_custom_setting" edge of the Organization entity.
 func (_m *Organization) QueryFinanceCustomSetting() *FinanceCustomSettingQuery {
 	return NewOrganizationClient(_m.config).QueryFinanceCustomSetting(_m)
+}
+
+// QueryEnterpriseResources queries the "enterprise_resources" edge of the Organization entity.
+func (_m *Organization) QueryEnterpriseResources() *EnterpriseResourceQuery {
+	return NewOrganizationClient(_m.config).QueryEnterpriseResources(_m)
+}
+
+// QueryEnterpriseTagGroups queries the "enterprise_tag_groups" edge of the Organization entity.
+func (_m *Organization) QueryEnterpriseTagGroups() *EnterpriseTagGroupQuery {
+	return NewOrganizationClient(_m.config).QueryEnterpriseTagGroups(_m)
 }
 
 // Update returns a builder for updating this Organization.

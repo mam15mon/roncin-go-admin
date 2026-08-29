@@ -52,6 +52,8 @@ const (
 	EdgeAssignments = "assignments"
 	// EdgeShippingPresets holds the string denoting the shipping_presets edge name in mutations.
 	EdgeShippingPresets = "shipping_presets"
+	// EdgeEnterpriseResourceLinks holds the string denoting the enterprise_resource_links edge name in mutations.
+	EdgeEnterpriseResourceLinks = "enterprise_resource_links"
 	// EdgeContracts holds the string denoting the contracts edge name in mutations.
 	EdgeContracts = "contracts"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
@@ -128,6 +130,13 @@ const (
 	ShippingPresetsInverseTable = "partner_shipping_presets"
 	// ShippingPresetsColumn is the table column denoting the shipping_presets relation/edge.
 	ShippingPresetsColumn = "partner_id"
+	// EnterpriseResourceLinksTable is the table that holds the enterprise_resource_links relation/edge.
+	EnterpriseResourceLinksTable = "enterprise_resource_partners"
+	// EnterpriseResourceLinksInverseTable is the table name for the EnterpriseResourcePartner entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresourcepartner" package.
+	EnterpriseResourceLinksInverseTable = "enterprise_resource_partners"
+	// EnterpriseResourceLinksColumn is the table column denoting the enterprise_resource_links relation/edge.
+	EnterpriseResourceLinksColumn = "partner_id"
 	// ContractsTable is the table that holds the contracts relation/edge.
 	ContractsTable = "partner_contracts"
 	// ContractsInverseTable is the table name for the PartnerContract entity.
@@ -405,6 +414,20 @@ func ByShippingPresets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByEnterpriseResourceLinksCount orders the results by enterprise_resource_links count.
+func ByEnterpriseResourceLinksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnterpriseResourceLinksStep(), opts...)
+	}
+}
+
+// ByEnterpriseResourceLinks orders the results by enterprise_resource_links terms.
+func ByEnterpriseResourceLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnterpriseResourceLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByContractsCount orders the results by contracts count.
 func ByContractsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -584,6 +607,13 @@ func newShippingPresetsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShippingPresetsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ShippingPresetsTable, ShippingPresetsColumn),
+	)
+}
+func newEnterpriseResourceLinksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnterpriseResourceLinksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourceLinksTable, EnterpriseResourceLinksColumn),
 	)
 }
 func newContractsStep() *sqlgraph.Step {

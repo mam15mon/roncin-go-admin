@@ -12,6 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -679,6 +682,66 @@ func (_u *UserUpdate) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting
 	return _u.AddUpdatedFinanceCustomSettingIDs(ids...)
 }
 
+// AddCreatedEnterpriseResourceIDs adds the "created_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *UserUpdate) AddCreatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddCreatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddCreatedEnterpriseResources adds the "created_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdate) AddCreatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUpdatedEnterpriseResourceIDs adds the "updated_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *UserUpdate) AddUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddUpdatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddUpdatedEnterpriseResources adds the "updated_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdate) AddUpdatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUploadedEnterpriseResourceImageIDs adds the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity by IDs.
+func (_u *UserUpdate) AddUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddUploadedEnterpriseResourceImageIDs(ids...)
+	return _u
+}
+
+// AddUploadedEnterpriseResourceImages adds the "uploaded_enterprise_resource_images" edges to the EnterpriseResourceImage entity.
+func (_u *UserUpdate) AddUploadedEnterpriseResourceImages(v ...*EnterpriseResourceImage) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUploadedEnterpriseResourceImageIDs(ids...)
+}
+
+// AddEnterpriseResourceAssignmentIDs adds the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity by IDs.
+func (_u *UserUpdate) AddEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddEnterpriseResourceAssignmentIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResourceAssignments adds the "enterprise_resource_assignments" edges to the EnterpriseResourceAssignee entity.
+func (_u *UserUpdate) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceAssignee) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -1249,6 +1312,90 @@ func (_u *UserUpdate) RemoveUpdatedFinanceCustomSettings(v ...*FinanceCustomSett
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUpdatedFinanceCustomSettingIDs(ids...)
+}
+
+// ClearCreatedEnterpriseResources clears all "created_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdate) ClearCreatedEnterpriseResources() *UserUpdate {
+	_u.mutation.ClearCreatedEnterpriseResources()
+	return _u
+}
+
+// RemoveCreatedEnterpriseResourceIDs removes the "created_enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *UserUpdate) RemoveCreatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveCreatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedEnterpriseResources removes "created_enterprise_resources" edges to EnterpriseResource entities.
+func (_u *UserUpdate) RemoveCreatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedEnterpriseResourceIDs(ids...)
+}
+
+// ClearUpdatedEnterpriseResources clears all "updated_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdate) ClearUpdatedEnterpriseResources() *UserUpdate {
+	_u.mutation.ClearUpdatedEnterpriseResources()
+	return _u
+}
+
+// RemoveUpdatedEnterpriseResourceIDs removes the "updated_enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *UserUpdate) RemoveUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveUpdatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedEnterpriseResources removes "updated_enterprise_resources" edges to EnterpriseResource entities.
+func (_u *UserUpdate) RemoveUpdatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedEnterpriseResourceIDs(ids...)
+}
+
+// ClearUploadedEnterpriseResourceImages clears all "uploaded_enterprise_resource_images" edges to the EnterpriseResourceImage entity.
+func (_u *UserUpdate) ClearUploadedEnterpriseResourceImages() *UserUpdate {
+	_u.mutation.ClearUploadedEnterpriseResourceImages()
+	return _u
+}
+
+// RemoveUploadedEnterpriseResourceImageIDs removes the "uploaded_enterprise_resource_images" edge to EnterpriseResourceImage entities by IDs.
+func (_u *UserUpdate) RemoveUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveUploadedEnterpriseResourceImageIDs(ids...)
+	return _u
+}
+
+// RemoveUploadedEnterpriseResourceImages removes "uploaded_enterprise_resource_images" edges to EnterpriseResourceImage entities.
+func (_u *UserUpdate) RemoveUploadedEnterpriseResourceImages(v ...*EnterpriseResourceImage) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUploadedEnterpriseResourceImageIDs(ids...)
+}
+
+// ClearEnterpriseResourceAssignments clears all "enterprise_resource_assignments" edges to the EnterpriseResourceAssignee entity.
+func (_u *UserUpdate) ClearEnterpriseResourceAssignments() *UserUpdate {
+	_u.mutation.ClearEnterpriseResourceAssignments()
+	return _u
+}
+
+// RemoveEnterpriseResourceAssignmentIDs removes the "enterprise_resource_assignments" edge to EnterpriseResourceAssignee entities by IDs.
+func (_u *UserUpdate) RemoveEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveEnterpriseResourceAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResourceAssignments removes "enterprise_resource_assignments" edges to EnterpriseResourceAssignee entities.
+func (_u *UserUpdate) RemoveEnterpriseResourceAssignments(v ...*EnterpriseResourceAssignee) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceAssignmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2636,6 +2783,186 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.CreatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.CreatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.UpdatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UploadedEnterpriseResourceImagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUploadedEnterpriseResourceImagesIDs(); len(nodes) > 0 && !_u.mutation.UploadedEnterpriseResourceImagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UploadedEnterpriseResourceImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseResourceAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourceAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourceAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourceAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -3289,6 +3616,66 @@ func (_u *UserUpdateOne) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSett
 	return _u.AddUpdatedFinanceCustomSettingIDs(ids...)
 }
 
+// AddCreatedEnterpriseResourceIDs adds the "created_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *UserUpdateOne) AddCreatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddCreatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddCreatedEnterpriseResources adds the "created_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdateOne) AddCreatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCreatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUpdatedEnterpriseResourceIDs adds the "updated_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *UserUpdateOne) AddUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddUpdatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddUpdatedEnterpriseResources adds the "updated_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdateOne) AddUpdatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUpdatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUploadedEnterpriseResourceImageIDs adds the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity by IDs.
+func (_u *UserUpdateOne) AddUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddUploadedEnterpriseResourceImageIDs(ids...)
+	return _u
+}
+
+// AddUploadedEnterpriseResourceImages adds the "uploaded_enterprise_resource_images" edges to the EnterpriseResourceImage entity.
+func (_u *UserUpdateOne) AddUploadedEnterpriseResourceImages(v ...*EnterpriseResourceImage) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUploadedEnterpriseResourceImageIDs(ids...)
+}
+
+// AddEnterpriseResourceAssignmentIDs adds the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity by IDs.
+func (_u *UserUpdateOne) AddEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddEnterpriseResourceAssignmentIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResourceAssignments adds the "enterprise_resource_assignments" edges to the EnterpriseResourceAssignee entity.
+func (_u *UserUpdateOne) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceAssignee) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -3859,6 +4246,90 @@ func (_u *UserUpdateOne) RemoveUpdatedFinanceCustomSettings(v ...*FinanceCustomS
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUpdatedFinanceCustomSettingIDs(ids...)
+}
+
+// ClearCreatedEnterpriseResources clears all "created_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdateOne) ClearCreatedEnterpriseResources() *UserUpdateOne {
+	_u.mutation.ClearCreatedEnterpriseResources()
+	return _u
+}
+
+// RemoveCreatedEnterpriseResourceIDs removes the "created_enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *UserUpdateOne) RemoveCreatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveCreatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveCreatedEnterpriseResources removes "created_enterprise_resources" edges to EnterpriseResource entities.
+func (_u *UserUpdateOne) RemoveCreatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCreatedEnterpriseResourceIDs(ids...)
+}
+
+// ClearUpdatedEnterpriseResources clears all "updated_enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *UserUpdateOne) ClearUpdatedEnterpriseResources() *UserUpdateOne {
+	_u.mutation.ClearUpdatedEnterpriseResources()
+	return _u
+}
+
+// RemoveUpdatedEnterpriseResourceIDs removes the "updated_enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *UserUpdateOne) RemoveUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveUpdatedEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveUpdatedEnterpriseResources removes "updated_enterprise_resources" edges to EnterpriseResource entities.
+func (_u *UserUpdateOne) RemoveUpdatedEnterpriseResources(v ...*EnterpriseResource) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUpdatedEnterpriseResourceIDs(ids...)
+}
+
+// ClearUploadedEnterpriseResourceImages clears all "uploaded_enterprise_resource_images" edges to the EnterpriseResourceImage entity.
+func (_u *UserUpdateOne) ClearUploadedEnterpriseResourceImages() *UserUpdateOne {
+	_u.mutation.ClearUploadedEnterpriseResourceImages()
+	return _u
+}
+
+// RemoveUploadedEnterpriseResourceImageIDs removes the "uploaded_enterprise_resource_images" edge to EnterpriseResourceImage entities by IDs.
+func (_u *UserUpdateOne) RemoveUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveUploadedEnterpriseResourceImageIDs(ids...)
+	return _u
+}
+
+// RemoveUploadedEnterpriseResourceImages removes "uploaded_enterprise_resource_images" edges to EnterpriseResourceImage entities.
+func (_u *UserUpdateOne) RemoveUploadedEnterpriseResourceImages(v ...*EnterpriseResourceImage) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUploadedEnterpriseResourceImageIDs(ids...)
+}
+
+// ClearEnterpriseResourceAssignments clears all "enterprise_resource_assignments" edges to the EnterpriseResourceAssignee entity.
+func (_u *UserUpdateOne) ClearEnterpriseResourceAssignments() *UserUpdateOne {
+	_u.mutation.ClearEnterpriseResourceAssignments()
+	return _u
+}
+
+// RemoveEnterpriseResourceAssignmentIDs removes the "enterprise_resource_assignments" edge to EnterpriseResourceAssignee entities by IDs.
+func (_u *UserUpdateOne) RemoveEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveEnterpriseResourceAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResourceAssignments removes "enterprise_resource_assignments" edges to EnterpriseResourceAssignee entities.
+func (_u *UserUpdateOne) RemoveEnterpriseResourceAssignments(v ...*EnterpriseResourceAssignee) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceAssignmentIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -5269,6 +5740,186 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CreatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCreatedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.CreatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CreatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UpdatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUpdatedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.UpdatedEnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UpdatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UploadedEnterpriseResourceImagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUploadedEnterpriseResourceImagesIDs(); len(nodes) > 0 && !_u.mutation.UploadedEnterpriseResourceImagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UploadedEnterpriseResourceImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseResourceAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourceAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourceAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourceAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

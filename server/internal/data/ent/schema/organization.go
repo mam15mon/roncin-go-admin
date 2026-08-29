@@ -63,6 +63,8 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("exchange_rate_custom_setting", ExchangeRateCustomSetting.Type),
 		edge.To("finance_custom_setting", FinanceCustomSetting.Type),
+		edge.To("enterprise_resources", EnterpriseResource.Type),
+		edge.To("enterprise_tag_groups", EnterpriseTagGroup.Type),
 	}
 }
 

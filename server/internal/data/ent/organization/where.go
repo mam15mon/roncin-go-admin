@@ -1311,6 +1311,52 @@ func HasFinanceCustomSettingWith(preds ...predicate.FinanceCustomSetting) predic
 	})
 }
 
+// HasEnterpriseResources applies the HasEdge predicate on the "enterprise_resources" edge.
+func HasEnterpriseResources() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourcesTable, EnterpriseResourcesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEnterpriseResourcesWith applies the HasEdge predicate on the "enterprise_resources" edge with a given conditions (other predicates).
+func HasEnterpriseResourcesWith(preds ...predicate.EnterpriseResource) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newEnterpriseResourcesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEnterpriseTagGroups applies the HasEdge predicate on the "enterprise_tag_groups" edge.
+func HasEnterpriseTagGroups() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagGroupsTable, EnterpriseTagGroupsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEnterpriseTagGroupsWith applies the HasEdge predicate on the "enterprise_tag_groups" edge with a given conditions (other predicates).
+func HasEnterpriseTagGroupsWith(preds ...predicate.EnterpriseTagGroup) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newEnterpriseTagGroupsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Organization) predicate.Organization {
 	return predicate.Organization(sql.AndPredicates(predicates...))

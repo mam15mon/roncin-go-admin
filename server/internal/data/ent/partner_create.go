@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -272,6 +273,21 @@ func (_c *PartnerCreate) AddShippingPresets(v ...*PartnerShippingPreset) *Partne
 		ids[i] = v[i].ID
 	}
 	return _c.AddShippingPresetIDs(ids...)
+}
+
+// AddEnterpriseResourceLinkIDs adds the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity by IDs.
+func (_c *PartnerCreate) AddEnterpriseResourceLinkIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddEnterpriseResourceLinkIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseResourceLinks adds the "enterprise_resource_links" edges to the EnterpriseResourcePartner entity.
+func (_c *PartnerCreate) AddEnterpriseResourceLinks(v ...*EnterpriseResourcePartner) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseResourceLinkIDs(ids...)
 }
 
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
@@ -725,6 +741,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseResourceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

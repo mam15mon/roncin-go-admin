@@ -27,6 +27,39 @@ type BillingUnit func(*sql.Selector)
 // Currency is the predicate function for currency builders.
 type Currency func(*sql.Selector)
 
+// EnterpriseResource is the predicate function for enterpriseresource builders.
+type EnterpriseResource func(*sql.Selector)
+
+// EnterpriseResourceAddress is the predicate function for enterpriseresourceaddress builders.
+type EnterpriseResourceAddress func(*sql.Selector)
+
+// EnterpriseResourceAddressType is the predicate function for enterpriseresourceaddresstype builders.
+type EnterpriseResourceAddressType func(*sql.Selector)
+
+// EnterpriseResourceAssignee is the predicate function for enterpriseresourceassignee builders.
+type EnterpriseResourceAssignee func(*sql.Selector)
+
+// EnterpriseResourceImage is the predicate function for enterpriseresourceimage builders.
+type EnterpriseResourceImage func(*sql.Selector)
+
+// EnterpriseResourcePartner is the predicate function for enterpriseresourcepartner builders.
+type EnterpriseResourcePartner func(*sql.Selector)
+
+// EnterpriseResourceParty is the predicate function for enterpriseresourceparty builders.
+type EnterpriseResourceParty func(*sql.Selector)
+
+// EnterpriseResourceRemark is the predicate function for enterpriseresourceremark builders.
+type EnterpriseResourceRemark func(*sql.Selector)
+
+// EnterpriseResourceShippingText is the predicate function for enterpriseresourceshippingtext builders.
+type EnterpriseResourceShippingText func(*sql.Selector)
+
+// EnterpriseTag is the predicate function for enterprisetag builders.
+type EnterpriseTag func(*sql.Selector)
+
+// EnterpriseTagGroup is the predicate function for enterprisetaggroup builders.
+type EnterpriseTagGroup func(*sql.Selector)
+
 // ExchangeRateCustomSetting is the predicate function for exchangeratecustomsetting builders.
 type ExchangeRateCustomSetting func(*sql.Selector)
 

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
@@ -274,6 +275,21 @@ func (_u *PartnerUpdate) AddShippingPresets(v ...*PartnerShippingPreset) *Partne
 		ids[i] = v[i].ID
 	}
 	return _u.AddShippingPresetIDs(ids...)
+}
+
+// AddEnterpriseResourceLinkIDs adds the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity by IDs.
+func (_u *PartnerUpdate) AddEnterpriseResourceLinkIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.AddEnterpriseResourceLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResourceLinks adds the "enterprise_resource_links" edges to the EnterpriseResourcePartner entity.
+func (_u *PartnerUpdate) AddEnterpriseResourceLinks(v ...*EnterpriseResourcePartner) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceLinkIDs(ids...)
 }
 
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
@@ -552,6 +568,27 @@ func (_u *PartnerUpdate) RemoveShippingPresets(v ...*PartnerShippingPreset) *Par
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveShippingPresetIDs(ids...)
+}
+
+// ClearEnterpriseResourceLinks clears all "enterprise_resource_links" edges to the EnterpriseResourcePartner entity.
+func (_u *PartnerUpdate) ClearEnterpriseResourceLinks() *PartnerUpdate {
+	_u.mutation.ClearEnterpriseResourceLinks()
+	return _u
+}
+
+// RemoveEnterpriseResourceLinkIDs removes the "enterprise_resource_links" edge to EnterpriseResourcePartner entities by IDs.
+func (_u *PartnerUpdate) RemoveEnterpriseResourceLinkIDs(ids ...uuid.UUID) *PartnerUpdate {
+	_u.mutation.RemoveEnterpriseResourceLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResourceLinks removes "enterprise_resource_links" edges to EnterpriseResourcePartner entities.
+func (_u *PartnerUpdate) RemoveEnterpriseResourceLinks(v ...*EnterpriseResourcePartner) *PartnerUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceLinkIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -1173,6 +1210,51 @@ func (_u *PartnerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseResourceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourceLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1835,6 +1917,21 @@ func (_u *PartnerUpdateOne) AddShippingPresets(v ...*PartnerShippingPreset) *Par
 	return _u.AddShippingPresetIDs(ids...)
 }
 
+// AddEnterpriseResourceLinkIDs adds the "enterprise_resource_links" edge to the EnterpriseResourcePartner entity by IDs.
+func (_u *PartnerUpdateOne) AddEnterpriseResourceLinkIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.AddEnterpriseResourceLinkIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResourceLinks adds the "enterprise_resource_links" edges to the EnterpriseResourcePartner entity.
+func (_u *PartnerUpdateOne) AddEnterpriseResourceLinks(v ...*EnterpriseResourcePartner) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceLinkIDs(ids...)
+}
+
 // AddContractIDs adds the "contracts" edge to the PartnerContract entity by IDs.
 func (_u *PartnerUpdateOne) AddContractIDs(ids ...uuid.UUID) *PartnerUpdateOne {
 	_u.mutation.AddContractIDs(ids...)
@@ -2111,6 +2208,27 @@ func (_u *PartnerUpdateOne) RemoveShippingPresets(v ...*PartnerShippingPreset) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveShippingPresetIDs(ids...)
+}
+
+// ClearEnterpriseResourceLinks clears all "enterprise_resource_links" edges to the EnterpriseResourcePartner entity.
+func (_u *PartnerUpdateOne) ClearEnterpriseResourceLinks() *PartnerUpdateOne {
+	_u.mutation.ClearEnterpriseResourceLinks()
+	return _u
+}
+
+// RemoveEnterpriseResourceLinkIDs removes the "enterprise_resource_links" edge to EnterpriseResourcePartner entities by IDs.
+func (_u *PartnerUpdateOne) RemoveEnterpriseResourceLinkIDs(ids ...uuid.UUID) *PartnerUpdateOne {
+	_u.mutation.RemoveEnterpriseResourceLinkIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResourceLinks removes "enterprise_resource_links" edges to EnterpriseResourcePartner entities.
+func (_u *PartnerUpdateOne) RemoveEnterpriseResourceLinks(v ...*EnterpriseResourcePartner) *PartnerUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceLinkIDs(ids...)
 }
 
 // ClearContracts clears all "contracts" edges to the PartnerContract entity.
@@ -2762,6 +2880,51 @@ func (_u *PartnerUpdateOne) sqlSave(ctx context.Context) (_node *Partner, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnershippingpreset.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseResourceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourceLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourceLinksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourceLinksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.EnterpriseResourceLinksTable,
+			Columns: []string{partner.EnterpriseResourceLinksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourcepartner.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -98,6 +98,14 @@ const (
 	EdgeUpdatedExchangeRateCustomSettings = "updated_exchange_rate_custom_settings"
 	// EdgeUpdatedFinanceCustomSettings holds the string denoting the updated_finance_custom_settings edge name in mutations.
 	EdgeUpdatedFinanceCustomSettings = "updated_finance_custom_settings"
+	// EdgeCreatedEnterpriseResources holds the string denoting the created_enterprise_resources edge name in mutations.
+	EdgeCreatedEnterpriseResources = "created_enterprise_resources"
+	// EdgeUpdatedEnterpriseResources holds the string denoting the updated_enterprise_resources edge name in mutations.
+	EdgeUpdatedEnterpriseResources = "updated_enterprise_resources"
+	// EdgeUploadedEnterpriseResourceImages holds the string denoting the uploaded_enterprise_resource_images edge name in mutations.
+	EdgeUploadedEnterpriseResourceImages = "uploaded_enterprise_resource_images"
+	// EdgeEnterpriseResourceAssignments holds the string denoting the enterprise_resource_assignments edge name in mutations.
+	EdgeEnterpriseResourceAssignments = "enterprise_resource_assignments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MembershipsTable is the table that holds the memberships relation/edge.
@@ -289,6 +297,34 @@ const (
 	UpdatedFinanceCustomSettingsInverseTable = "finance_custom_settings"
 	// UpdatedFinanceCustomSettingsColumn is the table column denoting the updated_finance_custom_settings relation/edge.
 	UpdatedFinanceCustomSettingsColumn = "updated_by"
+	// CreatedEnterpriseResourcesTable is the table that holds the created_enterprise_resources relation/edge.
+	CreatedEnterpriseResourcesTable = "enterprise_resources"
+	// CreatedEnterpriseResourcesInverseTable is the table name for the EnterpriseResource entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresource" package.
+	CreatedEnterpriseResourcesInverseTable = "enterprise_resources"
+	// CreatedEnterpriseResourcesColumn is the table column denoting the created_enterprise_resources relation/edge.
+	CreatedEnterpriseResourcesColumn = "created_by"
+	// UpdatedEnterpriseResourcesTable is the table that holds the updated_enterprise_resources relation/edge.
+	UpdatedEnterpriseResourcesTable = "enterprise_resources"
+	// UpdatedEnterpriseResourcesInverseTable is the table name for the EnterpriseResource entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresource" package.
+	UpdatedEnterpriseResourcesInverseTable = "enterprise_resources"
+	// UpdatedEnterpriseResourcesColumn is the table column denoting the updated_enterprise_resources relation/edge.
+	UpdatedEnterpriseResourcesColumn = "updated_by"
+	// UploadedEnterpriseResourceImagesTable is the table that holds the uploaded_enterprise_resource_images relation/edge.
+	UploadedEnterpriseResourceImagesTable = "enterprise_resource_images"
+	// UploadedEnterpriseResourceImagesInverseTable is the table name for the EnterpriseResourceImage entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresourceimage" package.
+	UploadedEnterpriseResourceImagesInverseTable = "enterprise_resource_images"
+	// UploadedEnterpriseResourceImagesColumn is the table column denoting the uploaded_enterprise_resource_images relation/edge.
+	UploadedEnterpriseResourceImagesColumn = "uploaded_by"
+	// EnterpriseResourceAssignmentsTable is the table that holds the enterprise_resource_assignments relation/edge.
+	EnterpriseResourceAssignmentsTable = "enterprise_resource_assignees"
+	// EnterpriseResourceAssignmentsInverseTable is the table name for the EnterpriseResourceAssignee entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresourceassignee" package.
+	EnterpriseResourceAssignmentsInverseTable = "enterprise_resource_assignees"
+	// EnterpriseResourceAssignmentsColumn is the table column denoting the enterprise_resource_assignments relation/edge.
+	EnterpriseResourceAssignmentsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -814,6 +850,62 @@ func ByUpdatedFinanceCustomSettings(term sql.OrderTerm, terms ...sql.OrderTerm) 
 		sqlgraph.OrderByNeighborTerms(s, newUpdatedFinanceCustomSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCreatedEnterpriseResourcesCount orders the results by created_enterprise_resources count.
+func ByCreatedEnterpriseResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCreatedEnterpriseResourcesStep(), opts...)
+	}
+}
+
+// ByCreatedEnterpriseResources orders the results by created_enterprise_resources terms.
+func ByCreatedEnterpriseResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCreatedEnterpriseResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUpdatedEnterpriseResourcesCount orders the results by updated_enterprise_resources count.
+func ByUpdatedEnterpriseResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUpdatedEnterpriseResourcesStep(), opts...)
+	}
+}
+
+// ByUpdatedEnterpriseResources orders the results by updated_enterprise_resources terms.
+func ByUpdatedEnterpriseResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUpdatedEnterpriseResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUploadedEnterpriseResourceImagesCount orders the results by uploaded_enterprise_resource_images count.
+func ByUploadedEnterpriseResourceImagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUploadedEnterpriseResourceImagesStep(), opts...)
+	}
+}
+
+// ByUploadedEnterpriseResourceImages orders the results by uploaded_enterprise_resource_images terms.
+func ByUploadedEnterpriseResourceImages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUploadedEnterpriseResourceImagesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEnterpriseResourceAssignmentsCount orders the results by enterprise_resource_assignments count.
+func ByEnterpriseResourceAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnterpriseResourceAssignmentsStep(), opts...)
+	}
+}
+
+// ByEnterpriseResourceAssignments orders the results by enterprise_resource_assignments terms.
+func ByEnterpriseResourceAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnterpriseResourceAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMembershipsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1001,5 +1093,33 @@ func newUpdatedFinanceCustomSettingsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UpdatedFinanceCustomSettingsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UpdatedFinanceCustomSettingsTable, UpdatedFinanceCustomSettingsColumn),
+	)
+}
+func newCreatedEnterpriseResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CreatedEnterpriseResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CreatedEnterpriseResourcesTable, CreatedEnterpriseResourcesColumn),
+	)
+}
+func newUpdatedEnterpriseResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UpdatedEnterpriseResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UpdatedEnterpriseResourcesTable, UpdatedEnterpriseResourcesColumn),
+	)
+}
+func newUploadedEnterpriseResourceImagesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UploadedEnterpriseResourceImagesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UploadedEnterpriseResourceImagesTable, UploadedEnterpriseResourceImagesColumn),
+	)
+}
+func newEnterpriseResourceAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnterpriseResourceAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourceAssignmentsTable, EnterpriseResourceAssignmentsColumn),
 	)
 }

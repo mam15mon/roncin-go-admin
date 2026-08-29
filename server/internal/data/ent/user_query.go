@@ -14,6 +14,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -69,6 +72,10 @@ type UserQuery struct {
 	withFinanceFeeLedgerPreferences           *FinanceFeeLedgerPreferenceQuery
 	withUpdatedExchangeRateCustomSettings     *ExchangeRateCustomSettingQuery
 	withUpdatedFinanceCustomSettings          *FinanceCustomSettingQuery
+	withCreatedEnterpriseResources            *EnterpriseResourceQuery
+	withUpdatedEnterpriseResources            *EnterpriseResourceQuery
+	withUploadedEnterpriseResourceImages      *EnterpriseResourceImageQuery
+	withEnterpriseResourceAssignments         *EnterpriseResourceAssigneeQuery
 	modifiers                                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -700,6 +707,94 @@ func (_q *UserQuery) QueryUpdatedFinanceCustomSettings() *FinanceCustomSettingQu
 	return query
 }
 
+// QueryCreatedEnterpriseResources chains the current query on the "created_enterprise_resources" edge.
+func (_q *UserQuery) QueryCreatedEnterpriseResources() *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedEnterpriseResourcesTable, user.CreatedEnterpriseResourcesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUpdatedEnterpriseResources chains the current query on the "updated_enterprise_resources" edge.
+func (_q *UserQuery) QueryUpdatedEnterpriseResources() *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedEnterpriseResourcesTable, user.UpdatedEnterpriseResourcesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUploadedEnterpriseResourceImages chains the current query on the "uploaded_enterprise_resource_images" edge.
+func (_q *UserQuery) QueryUploadedEnterpriseResourceImages() *EnterpriseResourceImageQuery {
+	query := (&EnterpriseResourceImageClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(enterpriseresourceimage.Table, enterpriseresourceimage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UploadedEnterpriseResourceImagesTable, user.UploadedEnterpriseResourceImagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEnterpriseResourceAssignments chains the current query on the "enterprise_resource_assignments" edge.
+func (_q *UserQuery) QueryEnterpriseResourceAssignments() *EnterpriseResourceAssigneeQuery {
+	query := (&EnterpriseResourceAssigneeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(enterpriseresourceassignee.Table, enterpriseresourceassignee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EnterpriseResourceAssignmentsTable, user.EnterpriseResourceAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (_q *UserQuery) First(ctx context.Context) (*User, error) {
@@ -919,6 +1014,10 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withFinanceFeeLedgerPreferences:           _q.withFinanceFeeLedgerPreferences.Clone(),
 		withUpdatedExchangeRateCustomSettings:     _q.withUpdatedExchangeRateCustomSettings.Clone(),
 		withUpdatedFinanceCustomSettings:          _q.withUpdatedFinanceCustomSettings.Clone(),
+		withCreatedEnterpriseResources:            _q.withCreatedEnterpriseResources.Clone(),
+		withUpdatedEnterpriseResources:            _q.withUpdatedEnterpriseResources.Clone(),
+		withUploadedEnterpriseResourceImages:      _q.withUploadedEnterpriseResourceImages.Clone(),
+		withEnterpriseResourceAssignments:         _q.withEnterpriseResourceAssignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1222,6 +1321,50 @@ func (_q *UserQuery) WithUpdatedFinanceCustomSettings(opts ...func(*FinanceCusto
 	return _q
 }
 
+// WithCreatedEnterpriseResources tells the query-builder to eager-load the nodes that are connected to
+// the "created_enterprise_resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCreatedEnterpriseResources(opts ...func(*EnterpriseResourceQuery)) *UserQuery {
+	query := (&EnterpriseResourceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCreatedEnterpriseResources = query
+	return _q
+}
+
+// WithUpdatedEnterpriseResources tells the query-builder to eager-load the nodes that are connected to
+// the "updated_enterprise_resources" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithUpdatedEnterpriseResources(opts ...func(*EnterpriseResourceQuery)) *UserQuery {
+	query := (&EnterpriseResourceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUpdatedEnterpriseResources = query
+	return _q
+}
+
+// WithUploadedEnterpriseResourceImages tells the query-builder to eager-load the nodes that are connected to
+// the "uploaded_enterprise_resource_images" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithUploadedEnterpriseResourceImages(opts ...func(*EnterpriseResourceImageQuery)) *UserQuery {
+	query := (&EnterpriseResourceImageClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUploadedEnterpriseResourceImages = query
+	return _q
+}
+
+// WithEnterpriseResourceAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "enterprise_resource_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithEnterpriseResourceAssignments(opts ...func(*EnterpriseResourceAssigneeQuery)) *UserQuery {
+	query := (&EnterpriseResourceAssigneeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEnterpriseResourceAssignments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1300,7 +1443,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [27]bool{
+		loadedTypes = [31]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -1328,6 +1471,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withUpdatedExchangeRateCustomSettings != nil,
 			_q.withUpdatedFinanceCustomSettings != nil,
+			_q.withCreatedEnterpriseResources != nil,
+			_q.withUpdatedEnterpriseResources != nil,
+			_q.withUploadedEnterpriseResourceImages != nil,
+			_q.withEnterpriseResourceAssignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1582,6 +1729,42 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.UpdatedFinanceCustomSettings = []*FinanceCustomSetting{} },
 			func(n *User, e *FinanceCustomSetting) {
 				n.Edges.UpdatedFinanceCustomSettings = append(n.Edges.UpdatedFinanceCustomSettings, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCreatedEnterpriseResources; query != nil {
+		if err := _q.loadCreatedEnterpriseResources(ctx, query, nodes,
+			func(n *User) { n.Edges.CreatedEnterpriseResources = []*EnterpriseResource{} },
+			func(n *User, e *EnterpriseResource) {
+				n.Edges.CreatedEnterpriseResources = append(n.Edges.CreatedEnterpriseResources, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUpdatedEnterpriseResources; query != nil {
+		if err := _q.loadUpdatedEnterpriseResources(ctx, query, nodes,
+			func(n *User) { n.Edges.UpdatedEnterpriseResources = []*EnterpriseResource{} },
+			func(n *User, e *EnterpriseResource) {
+				n.Edges.UpdatedEnterpriseResources = append(n.Edges.UpdatedEnterpriseResources, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUploadedEnterpriseResourceImages; query != nil {
+		if err := _q.loadUploadedEnterpriseResourceImages(ctx, query, nodes,
+			func(n *User) { n.Edges.UploadedEnterpriseResourceImages = []*EnterpriseResourceImage{} },
+			func(n *User, e *EnterpriseResourceImage) {
+				n.Edges.UploadedEnterpriseResourceImages = append(n.Edges.UploadedEnterpriseResourceImages, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEnterpriseResourceAssignments; query != nil {
+		if err := _q.loadEnterpriseResourceAssignments(ctx, query, nodes,
+			func(n *User) { n.Edges.EnterpriseResourceAssignments = []*EnterpriseResourceAssignee{} },
+			func(n *User, e *EnterpriseResourceAssignee) {
+				n.Edges.EnterpriseResourceAssignments = append(n.Edges.EnterpriseResourceAssignments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2439,6 +2622,132 @@ func (_q *UserQuery) loadUpdatedFinanceCustomSettings(ctx context.Context, query
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "updated_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadCreatedEnterpriseResources(ctx context.Context, query *EnterpriseResourceQuery, nodes []*User, init func(*User), assign func(*User, *EnterpriseResource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(enterpriseresource.FieldCreatedBy)
+	}
+	query.Where(predicate.EnterpriseResource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CreatedEnterpriseResourcesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CreatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "created_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "created_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadUpdatedEnterpriseResources(ctx context.Context, query *EnterpriseResourceQuery, nodes []*User, init func(*User), assign func(*User, *EnterpriseResource)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(enterpriseresource.FieldUpdatedBy)
+	}
+	query.Where(predicate.EnterpriseResource(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UpdatedEnterpriseResourcesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UpdatedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "updated_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "updated_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadUploadedEnterpriseResourceImages(ctx context.Context, query *EnterpriseResourceImageQuery, nodes []*User, init func(*User), assign func(*User, *EnterpriseResourceImage)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(enterpriseresourceimage.FieldUploadedBy)
+	}
+	query.Where(predicate.EnterpriseResourceImage(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UploadedEnterpriseResourceImagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UploadedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "uploaded_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadEnterpriseResourceAssignments(ctx context.Context, query *EnterpriseResourceAssigneeQuery, nodes []*User, init func(*User), assign func(*User, *EnterpriseResourceAssignee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(enterpriseresourceassignee.FieldUserID)
+	}
+	query.Where(predicate.EnterpriseResourceAssignee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.EnterpriseResourceAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -93,6 +93,138 @@ func (f CurrencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CurrencyMutation", m)
 }
 
+// The EnterpriseResourceFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResource mutator.
+type EnterpriseResourceFunc func(context.Context, *ent.EnterpriseResourceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceMutation", m)
+}
+
+// The EnterpriseResourceAddressFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceAddress mutator.
+type EnterpriseResourceAddressFunc func(context.Context, *ent.EnterpriseResourceAddressMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceAddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceAddressMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceAddressMutation", m)
+}
+
+// The EnterpriseResourceAddressTypeFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceAddressType mutator.
+type EnterpriseResourceAddressTypeFunc func(context.Context, *ent.EnterpriseResourceAddressTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceAddressTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceAddressTypeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceAddressTypeMutation", m)
+}
+
+// The EnterpriseResourceAssigneeFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceAssignee mutator.
+type EnterpriseResourceAssigneeFunc func(context.Context, *ent.EnterpriseResourceAssigneeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceAssigneeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceAssigneeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceAssigneeMutation", m)
+}
+
+// The EnterpriseResourceImageFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceImage mutator.
+type EnterpriseResourceImageFunc func(context.Context, *ent.EnterpriseResourceImageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceImageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceImageMutation", m)
+}
+
+// The EnterpriseResourcePartnerFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourcePartner mutator.
+type EnterpriseResourcePartnerFunc func(context.Context, *ent.EnterpriseResourcePartnerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourcePartnerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourcePartnerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourcePartnerMutation", m)
+}
+
+// The EnterpriseResourcePartyFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceParty mutator.
+type EnterpriseResourcePartyFunc func(context.Context, *ent.EnterpriseResourcePartyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourcePartyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourcePartyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourcePartyMutation", m)
+}
+
+// The EnterpriseResourceRemarkFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceRemark mutator.
+type EnterpriseResourceRemarkFunc func(context.Context, *ent.EnterpriseResourceRemarkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceRemarkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceRemarkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceRemarkMutation", m)
+}
+
+// The EnterpriseResourceShippingTextFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseResourceShippingText mutator.
+type EnterpriseResourceShippingTextFunc func(context.Context, *ent.EnterpriseResourceShippingTextMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseResourceShippingTextFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseResourceShippingTextMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceShippingTextMutation", m)
+}
+
+// The EnterpriseTagFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseTag mutator.
+type EnterpriseTagFunc func(context.Context, *ent.EnterpriseTagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseTagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseTagMutation", m)
+}
+
+// The EnterpriseTagGroupFunc type is an adapter to allow the use of ordinary
+// function as EnterpriseTagGroup mutator.
+type EnterpriseTagGroupFunc func(context.Context, *ent.EnterpriseTagGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnterpriseTagGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnterpriseTagGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseTagGroupMutation", m)
+}
+
 // The ExchangeRateCustomSettingFunc type is an adapter to allow the use of ordinary
 // function as ExchangeRateCustomSetting mutator.
 type ExchangeRateCustomSettingFunc func(context.Context, *ent.ExchangeRateCustomSettingMutation) (ent.Value, error)

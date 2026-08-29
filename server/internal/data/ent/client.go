@@ -23,6 +23,17 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
@@ -109,6 +120,28 @@ type Client struct {
 	BillingUnit *BillingUnitClient
 	// Currency is the client for interacting with the Currency builders.
 	Currency *CurrencyClient
+	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
+	EnterpriseResource *EnterpriseResourceClient
+	// EnterpriseResourceAddress is the client for interacting with the EnterpriseResourceAddress builders.
+	EnterpriseResourceAddress *EnterpriseResourceAddressClient
+	// EnterpriseResourceAddressType is the client for interacting with the EnterpriseResourceAddressType builders.
+	EnterpriseResourceAddressType *EnterpriseResourceAddressTypeClient
+	// EnterpriseResourceAssignee is the client for interacting with the EnterpriseResourceAssignee builders.
+	EnterpriseResourceAssignee *EnterpriseResourceAssigneeClient
+	// EnterpriseResourceImage is the client for interacting with the EnterpriseResourceImage builders.
+	EnterpriseResourceImage *EnterpriseResourceImageClient
+	// EnterpriseResourcePartner is the client for interacting with the EnterpriseResourcePartner builders.
+	EnterpriseResourcePartner *EnterpriseResourcePartnerClient
+	// EnterpriseResourceParty is the client for interacting with the EnterpriseResourceParty builders.
+	EnterpriseResourceParty *EnterpriseResourcePartyClient
+	// EnterpriseResourceRemark is the client for interacting with the EnterpriseResourceRemark builders.
+	EnterpriseResourceRemark *EnterpriseResourceRemarkClient
+	// EnterpriseResourceShippingText is the client for interacting with the EnterpriseResourceShippingText builders.
+	EnterpriseResourceShippingText *EnterpriseResourceShippingTextClient
+	// EnterpriseTag is the client for interacting with the EnterpriseTag builders.
+	EnterpriseTag *EnterpriseTagClient
+	// EnterpriseTagGroup is the client for interacting with the EnterpriseTagGroup builders.
+	EnterpriseTagGroup *EnterpriseTagGroupClient
 	// ExchangeRateCustomSetting is the client for interacting with the ExchangeRateCustomSetting builders.
 	ExchangeRateCustomSetting *ExchangeRateCustomSettingClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
@@ -257,6 +290,17 @@ func (c *Client) init() {
 	c.BackgroundTask = NewBackgroundTaskClient(c.config)
 	c.BillingUnit = NewBillingUnitClient(c.config)
 	c.Currency = NewCurrencyClient(c.config)
+	c.EnterpriseResource = NewEnterpriseResourceClient(c.config)
+	c.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(c.config)
+	c.EnterpriseResourceAddressType = NewEnterpriseResourceAddressTypeClient(c.config)
+	c.EnterpriseResourceAssignee = NewEnterpriseResourceAssigneeClient(c.config)
+	c.EnterpriseResourceImage = NewEnterpriseResourceImageClient(c.config)
+	c.EnterpriseResourcePartner = NewEnterpriseResourcePartnerClient(c.config)
+	c.EnterpriseResourceParty = NewEnterpriseResourcePartyClient(c.config)
+	c.EnterpriseResourceRemark = NewEnterpriseResourceRemarkClient(c.config)
+	c.EnterpriseResourceShippingText = NewEnterpriseResourceShippingTextClient(c.config)
+	c.EnterpriseTag = NewEnterpriseTagClient(c.config)
+	c.EnterpriseTagGroup = NewEnterpriseTagGroupClient(c.config)
 	c.ExchangeRateCustomSetting = NewExchangeRateCustomSettingClient(c.config)
 	c.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
@@ -412,80 +456,91 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                           ctx,
-		config:                        cfg,
-		AdministrativeRegion:          NewAdministrativeRegionClient(cfg),
-		Airline:                       NewAirlineClient(cfg),
-		Airport:                       NewAirportClient(cfg),
-		AuditLog:                      NewAuditLogClient(cfg),
-		BackgroundTask:                NewBackgroundTaskClient(cfg),
-		BillingUnit:                   NewBillingUnitClient(cfg),
-		Currency:                      NewCurrencyClient(cfg),
-		ExchangeRateCustomSetting:     NewExchangeRateCustomSettingClient(cfg),
-		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
-		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
-		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
-		FeeSetting:                    NewFeeSettingClient(cfg),
-		FinanceBill:                   NewFinanceBillClient(cfg),
-		FinanceBillBatch:              NewFinanceBillBatchClient(cfg),
-		FinanceBillLine:               NewFinanceBillLineClient(cfg),
-		FinanceCashflow:               NewFinanceCashflowClient(cfg),
-		FinanceCommission:             NewFinanceCommissionClient(cfg),
-		FinanceCommissionAdjustment:   NewFinanceCommissionAdjustmentClient(cfg),
-		FinanceCommissionLine:         NewFinanceCommissionLineClient(cfg),
-		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
-		FinanceCustomSetting:          NewFinanceCustomSettingClient(cfg),
-		FinanceFeeLedgerPreference:    NewFinanceFeeLedgerPreferenceClient(cfg),
-		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
-		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
-		FinanceInvoiceLine:            NewFinanceInvoiceLineClient(cfg),
-		FinanceVerification:           NewFinanceVerificationClient(cfg),
-		FinanceVerificationAllocation: NewFinanceVerificationAllocationClient(cfg),
-		LoginRateLimitBucket:          NewLoginRateLimitBucketClient(cfg),
-		MasterDataItem:                NewMasterDataItemClient(cfg),
-		Membership:                    NewMembershipClient(cfg),
-		NotificationDelivery:          NewNotificationDeliveryClient(cfg),
-		NumberRule:                    NewNumberRuleClient(cfg),
-		NumberSequence:                NewNumberSequenceClient(cfg),
-		Order:                         NewOrderClient(cfg),
-		OrderAbnormalCase:             NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:               NewOrderAttachmentClient(cfg),
-		OrderCargoCategory:            NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:                NewOrderCargoItemClient(cfg),
-		OrderCommissionAttribution:    NewOrderCommissionAttributionClient(cfg),
-		OrderConsolidation:            NewOrderConsolidationClient(cfg),
-		OrderContainer:                NewOrderContainerClient(cfg),
-		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
-		OrderFee:                      NewOrderFeeClient(cfg),
-		OrderLifecycleEvent:           NewOrderLifecycleEventClient(cfg),
-		OrderMilestone:                NewOrderMilestoneClient(cfg),
-		OrderPersonnel:                NewOrderPersonnelClient(cfg),
-		OrderReleasePod:               NewOrderReleasePodClient(cfg),
-		OrderServiceType:              NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument:         NewOrderShippingDocumentClient(cfg),
-		Organization:                  NewOrganizationClient(cfg),
-		Partner:                       NewPartnerClient(cfg),
-		PartnerAccount:                NewPartnerAccountClient(cfg),
-		PartnerAlias:                  NewPartnerAliasClient(cfg),
-		PartnerAssignment:             NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:             NewPartnerAttachmentClient(cfg),
-		PartnerContact:                NewPartnerContactClient(cfg),
-		PartnerContract:               NewPartnerContractClient(cfg),
-		PartnerInvoiceProfile:         NewPartnerInvoiceProfileClient(cfg),
-		PartnerProfile:                NewPartnerProfileClient(cfg),
-		PartnerRole:                   NewPartnerRoleClient(cfg),
-		PartnerSettlementRule:         NewPartnerSettlementRuleClient(cfg),
-		PartnerShippingPreset:         NewPartnerShippingPresetClient(cfg),
-		Permission:                    NewPermissionClient(cfg),
-		Port:                          NewPortClient(cfg),
-		Role:                          NewRoleClient(cfg),
-		RoleAssignment:                NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:   NewRoleOrderOrganizationAccessClient(cfg),
-		Session:                       NewSessionClient(cfg),
-		ShippingLine:                  NewShippingLineClient(cfg),
-		ShippingLineContainerPrefix:   NewShippingLineContainerPrefixClient(cfg),
-		TaxableService:                NewTaxableServiceClient(cfg),
-		User:                          NewUserClient(cfg),
+		ctx:                            ctx,
+		config:                         cfg,
+		AdministrativeRegion:           NewAdministrativeRegionClient(cfg),
+		Airline:                        NewAirlineClient(cfg),
+		Airport:                        NewAirportClient(cfg),
+		AuditLog:                       NewAuditLogClient(cfg),
+		BackgroundTask:                 NewBackgroundTaskClient(cfg),
+		BillingUnit:                    NewBillingUnitClient(cfg),
+		Currency:                       NewCurrencyClient(cfg),
+		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
+		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
+		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
+		EnterpriseResourceAssignee:     NewEnterpriseResourceAssigneeClient(cfg),
+		EnterpriseResourceImage:        NewEnterpriseResourceImageClient(cfg),
+		EnterpriseResourcePartner:      NewEnterpriseResourcePartnerClient(cfg),
+		EnterpriseResourceParty:        NewEnterpriseResourcePartyClient(cfg),
+		EnterpriseResourceRemark:       NewEnterpriseResourceRemarkClient(cfg),
+		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
+		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
+		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
+		ExchangeRateCustomSetting:      NewExchangeRateCustomSettingClient(cfg),
+		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
+		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
+		ExchangeRateTimeStandard:       NewExchangeRateTimeStandardClient(cfg),
+		FeeSetting:                     NewFeeSettingClient(cfg),
+		FinanceBill:                    NewFinanceBillClient(cfg),
+		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
+		FinanceBillLine:                NewFinanceBillLineClient(cfg),
+		FinanceCashflow:                NewFinanceCashflowClient(cfg),
+		FinanceCommission:              NewFinanceCommissionClient(cfg),
+		FinanceCommissionAdjustment:    NewFinanceCommissionAdjustmentClient(cfg),
+		FinanceCommissionLine:          NewFinanceCommissionLineClient(cfg),
+		FinanceCommissionRule:          NewFinanceCommissionRuleClient(cfg),
+		FinanceCustomSetting:           NewFinanceCustomSettingClient(cfg),
+		FinanceFeeLedgerPreference:     NewFinanceFeeLedgerPreferenceClient(cfg),
+		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
+		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceVerification:            NewFinanceVerificationClient(cfg),
+		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
+		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
+		MasterDataItem:                 NewMasterDataItemClient(cfg),
+		Membership:                     NewMembershipClient(cfg),
+		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
+		NumberRule:                     NewNumberRuleClient(cfg),
+		NumberSequence:                 NewNumberSequenceClient(cfg),
+		Order:                          NewOrderClient(cfg),
+		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:                NewOrderAttachmentClient(cfg),
+		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
+		OrderConsolidation:             NewOrderConsolidationClient(cfg),
+		OrderContainer:                 NewOrderContainerClient(cfg),
+		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
+		OrderFee:                       NewOrderFeeClient(cfg),
+		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
+		OrderMilestone:                 NewOrderMilestoneClient(cfg),
+		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
+		OrderReleasePod:                NewOrderReleasePodClient(cfg),
+		OrderServiceType:               NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
+		Organization:                   NewOrganizationClient(cfg),
+		Partner:                        NewPartnerClient(cfg),
+		PartnerAccount:                 NewPartnerAccountClient(cfg),
+		PartnerAlias:                   NewPartnerAliasClient(cfg),
+		PartnerAssignment:              NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:              NewPartnerAttachmentClient(cfg),
+		PartnerContact:                 NewPartnerContactClient(cfg),
+		PartnerContract:                NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:          NewPartnerInvoiceProfileClient(cfg),
+		PartnerProfile:                 NewPartnerProfileClient(cfg),
+		PartnerRole:                    NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:          NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset:          NewPartnerShippingPresetClient(cfg),
+		Permission:                     NewPermissionClient(cfg),
+		Port:                           NewPortClient(cfg),
+		Role:                           NewRoleClient(cfg),
+		RoleAssignment:                 NewRoleAssignmentClient(cfg),
+		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		Session:                        NewSessionClient(cfg),
+		ShippingLine:                   NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
+		TaxableService:                 NewTaxableServiceClient(cfg),
+		User:                           NewUserClient(cfg),
 	}, nil
 }
 
@@ -503,80 +558,91 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                           ctx,
-		config:                        cfg,
-		AdministrativeRegion:          NewAdministrativeRegionClient(cfg),
-		Airline:                       NewAirlineClient(cfg),
-		Airport:                       NewAirportClient(cfg),
-		AuditLog:                      NewAuditLogClient(cfg),
-		BackgroundTask:                NewBackgroundTaskClient(cfg),
-		BillingUnit:                   NewBillingUnitClient(cfg),
-		Currency:                      NewCurrencyClient(cfg),
-		ExchangeRateCustomSetting:     NewExchangeRateCustomSettingClient(cfg),
-		ExchangeRateImportBatch:       NewExchangeRateImportBatchClient(cfg),
-		ExchangeRateSetting:           NewExchangeRateSettingClient(cfg),
-		ExchangeRateTimeStandard:      NewExchangeRateTimeStandardClient(cfg),
-		FeeSetting:                    NewFeeSettingClient(cfg),
-		FinanceBill:                   NewFinanceBillClient(cfg),
-		FinanceBillBatch:              NewFinanceBillBatchClient(cfg),
-		FinanceBillLine:               NewFinanceBillLineClient(cfg),
-		FinanceCashflow:               NewFinanceCashflowClient(cfg),
-		FinanceCommission:             NewFinanceCommissionClient(cfg),
-		FinanceCommissionAdjustment:   NewFinanceCommissionAdjustmentClient(cfg),
-		FinanceCommissionLine:         NewFinanceCommissionLineClient(cfg),
-		FinanceCommissionRule:         NewFinanceCommissionRuleClient(cfg),
-		FinanceCustomSetting:          NewFinanceCustomSettingClient(cfg),
-		FinanceFeeLedgerPreference:    NewFinanceFeeLedgerPreferenceClient(cfg),
-		FinanceInvoice:                NewFinanceInvoiceClient(cfg),
-		FinanceInvoiceBill:            NewFinanceInvoiceBillClient(cfg),
-		FinanceInvoiceLine:            NewFinanceInvoiceLineClient(cfg),
-		FinanceVerification:           NewFinanceVerificationClient(cfg),
-		FinanceVerificationAllocation: NewFinanceVerificationAllocationClient(cfg),
-		LoginRateLimitBucket:          NewLoginRateLimitBucketClient(cfg),
-		MasterDataItem:                NewMasterDataItemClient(cfg),
-		Membership:                    NewMembershipClient(cfg),
-		NotificationDelivery:          NewNotificationDeliveryClient(cfg),
-		NumberRule:                    NewNumberRuleClient(cfg),
-		NumberSequence:                NewNumberSequenceClient(cfg),
-		Order:                         NewOrderClient(cfg),
-		OrderAbnormalCase:             NewOrderAbnormalCaseClient(cfg),
-		OrderAttachment:               NewOrderAttachmentClient(cfg),
-		OrderCargoCategory:            NewOrderCargoCategoryClient(cfg),
-		OrderCargoItem:                NewOrderCargoItemClient(cfg),
-		OrderCommissionAttribution:    NewOrderCommissionAttributionClient(cfg),
-		OrderConsolidation:            NewOrderConsolidationClient(cfg),
-		OrderContainer:                NewOrderContainerClient(cfg),
-		OrderContainerRequest:         NewOrderContainerRequestClient(cfg),
-		OrderFee:                      NewOrderFeeClient(cfg),
-		OrderLifecycleEvent:           NewOrderLifecycleEventClient(cfg),
-		OrderMilestone:                NewOrderMilestoneClient(cfg),
-		OrderPersonnel:                NewOrderPersonnelClient(cfg),
-		OrderReleasePod:               NewOrderReleasePodClient(cfg),
-		OrderServiceType:              NewOrderServiceTypeClient(cfg),
-		OrderShippingDocument:         NewOrderShippingDocumentClient(cfg),
-		Organization:                  NewOrganizationClient(cfg),
-		Partner:                       NewPartnerClient(cfg),
-		PartnerAccount:                NewPartnerAccountClient(cfg),
-		PartnerAlias:                  NewPartnerAliasClient(cfg),
-		PartnerAssignment:             NewPartnerAssignmentClient(cfg),
-		PartnerAttachment:             NewPartnerAttachmentClient(cfg),
-		PartnerContact:                NewPartnerContactClient(cfg),
-		PartnerContract:               NewPartnerContractClient(cfg),
-		PartnerInvoiceProfile:         NewPartnerInvoiceProfileClient(cfg),
-		PartnerProfile:                NewPartnerProfileClient(cfg),
-		PartnerRole:                   NewPartnerRoleClient(cfg),
-		PartnerSettlementRule:         NewPartnerSettlementRuleClient(cfg),
-		PartnerShippingPreset:         NewPartnerShippingPresetClient(cfg),
-		Permission:                    NewPermissionClient(cfg),
-		Port:                          NewPortClient(cfg),
-		Role:                          NewRoleClient(cfg),
-		RoleAssignment:                NewRoleAssignmentClient(cfg),
-		RoleOrderOrganizationAccess:   NewRoleOrderOrganizationAccessClient(cfg),
-		Session:                       NewSessionClient(cfg),
-		ShippingLine:                  NewShippingLineClient(cfg),
-		ShippingLineContainerPrefix:   NewShippingLineContainerPrefixClient(cfg),
-		TaxableService:                NewTaxableServiceClient(cfg),
-		User:                          NewUserClient(cfg),
+		ctx:                            ctx,
+		config:                         cfg,
+		AdministrativeRegion:           NewAdministrativeRegionClient(cfg),
+		Airline:                        NewAirlineClient(cfg),
+		Airport:                        NewAirportClient(cfg),
+		AuditLog:                       NewAuditLogClient(cfg),
+		BackgroundTask:                 NewBackgroundTaskClient(cfg),
+		BillingUnit:                    NewBillingUnitClient(cfg),
+		Currency:                       NewCurrencyClient(cfg),
+		EnterpriseResource:             NewEnterpriseResourceClient(cfg),
+		EnterpriseResourceAddress:      NewEnterpriseResourceAddressClient(cfg),
+		EnterpriseResourceAddressType:  NewEnterpriseResourceAddressTypeClient(cfg),
+		EnterpriseResourceAssignee:     NewEnterpriseResourceAssigneeClient(cfg),
+		EnterpriseResourceImage:        NewEnterpriseResourceImageClient(cfg),
+		EnterpriseResourcePartner:      NewEnterpriseResourcePartnerClient(cfg),
+		EnterpriseResourceParty:        NewEnterpriseResourcePartyClient(cfg),
+		EnterpriseResourceRemark:       NewEnterpriseResourceRemarkClient(cfg),
+		EnterpriseResourceShippingText: NewEnterpriseResourceShippingTextClient(cfg),
+		EnterpriseTag:                  NewEnterpriseTagClient(cfg),
+		EnterpriseTagGroup:             NewEnterpriseTagGroupClient(cfg),
+		ExchangeRateCustomSetting:      NewExchangeRateCustomSettingClient(cfg),
+		ExchangeRateImportBatch:        NewExchangeRateImportBatchClient(cfg),
+		ExchangeRateSetting:            NewExchangeRateSettingClient(cfg),
+		ExchangeRateTimeStandard:       NewExchangeRateTimeStandardClient(cfg),
+		FeeSetting:                     NewFeeSettingClient(cfg),
+		FinanceBill:                    NewFinanceBillClient(cfg),
+		FinanceBillBatch:               NewFinanceBillBatchClient(cfg),
+		FinanceBillLine:                NewFinanceBillLineClient(cfg),
+		FinanceCashflow:                NewFinanceCashflowClient(cfg),
+		FinanceCommission:              NewFinanceCommissionClient(cfg),
+		FinanceCommissionAdjustment:    NewFinanceCommissionAdjustmentClient(cfg),
+		FinanceCommissionLine:          NewFinanceCommissionLineClient(cfg),
+		FinanceCommissionRule:          NewFinanceCommissionRuleClient(cfg),
+		FinanceCustomSetting:           NewFinanceCustomSettingClient(cfg),
+		FinanceFeeLedgerPreference:     NewFinanceFeeLedgerPreferenceClient(cfg),
+		FinanceInvoice:                 NewFinanceInvoiceClient(cfg),
+		FinanceInvoiceBill:             NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceLine:             NewFinanceInvoiceLineClient(cfg),
+		FinanceVerification:            NewFinanceVerificationClient(cfg),
+		FinanceVerificationAllocation:  NewFinanceVerificationAllocationClient(cfg),
+		LoginRateLimitBucket:           NewLoginRateLimitBucketClient(cfg),
+		MasterDataItem:                 NewMasterDataItemClient(cfg),
+		Membership:                     NewMembershipClient(cfg),
+		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
+		NumberRule:                     NewNumberRuleClient(cfg),
+		NumberSequence:                 NewNumberSequenceClient(cfg),
+		Order:                          NewOrderClient(cfg),
+		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
+		OrderAttachment:                NewOrderAttachmentClient(cfg),
+		OrderCargoCategory:             NewOrderCargoCategoryClient(cfg),
+		OrderCargoItem:                 NewOrderCargoItemClient(cfg),
+		OrderCommissionAttribution:     NewOrderCommissionAttributionClient(cfg),
+		OrderConsolidation:             NewOrderConsolidationClient(cfg),
+		OrderContainer:                 NewOrderContainerClient(cfg),
+		OrderContainerRequest:          NewOrderContainerRequestClient(cfg),
+		OrderFee:                       NewOrderFeeClient(cfg),
+		OrderLifecycleEvent:            NewOrderLifecycleEventClient(cfg),
+		OrderMilestone:                 NewOrderMilestoneClient(cfg),
+		OrderPersonnel:                 NewOrderPersonnelClient(cfg),
+		OrderReleasePod:                NewOrderReleasePodClient(cfg),
+		OrderServiceType:               NewOrderServiceTypeClient(cfg),
+		OrderShippingDocument:          NewOrderShippingDocumentClient(cfg),
+		Organization:                   NewOrganizationClient(cfg),
+		Partner:                        NewPartnerClient(cfg),
+		PartnerAccount:                 NewPartnerAccountClient(cfg),
+		PartnerAlias:                   NewPartnerAliasClient(cfg),
+		PartnerAssignment:              NewPartnerAssignmentClient(cfg),
+		PartnerAttachment:              NewPartnerAttachmentClient(cfg),
+		PartnerContact:                 NewPartnerContactClient(cfg),
+		PartnerContract:                NewPartnerContractClient(cfg),
+		PartnerInvoiceProfile:          NewPartnerInvoiceProfileClient(cfg),
+		PartnerProfile:                 NewPartnerProfileClient(cfg),
+		PartnerRole:                    NewPartnerRoleClient(cfg),
+		PartnerSettlementRule:          NewPartnerSettlementRuleClient(cfg),
+		PartnerShippingPreset:          NewPartnerShippingPresetClient(cfg),
+		Permission:                     NewPermissionClient(cfg),
+		Port:                           NewPortClient(cfg),
+		Role:                           NewRoleClient(cfg),
+		RoleAssignment:                 NewRoleAssignmentClient(cfg),
+		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		Session:                        NewSessionClient(cfg),
+		ShippingLine:                   NewShippingLineClient(cfg),
+		ShippingLineContainerPrefix:    NewShippingLineContainerPrefixClient(cfg),
+		TaxableService:                 NewTaxableServiceClient(cfg),
+		User:                           NewUserClient(cfg),
 	}, nil
 }
 
@@ -607,25 +673,29 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateCustomSetting,
-		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
-		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.EnterpriseResource, c.EnterpriseResourceAddress,
+		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
+		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
+		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
+		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
+		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -636,25 +706,29 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
-		c.BillingUnit, c.Currency, c.ExchangeRateCustomSetting,
-		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.ExchangeRateTimeStandard,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillLine,
-		c.FinanceCashflow, c.FinanceCommission, c.FinanceCommissionAdjustment,
-		c.FinanceCommissionLine, c.FinanceCommissionRule, c.FinanceCustomSetting,
-		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceVerification, c.FinanceVerificationAllocation,
-		c.LoginRateLimitBucket, c.MasterDataItem, c.Membership, c.NotificationDelivery,
-		c.NumberRule, c.NumberSequence, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderLifecycleEvent, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
-		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.BillingUnit, c.Currency, c.EnterpriseResource, c.EnterpriseResourceAddress,
+		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
+		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
+		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
+		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
+		c.ExchangeRateCustomSetting, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
+		c.ExchangeRateTimeStandard, c.FeeSetting, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
+		c.FinanceCommissionAdjustment, c.FinanceCommissionLine,
+		c.FinanceCommissionRule, c.FinanceCustomSetting, c.FinanceFeeLedgerPreference,
+		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
+		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest, c.OrderFee,
+		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
+		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
+		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
+		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
+		c.PartnerRole, c.PartnerSettlementRule, c.PartnerShippingPreset, c.Permission,
+		c.Port, c.Role, c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -677,6 +751,28 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillingUnit.mutate(ctx, m)
 	case *CurrencyMutation:
 		return c.Currency.mutate(ctx, m)
+	case *EnterpriseResourceMutation:
+		return c.EnterpriseResource.mutate(ctx, m)
+	case *EnterpriseResourceAddressMutation:
+		return c.EnterpriseResourceAddress.mutate(ctx, m)
+	case *EnterpriseResourceAddressTypeMutation:
+		return c.EnterpriseResourceAddressType.mutate(ctx, m)
+	case *EnterpriseResourceAssigneeMutation:
+		return c.EnterpriseResourceAssignee.mutate(ctx, m)
+	case *EnterpriseResourceImageMutation:
+		return c.EnterpriseResourceImage.mutate(ctx, m)
+	case *EnterpriseResourcePartnerMutation:
+		return c.EnterpriseResourcePartner.mutate(ctx, m)
+	case *EnterpriseResourcePartyMutation:
+		return c.EnterpriseResourceParty.mutate(ctx, m)
+	case *EnterpriseResourceRemarkMutation:
+		return c.EnterpriseResourceRemark.mutate(ctx, m)
+	case *EnterpriseResourceShippingTextMutation:
+		return c.EnterpriseResourceShippingText.mutate(ctx, m)
+	case *EnterpriseTagMutation:
+		return c.EnterpriseTag.mutate(ctx, m)
+	case *EnterpriseTagGroupMutation:
+		return c.EnterpriseTagGroup.mutate(ctx, m)
 	case *ExchangeRateCustomSettingMutation:
 		return c.ExchangeRateCustomSetting.mutate(ctx, m)
 	case *ExchangeRateImportBatchMutation:
@@ -1857,6 +1953,1902 @@ func (c *CurrencyClient) mutate(ctx context.Context, m *CurrencyMutation) (Value
 		return (&CurrencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Currency mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceClient is a client for the EnterpriseResource schema.
+type EnterpriseResourceClient struct {
+	config
+}
+
+// NewEnterpriseResourceClient returns a client for the EnterpriseResource from the given config.
+func NewEnterpriseResourceClient(c config) *EnterpriseResourceClient {
+	return &EnterpriseResourceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresource.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResource = append(c.hooks.EnterpriseResource, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresource.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResource = append(c.inters.EnterpriseResource, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResource entity.
+func (c *EnterpriseResourceClient) Create() *EnterpriseResourceCreate {
+	mutation := newEnterpriseResourceMutation(c.config, OpCreate)
+	return &EnterpriseResourceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResource entities.
+func (c *EnterpriseResourceClient) CreateBulk(builders ...*EnterpriseResourceCreate) *EnterpriseResourceCreateBulk {
+	return &EnterpriseResourceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceCreate, int)) *EnterpriseResourceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResource.
+func (c *EnterpriseResourceClient) Update() *EnterpriseResourceUpdate {
+	mutation := newEnterpriseResourceMutation(c.config, OpUpdate)
+	return &EnterpriseResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceClient) UpdateOne(_m *EnterpriseResource) *EnterpriseResourceUpdateOne {
+	mutation := newEnterpriseResourceMutation(c.config, OpUpdateOne, withEnterpriseResource(_m))
+	return &EnterpriseResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceUpdateOne {
+	mutation := newEnterpriseResourceMutation(c.config, OpUpdateOne, withEnterpriseResourceID(id))
+	return &EnterpriseResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResource.
+func (c *EnterpriseResourceClient) Delete() *EnterpriseResourceDelete {
+	mutation := newEnterpriseResourceMutation(c.config, OpDelete)
+	return &EnterpriseResourceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceClient) DeleteOne(_m *EnterpriseResource) *EnterpriseResourceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceDeleteOne {
+	builder := c.Delete().Where(enterpriseresource.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResource.
+func (c *EnterpriseResourceClient) Query() *EnterpriseResourceQuery {
+	return &EnterpriseResourceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResource},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResource entity by its id.
+func (c *EnterpriseResourceClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResource, error) {
+	return c.Query().Where(enterpriseresource.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResource {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryOrganization(_m *EnterpriseResource) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresource.OrganizationTable, enterpriseresource.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCreator queries the creator edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryCreator(_m *EnterpriseResource) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresource.CreatorTable, enterpriseresource.CreatorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdater queries the updater edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryUpdater(_m *EnterpriseResource) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresource.UpdaterTable, enterpriseresource.UpdaterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddress queries the address edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryAddress(_m *EnterpriseResource) *EnterpriseResourceAddressQuery {
+	query := (&EnterpriseResourceAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceaddress.Table, enterpriseresourceaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.AddressTable, enterpriseresource.AddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRemark queries the remark edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryRemark(_m *EnterpriseResource) *EnterpriseResourceRemarkQuery {
+	query := (&EnterpriseResourceRemarkClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceremark.Table, enterpriseresourceremark.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.RemarkTable, enterpriseresource.RemarkColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryImage queries the image edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryImage(_m *EnterpriseResource) *EnterpriseResourceImageQuery {
+	query := (&EnterpriseResourceImageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceimage.Table, enterpriseresourceimage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.ImageTable, enterpriseresource.ImageColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParty queries the party edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryParty(_m *EnterpriseResource) *EnterpriseResourcePartyQuery {
+	query := (&EnterpriseResourcePartyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceparty.Table, enterpriseresourceparty.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.PartyTable, enterpriseresource.PartyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShippingText queries the shipping_text edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryShippingText(_m *EnterpriseResource) *EnterpriseResourceShippingTextQuery {
+	query := (&EnterpriseResourceShippingTextClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceshippingtext.Table, enterpriseresourceshippingtext.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.ShippingTextTable, enterpriseresource.ShippingTextColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTag queries the tag edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryTag(_m *EnterpriseResource) *EnterpriseTagQuery {
+	query := (&EnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterprisetag.Table, enterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, enterpriseresource.TagTable, enterpriseresource.TagColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPartnerLinks queries the partner_links edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryPartnerLinks(_m *EnterpriseResource) *EnterpriseResourcePartnerQuery {
+	query := (&EnterpriseResourcePartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourcepartner.Table, enterpriseresourcepartner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.PartnerLinksTable, enterpriseresource.PartnerLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssignees queries the assignees edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryAssignees(_m *EnterpriseResource) *EnterpriseResourceAssigneeQuery {
+	query := (&EnterpriseResourceAssigneeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceassignee.Table, enterpriseresourceassignee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.AssigneesTable, enterpriseresource.AssigneesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddressTypes queries the address_types edge of a EnterpriseResource.
+func (c *EnterpriseResourceClient) QueryAddressTypes(_m *EnterpriseResource) *EnterpriseResourceAddressTypeQuery {
+	query := (&EnterpriseResourceAddressTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresource.Table, enterpriseresource.FieldID, id),
+			sqlgraph.To(enterpriseresourceaddresstype.Table, enterpriseresourceaddresstype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterpriseresource.AddressTypesTable, enterpriseresource.AddressTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceClient) Hooks() []Hook {
+	hooks := c.hooks.EnterpriseResource
+	return append(hooks[:len(hooks):len(hooks)], enterpriseresource.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResource
+}
+
+func (c *EnterpriseResourceClient) mutate(ctx context.Context, m *EnterpriseResourceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResource mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceAddressClient is a client for the EnterpriseResourceAddress schema.
+type EnterpriseResourceAddressClient struct {
+	config
+}
+
+// NewEnterpriseResourceAddressClient returns a client for the EnterpriseResourceAddress from the given config.
+func NewEnterpriseResourceAddressClient(c config) *EnterpriseResourceAddressClient {
+	return &EnterpriseResourceAddressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceaddress.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceAddressClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceAddress = append(c.hooks.EnterpriseResourceAddress, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceaddress.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceAddressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceAddress = append(c.inters.EnterpriseResourceAddress, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceAddress entity.
+func (c *EnterpriseResourceAddressClient) Create() *EnterpriseResourceAddressCreate {
+	mutation := newEnterpriseResourceAddressMutation(c.config, OpCreate)
+	return &EnterpriseResourceAddressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceAddress entities.
+func (c *EnterpriseResourceAddressClient) CreateBulk(builders ...*EnterpriseResourceAddressCreate) *EnterpriseResourceAddressCreateBulk {
+	return &EnterpriseResourceAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceAddressClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceAddressCreate, int)) *EnterpriseResourceAddressCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceAddressCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceAddressClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceAddressCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceAddress.
+func (c *EnterpriseResourceAddressClient) Update() *EnterpriseResourceAddressUpdate {
+	mutation := newEnterpriseResourceAddressMutation(c.config, OpUpdate)
+	return &EnterpriseResourceAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceAddressClient) UpdateOne(_m *EnterpriseResourceAddress) *EnterpriseResourceAddressUpdateOne {
+	mutation := newEnterpriseResourceAddressMutation(c.config, OpUpdateOne, withEnterpriseResourceAddress(_m))
+	return &EnterpriseResourceAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceAddressClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceAddressUpdateOne {
+	mutation := newEnterpriseResourceAddressMutation(c.config, OpUpdateOne, withEnterpriseResourceAddressID(id))
+	return &EnterpriseResourceAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceAddress.
+func (c *EnterpriseResourceAddressClient) Delete() *EnterpriseResourceAddressDelete {
+	mutation := newEnterpriseResourceAddressMutation(c.config, OpDelete)
+	return &EnterpriseResourceAddressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceAddressClient) DeleteOne(_m *EnterpriseResourceAddress) *EnterpriseResourceAddressDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceAddressClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceAddressDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceaddress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceAddressDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceAddress.
+func (c *EnterpriseResourceAddressClient) Query() *EnterpriseResourceAddressQuery {
+	return &EnterpriseResourceAddressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceAddress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceAddress entity by its id.
+func (c *EnterpriseResourceAddressClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceAddress, error) {
+	return c.Query().Where(enterpriseresourceaddress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceAddressClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceAddress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceAddress.
+func (c *EnterpriseResourceAddressClient) QueryResource(_m *EnterpriseResourceAddress) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceaddress.Table, enterpriseresourceaddress.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterpriseresourceaddress.ResourceTable, enterpriseresourceaddress.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceAddressClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceAddress
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceAddressClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceAddress
+}
+
+func (c *EnterpriseResourceAddressClient) mutate(ctx context.Context, m *EnterpriseResourceAddressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceAddressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceAddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceAddress mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceAddressTypeClient is a client for the EnterpriseResourceAddressType schema.
+type EnterpriseResourceAddressTypeClient struct {
+	config
+}
+
+// NewEnterpriseResourceAddressTypeClient returns a client for the EnterpriseResourceAddressType from the given config.
+func NewEnterpriseResourceAddressTypeClient(c config) *EnterpriseResourceAddressTypeClient {
+	return &EnterpriseResourceAddressTypeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceaddresstype.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceAddressTypeClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceAddressType = append(c.hooks.EnterpriseResourceAddressType, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceaddresstype.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceAddressTypeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceAddressType = append(c.inters.EnterpriseResourceAddressType, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceAddressType entity.
+func (c *EnterpriseResourceAddressTypeClient) Create() *EnterpriseResourceAddressTypeCreate {
+	mutation := newEnterpriseResourceAddressTypeMutation(c.config, OpCreate)
+	return &EnterpriseResourceAddressTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceAddressType entities.
+func (c *EnterpriseResourceAddressTypeClient) CreateBulk(builders ...*EnterpriseResourceAddressTypeCreate) *EnterpriseResourceAddressTypeCreateBulk {
+	return &EnterpriseResourceAddressTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceAddressTypeClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceAddressTypeCreate, int)) *EnterpriseResourceAddressTypeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceAddressTypeCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceAddressTypeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceAddressTypeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceAddressTypeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceAddressType.
+func (c *EnterpriseResourceAddressTypeClient) Update() *EnterpriseResourceAddressTypeUpdate {
+	mutation := newEnterpriseResourceAddressTypeMutation(c.config, OpUpdate)
+	return &EnterpriseResourceAddressTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceAddressTypeClient) UpdateOne(_m *EnterpriseResourceAddressType) *EnterpriseResourceAddressTypeUpdateOne {
+	mutation := newEnterpriseResourceAddressTypeMutation(c.config, OpUpdateOne, withEnterpriseResourceAddressType(_m))
+	return &EnterpriseResourceAddressTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceAddressTypeClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceAddressTypeUpdateOne {
+	mutation := newEnterpriseResourceAddressTypeMutation(c.config, OpUpdateOne, withEnterpriseResourceAddressTypeID(id))
+	return &EnterpriseResourceAddressTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceAddressType.
+func (c *EnterpriseResourceAddressTypeClient) Delete() *EnterpriseResourceAddressTypeDelete {
+	mutation := newEnterpriseResourceAddressTypeMutation(c.config, OpDelete)
+	return &EnterpriseResourceAddressTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceAddressTypeClient) DeleteOne(_m *EnterpriseResourceAddressType) *EnterpriseResourceAddressTypeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceAddressTypeClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceAddressTypeDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceaddresstype.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceAddressTypeDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceAddressType.
+func (c *EnterpriseResourceAddressTypeClient) Query() *EnterpriseResourceAddressTypeQuery {
+	return &EnterpriseResourceAddressTypeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceAddressType},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceAddressType entity by its id.
+func (c *EnterpriseResourceAddressTypeClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceAddressType, error) {
+	return c.Query().Where(enterpriseresourceaddresstype.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceAddressTypeClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceAddressType {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceAddressType.
+func (c *EnterpriseResourceAddressTypeClient) QueryResource(_m *EnterpriseResourceAddressType) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceaddresstype.Table, enterpriseresourceaddresstype.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourceaddresstype.ResourceTable, enterpriseresourceaddresstype.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceAddressTypeClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceAddressType
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceAddressTypeClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceAddressType
+}
+
+func (c *EnterpriseResourceAddressTypeClient) mutate(ctx context.Context, m *EnterpriseResourceAddressTypeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceAddressTypeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceAddressTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceAddressTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceAddressTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceAddressType mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceAssigneeClient is a client for the EnterpriseResourceAssignee schema.
+type EnterpriseResourceAssigneeClient struct {
+	config
+}
+
+// NewEnterpriseResourceAssigneeClient returns a client for the EnterpriseResourceAssignee from the given config.
+func NewEnterpriseResourceAssigneeClient(c config) *EnterpriseResourceAssigneeClient {
+	return &EnterpriseResourceAssigneeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceassignee.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceAssigneeClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceAssignee = append(c.hooks.EnterpriseResourceAssignee, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceassignee.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceAssigneeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceAssignee = append(c.inters.EnterpriseResourceAssignee, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceAssignee entity.
+func (c *EnterpriseResourceAssigneeClient) Create() *EnterpriseResourceAssigneeCreate {
+	mutation := newEnterpriseResourceAssigneeMutation(c.config, OpCreate)
+	return &EnterpriseResourceAssigneeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceAssignee entities.
+func (c *EnterpriseResourceAssigneeClient) CreateBulk(builders ...*EnterpriseResourceAssigneeCreate) *EnterpriseResourceAssigneeCreateBulk {
+	return &EnterpriseResourceAssigneeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceAssigneeClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceAssigneeCreate, int)) *EnterpriseResourceAssigneeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceAssigneeCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceAssigneeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceAssigneeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceAssigneeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceAssignee.
+func (c *EnterpriseResourceAssigneeClient) Update() *EnterpriseResourceAssigneeUpdate {
+	mutation := newEnterpriseResourceAssigneeMutation(c.config, OpUpdate)
+	return &EnterpriseResourceAssigneeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceAssigneeClient) UpdateOne(_m *EnterpriseResourceAssignee) *EnterpriseResourceAssigneeUpdateOne {
+	mutation := newEnterpriseResourceAssigneeMutation(c.config, OpUpdateOne, withEnterpriseResourceAssignee(_m))
+	return &EnterpriseResourceAssigneeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceAssigneeClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceAssigneeUpdateOne {
+	mutation := newEnterpriseResourceAssigneeMutation(c.config, OpUpdateOne, withEnterpriseResourceAssigneeID(id))
+	return &EnterpriseResourceAssigneeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceAssignee.
+func (c *EnterpriseResourceAssigneeClient) Delete() *EnterpriseResourceAssigneeDelete {
+	mutation := newEnterpriseResourceAssigneeMutation(c.config, OpDelete)
+	return &EnterpriseResourceAssigneeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceAssigneeClient) DeleteOne(_m *EnterpriseResourceAssignee) *EnterpriseResourceAssigneeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceAssigneeClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceAssigneeDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceassignee.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceAssigneeDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceAssignee.
+func (c *EnterpriseResourceAssigneeClient) Query() *EnterpriseResourceAssigneeQuery {
+	return &EnterpriseResourceAssigneeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceAssignee},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceAssignee entity by its id.
+func (c *EnterpriseResourceAssigneeClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceAssignee, error) {
+	return c.Query().Where(enterpriseresourceassignee.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceAssigneeClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceAssignee {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceAssignee.
+func (c *EnterpriseResourceAssigneeClient) QueryResource(_m *EnterpriseResourceAssignee) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceassignee.Table, enterpriseresourceassignee.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourceassignee.ResourceTable, enterpriseresourceassignee.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a EnterpriseResourceAssignee.
+func (c *EnterpriseResourceAssigneeClient) QueryUser(_m *EnterpriseResourceAssignee) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceassignee.Table, enterpriseresourceassignee.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourceassignee.UserTable, enterpriseresourceassignee.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceAssigneeClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceAssignee
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceAssigneeClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceAssignee
+}
+
+func (c *EnterpriseResourceAssigneeClient) mutate(ctx context.Context, m *EnterpriseResourceAssigneeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceAssigneeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceAssigneeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceAssigneeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceAssigneeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceAssignee mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceImageClient is a client for the EnterpriseResourceImage schema.
+type EnterpriseResourceImageClient struct {
+	config
+}
+
+// NewEnterpriseResourceImageClient returns a client for the EnterpriseResourceImage from the given config.
+func NewEnterpriseResourceImageClient(c config) *EnterpriseResourceImageClient {
+	return &EnterpriseResourceImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceimage.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceImageClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceImage = append(c.hooks.EnterpriseResourceImage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceimage.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceImageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceImage = append(c.inters.EnterpriseResourceImage, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceImage entity.
+func (c *EnterpriseResourceImageClient) Create() *EnterpriseResourceImageCreate {
+	mutation := newEnterpriseResourceImageMutation(c.config, OpCreate)
+	return &EnterpriseResourceImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceImage entities.
+func (c *EnterpriseResourceImageClient) CreateBulk(builders ...*EnterpriseResourceImageCreate) *EnterpriseResourceImageCreateBulk {
+	return &EnterpriseResourceImageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceImageClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceImageCreate, int)) *EnterpriseResourceImageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceImageCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceImageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceImageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceImage.
+func (c *EnterpriseResourceImageClient) Update() *EnterpriseResourceImageUpdate {
+	mutation := newEnterpriseResourceImageMutation(c.config, OpUpdate)
+	return &EnterpriseResourceImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceImageClient) UpdateOne(_m *EnterpriseResourceImage) *EnterpriseResourceImageUpdateOne {
+	mutation := newEnterpriseResourceImageMutation(c.config, OpUpdateOne, withEnterpriseResourceImage(_m))
+	return &EnterpriseResourceImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceImageClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceImageUpdateOne {
+	mutation := newEnterpriseResourceImageMutation(c.config, OpUpdateOne, withEnterpriseResourceImageID(id))
+	return &EnterpriseResourceImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceImage.
+func (c *EnterpriseResourceImageClient) Delete() *EnterpriseResourceImageDelete {
+	mutation := newEnterpriseResourceImageMutation(c.config, OpDelete)
+	return &EnterpriseResourceImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceImageClient) DeleteOne(_m *EnterpriseResourceImage) *EnterpriseResourceImageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceImageClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceImageDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceimage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceImageDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceImage.
+func (c *EnterpriseResourceImageClient) Query() *EnterpriseResourceImageQuery {
+	return &EnterpriseResourceImageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceImage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceImage entity by its id.
+func (c *EnterpriseResourceImageClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceImage, error) {
+	return c.Query().Where(enterpriseresourceimage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceImageClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceImage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceImage.
+func (c *EnterpriseResourceImageClient) QueryResource(_m *EnterpriseResourceImage) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceimage.Table, enterpriseresourceimage.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterpriseresourceimage.ResourceTable, enterpriseresourceimage.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUploader queries the uploader edge of a EnterpriseResourceImage.
+func (c *EnterpriseResourceImageClient) QueryUploader(_m *EnterpriseResourceImage) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceimage.Table, enterpriseresourceimage.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourceimage.UploaderTable, enterpriseresourceimage.UploaderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceImageClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceImage
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceImageClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceImage
+}
+
+func (c *EnterpriseResourceImageClient) mutate(ctx context.Context, m *EnterpriseResourceImageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceImage mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourcePartnerClient is a client for the EnterpriseResourcePartner schema.
+type EnterpriseResourcePartnerClient struct {
+	config
+}
+
+// NewEnterpriseResourcePartnerClient returns a client for the EnterpriseResourcePartner from the given config.
+func NewEnterpriseResourcePartnerClient(c config) *EnterpriseResourcePartnerClient {
+	return &EnterpriseResourcePartnerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourcepartner.Hooks(f(g(h())))`.
+func (c *EnterpriseResourcePartnerClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourcePartner = append(c.hooks.EnterpriseResourcePartner, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourcepartner.Intercept(f(g(h())))`.
+func (c *EnterpriseResourcePartnerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourcePartner = append(c.inters.EnterpriseResourcePartner, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourcePartner entity.
+func (c *EnterpriseResourcePartnerClient) Create() *EnterpriseResourcePartnerCreate {
+	mutation := newEnterpriseResourcePartnerMutation(c.config, OpCreate)
+	return &EnterpriseResourcePartnerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourcePartner entities.
+func (c *EnterpriseResourcePartnerClient) CreateBulk(builders ...*EnterpriseResourcePartnerCreate) *EnterpriseResourcePartnerCreateBulk {
+	return &EnterpriseResourcePartnerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourcePartnerClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourcePartnerCreate, int)) *EnterpriseResourcePartnerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourcePartnerCreateBulk{err: fmt.Errorf("calling to EnterpriseResourcePartnerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourcePartnerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourcePartnerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourcePartner.
+func (c *EnterpriseResourcePartnerClient) Update() *EnterpriseResourcePartnerUpdate {
+	mutation := newEnterpriseResourcePartnerMutation(c.config, OpUpdate)
+	return &EnterpriseResourcePartnerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourcePartnerClient) UpdateOne(_m *EnterpriseResourcePartner) *EnterpriseResourcePartnerUpdateOne {
+	mutation := newEnterpriseResourcePartnerMutation(c.config, OpUpdateOne, withEnterpriseResourcePartner(_m))
+	return &EnterpriseResourcePartnerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourcePartnerClient) UpdateOneID(id uuid.UUID) *EnterpriseResourcePartnerUpdateOne {
+	mutation := newEnterpriseResourcePartnerMutation(c.config, OpUpdateOne, withEnterpriseResourcePartnerID(id))
+	return &EnterpriseResourcePartnerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourcePartner.
+func (c *EnterpriseResourcePartnerClient) Delete() *EnterpriseResourcePartnerDelete {
+	mutation := newEnterpriseResourcePartnerMutation(c.config, OpDelete)
+	return &EnterpriseResourcePartnerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourcePartnerClient) DeleteOne(_m *EnterpriseResourcePartner) *EnterpriseResourcePartnerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourcePartnerClient) DeleteOneID(id uuid.UUID) *EnterpriseResourcePartnerDeleteOne {
+	builder := c.Delete().Where(enterpriseresourcepartner.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourcePartnerDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourcePartner.
+func (c *EnterpriseResourcePartnerClient) Query() *EnterpriseResourcePartnerQuery {
+	return &EnterpriseResourcePartnerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourcePartner},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourcePartner entity by its id.
+func (c *EnterpriseResourcePartnerClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourcePartner, error) {
+	return c.Query().Where(enterpriseresourcepartner.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourcePartnerClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourcePartner {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourcePartner.
+func (c *EnterpriseResourcePartnerClient) QueryResource(_m *EnterpriseResourcePartner) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourcepartner.Table, enterpriseresourcepartner.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourcepartner.ResourceTable, enterpriseresourcepartner.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPartner queries the partner edge of a EnterpriseResourcePartner.
+func (c *EnterpriseResourcePartnerClient) QueryPartner(_m *EnterpriseResourcePartner) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourcepartner.Table, enterpriseresourcepartner.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterpriseresourcepartner.PartnerTable, enterpriseresourcepartner.PartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourcePartnerClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourcePartner
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourcePartnerClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourcePartner
+}
+
+func (c *EnterpriseResourcePartnerClient) mutate(ctx context.Context, m *EnterpriseResourcePartnerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourcePartnerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourcePartnerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourcePartnerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourcePartnerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourcePartner mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourcePartyClient is a client for the EnterpriseResourceParty schema.
+type EnterpriseResourcePartyClient struct {
+	config
+}
+
+// NewEnterpriseResourcePartyClient returns a client for the EnterpriseResourceParty from the given config.
+func NewEnterpriseResourcePartyClient(c config) *EnterpriseResourcePartyClient {
+	return &EnterpriseResourcePartyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceparty.Hooks(f(g(h())))`.
+func (c *EnterpriseResourcePartyClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceParty = append(c.hooks.EnterpriseResourceParty, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceparty.Intercept(f(g(h())))`.
+func (c *EnterpriseResourcePartyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceParty = append(c.inters.EnterpriseResourceParty, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceParty entity.
+func (c *EnterpriseResourcePartyClient) Create() *EnterpriseResourcePartyCreate {
+	mutation := newEnterpriseResourcePartyMutation(c.config, OpCreate)
+	return &EnterpriseResourcePartyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceParty entities.
+func (c *EnterpriseResourcePartyClient) CreateBulk(builders ...*EnterpriseResourcePartyCreate) *EnterpriseResourcePartyCreateBulk {
+	return &EnterpriseResourcePartyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourcePartyClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourcePartyCreate, int)) *EnterpriseResourcePartyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourcePartyCreateBulk{err: fmt.Errorf("calling to EnterpriseResourcePartyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourcePartyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourcePartyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceParty.
+func (c *EnterpriseResourcePartyClient) Update() *EnterpriseResourcePartyUpdate {
+	mutation := newEnterpriseResourcePartyMutation(c.config, OpUpdate)
+	return &EnterpriseResourcePartyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourcePartyClient) UpdateOne(_m *EnterpriseResourceParty) *EnterpriseResourcePartyUpdateOne {
+	mutation := newEnterpriseResourcePartyMutation(c.config, OpUpdateOne, withEnterpriseResourceParty(_m))
+	return &EnterpriseResourcePartyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourcePartyClient) UpdateOneID(id uuid.UUID) *EnterpriseResourcePartyUpdateOne {
+	mutation := newEnterpriseResourcePartyMutation(c.config, OpUpdateOne, withEnterpriseResourcePartyID(id))
+	return &EnterpriseResourcePartyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceParty.
+func (c *EnterpriseResourcePartyClient) Delete() *EnterpriseResourcePartyDelete {
+	mutation := newEnterpriseResourcePartyMutation(c.config, OpDelete)
+	return &EnterpriseResourcePartyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourcePartyClient) DeleteOne(_m *EnterpriseResourceParty) *EnterpriseResourcePartyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourcePartyClient) DeleteOneID(id uuid.UUID) *EnterpriseResourcePartyDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceparty.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourcePartyDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceParty.
+func (c *EnterpriseResourcePartyClient) Query() *EnterpriseResourcePartyQuery {
+	return &EnterpriseResourcePartyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceParty},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceParty entity by its id.
+func (c *EnterpriseResourcePartyClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceParty, error) {
+	return c.Query().Where(enterpriseresourceparty.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourcePartyClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceParty {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceParty.
+func (c *EnterpriseResourcePartyClient) QueryResource(_m *EnterpriseResourceParty) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceparty.Table, enterpriseresourceparty.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterpriseresourceparty.ResourceTable, enterpriseresourceparty.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourcePartyClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceParty
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourcePartyClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceParty
+}
+
+func (c *EnterpriseResourcePartyClient) mutate(ctx context.Context, m *EnterpriseResourcePartyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourcePartyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourcePartyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourcePartyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourcePartyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceParty mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceRemarkClient is a client for the EnterpriseResourceRemark schema.
+type EnterpriseResourceRemarkClient struct {
+	config
+}
+
+// NewEnterpriseResourceRemarkClient returns a client for the EnterpriseResourceRemark from the given config.
+func NewEnterpriseResourceRemarkClient(c config) *EnterpriseResourceRemarkClient {
+	return &EnterpriseResourceRemarkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceremark.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceRemarkClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceRemark = append(c.hooks.EnterpriseResourceRemark, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceremark.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceRemarkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceRemark = append(c.inters.EnterpriseResourceRemark, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceRemark entity.
+func (c *EnterpriseResourceRemarkClient) Create() *EnterpriseResourceRemarkCreate {
+	mutation := newEnterpriseResourceRemarkMutation(c.config, OpCreate)
+	return &EnterpriseResourceRemarkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceRemark entities.
+func (c *EnterpriseResourceRemarkClient) CreateBulk(builders ...*EnterpriseResourceRemarkCreate) *EnterpriseResourceRemarkCreateBulk {
+	return &EnterpriseResourceRemarkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceRemarkClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceRemarkCreate, int)) *EnterpriseResourceRemarkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceRemarkCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceRemarkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceRemarkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceRemarkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceRemark.
+func (c *EnterpriseResourceRemarkClient) Update() *EnterpriseResourceRemarkUpdate {
+	mutation := newEnterpriseResourceRemarkMutation(c.config, OpUpdate)
+	return &EnterpriseResourceRemarkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceRemarkClient) UpdateOne(_m *EnterpriseResourceRemark) *EnterpriseResourceRemarkUpdateOne {
+	mutation := newEnterpriseResourceRemarkMutation(c.config, OpUpdateOne, withEnterpriseResourceRemark(_m))
+	return &EnterpriseResourceRemarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceRemarkClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceRemarkUpdateOne {
+	mutation := newEnterpriseResourceRemarkMutation(c.config, OpUpdateOne, withEnterpriseResourceRemarkID(id))
+	return &EnterpriseResourceRemarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceRemark.
+func (c *EnterpriseResourceRemarkClient) Delete() *EnterpriseResourceRemarkDelete {
+	mutation := newEnterpriseResourceRemarkMutation(c.config, OpDelete)
+	return &EnterpriseResourceRemarkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceRemarkClient) DeleteOne(_m *EnterpriseResourceRemark) *EnterpriseResourceRemarkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceRemarkClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceRemarkDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceremark.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceRemarkDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceRemark.
+func (c *EnterpriseResourceRemarkClient) Query() *EnterpriseResourceRemarkQuery {
+	return &EnterpriseResourceRemarkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceRemark},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceRemark entity by its id.
+func (c *EnterpriseResourceRemarkClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceRemark, error) {
+	return c.Query().Where(enterpriseresourceremark.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceRemarkClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceRemark {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceRemark.
+func (c *EnterpriseResourceRemarkClient) QueryResource(_m *EnterpriseResourceRemark) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceremark.Table, enterpriseresourceremark.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterpriseresourceremark.ResourceTable, enterpriseresourceremark.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceRemarkClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceRemark
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceRemarkClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceRemark
+}
+
+func (c *EnterpriseResourceRemarkClient) mutate(ctx context.Context, m *EnterpriseResourceRemarkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceRemarkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceRemarkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceRemarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceRemarkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceRemark mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseResourceShippingTextClient is a client for the EnterpriseResourceShippingText schema.
+type EnterpriseResourceShippingTextClient struct {
+	config
+}
+
+// NewEnterpriseResourceShippingTextClient returns a client for the EnterpriseResourceShippingText from the given config.
+func NewEnterpriseResourceShippingTextClient(c config) *EnterpriseResourceShippingTextClient {
+	return &EnterpriseResourceShippingTextClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterpriseresourceshippingtext.Hooks(f(g(h())))`.
+func (c *EnterpriseResourceShippingTextClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseResourceShippingText = append(c.hooks.EnterpriseResourceShippingText, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterpriseresourceshippingtext.Intercept(f(g(h())))`.
+func (c *EnterpriseResourceShippingTextClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseResourceShippingText = append(c.inters.EnterpriseResourceShippingText, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseResourceShippingText entity.
+func (c *EnterpriseResourceShippingTextClient) Create() *EnterpriseResourceShippingTextCreate {
+	mutation := newEnterpriseResourceShippingTextMutation(c.config, OpCreate)
+	return &EnterpriseResourceShippingTextCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseResourceShippingText entities.
+func (c *EnterpriseResourceShippingTextClient) CreateBulk(builders ...*EnterpriseResourceShippingTextCreate) *EnterpriseResourceShippingTextCreateBulk {
+	return &EnterpriseResourceShippingTextCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseResourceShippingTextClient) MapCreateBulk(slice any, setFunc func(*EnterpriseResourceShippingTextCreate, int)) *EnterpriseResourceShippingTextCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseResourceShippingTextCreateBulk{err: fmt.Errorf("calling to EnterpriseResourceShippingTextClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseResourceShippingTextCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseResourceShippingTextCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseResourceShippingText.
+func (c *EnterpriseResourceShippingTextClient) Update() *EnterpriseResourceShippingTextUpdate {
+	mutation := newEnterpriseResourceShippingTextMutation(c.config, OpUpdate)
+	return &EnterpriseResourceShippingTextUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseResourceShippingTextClient) UpdateOne(_m *EnterpriseResourceShippingText) *EnterpriseResourceShippingTextUpdateOne {
+	mutation := newEnterpriseResourceShippingTextMutation(c.config, OpUpdateOne, withEnterpriseResourceShippingText(_m))
+	return &EnterpriseResourceShippingTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseResourceShippingTextClient) UpdateOneID(id uuid.UUID) *EnterpriseResourceShippingTextUpdateOne {
+	mutation := newEnterpriseResourceShippingTextMutation(c.config, OpUpdateOne, withEnterpriseResourceShippingTextID(id))
+	return &EnterpriseResourceShippingTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseResourceShippingText.
+func (c *EnterpriseResourceShippingTextClient) Delete() *EnterpriseResourceShippingTextDelete {
+	mutation := newEnterpriseResourceShippingTextMutation(c.config, OpDelete)
+	return &EnterpriseResourceShippingTextDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseResourceShippingTextClient) DeleteOne(_m *EnterpriseResourceShippingText) *EnterpriseResourceShippingTextDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseResourceShippingTextClient) DeleteOneID(id uuid.UUID) *EnterpriseResourceShippingTextDeleteOne {
+	builder := c.Delete().Where(enterpriseresourceshippingtext.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseResourceShippingTextDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseResourceShippingText.
+func (c *EnterpriseResourceShippingTextClient) Query() *EnterpriseResourceShippingTextQuery {
+	return &EnterpriseResourceShippingTextQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseResourceShippingText},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseResourceShippingText entity by its id.
+func (c *EnterpriseResourceShippingTextClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseResourceShippingText, error) {
+	return c.Query().Where(enterpriseresourceshippingtext.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseResourceShippingTextClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseResourceShippingText {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseResourceShippingText.
+func (c *EnterpriseResourceShippingTextClient) QueryResource(_m *EnterpriseResourceShippingText) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterpriseresourceshippingtext.Table, enterpriseresourceshippingtext.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterpriseresourceshippingtext.ResourceTable, enterpriseresourceshippingtext.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseResourceShippingTextClient) Hooks() []Hook {
+	return c.hooks.EnterpriseResourceShippingText
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseResourceShippingTextClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseResourceShippingText
+}
+
+func (c *EnterpriseResourceShippingTextClient) mutate(ctx context.Context, m *EnterpriseResourceShippingTextMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseResourceShippingTextCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseResourceShippingTextUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseResourceShippingTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseResourceShippingTextDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseResourceShippingText mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseTagClient is a client for the EnterpriseTag schema.
+type EnterpriseTagClient struct {
+	config
+}
+
+// NewEnterpriseTagClient returns a client for the EnterpriseTag from the given config.
+func NewEnterpriseTagClient(c config) *EnterpriseTagClient {
+	return &EnterpriseTagClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterprisetag.Hooks(f(g(h())))`.
+func (c *EnterpriseTagClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseTag = append(c.hooks.EnterpriseTag, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterprisetag.Intercept(f(g(h())))`.
+func (c *EnterpriseTagClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseTag = append(c.inters.EnterpriseTag, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseTag entity.
+func (c *EnterpriseTagClient) Create() *EnterpriseTagCreate {
+	mutation := newEnterpriseTagMutation(c.config, OpCreate)
+	return &EnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseTag entities.
+func (c *EnterpriseTagClient) CreateBulk(builders ...*EnterpriseTagCreate) *EnterpriseTagCreateBulk {
+	return &EnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseTagClient) MapCreateBulk(slice any, setFunc func(*EnterpriseTagCreate, int)) *EnterpriseTagCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseTagCreateBulk{err: fmt.Errorf("calling to EnterpriseTagClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseTagCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseTagCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseTag.
+func (c *EnterpriseTagClient) Update() *EnterpriseTagUpdate {
+	mutation := newEnterpriseTagMutation(c.config, OpUpdate)
+	return &EnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseTagClient) UpdateOne(_m *EnterpriseTag) *EnterpriseTagUpdateOne {
+	mutation := newEnterpriseTagMutation(c.config, OpUpdateOne, withEnterpriseTag(_m))
+	return &EnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseTagClient) UpdateOneID(id uuid.UUID) *EnterpriseTagUpdateOne {
+	mutation := newEnterpriseTagMutation(c.config, OpUpdateOne, withEnterpriseTagID(id))
+	return &EnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseTag.
+func (c *EnterpriseTagClient) Delete() *EnterpriseTagDelete {
+	mutation := newEnterpriseTagMutation(c.config, OpDelete)
+	return &EnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseTagClient) DeleteOne(_m *EnterpriseTag) *EnterpriseTagDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseTagClient) DeleteOneID(id uuid.UUID) *EnterpriseTagDeleteOne {
+	builder := c.Delete().Where(enterprisetag.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseTagDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseTag.
+func (c *EnterpriseTagClient) Query() *EnterpriseTagQuery {
+	return &EnterpriseTagQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseTag},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseTag entity by its id.
+func (c *EnterpriseTagClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseTag, error) {
+	return c.Query().Where(enterprisetag.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseTagClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseTag {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryResource queries the resource edge of a EnterpriseTag.
+func (c *EnterpriseTagClient) QueryResource(_m *EnterpriseTag) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterprisetag.Table, enterprisetag.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, enterprisetag.ResourceTable, enterprisetag.ResourceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGroup queries the group edge of a EnterpriseTag.
+func (c *EnterpriseTagClient) QueryGroup(_m *EnterpriseTag) *EnterpriseTagGroupQuery {
+	query := (&EnterpriseTagGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterprisetag.Table, enterprisetag.FieldID, id),
+			sqlgraph.To(enterprisetaggroup.Table, enterprisetaggroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterprisetag.GroupTable, enterprisetag.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseTagClient) Hooks() []Hook {
+	return c.hooks.EnterpriseTag
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseTagClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseTag
+}
+
+func (c *EnterpriseTagClient) mutate(ctx context.Context, m *EnterpriseTagMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseTagCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseTagUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseTagUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseTag mutation op: %q", m.Op())
+	}
+}
+
+// EnterpriseTagGroupClient is a client for the EnterpriseTagGroup schema.
+type EnterpriseTagGroupClient struct {
+	config
+}
+
+// NewEnterpriseTagGroupClient returns a client for the EnterpriseTagGroup from the given config.
+func NewEnterpriseTagGroupClient(c config) *EnterpriseTagGroupClient {
+	return &EnterpriseTagGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enterprisetaggroup.Hooks(f(g(h())))`.
+func (c *EnterpriseTagGroupClient) Use(hooks ...Hook) {
+	c.hooks.EnterpriseTagGroup = append(c.hooks.EnterpriseTagGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enterprisetaggroup.Intercept(f(g(h())))`.
+func (c *EnterpriseTagGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnterpriseTagGroup = append(c.inters.EnterpriseTagGroup, interceptors...)
+}
+
+// Create returns a builder for creating a EnterpriseTagGroup entity.
+func (c *EnterpriseTagGroupClient) Create() *EnterpriseTagGroupCreate {
+	mutation := newEnterpriseTagGroupMutation(c.config, OpCreate)
+	return &EnterpriseTagGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnterpriseTagGroup entities.
+func (c *EnterpriseTagGroupClient) CreateBulk(builders ...*EnterpriseTagGroupCreate) *EnterpriseTagGroupCreateBulk {
+	return &EnterpriseTagGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EnterpriseTagGroupClient) MapCreateBulk(slice any, setFunc func(*EnterpriseTagGroupCreate, int)) *EnterpriseTagGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EnterpriseTagGroupCreateBulk{err: fmt.Errorf("calling to EnterpriseTagGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EnterpriseTagGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EnterpriseTagGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnterpriseTagGroup.
+func (c *EnterpriseTagGroupClient) Update() *EnterpriseTagGroupUpdate {
+	mutation := newEnterpriseTagGroupMutation(c.config, OpUpdate)
+	return &EnterpriseTagGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnterpriseTagGroupClient) UpdateOne(_m *EnterpriseTagGroup) *EnterpriseTagGroupUpdateOne {
+	mutation := newEnterpriseTagGroupMutation(c.config, OpUpdateOne, withEnterpriseTagGroup(_m))
+	return &EnterpriseTagGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnterpriseTagGroupClient) UpdateOneID(id uuid.UUID) *EnterpriseTagGroupUpdateOne {
+	mutation := newEnterpriseTagGroupMutation(c.config, OpUpdateOne, withEnterpriseTagGroupID(id))
+	return &EnterpriseTagGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnterpriseTagGroup.
+func (c *EnterpriseTagGroupClient) Delete() *EnterpriseTagGroupDelete {
+	mutation := newEnterpriseTagGroupMutation(c.config, OpDelete)
+	return &EnterpriseTagGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnterpriseTagGroupClient) DeleteOne(_m *EnterpriseTagGroup) *EnterpriseTagGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnterpriseTagGroupClient) DeleteOneID(id uuid.UUID) *EnterpriseTagGroupDeleteOne {
+	builder := c.Delete().Where(enterprisetaggroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnterpriseTagGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for EnterpriseTagGroup.
+func (c *EnterpriseTagGroupClient) Query() *EnterpriseTagGroupQuery {
+	return &EnterpriseTagGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnterpriseTagGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnterpriseTagGroup entity by its id.
+func (c *EnterpriseTagGroupClient) Get(ctx context.Context, id uuid.UUID) (*EnterpriseTagGroup, error) {
+	return c.Query().Where(enterprisetaggroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnterpriseTagGroupClient) GetX(ctx context.Context, id uuid.UUID) *EnterpriseTagGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a EnterpriseTagGroup.
+func (c *EnterpriseTagGroupClient) QueryOrganization(_m *EnterpriseTagGroup) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterprisetaggroup.Table, enterprisetaggroup.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, enterprisetaggroup.OrganizationTable, enterprisetaggroup.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTags queries the tags edge of a EnterpriseTagGroup.
+func (c *EnterpriseTagGroupClient) QueryTags(_m *EnterpriseTagGroup) *EnterpriseTagQuery {
+	query := (&EnterpriseTagClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(enterprisetaggroup.Table, enterprisetaggroup.FieldID, id),
+			sqlgraph.To(enterprisetag.Table, enterprisetag.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, enterprisetaggroup.TagsTable, enterprisetaggroup.TagsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EnterpriseTagGroupClient) Hooks() []Hook {
+	return c.hooks.EnterpriseTagGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnterpriseTagGroupClient) Interceptors() []Interceptor {
+	return c.inters.EnterpriseTagGroup
+}
+
+func (c *EnterpriseTagGroupClient) mutate(ctx context.Context, m *EnterpriseTagGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnterpriseTagGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnterpriseTagGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnterpriseTagGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnterpriseTagGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnterpriseTagGroup mutation op: %q", m.Op())
 	}
 }
 
@@ -10260,6 +12252,38 @@ func (c *OrganizationClient) QueryFinanceCustomSetting(_m *Organization) *Financ
 	return query
 }
 
+// QueryEnterpriseResources queries the enterprise_resources edge of a Organization.
+func (c *OrganizationClient) QueryEnterpriseResources(_m *Organization) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.EnterpriseResourcesTable, organization.EnterpriseResourcesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnterpriseTagGroups queries the enterprise_tag_groups edge of a Organization.
+func (c *OrganizationClient) QueryEnterpriseTagGroups(_m *Organization) *EnterpriseTagGroupQuery {
+	query := (&EnterpriseTagGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(enterprisetaggroup.Table, enterprisetaggroup.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.EnterpriseTagGroupsTable, organization.EnterpriseTagGroupsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	hooks := c.hooks.Organization
@@ -10515,6 +12539,22 @@ func (c *PartnerClient) QueryShippingPresets(_m *Partner) *PartnerShippingPreset
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(partnershippingpreset.Table, partnershippingpreset.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.ShippingPresetsTable, partner.ShippingPresetsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnterpriseResourceLinks queries the enterprise_resource_links edge of a Partner.
+func (c *PartnerClient) QueryEnterpriseResourceLinks(_m *Partner) *EnterpriseResourcePartnerQuery {
+	query := (&EnterpriseResourcePartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(enterpriseresourcepartner.Table, enterpriseresourcepartner.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.EnterpriseResourceLinksTable, partner.EnterpriseResourceLinksColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -14440,6 +16480,70 @@ func (c *UserClient) QueryUpdatedFinanceCustomSettings(_m *User) *FinanceCustomS
 	return query
 }
 
+// QueryCreatedEnterpriseResources queries the created_enterprise_resources edge of a User.
+func (c *UserClient) QueryCreatedEnterpriseResources(_m *User) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedEnterpriseResourcesTable, user.CreatedEnterpriseResourcesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUpdatedEnterpriseResources queries the updated_enterprise_resources edge of a User.
+func (c *UserClient) QueryUpdatedEnterpriseResources(_m *User) *EnterpriseResourceQuery {
+	query := (&EnterpriseResourceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(enterpriseresource.Table, enterpriseresource.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UpdatedEnterpriseResourcesTable, user.UpdatedEnterpriseResourcesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUploadedEnterpriseResourceImages queries the uploaded_enterprise_resource_images edge of a User.
+func (c *UserClient) QueryUploadedEnterpriseResourceImages(_m *User) *EnterpriseResourceImageQuery {
+	query := (&EnterpriseResourceImageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(enterpriseresourceimage.Table, enterpriseresourceimage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UploadedEnterpriseResourceImagesTable, user.UploadedEnterpriseResourceImagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEnterpriseResourceAssignments queries the enterprise_resource_assignments edge of a User.
+func (c *UserClient) QueryEnterpriseResourceAssignments(_m *User) *EnterpriseResourceAssigneeQuery {
+	query := (&EnterpriseResourceAssigneeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(enterpriseresourceassignee.Table, enterpriseresourceassignee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EnterpriseResourceAssignmentsTable, user.EnterpriseResourceAssignmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -14470,7 +16574,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateCustomSetting, ExchangeRateImportBatch,
+		Currency, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
 		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
 		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,
@@ -14490,7 +16598,11 @@ type (
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, ExchangeRateCustomSetting, ExchangeRateImportBatch,
+		Currency, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateCustomSetting, ExchangeRateImportBatch,
 		ExchangeRateSetting, ExchangeRateTimeStandard, FeeSetting, FinanceBill,
 		FinanceBillBatch, FinanceBillLine, FinanceCashflow, FinanceCommission,
 		FinanceCommissionAdjustment, FinanceCommissionLine, FinanceCommissionRule,

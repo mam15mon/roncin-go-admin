@@ -1642,6 +1642,98 @@ func HasUpdatedFinanceCustomSettingsWith(preds ...predicate.FinanceCustomSetting
 	})
 }
 
+// HasCreatedEnterpriseResources applies the HasEdge predicate on the "created_enterprise_resources" edge.
+func HasCreatedEnterpriseResources() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedEnterpriseResourcesTable, CreatedEnterpriseResourcesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatedEnterpriseResourcesWith applies the HasEdge predicate on the "created_enterprise_resources" edge with a given conditions (other predicates).
+func HasCreatedEnterpriseResourcesWith(preds ...predicate.EnterpriseResource) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCreatedEnterpriseResourcesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUpdatedEnterpriseResources applies the HasEdge predicate on the "updated_enterprise_resources" edge.
+func HasUpdatedEnterpriseResources() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UpdatedEnterpriseResourcesTable, UpdatedEnterpriseResourcesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUpdatedEnterpriseResourcesWith applies the HasEdge predicate on the "updated_enterprise_resources" edge with a given conditions (other predicates).
+func HasUpdatedEnterpriseResourcesWith(preds ...predicate.EnterpriseResource) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUpdatedEnterpriseResourcesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUploadedEnterpriseResourceImages applies the HasEdge predicate on the "uploaded_enterprise_resource_images" edge.
+func HasUploadedEnterpriseResourceImages() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UploadedEnterpriseResourceImagesTable, UploadedEnterpriseResourceImagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUploadedEnterpriseResourceImagesWith applies the HasEdge predicate on the "uploaded_enterprise_resource_images" edge with a given conditions (other predicates).
+func HasUploadedEnterpriseResourceImagesWith(preds ...predicate.EnterpriseResourceImage) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newUploadedEnterpriseResourceImagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEnterpriseResourceAssignments applies the HasEdge predicate on the "enterprise_resource_assignments" edge.
+func HasEnterpriseResourceAssignments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourceAssignmentsTable, EnterpriseResourceAssignmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEnterpriseResourceAssignmentsWith applies the HasEdge predicate on the "enterprise_resource_assignments" edge with a given conditions (other predicates).
+func HasEnterpriseResourceAssignmentsWith(preds ...predicate.EnterpriseResourceAssignee) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newEnterpriseResourceAssignmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

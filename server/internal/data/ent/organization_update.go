@@ -16,6 +16,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -663,6 +665,36 @@ func (_u *OrganizationUpdate) AddFinanceCustomSetting(v ...*FinanceCustomSetting
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceCustomSettingIDs(ids...)
+}
+
+// AddEnterpriseResourceIDs adds the "enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *OrganizationUpdate) AddEnterpriseResourceIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResources adds the "enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *OrganizationUpdate) AddEnterpriseResources(v ...*EnterpriseResource) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceIDs(ids...)
+}
+
+// AddEnterpriseTagGroupIDs adds the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by IDs.
+func (_u *OrganizationUpdate) AddEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddEnterpriseTagGroupIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagGroups adds the "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
+func (_u *OrganizationUpdate) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagGroupIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -1388,6 +1420,48 @@ func (_u *OrganizationUpdate) RemoveFinanceCustomSetting(v ...*FinanceCustomSett
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCustomSettingIDs(ids...)
+}
+
+// ClearEnterpriseResources clears all "enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *OrganizationUpdate) ClearEnterpriseResources() *OrganizationUpdate {
+	_u.mutation.ClearEnterpriseResources()
+	return _u
+}
+
+// RemoveEnterpriseResourceIDs removes the "enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *OrganizationUpdate) RemoveEnterpriseResourceIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResources removes "enterprise_resources" edges to EnterpriseResource entities.
+func (_u *OrganizationUpdate) RemoveEnterpriseResources(v ...*EnterpriseResource) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceIDs(ids...)
+}
+
+// ClearEnterpriseTagGroups clears all "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
+func (_u *OrganizationUpdate) ClearEnterpriseTagGroups() *OrganizationUpdate {
+	_u.mutation.ClearEnterpriseTagGroups()
+	return _u
+}
+
+// RemoveEnterpriseTagGroupIDs removes the "enterprise_tag_groups" edge to EnterpriseTagGroup entities by IDs.
+func (_u *OrganizationUpdate) RemoveEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveEnterpriseTagGroupIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagGroups removes "enterprise_tag_groups" edges to EnterpriseTagGroup entities.
+func (_u *OrganizationUpdate) RemoveEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagGroupIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -3036,6 +3110,96 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.EnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagGroupsIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -3657,6 +3821,36 @@ func (_u *OrganizationUpdateOne) AddFinanceCustomSetting(v ...*FinanceCustomSett
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceCustomSettingIDs(ids...)
+}
+
+// AddEnterpriseResourceIDs adds the "enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_u *OrganizationUpdateOne) AddEnterpriseResourceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseResources adds the "enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *OrganizationUpdateOne) AddEnterpriseResources(v ...*EnterpriseResource) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseResourceIDs(ids...)
+}
+
+// AddEnterpriseTagGroupIDs adds the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by IDs.
+func (_u *OrganizationUpdateOne) AddEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddEnterpriseTagGroupIDs(ids...)
+	return _u
+}
+
+// AddEnterpriseTagGroups adds the "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
+func (_u *OrganizationUpdateOne) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEnterpriseTagGroupIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -4382,6 +4576,48 @@ func (_u *OrganizationUpdateOne) RemoveFinanceCustomSetting(v ...*FinanceCustomS
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCustomSettingIDs(ids...)
+}
+
+// ClearEnterpriseResources clears all "enterprise_resources" edges to the EnterpriseResource entity.
+func (_u *OrganizationUpdateOne) ClearEnterpriseResources() *OrganizationUpdateOne {
+	_u.mutation.ClearEnterpriseResources()
+	return _u
+}
+
+// RemoveEnterpriseResourceIDs removes the "enterprise_resources" edge to EnterpriseResource entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveEnterpriseResourceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveEnterpriseResourceIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseResources removes "enterprise_resources" edges to EnterpriseResource entities.
+func (_u *OrganizationUpdateOne) RemoveEnterpriseResources(v ...*EnterpriseResource) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseResourceIDs(ids...)
+}
+
+// ClearEnterpriseTagGroups clears all "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
+func (_u *OrganizationUpdateOne) ClearEnterpriseTagGroups() *OrganizationUpdateOne {
+	_u.mutation.ClearEnterpriseTagGroups()
+	return _u
+}
+
+// RemoveEnterpriseTagGroupIDs removes the "enterprise_tag_groups" edge to EnterpriseTagGroup entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveEnterpriseTagGroupIDs(ids...)
+	return _u
+}
+
+// RemoveEnterpriseTagGroups removes "enterprise_tag_groups" edges to EnterpriseTagGroup entities.
+func (_u *OrganizationUpdateOne) RemoveEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEnterpriseTagGroupIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -6053,6 +6289,96 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseResourcesIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseResourcesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseResourcesTable,
+			Columns: []string{organization.EnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EnterpriseTagGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEnterpriseTagGroupsIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagGroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EnterpriseTagGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.EnterpriseTagGroupsTable,
+			Columns: []string{organization.EnterpriseTagGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

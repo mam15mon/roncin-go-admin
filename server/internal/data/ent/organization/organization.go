@@ -105,6 +105,10 @@ const (
 	EdgeExchangeRateCustomSetting = "exchange_rate_custom_setting"
 	// EdgeFinanceCustomSetting holds the string denoting the finance_custom_setting edge name in mutations.
 	EdgeFinanceCustomSetting = "finance_custom_setting"
+	// EdgeEnterpriseResources holds the string denoting the enterprise_resources edge name in mutations.
+	EdgeEnterpriseResources = "enterprise_resources"
+	// EdgeEnterpriseTagGroups holds the string denoting the enterprise_tag_groups edge name in mutations.
+	EdgeEnterpriseTagGroups = "enterprise_tag_groups"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ParentTable is the table that holds the parent relation/edge.
@@ -346,6 +350,20 @@ const (
 	FinanceCustomSettingInverseTable = "finance_custom_settings"
 	// FinanceCustomSettingColumn is the table column denoting the finance_custom_setting relation/edge.
 	FinanceCustomSettingColumn = "organization_id"
+	// EnterpriseResourcesTable is the table that holds the enterprise_resources relation/edge.
+	EnterpriseResourcesTable = "enterprise_resources"
+	// EnterpriseResourcesInverseTable is the table name for the EnterpriseResource entity.
+	// It exists in this package in order to avoid circular dependency with the "enterpriseresource" package.
+	EnterpriseResourcesInverseTable = "enterprise_resources"
+	// EnterpriseResourcesColumn is the table column denoting the enterprise_resources relation/edge.
+	EnterpriseResourcesColumn = "organization_id"
+	// EnterpriseTagGroupsTable is the table that holds the enterprise_tag_groups relation/edge.
+	EnterpriseTagGroupsTable = "enterprise_tag_groups"
+	// EnterpriseTagGroupsInverseTable is the table name for the EnterpriseTagGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "enterprisetaggroup" package.
+	EnterpriseTagGroupsInverseTable = "enterprise_tag_groups"
+	// EnterpriseTagGroupsColumn is the table column denoting the enterprise_tag_groups relation/edge.
+	EnterpriseTagGroupsColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -959,6 +977,34 @@ func ByFinanceCustomSetting(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newFinanceCustomSettingStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByEnterpriseResourcesCount orders the results by enterprise_resources count.
+func ByEnterpriseResourcesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnterpriseResourcesStep(), opts...)
+	}
+}
+
+// ByEnterpriseResources orders the results by enterprise_resources terms.
+func ByEnterpriseResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnterpriseResourcesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEnterpriseTagGroupsCount orders the results by enterprise_tag_groups count.
+func ByEnterpriseTagGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagGroupsStep(), opts...)
+	}
+}
+
+// ByEnterpriseTagGroups orders the results by enterprise_tag_groups terms.
+func ByEnterpriseTagGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1202,5 +1248,19 @@ func newFinanceCustomSettingStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCustomSettingInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCustomSettingTable, FinanceCustomSettingColumn),
+	)
+}
+func newEnterpriseResourcesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnterpriseResourcesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourcesTable, EnterpriseResourcesColumn),
+	)
+}
+func newEnterpriseTagGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EnterpriseTagGroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagGroupsTable, EnterpriseTagGroupsColumn),
 	)
 }

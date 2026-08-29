@@ -11,6 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
@@ -643,6 +646,66 @@ func (_c *UserCreate) AddUpdatedFinanceCustomSettings(v ...*FinanceCustomSetting
 		ids[i] = v[i].ID
 	}
 	return _c.AddUpdatedFinanceCustomSettingIDs(ids...)
+}
+
+// AddCreatedEnterpriseResourceIDs adds the "created_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_c *UserCreate) AddCreatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddCreatedEnterpriseResourceIDs(ids...)
+	return _c
+}
+
+// AddCreatedEnterpriseResources adds the "created_enterprise_resources" edges to the EnterpriseResource entity.
+func (_c *UserCreate) AddCreatedEnterpriseResources(v ...*EnterpriseResource) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCreatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUpdatedEnterpriseResourceIDs adds the "updated_enterprise_resources" edge to the EnterpriseResource entity by IDs.
+func (_c *UserCreate) AddUpdatedEnterpriseResourceIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddUpdatedEnterpriseResourceIDs(ids...)
+	return _c
+}
+
+// AddUpdatedEnterpriseResources adds the "updated_enterprise_resources" edges to the EnterpriseResource entity.
+func (_c *UserCreate) AddUpdatedEnterpriseResources(v ...*EnterpriseResource) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUpdatedEnterpriseResourceIDs(ids...)
+}
+
+// AddUploadedEnterpriseResourceImageIDs adds the "uploaded_enterprise_resource_images" edge to the EnterpriseResourceImage entity by IDs.
+func (_c *UserCreate) AddUploadedEnterpriseResourceImageIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddUploadedEnterpriseResourceImageIDs(ids...)
+	return _c
+}
+
+// AddUploadedEnterpriseResourceImages adds the "uploaded_enterprise_resource_images" edges to the EnterpriseResourceImage entity.
+func (_c *UserCreate) AddUploadedEnterpriseResourceImages(v ...*EnterpriseResourceImage) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUploadedEnterpriseResourceImageIDs(ids...)
+}
+
+// AddEnterpriseResourceAssignmentIDs adds the "enterprise_resource_assignments" edge to the EnterpriseResourceAssignee entity by IDs.
+func (_c *UserCreate) AddEnterpriseResourceAssignmentIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddEnterpriseResourceAssignmentIDs(ids...)
+	return _c
+}
+
+// AddEnterpriseResourceAssignments adds the "enterprise_resource_assignments" edges to the EnterpriseResourceAssignee entity.
+func (_c *UserCreate) AddEnterpriseResourceAssignments(v ...*EnterpriseResourceAssignee) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEnterpriseResourceAssignmentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1292,6 +1355,70 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecustomsetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CreatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CreatedEnterpriseResourcesTable,
+			Columns: []string{user.CreatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UpdatedEnterpriseResourcesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UpdatedEnterpriseResourcesTable,
+			Columns: []string{user.UpdatedEnterpriseResourcesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UploadedEnterpriseResourceImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UploadedEnterpriseResourceImagesTable,
+			Columns: []string{user.UploadedEnterpriseResourceImagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceimage.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EnterpriseResourceAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EnterpriseResourceAssignmentsTable,
+			Columns: []string{user.EnterpriseResourceAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceassignee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

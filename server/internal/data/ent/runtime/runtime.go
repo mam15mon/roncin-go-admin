@@ -13,6 +13,17 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddresstype"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceassignee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceimage"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
@@ -778,6 +789,603 @@ func init() {
 	currencyDescID := currencyMixinFields0[0].Descriptor()
 	// currency.DefaultID holds the default value on creation for the id field.
 	currency.DefaultID = currencyDescID.Default.(func() uuid.UUID)
+	enterpriseresourceMixin := schema.EnterpriseResource{}.Mixin()
+	enterpriseresourceHooks := schema.EnterpriseResource{}.Hooks()
+	enterpriseresource.Hooks[0] = enterpriseresourceHooks[0]
+	enterpriseresourceMixinFields0 := enterpriseresourceMixin[0].Fields()
+	_ = enterpriseresourceMixinFields0
+	enterpriseresourceMixinFields1 := enterpriseresourceMixin[1].Fields()
+	_ = enterpriseresourceMixinFields1
+	enterpriseresourceFields := schema.EnterpriseResource{}.Fields()
+	_ = enterpriseresourceFields
+	// enterpriseresourceDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceDescCreatedAt := enterpriseresourceMixinFields1[0].Descriptor()
+	// enterpriseresource.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresource.DefaultCreatedAt = enterpriseresourceDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceDescUpdatedAt := enterpriseresourceMixinFields1[1].Descriptor()
+	// enterpriseresource.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresource.DefaultUpdatedAt = enterpriseresourceDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresource.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresource.UpdateDefaultUpdatedAt = enterpriseresourceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceDescShortName is the schema descriptor for short_name field.
+	enterpriseresourceDescShortName := enterpriseresourceFields[2].Descriptor()
+	// enterpriseresource.ShortNameValidator is a validator for the "short_name" field. It is called by the builders before save.
+	enterpriseresource.ShortNameValidator = func() func(string) error {
+		validators := enterpriseresourceDescShortName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(short_name string) error {
+			for _, fn := range fns {
+				if err := fn(short_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceDescEnabled is the schema descriptor for enabled field.
+	enterpriseresourceDescEnabled := enterpriseresourceFields[3].Descriptor()
+	// enterpriseresource.DefaultEnabled holds the default value on creation for the enabled field.
+	enterpriseresource.DefaultEnabled = enterpriseresourceDescEnabled.Default.(bool)
+	// enterpriseresourceDescSortOrder is the schema descriptor for sort_order field.
+	enterpriseresourceDescSortOrder := enterpriseresourceFields[4].Descriptor()
+	// enterpriseresource.DefaultSortOrder holds the default value on creation for the sort_order field.
+	enterpriseresource.DefaultSortOrder = enterpriseresourceDescSortOrder.Default.(int)
+	// enterpriseresource.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	enterpriseresource.SortOrderValidator = enterpriseresourceDescSortOrder.Validators[0].(func(int) error)
+	// enterpriseresourceDescSearchKeywords is the schema descriptor for search_keywords field.
+	enterpriseresourceDescSearchKeywords := enterpriseresourceFields[7].Descriptor()
+	// enterpriseresource.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
+	enterpriseresource.DefaultSearchKeywords = enterpriseresourceDescSearchKeywords.Default.(string)
+	// enterpriseresourceDescID is the schema descriptor for id field.
+	enterpriseresourceDescID := enterpriseresourceMixinFields0[0].Descriptor()
+	// enterpriseresource.DefaultID holds the default value on creation for the id field.
+	enterpriseresource.DefaultID = enterpriseresourceDescID.Default.(func() uuid.UUID)
+	enterpriseresourceaddressMixin := schema.EnterpriseResourceAddress{}.Mixin()
+	enterpriseresourceaddressMixinFields0 := enterpriseresourceaddressMixin[0].Fields()
+	_ = enterpriseresourceaddressMixinFields0
+	enterpriseresourceaddressMixinFields1 := enterpriseresourceaddressMixin[1].Fields()
+	_ = enterpriseresourceaddressMixinFields1
+	enterpriseresourceaddressFields := schema.EnterpriseResourceAddress{}.Fields()
+	_ = enterpriseresourceaddressFields
+	// enterpriseresourceaddressDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceaddressDescCreatedAt := enterpriseresourceaddressMixinFields1[0].Descriptor()
+	// enterpriseresourceaddress.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceaddress.DefaultCreatedAt = enterpriseresourceaddressDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceaddressDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceaddressDescUpdatedAt := enterpriseresourceaddressMixinFields1[1].Descriptor()
+	// enterpriseresourceaddress.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceaddress.DefaultUpdatedAt = enterpriseresourceaddressDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceaddress.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceaddress.UpdateDefaultUpdatedAt = enterpriseresourceaddressDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceaddressDescContactName is the schema descriptor for contact_name field.
+	enterpriseresourceaddressDescContactName := enterpriseresourceaddressFields[1].Descriptor()
+	// enterpriseresourceaddress.ContactNameValidator is a validator for the "contact_name" field. It is called by the builders before save.
+	enterpriseresourceaddress.ContactNameValidator = enterpriseresourceaddressDescContactName.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescContactPhone is the schema descriptor for contact_phone field.
+	enterpriseresourceaddressDescContactPhone := enterpriseresourceaddressFields[2].Descriptor()
+	// enterpriseresourceaddress.ContactPhoneValidator is a validator for the "contact_phone" field. It is called by the builders before save.
+	enterpriseresourceaddress.ContactPhoneValidator = enterpriseresourceaddressDescContactPhone.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescCountryCode is the schema descriptor for country_code field.
+	enterpriseresourceaddressDescCountryCode := enterpriseresourceaddressFields[3].Descriptor()
+	// enterpriseresourceaddress.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	enterpriseresourceaddress.CountryCodeValidator = func() func(string) error {
+		validators := enterpriseresourceaddressDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceaddressDescProvinceCode is the schema descriptor for province_code field.
+	enterpriseresourceaddressDescProvinceCode := enterpriseresourceaddressFields[4].Descriptor()
+	// enterpriseresourceaddress.ProvinceCodeValidator is a validator for the "province_code" field. It is called by the builders before save.
+	enterpriseresourceaddress.ProvinceCodeValidator = enterpriseresourceaddressDescProvinceCode.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescCityCode is the schema descriptor for city_code field.
+	enterpriseresourceaddressDescCityCode := enterpriseresourceaddressFields[5].Descriptor()
+	// enterpriseresourceaddress.CityCodeValidator is a validator for the "city_code" field. It is called by the builders before save.
+	enterpriseresourceaddress.CityCodeValidator = enterpriseresourceaddressDescCityCode.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescDistrictCode is the schema descriptor for district_code field.
+	enterpriseresourceaddressDescDistrictCode := enterpriseresourceaddressFields[6].Descriptor()
+	// enterpriseresourceaddress.DistrictCodeValidator is a validator for the "district_code" field. It is called by the builders before save.
+	enterpriseresourceaddress.DistrictCodeValidator = enterpriseresourceaddressDescDistrictCode.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescAddressDetail is the schema descriptor for address_detail field.
+	enterpriseresourceaddressDescAddressDetail := enterpriseresourceaddressFields[7].Descriptor()
+	// enterpriseresourceaddress.AddressDetailValidator is a validator for the "address_detail" field. It is called by the builders before save.
+	enterpriseresourceaddress.AddressDetailValidator = func() func(string) error {
+		validators := enterpriseresourceaddressDescAddressDetail.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(address_detail string) error {
+			for _, fn := range fns {
+				if err := fn(address_detail); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceaddressDescRemark is the schema descriptor for remark field.
+	enterpriseresourceaddressDescRemark := enterpriseresourceaddressFields[8].Descriptor()
+	// enterpriseresourceaddress.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	enterpriseresourceaddress.RemarkValidator = enterpriseresourceaddressDescRemark.Validators[0].(func(string) error)
+	// enterpriseresourceaddressDescID is the schema descriptor for id field.
+	enterpriseresourceaddressDescID := enterpriseresourceaddressMixinFields0[0].Descriptor()
+	// enterpriseresourceaddress.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceaddress.DefaultID = enterpriseresourceaddressDescID.Default.(func() uuid.UUID)
+	enterpriseresourceaddresstypeMixin := schema.EnterpriseResourceAddressType{}.Mixin()
+	enterpriseresourceaddresstypeMixinFields0 := enterpriseresourceaddresstypeMixin[0].Fields()
+	_ = enterpriseresourceaddresstypeMixinFields0
+	enterpriseresourceaddresstypeMixinFields1 := enterpriseresourceaddresstypeMixin[1].Fields()
+	_ = enterpriseresourceaddresstypeMixinFields1
+	enterpriseresourceaddresstypeFields := schema.EnterpriseResourceAddressType{}.Fields()
+	_ = enterpriseresourceaddresstypeFields
+	// enterpriseresourceaddresstypeDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceaddresstypeDescCreatedAt := enterpriseresourceaddresstypeMixinFields1[0].Descriptor()
+	// enterpriseresourceaddresstype.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceaddresstype.DefaultCreatedAt = enterpriseresourceaddresstypeDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceaddresstypeDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceaddresstypeDescUpdatedAt := enterpriseresourceaddresstypeMixinFields1[1].Descriptor()
+	// enterpriseresourceaddresstype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceaddresstype.DefaultUpdatedAt = enterpriseresourceaddresstypeDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceaddresstype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceaddresstype.UpdateDefaultUpdatedAt = enterpriseresourceaddresstypeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceaddresstypeDescID is the schema descriptor for id field.
+	enterpriseresourceaddresstypeDescID := enterpriseresourceaddresstypeMixinFields0[0].Descriptor()
+	// enterpriseresourceaddresstype.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceaddresstype.DefaultID = enterpriseresourceaddresstypeDescID.Default.(func() uuid.UUID)
+	enterpriseresourceassigneeMixin := schema.EnterpriseResourceAssignee{}.Mixin()
+	enterpriseresourceassigneeMixinFields0 := enterpriseresourceassigneeMixin[0].Fields()
+	_ = enterpriseresourceassigneeMixinFields0
+	enterpriseresourceassigneeMixinFields1 := enterpriseresourceassigneeMixin[1].Fields()
+	_ = enterpriseresourceassigneeMixinFields1
+	enterpriseresourceassigneeFields := schema.EnterpriseResourceAssignee{}.Fields()
+	_ = enterpriseresourceassigneeFields
+	// enterpriseresourceassigneeDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceassigneeDescCreatedAt := enterpriseresourceassigneeMixinFields1[0].Descriptor()
+	// enterpriseresourceassignee.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceassignee.DefaultCreatedAt = enterpriseresourceassigneeDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceassigneeDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceassigneeDescUpdatedAt := enterpriseresourceassigneeMixinFields1[1].Descriptor()
+	// enterpriseresourceassignee.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceassignee.DefaultUpdatedAt = enterpriseresourceassigneeDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceassignee.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceassignee.UpdateDefaultUpdatedAt = enterpriseresourceassigneeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceassigneeDescID is the schema descriptor for id field.
+	enterpriseresourceassigneeDescID := enterpriseresourceassigneeMixinFields0[0].Descriptor()
+	// enterpriseresourceassignee.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceassignee.DefaultID = enterpriseresourceassigneeDescID.Default.(func() uuid.UUID)
+	enterpriseresourceimageMixin := schema.EnterpriseResourceImage{}.Mixin()
+	enterpriseresourceimageMixinFields0 := enterpriseresourceimageMixin[0].Fields()
+	_ = enterpriseresourceimageMixinFields0
+	enterpriseresourceimageMixinFields1 := enterpriseresourceimageMixin[1].Fields()
+	_ = enterpriseresourceimageMixinFields1
+	enterpriseresourceimageFields := schema.EnterpriseResourceImage{}.Fields()
+	_ = enterpriseresourceimageFields
+	// enterpriseresourceimageDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceimageDescCreatedAt := enterpriseresourceimageMixinFields1[0].Descriptor()
+	// enterpriseresourceimage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceimage.DefaultCreatedAt = enterpriseresourceimageDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceimageDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceimageDescUpdatedAt := enterpriseresourceimageMixinFields1[1].Descriptor()
+	// enterpriseresourceimage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceimage.DefaultUpdatedAt = enterpriseresourceimageDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceimage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceimage.UpdateDefaultUpdatedAt = enterpriseresourceimageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceimageDescFileName is the schema descriptor for file_name field.
+	enterpriseresourceimageDescFileName := enterpriseresourceimageFields[1].Descriptor()
+	// enterpriseresourceimage.FileNameValidator is a validator for the "file_name" field. It is called by the builders before save.
+	enterpriseresourceimage.FileNameValidator = func() func(string) error {
+		validators := enterpriseresourceimageDescFileName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(file_name string) error {
+			for _, fn := range fns {
+				if err := fn(file_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceimageDescMimeType is the schema descriptor for mime_type field.
+	enterpriseresourceimageDescMimeType := enterpriseresourceimageFields[2].Descriptor()
+	// enterpriseresourceimage.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	enterpriseresourceimage.MimeTypeValidator = func() func(string) error {
+		validators := enterpriseresourceimageDescMimeType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mime_type string) error {
+			for _, fn := range fns {
+				if err := fn(mime_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceimageDescFileSize is the schema descriptor for file_size field.
+	enterpriseresourceimageDescFileSize := enterpriseresourceimageFields[3].Descriptor()
+	// enterpriseresourceimage.FileSizeValidator is a validator for the "file_size" field. It is called by the builders before save.
+	enterpriseresourceimage.FileSizeValidator = enterpriseresourceimageDescFileSize.Validators[0].(func(int64) error)
+	// enterpriseresourceimageDescObjectKey is the schema descriptor for object_key field.
+	enterpriseresourceimageDescObjectKey := enterpriseresourceimageFields[4].Descriptor()
+	// enterpriseresourceimage.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	enterpriseresourceimage.ObjectKeyValidator = func() func(string) error {
+		validators := enterpriseresourceimageDescObjectKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(object_key string) error {
+			for _, fn := range fns {
+				if err := fn(object_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceimageDescChecksum is the schema descriptor for checksum field.
+	enterpriseresourceimageDescChecksum := enterpriseresourceimageFields[5].Descriptor()
+	// enterpriseresourceimage.ChecksumValidator is a validator for the "checksum" field. It is called by the builders before save.
+	enterpriseresourceimage.ChecksumValidator = func() func(string) error {
+		validators := enterpriseresourceimageDescChecksum.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(checksum string) error {
+			for _, fn := range fns {
+				if err := fn(checksum); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceimageDescWidth is the schema descriptor for width field.
+	enterpriseresourceimageDescWidth := enterpriseresourceimageFields[6].Descriptor()
+	// enterpriseresourceimage.WidthValidator is a validator for the "width" field. It is called by the builders before save.
+	enterpriseresourceimage.WidthValidator = enterpriseresourceimageDescWidth.Validators[0].(func(int) error)
+	// enterpriseresourceimageDescHeight is the schema descriptor for height field.
+	enterpriseresourceimageDescHeight := enterpriseresourceimageFields[7].Descriptor()
+	// enterpriseresourceimage.HeightValidator is a validator for the "height" field. It is called by the builders before save.
+	enterpriseresourceimage.HeightValidator = enterpriseresourceimageDescHeight.Validators[0].(func(int) error)
+	// enterpriseresourceimageDescID is the schema descriptor for id field.
+	enterpriseresourceimageDescID := enterpriseresourceimageMixinFields0[0].Descriptor()
+	// enterpriseresourceimage.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceimage.DefaultID = enterpriseresourceimageDescID.Default.(func() uuid.UUID)
+	enterpriseresourcepartnerMixin := schema.EnterpriseResourcePartner{}.Mixin()
+	enterpriseresourcepartnerMixinFields0 := enterpriseresourcepartnerMixin[0].Fields()
+	_ = enterpriseresourcepartnerMixinFields0
+	enterpriseresourcepartnerMixinFields1 := enterpriseresourcepartnerMixin[1].Fields()
+	_ = enterpriseresourcepartnerMixinFields1
+	enterpriseresourcepartnerFields := schema.EnterpriseResourcePartner{}.Fields()
+	_ = enterpriseresourcepartnerFields
+	// enterpriseresourcepartnerDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourcepartnerDescCreatedAt := enterpriseresourcepartnerMixinFields1[0].Descriptor()
+	// enterpriseresourcepartner.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourcepartner.DefaultCreatedAt = enterpriseresourcepartnerDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourcepartnerDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourcepartnerDescUpdatedAt := enterpriseresourcepartnerMixinFields1[1].Descriptor()
+	// enterpriseresourcepartner.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourcepartner.DefaultUpdatedAt = enterpriseresourcepartnerDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourcepartner.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourcepartner.UpdateDefaultUpdatedAt = enterpriseresourcepartnerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourcepartnerDescIsDefault is the schema descriptor for is_default field.
+	enterpriseresourcepartnerDescIsDefault := enterpriseresourcepartnerFields[3].Descriptor()
+	// enterpriseresourcepartner.DefaultIsDefault holds the default value on creation for the is_default field.
+	enterpriseresourcepartner.DefaultIsDefault = enterpriseresourcepartnerDescIsDefault.Default.(bool)
+	// enterpriseresourcepartnerDescID is the schema descriptor for id field.
+	enterpriseresourcepartnerDescID := enterpriseresourcepartnerMixinFields0[0].Descriptor()
+	// enterpriseresourcepartner.DefaultID holds the default value on creation for the id field.
+	enterpriseresourcepartner.DefaultID = enterpriseresourcepartnerDescID.Default.(func() uuid.UUID)
+	enterpriseresourcepartyMixin := schema.EnterpriseResourceParty{}.Mixin()
+	enterpriseresourcepartyMixinFields0 := enterpriseresourcepartyMixin[0].Fields()
+	_ = enterpriseresourcepartyMixinFields0
+	enterpriseresourcepartyMixinFields1 := enterpriseresourcepartyMixin[1].Fields()
+	_ = enterpriseresourcepartyMixinFields1
+	enterpriseresourcepartyFields := schema.EnterpriseResourceParty{}.Fields()
+	_ = enterpriseresourcepartyFields
+	// enterpriseresourcepartyDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourcepartyDescCreatedAt := enterpriseresourcepartyMixinFields1[0].Descriptor()
+	// enterpriseresourceparty.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceparty.DefaultCreatedAt = enterpriseresourcepartyDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourcepartyDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourcepartyDescUpdatedAt := enterpriseresourcepartyMixinFields1[1].Descriptor()
+	// enterpriseresourceparty.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceparty.DefaultUpdatedAt = enterpriseresourcepartyDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceparty.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceparty.UpdateDefaultUpdatedAt = enterpriseresourcepartyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourcepartyDescCompanyName is the schema descriptor for company_name field.
+	enterpriseresourcepartyDescCompanyName := enterpriseresourcepartyFields[3].Descriptor()
+	// enterpriseresourceparty.CompanyNameValidator is a validator for the "company_name" field. It is called by the builders before save.
+	enterpriseresourceparty.CompanyNameValidator = func() func(string) error {
+		validators := enterpriseresourcepartyDescCompanyName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(company_name string) error {
+			for _, fn := range fns {
+				if err := fn(company_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourcepartyDescBusinessCode is the schema descriptor for business_code field.
+	enterpriseresourcepartyDescBusinessCode := enterpriseresourcepartyFields[4].Descriptor()
+	// enterpriseresourceparty.BusinessCodeValidator is a validator for the "business_code" field. It is called by the builders before save.
+	enterpriseresourceparty.BusinessCodeValidator = enterpriseresourcepartyDescBusinessCode.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescNormalizedBusinessCode is the schema descriptor for normalized_business_code field.
+	enterpriseresourcepartyDescNormalizedBusinessCode := enterpriseresourcepartyFields[5].Descriptor()
+	// enterpriseresourceparty.NormalizedBusinessCodeValidator is a validator for the "normalized_business_code" field. It is called by the builders before save.
+	enterpriseresourceparty.NormalizedBusinessCodeValidator = enterpriseresourcepartyDescNormalizedBusinessCode.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescAddress is the schema descriptor for address field.
+	enterpriseresourcepartyDescAddress := enterpriseresourcepartyFields[6].Descriptor()
+	// enterpriseresourceparty.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	enterpriseresourceparty.AddressValidator = enterpriseresourcepartyDescAddress.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescCountryCode is the schema descriptor for country_code field.
+	enterpriseresourcepartyDescCountryCode := enterpriseresourcepartyFields[7].Descriptor()
+	// enterpriseresourceparty.DefaultCountryCode holds the default value on creation for the country_code field.
+	enterpriseresourceparty.DefaultCountryCode = enterpriseresourcepartyDescCountryCode.Default.(string)
+	// enterpriseresourceparty.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	enterpriseresourceparty.CountryCodeValidator = func() func(string) error {
+		validators := enterpriseresourcepartyDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourcepartyDescContactName is the schema descriptor for contact_name field.
+	enterpriseresourcepartyDescContactName := enterpriseresourcepartyFields[8].Descriptor()
+	// enterpriseresourceparty.ContactNameValidator is a validator for the "contact_name" field. It is called by the builders before save.
+	enterpriseresourceparty.ContactNameValidator = enterpriseresourcepartyDescContactName.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescContactPhone is the schema descriptor for contact_phone field.
+	enterpriseresourcepartyDescContactPhone := enterpriseresourcepartyFields[9].Descriptor()
+	// enterpriseresourceparty.ContactPhoneValidator is a validator for the "contact_phone" field. It is called by the builders before save.
+	enterpriseresourceparty.ContactPhoneValidator = enterpriseresourcepartyDescContactPhone.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescEmail is the schema descriptor for email field.
+	enterpriseresourcepartyDescEmail := enterpriseresourcepartyFields[10].Descriptor()
+	// enterpriseresourceparty.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	enterpriseresourceparty.EmailValidator = enterpriseresourcepartyDescEmail.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescTaxIdentifier is the schema descriptor for tax_identifier field.
+	enterpriseresourcepartyDescTaxIdentifier := enterpriseresourcepartyFields[11].Descriptor()
+	// enterpriseresourceparty.TaxIdentifierValidator is a validator for the "tax_identifier" field. It is called by the builders before save.
+	enterpriseresourceparty.TaxIdentifierValidator = enterpriseresourcepartyDescTaxIdentifier.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescAeoCode is the schema descriptor for aeo_code field.
+	enterpriseresourcepartyDescAeoCode := enterpriseresourcepartyFields[12].Descriptor()
+	// enterpriseresourceparty.AeoCodeValidator is a validator for the "aeo_code" field. It is called by the builders before save.
+	enterpriseresourceparty.AeoCodeValidator = enterpriseresourcepartyDescAeoCode.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescCustomDisplay is the schema descriptor for custom_display field.
+	enterpriseresourcepartyDescCustomDisplay := enterpriseresourcepartyFields[13].Descriptor()
+	// enterpriseresourceparty.DefaultCustomDisplay holds the default value on creation for the custom_display field.
+	enterpriseresourceparty.DefaultCustomDisplay = enterpriseresourcepartyDescCustomDisplay.Default.(bool)
+	// enterpriseresourcepartyDescDisplayContent is the schema descriptor for display_content field.
+	enterpriseresourcepartyDescDisplayContent := enterpriseresourcepartyFields[14].Descriptor()
+	// enterpriseresourceparty.DisplayContentValidator is a validator for the "display_content" field. It is called by the builders before save.
+	enterpriseresourceparty.DisplayContentValidator = enterpriseresourcepartyDescDisplayContent.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescRemark is the schema descriptor for remark field.
+	enterpriseresourcepartyDescRemark := enterpriseresourcepartyFields[15].Descriptor()
+	// enterpriseresourceparty.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	enterpriseresourceparty.RemarkValidator = enterpriseresourcepartyDescRemark.Validators[0].(func(string) error)
+	// enterpriseresourcepartyDescID is the schema descriptor for id field.
+	enterpriseresourcepartyDescID := enterpriseresourcepartyMixinFields0[0].Descriptor()
+	// enterpriseresourceparty.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceparty.DefaultID = enterpriseresourcepartyDescID.Default.(func() uuid.UUID)
+	enterpriseresourceremarkMixin := schema.EnterpriseResourceRemark{}.Mixin()
+	enterpriseresourceremarkMixinFields0 := enterpriseresourceremarkMixin[0].Fields()
+	_ = enterpriseresourceremarkMixinFields0
+	enterpriseresourceremarkMixinFields1 := enterpriseresourceremarkMixin[1].Fields()
+	_ = enterpriseresourceremarkMixinFields1
+	enterpriseresourceremarkFields := schema.EnterpriseResourceRemark{}.Fields()
+	_ = enterpriseresourceremarkFields
+	// enterpriseresourceremarkDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceremarkDescCreatedAt := enterpriseresourceremarkMixinFields1[0].Descriptor()
+	// enterpriseresourceremark.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceremark.DefaultCreatedAt = enterpriseresourceremarkDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceremarkDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceremarkDescUpdatedAt := enterpriseresourceremarkMixinFields1[1].Descriptor()
+	// enterpriseresourceremark.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceremark.DefaultUpdatedAt = enterpriseresourceremarkDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceremark.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceremark.UpdateDefaultUpdatedAt = enterpriseresourceremarkDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceremarkDescContent is the schema descriptor for content field.
+	enterpriseresourceremarkDescContent := enterpriseresourceremarkFields[2].Descriptor()
+	// enterpriseresourceremark.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	enterpriseresourceremark.ContentValidator = func() func(string) error {
+		validators := enterpriseresourceremarkDescContent.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(content string) error {
+			for _, fn := range fns {
+				if err := fn(content); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterpriseresourceremarkDescID is the schema descriptor for id field.
+	enterpriseresourceremarkDescID := enterpriseresourceremarkMixinFields0[0].Descriptor()
+	// enterpriseresourceremark.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceremark.DefaultID = enterpriseresourceremarkDescID.Default.(func() uuid.UUID)
+	enterpriseresourceshippingtextMixin := schema.EnterpriseResourceShippingText{}.Mixin()
+	enterpriseresourceshippingtextMixinFields0 := enterpriseresourceshippingtextMixin[0].Fields()
+	_ = enterpriseresourceshippingtextMixinFields0
+	enterpriseresourceshippingtextMixinFields1 := enterpriseresourceshippingtextMixin[1].Fields()
+	_ = enterpriseresourceshippingtextMixinFields1
+	enterpriseresourceshippingtextFields := schema.EnterpriseResourceShippingText{}.Fields()
+	_ = enterpriseresourceshippingtextFields
+	// enterpriseresourceshippingtextDescCreatedAt is the schema descriptor for created_at field.
+	enterpriseresourceshippingtextDescCreatedAt := enterpriseresourceshippingtextMixinFields1[0].Descriptor()
+	// enterpriseresourceshippingtext.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterpriseresourceshippingtext.DefaultCreatedAt = enterpriseresourceshippingtextDescCreatedAt.Default.(func() time.Time)
+	// enterpriseresourceshippingtextDescUpdatedAt is the schema descriptor for updated_at field.
+	enterpriseresourceshippingtextDescUpdatedAt := enterpriseresourceshippingtextMixinFields1[1].Descriptor()
+	// enterpriseresourceshippingtext.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterpriseresourceshippingtext.DefaultUpdatedAt = enterpriseresourceshippingtextDescUpdatedAt.Default.(func() time.Time)
+	// enterpriseresourceshippingtext.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterpriseresourceshippingtext.UpdateDefaultUpdatedAt = enterpriseresourceshippingtextDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterpriseresourceshippingtextDescContent is the schema descriptor for content field.
+	enterpriseresourceshippingtextDescContent := enterpriseresourceshippingtextFields[1].Descriptor()
+	// enterpriseresourceshippingtext.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	enterpriseresourceshippingtext.ContentValidator = enterpriseresourceshippingtextDescContent.Validators[0].(func(string) error)
+	// enterpriseresourceshippingtextDescCode is the schema descriptor for code field.
+	enterpriseresourceshippingtextDescCode := enterpriseresourceshippingtextFields[2].Descriptor()
+	// enterpriseresourceshippingtext.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	enterpriseresourceshippingtext.CodeValidator = enterpriseresourceshippingtextDescCode.Validators[0].(func(string) error)
+	// enterpriseresourceshippingtextDescRemark is the schema descriptor for remark field.
+	enterpriseresourceshippingtextDescRemark := enterpriseresourceshippingtextFields[3].Descriptor()
+	// enterpriseresourceshippingtext.RemarkValidator is a validator for the "remark" field. It is called by the builders before save.
+	enterpriseresourceshippingtext.RemarkValidator = enterpriseresourceshippingtextDescRemark.Validators[0].(func(string) error)
+	// enterpriseresourceshippingtextDescID is the schema descriptor for id field.
+	enterpriseresourceshippingtextDescID := enterpriseresourceshippingtextMixinFields0[0].Descriptor()
+	// enterpriseresourceshippingtext.DefaultID holds the default value on creation for the id field.
+	enterpriseresourceshippingtext.DefaultID = enterpriseresourceshippingtextDescID.Default.(func() uuid.UUID)
+	enterprisetagMixin := schema.EnterpriseTag{}.Mixin()
+	enterprisetagMixinFields0 := enterprisetagMixin[0].Fields()
+	_ = enterprisetagMixinFields0
+	enterprisetagMixinFields1 := enterprisetagMixin[1].Fields()
+	_ = enterprisetagMixinFields1
+	enterprisetagFields := schema.EnterpriseTag{}.Fields()
+	_ = enterprisetagFields
+	// enterprisetagDescCreatedAt is the schema descriptor for created_at field.
+	enterprisetagDescCreatedAt := enterprisetagMixinFields1[0].Descriptor()
+	// enterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterprisetag.DefaultCreatedAt = enterprisetagDescCreatedAt.Default.(func() time.Time)
+	// enterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
+	enterprisetagDescUpdatedAt := enterprisetagMixinFields1[1].Descriptor()
+	// enterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterprisetag.DefaultUpdatedAt = enterprisetagDescUpdatedAt.Default.(func() time.Time)
+	// enterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterprisetag.UpdateDefaultUpdatedAt = enterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterprisetagDescNormalizedName is the schema descriptor for normalized_name field.
+	enterprisetagDescNormalizedName := enterprisetagFields[3].Descriptor()
+	// enterprisetag.NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
+	enterprisetag.NormalizedNameValidator = func() func(string) error {
+		validators := enterprisetagDescNormalizedName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(normalized_name string) error {
+			for _, fn := range fns {
+				if err := fn(normalized_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterprisetagDescSortOrder is the schema descriptor for sort_order field.
+	enterprisetagDescSortOrder := enterprisetagFields[4].Descriptor()
+	// enterprisetag.DefaultSortOrder holds the default value on creation for the sort_order field.
+	enterprisetag.DefaultSortOrder = enterprisetagDescSortOrder.Default.(int)
+	// enterprisetag.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	enterprisetag.SortOrderValidator = enterprisetagDescSortOrder.Validators[0].(func(int) error)
+	// enterprisetagDescID is the schema descriptor for id field.
+	enterprisetagDescID := enterprisetagMixinFields0[0].Descriptor()
+	// enterprisetag.DefaultID holds the default value on creation for the id field.
+	enterprisetag.DefaultID = enterprisetagDescID.Default.(func() uuid.UUID)
+	enterprisetaggroupMixin := schema.EnterpriseTagGroup{}.Mixin()
+	enterprisetaggroupMixinFields0 := enterprisetaggroupMixin[0].Fields()
+	_ = enterprisetaggroupMixinFields0
+	enterprisetaggroupMixinFields1 := enterprisetaggroupMixin[1].Fields()
+	_ = enterprisetaggroupMixinFields1
+	enterprisetaggroupFields := schema.EnterpriseTagGroup{}.Fields()
+	_ = enterprisetaggroupFields
+	// enterprisetaggroupDescCreatedAt is the schema descriptor for created_at field.
+	enterprisetaggroupDescCreatedAt := enterprisetaggroupMixinFields1[0].Descriptor()
+	// enterprisetaggroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	enterprisetaggroup.DefaultCreatedAt = enterprisetaggroupDescCreatedAt.Default.(func() time.Time)
+	// enterprisetaggroupDescUpdatedAt is the schema descriptor for updated_at field.
+	enterprisetaggroupDescUpdatedAt := enterprisetaggroupMixinFields1[1].Descriptor()
+	// enterprisetaggroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	enterprisetaggroup.DefaultUpdatedAt = enterprisetaggroupDescUpdatedAt.Default.(func() time.Time)
+	// enterprisetaggroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	enterprisetaggroup.UpdateDefaultUpdatedAt = enterprisetaggroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// enterprisetaggroupDescName is the schema descriptor for name field.
+	enterprisetaggroupDescName := enterprisetaggroupFields[1].Descriptor()
+	// enterprisetaggroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	enterprisetaggroup.NameValidator = func() func(string) error {
+		validators := enterprisetaggroupDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterprisetaggroupDescNormalizedName is the schema descriptor for normalized_name field.
+	enterprisetaggroupDescNormalizedName := enterprisetaggroupFields[2].Descriptor()
+	// enterprisetaggroup.NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
+	enterprisetaggroup.NormalizedNameValidator = func() func(string) error {
+		validators := enterprisetaggroupDescNormalizedName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(normalized_name string) error {
+			for _, fn := range fns {
+				if err := fn(normalized_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// enterprisetaggroupDescColor is the schema descriptor for color field.
+	enterprisetaggroupDescColor := enterprisetaggroupFields[3].Descriptor()
+	// enterprisetaggroup.ColorValidator is a validator for the "color" field. It is called by the builders before save.
+	enterprisetaggroup.ColorValidator = enterprisetaggroupDescColor.Validators[0].(func(string) error)
+	// enterprisetaggroupDescSortOrder is the schema descriptor for sort_order field.
+	enterprisetaggroupDescSortOrder := enterprisetaggroupFields[4].Descriptor()
+	// enterprisetaggroup.DefaultSortOrder holds the default value on creation for the sort_order field.
+	enterprisetaggroup.DefaultSortOrder = enterprisetaggroupDescSortOrder.Default.(int)
+	// enterprisetaggroup.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	enterprisetaggroup.SortOrderValidator = enterprisetaggroupDescSortOrder.Validators[0].(func(int) error)
+	// enterprisetaggroupDescID is the schema descriptor for id field.
+	enterprisetaggroupDescID := enterprisetaggroupMixinFields0[0].Descriptor()
+	// enterprisetaggroup.DefaultID holds the default value on creation for the id field.
+	enterprisetaggroup.DefaultID = enterprisetaggroupDescID.Default.(func() uuid.UUID)
 	exchangeratecustomsettingMixin := schema.ExchangeRateCustomSetting{}.Mixin()
 	exchangeratecustomsettingMixinFields0 := exchangeratecustomsettingMixin[0].Fields()
 	_ = exchangeratecustomsettingMixinFields0
