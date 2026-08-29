@@ -28,11 +28,11 @@ export {
 export function getSeaTemplateSections(
   props: TemplateProps,
 ): TemplateSection[] {
-  const { locationOptions, containerSpecOptions } = props;
+  const { locationOptions, searchLocations, containerSpecOptions } = props;
 
   return [
     buildSeaBaseInfoSection(props),
-    buildSeaTransportSection(locationOptions, containerSpecOptions),
+    buildSeaTransportSection(locationOptions, searchLocations, containerSpecOptions),
     buildSeaCargoSection(),
     {
       key: 'remarks',

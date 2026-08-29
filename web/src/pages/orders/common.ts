@@ -1,6 +1,7 @@
 import {
   masterDataServiceListAirports,
   masterDataServiceListCurrencies,
+  masterDataServiceListItems,
   masterDataServiceListOptions,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
@@ -210,7 +211,7 @@ export async function searchPartnersByRole(
     enabled: true,
     keyword,
     page: 1,
-    pageSize: 200,
+    pageSize: 50,
   });
   return (res.data ?? []).map((p) => ({
     label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
@@ -219,13 +220,46 @@ export async function searchPartnersByRole(
   }));
 }
 
+export async function searchOrderLocations(
+  category: 'sea' | 'air',
+  keyword?: string,
+): Promise<{ label: string; value: string }[]> {
+  const [regionsResponse, transportResponse] = await Promise.all([
+    masterDataServiceListItems({
+      kind: 3,
+      keyword,
+      enabled: true,
+      page: 1,
+      pageSize: 50,
+    }),
+    category === 'sea'
+      ? masterDataServiceListPorts({ keyword, enabled: true, page: 1, pageSize: 50 })
+      : masterDataServiceListAirports({ keyword, enabled: true, page: 1, pageSize: 50 }),
+  ]);
+  const regions = (regionsResponse.data ?? []).map((item) => ({
+    label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
+    value: item.id ?? '',
+  }));
+  const transportLocations =
+    category === 'sea'
+      ? (transportResponse.data as API.Port[] | undefined)?.map((item) => ({
+          label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
+          value: item.id ?? '',
+        })) ?? []
+      : (transportResponse.data as API.Airport[] | undefined)?.map((item) => ({
+          label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
+          value: item.id ?? '',
+        })) ?? [];
+  return [...regions, ...transportLocations].filter((item) => item.value !== '');
+}
+
 export async function fetchOrderMasterData() {
   const [optionsResponse, portsResponse, airportsResponse, currenciesResponse] =
     await Promise.all([
       masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 200 }),
-      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
-      masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
+      masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
+      masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
+      masterDataServiceListCurrencies(),
     ]);
 
   const masterOptions = optionsResponse.data ?? [];

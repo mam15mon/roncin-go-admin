@@ -1,5 +1,5 @@
 import { App } from 'antd';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import {
   fetchOrderMasterData,
@@ -7,6 +7,7 @@ import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
   requireSeaServiceTypeOptions,
+  searchOrderLocations,
 } from './common';
 import type { SelectOption } from './templates';
 
@@ -85,11 +86,18 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
       });
   }, [config, message]);
 
+  const searchLocations = useCallback(
+    (keyword?: string) =>
+      searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword),
+    [config?.category],
+  );
+
   return {
     loading,
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     currencyOptions,
     containerSpecOptions,
     personnelOptions,

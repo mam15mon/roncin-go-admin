@@ -37,6 +37,7 @@ export default function NewOrderPage() {
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
@@ -91,6 +92,7 @@ export default function NewOrderPage() {
       serviceTypeOptions,
       cargoCategoryOptions,
       locationOptions,
+      searchLocations,
       currencyOptions,
       containerSpecOptions,
       searchCustomers: (keyword?: string) =>
@@ -128,6 +130,7 @@ export default function NewOrderPage() {
       serviceTypeOptions,
       cargoCategoryOptions,
       locationOptions,
+      searchLocations,
       currencyOptions,
       containerSpecOptions,
       checkOrderReference,

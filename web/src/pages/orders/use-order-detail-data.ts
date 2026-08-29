@@ -15,6 +15,7 @@ import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
   requireSeaServiceTypeOptions,
+  searchOrderLocations,
 } from './common';
 import type { SelectOption } from './templates';
 
@@ -127,6 +128,11 @@ export function useOrderDetailData(
     void loadData();
   }, [loadData]);
 
+  const searchLocations = useCallback(
+    (keyword?: string) => searchOrderLocations(category, keyword),
+    [category],
+  );
+
   return {
     loading,
     order,
@@ -135,6 +141,7 @@ export function useOrderDetailData(
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     currencyOptions,
     containerSpecOptions,
     personnelOptions,

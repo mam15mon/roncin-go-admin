@@ -77,6 +77,7 @@ export default function OrderListPage() {
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     searchCustomers,
     searchOrderPorts,
     searchOrderCarriers,
@@ -166,6 +167,7 @@ export default function OrderListPage() {
         paymentTermOptions={paymentTermOptions}
         shipmentTypeOptions={shipmentTypeOptions}
         locationOptions={locationOptions}
+        searchLocations={searchLocations}
         serviceTypeOptions={serviceTypeOptions}
         cargoCategoryOptions={cargoCategoryOptions}
         containerSpecOptions={containerSpecOptions}

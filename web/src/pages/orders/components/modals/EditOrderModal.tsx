@@ -25,6 +25,9 @@ type EditOrderModalProps = {
   paymentTermOptions: { label: string; value: number }[];
   shipmentTypeOptions: { label: string; value: number }[];
   locationOptions: { label: string; value: string }[];
+  searchLocations: (
+    keyWords?: string,
+  ) => Promise<{ label: string; value: string }[]>;
   serviceTypeOptions: { label: string; value: string }[];
   cargoCategoryOptions: { label: string; value: string }[];
   containerSpecOptions: { label: string; value: string }[];
@@ -66,6 +69,7 @@ const EditOrderModal = forwardRef<EditOrderModalRef, EditOrderModalProps>(
       paymentTermOptions,
       shipmentTypeOptions,
       locationOptions,
+      searchLocations,
       serviceTypeOptions,
       cargoCategoryOptions,
       containerSpecOptions,
@@ -231,6 +235,8 @@ const EditOrderModal = forwardRef<EditOrderModalRef, EditOrderModalProps>(
           name="originLocationId"
           label="起运港 / 地点"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择起运地点"
         />
         <ProFormSearchableSelect
@@ -238,6 +244,8 @@ const EditOrderModal = forwardRef<EditOrderModalRef, EditOrderModalProps>(
           name="destinationLocationId"
           label="目的港 / 地点"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择目的地点"
         />
         <ProFormText

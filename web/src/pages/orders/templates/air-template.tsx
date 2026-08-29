@@ -16,6 +16,7 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     searchCustomers,
     searchCarriers,
     searchBookingAgents,
@@ -106,6 +107,8 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             name="originLocationId"
             label="起运机场 / 地点"
             options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
             placeholder="请选择起运机场或地点"
           />
           <ProFormSearchableSelect
@@ -113,6 +116,8 @@ export function getAirTemplateSections(props: TemplateProps): TemplateSection[] 
             name="destinationLocationId"
             label="目的机场 / 地点"
             options={locationOptions}
+            request={async ({ keyWords }) => searchLocations(keyWords)}
+            fieldProps={{ filterOption: false }}
             placeholder="请选择目的机场或地点"
           />
           <ProFormText

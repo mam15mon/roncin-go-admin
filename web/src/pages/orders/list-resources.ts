@@ -11,6 +11,7 @@ import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
   isMasterDataKind,
+  searchOrderLocations,
 } from './common';
 
 /** 订单列表页共用的主数据加载、候选项派生与联想搜索逻辑。 */
@@ -24,9 +25,9 @@ export function useOrderListResources(config?: OrderKindConfig) {
   useEffect(() => {
     void Promise.all([
       masterDataServiceListOptions(),
-      masterDataServiceListPorts({ page: 1, pageSize: 200 }),
-      masterDataServiceListAirports({ page: 1, pageSize: 200 }),
-      partnerServiceListPartners({ role: 1, page: 1, pageSize: 200 }),
+      masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
+      masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
+      partnerServiceListPartners({ role: 1, page: 1, pageSize: 50, enabled: true }),
     ])
       .then(
         ([
@@ -177,6 +178,9 @@ export function useOrderListResources(config?: OrderKindConfig) {
     }));
   };
 
+  const searchLocations = (keyword?: string) =>
+    searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword);
+
   const searchOrderCarriers = async (keyword?: string) => {
     const response = await partnerServiceListPartners({
       role: 4,
@@ -226,6 +230,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
     serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
+    searchLocations,
     searchCustomers,
     searchOrderPorts,
     searchOrderCarriers,

@@ -100,6 +100,7 @@ export function SeaScheduleDateFields() {
 
 export function buildSeaTransportSection(
   locationOptions: SelectOption[],
+  searchLocations: (keyword?: string) => Promise<SelectOption[]>,
   containerSpecOptions: SelectOption[],
 ) {
   return {
@@ -115,6 +116,8 @@ export function buildSeaTransportSection(
           name="originLocationId"
           label="起运港"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择起运港或地点"
         />
         <ProFormSearchableSelect
@@ -122,6 +125,8 @@ export function buildSeaTransportSection(
           name="destinationLocationId"
           label="目的港"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择目的港或地点"
         />
         <ProFormSearchableSelect
@@ -129,6 +134,8 @@ export function buildSeaTransportSection(
           name="dischargeLocationId"
           label="卸货港"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择卸货港"
         />
         <ProFormSearchableSelect
@@ -136,6 +143,8 @@ export function buildSeaTransportSection(
           name="transitLocationId"
           label="中转港"
           options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
           placeholder="请选择中转港"
         />
 
