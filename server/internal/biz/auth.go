@@ -248,14 +248,14 @@ type AuthRepo interface {
 	LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error)
 	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int) (bool, error)
 	ClearLoginFailures(context.Context, string) error
-	FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error)
+	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
-	RegisterDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error)
+	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *AuditEvent) (*Credential, bool, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
-	CreateSession(context.Context, *Session) error
+	CreateSession(context.Context, *Session, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
-	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time) error
-	RevokeSession(context.Context, string, time.Time) error
+	SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time, *AuditEvent) error
+	RevokeSession(context.Context, string, time.Time, *AuditEvent) error
 	WriteAudit(context.Context, *AuditEvent) error
 }
 
@@ -395,14 +395,9 @@ func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedStat
 	if err != nil {
 		return "", nil, time.Time{}, err
 	}
-	credential, created, err := uc.repo.FindOrCreateWeComCredential(ctx, identity)
+	credential, _, err := uc.repo.FindOrCreateWeComCredential(ctx, identity, &AuditEvent{Action: "auth.wecom.register", Result: "success"})
 	if err != nil {
 		return "", nil, time.Time{}, err
-	}
-	if created {
-		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.wecom.register", Result: "success"}); err != nil {
-			return "", nil, time.Time{}, err
-		}
 	}
 	if !credential.Enabled {
 		return "", nil, time.Time{}, ErrWeComAuthorizationPending
@@ -474,17 +469,12 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 	if err != nil {
 		return nil, err
 	}
-	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity)
+	credential, created, err := uc.repo.RegisterDingTalkCredential(ctx, identity, &AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil {
 		return nil, err
 	}
 	if !created && credential.Enabled {
 		return nil, ErrDingTalkAlreadyRegistered
-	}
-	if created {
-		if err := uc.repo.WriteAudit(ctx, &AuditEvent{UserID: &credential.UserID, OrganizationID: &credential.PrimaryOrganizationID, Action: "auth.dingtalk.register", Result: "success"}); err != nil {
-			return nil, err
-		}
 	}
 	return &DingTalkRegistration{DisplayName: credential.DisplayName, Status: "PENDING"}, nil
 }
@@ -499,13 +489,10 @@ func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential
 		return "", nil, time.Time{}, err
 	}
 	expiresAt := time.Now().UTC().Add(uc.policy.TTL)
-	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}); err != nil {
+	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: credential.PrimaryOrganizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
 		return "", nil, time.Time{}, err
 	}
 	principal.SessionTokenHash = tokenHash
-	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &credential.PrimaryOrganizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
-		return "", nil, time.Time{}, err
-	}
 	return rawToken, principal, expiresAt, nil
 }
 
@@ -528,15 +515,12 @@ func (uc *AuthUsecase) AuthenticateSession(ctx context.Context, rawToken string)
 
 func (uc *AuthUsecase) Logout(ctx context.Context, principal *Principal) error {
 	now := time.Now().UTC()
-	if err := uc.repo.RevokeSession(ctx, principal.SessionTokenHash, now); err != nil {
-		return err
-	}
-	return uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Action: "auth.logout", Result: "success"})
+	return uc.repo.RevokeSession(ctx, principal.SessionTokenHash, now, &AuditEvent{OrganizationID: &principal.Organization.ID, UserID: &principal.UserID, Action: "auth.logout", Result: "success"})
 }
 
 func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*Principal, error) {
 	now := time.Now().UTC()
-	if err := uc.repo.SwitchSessionOrganization(ctx, principal.SessionTokenHash, principal.UserID, organizationID, now); err != nil {
+	if err := uc.repo.SwitchSessionOrganization(ctx, principal.SessionTokenHash, principal.UserID, organizationID, now, &AuditEvent{OrganizationID: &organizationID, UserID: &principal.UserID, Action: "auth.organization.switch", Result: "success"}); err != nil {
 		return nil, err
 	}
 	next, err := uc.repo.ResolvePrincipal(ctx, principal.UserID, organizationID)
@@ -544,9 +528,6 @@ func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Princi
 		return nil, err
 	}
 	next.SessionTokenHash = principal.SessionTokenHash
-	if err := uc.repo.WriteAudit(ctx, &AuditEvent{OrganizationID: &organizationID, UserID: &principal.UserID, Action: "auth.organization.switch", Result: "success"}); err != nil {
-		return nil, err
-	}
 	return next, nil
 }
 

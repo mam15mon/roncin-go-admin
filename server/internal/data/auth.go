@@ -88,7 +88,7 @@ func (r *authRepo) ClearLoginFailures(ctx context.Context, keyHash string) error
 	return err
 }
 
-func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *biz.WeComIdentity) (*biz.Credential, bool, error) {
+func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *biz.WeComIdentity, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
 	if identity == nil || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrWeComLoginFailed
 	}
@@ -133,15 +133,16 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 		_ = tx.Rollback()
 		return nil, false, err
 	}
+	audit.UserID = &account.ID
+	audit.OrganizationID = &headquarters.ID
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, false, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, false, err
 	}
-	account, err = r.data.db.User.Get(ctx, account.ID)
-	if err != nil {
-		return nil, false, err
-	}
-	credential, err := r.credentialForAccount(ctx, account)
-	return credential, true, err
+	return credentialFromAccount(account, headquarters.ID), true, nil
 }
 
 func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, error) {
@@ -162,7 +163,7 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	return r.credentialForAccount(ctx, account)
 }
 
-func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, bool, error) {
+func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
 	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
 		return nil, false, biz.ErrDingTalkLoginFailed
 	}
@@ -184,7 +185,7 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 			return nil, false, queryErr
 		}
 		if !hasActiveMembership {
-			credential, prepareErr := r.prepareDingTalkRehire(ctx, account.ID)
+			credential, prepareErr := r.prepareDingTalkRehire(ctx, account, audit)
 			return credential, prepareErr == nil, prepareErr
 		}
 		credential, credentialErr := r.credentialForAccount(ctx, account)
@@ -219,18 +220,20 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 		_ = tx.Rollback()
 		return nil, false, err
 	}
+	audit.UserID = &account.ID
+	audit.OrganizationID = &headquarters.ID
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, false, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, false, err
 	}
-	account, err = r.data.db.User.Get(ctx, account.ID)
-	if err != nil {
-		return nil, false, err
-	}
-	credential, err := r.credentialForAccount(ctx, account)
-	return credential, true, err
+	return credentialFromAccount(account, headquarters.ID), true, nil
 }
 
-func (r *authRepo) prepareDingTalkRehire(ctx context.Context, userID uuid.UUID) (*biz.Credential, error) {
+func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User, audit *biz.AuditEvent) (*biz.Credential, error) {
+	userID := account.ID
 	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -277,14 +280,21 @@ func (r *authRepo) prepareDingTalkRehire(ctx context.Context, userID uuid.UUID) 
 		_ = tx.Rollback()
 		return nil, err
 	}
+	audit.UserID = &userID
+	audit.OrganizationID = &headquarters.ID
+	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	account, err := r.data.db.User.Get(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	return r.credentialForAccount(ctx, account)
+	account.Enabled = false
+	return credentialFromAccount(account, headquarters.ID), nil
+}
+
+func credentialFromAccount(account *ent.User, organizationID uuid.UUID) *biz.Credential {
+	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, PrimaryOrganizationID: organizationID}
 }
 
 func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz.DingTalkIdentity) (*ent.User, error) {
@@ -405,9 +415,20 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, Organization: *current, Organizations: organizations, Permissions: permissions, RoleScopes: roleScopes, RolePermissions: rolePermissions, OrderOrganizationAccesses: accesses}, nil
 }
 
-func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session) error {
-	_, err := r.data.db.Session.Create().SetTokenHash(input.TokenHash).SetUserID(input.UserID).SetOrganizationID(input.OrganizationID).SetExpiresAt(input.ExpiresAt).SetUserAgent(input.UserAgent).Save(ctx)
-	return err
+func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, audit *biz.AuditEvent) error {
+	tx, err := r.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Session.Create().SetTokenHash(input.TokenHash).SetUserID(input.UserID).SetOrganizationID(input.OrganizationID).SetExpiresAt(input.ExpiresAt).SetUserAgent(input.UserAgent).Save(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.Time) (*biz.Session, error) {
@@ -421,33 +442,49 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
 }
 
-func (r *authRepo) SwitchSessionOrganization(ctx context.Context, tokenHash string, userID, organizationID uuid.UUID, now time.Time) error {
-	exists, err := r.data.db.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Exist(ctx)
+func (r *authRepo) SwitchSessionOrganization(ctx context.Context, tokenHash string, userID, organizationID uuid.UUID, now time.Time, audit *biz.AuditEvent) error {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
+	}
+	rollback := func(value error) error { _ = tx.Rollback(); return value }
+	exists, err := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Exist(ctx)
+	if err != nil {
+		return rollback(err)
 	}
 	if !exists {
-		return biz.ErrOrganizationForbidden
+		return rollback(biz.ErrOrganizationForbidden)
 	}
-	updated, err := r.data.db.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now)).SetOrganizationID(organizationID).Save(ctx)
+	updated, err := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now)).SetOrganizationID(organizationID).Save(ctx)
 	if err != nil {
-		return err
+		return rollback(err)
 	}
 	if updated != 1 {
-		return biz.ErrSessionExpired
+		return rollback(biz.ErrSessionExpired)
 	}
-	return nil
+	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		return rollback(err)
+	}
+	return tx.Commit()
 }
 
-func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time.Time) error {
-	updated, err := r.data.db.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil()).SetRevokedAt(now).Save(ctx)
+func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time.Time, audit *biz.AuditEvent) error {
+	tx, err := r.data.db.Tx(ctx)
 	if err != nil {
 		return err
 	}
-	if updated != 1 {
-		return biz.ErrSessionExpired
+	rollback := func(value error) error { _ = tx.Rollback(); return value }
+	updated, err := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil()).SetRevokedAt(now).Save(ctx)
+	if err != nil {
+		return rollback(err)
 	}
-	return nil
+	if updated != 1 {
+		return rollback(biz.ErrSessionExpired)
+	}
+	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
+		return rollback(err)
+	}
+	return tx.Commit()
 }
 
 func (r *authRepo) WriteAudit(ctx context.Context, event *biz.AuditEvent) error {

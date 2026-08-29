@@ -44,7 +44,10 @@ func (s *wecomAuthRepoStub) RecordLoginFailure(context.Context, []string, time.T
 
 func (s *wecomAuthRepoStub) ClearLoginFailures(context.Context, string) error { return nil }
 
-func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(context.Context, *WeComIdentity) (*Credential, bool, error) {
+func (s *wecomAuthRepoStub) FindOrCreateWeComCredential(_ context.Context, _ *WeComIdentity, audit *AuditEvent) (*Credential, bool, error) {
+	if s.created {
+		s.auditActions = append(s.auditActions, audit.Action)
+	}
 	return s.credential, s.created, nil
 }
 
@@ -55,7 +58,10 @@ func (s *wecomAuthRepoStub) FindDingTalkCredential(context.Context, *DingTalkIde
 	return s.credential, nil
 }
 
-func (s *wecomAuthRepoStub) RegisterDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, bool, error) {
+func (s *wecomAuthRepoStub) RegisterDingTalkCredential(_ context.Context, _ *DingTalkIdentity, audit *AuditEvent) (*Credential, bool, error) {
+	if s.created {
+		s.auditActions = append(s.auditActions, audit.Action)
+	}
 	return s.credential, s.created, nil
 }
 
@@ -63,8 +69,9 @@ func (s *wecomAuthRepoStub) ResolvePrincipal(_ context.Context, userID, organiza
 	return &Principal{UserID: userID, Organization: Organization{ID: organizationID}}, nil
 }
 
-func (s *wecomAuthRepoStub) CreateSession(_ context.Context, session *Session) error {
+func (s *wecomAuthRepoStub) CreateSession(_ context.Context, session *Session, audit *AuditEvent) error {
 	s.createdSession = session
+	s.auditActions = append(s.auditActions, audit.Action)
 	return nil
 }
 
@@ -72,11 +79,15 @@ func (s *wecomAuthRepoStub) FindSession(context.Context, string, time.Time) (*Se
 	return nil, ErrSessionExpired
 }
 
-func (s *wecomAuthRepoStub) SwitchSessionOrganization(context.Context, string, uuid.UUID, uuid.UUID, time.Time) error {
+func (s *wecomAuthRepoStub) SwitchSessionOrganization(_ context.Context, _ string, _, _ uuid.UUID, _ time.Time, audit *AuditEvent) error {
+	s.auditActions = append(s.auditActions, audit.Action)
 	return nil
 }
 
-func (s *wecomAuthRepoStub) RevokeSession(context.Context, string, time.Time) error { return nil }
+func (s *wecomAuthRepoStub) RevokeSession(_ context.Context, _ string, _ time.Time, audit *AuditEvent) error {
+	s.auditActions = append(s.auditActions, audit.Action)
+	return nil
+}
 
 func (s *wecomAuthRepoStub) WriteAudit(_ context.Context, event *AuditEvent) error {
 	s.auditActions = append(s.auditActions, event.Action)
