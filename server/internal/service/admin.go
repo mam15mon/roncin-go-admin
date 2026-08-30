@@ -97,9 +97,9 @@ func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserReq
 	if err != nil {
 		return nil, err
 	}
-	roles, err := parseUUIDs(request.GetRoleIds())
+	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	created, err := s.usecase.CreateUser(ctx, principal.Organization.ID, principal.UserID, &biz.AdminUser{Username: request.GetUsername(), DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil), Enabled: true}, request.GetPassword(), roles)
 	if err != nil {
@@ -117,9 +117,9 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roles, err := parseUUIDs(request.GetRoleIds())
+	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	updated, err := s.usecase.UpdateUser(ctx, principal.Organization.ID, principal.UserID, userID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil), Enabled: request.GetEnabled()}, roles)
 	if err != nil {
@@ -160,9 +160,9 @@ func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.Cre
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roleIDs, err := parseUUIDs(request.GetRoleIds())
+	roleIDs, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	created, err := s.usecase.CreateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, organizationID, request.GetPrimary(), roleIDs)
 	if err != nil {
@@ -184,9 +184,9 @@ func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.Upd
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roleIDs, err := parseUUIDs(request.GetRoleIds())
+	roleIDs, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	updated, err := s.usecase.UpdateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, membershipID, request.GetEnabled(), request.GetPrimary(), roleIDs)
 	if err != nil {
@@ -242,9 +242,9 @@ func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.Autho
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roles, err := parseUUIDs(request.GetRoleIds())
+	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	authorized, err := s.usecase.AuthorizeWeComUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
 	if err != nil {
@@ -266,9 +266,9 @@ func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.Au
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roles, err := parseUUIDs(request.GetRoleIds())
+	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
 	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+		return nil, err
 	}
 	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
 	if err != nil {
@@ -422,23 +422,6 @@ func requirePrincipal(ctx context.Context) (*biz.Principal, error) {
 		return nil, principalErr
 	}
 	return principal, nil
-}
-
-func parseUUIDs(values []string) ([]uuid.UUID, error) {
-	result := make([]uuid.UUID, 0, len(values))
-	seen := make(map[uuid.UUID]struct{}, len(values))
-	for _, value := range values {
-		parsed, err := uuid.Parse(value)
-		if err != nil {
-			return nil, err
-		}
-		if _, exists := seen[parsed]; exists {
-			continue
-		}
-		seen[parsed] = struct{}{}
-		result = append(result, parsed)
-	}
-	return result, nil
 }
 
 func optionalString(value string, present bool) *string {
