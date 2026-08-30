@@ -25,15 +25,8 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))
-	feeStatus, financialProgress, err := feeLedgerStatusFilters(
-		financeOptionalString(request.Status),
-		financeOptionalString(request.FinancialProgress),
-	)
-	if err != nil {
-		return nil, err
-	}
-	filter.Status = feeStatus
-	filter.FinancialProgress = financialProgress
+	filter.Status = orderFeeStatusFromAPI(request.Status)
+	filter.FinancialProgress = feeLedgerFinancialProgressFromAPI(request.FinancialProgress)
 	filter.Currency = financeOptionalString(request.Currency)
 	filter.BillNo = financeOptionalString(request.BillNo)
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
@@ -75,7 +68,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		fee := item.Fee
 		data = append(data, &v1.FeeLedgerItem{
 			Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName,
-			Direction: string(fee.Direction), Status: string(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName,
+			Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName,
 			SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 			Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8),
 			NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
@@ -83,7 +76,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 			CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"),
 			TaxRate:           financeDecimalPointer(fee.TaxRate, 4),
-			FinancialProgress: string(item.FinancialProgress),
+			FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
 			FinanceLocked:     item.FinanceLocked,
 			Tags:              businessTagSummariesToFinanceAPI(feeTags[fee.ID]),
 		})
@@ -95,19 +88,6 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
 		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: result.Summary.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: result.Summary.ProfitBaseAmount.StringFixed(8), BaseCurrency: result.Summary.BaseCurrency},
 	}, nil
-}
-
-func feeLedgerStatusFilters(statusValue, progressValue string) (biz.OrderFeeStatus, biz.FeeLedgerFinancialProgress, error) {
-	statusValue = strings.ToUpper(strings.TrimSpace(statusValue))
-	progress := biz.FeeLedgerFinancialProgress(strings.ToUpper(strings.TrimSpace(progressValue)))
-	// 兼容现有费用明细页把七种财务进度放入 status 的请求；正式客户端应使用 financial_progress。
-	if legacyProgress := biz.FeeLedgerFinancialProgress(statusValue); biz.IsFeeLedgerFinancialProgress(legacyProgress) {
-		if progress != "" && progress != legacyProgress {
-			return "", "", biz.ErrFinanceLedgerInvalidArgument
-		}
-		return "", legacyProgress, nil
-	}
-	return biz.OrderFeeStatus(statusValue), progress, nil
 }
 
 func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {

@@ -22,7 +22,7 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 	if err != nil {
 		return nil, err
 	}
-	f := biz.CommissionFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: biz.CommissionStatus(strings.ToUpper(financeOptionalString(r.Status)))}
+	f := biz.CommissionFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: financeCommissionStatusFromAPI(r.Status)}
 	result, err := s.commissionUsecase.List(ctx, p.Organization.ID, f)
 	if err != nil {
 		return nil, err
@@ -336,7 +336,7 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	for _, item := range x.Adjustments {
 		adjustments = append(adjustments, commissionAdjustmentToAPI(item))
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: string(x.Status), BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8)}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: x.VerificationID.String(), VerificationNo: x.VerificationNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt), CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8)}
 }
 
 func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCommissionAdjustment {
@@ -346,7 +346,7 @@ func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCo
 	return &v1.FinanceCommissionAdjustment{
 		Id: x.ID.String(), AdjustmentNo: x.AdjustmentNo, CommissionId: x.CommissionID.String(), CommissionNo: x.CommissionNo,
 		OrderId: x.OrderID.String(), OrderNo: x.OrderNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName,
-		Direction: string(x.Direction), Status: string(x.Status), BaseCurrency: x.BaseCurrency, Amount: x.Amount.StringFixed(8),
+		Direction: string(x.Direction), Status: financeCommissionStatusToAPI(x.Status), BaseCurrency: x.BaseCurrency, Amount: x.Amount.StringFixed(8),
 		Reason: x.Reason, Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), PaidAt: financeTime(x.PaidAt),
 		CancelledAt: financeTime(x.CancelledAt), CancellationReason: x.CancellationReason,
 		SourceType: string(x.SourceType), SourceVerificationId: uuidStringPtr(x.SourceVerificationID),
@@ -371,7 +371,7 @@ func commissionLineToAPI(x *biz.FinanceCommissionLine) *v1.FinanceCommissionLine
 	}
 	fees := make([]*v1.CommissionFeeDetail, 0, len(x.Fees))
 	for _, item := range x.Fees {
-		fees = append(fees, &v1.CommissionFeeDetail{FeeId: item.FeeID.String(), Direction: item.Direction, FeeCode: item.FeeCode, FeeName: item.FeeName, SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName, Currency: item.Currency, TotalAmount: item.TotalAmount.StringFixed(8), ExchangeRate: item.ExchangeRate.StringFixed(8), BaseCurrency: item.BaseCurrency, BaseCurrencyAmount: item.BaseCurrencyAmount.StringFixed(8), ExpenseDate: item.ExpenseDate, Status: item.Status})
+		fees = append(fees, &v1.CommissionFeeDetail{FeeId: item.FeeID.String(), Direction: item.Direction, FeeCode: item.FeeCode, FeeName: item.FeeName, SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName, Currency: item.Currency, TotalAmount: item.TotalAmount.StringFixed(8), ExchangeRate: item.ExchangeRate.StringFixed(8), BaseCurrency: item.BaseCurrency, BaseCurrencyAmount: item.BaseCurrencyAmount.StringFixed(8), ExpenseDate: item.ExpenseDate, Status: orderFeeStatusToAPI(biz.OrderFeeStatus(item.Status))})
 	}
 	return &v1.FinanceCommissionLine{Id: x.ID.String(), OrderId: x.OrderID.String(), OrderNo: x.OrderNo, OrderDate: x.OrderDate, CustomerId: x.CustomerID.String(), CustomerCode: x.CustomerCode, CustomerName: x.CustomerName, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), BaseCurrency: x.BaseCurrency, RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), CustomerAssignmentId: x.CustomerAssignmentID.String(), CustomerAssignmentOrganizationId: x.CustomerAssignmentOrganizationID.String(), CustomerAssignedAt: x.CustomerAssignedAt.UTC().Format(time.RFC3339), FeeCount: int32(x.FeeCount), Fees: fees, PersonnelOrganizationId: x.CustomerAssignmentOrganizationID.String(), PersonnelAssignedAt: x.CustomerAssignedAt.UTC().Format(time.RFC3339)}
 }

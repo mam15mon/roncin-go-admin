@@ -8,6 +8,7 @@ package v1
 
 import (
 	_ "github.com/roncin/roncin-go-admin/server/api/access/v1"
+	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -23,6 +24,333 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+type FinanceBillStatus int32
+
+const (
+	FinanceBillStatus_FINANCE_BILL_STATUS_UNSPECIFIED FinanceBillStatus = 0
+	FinanceBillStatus_FINANCE_BILL_STATUS_DRAFT       FinanceBillStatus = 1
+	FinanceBillStatus_FINANCE_BILL_STATUS_CONFIRMED   FinanceBillStatus = 2
+	FinanceBillStatus_FINANCE_BILL_STATUS_CANCELLED   FinanceBillStatus = 3
+)
+
+// Enum value maps for FinanceBillStatus.
+var (
+	FinanceBillStatus_name = map[int32]string{
+		0: "FINANCE_BILL_STATUS_UNSPECIFIED",
+		1: "FINANCE_BILL_STATUS_DRAFT",
+		2: "FINANCE_BILL_STATUS_CONFIRMED",
+		3: "FINANCE_BILL_STATUS_CANCELLED",
+	}
+	FinanceBillStatus_value = map[string]int32{
+		"FINANCE_BILL_STATUS_UNSPECIFIED": 0,
+		"FINANCE_BILL_STATUS_DRAFT":       1,
+		"FINANCE_BILL_STATUS_CONFIRMED":   2,
+		"FINANCE_BILL_STATUS_CANCELLED":   3,
+	}
+)
+
+func (x FinanceBillStatus) Enum() *FinanceBillStatus {
+	p := new(FinanceBillStatus)
+	*p = x
+	return p
+}
+
+func (x FinanceBillStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FinanceBillStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[0].Descriptor()
+}
+
+func (FinanceBillStatus) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[0]
+}
+
+func (x FinanceBillStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FinanceBillStatus.Descriptor instead.
+func (FinanceBillStatus) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{0}
+}
+
+type FinanceInvoiceStatus int32
+
+const (
+	FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_UNSPECIFIED FinanceInvoiceStatus = 0
+	FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_DRAFT       FinanceInvoiceStatus = 1
+	FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_ISSUED      FinanceInvoiceStatus = 2
+	FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_CANCELLED   FinanceInvoiceStatus = 3
+	FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_RED_FLUSHED FinanceInvoiceStatus = 4
+)
+
+// Enum value maps for FinanceInvoiceStatus.
+var (
+	FinanceInvoiceStatus_name = map[int32]string{
+		0: "FINANCE_INVOICE_STATUS_UNSPECIFIED",
+		1: "FINANCE_INVOICE_STATUS_DRAFT",
+		2: "FINANCE_INVOICE_STATUS_ISSUED",
+		3: "FINANCE_INVOICE_STATUS_CANCELLED",
+		4: "FINANCE_INVOICE_STATUS_RED_FLUSHED",
+	}
+	FinanceInvoiceStatus_value = map[string]int32{
+		"FINANCE_INVOICE_STATUS_UNSPECIFIED": 0,
+		"FINANCE_INVOICE_STATUS_DRAFT":       1,
+		"FINANCE_INVOICE_STATUS_ISSUED":      2,
+		"FINANCE_INVOICE_STATUS_CANCELLED":   3,
+		"FINANCE_INVOICE_STATUS_RED_FLUSHED": 4,
+	}
+)
+
+func (x FinanceInvoiceStatus) Enum() *FinanceInvoiceStatus {
+	p := new(FinanceInvoiceStatus)
+	*p = x
+	return p
+}
+
+func (x FinanceInvoiceStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FinanceInvoiceStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[1].Descriptor()
+}
+
+func (FinanceInvoiceStatus) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[1]
+}
+
+func (x FinanceInvoiceStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FinanceInvoiceStatus.Descriptor instead.
+func (FinanceInvoiceStatus) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{1}
+}
+
+type FinanceCashflowStatus int32
+
+const (
+	FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_UNSPECIFIED FinanceCashflowStatus = 0
+	FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_DRAFT       FinanceCashflowStatus = 1
+	FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_CONFIRMED   FinanceCashflowStatus = 2
+	FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_CANCELLED   FinanceCashflowStatus = 3
+)
+
+// Enum value maps for FinanceCashflowStatus.
+var (
+	FinanceCashflowStatus_name = map[int32]string{
+		0: "FINANCE_CASHFLOW_STATUS_UNSPECIFIED",
+		1: "FINANCE_CASHFLOW_STATUS_DRAFT",
+		2: "FINANCE_CASHFLOW_STATUS_CONFIRMED",
+		3: "FINANCE_CASHFLOW_STATUS_CANCELLED",
+	}
+	FinanceCashflowStatus_value = map[string]int32{
+		"FINANCE_CASHFLOW_STATUS_UNSPECIFIED": 0,
+		"FINANCE_CASHFLOW_STATUS_DRAFT":       1,
+		"FINANCE_CASHFLOW_STATUS_CONFIRMED":   2,
+		"FINANCE_CASHFLOW_STATUS_CANCELLED":   3,
+	}
+)
+
+func (x FinanceCashflowStatus) Enum() *FinanceCashflowStatus {
+	p := new(FinanceCashflowStatus)
+	*p = x
+	return p
+}
+
+func (x FinanceCashflowStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FinanceCashflowStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[2].Descriptor()
+}
+
+func (FinanceCashflowStatus) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[2]
+}
+
+func (x FinanceCashflowStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FinanceCashflowStatus.Descriptor instead.
+func (FinanceCashflowStatus) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{2}
+}
+
+type FinanceVerificationStatus int32
+
+const (
+	FinanceVerificationStatus_FINANCE_VERIFICATION_STATUS_UNSPECIFIED FinanceVerificationStatus = 0
+	FinanceVerificationStatus_FINANCE_VERIFICATION_STATUS_ACTIVE      FinanceVerificationStatus = 1
+	FinanceVerificationStatus_FINANCE_VERIFICATION_STATUS_REVERSED    FinanceVerificationStatus = 2
+)
+
+// Enum value maps for FinanceVerificationStatus.
+var (
+	FinanceVerificationStatus_name = map[int32]string{
+		0: "FINANCE_VERIFICATION_STATUS_UNSPECIFIED",
+		1: "FINANCE_VERIFICATION_STATUS_ACTIVE",
+		2: "FINANCE_VERIFICATION_STATUS_REVERSED",
+	}
+	FinanceVerificationStatus_value = map[string]int32{
+		"FINANCE_VERIFICATION_STATUS_UNSPECIFIED": 0,
+		"FINANCE_VERIFICATION_STATUS_ACTIVE":      1,
+		"FINANCE_VERIFICATION_STATUS_REVERSED":    2,
+	}
+)
+
+func (x FinanceVerificationStatus) Enum() *FinanceVerificationStatus {
+	p := new(FinanceVerificationStatus)
+	*p = x
+	return p
+}
+
+func (x FinanceVerificationStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FinanceVerificationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[3].Descriptor()
+}
+
+func (FinanceVerificationStatus) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[3]
+}
+
+func (x FinanceVerificationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FinanceVerificationStatus.Descriptor instead.
+func (FinanceVerificationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{3}
+}
+
+type FinanceCommissionStatus int32
+
+const (
+	FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_UNSPECIFIED FinanceCommissionStatus = 0
+	FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_DRAFT       FinanceCommissionStatus = 1
+	FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_CONFIRMED   FinanceCommissionStatus = 2
+	FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID        FinanceCommissionStatus = 3
+	FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_CANCELLED   FinanceCommissionStatus = 4
+)
+
+// Enum value maps for FinanceCommissionStatus.
+var (
+	FinanceCommissionStatus_name = map[int32]string{
+		0: "FINANCE_COMMISSION_STATUS_UNSPECIFIED",
+		1: "FINANCE_COMMISSION_STATUS_DRAFT",
+		2: "FINANCE_COMMISSION_STATUS_CONFIRMED",
+		3: "FINANCE_COMMISSION_STATUS_PAID",
+		4: "FINANCE_COMMISSION_STATUS_CANCELLED",
+	}
+	FinanceCommissionStatus_value = map[string]int32{
+		"FINANCE_COMMISSION_STATUS_UNSPECIFIED": 0,
+		"FINANCE_COMMISSION_STATUS_DRAFT":       1,
+		"FINANCE_COMMISSION_STATUS_CONFIRMED":   2,
+		"FINANCE_COMMISSION_STATUS_PAID":        3,
+		"FINANCE_COMMISSION_STATUS_CANCELLED":   4,
+	}
+)
+
+func (x FinanceCommissionStatus) Enum() *FinanceCommissionStatus {
+	p := new(FinanceCommissionStatus)
+	*p = x
+	return p
+}
+
+func (x FinanceCommissionStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FinanceCommissionStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[4].Descriptor()
+}
+
+func (FinanceCommissionStatus) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[4]
+}
+
+func (x FinanceCommissionStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FinanceCommissionStatus.Descriptor instead.
+func (FinanceCommissionStatus) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{4}
+}
+
+type FeeLedgerFinancialProgress int32
+
+const (
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED                   FeeLedgerFinancialProgress = 0
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED                      FeeLedgerFinancialProgress = 1
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED         FeeLedgerFinancialProgress = 2
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED           FeeLedgerFinancialProgress = 3
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED           FeeLedgerFinancialProgress = 4
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED   FeeLedgerFinancialProgress = 5
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED FeeLedgerFinancialProgress = 6
+	FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED                     FeeLedgerFinancialProgress = 7
+)
+
+// Enum value maps for FeeLedgerFinancialProgress.
+var (
+	FeeLedgerFinancialProgress_name = map[int32]string{
+		0: "FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED",
+		1: "FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED",
+		2: "FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED",
+		3: "FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED",
+		4: "FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED",
+		5: "FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED",
+		6: "FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED",
+		7: "FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED",
+	}
+	FeeLedgerFinancialProgress_value = map[string]int32{
+		"FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED":                   0,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED":                      1,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED":         2,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED":           3,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED":           4,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED":   5,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED": 6,
+		"FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED":                     7,
+	}
+)
+
+func (x FeeLedgerFinancialProgress) Enum() *FeeLedgerFinancialProgress {
+	p := new(FeeLedgerFinancialProgress)
+	*p = x
+	return p
+}
+
+func (x FeeLedgerFinancialProgress) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FeeLedgerFinancialProgress) Descriptor() protoreflect.EnumDescriptor {
+	return file_finance_v1_settlement_proto_enumTypes[5].Descriptor()
+}
+
+func (FeeLedgerFinancialProgress) Type() protoreflect.EnumType {
+	return &file_finance_v1_settlement_proto_enumTypes[5]
+}
+
+func (x FeeLedgerFinancialProgress) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FeeLedgerFinancialProgress.Descriptor instead.
+func (FeeLedgerFinancialProgress) EnumDescriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{5}
+}
 
 type BilledFeeEditableField int32
 
@@ -69,11 +397,11 @@ func (x BilledFeeEditableField) String() string {
 }
 
 func (BilledFeeEditableField) Descriptor() protoreflect.EnumDescriptor {
-	return file_finance_v1_settlement_proto_enumTypes[0].Descriptor()
+	return file_finance_v1_settlement_proto_enumTypes[6].Descriptor()
 }
 
 func (BilledFeeEditableField) Type() protoreflect.EnumType {
-	return &file_finance_v1_settlement_proto_enumTypes[0]
+	return &file_finance_v1_settlement_proto_enumTypes[6]
 }
 
 func (x BilledFeeEditableField) Number() protoreflect.EnumNumber {
@@ -82,26 +410,26 @@ func (x BilledFeeEditableField) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use BilledFeeEditableField.Descriptor instead.
 func (BilledFeeEditableField) EnumDescriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{0}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{6}
 }
 
 type ListFeeLedgerRequest struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Page              int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize          int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword           *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	BusinessType      *string                `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3,oneof" json:"business_type,omitempty"`
-	Direction         *string                `protobuf:"bytes,5,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	Status            *string                `protobuf:"bytes,6,opt,name=status,proto3,oneof" json:"status,omitempty"`
-	SettlementPartyId *string                `protobuf:"bytes,7,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
-	Currency          *string                `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
-	ExpenseDateFrom   *string                `protobuf:"bytes,9,opt,name=expense_date_from,json=expenseDateFrom,proto3,oneof" json:"expense_date_from,omitempty"`
-	ExpenseDateTo     *string                `protobuf:"bytes,10,opt,name=expense_date_to,json=expenseDateTo,proto3,oneof" json:"expense_date_to,omitempty"`
-	CustomerId        *string                `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
-	FinancialProgress *string                `protobuf:"bytes,12,opt,name=financial_progress,json=financialProgress,proto3,oneof" json:"financial_progress,omitempty"`
-	BillNo            *string                `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
-	FinanceLocked     *bool                  `protobuf:"varint,14,opt,name=finance_locked,json=financeLocked,proto3,oneof" json:"finance_locked,omitempty"`
-	TagIds            []string               `protobuf:"bytes,15,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	state             protoimpl.MessageState      `protogen:"open.v1"`
+	Page              int32                       `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize          int32                       `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword           *string                     `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	BusinessType      *string                     `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3,oneof" json:"business_type,omitempty"`
+	Direction         *string                     `protobuf:"bytes,5,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
+	Status            *v1.OrderFeeStatus          `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderFeeStatus,oneof" json:"status,omitempty"`
+	SettlementPartyId *string                     `protobuf:"bytes,7,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
+	Currency          *string                     `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
+	ExpenseDateFrom   *string                     `protobuf:"bytes,9,opt,name=expense_date_from,json=expenseDateFrom,proto3,oneof" json:"expense_date_from,omitempty"`
+	ExpenseDateTo     *string                     `protobuf:"bytes,10,opt,name=expense_date_to,json=expenseDateTo,proto3,oneof" json:"expense_date_to,omitempty"`
+	CustomerId        *string                     `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
+	FinancialProgress *FeeLedgerFinancialProgress `protobuf:"varint,12,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress,oneof" json:"financial_progress,omitempty"`
+	BillNo            *string                     `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
+	FinanceLocked     *bool                       `protobuf:"varint,14,opt,name=finance_locked,json=financeLocked,proto3,oneof" json:"finance_locked,omitempty"`
+	TagIds            []string                    `protobuf:"bytes,15,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -171,11 +499,11 @@ func (x *ListFeeLedgerRequest) GetDirection() string {
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetStatus() string {
+func (x *ListFeeLedgerRequest) GetStatus() v1.OrderFeeStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return v1.OrderFeeStatus(0)
 }
 
 func (x *ListFeeLedgerRequest) GetSettlementPartyId() string {
@@ -213,11 +541,11 @@ func (x *ListFeeLedgerRequest) GetCustomerId() string {
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetFinancialProgress() string {
+func (x *ListFeeLedgerRequest) GetFinancialProgress() FeeLedgerFinancialProgress {
 	if x != nil && x.FinancialProgress != nil {
 		return *x.FinancialProgress
 	}
-	return ""
+	return FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED
 }
 
 func (x *ListFeeLedgerRequest) GetBillNo() string {
@@ -242,39 +570,39 @@ func (x *ListFeeLedgerRequest) GetTagIds() []string {
 }
 
 type FeeLedgerItem struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId             string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo             string                 `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	BusinessType        string                 `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
-	Direction           string                 `protobuf:"bytes,5,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status              string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
-	FeeCode             string                 `protobuf:"bytes,7,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	FeeName             string                 `protobuf:"bytes,8,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
-	SettlementPartyId   string                 `protobuf:"bytes,9,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	SettlementPartyName string                 `protobuf:"bytes,10,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
-	BillingUnit         string                 `protobuf:"bytes,11,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
-	Quantity            string                 `protobuf:"bytes,12,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	UnitPrice           string                 `protobuf:"bytes,13,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
-	TotalAmount         string                 `protobuf:"bytes,14,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
-	NetAmount           string                 `protobuf:"bytes,15,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
-	TaxAmount           string                 `protobuf:"bytes,16,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
-	Currency            string                 `protobuf:"bytes,17,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExchangeRate        string                 `protobuf:"bytes,18,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
-	BaseCurrency        string                 `protobuf:"bytes,19,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	BaseCurrencyAmount  string                 `protobuf:"bytes,20,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	ExpenseDate         string                 `protobuf:"bytes,21,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
-	Note                *string                `protobuf:"bytes,22,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version             uint64                 `protobuf:"varint,23,opt,name=version,proto3" json:"version,omitempty"`
-	CreatedAt           string                 `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt           string                 `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	TaxRate             *string                `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
-	CustomerId          string                 `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
-	FinancialProgress   string                 `protobuf:"bytes,29,opt,name=financial_progress,json=financialProgress,proto3" json:"financial_progress,omitempty"`
-	BillNo              *string                `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
-	FinanceLocked       bool                   `protobuf:"varint,31,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
-	Tags                []*BusinessTagSummary  `protobuf:"bytes,34,rep,name=tags,proto3" json:"tags,omitempty"`
+	state               protoimpl.MessageState     `protogen:"open.v1"`
+	Id                  string                     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId             string                     `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo             string                     `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	BusinessType        string                     `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	Direction           string                     `protobuf:"bytes,5,opt,name=direction,proto3" json:"direction,omitempty"`
+	Status              v1.OrderFeeStatus          `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderFeeStatus" json:"status,omitempty"`
+	FeeCode             string                     `protobuf:"bytes,7,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	FeeName             string                     `protobuf:"bytes,8,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	SettlementPartyId   string                     `protobuf:"bytes,9,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName string                     `protobuf:"bytes,10,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	BillingUnit         string                     `protobuf:"bytes,11,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	Quantity            string                     `protobuf:"bytes,12,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice           string                     `protobuf:"bytes,13,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	TotalAmount         string                     `protobuf:"bytes,14,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	NetAmount           string                     `protobuf:"bytes,15,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
+	TaxAmount           string                     `protobuf:"bytes,16,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
+	Currency            string                     `protobuf:"bytes,17,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExchangeRate        string                     `protobuf:"bytes,18,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
+	BaseCurrency        string                     `protobuf:"bytes,19,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	BaseCurrencyAmount  string                     `protobuf:"bytes,20,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
+	ExpenseDate         string                     `protobuf:"bytes,21,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
+	Note                *string                    `protobuf:"bytes,22,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version             uint64                     `protobuf:"varint,23,opt,name=version,proto3" json:"version,omitempty"`
+	CreatedAt           string                     `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           string                     `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	TaxRate             *string                    `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	CustomerId          string                     `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CustomerName        string                     `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	FinancialProgress   FeeLedgerFinancialProgress `protobuf:"varint,29,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress" json:"financial_progress,omitempty"`
+	BillNo              *string                    `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
+	FinanceLocked       bool                       `protobuf:"varint,31,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
+	Tags                []*BusinessTagSummary      `protobuf:"bytes,34,rep,name=tags,proto3" json:"tags,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -344,11 +672,11 @@ func (x *FeeLedgerItem) GetDirection() string {
 	return ""
 }
 
-func (x *FeeLedgerItem) GetStatus() string {
+func (x *FeeLedgerItem) GetStatus() v1.OrderFeeStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return v1.OrderFeeStatus(0)
 }
 
 func (x *FeeLedgerItem) GetFeeCode() string {
@@ -505,11 +833,11 @@ func (x *FeeLedgerItem) GetCustomerName() string {
 	return ""
 }
 
-func (x *FeeLedgerItem) GetFinancialProgress() string {
+func (x *FeeLedgerItem) GetFinancialProgress() FeeLedgerFinancialProgress {
 	if x != nil {
 		return x.FinancialProgress
 	}
-	return ""
+	return FeeLedgerFinancialProgress_FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED
 }
 
 func (x *FeeLedgerItem) GetBillNo() string {
@@ -1676,7 +2004,7 @@ type ListBillsRequest struct {
 	PageSize          int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword           *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
 	Direction         *string                `protobuf:"bytes,4,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	Status            *string                `protobuf:"bytes,5,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	Status            *FinanceBillStatus     `protobuf:"varint,5,opt,name=status,proto3,enum=finance.v1.FinanceBillStatus,oneof" json:"status,omitempty"`
 	SettlementPartyId *string                `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
 	Currency          *string                `protobuf:"bytes,7,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	BillDateFrom      *string                `protobuf:"bytes,8,opt,name=bill_date_from,json=billDateFrom,proto3,oneof" json:"bill_date_from,omitempty"`
@@ -1744,11 +2072,11 @@ func (x *ListBillsRequest) GetDirection() string {
 	return ""
 }
 
-func (x *ListBillsRequest) GetStatus() string {
+func (x *ListBillsRequest) GetStatus() FinanceBillStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return FinanceBillStatus_FINANCE_BILL_STATUS_UNSPECIFIED
 }
 
 func (x *ListBillsRequest) GetSettlementPartyId() string {
@@ -2311,7 +2639,7 @@ type FinanceBill struct {
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	BillNo                string                 `protobuf:"bytes,2,opt,name=bill_no,json=billNo,proto3" json:"bill_no,omitempty"`
 	Direction             string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status                string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Status                FinanceBillStatus      `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceBillStatus" json:"status,omitempty"`
 	SettlementPartyId     string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
 	SettlementPartyName   string                 `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
 	Currency              string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
@@ -2399,11 +2727,11 @@ func (x *FinanceBill) GetDirection() string {
 	return ""
 }
 
-func (x *FinanceBill) GetStatus() string {
+func (x *FinanceBill) GetStatus() FinanceBillStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceBillStatus_FINANCE_BILL_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceBill) GetSettlementPartyId() string {
@@ -4044,7 +4372,7 @@ type ListInvoicesRequest struct {
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
 	Direction     *string                `protobuf:"bytes,4,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	Status        *string                `protobuf:"bytes,5,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	Status        *FinanceInvoiceStatus  `protobuf:"varint,5,opt,name=status,proto3,enum=finance.v1.FinanceInvoiceStatus,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4107,11 +4435,11 @@ func (x *ListInvoicesRequest) GetDirection() string {
 	return ""
 }
 
-func (x *ListInvoicesRequest) GetStatus() string {
+func (x *ListInvoicesRequest) GetStatus() FinanceInvoiceStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_UNSPECIFIED
 }
 
 type GetInvoiceRequest struct {
@@ -4643,7 +4971,7 @@ type FinanceInvoice struct {
 	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	RecordNo                 string                 `protobuf:"bytes,2,opt,name=record_no,json=recordNo,proto3" json:"record_no,omitempty"`
 	Direction                string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status                   string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Status                   FinanceInvoiceStatus   `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceInvoiceStatus" json:"status,omitempty"`
 	InvoiceType              string                 `protobuf:"bytes,5,opt,name=invoice_type,json=invoiceType,proto3" json:"invoice_type,omitempty"`
 	SettlementPartyId        string                 `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
 	SettlementPartyName      string                 `protobuf:"bytes,7,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
@@ -4735,11 +5063,11 @@ func (x *FinanceInvoice) GetDirection() string {
 	return ""
 }
 
-func (x *FinanceInvoice) GetStatus() string {
+func (x *FinanceInvoice) GetStatus() FinanceInvoiceStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceInvoiceStatus_FINANCE_INVOICE_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceInvoice) GetInvoiceType() string {
@@ -5540,7 +5868,7 @@ type ListCashflowsRequest struct {
 	PageSize          int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword           *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
 	Direction         *string                `protobuf:"bytes,4,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	Status            *string                `protobuf:"bytes,5,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	Status            *FinanceCashflowStatus `protobuf:"varint,5,opt,name=status,proto3,enum=finance.v1.FinanceCashflowStatus,oneof" json:"status,omitempty"`
 	SettlementPartyId *string                `protobuf:"bytes,6,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
 	Currency          *string                `protobuf:"bytes,7,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	unknownFields     protoimpl.UnknownFields
@@ -5605,11 +5933,11 @@ func (x *ListCashflowsRequest) GetDirection() string {
 	return ""
 }
 
-func (x *ListCashflowsRequest) GetStatus() string {
+func (x *ListCashflowsRequest) GetStatus() FinanceCashflowStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_UNSPECIFIED
 }
 
 func (x *ListCashflowsRequest) GetSettlementPartyId() string {
@@ -5883,7 +6211,7 @@ type FinanceCashflow struct {
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	FlowNo                string                 `protobuf:"bytes,2,opt,name=flow_no,json=flowNo,proto3" json:"flow_no,omitempty"`
 	Direction             string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status                string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Status                FinanceCashflowStatus  `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceCashflowStatus" json:"status,omitempty"`
 	SettlementPartyId     string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
 	SettlementPartyName   string                 `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
 	Currency              string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
@@ -5963,11 +6291,11 @@ func (x *FinanceCashflow) GetDirection() string {
 	return ""
 }
 
-func (x *FinanceCashflow) GetStatus() string {
+func (x *FinanceCashflow) GetStatus() FinanceCashflowStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceCashflowStatus_FINANCE_CASHFLOW_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceCashflow) GetSettlementPartyId() string {
@@ -6587,11 +6915,11 @@ func (x *VerificationAllocationInput) GetAmount() string {
 }
 
 type ListVerificationsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	Status        *string                `protobuf:"bytes,4,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Page          int32                      `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                      `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       *string                    `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	Status        *FinanceVerificationStatus `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceVerificationStatus,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6647,11 +6975,11 @@ func (x *ListVerificationsRequest) GetKeyword() string {
 	return ""
 }
 
-func (x *ListVerificationsRequest) GetStatus() string {
+func (x *ListVerificationsRequest) GetStatus() FinanceVerificationStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return FinanceVerificationStatus_FINANCE_VERIFICATION_STATUS_UNSPECIFIED
 }
 
 type CreateVerificationRequest struct {
@@ -6910,7 +7238,7 @@ type FinanceVerification struct {
 	state                 protoimpl.MessageState           `protogen:"open.v1"`
 	Id                    string                           `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	VerificationNo        string                           `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
-	Status                string                           `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Status                FinanceVerificationStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=finance.v1.FinanceVerificationStatus" json:"status,omitempty"`
 	Direction             string                           `protobuf:"bytes,4,opt,name=direction,proto3" json:"direction,omitempty"`
 	SettlementPartyId     string                           `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
 	SettlementPartyName   string                           `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
@@ -6980,11 +7308,11 @@ func (x *FinanceVerification) GetVerificationNo() string {
 	return ""
 }
 
-func (x *FinanceVerification) GetStatus() string {
+func (x *FinanceVerification) GetStatus() FinanceVerificationStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceVerificationStatus_FINANCE_VERIFICATION_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceVerification) GetDirection() string {
@@ -7439,11 +7767,11 @@ func (x *ReverseVerificationResponse) GetTraceId() string {
 }
 
 type ListCommissionsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	Status        *string                `protobuf:"bytes,4,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Page          int32                    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                    `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword       *string                  `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	Status        *FinanceCommissionStatus `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7499,11 +7827,11 @@ func (x *ListCommissionsRequest) GetKeyword() string {
 	return ""
 }
 
-func (x *ListCommissionsRequest) GetStatus() string {
+func (x *ListCommissionsRequest) GetStatus() FinanceCommissionStatus {
 	if x != nil && x.Status != nil {
 		return *x.Status
 	}
-	return ""
+	return FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_UNSPECIFIED
 }
 
 type GetCommissionRequest struct {
@@ -9056,7 +9384,7 @@ type CommissionFeeDetail struct {
 	BaseCurrency        string                 `protobuf:"bytes,10,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	BaseCurrencyAmount  string                 `protobuf:"bytes,11,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
 	ExpenseDate         string                 `protobuf:"bytes,12,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
-	Status              string                 `protobuf:"bytes,13,opt,name=status,proto3" json:"status,omitempty"`
+	Status              v1.OrderFeeStatus      `protobuf:"varint,13,opt,name=status,proto3,enum=order.v1.OrderFeeStatus" json:"status,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -9175,11 +9503,11 @@ func (x *CommissionFeeDetail) GetExpenseDate() string {
 	return ""
 }
 
-func (x *CommissionFeeDetail) GetStatus() string {
+func (x *CommissionFeeDetail) GetStatus() v1.OrderFeeStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return v1.OrderFeeStatus(0)
 }
 
 type FinanceCommissionLine struct {
@@ -9883,30 +10211,30 @@ func (x *ListCommissionCandidatesResponse) GetPageSize() int32 {
 }
 
 type FinanceCommissionAdjustment struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	AdjustmentNo         string                 `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
-	CommissionId         string                 `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
-	CommissionNo         string                 `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
-	OrderId              string                 `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo              string                 `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	EmployeeId           string                 `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName         string                 `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	Direction            string                 `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status               string                 `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
-	BaseCurrency         string                 `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	Amount               string                 `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
-	Reason               string                 `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
-	Note                 *string                `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version              uint64                 `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
-	ConfirmedAt          *string                `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	PaidAt               *string                `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
-	CancelledAt          *string                `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
-	CancellationReason   *string                `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
-	CreatedAt            string                 `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt            string                 `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SourceType           string                 `protobuf:"bytes,22,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
-	SourceVerificationId *string                `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
+	state                protoimpl.MessageState  `protogen:"open.v1"`
+	Id                   string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AdjustmentNo         string                  `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
+	CommissionId         string                  `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
+	CommissionNo         string                  `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
+	OrderId              string                  `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo              string                  `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	EmployeeId           string                  `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName         string                  `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	Direction            string                  `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
+	Status               FinanceCommissionStatus `protobuf:"varint,10,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
+	BaseCurrency         string                  `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	Amount               string                  `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
+	Reason               string                  `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
+	Note                 *string                 `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version              uint64                  `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
+	ConfirmedAt          *string                 `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	PaidAt               *string                 `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
+	CancelledAt          *string                 `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
+	CancellationReason   *string                 `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
+	CreatedAt            string                  `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string                  `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceType           string                  `protobuf:"bytes,22,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	SourceVerificationId *string                 `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -10004,11 +10332,11 @@ func (x *FinanceCommissionAdjustment) GetDirection() string {
 	return ""
 }
 
-func (x *FinanceCommissionAdjustment) GetStatus() string {
+func (x *FinanceCommissionAdjustment) GetStatus() FinanceCommissionStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceCommissionAdjustment) GetBaseCurrency() string {
@@ -10110,7 +10438,7 @@ type FinanceCommission struct {
 	VerificationNo            string                         `protobuf:"bytes,4,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
 	EmployeeId                string                         `protobuf:"bytes,5,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
 	EmployeeName              string                         `protobuf:"bytes,6,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	Status                    string                         `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	Status                    FinanceCommissionStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
 	BaseCurrency              string                         `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	RealizedRevenue           string                         `protobuf:"bytes,9,opt,name=realized_revenue,json=realizedRevenue,proto3" json:"realized_revenue,omitempty"`
 	AllocatedCost             string                         `protobuf:"bytes,10,opt,name=allocated_cost,json=allocatedCost,proto3" json:"allocated_cost,omitempty"`
@@ -10215,11 +10543,11 @@ func (x *FinanceCommission) GetEmployeeName() string {
 	return ""
 }
 
-func (x *FinanceCommission) GetStatus() string {
+func (x *FinanceCommission) GetStatus() FinanceCommissionStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_UNSPECIFIED
 }
 
 func (x *FinanceCommission) GetBaseCurrency() string {
@@ -12007,22 +12335,22 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x8d\x06\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x18order/v1/order_fee.proto\"\xcf\x06\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12(\n" +
 	"\rbusiness_type\x18\x04 \x01(\tH\x01R\fbusinessType\x88\x01\x01\x12!\n" +
-	"\tdirection\x18\x05 \x01(\tH\x02R\tdirection\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x06 \x01(\tH\x03R\x06status\x88\x01\x01\x123\n" +
+	"\tdirection\x18\x05 \x01(\tH\x02R\tdirection\x88\x01\x01\x125\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x18.order.v1.OrderFeeStatusH\x03R\x06status\x88\x01\x01\x123\n" +
 	"\x13settlement_party_id\x18\a \x01(\tH\x04R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
 	"\bcurrency\x18\b \x01(\tH\x05R\bcurrency\x88\x01\x01\x12/\n" +
 	"\x11expense_date_from\x18\t \x01(\tH\x06R\x0fexpenseDateFrom\x88\x01\x01\x12+\n" +
 	"\x0fexpense_date_to\x18\n" +
 	" \x01(\tH\aR\rexpenseDateTo\x88\x01\x01\x12$\n" +
 	"\vcustomer_id\x18\v \x01(\tH\bR\n" +
-	"customerId\x88\x01\x01\x122\n" +
-	"\x12financial_progress\x18\f \x01(\tH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
+	"customerId\x88\x01\x01\x12Z\n" +
+	"\x12financial_progress\x18\f \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
 	"\abill_no\x18\r \x01(\tH\n" +
 	"R\x06billNo\x88\x01\x01\x12*\n" +
 	"\x0efinance_locked\x18\x0e \x01(\bH\vR\rfinanceLocked\x88\x01\x01\x12\x17\n" +
@@ -12041,14 +12369,14 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x13_financial_progressB\n" +
 	"\n" +
 	"\b_bill_noB\x11\n" +
-	"\x0f_finance_locked\"\xeb\b\n" +
+	"\x0f_finance_locked\"\xad\t\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x03 \x01(\tR\aorderNo\x12#\n" +
 	"\rbusiness_type\x18\x04 \x01(\tR\fbusinessType\x12\x1c\n" +
-	"\tdirection\x18\x05 \x01(\tR\tdirection\x12\x16\n" +
-	"\x06status\x18\x06 \x01(\tR\x06status\x12\x19\n" +
+	"\tdirection\x18\x05 \x01(\tR\tdirection\x120\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x18.order.v1.OrderFeeStatusR\x06status\x12\x19\n" +
 	"\bfee_code\x18\a \x01(\tR\afeeCode\x12\x19\n" +
 	"\bfee_name\x18\b \x01(\tR\afeeName\x12.\n" +
 	"\x13settlement_party_id\x18\t \x01(\tR\x11settlementPartyId\x122\n" +
@@ -12077,8 +12405,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\btax_rate\x18\x1a \x01(\tH\x01R\ataxRate\x88\x01\x01\x12\x1f\n" +
 	"\vcustomer_id\x18\x1b \x01(\tR\n" +
 	"customerId\x12#\n" +
-	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12-\n" +
-	"\x12financial_progress\x18\x1d \x01(\tR\x11financialProgress\x12\x1c\n" +
+	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12U\n" +
+	"\x12financial_progress\x18\x1d \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressR\x11financialProgress\x12\x1c\n" +
 	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12%\n" +
 	"\x0efinance_locked\x18\x1f \x01(\bR\rfinanceLocked\x122\n" +
 	"\x04tags\x18\" \x03(\v2\x1e.finance.v1.BusinessTagSummaryR\x04tagsB\a\n" +
@@ -12187,13 +12515,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.BilledFeeEditPolicyR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xd1\x03\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf0\x03\n" +
 	"\x10ListBillsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12!\n" +
-	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x05 \x01(\tH\x02R\x06status\x88\x01\x01\x123\n" +
+	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12:\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x1d.finance.v1.FinanceBillStatusH\x02R\x06status\x88\x01\x01\x123\n" +
 	"\x13settlement_party_id\x18\x06 \x01(\tH\x03R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
 	"\bcurrency\x18\a \x01(\tH\x04R\bcurrency\x88\x01\x01\x12)\n" +
 	"\x0ebill_date_from\x18\b \x01(\tH\x05R\fbillDateFrom\x88\x01\x01\x12%\n" +
@@ -12267,12 +12595,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bquantity\x18\x11 \x01(\tR\bquantity\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x12 \x01(\tR\tunitPriceB\v\n" +
-	"\t_tax_rate\"\xba\f\n" +
+	"\t_tax_rate\"\xd9\f\n" +
 	"\vFinanceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1c\n" +
-	"\tdirection\x18\x03 \x01(\tR\tdirection\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12.\n" +
+	"\tdirection\x18\x03 \x01(\tR\tdirection\x125\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x1d.finance.v1.FinanceBillStatusR\x06status\x12.\n" +
 	"\x13settlement_party_id\x18\x05 \x01(\tR\x11settlementPartyId\x122\n" +
 	"\x15settlement_party_name\x18\x06 \x01(\tR\x13settlementPartyName\x12\x1a\n" +
 	"\bcurrency\x18\a \x01(\tR\bcurrency\x12#\n" +
@@ -12447,13 +12775,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
 	"\x04data\x18\x04 \x01(\v2\x17.finance.v1.FinanceBillR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xca\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xec\x01\n" +
 	"\x13ListInvoicesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12!\n" +
-	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x05 \x01(\tH\x02R\x06status\x88\x01\x01B\n" +
+	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12=\n" +
+	"\x06status\x18\x05 \x01(\x0e2 .finance.v1.FinanceInvoiceStatusH\x02R\x06status\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\f\n" +
 	"\n" +
@@ -12504,12 +12832,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\ftotal_amount\x18\b \x01(\tR\vtotalAmount\x12\x1a\n" +
 	"\bcurrency\x18\t \x01(\tR\bcurrency\x12*\n" +
 	"\x11source_line_count\x18\n" +
-	" \x01(\x05R\x0fsourceLineCount\"\xbe\x10\n" +
+	" \x01(\x05R\x0fsourceLineCount\"\xe0\x10\n" +
 	"\x0eFinanceInvoice\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\trecord_no\x18\x02 \x01(\tR\brecordNo\x12\x1c\n" +
-	"\tdirection\x18\x03 \x01(\tR\tdirection\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12!\n" +
+	"\tdirection\x18\x03 \x01(\tR\tdirection\x128\n" +
+	"\x06status\x18\x04 \x01(\x0e2 .finance.v1.FinanceInvoiceStatusR\x06status\x12!\n" +
 	"\finvoice_type\x18\x05 \x01(\tR\vinvoiceType\x12.\n" +
 	"\x13settlement_party_id\x18\x06 \x01(\tR\x11settlementPartyId\x122\n" +
 	"\x15settlement_party_name\x18\a \x01(\tR\x13settlementPartyName\x12\x1a\n" +
@@ -12620,13 +12948,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x01(\v2\x1a.finance.v1.FinanceInvoiceR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc6\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xe9\x02\n" +
 	"\x14ListCashflowsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12!\n" +
-	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x05 \x01(\tH\x02R\x06status\x88\x01\x01\x123\n" +
+	"\tdirection\x18\x04 \x01(\tH\x01R\tdirection\x88\x01\x01\x12>\n" +
+	"\x06status\x18\x05 \x01(\x0e2!.finance.v1.FinanceCashflowStatusH\x02R\x06status\x88\x01\x01\x123\n" +
 	"\x13settlement_party_id\x18\x06 \x01(\tH\x03R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
 	"\bcurrency\x18\a \x01(\tH\x04R\bcurrency\x88\x01\x01B\n" +
 	"\n" +
@@ -12662,12 +12990,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x15CancelCashflowRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xc9\t\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xec\t\n" +
 	"\x0fFinanceCashflow\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\aflow_no\x18\x02 \x01(\tR\x06flowNo\x12\x1c\n" +
-	"\tdirection\x18\x03 \x01(\tR\tdirection\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12.\n" +
+	"\tdirection\x18\x03 \x01(\tR\tdirection\x129\n" +
+	"\x06status\x18\x04 \x01(\x0e2!.finance.v1.FinanceCashflowStatusR\x06status\x12.\n" +
 	"\x13settlement_party_id\x18\x05 \x01(\tR\x11settlementPartyId\x122\n" +
 	"\x15settlement_party_name\x18\x06 \x01(\tR\x13settlementPartyName\x12\x1a\n" +
 	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x16\n" +
@@ -12739,12 +13067,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vcashflow_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"cashflowId\x12\x1c\n" +
 	"\abill_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06billId\x12\x1b\n" +
-	"\x06amount\x18\x03 \x01(\tB\x03\xe0A\x02R\x06amount\"\x9e\x01\n" +
+	"\x06amount\x18\x03 \x01(\tB\x03\xe0A\x02R\x06amount\"\xc5\x01\n" +
 	"\x18ListVerificationsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
-	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x04 \x01(\tH\x01R\x06status\x88\x01\x01B\n" +
+	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12B\n" +
+	"\x06status\x18\x04 \x01(\x0e2%.finance.v1.FinanceVerificationStatusH\x01R\x06status\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\t\n" +
 	"\a_status\"\xed\x01\n" +
@@ -12772,11 +13100,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x14cashflow_base_amount\x18\t \x01(\tR\x12cashflowBaseAmount\x121\n" +
 	"\x15write_off_base_amount\x18\n" +
 	" \x01(\tR\x12writeOffBaseAmount\x12,\n" +
-	"\x12exchange_gain_loss\x18\v \x01(\tR\x10exchangeGainLoss\"\x99\b\n" +
+	"\x12exchange_gain_loss\x18\v \x01(\tR\x10exchangeGainLoss\"\xc0\b\n" +
 	"\x13FinanceVerification\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0fverification_no\x18\x02 \x01(\tR\x0everificationNo\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\x12\x1c\n" +
+	"\x0fverification_no\x18\x02 \x01(\tR\x0everificationNo\x12=\n" +
+	"\x06status\x18\x03 \x01(\x0e2%.finance.v1.FinanceVerificationStatusR\x06status\x12\x1c\n" +
 	"\tdirection\x18\x04 \x01(\tR\tdirection\x12.\n" +
 	"\x13settlement_party_id\x18\x05 \x01(\tR\x11settlementPartyId\x122\n" +
 	"\x15settlement_party_name\x18\x06 \x01(\tR\x13settlementPartyName\x12\x1a\n" +
@@ -12829,12 +13157,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9c\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc1\x01\n" +
 	"\x16ListCommissionsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
-	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\x04 \x01(\tH\x01R\x06status\x88\x01\x01B\n" +
+	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12@\n" +
+	"\x06status\x18\x04 \x01(\x0e2#.finance.v1.FinanceCommissionStatusH\x01R\x06status\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\t\n" +
 	"\a_status\"+\n" +
@@ -12974,7 +13302,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"!CancelCommissionAdjustmentRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xda\x03\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xf4\x03\n" +
 	"\x13CommissionFeeDetail\x12\x15\n" +
 	"\x06fee_id\x18\x01 \x01(\tR\x05feeId\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12\x19\n" +
@@ -12988,8 +13316,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\rbase_currency\x18\n" +
 	" \x01(\tR\fbaseCurrency\x120\n" +
 	"\x14base_currency_amount\x18\v \x01(\tR\x12baseCurrencyAmount\x12!\n" +
-	"\fexpense_date\x18\f \x01(\tR\vexpenseDate\x12\x16\n" +
-	"\x06status\x18\r \x01(\tR\x06status\"\xa0\b\n" +
+	"\fexpense_date\x18\f \x01(\tR\vexpenseDate\x120\n" +
+	"\x06status\x18\r \x01(\x0e2\x18.order.v1.OrderFeeStatusR\x06status\"\xa0\b\n" +
 	"\x15FinanceCommissionLine\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -13072,7 +13400,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xfe\x06\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xa3\a\n" +
 	"\x1bFinanceCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12#\n" +
@@ -13083,9 +13411,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vemployee_id\x18\a \x01(\tR\n" +
 	"employeeId\x12#\n" +
 	"\remployee_name\x18\b \x01(\tR\femployeeName\x12\x1c\n" +
-	"\tdirection\x18\t \x01(\tR\tdirection\x12\x16\n" +
+	"\tdirection\x18\t \x01(\tR\tdirection\x12;\n" +
 	"\x06status\x18\n" +
-	" \x01(\tR\x06status\x12#\n" +
+	" \x01(\x0e2#.finance.v1.FinanceCommissionStatusR\x06status\x12#\n" +
 	"\rbase_currency\x18\v \x01(\tR\fbaseCurrency\x12\x16\n" +
 	"\x06amount\x18\f \x01(\tR\x06amount\x12\x16\n" +
 	"\x06reason\x18\r \x01(\tR\x06reason\x12\x17\n" +
@@ -13108,7 +13436,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\b_paid_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +
 	"\x14_cancellation_reasonB\x19\n" +
-	"\x17_source_verification_id\"\x8d\f\n" +
+	"\x17_source_verification_id\"\xb2\f\n" +
 	"\x11FinanceCommission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rcommission_no\x18\x02 \x01(\tR\fcommissionNo\x12'\n" +
@@ -13116,8 +13444,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x0fverification_no\x18\x04 \x01(\tR\x0everificationNo\x12\x1f\n" +
 	"\vemployee_id\x18\x05 \x01(\tR\n" +
 	"employeeId\x12#\n" +
-	"\remployee_name\x18\x06 \x01(\tR\femployeeName\x12\x16\n" +
-	"\x06status\x18\a \x01(\tR\x06status\x12#\n" +
+	"\remployee_name\x18\x06 \x01(\tR\femployeeName\x12;\n" +
+	"\x06status\x18\a \x01(\x0e2#.finance.v1.FinanceCommissionStatusR\x06status\x12#\n" +
 	"\rbase_currency\x18\b \x01(\tR\fbaseCurrency\x12)\n" +
 	"\x10realized_revenue\x18\t \x01(\tR\x0frealizedRevenue\x12%\n" +
 	"\x0eallocated_cost\x18\n" +
@@ -13277,7 +13605,42 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\atag_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\x06tagIds\"d\n" +
 	"\"BatchRemoveFinanceBillTagsResponse\x12#\n" +
 	"\rremoved_count\x18\x01 \x01(\x05R\fremovedCount\x12\x19\n" +
-	"\btrace_id\x18\x02 \x01(\tR\atraceId*\xba\x02\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId*\x9d\x01\n" +
+	"\x11FinanceBillStatus\x12#\n" +
+	"\x1fFINANCE_BILL_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19FINANCE_BILL_STATUS_DRAFT\x10\x01\x12!\n" +
+	"\x1dFINANCE_BILL_STATUS_CONFIRMED\x10\x02\x12!\n" +
+	"\x1dFINANCE_BILL_STATUS_CANCELLED\x10\x03*\xd1\x01\n" +
+	"\x14FinanceInvoiceStatus\x12&\n" +
+	"\"FINANCE_INVOICE_STATUS_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cFINANCE_INVOICE_STATUS_DRAFT\x10\x01\x12!\n" +
+	"\x1dFINANCE_INVOICE_STATUS_ISSUED\x10\x02\x12$\n" +
+	" FINANCE_INVOICE_STATUS_CANCELLED\x10\x03\x12&\n" +
+	"\"FINANCE_INVOICE_STATUS_RED_FLUSHED\x10\x04*\xb1\x01\n" +
+	"\x15FinanceCashflowStatus\x12'\n" +
+	"#FINANCE_CASHFLOW_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dFINANCE_CASHFLOW_STATUS_DRAFT\x10\x01\x12%\n" +
+	"!FINANCE_CASHFLOW_STATUS_CONFIRMED\x10\x02\x12%\n" +
+	"!FINANCE_CASHFLOW_STATUS_CANCELLED\x10\x03*\x9a\x01\n" +
+	"\x19FinanceVerificationStatus\x12+\n" +
+	"'FINANCE_VERIFICATION_STATUS_UNSPECIFIED\x10\x00\x12&\n" +
+	"\"FINANCE_VERIFICATION_STATUS_ACTIVE\x10\x01\x12(\n" +
+	"$FINANCE_VERIFICATION_STATUS_REVERSED\x10\x02*\xdf\x01\n" +
+	"\x17FinanceCommissionStatus\x12)\n" +
+	"%FINANCE_COMMISSION_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fFINANCE_COMMISSION_STATUS_DRAFT\x10\x01\x12'\n" +
+	"#FINANCE_COMMISSION_STATUS_CONFIRMED\x10\x02\x12\"\n" +
+	"\x1eFINANCE_COMMISSION_STATUS_PAID\x10\x03\x12'\n" +
+	"#FINANCE_COMMISSION_STATUS_CANCELLED\x10\x04*\xcb\x03\n" +
+	"\x1aFeeLedgerFinancialProgress\x12-\n" +
+	")FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED\x10\x00\x12*\n" +
+	"&FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED\x10\x01\x127\n" +
+	"3FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED\x10\x02\x125\n" +
+	"1FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED\x10\x03\x125\n" +
+	"1FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED\x10\x04\x12=\n" +
+	"9FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED\x10\x05\x12?\n" +
+	";FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED\x10\x06\x12+\n" +
+	"'FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED\x10\a*\xba\x02\n" +
 	"\x16BilledFeeEditableField\x12)\n" +
 	"%BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"BILLED_FEE_EDITABLE_FIELD_FEE_NAME\x10\x01\x12&\n" +
@@ -13354,329 +13717,352 @@ func file_finance_v1_settlement_proto_rawDescGZIP() []byte {
 	return file_finance_v1_settlement_proto_rawDescData
 }
 
-var file_finance_v1_settlement_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_finance_v1_settlement_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 134)
 var file_finance_v1_settlement_proto_goTypes = []any{
-	(BilledFeeEditableField)(0),                  // 0: finance.v1.BilledFeeEditableField
-	(*ListFeeLedgerRequest)(nil),                 // 1: finance.v1.ListFeeLedgerRequest
-	(*FeeLedgerItem)(nil),                        // 2: finance.v1.FeeLedgerItem
-	(*FeeLedgerSummary)(nil),                     // 3: finance.v1.FeeLedgerSummary
-	(*ListFeeLedgerResponse)(nil),                // 4: finance.v1.ListFeeLedgerResponse
-	(*GetFeeLedgerPreferenceRequest)(nil),        // 5: finance.v1.GetFeeLedgerPreferenceRequest
-	(*FeeLedgerColumnPreference)(nil),            // 6: finance.v1.FeeLedgerColumnPreference
-	(*FeeLedgerRowColors)(nil),                   // 7: finance.v1.FeeLedgerRowColors
-	(*FeeLedgerPreference)(nil),                  // 8: finance.v1.FeeLedgerPreference
-	(*GetFeeLedgerPreferenceResponse)(nil),       // 9: finance.v1.GetFeeLedgerPreferenceResponse
-	(*UpdateFeeLedgerPreferenceRequest)(nil),     // 10: finance.v1.UpdateFeeLedgerPreferenceRequest
-	(*UpdateFeeLedgerPreferenceResponse)(nil),    // 11: finance.v1.UpdateFeeLedgerPreferenceResponse
-	(*ResetFeeLedgerPreferenceRequest)(nil),      // 12: finance.v1.ResetFeeLedgerPreferenceRequest
-	(*ResetFeeLedgerPreferenceResponse)(nil),     // 13: finance.v1.ResetFeeLedgerPreferenceResponse
-	(*BilledFeeEditPolicy)(nil),                  // 14: finance.v1.BilledFeeEditPolicy
-	(*GetBilledFeeEditPolicyRequest)(nil),        // 15: finance.v1.GetBilledFeeEditPolicyRequest
-	(*GetBilledFeeEditPolicyResponse)(nil),       // 16: finance.v1.GetBilledFeeEditPolicyResponse
-	(*UpdateBilledFeeEditPolicyRequest)(nil),     // 17: finance.v1.UpdateBilledFeeEditPolicyRequest
-	(*UpdateBilledFeeEditPolicyResponse)(nil),    // 18: finance.v1.UpdateBilledFeeEditPolicyResponse
-	(*ListBillsRequest)(nil),                     // 19: finance.v1.ListBillsRequest
-	(*GetBillRequest)(nil),                       // 20: finance.v1.GetBillRequest
-	(*CreateBillRequest)(nil),                    // 21: finance.v1.CreateBillRequest
-	(*UpdateBillRequest)(nil),                    // 22: finance.v1.UpdateBillRequest
-	(*ConfirmBillRequest)(nil),                   // 23: finance.v1.ConfirmBillRequest
-	(*CancelBillRequest)(nil),                    // 24: finance.v1.CancelBillRequest
-	(*FinanceBillLine)(nil),                      // 25: finance.v1.FinanceBillLine
-	(*FinanceBill)(nil),                          // 26: finance.v1.FinanceBill
-	(*BillGroupingPolicy)(nil),                   // 27: finance.v1.BillGroupingPolicy
-	(*PreviewBillBatchRequest)(nil),              // 28: finance.v1.PreviewBillBatchRequest
-	(*BillBatchPreviewGroup)(nil),                // 29: finance.v1.BillBatchPreviewGroup
-	(*PreviewBillBatchResponse)(nil),             // 30: finance.v1.PreviewBillBatchResponse
-	(*CreateBillBatchGroupInput)(nil),            // 31: finance.v1.CreateBillBatchGroupInput
-	(*CreateBillBatchRequest)(nil),               // 32: finance.v1.CreateBillBatchRequest
-	(*FinanceBillBatch)(nil),                     // 33: finance.v1.FinanceBillBatch
-	(*CreateBillBatchResponse)(nil),              // 34: finance.v1.CreateBillBatchResponse
-	(*BillExpectedVersion)(nil),                  // 35: finance.v1.BillExpectedVersion
-	(*ConfirmBillBatchRequest)(nil),              // 36: finance.v1.ConfirmBillBatchRequest
-	(*ConfirmBillBatchResponse)(nil),             // 37: finance.v1.ConfirmBillBatchResponse
-	(*ListBillsResponse)(nil),                    // 38: finance.v1.ListBillsResponse
-	(*FinanceBillSummary)(nil),                   // 39: finance.v1.FinanceBillSummary
-	(*GetBillResponse)(nil),                      // 40: finance.v1.GetBillResponse
-	(*CreateBillResponse)(nil),                   // 41: finance.v1.CreateBillResponse
-	(*UpdateBillResponse)(nil),                   // 42: finance.v1.UpdateBillResponse
-	(*ConfirmBillResponse)(nil),                  // 43: finance.v1.ConfirmBillResponse
-	(*CancelBillResponse)(nil),                   // 44: finance.v1.CancelBillResponse
-	(*ListInvoicesRequest)(nil),                  // 45: finance.v1.ListInvoicesRequest
-	(*GetInvoiceRequest)(nil),                    // 46: finance.v1.GetInvoiceRequest
-	(*CreateInvoiceRequest)(nil),                 // 47: finance.v1.CreateInvoiceRequest
-	(*IssueInvoiceRequest)(nil),                  // 48: finance.v1.IssueInvoiceRequest
-	(*CancelInvoiceRequest)(nil),                 // 49: finance.v1.CancelInvoiceRequest
-	(*RedFlushInvoiceRequest)(nil),               // 50: finance.v1.RedFlushInvoiceRequest
-	(*FinanceInvoiceBill)(nil),                   // 51: finance.v1.FinanceInvoiceBill
-	(*FinanceInvoiceLine)(nil),                   // 52: finance.v1.FinanceInvoiceLine
-	(*FinanceInvoice)(nil),                       // 53: finance.v1.FinanceInvoice
-	(*ListInvoicesResponse)(nil),                 // 54: finance.v1.ListInvoicesResponse
-	(*FinanceInvoiceSummary)(nil),                // 55: finance.v1.FinanceInvoiceSummary
-	(*GetInvoiceResponse)(nil),                   // 56: finance.v1.GetInvoiceResponse
-	(*CreateInvoiceResponse)(nil),                // 57: finance.v1.CreateInvoiceResponse
-	(*IssueInvoiceResponse)(nil),                 // 58: finance.v1.IssueInvoiceResponse
-	(*CancelInvoiceResponse)(nil),                // 59: finance.v1.CancelInvoiceResponse
-	(*RedFlushInvoiceResponse)(nil),              // 60: finance.v1.RedFlushInvoiceResponse
-	(*ListCashflowsRequest)(nil),                 // 61: finance.v1.ListCashflowsRequest
-	(*CreateCashflowRequest)(nil),                // 62: finance.v1.CreateCashflowRequest
-	(*ConfirmCashflowRequest)(nil),               // 63: finance.v1.ConfirmCashflowRequest
-	(*CancelCashflowRequest)(nil),                // 64: finance.v1.CancelCashflowRequest
-	(*FinanceCashflow)(nil),                      // 65: finance.v1.FinanceCashflow
-	(*ListCashflowsResponse)(nil),                // 66: finance.v1.ListCashflowsResponse
-	(*FinanceCashflowSummary)(nil),               // 67: finance.v1.FinanceCashflowSummary
-	(*CreateCashflowResponse)(nil),               // 68: finance.v1.CreateCashflowResponse
-	(*ConfirmCashflowResponse)(nil),              // 69: finance.v1.ConfirmCashflowResponse
-	(*CancelCashflowResponse)(nil),               // 70: finance.v1.CancelCashflowResponse
-	(*VerificationAllocationInput)(nil),          // 71: finance.v1.VerificationAllocationInput
-	(*ListVerificationsRequest)(nil),             // 72: finance.v1.ListVerificationsRequest
-	(*CreateVerificationRequest)(nil),            // 73: finance.v1.CreateVerificationRequest
-	(*ReverseVerificationRequest)(nil),           // 74: finance.v1.ReverseVerificationRequest
-	(*FinanceVerificationAllocation)(nil),        // 75: finance.v1.FinanceVerificationAllocation
-	(*FinanceVerification)(nil),                  // 76: finance.v1.FinanceVerification
-	(*ListVerificationsResponse)(nil),            // 77: finance.v1.ListVerificationsResponse
-	(*FinanceVerificationSummary)(nil),           // 78: finance.v1.FinanceVerificationSummary
-	(*CreateVerificationResponse)(nil),           // 79: finance.v1.CreateVerificationResponse
-	(*ReverseVerificationResponse)(nil),          // 80: finance.v1.ReverseVerificationResponse
-	(*ListCommissionsRequest)(nil),               // 81: finance.v1.ListCommissionsRequest
-	(*GetCommissionRequest)(nil),                 // 82: finance.v1.GetCommissionRequest
-	(*ListCommissionEmployeesRequest)(nil),       // 83: finance.v1.ListCommissionEmployeesRequest
-	(*ListCommissionCandidatesRequest)(nil),      // 84: finance.v1.ListCommissionCandidatesRequest
-	(*CommissionEmployeeOption)(nil),             // 85: finance.v1.CommissionEmployeeOption
-	(*ListCommissionEmployeesResponse)(nil),      // 86: finance.v1.ListCommissionEmployeesResponse
-	(*ListCommissionRulesRequest)(nil),           // 87: finance.v1.ListCommissionRulesRequest
-	(*CommissionRuleInput)(nil),                  // 88: finance.v1.CommissionRuleInput
-	(*CreateCommissionRuleRequest)(nil),          // 89: finance.v1.CreateCommissionRuleRequest
-	(*UpdateCommissionRuleRequest)(nil),          // 90: finance.v1.UpdateCommissionRuleRequest
-	(*FinanceCommissionRule)(nil),                // 91: finance.v1.FinanceCommissionRule
-	(*ListCommissionRulesResponse)(nil),          // 92: finance.v1.ListCommissionRulesResponse
-	(*CreateCommissionRuleResponse)(nil),         // 93: finance.v1.CreateCommissionRuleResponse
-	(*UpdateCommissionRuleResponse)(nil),         // 94: finance.v1.UpdateCommissionRuleResponse
-	(*PreviewCommissionRequest)(nil),             // 95: finance.v1.PreviewCommissionRequest
-	(*CreateCommissionRequest)(nil),              // 96: finance.v1.CreateCommissionRequest
-	(*ConfirmCommissionRequest)(nil),             // 97: finance.v1.ConfirmCommissionRequest
-	(*MarkCommissionPaidRequest)(nil),            // 98: finance.v1.MarkCommissionPaidRequest
-	(*CancelCommissionRequest)(nil),              // 99: finance.v1.CancelCommissionRequest
-	(*CreateCommissionAdjustmentRequest)(nil),    // 100: finance.v1.CreateCommissionAdjustmentRequest
-	(*ConfirmCommissionAdjustmentRequest)(nil),   // 101: finance.v1.ConfirmCommissionAdjustmentRequest
-	(*MarkCommissionAdjustmentPaidRequest)(nil),  // 102: finance.v1.MarkCommissionAdjustmentPaidRequest
-	(*CancelCommissionAdjustmentRequest)(nil),    // 103: finance.v1.CancelCommissionAdjustmentRequest
-	(*CommissionFeeDetail)(nil),                  // 104: finance.v1.CommissionFeeDetail
-	(*FinanceCommissionLine)(nil),                // 105: finance.v1.FinanceCommissionLine
-	(*CommissionCalculation)(nil),                // 106: finance.v1.CommissionCalculation
-	(*CommissionCandidateSummary)(nil),           // 107: finance.v1.CommissionCandidateSummary
-	(*ListCommissionCandidatesResponse)(nil),     // 108: finance.v1.ListCommissionCandidatesResponse
-	(*FinanceCommissionAdjustment)(nil),          // 109: finance.v1.FinanceCommissionAdjustment
-	(*FinanceCommission)(nil),                    // 110: finance.v1.FinanceCommission
-	(*ListCommissionsResponse)(nil),              // 111: finance.v1.ListCommissionsResponse
-	(*PreviewCommissionResponse)(nil),            // 112: finance.v1.PreviewCommissionResponse
-	(*CreateCommissionResponse)(nil),             // 113: finance.v1.CreateCommissionResponse
-	(*GetCommissionResponse)(nil),                // 114: finance.v1.GetCommissionResponse
-	(*ConfirmCommissionResponse)(nil),            // 115: finance.v1.ConfirmCommissionResponse
-	(*MarkCommissionPaidResponse)(nil),           // 116: finance.v1.MarkCommissionPaidResponse
-	(*CancelCommissionResponse)(nil),             // 117: finance.v1.CancelCommissionResponse
-	(*CreateCommissionAdjustmentResponse)(nil),   // 118: finance.v1.CreateCommissionAdjustmentResponse
-	(*ConfirmCommissionAdjustmentResponse)(nil),  // 119: finance.v1.ConfirmCommissionAdjustmentResponse
-	(*MarkCommissionAdjustmentPaidResponse)(nil), // 120: finance.v1.MarkCommissionAdjustmentPaidResponse
-	(*CancelCommissionAdjustmentResponse)(nil),   // 121: finance.v1.CancelCommissionAdjustmentResponse
-	(*BusinessTagSummary)(nil),                   // 122: finance.v1.BusinessTagSummary
-	(*ListFinanceFeeTagOptionsRequest)(nil),      // 123: finance.v1.ListFinanceFeeTagOptionsRequest
-	(*ListFinanceFeeTagOptionsResponse)(nil),     // 124: finance.v1.ListFinanceFeeTagOptionsResponse
-	(*BatchAssignFinanceFeeTagsRequest)(nil),     // 125: finance.v1.BatchAssignFinanceFeeTagsRequest
-	(*BatchAssignFinanceFeeTagsResponse)(nil),    // 126: finance.v1.BatchAssignFinanceFeeTagsResponse
-	(*BatchRemoveFinanceFeeTagsRequest)(nil),     // 127: finance.v1.BatchRemoveFinanceFeeTagsRequest
-	(*BatchRemoveFinanceFeeTagsResponse)(nil),    // 128: finance.v1.BatchRemoveFinanceFeeTagsResponse
-	(*ListFinanceBillTagOptionsRequest)(nil),     // 129: finance.v1.ListFinanceBillTagOptionsRequest
-	(*ListFinanceBillTagOptionsResponse)(nil),    // 130: finance.v1.ListFinanceBillTagOptionsResponse
-	(*BatchAssignFinanceBillTagsRequest)(nil),    // 131: finance.v1.BatchAssignFinanceBillTagsRequest
-	(*BatchAssignFinanceBillTagsResponse)(nil),   // 132: finance.v1.BatchAssignFinanceBillTagsResponse
-	(*BatchRemoveFinanceBillTagsRequest)(nil),    // 133: finance.v1.BatchRemoveFinanceBillTagsRequest
-	(*BatchRemoveFinanceBillTagsResponse)(nil),   // 134: finance.v1.BatchRemoveFinanceBillTagsResponse
-	(*wrapperspb.UInt64Value)(nil),               // 135: google.protobuf.UInt64Value
+	(FinanceBillStatus)(0),                       // 0: finance.v1.FinanceBillStatus
+	(FinanceInvoiceStatus)(0),                    // 1: finance.v1.FinanceInvoiceStatus
+	(FinanceCashflowStatus)(0),                   // 2: finance.v1.FinanceCashflowStatus
+	(FinanceVerificationStatus)(0),               // 3: finance.v1.FinanceVerificationStatus
+	(FinanceCommissionStatus)(0),                 // 4: finance.v1.FinanceCommissionStatus
+	(FeeLedgerFinancialProgress)(0),              // 5: finance.v1.FeeLedgerFinancialProgress
+	(BilledFeeEditableField)(0),                  // 6: finance.v1.BilledFeeEditableField
+	(*ListFeeLedgerRequest)(nil),                 // 7: finance.v1.ListFeeLedgerRequest
+	(*FeeLedgerItem)(nil),                        // 8: finance.v1.FeeLedgerItem
+	(*FeeLedgerSummary)(nil),                     // 9: finance.v1.FeeLedgerSummary
+	(*ListFeeLedgerResponse)(nil),                // 10: finance.v1.ListFeeLedgerResponse
+	(*GetFeeLedgerPreferenceRequest)(nil),        // 11: finance.v1.GetFeeLedgerPreferenceRequest
+	(*FeeLedgerColumnPreference)(nil),            // 12: finance.v1.FeeLedgerColumnPreference
+	(*FeeLedgerRowColors)(nil),                   // 13: finance.v1.FeeLedgerRowColors
+	(*FeeLedgerPreference)(nil),                  // 14: finance.v1.FeeLedgerPreference
+	(*GetFeeLedgerPreferenceResponse)(nil),       // 15: finance.v1.GetFeeLedgerPreferenceResponse
+	(*UpdateFeeLedgerPreferenceRequest)(nil),     // 16: finance.v1.UpdateFeeLedgerPreferenceRequest
+	(*UpdateFeeLedgerPreferenceResponse)(nil),    // 17: finance.v1.UpdateFeeLedgerPreferenceResponse
+	(*ResetFeeLedgerPreferenceRequest)(nil),      // 18: finance.v1.ResetFeeLedgerPreferenceRequest
+	(*ResetFeeLedgerPreferenceResponse)(nil),     // 19: finance.v1.ResetFeeLedgerPreferenceResponse
+	(*BilledFeeEditPolicy)(nil),                  // 20: finance.v1.BilledFeeEditPolicy
+	(*GetBilledFeeEditPolicyRequest)(nil),        // 21: finance.v1.GetBilledFeeEditPolicyRequest
+	(*GetBilledFeeEditPolicyResponse)(nil),       // 22: finance.v1.GetBilledFeeEditPolicyResponse
+	(*UpdateBilledFeeEditPolicyRequest)(nil),     // 23: finance.v1.UpdateBilledFeeEditPolicyRequest
+	(*UpdateBilledFeeEditPolicyResponse)(nil),    // 24: finance.v1.UpdateBilledFeeEditPolicyResponse
+	(*ListBillsRequest)(nil),                     // 25: finance.v1.ListBillsRequest
+	(*GetBillRequest)(nil),                       // 26: finance.v1.GetBillRequest
+	(*CreateBillRequest)(nil),                    // 27: finance.v1.CreateBillRequest
+	(*UpdateBillRequest)(nil),                    // 28: finance.v1.UpdateBillRequest
+	(*ConfirmBillRequest)(nil),                   // 29: finance.v1.ConfirmBillRequest
+	(*CancelBillRequest)(nil),                    // 30: finance.v1.CancelBillRequest
+	(*FinanceBillLine)(nil),                      // 31: finance.v1.FinanceBillLine
+	(*FinanceBill)(nil),                          // 32: finance.v1.FinanceBill
+	(*BillGroupingPolicy)(nil),                   // 33: finance.v1.BillGroupingPolicy
+	(*PreviewBillBatchRequest)(nil),              // 34: finance.v1.PreviewBillBatchRequest
+	(*BillBatchPreviewGroup)(nil),                // 35: finance.v1.BillBatchPreviewGroup
+	(*PreviewBillBatchResponse)(nil),             // 36: finance.v1.PreviewBillBatchResponse
+	(*CreateBillBatchGroupInput)(nil),            // 37: finance.v1.CreateBillBatchGroupInput
+	(*CreateBillBatchRequest)(nil),               // 38: finance.v1.CreateBillBatchRequest
+	(*FinanceBillBatch)(nil),                     // 39: finance.v1.FinanceBillBatch
+	(*CreateBillBatchResponse)(nil),              // 40: finance.v1.CreateBillBatchResponse
+	(*BillExpectedVersion)(nil),                  // 41: finance.v1.BillExpectedVersion
+	(*ConfirmBillBatchRequest)(nil),              // 42: finance.v1.ConfirmBillBatchRequest
+	(*ConfirmBillBatchResponse)(nil),             // 43: finance.v1.ConfirmBillBatchResponse
+	(*ListBillsResponse)(nil),                    // 44: finance.v1.ListBillsResponse
+	(*FinanceBillSummary)(nil),                   // 45: finance.v1.FinanceBillSummary
+	(*GetBillResponse)(nil),                      // 46: finance.v1.GetBillResponse
+	(*CreateBillResponse)(nil),                   // 47: finance.v1.CreateBillResponse
+	(*UpdateBillResponse)(nil),                   // 48: finance.v1.UpdateBillResponse
+	(*ConfirmBillResponse)(nil),                  // 49: finance.v1.ConfirmBillResponse
+	(*CancelBillResponse)(nil),                   // 50: finance.v1.CancelBillResponse
+	(*ListInvoicesRequest)(nil),                  // 51: finance.v1.ListInvoicesRequest
+	(*GetInvoiceRequest)(nil),                    // 52: finance.v1.GetInvoiceRequest
+	(*CreateInvoiceRequest)(nil),                 // 53: finance.v1.CreateInvoiceRequest
+	(*IssueInvoiceRequest)(nil),                  // 54: finance.v1.IssueInvoiceRequest
+	(*CancelInvoiceRequest)(nil),                 // 55: finance.v1.CancelInvoiceRequest
+	(*RedFlushInvoiceRequest)(nil),               // 56: finance.v1.RedFlushInvoiceRequest
+	(*FinanceInvoiceBill)(nil),                   // 57: finance.v1.FinanceInvoiceBill
+	(*FinanceInvoiceLine)(nil),                   // 58: finance.v1.FinanceInvoiceLine
+	(*FinanceInvoice)(nil),                       // 59: finance.v1.FinanceInvoice
+	(*ListInvoicesResponse)(nil),                 // 60: finance.v1.ListInvoicesResponse
+	(*FinanceInvoiceSummary)(nil),                // 61: finance.v1.FinanceInvoiceSummary
+	(*GetInvoiceResponse)(nil),                   // 62: finance.v1.GetInvoiceResponse
+	(*CreateInvoiceResponse)(nil),                // 63: finance.v1.CreateInvoiceResponse
+	(*IssueInvoiceResponse)(nil),                 // 64: finance.v1.IssueInvoiceResponse
+	(*CancelInvoiceResponse)(nil),                // 65: finance.v1.CancelInvoiceResponse
+	(*RedFlushInvoiceResponse)(nil),              // 66: finance.v1.RedFlushInvoiceResponse
+	(*ListCashflowsRequest)(nil),                 // 67: finance.v1.ListCashflowsRequest
+	(*CreateCashflowRequest)(nil),                // 68: finance.v1.CreateCashflowRequest
+	(*ConfirmCashflowRequest)(nil),               // 69: finance.v1.ConfirmCashflowRequest
+	(*CancelCashflowRequest)(nil),                // 70: finance.v1.CancelCashflowRequest
+	(*FinanceCashflow)(nil),                      // 71: finance.v1.FinanceCashflow
+	(*ListCashflowsResponse)(nil),                // 72: finance.v1.ListCashflowsResponse
+	(*FinanceCashflowSummary)(nil),               // 73: finance.v1.FinanceCashflowSummary
+	(*CreateCashflowResponse)(nil),               // 74: finance.v1.CreateCashflowResponse
+	(*ConfirmCashflowResponse)(nil),              // 75: finance.v1.ConfirmCashflowResponse
+	(*CancelCashflowResponse)(nil),               // 76: finance.v1.CancelCashflowResponse
+	(*VerificationAllocationInput)(nil),          // 77: finance.v1.VerificationAllocationInput
+	(*ListVerificationsRequest)(nil),             // 78: finance.v1.ListVerificationsRequest
+	(*CreateVerificationRequest)(nil),            // 79: finance.v1.CreateVerificationRequest
+	(*ReverseVerificationRequest)(nil),           // 80: finance.v1.ReverseVerificationRequest
+	(*FinanceVerificationAllocation)(nil),        // 81: finance.v1.FinanceVerificationAllocation
+	(*FinanceVerification)(nil),                  // 82: finance.v1.FinanceVerification
+	(*ListVerificationsResponse)(nil),            // 83: finance.v1.ListVerificationsResponse
+	(*FinanceVerificationSummary)(nil),           // 84: finance.v1.FinanceVerificationSummary
+	(*CreateVerificationResponse)(nil),           // 85: finance.v1.CreateVerificationResponse
+	(*ReverseVerificationResponse)(nil),          // 86: finance.v1.ReverseVerificationResponse
+	(*ListCommissionsRequest)(nil),               // 87: finance.v1.ListCommissionsRequest
+	(*GetCommissionRequest)(nil),                 // 88: finance.v1.GetCommissionRequest
+	(*ListCommissionEmployeesRequest)(nil),       // 89: finance.v1.ListCommissionEmployeesRequest
+	(*ListCommissionCandidatesRequest)(nil),      // 90: finance.v1.ListCommissionCandidatesRequest
+	(*CommissionEmployeeOption)(nil),             // 91: finance.v1.CommissionEmployeeOption
+	(*ListCommissionEmployeesResponse)(nil),      // 92: finance.v1.ListCommissionEmployeesResponse
+	(*ListCommissionRulesRequest)(nil),           // 93: finance.v1.ListCommissionRulesRequest
+	(*CommissionRuleInput)(nil),                  // 94: finance.v1.CommissionRuleInput
+	(*CreateCommissionRuleRequest)(nil),          // 95: finance.v1.CreateCommissionRuleRequest
+	(*UpdateCommissionRuleRequest)(nil),          // 96: finance.v1.UpdateCommissionRuleRequest
+	(*FinanceCommissionRule)(nil),                // 97: finance.v1.FinanceCommissionRule
+	(*ListCommissionRulesResponse)(nil),          // 98: finance.v1.ListCommissionRulesResponse
+	(*CreateCommissionRuleResponse)(nil),         // 99: finance.v1.CreateCommissionRuleResponse
+	(*UpdateCommissionRuleResponse)(nil),         // 100: finance.v1.UpdateCommissionRuleResponse
+	(*PreviewCommissionRequest)(nil),             // 101: finance.v1.PreviewCommissionRequest
+	(*CreateCommissionRequest)(nil),              // 102: finance.v1.CreateCommissionRequest
+	(*ConfirmCommissionRequest)(nil),             // 103: finance.v1.ConfirmCommissionRequest
+	(*MarkCommissionPaidRequest)(nil),            // 104: finance.v1.MarkCommissionPaidRequest
+	(*CancelCommissionRequest)(nil),              // 105: finance.v1.CancelCommissionRequest
+	(*CreateCommissionAdjustmentRequest)(nil),    // 106: finance.v1.CreateCommissionAdjustmentRequest
+	(*ConfirmCommissionAdjustmentRequest)(nil),   // 107: finance.v1.ConfirmCommissionAdjustmentRequest
+	(*MarkCommissionAdjustmentPaidRequest)(nil),  // 108: finance.v1.MarkCommissionAdjustmentPaidRequest
+	(*CancelCommissionAdjustmentRequest)(nil),    // 109: finance.v1.CancelCommissionAdjustmentRequest
+	(*CommissionFeeDetail)(nil),                  // 110: finance.v1.CommissionFeeDetail
+	(*FinanceCommissionLine)(nil),                // 111: finance.v1.FinanceCommissionLine
+	(*CommissionCalculation)(nil),                // 112: finance.v1.CommissionCalculation
+	(*CommissionCandidateSummary)(nil),           // 113: finance.v1.CommissionCandidateSummary
+	(*ListCommissionCandidatesResponse)(nil),     // 114: finance.v1.ListCommissionCandidatesResponse
+	(*FinanceCommissionAdjustment)(nil),          // 115: finance.v1.FinanceCommissionAdjustment
+	(*FinanceCommission)(nil),                    // 116: finance.v1.FinanceCommission
+	(*ListCommissionsResponse)(nil),              // 117: finance.v1.ListCommissionsResponse
+	(*PreviewCommissionResponse)(nil),            // 118: finance.v1.PreviewCommissionResponse
+	(*CreateCommissionResponse)(nil),             // 119: finance.v1.CreateCommissionResponse
+	(*GetCommissionResponse)(nil),                // 120: finance.v1.GetCommissionResponse
+	(*ConfirmCommissionResponse)(nil),            // 121: finance.v1.ConfirmCommissionResponse
+	(*MarkCommissionPaidResponse)(nil),           // 122: finance.v1.MarkCommissionPaidResponse
+	(*CancelCommissionResponse)(nil),             // 123: finance.v1.CancelCommissionResponse
+	(*CreateCommissionAdjustmentResponse)(nil),   // 124: finance.v1.CreateCommissionAdjustmentResponse
+	(*ConfirmCommissionAdjustmentResponse)(nil),  // 125: finance.v1.ConfirmCommissionAdjustmentResponse
+	(*MarkCommissionAdjustmentPaidResponse)(nil), // 126: finance.v1.MarkCommissionAdjustmentPaidResponse
+	(*CancelCommissionAdjustmentResponse)(nil),   // 127: finance.v1.CancelCommissionAdjustmentResponse
+	(*BusinessTagSummary)(nil),                   // 128: finance.v1.BusinessTagSummary
+	(*ListFinanceFeeTagOptionsRequest)(nil),      // 129: finance.v1.ListFinanceFeeTagOptionsRequest
+	(*ListFinanceFeeTagOptionsResponse)(nil),     // 130: finance.v1.ListFinanceFeeTagOptionsResponse
+	(*BatchAssignFinanceFeeTagsRequest)(nil),     // 131: finance.v1.BatchAssignFinanceFeeTagsRequest
+	(*BatchAssignFinanceFeeTagsResponse)(nil),    // 132: finance.v1.BatchAssignFinanceFeeTagsResponse
+	(*BatchRemoveFinanceFeeTagsRequest)(nil),     // 133: finance.v1.BatchRemoveFinanceFeeTagsRequest
+	(*BatchRemoveFinanceFeeTagsResponse)(nil),    // 134: finance.v1.BatchRemoveFinanceFeeTagsResponse
+	(*ListFinanceBillTagOptionsRequest)(nil),     // 135: finance.v1.ListFinanceBillTagOptionsRequest
+	(*ListFinanceBillTagOptionsResponse)(nil),    // 136: finance.v1.ListFinanceBillTagOptionsResponse
+	(*BatchAssignFinanceBillTagsRequest)(nil),    // 137: finance.v1.BatchAssignFinanceBillTagsRequest
+	(*BatchAssignFinanceBillTagsResponse)(nil),   // 138: finance.v1.BatchAssignFinanceBillTagsResponse
+	(*BatchRemoveFinanceBillTagsRequest)(nil),    // 139: finance.v1.BatchRemoveFinanceBillTagsRequest
+	(*BatchRemoveFinanceBillTagsResponse)(nil),   // 140: finance.v1.BatchRemoveFinanceBillTagsResponse
+	(v1.OrderFeeStatus)(0),                       // 141: order.v1.OrderFeeStatus
+	(*wrapperspb.UInt64Value)(nil),               // 142: google.protobuf.UInt64Value
 }
 var file_finance_v1_settlement_proto_depIdxs = []int32{
-	122, // 0: finance.v1.FeeLedgerItem.tags:type_name -> finance.v1.BusinessTagSummary
-	2,   // 1: finance.v1.ListFeeLedgerResponse.data:type_name -> finance.v1.FeeLedgerItem
-	3,   // 2: finance.v1.ListFeeLedgerResponse.summary:type_name -> finance.v1.FeeLedgerSummary
-	6,   // 3: finance.v1.FeeLedgerPreference.columns:type_name -> finance.v1.FeeLedgerColumnPreference
-	7,   // 4: finance.v1.FeeLedgerPreference.row_colors:type_name -> finance.v1.FeeLedgerRowColors
-	8,   // 5: finance.v1.GetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	6,   // 6: finance.v1.UpdateFeeLedgerPreferenceRequest.columns:type_name -> finance.v1.FeeLedgerColumnPreference
-	7,   // 7: finance.v1.UpdateFeeLedgerPreferenceRequest.row_colors:type_name -> finance.v1.FeeLedgerRowColors
-	8,   // 8: finance.v1.UpdateFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	8,   // 9: finance.v1.ResetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
-	0,   // 10: finance.v1.BilledFeeEditPolicy.editable_fields:type_name -> finance.v1.BilledFeeEditableField
-	14,  // 11: finance.v1.GetBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
-	0,   // 12: finance.v1.UpdateBilledFeeEditPolicyRequest.editable_fields:type_name -> finance.v1.BilledFeeEditableField
-	135, // 13: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
-	14,  // 14: finance.v1.UpdateBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
-	25,  // 15: finance.v1.FinanceBill.lines:type_name -> finance.v1.FinanceBillLine
-	122, // 16: finance.v1.FinanceBill.tags:type_name -> finance.v1.BusinessTagSummary
-	27,  // 17: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	2,   // 18: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
-	29,  // 19: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
-	27,  // 20: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	31,  // 21: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
-	26,  // 22: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
-	33,  // 23: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
-	35,  // 24: finance.v1.ConfirmBillBatchRequest.bills:type_name -> finance.v1.BillExpectedVersion
-	33,  // 25: finance.v1.ConfirmBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
-	26,  // 26: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
-	39,  // 27: finance.v1.ListBillsResponse.summary:type_name -> finance.v1.FinanceBillSummary
-	26,  // 28: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 29: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 30: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 31: finance.v1.ConfirmBillResponse.data:type_name -> finance.v1.FinanceBill
-	26,  // 32: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
-	51,  // 33: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
-	52,  // 34: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
-	53,  // 35: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
-	55,  // 36: finance.v1.ListInvoicesResponse.summary:type_name -> finance.v1.FinanceInvoiceSummary
-	53,  // 37: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	53,  // 38: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	53,  // 39: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	53,  // 40: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	53,  // 41: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	65,  // 42: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
-	67,  // 43: finance.v1.ListCashflowsResponse.summary:type_name -> finance.v1.FinanceCashflowSummary
-	65,  // 44: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	65,  // 45: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	65,  // 46: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	71,  // 47: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
-	75,  // 48: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
-	76,  // 49: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
-	78,  // 50: finance.v1.ListVerificationsResponse.summary:type_name -> finance.v1.FinanceVerificationSummary
-	76,  // 51: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	76,  // 52: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	85,  // 53: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
-	88,  // 54: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	88,  // 55: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	91,  // 56: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	91,  // 57: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	91,  // 58: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	104, // 59: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
-	105, // 60: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
-	107, // 61: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
-	105, // 62: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
-	109, // 63: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
-	110, // 64: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
-	106, // 65: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
-	110, // 66: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	110, // 67: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	110, // 68: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	110, // 69: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
-	110, // 70: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	109, // 71: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	109, // 72: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	109, // 73: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	109, // 74: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	122, // 75: finance.v1.ListFinanceFeeTagOptionsResponse.tags:type_name -> finance.v1.BusinessTagSummary
-	122, // 76: finance.v1.ListFinanceBillTagOptionsResponse.tags:type_name -> finance.v1.BusinessTagSummary
-	1,   // 77: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
-	5,   // 78: finance.v1.SettlementService.GetFeeLedgerPreference:input_type -> finance.v1.GetFeeLedgerPreferenceRequest
-	10,  // 79: finance.v1.SettlementService.UpdateFeeLedgerPreference:input_type -> finance.v1.UpdateFeeLedgerPreferenceRequest
-	12,  // 80: finance.v1.SettlementService.ResetFeeLedgerPreference:input_type -> finance.v1.ResetFeeLedgerPreferenceRequest
-	15,  // 81: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
-	17,  // 82: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
-	19,  // 83: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
-	20,  // 84: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
-	129, // 85: finance.v1.SettlementService.ListFinanceBillTagOptions:input_type -> finance.v1.ListFinanceBillTagOptionsRequest
-	131, // 86: finance.v1.SettlementService.BatchAssignFinanceBillTags:input_type -> finance.v1.BatchAssignFinanceBillTagsRequest
-	133, // 87: finance.v1.SettlementService.BatchRemoveFinanceBillTags:input_type -> finance.v1.BatchRemoveFinanceBillTagsRequest
-	123, // 88: finance.v1.SettlementService.ListFinanceFeeTagOptions:input_type -> finance.v1.ListFinanceFeeTagOptionsRequest
-	125, // 89: finance.v1.SettlementService.BatchAssignFinanceFeeTags:input_type -> finance.v1.BatchAssignFinanceFeeTagsRequest
-	127, // 90: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:input_type -> finance.v1.BatchRemoveFinanceFeeTagsRequest
-	21,  // 91: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
-	28,  // 92: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
-	32,  // 93: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
-	36,  // 94: finance.v1.SettlementService.ConfirmBillBatch:input_type -> finance.v1.ConfirmBillBatchRequest
-	22,  // 95: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
-	23,  // 96: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
-	24,  // 97: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
-	45,  // 98: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
-	46,  // 99: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
-	47,  // 100: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
-	48,  // 101: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
-	49,  // 102: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
-	50,  // 103: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
-	61,  // 104: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
-	62,  // 105: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
-	63,  // 106: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
-	64,  // 107: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
-	72,  // 108: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
-	73,  // 109: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
-	74,  // 110: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
-	81,  // 111: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
-	82,  // 112: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
-	83,  // 113: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
-	84,  // 114: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
-	87,  // 115: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
-	89,  // 116: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
-	90,  // 117: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
-	95,  // 118: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
-	96,  // 119: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
-	97,  // 120: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
-	98,  // 121: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
-	99,  // 122: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
-	100, // 123: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
-	101, // 124: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
-	102, // 125: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
-	103, // 126: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
-	4,   // 127: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
-	9,   // 128: finance.v1.SettlementService.GetFeeLedgerPreference:output_type -> finance.v1.GetFeeLedgerPreferenceResponse
-	11,  // 129: finance.v1.SettlementService.UpdateFeeLedgerPreference:output_type -> finance.v1.UpdateFeeLedgerPreferenceResponse
-	13,  // 130: finance.v1.SettlementService.ResetFeeLedgerPreference:output_type -> finance.v1.ResetFeeLedgerPreferenceResponse
-	16,  // 131: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
-	18,  // 132: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
-	38,  // 133: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
-	40,  // 134: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
-	130, // 135: finance.v1.SettlementService.ListFinanceBillTagOptions:output_type -> finance.v1.ListFinanceBillTagOptionsResponse
-	132, // 136: finance.v1.SettlementService.BatchAssignFinanceBillTags:output_type -> finance.v1.BatchAssignFinanceBillTagsResponse
-	134, // 137: finance.v1.SettlementService.BatchRemoveFinanceBillTags:output_type -> finance.v1.BatchRemoveFinanceBillTagsResponse
-	124, // 138: finance.v1.SettlementService.ListFinanceFeeTagOptions:output_type -> finance.v1.ListFinanceFeeTagOptionsResponse
-	126, // 139: finance.v1.SettlementService.BatchAssignFinanceFeeTags:output_type -> finance.v1.BatchAssignFinanceFeeTagsResponse
-	128, // 140: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:output_type -> finance.v1.BatchRemoveFinanceFeeTagsResponse
-	41,  // 141: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
-	30,  // 142: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
-	34,  // 143: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
-	37,  // 144: finance.v1.SettlementService.ConfirmBillBatch:output_type -> finance.v1.ConfirmBillBatchResponse
-	42,  // 145: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
-	43,  // 146: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
-	44,  // 147: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
-	54,  // 148: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
-	56,  // 149: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
-	57,  // 150: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
-	58,  // 151: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
-	59,  // 152: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
-	60,  // 153: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
-	66,  // 154: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
-	68,  // 155: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
-	69,  // 156: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
-	70,  // 157: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
-	77,  // 158: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
-	79,  // 159: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
-	80,  // 160: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
-	111, // 161: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
-	114, // 162: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
-	86,  // 163: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
-	108, // 164: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
-	92,  // 165: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
-	93,  // 166: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
-	94,  // 167: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
-	112, // 168: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
-	113, // 169: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
-	115, // 170: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
-	116, // 171: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
-	117, // 172: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
-	118, // 173: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
-	119, // 174: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
-	120, // 175: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
-	121, // 176: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
-	127, // [127:177] is the sub-list for method output_type
-	77,  // [77:127] is the sub-list for method input_type
-	77,  // [77:77] is the sub-list for extension type_name
-	77,  // [77:77] is the sub-list for extension extendee
-	0,   // [0:77] is the sub-list for field type_name
+	141, // 0: finance.v1.ListFeeLedgerRequest.status:type_name -> order.v1.OrderFeeStatus
+	5,   // 1: finance.v1.ListFeeLedgerRequest.financial_progress:type_name -> finance.v1.FeeLedgerFinancialProgress
+	141, // 2: finance.v1.FeeLedgerItem.status:type_name -> order.v1.OrderFeeStatus
+	5,   // 3: finance.v1.FeeLedgerItem.financial_progress:type_name -> finance.v1.FeeLedgerFinancialProgress
+	128, // 4: finance.v1.FeeLedgerItem.tags:type_name -> finance.v1.BusinessTagSummary
+	8,   // 5: finance.v1.ListFeeLedgerResponse.data:type_name -> finance.v1.FeeLedgerItem
+	9,   // 6: finance.v1.ListFeeLedgerResponse.summary:type_name -> finance.v1.FeeLedgerSummary
+	12,  // 7: finance.v1.FeeLedgerPreference.columns:type_name -> finance.v1.FeeLedgerColumnPreference
+	13,  // 8: finance.v1.FeeLedgerPreference.row_colors:type_name -> finance.v1.FeeLedgerRowColors
+	14,  // 9: finance.v1.GetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	12,  // 10: finance.v1.UpdateFeeLedgerPreferenceRequest.columns:type_name -> finance.v1.FeeLedgerColumnPreference
+	13,  // 11: finance.v1.UpdateFeeLedgerPreferenceRequest.row_colors:type_name -> finance.v1.FeeLedgerRowColors
+	14,  // 12: finance.v1.UpdateFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	14,  // 13: finance.v1.ResetFeeLedgerPreferenceResponse.data:type_name -> finance.v1.FeeLedgerPreference
+	6,   // 14: finance.v1.BilledFeeEditPolicy.editable_fields:type_name -> finance.v1.BilledFeeEditableField
+	20,  // 15: finance.v1.GetBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
+	6,   // 16: finance.v1.UpdateBilledFeeEditPolicyRequest.editable_fields:type_name -> finance.v1.BilledFeeEditableField
+	142, // 17: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
+	20,  // 18: finance.v1.UpdateBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
+	0,   // 19: finance.v1.ListBillsRequest.status:type_name -> finance.v1.FinanceBillStatus
+	0,   // 20: finance.v1.FinanceBill.status:type_name -> finance.v1.FinanceBillStatus
+	31,  // 21: finance.v1.FinanceBill.lines:type_name -> finance.v1.FinanceBillLine
+	128, // 22: finance.v1.FinanceBill.tags:type_name -> finance.v1.BusinessTagSummary
+	33,  // 23: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	8,   // 24: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
+	35,  // 25: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
+	33,  // 26: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	37,  // 27: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
+	32,  // 28: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
+	39,  // 29: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
+	41,  // 30: finance.v1.ConfirmBillBatchRequest.bills:type_name -> finance.v1.BillExpectedVersion
+	39,  // 31: finance.v1.ConfirmBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
+	32,  // 32: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
+	45,  // 33: finance.v1.ListBillsResponse.summary:type_name -> finance.v1.FinanceBillSummary
+	32,  // 34: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
+	32,  // 35: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
+	32,  // 36: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
+	32,  // 37: finance.v1.ConfirmBillResponse.data:type_name -> finance.v1.FinanceBill
+	32,  // 38: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
+	1,   // 39: finance.v1.ListInvoicesRequest.status:type_name -> finance.v1.FinanceInvoiceStatus
+	1,   // 40: finance.v1.FinanceInvoice.status:type_name -> finance.v1.FinanceInvoiceStatus
+	57,  // 41: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
+	58,  // 42: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
+	59,  // 43: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
+	61,  // 44: finance.v1.ListInvoicesResponse.summary:type_name -> finance.v1.FinanceInvoiceSummary
+	59,  // 45: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	59,  // 46: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	59,  // 47: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	59,  // 48: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	59,  // 49: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	2,   // 50: finance.v1.ListCashflowsRequest.status:type_name -> finance.v1.FinanceCashflowStatus
+	2,   // 51: finance.v1.FinanceCashflow.status:type_name -> finance.v1.FinanceCashflowStatus
+	71,  // 52: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
+	73,  // 53: finance.v1.ListCashflowsResponse.summary:type_name -> finance.v1.FinanceCashflowSummary
+	71,  // 54: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	71,  // 55: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	71,  // 56: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	3,   // 57: finance.v1.ListVerificationsRequest.status:type_name -> finance.v1.FinanceVerificationStatus
+	77,  // 58: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
+	3,   // 59: finance.v1.FinanceVerification.status:type_name -> finance.v1.FinanceVerificationStatus
+	81,  // 60: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
+	82,  // 61: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
+	84,  // 62: finance.v1.ListVerificationsResponse.summary:type_name -> finance.v1.FinanceVerificationSummary
+	82,  // 63: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	82,  // 64: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	4,   // 65: finance.v1.ListCommissionsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
+	91,  // 66: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
+	94,  // 67: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	94,  // 68: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	97,  // 69: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	97,  // 70: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	97,  // 71: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	141, // 72: finance.v1.CommissionFeeDetail.status:type_name -> order.v1.OrderFeeStatus
+	110, // 73: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
+	111, // 74: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
+	113, // 75: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
+	4,   // 76: finance.v1.FinanceCommissionAdjustment.status:type_name -> finance.v1.FinanceCommissionStatus
+	4,   // 77: finance.v1.FinanceCommission.status:type_name -> finance.v1.FinanceCommissionStatus
+	111, // 78: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
+	115, // 79: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
+	116, // 80: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
+	112, // 81: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
+	116, // 82: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	116, // 83: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	116, // 84: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	116, // 85: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
+	116, // 86: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	115, // 87: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	115, // 88: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	115, // 89: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	115, // 90: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	128, // 91: finance.v1.ListFinanceFeeTagOptionsResponse.tags:type_name -> finance.v1.BusinessTagSummary
+	128, // 92: finance.v1.ListFinanceBillTagOptionsResponse.tags:type_name -> finance.v1.BusinessTagSummary
+	7,   // 93: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
+	11,  // 94: finance.v1.SettlementService.GetFeeLedgerPreference:input_type -> finance.v1.GetFeeLedgerPreferenceRequest
+	16,  // 95: finance.v1.SettlementService.UpdateFeeLedgerPreference:input_type -> finance.v1.UpdateFeeLedgerPreferenceRequest
+	18,  // 96: finance.v1.SettlementService.ResetFeeLedgerPreference:input_type -> finance.v1.ResetFeeLedgerPreferenceRequest
+	21,  // 97: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
+	23,  // 98: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
+	25,  // 99: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
+	26,  // 100: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
+	135, // 101: finance.v1.SettlementService.ListFinanceBillTagOptions:input_type -> finance.v1.ListFinanceBillTagOptionsRequest
+	137, // 102: finance.v1.SettlementService.BatchAssignFinanceBillTags:input_type -> finance.v1.BatchAssignFinanceBillTagsRequest
+	139, // 103: finance.v1.SettlementService.BatchRemoveFinanceBillTags:input_type -> finance.v1.BatchRemoveFinanceBillTagsRequest
+	129, // 104: finance.v1.SettlementService.ListFinanceFeeTagOptions:input_type -> finance.v1.ListFinanceFeeTagOptionsRequest
+	131, // 105: finance.v1.SettlementService.BatchAssignFinanceFeeTags:input_type -> finance.v1.BatchAssignFinanceFeeTagsRequest
+	133, // 106: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:input_type -> finance.v1.BatchRemoveFinanceFeeTagsRequest
+	27,  // 107: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
+	34,  // 108: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
+	38,  // 109: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
+	42,  // 110: finance.v1.SettlementService.ConfirmBillBatch:input_type -> finance.v1.ConfirmBillBatchRequest
+	28,  // 111: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
+	29,  // 112: finance.v1.SettlementService.ConfirmBill:input_type -> finance.v1.ConfirmBillRequest
+	30,  // 113: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
+	51,  // 114: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
+	52,  // 115: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
+	53,  // 116: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
+	54,  // 117: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
+	55,  // 118: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
+	56,  // 119: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
+	67,  // 120: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
+	68,  // 121: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
+	69,  // 122: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
+	70,  // 123: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
+	78,  // 124: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
+	79,  // 125: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
+	80,  // 126: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
+	87,  // 127: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
+	88,  // 128: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
+	89,  // 129: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
+	90,  // 130: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
+	93,  // 131: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
+	95,  // 132: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
+	96,  // 133: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
+	101, // 134: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
+	102, // 135: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
+	103, // 136: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
+	104, // 137: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
+	105, // 138: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
+	106, // 139: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
+	107, // 140: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
+	108, // 141: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
+	109, // 142: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
+	10,  // 143: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
+	15,  // 144: finance.v1.SettlementService.GetFeeLedgerPreference:output_type -> finance.v1.GetFeeLedgerPreferenceResponse
+	17,  // 145: finance.v1.SettlementService.UpdateFeeLedgerPreference:output_type -> finance.v1.UpdateFeeLedgerPreferenceResponse
+	19,  // 146: finance.v1.SettlementService.ResetFeeLedgerPreference:output_type -> finance.v1.ResetFeeLedgerPreferenceResponse
+	22,  // 147: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
+	24,  // 148: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
+	44,  // 149: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
+	46,  // 150: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
+	136, // 151: finance.v1.SettlementService.ListFinanceBillTagOptions:output_type -> finance.v1.ListFinanceBillTagOptionsResponse
+	138, // 152: finance.v1.SettlementService.BatchAssignFinanceBillTags:output_type -> finance.v1.BatchAssignFinanceBillTagsResponse
+	140, // 153: finance.v1.SettlementService.BatchRemoveFinanceBillTags:output_type -> finance.v1.BatchRemoveFinanceBillTagsResponse
+	130, // 154: finance.v1.SettlementService.ListFinanceFeeTagOptions:output_type -> finance.v1.ListFinanceFeeTagOptionsResponse
+	132, // 155: finance.v1.SettlementService.BatchAssignFinanceFeeTags:output_type -> finance.v1.BatchAssignFinanceFeeTagsResponse
+	134, // 156: finance.v1.SettlementService.BatchRemoveFinanceFeeTags:output_type -> finance.v1.BatchRemoveFinanceFeeTagsResponse
+	47,  // 157: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
+	36,  // 158: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
+	40,  // 159: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
+	43,  // 160: finance.v1.SettlementService.ConfirmBillBatch:output_type -> finance.v1.ConfirmBillBatchResponse
+	48,  // 161: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
+	49,  // 162: finance.v1.SettlementService.ConfirmBill:output_type -> finance.v1.ConfirmBillResponse
+	50,  // 163: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
+	60,  // 164: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
+	62,  // 165: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
+	63,  // 166: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
+	64,  // 167: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
+	65,  // 168: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
+	66,  // 169: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
+	72,  // 170: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
+	74,  // 171: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
+	75,  // 172: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
+	76,  // 173: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
+	83,  // 174: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
+	85,  // 175: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
+	86,  // 176: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
+	117, // 177: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
+	120, // 178: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
+	92,  // 179: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
+	114, // 180: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
+	98,  // 181: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
+	99,  // 182: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
+	100, // 183: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
+	118, // 184: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
+	119, // 185: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
+	121, // 186: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
+	122, // 187: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
+	123, // 188: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
+	124, // 189: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
+	125, // 190: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
+	126, // 191: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
+	127, // 192: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
+	143, // [143:193] is the sub-list for method output_type
+	93,  // [93:143] is the sub-list for method input_type
+	93,  // [93:93] is the sub-list for extension type_name
+	93,  // [93:93] is the sub-list for extension extendee
+	0,   // [0:93] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_settlement_proto_init() }
@@ -13720,7 +14106,7 @@ func file_finance_v1_settlement_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_settlement_proto_rawDesc), len(file_finance_v1_settlement_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      7,
 			NumMessages:   134,
 			NumExtensions: 0,
 			NumServices:   1,

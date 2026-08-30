@@ -2,6 +2,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
+import { OrderFeeStatus } from '@/enums.generated';
 
 const { Text } = Typography;
 
@@ -32,13 +33,13 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     width: 85,
     search: false,
     render: (_, row) => {
-      if (row.status === 'CONFIRMED') {
+      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED) {
         return <Tag color="blue">已确认</Tag>;
       }
-      if (row.status === 'BILLED') {
+      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_BILLED) {
         return <Tag color="green">已开账</Tag>;
       }
-      if (row.status === 'CANCELLED') {
+      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED) {
         return <Tag color="red">已作废</Tag>;
       }
       return <Tag>草稿</Tag>;

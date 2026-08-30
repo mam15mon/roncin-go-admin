@@ -3,13 +3,17 @@ import {
   SearchFilterTemplate,
   type SearchFilterFieldItem,
 } from '@/components/ui';
+import {
+  FeeLedgerFinancialProgress,
+  OrderFeeStatus,
+} from '@/enums.generated';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 
 export interface FeeLedgerFilterParams {
   keyword?: string;
   direction?: string;
-  financialProgress?: string;
-  status?: string;
+  financialProgress?: number;
+  status?: number;
   settlementPartyId?: string;
   customerId?: string;
   billNo?: string;
@@ -85,13 +89,39 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       type: 'select',
       placeholder: '全部财务进度',
       options: [
-        { label: '账单未建立', value: 'UNBILLED' },
-        { label: '未核销未开票', value: 'UNVERIFIED_UNINVOICED' },
-        { label: '已开票未核销', value: 'INVOICED_UNVERIFIED' },
-        { label: '已开票部分核销', value: 'INVOICED_PARTIALLY_VERIFIED' },
-        { label: '部分核销未开票', value: 'PARTIALLY_VERIFIED_UNINVOICED' },
-        { label: '已核销未开票', value: 'VERIFIED_UNINVOICED' },
-        { label: '已完成', value: 'COMPLETED' },
+        {
+          label: '账单未建立',
+          value: FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED,
+        },
+        {
+          label: '未核销未开票',
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED,
+        },
+        {
+          label: '已开票未核销',
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED,
+        },
+        {
+          label: '已开票部分核销',
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED,
+        },
+        {
+          label: '部分核销未开票',
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED,
+        },
+        {
+          label: '已核销未开票',
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED,
+        },
+        {
+          label: '已完成',
+          value: FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
+        },
       ],
     },
     {
@@ -100,10 +130,16 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       type: 'select',
       placeholder: '全部状态',
       options: [
-        { label: '草稿 (DRAFT)', value: 'DRAFT' },
-        { label: '已确认 (CONFIRMED)', value: 'CONFIRMED' },
-        { label: '已开账 (BILLED)', value: 'BILLED' },
-        { label: '已作废 (CANCELLED)', value: 'CANCELLED' },
+        { label: '草稿', value: OrderFeeStatus.ORDER_FEE_STATUS_DRAFT },
+        {
+          label: '已确认',
+          value: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
+        },
+        { label: '已开账', value: OrderFeeStatus.ORDER_FEE_STATUS_BILLED },
+        {
+          label: '已作废',
+          value: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
+        },
       ],
     },
     {

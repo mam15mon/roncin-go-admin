@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -389,6 +390,13 @@ func orderFeeStatusToAPI(value biz.OrderFeeStatus) v1.OrderFeeStatus {
 	default:
 		return v1.OrderFeeStatus_ORDER_FEE_STATUS_UNSPECIFIED
 	}
+}
+
+func orderFeeStatusFromAPI(value *v1.OrderFeeStatus) biz.OrderFeeStatus {
+	if value == nil {
+		return ""
+	}
+	return biz.OrderFeeStatus(strings.TrimPrefix(value.String(), "ORDER_FEE_STATUS_"))
 }
 
 var _ v1.OrderFeeServiceServer = (*OrderFeeService)(nil)

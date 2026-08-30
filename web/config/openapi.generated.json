@@ -2311,7 +2311,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           },
           {
@@ -2584,7 +2585,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           },
           {
@@ -3005,7 +3007,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           }
         ],
@@ -4051,7 +4054,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           },
           {
@@ -4093,7 +4097,8 @@
             "name": "financialProgress",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           },
           {
@@ -4254,7 +4259,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           }
         ],
@@ -4617,7 +4623,8 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "format": "enum"
             }
           }
         ],
@@ -12354,7 +12361,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           }
         }
       },
@@ -13532,7 +13540,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "feeCode": {
             "type": "string"
@@ -13601,7 +13610,8 @@
             "type": "string"
           },
           "financialProgress": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "billNo": {
             "type": "string"
@@ -13784,7 +13794,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "settlementPartyId": {
             "type": "string"
@@ -14021,7 +14032,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "settlementPartyId": {
             "type": "string"
@@ -14136,7 +14148,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "baseCurrency": {
             "type": "string"
@@ -14264,7 +14277,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "baseCurrency": {
             "type": "string"
@@ -14445,7 +14459,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "invoiceType": {
             "type": "string"
@@ -14651,7 +14666,8 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "integer",
+            "format": "enum"
           },
           "direction": {
             "type": "string"

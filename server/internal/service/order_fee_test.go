@@ -19,6 +19,19 @@ func TestParsePlainDecimalRejectsSignedValue(t *testing.T) {
 	}
 }
 
+func TestOrderFeeStatusAPIConversions(t *testing.T) {
+	status := v1.OrderFeeStatus_ORDER_FEE_STATUS_CONFIRMED
+	if got := orderFeeStatusFromAPI(&status); got != biz.OrderFeeConfirmed {
+		t.Fatalf("费用领域状态 = %q", got)
+	}
+	if got := orderFeeStatusToAPI(biz.OrderFeeBilled); got != v1.OrderFeeStatus_ORDER_FEE_STATUS_BILLED {
+		t.Fatalf("费用 API 状态 = %v", got)
+	}
+	if got := orderFeeStatusFromAPI(nil); got != "" {
+		t.Fatalf("空费用状态 = %q", got)
+	}
+}
+
 func TestOrderFeeDirectionFromAPISupportsReceivableAndPayable(t *testing.T) {
 	tests := []struct {
 		name       string

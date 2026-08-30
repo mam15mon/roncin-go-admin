@@ -134,9 +134,9 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 前端仅保留「枚举名 → 中文文案/颜色」的展示层映射。
 **验收**：
 - [x] 生成脚本接入根 `package.json`，与 web-client 生成串联
-- [ ] 订单/费用/账单/发票/伙伴/后台任务等手抄枚举改用生成常量
-- [ ] finance 域 stringly 状态（`biz/finance_bill.go:37`、
-      `biz/settlement.go:20`）提升为 proto enum 后纳入同一链路
+- [x] 订单、费用、账单、发票、伙伴、后台任务与登录等手抄枚举已改用生成常量
+- [x] finance 域账单、发票、收付款、核销、佣金及费用台账财务进度已提升为
+      proto enum 并纳入同一链路；service 边界显式转换，biz 保持纯 Go 领域类型
 
 ### A3. 状态标签三份真相收敛
 **复核**：原计划依据的 `status_template_items` 已在
@@ -334,8 +334,8 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 - [x] 建 `constants/statusMeta.ts`，以生成枚举数值作为 canonical key，提供
       `statusTag()`、`statusText()`、`makeValueEnum()` 与字符串边界规范化；
       已收敛费用状态、业务类型、后台用户/任务、伙伴合同、订单异常与放单状态
-- [ ] bill/invoice/cashflow/commission 等 finance stringly 状态待 A2 将 proto
-      字段提升为 enum 后迁入；当前不在前端重复创造一套伪枚举
+- [x] bill/invoice/cashflow/verification/commission 与费用台账财务进度均已由
+      proto enum 生成数值常量，前端只保留中文文案与颜色映射
 
 ### C3. 格式化工具收敛（中高）
 日期空值守卫 `val ? dayjs(val).format(...) : '-'` 重复 52 处 / 29 文件；

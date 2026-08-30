@@ -1,6 +1,7 @@
 import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { DItem, DescriptionsDetailDrawer } from '@/components/ui';
+import { FinanceBillStatus } from '@/enums.generated';
 import { statusOptions } from './billConstants';
 
 interface BillDetailDrawerProps {
@@ -28,8 +29,20 @@ export default function BillDetailDrawer({
       descriptions={(detail) => (
         <>
             <Descriptions.Item label="状态">
-              <Tag color={statusOptions[detail.status || 'DRAFT']?.color}>
-                {statusOptions[detail.status || 'DRAFT']?.text}
+              <Tag
+                color={
+                  statusOptions[
+                    detail.status ??
+                      FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
+                  ]?.color
+                }
+              >
+                {
+                  statusOptions[
+                    detail.status ??
+                      FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
+                  ]?.text
+                }
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="方向">

@@ -29,6 +29,7 @@ import React, {
   useState,
 } from 'react';
 import { financeErrorReasons } from '@/errorReasons.generated';
+import { OrderFeeStatus } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerInvoiceProfile,
   partnerServiceListPartnerInvoiceProfiles,
@@ -582,7 +583,9 @@ export default function BillCreationWorkbench({
                 onChange: setSelectedFeeIds,
                 getCheckboxProps: (record) => {
                   const isSelectable =
-                    record.status === 'CONFIRMED' && !record.billNo;
+                    record.status ===
+                      OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED &&
+                    !record.billNo;
                   return {
                     disabled: !isSelectable,
                     title: !isSelectable
@@ -602,7 +605,7 @@ export default function BillCreationWorkbench({
                   pageSize: params.pageSize,
                   keyword: params.keyword,
                   direction: params.direction,
-                  status: 'CONFIRMED',
+                  status: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
                 });
                 return toTableRequest(response);
               }}

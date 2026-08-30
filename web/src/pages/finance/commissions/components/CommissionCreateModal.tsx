@@ -7,6 +7,7 @@ import {
 import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Button, Descriptions, Space, Table, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { FinanceVerificationStatus } from '@/enums.generated';
 import {
   settlementServiceCreateCommission,
   settlementServiceListCommissionCandidates,
@@ -106,7 +107,8 @@ export default function CommissionCreateModal({
           const response = await settlementServiceListVerifications({
             page: 1,
             pageSize: 200,
-            status: 'ACTIVE',
+            status:
+              FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE,
           });
           return unwrapList(response)
             .filter((item) => item.direction === 'RECEIVABLE')

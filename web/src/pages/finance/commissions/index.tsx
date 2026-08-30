@@ -11,6 +11,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { FinanceCommissionStatus } from '@/enums.generated';
 import { SearchFilterTemplate } from '@/components/ui';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
@@ -46,7 +47,7 @@ export default function FinanceCommissionsPage() {
 
   const [searchParams, setSearchParams] = useState<{
     keyword?: string;
-    status?: string;
+    status?: number;
   }>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [rulesDrawerOpen, setRulesDrawerOpen] = useState(false);
@@ -302,7 +303,9 @@ export default function FinanceCommissionsPage() {
         ]),
       ),
       render: (_, record) => {
-        const meta = commissionStatusMeta[record.status || 'DRAFT'];
+        const meta = commissionStatusMeta[
+          record.status ?? FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+        ];
         return <Tag color={meta.color}>{meta.text}</Tag>;
       },
     },
@@ -382,7 +385,10 @@ export default function FinanceCommissionsPage() {
       align: 'right',
       search: false,
       render: (_, record) => {
-        if (record.status === 'CANCELLED') {
+        if (
+          record.status ===
+          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED
+        ) {
           return (
             <Space vertical size={0}>
               <Typography.Text type="secondary" delete>
@@ -414,20 +420,25 @@ export default function FinanceCommissionsPage() {
           <a key="detail" onClick={() => openDetail(record)}>
             <EyeOutlined /> 明细
           </a>,
-          record.status === 'DRAFT' ? (
+          record.status ===
+          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ? (
             access.canManageFinanceCommissions ? (
               <a key="confirm" onClick={() => transition(record, 'CONFIRMED')}>
                 <CheckOutlined /> 确认
               </a>
             ) : null
           ) : null,
-          record.status === 'CONFIRMED' &&
+          record.status ===
+            FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
           access.canManageFinanceCommissions ? (
             <a key="paid" onClick={() => transition(record, 'PAID')}>
               <DollarOutlined /> 已发放
             </a>
           ) : null,
-          ['DRAFT', 'CONFIRMED'].includes(record.status || '') &&
+          (record.status ===
+            FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ||
+            record.status ===
+              FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED) &&
           access.canManageFinanceCommissions ? (
             <a key="cancel" onClick={() => cancel(record)}>
               <CloseCircleOutlined /> 取消
@@ -449,10 +460,26 @@ export default function FinanceCommissionsPage() {
             placeholder: '全部状态',
             width: 120,
             options: [
-              { label: '草稿', value: 'DRAFT' },
-              { label: '已确认', value: 'CONFIRMED' },
-              { label: '已发放', value: 'PAID' },
-              { label: '已取消', value: 'CANCELLED' },
+              {
+                label: '草稿',
+                value:
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+              },
+              {
+                label: '已确认',
+                value:
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+              },
+              {
+                label: '已发放',
+                value:
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+              },
+              {
+                label: '已取消',
+                value:
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED,
+              },
             ],
           },
         ]}

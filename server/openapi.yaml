@@ -1395,7 +1395,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
                 - name: settlementPartyId
                   in: query
                   schema:
@@ -1558,7 +1559,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
                 - name: settlementPartyId
                   in: query
                   schema:
@@ -1810,7 +1812,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -2441,7 +2444,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
                 - name: settlementPartyId
                   in: query
                   schema:
@@ -2465,7 +2469,8 @@ paths:
                 - name: financialProgress
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
                 - name: billNo
                   in: query
                   schema:
@@ -2562,7 +2567,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -2780,7 +2786,8 @@ paths:
                 - name: status
                   in: query
                   schema:
-                    type: string
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -7679,7 +7686,8 @@ components:
                 expenseDate:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
         finance.v1.CommissionRuleInput:
             required:
                 - name
@@ -8480,7 +8488,8 @@ components:
                 direction:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 feeCode:
                     type: string
                 feeName:
@@ -8526,7 +8535,8 @@ components:
                 customerName:
                     type: string
                 financialProgress:
-                    type: string
+                    type: integer
+                    format: enum
                 billNo:
                     type: string
                 financeLocked:
@@ -8649,7 +8659,8 @@ components:
                 direction:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 settlementPartyId:
                     type: string
                 settlementPartyName:
@@ -8807,7 +8818,8 @@ components:
                 direction:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 settlementPartyId:
                     type: string
                 settlementPartyName:
@@ -8883,7 +8895,8 @@ components:
                 employeeName:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 baseCurrency:
                     type: string
                 realizedRevenue:
@@ -8969,7 +8982,8 @@ components:
                 direction:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 baseCurrency:
                     type: string
                 amount:
@@ -9089,7 +9103,8 @@ components:
                 direction:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 invoiceType:
                     type: string
                 settlementPartyId:
@@ -9226,7 +9241,8 @@ components:
                 verificationNo:
                     type: string
                 status:
-                    type: string
+                    type: integer
+                    format: enum
                 direction:
                     type: string
                 settlementPartyId:

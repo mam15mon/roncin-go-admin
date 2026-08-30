@@ -10,6 +10,7 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { FinanceCommissionStatus } from '@/enums.generated';
 import {
   calculationBasisText,
   commissionStatusMeta,
@@ -111,7 +112,8 @@ export default function CommissionDetailDrawer({
         return (
           <Space size={8}>
             {!isReversal &&
-              record.status === 'DRAFT' &&
+              record.status ===
+                FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT &&
               canManage && (
                 <a onClick={() => onTransitionAdjustment(record, 'CONFIRMED')}>
                   确认
@@ -119,7 +121,8 @@ export default function CommissionDetailDrawer({
               )}
 
             {isReversal &&
-              record.status === 'CONFIRMED' &&
+              record.status ===
+                FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
               canManage && (
                 <a onClick={() => onTransitionAdjustment(record, 'PAID')}>
                   标记已追回
@@ -127,7 +130,8 @@ export default function CommissionDetailDrawer({
               )}
 
             {!isReversal &&
-              record.status === 'CONFIRMED' &&
+              record.status ===
+                FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
               canManage && (
                 <a onClick={() => onTransitionAdjustment(record, 'PAID')}>
                   {isDecrease ? '标记已扣回' : '标记已发放'}
@@ -135,7 +139,10 @@ export default function CommissionDetailDrawer({
               )}
 
             {!isReversal &&
-              ['DRAFT', 'CONFIRMED'].includes(record.status || '') &&
+              (record.status ===
+                FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ||
+                record.status ===
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED) &&
               canManage && (
                 <a onClick={() => onCancelAdjustment(record)}>取消</a>
               )}
@@ -153,7 +160,10 @@ export default function CommissionDetailDrawer({
       loading={loading}
       extra={
         detail &&
-        ['CONFIRMED', 'PAID'].includes(detail.status || '') &&
+        (detail.status ===
+          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED ||
+          detail.status ===
+            FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID) &&
         canManage ? (
           <Button
             type="primary"
@@ -179,10 +189,18 @@ export default function CommissionDetailDrawer({
                 children: (
                   <Tag
                     color={
-                      commissionStatusMeta[detail.status || 'DRAFT']?.color
+                      commissionStatusMeta[
+                        detail.status ??
+                          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+                      ]?.color
                     }
                   >
-                    {commissionStatusMeta[detail.status || 'DRAFT']?.text}
+                    {
+                      commissionStatusMeta[
+                        detail.status ??
+                          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+                      ]?.text
+                    }
                   </Tag>
                 ),
               },
@@ -239,7 +257,8 @@ export default function CommissionDetailDrawer({
                 key: 'effectiveAmount',
                 label: '有效提成',
                 children:
-                  detail.status === 'CANCELLED' ? (
+                  detail.status ===
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED ? (
                     <Typography.Text type="secondary">
                       已取消，不计入应发
                     </Typography.Text>

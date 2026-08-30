@@ -21,6 +21,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FinanceBillStatus, FinanceCashflowStatus } from '@/enums.generated';
 import {
   settlementServiceCreateVerification,
   settlementServiceListBills,
@@ -132,7 +133,7 @@ export default function VerificationWorkbench({
       settlementServiceListCashflows({
         page: 1,
         pageSize: 200,
-        status: 'CONFIRMED',
+        status: FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED,
         direction: scope.direction,
         settlementPartyId: scope.settlementPartyId,
         currency: scope.currency,
@@ -140,7 +141,7 @@ export default function VerificationWorkbench({
       settlementServiceListBills({
         page: 1,
         pageSize: 200,
-        status: 'CONFIRMED',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         direction: scope.direction,
         settlementPartyId: scope.settlementPartyId,
         currency: scope.currency,

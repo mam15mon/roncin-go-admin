@@ -9,6 +9,7 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { FinanceBillStatus } from '@/enums.generated';
 import { settlementServiceListBills } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 
@@ -181,7 +182,7 @@ export default function InvoiceCreateModal({
           const r = await settlementServiceListBills({
             page: p.current,
             pageSize: p.pageSize,
-            status: 'CONFIRMED',
+            status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
           });
           return toTableRequest(r);
         }}

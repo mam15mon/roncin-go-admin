@@ -1,6 +1,7 @@
 import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { DItem, DescriptionsDetailDrawer } from '@/components/ui';
+import { FinanceInvoiceStatus } from '@/enums.generated';
 import { invoiceStates } from './invoiceConstants';
 
 interface InvoiceDetailDrawerProps {
@@ -23,8 +24,20 @@ export default function InvoiceDetailDrawer({
       descriptions={(detail) => (
         <>
             <Descriptions.Item label="状态">
-              <Tag color={invoiceStates[detail.status || 'DRAFT']?.color}>
-                {invoiceStates[detail.status || 'DRAFT']?.text}
+              <Tag
+                color={
+                  invoiceStates[
+                    detail.status ??
+                      FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
+                  ]?.color
+                }
+              >
+                {
+                  invoiceStates[
+                    detail.status ??
+                      FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
+                  ]?.text
+                }
               </Tag>
             </Descriptions.Item>
             <DItem label="税务发票号">{detail.taxInvoiceNo}</DItem>

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,7 +21,7 @@ func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVer
 	if err != nil {
 		return nil, err
 	}
-	f := biz.VerificationFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: biz.VerificationStatus(strings.ToUpper(financeOptionalString(r.Status)))}
+	f := biz.VerificationFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: financeVerificationStatusFromAPI(r.Status)}
 	result, e := s.verificationUsecase.List(ctx, p.Organization.ID, f)
 	if e != nil {
 		return nil, e
@@ -86,5 +85,5 @@ func verificationToAPI(x *biz.FinanceVerification) *v1.FinanceVerification {
 	for _, a := range x.Allocations {
 		as = append(as, &v1.FinanceVerificationAllocation{Id: a.ID.String(), CashflowId: a.CashflowID.String(), BillId: a.BillID.String(), CashflowNo: a.CashflowNo, BillNo: a.BillNo, Amount: a.Amount.StringFixed(8), BillBaseAmount: a.BillBaseAmount.StringFixed(8), CashflowBaseAmount: a.CashflowBaseAmount.StringFixed(8), WriteOffBaseAmount: a.WriteOffBaseAmount.StringFixed(8), ExchangeGainLoss: a.ExchangeGainLoss.StringFixed(8), Active: a.Active})
 	}
-	return &v1.FinanceVerification{Id: x.ID.String(), VerificationNo: x.VerificationNo, Status: string(x.Status), Direction: string(x.Direction), SettlementPartyId: x.SettlementPartyID.String(), SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: x.Amount.StringFixed(8), BaseCurrency: x.BaseCurrency, ExchangeRate: x.ExchangeRate.StringFixed(8), ExchangeRateSource: x.ExchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(x.ExchangeRateSettingID), BaseAmount: x.BaseAmount.StringFixed(8), BillBaseAmount: x.BillBaseAmount.StringFixed(8), CashflowBaseAmount: x.CashflowBaseAmount.StringFixed(8), ExchangeGainLoss: x.ExchangeGainLoss.StringFixed(8), VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: financeTime(x.ReversedAt), ReversalReason: x.ReversalReason, Allocations: as, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339)}
+	return &v1.FinanceVerification{Id: x.ID.String(), VerificationNo: x.VerificationNo, Status: financeVerificationStatusToAPI(x.Status), Direction: string(x.Direction), SettlementPartyId: x.SettlementPartyID.String(), SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: x.Amount.StringFixed(8), BaseCurrency: x.BaseCurrency, ExchangeRate: x.ExchangeRate.StringFixed(8), ExchangeRateSource: x.ExchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(x.ExchangeRateSettingID), BaseAmount: x.BaseAmount.StringFixed(8), BillBaseAmount: x.BillBaseAmount.StringFixed(8), CashflowBaseAmount: x.CashflowBaseAmount.StringFixed(8), ExchangeGainLoss: x.ExchangeGainLoss.StringFixed(8), VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: financeTime(x.ReversedAt), ReversalReason: x.ReversalReason, Allocations: as, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339)}
 }

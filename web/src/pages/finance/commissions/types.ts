@@ -1,4 +1,5 @@
 import type { Dayjs } from 'dayjs';
+import { FinanceCommissionStatus } from '@/enums.generated';
 
 export type CreateValues = {
   verificationId: string;
@@ -26,13 +27,13 @@ export type AdjustmentValues = {
 };
 
 export const commissionStatusMeta: Record<
-  string,
+  number,
   { text: string; color: string }
 > = {
-  DRAFT: { text: '草稿', color: 'processing' },
-  CONFIRMED: { text: '已确认', color: 'success' },
-  PAID: { text: '已发放', color: 'blue' },
-  CANCELLED: { text: '已取消', color: 'default' },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT]: { text: '草稿', color: 'processing' },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED]: { text: '已确认', color: 'success' },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID]: { text: '已发放', color: 'blue' },
+  [FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED]: { text: '已取消', color: 'default' },
 };
 
 export const personnelRoleMeta: Record<string, string> = {
@@ -76,30 +77,30 @@ export function getAdjustmentStatusInfo(
   const isDecrease = adjustment.direction === 'DECREASE';
 
   if (isReversal) {
-    if (adjustment.status === 'CONFIRMED')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
       return { text: '待追回', color: 'warning' };
-    if (adjustment.status === 'PAID')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
       return { text: '已追回', color: 'purple' };
-    if (adjustment.status === 'CANCELLED')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED)
       return { text: '已取消', color: 'default' };
     return { text: '反核销草稿', color: 'processing' };
   }
 
   if (isDecrease) {
-    if (adjustment.status === 'DRAFT')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT)
       return { text: '冲减草稿', color: 'processing' };
-    if (adjustment.status === 'CONFIRMED')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
       return { text: '待扣回', color: 'warning' };
-    if (adjustment.status === 'PAID')
+    if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
       return { text: '已扣回', color: 'purple' };
     return { text: '已取消', color: 'default' };
   }
 
-  if (adjustment.status === 'DRAFT')
+  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT)
     return { text: '增提草稿', color: 'processing' };
-  if (adjustment.status === 'CONFIRMED')
+  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED)
     return { text: '待发放', color: 'success' };
-  if (adjustment.status === 'PAID')
+  if (adjustment.status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID)
     return { text: '已发放', color: 'blue' };
   return { text: '已取消', color: 'default' };
 }

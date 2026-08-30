@@ -7,6 +7,7 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Popconfirm, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
+import { FinanceBillStatus } from '@/enums.generated';
 import { statusOptions } from './billConstants';
 
 interface GetFinanceBillColumnsParams {
@@ -85,7 +86,9 @@ export function getFinanceBillColumns({
         ]),
       ),
       render: (_, row) => {
-        const value = statusOptions[row.status || 'DRAFT'];
+        const value = statusOptions[
+          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
+        ];
         return (
           <Tag color={value?.color} style={{ margin: 0 }}>
             {value?.text}
@@ -248,12 +251,14 @@ export function getFinanceBillColumns({
         <a key="view" onClick={() => void onOpenDetail(row)}>
           <EyeOutlined /> 详情
         </a>,
-        access.canUpdateFinanceBills && row.status === 'DRAFT' ? (
+        access.canUpdateFinanceBills &&
+        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
           <a key="edit" onClick={() => onOpenEdit(row)}>
             <EditOutlined /> 编辑
           </a>
         ) : null,
-        access.canConfirmFinanceBills && row.status === 'DRAFT' ? (
+        access.canConfirmFinanceBills &&
+        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
             title="确认该账单？确认后将锁定对账金额并进入开票与核销"
@@ -264,7 +269,8 @@ export function getFinanceBillColumns({
             </a>
           </Popconfirm>
         ) : null,
-        access.canUpdateFinanceBills && row.status !== 'CANCELLED' ? (
+        access.canUpdateFinanceBills &&
+        row.status !== FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}

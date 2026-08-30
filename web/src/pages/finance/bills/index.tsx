@@ -4,6 +4,7 @@ import { useAccess } from '@umijs/max';
 import { App, Form, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FinanceBillStatus } from '@/enums.generated';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
@@ -103,7 +104,7 @@ export default function FinanceBillsPage() {
   const [searchParams, setSearchParams] = useState<{
     keyword?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     currency?: string;
     billDateRange?: [Dayjs, Dayjs];
@@ -131,9 +132,9 @@ export default function FinanceBillsPage() {
       type: 'select',
       placeholder: '全部状态',
       options: [
-        { label: '草稿 (DRAFT)', value: 'DRAFT' },
-        { label: '已确认 (CONFIRMED)', value: 'CONFIRMED' },
-        { label: '已取消 (CANCELLED)', value: 'CANCELLED' },
+        { label: '草稿', value: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT },
+        { label: '已确认', value: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED },
+        { label: '已取消', value: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED },
       ],
     },
     {
@@ -377,7 +378,7 @@ export default function FinanceBillsPage() {
             pageSize: params.pageSize,
             keyword: searchParams.keyword || undefined,
             direction: searchParams.direction || undefined,
-            status: searchParams.status || undefined,
+            status: searchParams.status,
             settlementPartyId: searchParams.settlementPartyId || undefined,
             currency: searchParams.currency || undefined,
             billDateFrom,

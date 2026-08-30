@@ -3,6 +3,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, Descriptions, Drawer, Space, Table, Tag } from 'antd';
 import { useRef, useState } from 'react';
+import { FinanceVerificationStatus } from '@/enums.generated';
 import {
   FinanceLedgerTemplate,
   type FinanceLedgerMetricCard,
@@ -97,10 +98,28 @@ export default function FinanceVerificationsPage() {
       dataIndex: 'status',
       width: 90,
       valueType: 'select',
-      valueEnum: { ACTIVE: { text: '有效' }, REVERSED: { text: '已反核销' } },
+      valueEnum: {
+        [FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE]: {
+          text: '有效',
+        },
+        [FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_REVERSED]: {
+          text: '已反核销',
+        },
+      },
       render: (_, r) => (
-        <Tag color={r.status === 'ACTIVE' ? 'green' : 'default'} style={{ margin: 0 }}>
-          {r.status === 'ACTIVE' ? '有效' : '已反核销'}
+        <Tag
+          color={
+            r.status ===
+            FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE
+              ? 'green'
+              : 'default'
+          }
+          style={{ margin: 0 }}
+        >
+          {r.status ===
+          FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE
+            ? '有效'
+            : '已反核销'}
         </Tag>
       ),
     },
@@ -220,7 +239,9 @@ export default function FinanceVerificationsPage() {
         <a key="view" onClick={() => setDetail(r)}>
           详情
         </a>,
-        access.canReverseFinanceVerifications && r.status === 'ACTIVE' ? (
+        access.canReverseFinanceVerifications &&
+        r.status ===
+          FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE ? (
           <a key="reverse" onClick={() => reverse(r)} style={{ color: '#ff4d4f' }}>
             <RollbackOutlined /> 反核销
           </a>
@@ -247,7 +268,7 @@ export default function FinanceVerificationsPage() {
             page: p.current,
             pageSize: p.pageSize,
             keyword: p.keyword,
-            status: p.status,
+            status: p.status ? Number(p.status) : undefined,
           });
           const page = unwrapPage(r);
           setMetricStats({
@@ -275,8 +296,18 @@ export default function FinanceVerificationsPage() {
           <>
             <Descriptions bordered size="small" column={2} style={{ marginBottom: 16 }}>
               <Descriptions.Item label="核销状态">
-                <Tag color={detail.status === 'ACTIVE' ? 'green' : 'default'}>
-                  {detail.status === 'ACTIVE' ? '有效' : '已反核销'}
+                <Tag
+                  color={
+                    detail.status ===
+                    FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE
+                      ? 'green'
+                      : 'default'
+                  }
+                >
+                  {detail.status ===
+                  FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE
+                    ? '有效'
+                    : '已反核销'}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="核销方向">

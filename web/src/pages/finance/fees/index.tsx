@@ -14,6 +14,10 @@ import {
   FinanceLedgerTemplate,
   TableColumnConfigModal,
 } from '@/components/ui';
+import {
+  FeeLedgerFinancialProgress,
+  OrderFeeStatus,
+} from '@/enums.generated';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { orderFeeServiceConfirmFee } from '@/services/roncin/orderFeeService';
 import {
@@ -56,14 +60,18 @@ export default function FinanceFeeLedgerPage() {
   };
 
   const canCreateBill = (row: API.FeeLedgerItem) =>
-    row.status === 'CONFIRMED' && !row.billNo;
+    row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED && !row.billNo;
 
   const handleBatchConfirm = async (
     _keys: React.Key[],
     rows: API.FeeLedgerItem[],
   ) => {
     const draftRows = rows.filter(
-      (row) => row.status === 'DRAFT' && row.orderId && row.id && row.version,
+      (row) =>
+        row.status === OrderFeeStatus.ORDER_FEE_STATUS_DRAFT &&
+        row.orderId &&
+        row.id &&
+        row.version,
     );
     if (draftRows.length === 0) {
       message.info('当前勾选中没有可确认的草稿费用');
@@ -212,7 +220,9 @@ export default function FinanceFeeLedgerPage() {
 
   // 根据费用财务进度映射对应的行高亮背景 key（支持 7 状态）
   const getRowStatusColorKey = (row: API.FeeLedgerItem) => {
-    const progress = row.financialProgress || 'UNBILLED';
+    const progress =
+      row.financialProgress ??
+      FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED;
     const matched = financialProgressLabels[progress];
     return matched?.key;
   };

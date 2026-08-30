@@ -19,6 +19,7 @@ import { useAccess } from '@umijs/max';
 import { App, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { FinanceCashflowStatus } from '@/enums.generated';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,
@@ -43,10 +44,10 @@ type Values = {
   bankReferenceNo?: string;
   note?: string;
 };
-const states: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '草稿', color: 'gold' },
-  CONFIRMED: { text: '已确认', color: 'green' },
-  CANCELLED: { text: '已取消', color: 'default' },
+const states: Record<number, { text: string; color: string }> = {
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: { text: '草稿', color: 'gold' },
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED]: { text: '已确认', color: 'green' },
+  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED]: { text: '已取消', color: 'default' },
 };
 const decimalRule = {
   pattern: /^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$/,
@@ -167,7 +168,9 @@ export default function FinanceCashflowsPage() {
         Object.entries(states).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
-        const v = states[r.status || 'DRAFT'];
+        const v = states[
+          r.status ?? FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT
+        ];
         return (
           <Tag color={v.color} style={{ margin: 0 }}>
             {v.text}
@@ -295,7 +298,8 @@ export default function FinanceCashflowsPage() {
       fixed: 'right',
       width: 150,
       render: (_, r) => [
-        access.canUpdateFinanceCashflows && r.status === 'DRAFT' ? (
+        access.canUpdateFinanceCashflows &&
+        r.status === FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
             title="确认该笔真实资金流水？"
@@ -306,7 +310,8 @@ export default function FinanceCashflowsPage() {
             </a>
           </Popconfirm>
         ) : null,
-        access.canUpdateFinanceCashflows && r.status !== 'CANCELLED' ? (
+        access.canUpdateFinanceCashflows &&
+        r.status !== FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}
@@ -338,7 +343,7 @@ export default function FinanceCashflowsPage() {
             pageSize: p.pageSize,
             keyword: p.keyword,
             direction: p.direction,
-            status: p.status,
+            status: p.status ? Number(p.status) : undefined,
           });
           setMetricStats({
             totalCount: Number(r.total ?? 0),

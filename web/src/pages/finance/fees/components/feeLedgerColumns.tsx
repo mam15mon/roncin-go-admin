@@ -4,11 +4,14 @@ import { Tag } from 'antd';
 import {
   businessTypeMeta,
   normalizeBusinessType,
-  normalizeOrderFeeStatus,
   orderFeeStatusMeta,
   statusTag,
   statusText,
 } from '@/constants/statusMeta';
+import {
+  FeeLedgerFinancialProgress,
+  OrderFeeStatus,
+} from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 import { searchPartnerOptions } from '@/utils/options';
 
@@ -20,49 +23,58 @@ const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
 );
 
 const feeLedgerStatusValueEnum = Object.fromEntries(
-  ['DRAFT', 'CONFIRMED', 'BILLED', 'CANCELLED'].map((status) => [
+  [
+    OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
+    OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
+    OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
+    OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
+  ].map((status) => [
     status,
     {
-      text: statusText(
-        orderFeeStatusMeta,
-        normalizeOrderFeeStatus(status),
-        status,
-      ),
+      text: statusText(orderFeeStatusMeta, status, String(status)),
     },
   ]),
 );
 
 export const financialProgressLabels: Record<
-  string,
+  number,
   { text: string; color: string; key: keyof API.FeeLedgerRowColors }
 > = {
-  UNBILLED: { text: '账单未建立', color: 'gold', key: 'unbilled' },
-  UNVERIFIED_UNINVOICED: {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED]: {
+    text: '账单未建立',
+    color: 'gold',
+    key: 'unbilled',
+  },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]: {
     text: '未核销未开票',
     color: 'orange',
     key: 'unverifiedUninvoiced',
   },
-  INVOICED_UNVERIFIED: {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED]: {
     text: '已开票未核销',
     color: 'blue',
     key: 'invoicedUnverified',
   },
-  INVOICED_PARTIALLY_VERIFIED: {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED]: {
     text: '已开票部分核销',
     color: 'cyan',
     key: 'invoicedPartiallyVerified',
   },
-  PARTIALLY_VERIFIED_UNINVOICED: {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED]: {
     text: '部分核销未开票',
     color: 'geekblue',
     key: 'partiallyVerifiedUninvoiced',
   },
-  VERIFIED_UNINVOICED: {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED]: {
     text: '已核销未开票',
     color: 'purple',
     key: 'verifiedUninvoiced',
   },
-  COMPLETED: { text: '已完成', color: 'green', key: 'completed' },
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED]: {
+    text: '已完成',
+    color: 'green',
+    key: 'completed',
+  },
 };
 
 export function amount(value?: string | number) {
@@ -263,7 +275,9 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
         ]),
       ),
       render: (_, row) => {
-        const progress = row.financialProgress || 'UNBILLED';
+        const progress =
+          row.financialProgress ??
+          FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED;
         const item = financialProgressLabels[progress] || {
           text: progress,
           color: 'default',
@@ -285,8 +299,8 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       render: (_, row) =>
         statusTag(
           orderFeeStatusMeta,
-          normalizeOrderFeeStatus(row.status),
-          row.status || '-',
+          row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_UNSPECIFIED,
+          row.status == null ? '-' : String(row.status),
         ),
     },
     {

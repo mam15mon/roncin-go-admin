@@ -2,6 +2,7 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import { history, useAccess } from '@umijs/max';
 import { Button, Descriptions, Empty, Result, Space, Table, Tag } from 'antd';
 import React from 'react';
+import { FinanceBillStatus } from '@/enums.generated';
 
 type BillCreationResultTableProps = {
   result?: API.FinanceBillBatch;
@@ -26,11 +27,14 @@ export default function BillCreationResultTable({
         status="success"
         icon={<CheckCircleOutlined />}
         title={`批次 ${result.batchNo || ''} 生成成功`}
-        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单，当前${result.bills?.every((bill) => bill.status === 'CONFIRMED') ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
+        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单，当前${result.bills?.every((bill) => bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED) ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
         extra={
           <Space wrap>
             {access.canConfirmFinanceBills &&
-              result.bills?.every((bill) => bill.status === 'DRAFT') && (
+              result.bills?.every(
+                (bill) =>
+                  bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+              ) && (
                 <Button
                   type="primary"
                   loading={confirming}
@@ -80,7 +84,7 @@ export default function BillCreationResultTable({
             dataIndex: 'status',
             width: 90,
             render: (value) =>
-              value === 'CONFIRMED' ? (
+              value === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED ? (
                 <Tag color="green">已确认</Tag>
               ) : (
                 <Tag color="gold">草稿</Tag>

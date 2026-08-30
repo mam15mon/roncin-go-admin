@@ -10,6 +10,7 @@ import { useAccess } from '@umijs/max';
 import { App, Form, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { FinanceInvoiceStatus } from '@/enums.generated';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -254,7 +255,9 @@ export default function FinanceInvoicesPage() {
         Object.entries(invoiceStates).map(([k, v]) => [k, { text: v.text }]),
       ),
       render: (_, r) => {
-        const v = invoiceStates[r.status || 'DRAFT'];
+        const v = invoiceStates[
+          r.status ?? FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT
+        ];
         return <Tag color={v?.color}>{v?.text}</Tag>;
       },
     },
@@ -292,7 +295,7 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) => {
         if (!r.exchangeRate) {
-          return r.status === 'DRAFT' ? (
+          return r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
             <span style={{ color: '#8c8c8c' }}>开票时确定</span>
           ) : (
             '-'
@@ -365,7 +368,8 @@ export default function FinanceInvoicesPage() {
         <a key="detail" onClick={() => void showDetail(r)}>
           <EyeOutlined /> 详情
         </a>,
-        access.canUpdateFinanceInvoices && r.status === 'DRAFT' ? (
+        access.canUpdateFinanceInvoices &&
+        r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
           <a
             key="issue"
             onClick={() => {
@@ -377,17 +381,21 @@ export default function FinanceInvoicesPage() {
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
-        r.status !== 'CANCELLED' &&
-        r.status !== 'RED_FLUSHED' ? (
+        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_CANCELLED &&
+        r.status !== FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_RED_FLUSHED ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}
             onClick={() => cancelInvoice(r)}
           >
-            <CloseCircleOutlined /> {r.status === 'ISSUED' ? '作废' : '取消'}
+            <CloseCircleOutlined />{' '}
+            {r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
+              ? '作废'
+              : '取消'}
           </a>
         ) : null,
-        access.canUpdateFinanceInvoices && r.status === 'ISSUED' ? (
+        access.canUpdateFinanceInvoices &&
+        r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED ? (
           <a
             key="red-flush"
             style={{ color: '#cf1322' }}
@@ -461,7 +469,7 @@ export default function FinanceInvoicesPage() {
             pageSize: p.pageSize,
             keyword: p.keyword,
             direction: p.direction,
-            status: p.status,
+            status: p.status ? Number(p.status) : undefined,
           });
           const page = unwrapPage(r);
           setMetricStats({

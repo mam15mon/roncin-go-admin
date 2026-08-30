@@ -104,6 +104,65 @@ export const EnterpriseAddressType = {
 
 export type EnterpriseAddressType = (typeof EnterpriseAddressType)[keyof typeof EnterpriseAddressType];
 
+export const FinanceBillStatus = {
+  FINANCE_BILL_STATUS_UNSPECIFIED: 0,
+  FINANCE_BILL_STATUS_DRAFT: 1,
+  FINANCE_BILL_STATUS_CONFIRMED: 2,
+  FINANCE_BILL_STATUS_CANCELLED: 3,
+} as const;
+
+export type FinanceBillStatus = (typeof FinanceBillStatus)[keyof typeof FinanceBillStatus];
+
+export const FinanceInvoiceStatus = {
+  FINANCE_INVOICE_STATUS_UNSPECIFIED: 0,
+  FINANCE_INVOICE_STATUS_DRAFT: 1,
+  FINANCE_INVOICE_STATUS_ISSUED: 2,
+  FINANCE_INVOICE_STATUS_CANCELLED: 3,
+  FINANCE_INVOICE_STATUS_RED_FLUSHED: 4,
+} as const;
+
+export type FinanceInvoiceStatus = (typeof FinanceInvoiceStatus)[keyof typeof FinanceInvoiceStatus];
+
+export const FinanceCashflowStatus = {
+  FINANCE_CASHFLOW_STATUS_UNSPECIFIED: 0,
+  FINANCE_CASHFLOW_STATUS_DRAFT: 1,
+  FINANCE_CASHFLOW_STATUS_CONFIRMED: 2,
+  FINANCE_CASHFLOW_STATUS_CANCELLED: 3,
+} as const;
+
+export type FinanceCashflowStatus = (typeof FinanceCashflowStatus)[keyof typeof FinanceCashflowStatus];
+
+export const FinanceVerificationStatus = {
+  FINANCE_VERIFICATION_STATUS_UNSPECIFIED: 0,
+  FINANCE_VERIFICATION_STATUS_ACTIVE: 1,
+  FINANCE_VERIFICATION_STATUS_REVERSED: 2,
+} as const;
+
+export type FinanceVerificationStatus = (typeof FinanceVerificationStatus)[keyof typeof FinanceVerificationStatus];
+
+export const FinanceCommissionStatus = {
+  FINANCE_COMMISSION_STATUS_UNSPECIFIED: 0,
+  FINANCE_COMMISSION_STATUS_DRAFT: 1,
+  FINANCE_COMMISSION_STATUS_CONFIRMED: 2,
+  FINANCE_COMMISSION_STATUS_PAID: 3,
+  FINANCE_COMMISSION_STATUS_CANCELLED: 4,
+} as const;
+
+export type FinanceCommissionStatus = (typeof FinanceCommissionStatus)[keyof typeof FinanceCommissionStatus];
+
+export const FeeLedgerFinancialProgress = {
+  FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED: 0,
+  FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED: 1,
+  FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED: 2,
+  FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED: 3,
+  FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED: 4,
+  FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED: 5,
+  FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED: 6,
+  FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED: 7,
+} as const;
+
+export type FeeLedgerFinancialProgress = (typeof FeeLedgerFinancialProgress)[keyof typeof FeeLedgerFinancialProgress];
+
 export const BilledFeeEditableField = {
   BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED: 0,
   BILLED_FEE_EDITABLE_FIELD_FEE_NAME: 1,

@@ -744,7 +744,7 @@ declare namespace API {
     baseCurrency?: string;
     baseCurrencyAmount?: string;
     expenseDate?: string;
-    status?: string;
+    status?: number;
   };
 
   type CommissionRuleInput = {
@@ -1855,7 +1855,7 @@ declare namespace API {
     orderNo?: string;
     businessType?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     feeCode?: string;
     feeName?: string;
     settlementPartyId?: string;
@@ -1878,7 +1878,7 @@ declare namespace API {
     taxRate?: string;
     customerId?: string;
     customerName?: string;
-    financialProgress?: string;
+    financialProgress?: number;
     billNo?: string;
     financeLocked?: boolean;
     tags?: BusinessTagSummary[];
@@ -1940,7 +1940,7 @@ declare namespace API {
     id?: string;
     billNo?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     settlementPartyName?: string;
     currency?: string;
@@ -2020,7 +2020,7 @@ declare namespace API {
     id?: string;
     flowNo?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     settlementPartyName?: string;
     currency?: string;
@@ -2061,7 +2061,7 @@ declare namespace API {
     verificationNo?: string;
     employeeId?: string;
     employeeName?: string;
-    status?: string;
+    status?: number;
     baseCurrency?: string;
     realizedRevenue?: string;
     allocatedCost?: string;
@@ -2102,7 +2102,7 @@ declare namespace API {
     employeeId?: string;
     employeeName?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     baseCurrency?: string;
     amount?: string;
     reason?: string;
@@ -2165,7 +2165,7 @@ declare namespace API {
     id?: string;
     recordNo?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     invoiceType?: string;
     settlementPartyId?: string;
     settlementPartyName?: string;
@@ -2236,7 +2236,7 @@ declare namespace API {
   type FinanceVerification = {
     id?: string;
     verificationNo?: string;
-    status?: string;
+    status?: number;
     direction?: string;
     settlementPartyId?: string;
     settlementPartyName?: string;
@@ -4685,7 +4685,7 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     currency?: string;
     billDateFrom?: string;
@@ -4698,7 +4698,7 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     currency?: string;
   };
@@ -4729,7 +4729,7 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
-    status?: string;
+    status?: number;
   };
 
   type SettlementServiceListFeeLedgerParams = {
@@ -4738,13 +4738,13 @@ declare namespace API {
     keyword?: string;
     businessType?: string;
     direction?: string;
-    status?: string;
+    status?: number;
     settlementPartyId?: string;
     currency?: string;
     expenseDateFrom?: string;
     expenseDateTo?: string;
     customerId?: string;
-    financialProgress?: string;
+    financialProgress?: number;
     billNo?: string;
     financeLocked?: boolean;
     tagIds?: string[];
@@ -4767,14 +4767,14 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     direction?: string;
-    status?: string;
+    status?: number;
   };
 
   type SettlementServiceListVerificationsParams = {
     page?: number;
     pageSize?: number;
     keyword?: string;
-    status?: string;
+    status?: number;
   };
 
   type SettlementServiceMarkCommissionAdjustmentPaidParams = {
