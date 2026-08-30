@@ -57,7 +57,20 @@ jobs:
         run: go -C server test ./...
       - name: 执行静态检查
         run: go -C server vet ./...
-      - name: 执行漏洞检查
-        run: go -C server tool govulncheck ./...
       - name: 构建服务端
         run: go -C server build -o /tmp/roncin-server ./cmd/server
+
+  vulnerability:
+    name: Go 依赖漏洞检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 安装 Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: 执行漏洞检查
+        run: go -C server tool govulncheck ./...
