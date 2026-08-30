@@ -3,6 +3,7 @@ import type {
   OrderListItem,
 } from '@/components/ui';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import {
   paymentTermOptions,
   seFlowStatusLabels,
@@ -78,7 +79,8 @@ export async function queryOrderList(
           : undefined,
   });
 
-  const items: OrderListItem[] = (response.data ?? []).map((order) => {
+  const page = unwrapPage(response);
+  const items: OrderListItem[] = page.data.map((order) => {
     const originPort = ctx.ports.find(
       (p) => p.id === order.originLocationId,
     );
@@ -160,8 +162,7 @@ export async function queryOrderList(
   });
 
   return {
-    data: items,
-    total: response.total ?? 0,
-    success: response.success ?? true,
+    ...toTableRequest({ ...response, data: items }),
+    total: page.total,
   };
 }

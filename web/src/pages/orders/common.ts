@@ -6,6 +6,7 @@ import {
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 export const businessTypeOptions = [
   { label: '海运出口', value: 1, color: 'blue' },
@@ -215,7 +216,7 @@ export async function searchPartnersByRole(
     page: 1,
     pageSize: 50,
   });
-  return (res.data ?? []).map((p) => ({
+  return unwrapList(res).map((p) => ({
     label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
     value: p.id ?? '',
     code: p.code,
@@ -238,7 +239,7 @@ export async function searchOrderLocations(
       ? masterDataServiceListPorts({ keyword, enabled: true, page: 1, pageSize: 50 })
       : masterDataServiceListAirports({ keyword, enabled: true, page: 1, pageSize: 50 }),
   ]);
-  const regions = (regionsResponse.data ?? []).map((item) => ({
+  const regions = unwrapList(regionsResponse).map((item) => ({
     label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
     value: item.id ?? '',
   }));
@@ -264,10 +265,10 @@ export async function fetchOrderMasterData() {
       masterDataServiceListCurrencies(),
     ]);
 
-  const masterOptions = optionsResponse.data ?? [];
-  const ports = portsResponse.data ?? [];
-  const airports = airportsResponse.data ?? [];
-  const currencies = currenciesResponse.data ?? [];
+  const masterOptions = unwrapList(optionsResponse);
+  const ports = unwrapList(portsResponse);
+  const airports = unwrapList(airportsResponse);
+  const currencies = unwrapList(currenciesResponse);
 
   const serviceTypeOptions = masterOptions
     .filter(

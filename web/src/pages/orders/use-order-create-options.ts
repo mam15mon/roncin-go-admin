@@ -1,6 +1,7 @@
 import { App } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
+import { unwrapList } from '@/utils/api';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
@@ -76,7 +77,7 @@ export function useOrderCreateOptions(config?: OrderKindConfig) {
             }))
             .filter((item) => item.value !== ''),
         );
-        setPersonnelOptions(personnelResponse.data ?? []);
+        setPersonnelOptions(unwrapList(personnelResponse));
       })
       .catch((error: Error) => {
         message.error(error.message || '加载订单主数据失败');

@@ -7,6 +7,7 @@ import {
 } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
@@ -36,10 +37,10 @@ export function useOrderListResources(config?: OrderKindConfig) {
           airportsResponse,
           partnersResponse,
         ]) => {
-          setMasterOptions(optionsResponse.data ?? []);
-          setPorts(portsResponse.data ?? []);
-          setAirports(airportsResponse.data ?? []);
-          const partnerList = partnersResponse.data ?? [];
+          setMasterOptions(unwrapList(optionsResponse));
+          setPorts(unwrapList(portsResponse));
+          setAirports(unwrapList(airportsResponse));
+          const partnerList = unwrapList(partnersResponse);
           setCustomerMap((prev) => {
             const next = { ...prev };
             for (const p of partnerList) {
@@ -137,7 +138,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       enabled: true,
       keyword,
     });
-    const partners = res.data ?? [];
+    const partners = unwrapList(res);
     setCustomerMap((prev) => {
       const next = { ...prev };
       for (const p of partners) {
@@ -162,7 +163,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       keyword,
       enabled: true,
     });
-    const result = response.data ?? [];
+    const result = unwrapList(response);
     setPorts((current) => {
       const merged = new Map(
         current.filter((item) => item.id).map((item) => [item.id, item]),
@@ -189,7 +190,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       keyword,
       enabled: true,
     });
-    return (response.data ?? []).map((item) => ({
+    return unwrapList(response).map((item) => ({
       label: item.legalName
         ? `${item.legalName} (${item.code})`
         : item.code || item.id || '',
@@ -204,7 +205,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
       page: 1,
       pageSize: 50,
     });
-    return (response.data ?? [])
+    return unwrapList(response)
       .filter(
         (item) =>
           item.userId &&

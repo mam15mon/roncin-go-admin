@@ -9,6 +9,7 @@ import {
   orderServiceListPersonnelOptions,
 } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+import { unwrapList } from '@/utils/api';
 import {
   fetchOrderMasterData,
   isMasterDataKind,
@@ -109,14 +110,14 @@ export function useOrderDetailData(
           }))
           .filter((item) => item.value !== ''),
       );
-      setPersonnelOptions(personnelOptRes.data ?? []);
+      setPersonnelOptions(unwrapList(personnelOptRes));
 
       setOrder(orderRes.data);
-      setShippingDocs(docsRes.data ?? []);
-      setContainers(cntrsRes.data ?? []);
-      setCargoItems(cargoRes.data ?? []);
-      setMilestones(milestonesRes.data ?? []);
-      setPersonnel(personnelRes.data ?? []);
+      setShippingDocs(unwrapList(docsRes));
+      setContainers(unwrapList(cntrsRes));
+      setCargoItems(unwrapList(cargoRes));
+      setMilestones(unwrapList(milestonesRes));
+      setPersonnel(unwrapList(personnelRes));
     } catch (error: any) {
       message.error(error.message || '加载订单数据失败');
     } finally {
