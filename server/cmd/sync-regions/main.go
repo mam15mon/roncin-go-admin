@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/cmd/internal/syncrunner"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 )
 
@@ -65,27 +64,29 @@ type syncOptions struct {
 }
 
 func main() {
+	syncrunner.Run(run)
+}
+
+func run(ctx context.Context) error {
 	options := parseOptions()
-	ctx := context.Background()
 	client := &http.Client{Timeout: requestTimeout}
 
 	rows, err := fetchRegions(ctx, client, options)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "同步行政区划失败: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("同步行政区划失败: %w", err)
 	}
 	provinces, cities, districts := countLevels(rows)
 	fmt.Printf("已抓取行政区划：省级 %d，市级 %d，区县级 %d，共 %d 条\n", provinces, cities, districts, len(rows))
 	if !options.Apply {
 		fmt.Println("当前为预览模式；确认数据后使用 -apply 写入数据库")
-		return
+		return nil
 	}
 	result, err := applyRegions(ctx, rows)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "写入行政区划失败: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("写入行政区划失败: %w", err)
 	}
 	fmt.Printf("行政区划写入完成：新增 %d，更新 %d，停用 %d，数据版本：%s\n", result.Created, result.Updated, result.Disabled, options.SourceVersion)
+	return nil
 }
 
 func parseOptions() syncOptions {
@@ -238,16 +239,12 @@ func requestTree(ctx context.Context, client *http.Client, endpoint string) (*re
 }
 
 func applyRegions(ctx context.Context, rows []regionRow) (data.IndustryReferenceSyncResult, error) {
-	source := strings.TrimSpace(os.Getenv("DATABASE_SOURCE"))
-	if source == "" {
-		return data.IndustryReferenceSyncResult{}, errors.New("DATABASE_SOURCE 不能为空")
-	}
-	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: source}}, slog.Default())
+	store, cleanup, err := syncrunner.OpenStore()
 	if err != nil {
 		return data.IndustryReferenceSyncResult{}, err
 	}
 	defer cleanup()
-	return data.NewIndustryReferenceSyncStore(storage).ApplyAdministrativeRegions(ctx, mcaSource, rows)
+	return store.ApplyAdministrativeRegions(ctx, mcaSource, rows)
 }
 
 func countLevels(rows []regionRow) (int, int, int) {
