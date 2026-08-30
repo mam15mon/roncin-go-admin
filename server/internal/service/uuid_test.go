@@ -36,6 +36,17 @@ func TestParseUniqueUUIDValues(t *testing.T) {
 	}
 }
 
+func TestParseTrimmedUUIDValues(t *testing.T) {
+	value := uuid.New()
+	values, err := parseTrimmedUUIDValues([]string{"  " + value.String() + "\n"}, errors.New("参数错误"))
+	if err != nil {
+		t.Fatalf("解析带空白 UUID 失败: %v", err)
+	}
+	if len(values) != 1 || values[0] != value {
+		t.Fatalf("解析结果 = %v，期望 %s", values, value)
+	}
+}
+
 func TestUUIDStringPtr(t *testing.T) {
 	if uuidStringPtr(nil) != nil {
 		t.Fatal("空 UUID 指针应保持为空")

@@ -113,7 +113,7 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	feeIDs, err := financeUUIDs(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
 	if err != nil || request.GetGroupingPolicy() == nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
@@ -127,7 +127,7 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 		for _, item := range group.Fees {
 			fees = append(fees, financeBillableFeeToAPI(item))
 		}
-		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: financeUUID(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8)})
+		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8)})
 	}
 	return &v1.PreviewBillBatchResponse{Success: true, Message: "OK", Data: groups, PreviewToken: preview.PreviewToken, TraceId: requestmeta.TraceID(ctx)}, nil
 }
@@ -137,7 +137,7 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	feeIDs, err := financeUUIDs(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
 	if err != nil || request.GetGroupingPolicy() == nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
@@ -244,12 +244,12 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: item.TotalAmount.StringFixed(8), NetAmount: item.NetAmount.StringFixed(8),
 		TaxAmount: item.TaxAmount.StringFixed(8), BaseCurrencyAmount: item.BaseCurrencyAmount.StringFixed(8), FeeCount: int32(item.FeeCount),
 		BillDate: item.BillDate, DueDate: item.DueDate, Note: item.Note, Version: item.Version,
-		ConfirmedAt: financeTime(item.ConfirmedAt), ConfirmedBy: financeUUID(item.ConfirmedBy), CancelledAt: financeTime(item.CancelledAt),
-		CancelledBy: financeUUID(item.CancelledBy), CancellationReason: item.CancellationReason, Lines: lines,
+		ConfirmedAt: financeTime(item.ConfirmedAt), ConfirmedBy: uuidStringPtr(item.ConfirmedBy), CancelledAt: financeTime(item.CancelledAt),
+		CancelledBy: uuidStringPtr(item.CancelledBy), CancellationReason: item.CancellationReason, Lines: lines,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339),
 		VerifiedAmount: item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8),
-		BatchId: financeUUID(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
-		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: financeUUID(item.ExchangeRateSettingID),
+		BatchId: uuidStringPtr(item.BatchID), BatchNo: financeOptionalValue(item.BatchNo), StatementTitle: item.StatementTitle, PaymentTermsDays: financeIntPointerToInt32(item.PaymentTermsDays),
+		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID),
 	}
 }
 

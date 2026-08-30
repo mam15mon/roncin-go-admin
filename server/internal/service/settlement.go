@@ -45,18 +45,6 @@ func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, u
 	return principal, id, nil
 }
 
-func financeUUIDs(values []string, invalid error) ([]uuid.UUID, error) {
-	result := make([]uuid.UUID, 0, len(values))
-	for _, value := range values {
-		id, err := uuid.Parse(strings.TrimSpace(value))
-		if err != nil {
-			return nil, invalid
-		}
-		result = append(result, id)
-	}
-	return result, nil
-}
-
 func financeInt32Pointer(value *int32) *int {
 	if value == nil {
 		return nil
@@ -93,14 +81,6 @@ func financeTime(value *time.Time) *string {
 		return nil
 	}
 	formatted := value.UTC().Format(time.RFC3339)
-	return &formatted
-}
-
-func financeUUID(value *uuid.UUID) *string {
-	if value == nil {
-		return nil
-	}
-	formatted := value.String()
 	return &formatted
 }
 

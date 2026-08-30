@@ -473,7 +473,7 @@ func dataScopeToAPI(value biz.DataScope) v1.DataScope {
 }
 
 func organizationToAPI(value *biz.AdminOrganization) *v1.AdminOrganization {
-	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, Kind: organizationKindToAPI(value.Kind), ParentId: uuidString(value.ParentID), Enabled: value.Enabled, BaseCurrency: value.BaseCurrency}
+	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, Kind: organizationKindToAPI(value.Kind), ParentId: uuidStringPtr(value.ParentID), Enabled: value.Enabled, BaseCurrency: value.BaseCurrency}
 }
 
 func organizationKindFromAPI(value v1.OrganizationKind) biz.OrganizationKind {
@@ -568,15 +568,7 @@ func orderOrganizationAccessesToAPI(values []biz.OrderOrganizationAccess) []*v1.
 }
 
 func auditLogToAPI(value *biz.AuditLog) *v1.AdminAuditLog {
-	return &v1.AdminAuditLog{Id: value.ID.String(), OrganizationId: uuidString(value.OrganizationID), UserId: uuidString(value.UserID), Action: value.Action, ResourceType: value.ResourceType, ResourceId: value.ResourceID, Result: value.Result, RequestId: value.RequestID, TraceId: value.TraceID, IpAddress: value.IPAddress, Details: value.Details, CreatedAt: value.CreatedAt.Format(time.RFC3339), ActorDisplayName: value.ActorDisplayName, TargetDisplayName: value.TargetDisplayName}
-}
-
-func uuidString(value *uuid.UUID) *string {
-	if value == nil {
-		return nil
-	}
-	result := value.String()
-	return &result
+	return &v1.AdminAuditLog{Id: value.ID.String(), OrganizationId: uuidStringPtr(value.OrganizationID), UserId: uuidStringPtr(value.UserID), Action: value.Action, ResourceType: value.ResourceType, ResourceId: value.ResourceID, Result: value.Result, RequestId: value.RequestID, TraceId: value.TraceID, IpAddress: value.IPAddress, Details: value.Details, CreatedAt: value.CreatedAt.Format(time.RFC3339), ActorDisplayName: value.ActorDisplayName, TargetDisplayName: value.TargetDisplayName}
 }
 
 func uuidStrings(values []uuid.UUID) []string {

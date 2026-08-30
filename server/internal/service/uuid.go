@@ -1,6 +1,10 @@
 package service
 
-import "github.com/google/uuid"
+import (
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 // parseUUIDValues 按输入顺序解析 UUID，解析失败时返回调用方所属领域错误。
 func parseUUIDValues(values []string, invalidErr error) ([]uuid.UUID, error) {
@@ -31,6 +35,15 @@ func parseUniqueUUIDValues(values []string, invalidErr error) ([]uuid.UUID, erro
 		result = append(result, id)
 	}
 	return result, nil
+}
+
+// parseTrimmedUUIDValues 在解析前移除输入两端空白。
+func parseTrimmedUUIDValues(values []string, invalidErr error) ([]uuid.UUID, error) {
+	trimmed := make([]string, len(values))
+	for index, value := range values {
+		trimmed[index] = strings.TrimSpace(value)
+	}
+	return parseUUIDValues(trimmed, invalidErr)
 }
 
 func uuidStringPtr(value *uuid.UUID) *string {

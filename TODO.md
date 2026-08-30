@@ -299,6 +299,8 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
       收口到 service 包 `idutil`
 - [x] UUID 第一批：在共享 `uuid.go` 中补充有序去重解析，迁移
       管理员角色 ID 的 6 处调用并删除私有 `parseUUIDs`
+- [x] UUID 第二批：迁移财务 UUID 列表的去空白解析，统一管理员与
+      财务 DTO 的 UUID 指针格式化，删除 `financeUUIDs`/`financeUUID`/`uuidString`
 - [ ] 26 处 `decimal.NewFromString` + err 三连抽 `data.decimalOf(s)`
 
 ### B7. cmd 同步工具框架（低）
