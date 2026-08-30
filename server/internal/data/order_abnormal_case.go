@@ -78,124 +78,99 @@ func (r *orderAbnormalCaseRepo) Mark(ctx context.Context, organizationID, orderI
 	if err := r.validateAbnormalCaseKind(ctx, organizationID, abnormalCaseID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderAbnormalCase.Query().
-		Where(
-			orderabnormalcaseent.OrderIDEQ(orderID),
-			orderabnormalcaseent.AbnormalCaseIDEQ(abnormalCaseID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		if !ent.IsNotFound(err) {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		now := time.Now()
-		created, err := tx.OrderAbnormalCase.Create().
-			SetID(newID).
-			SetOrderID(orderID).
-			SetAbnormalCaseID(abnormalCaseID).
-			SetStatus(orderabnormalcaseent.StatusACTIVE).
-			SetMarkedAt(now).
-			SetMarkedBy(actorID).
-			Save(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			if ent.IsConstraintError(err) && strings.Contains(err.Error(), "orderabnormalcase_order_id_abnormal_case_id") {
-				return nil, biz.ErrOrderAbnormalCaseExists
+	var saved *ent.OrderAbnormalCase
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderAbnormalCase.Query().
+			Where(
+				orderabnormalcaseent.OrderIDEQ(orderID),
+				orderabnormalcaseent.AbnormalCaseIDEQ(abnormalCaseID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			now := time.Now()
+			var saveErr error
+			saved, saveErr = tx.OrderAbnormalCase.Create().
+				SetID(newID).
+				SetOrderID(orderID).
+				SetAbnormalCaseID(abnormalCaseID).
+				SetStatus(orderabnormalcaseent.StatusACTIVE).
+				SetMarkedAt(now).
+				SetMarkedBy(actorID).
+				Save(ctx)
+			if saveErr != nil {
+				if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "orderabnormalcase_order_id_abnormal_case_id") {
+					return biz.ErrOrderAbnormalCaseExists
+				}
+				return saveErr
 			}
-			return nil, err
+		} else {
+			if queryErr != nil {
+				return queryErr
+			}
+			if item.Status == orderabnormalcaseent.StatusACTIVE {
+				return biz.ErrOrderAbnormalCaseExists
+			}
+			now := time.Now()
+			var saveErr error
+			saved, saveErr = tx.OrderAbnormalCase.UpdateOne(item).
+				SetStatus(orderabnormalcaseent.StatusACTIVE).
+				SetMarkedAt(now).
+				SetMarkedBy(actorID).
+				ClearResolvedAt().
+				ClearResolvedBy().
+				Save(ctx)
+			if saveErr != nil {
+				return saveErr
+			}
 		}
 		if audit.Details == nil {
 			audit.Details = make(map[string]string)
 		}
-		audit.Details["abnormal_case_record.id"] = created.ID.String()
-		if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if err := tx.Commit(); err != nil {
-			return nil, err
-		}
-		return orderAbnormalCaseToBiz(created), nil
-	}
-
-	if item.Status == orderabnormalcaseent.StatusACTIVE {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderAbnormalCaseExists
-	}
-
-	now := time.Now()
-	updated, err := tx.OrderAbnormalCase.UpdateOne(item).
-		SetStatus(orderabnormalcaseent.StatusACTIVE).
-		SetMarkedAt(now).
-		SetMarkedBy(actorID).
-		ClearResolvedAt().
-		ClearResolvedBy().
-		Save(ctx)
+		audit.Details["abnormal_case_record.id"] = saved.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
-	if audit.Details == nil {
-		audit.Details = make(map[string]string)
-	}
-	audit.Details["abnormal_case_record.id"] = updated.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return orderAbnormalCaseToBiz(updated), nil
+	return orderAbnormalCaseToBiz(saved), nil
 }
 
 func (r *orderAbnormalCaseRepo) Resolve(ctx context.Context, organizationID, orderID, actorID, id uuid.UUID, audit *biz.AuditEvent) (*biz.OrderAbnormalCase, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderAbnormalCase.Query().
-		Where(
-			orderabnormalcaseent.IDEQ(id),
-			orderabnormalcaseent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderAbnormalCaseNotFound
+	var updated *ent.OrderAbnormalCase
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderAbnormalCase.Query().
+			Where(
+				orderabnormalcaseent.IDEQ(id),
+				orderabnormalcaseent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderAbnormalCaseNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if item.Status != orderabnormalcaseent.StatusACTIVE {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderAbnormalCaseStatusConflict
-	}
-	now := time.Now()
-	updated, err := tx.OrderAbnormalCase.UpdateOne(item).
-		SetStatus(orderabnormalcaseent.StatusRESOLVED).
-		SetResolvedAt(now).
-		SetResolvedBy(actorID).
-		Save(ctx)
+		if item.Status != orderabnormalcaseent.StatusACTIVE {
+			return biz.ErrOrderAbnormalCaseStatusConflict
+		}
+		now := time.Now()
+		var saveErr error
+		updated, saveErr = tx.OrderAbnormalCase.UpdateOne(item).
+			SetStatus(orderabnormalcaseent.StatusRESOLVED).
+			SetResolvedAt(now).
+			SetResolvedBy(actorID).
+			Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderAbnormalCaseToBiz(updated), nil
@@ -205,29 +180,21 @@ func (r *orderAbnormalCaseRepo) Remove(ctx context.Context, organizationID, orde
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	n, err := tx.OrderAbnormalCase.Delete().
-		Where(
-			orderabnormalcaseent.IDEQ(id),
-			orderabnormalcaseent.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderAbnormalCaseNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		n, deleteErr := tx.OrderAbnormalCase.Delete().
+			Where(
+				orderabnormalcaseent.IDEQ(id),
+				orderabnormalcaseent.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
+			return biz.ErrOrderAbnormalCaseNotFound
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderAbnormalCaseToBiz(item *ent.OrderAbnormalCase) *biz.OrderAbnormalCase {
