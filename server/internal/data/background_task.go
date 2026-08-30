@@ -268,31 +268,11 @@ func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID,
 	if options.EndTime != nil {
 		query.Where(backgroundtaskent.CreatedAtLTE(*options.EndTime))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.
-		WithNotificationDelivery(func(query *ent.NotificationDeliveryQuery) {
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.BackgroundTask, error) {
+		return query.WithNotificationDelivery(func(query *ent.NotificationDeliveryQuery) {
 			query.WithRecipientUser()
-		}).
-		Order(backgroundtaskent.ByCreatedAt(entsql.OrderDesc())).
-		Offset((options.Page - 1) * options.PageSize).
-		Limit(options.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	tasks := make([]*biz.BackgroundTask, 0, len(items))
-	for _, item := range items {
-		tasks = append(tasks, backgroundTaskToBiz(item))
-	}
-	return &biz.BackgroundTaskList{
-		Items:    tasks,
-		Total:    total,
-		Page:     options.Page,
-		PageSize: options.PageSize,
-	}, nil
+		}).Order(backgroundtaskent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(backgroundTaskToBiz))
 }
 
 func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uuid.UUID, now time.Time, audit *biz.AuditEvent) (*biz.BackgroundTask, error) {

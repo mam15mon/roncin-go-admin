@@ -37,23 +37,11 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 			})
 		}).
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() })
-	total, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.
-		Order(membership.ByUserField(userent.FieldUsername), membership.ByID()).
-		Offset((options.Page - 1) * options.PageSize).
-		Limit(options.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.AdminUser, 0, len(items))
-	for _, item := range items {
-		result = append(result, membershipToUser(item))
-	}
-	return &biz.AdminUserList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, func(ctx context.Context) (int, error) {
+		return query.Clone().Count(ctx)
+	}, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
+		return query.Order(membership.ByUserField(userent.FieldUsername), membership.ByID()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(membershipToUser))
 }
 
 func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, input *biz.AdminUser, passwordHash string, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {

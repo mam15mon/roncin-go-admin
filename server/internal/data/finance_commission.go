@@ -47,23 +47,13 @@ func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, optio
 		))
 	}
 	query := r.data.db.User.Query().Where(predicates...)
-	total, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	xs, err := query.
-		Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).
-		Offset((options.Page - 1) * options.PageSize).
-		Limit(options.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.CommissionEmployeeOption, 0, len(xs))
-	for _, x := range xs {
-		result = append(result, &biz.CommissionEmployeeOption{ID: x.ID, DisplayName: x.DisplayName})
-	}
-	return &biz.PagedList[*biz.CommissionEmployeeOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, func(ctx context.Context) (int, error) {
+		return query.Clone().Count(ctx)
+	}, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
+		return query.Order(user.ByDisplayName(), user.ByUsername(), user.ByID()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.User) *biz.CommissionEmployeeOption {
+		return &biz.CommissionEmployeeOption{ID: item.ID, DisplayName: item.DisplayName}
+	}))
 }
 
 func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
