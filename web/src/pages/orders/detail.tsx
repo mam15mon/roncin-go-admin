@@ -21,6 +21,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
+import {
+  OrderAllowedAction,
+  OrderBusinessType,
+  OrderClosureStatus,
+  OrderTerminationStatus,
+  TradeDirection,
+} from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
@@ -62,8 +69,8 @@ export default function OrderDetailPage() {
   const config = parseOrderKind(kind) || {
     kind: 'sea-export' as const,
     title: '海运出口',
-    businessType: 1,
-    tradeDirection: 1,
+    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
     category: 'sea' as const,
   };
 
@@ -227,9 +234,10 @@ export default function OrderDetailPage() {
   }
 
   const progressStage =
-    order.closureStatus === 2
+    order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
       ? '已完结'
-      : order.terminationStatus === 3
+      : order.terminationStatus ===
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
         ? '已退关'
         : '进行中';
 
@@ -283,7 +291,7 @@ export default function OrderDetailPage() {
     <>
       <OrderFormTemplate<any>
         loading={false}
-        readonly={!hasAction(1)}
+        readonly={!hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT)}
         formRef={formRef}
         initialValues={initialValues}
         onFinish={handleSaveEdit}
@@ -327,7 +335,7 @@ export default function OrderDetailPage() {
               </Space>
             }
           >
-            {hasAction(1) && (
+            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
               <Button
                 icon={<UndoOutlined />}
                 onClick={() => formRef.current?.setFieldsValue(initialValues)}
@@ -335,7 +343,7 @@ export default function OrderDetailPage() {
                 重置修改
               </Button>
             )}
-            {hasAction(1) && (
+            {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
               <Button
                 type="primary"
                 icon={<CheckOutlined />}

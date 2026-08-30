@@ -1,5 +1,6 @@
 import { App } from 'antd';
 import { useEffect, useState } from 'react';
+import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
 import {
   masterDataServiceListAirports,
   masterDataServiceListOptions,
@@ -28,7 +29,10 @@ export function useOrderListResources(config?: OrderKindConfig) {
       masterDataServiceListOptions(),
       masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
       masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
-      searchPartnerOptions(undefined, { role: 1, enabled: true }),
+      searchPartnerOptions(undefined, {
+        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        enabled: true,
+      }),
     ])
       .then(
         ([
@@ -129,7 +133,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
 
   const searchCustomers = async (keyword?: string) => {
     const options = await searchPartnerOptions(keyword, {
-      role: 1,
+      role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
       enabled: true,
     });
     setCustomerMap((prev) => {
@@ -169,12 +173,15 @@ export function useOrderListResources(config?: OrderKindConfig) {
     searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword);
 
   const searchOrderCarriers = async (keyword?: string) => {
-    return searchPartnerOptions(keyword, { role: 4, enabled: true });
+    return searchPartnerOptions(keyword, {
+      role: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
+      enabled: true,
+    });
   };
 
   const searchOrderPersonnel = async (keyword?: string) => {
     const response = await orderServiceListPersonnelOptions({
-      businessType: config?.businessType ?? 1,
+      businessType: config?.businessType ?? OrderBusinessType.BUSINESS_TYPE_SE,
       keyword,
       page: 1,
       pageSize: 50,

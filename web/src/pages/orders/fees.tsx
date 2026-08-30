@@ -20,6 +20,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { OrderBusinessType, OrderFlowStatus } from '@/enums.generated';
 import { FinanceSummaryBoard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
 import { unwrapList } from '@/utils/api';
@@ -60,7 +61,7 @@ export default function OrderFeesPage() {
   const config = parseOrderKind(kind) || {
     kind: 'sea-export',
     title: '海运出口',
-    businessType: 1,
+    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
     category: 'sea',
   };
 
@@ -396,7 +397,8 @@ export default function OrderFeesPage() {
           </a>
           <span>&gt;</span>
           <span style={{ fontWeight: 600, color: '#0f172a' }}>费用录入</span>
-          {order.canModify === false && order.flowStatus !== 1 && (
+          {order.canModify === false &&
+            order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
             <Tag color="warning" icon={<LockOutlined />}>
               已锁单
             </Tag>

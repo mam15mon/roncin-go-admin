@@ -9,7 +9,18 @@ import {
   makeValueEnum,
   statusText,
 } from '@/constants/statusMeta';
-import { OrderBusinessType } from '@/enums.generated';
+import {
+  ContainerOwnership,
+  OrderBusinessType,
+  OrderPersonnelRole,
+  OrderShippingDocumentStatus,
+  PartnerRoleType,
+  PaymentTerm,
+  ShipmentMode,
+  ShipmentType,
+  TradeDirection,
+  TradeTerm,
+} from '@/enums.generated';
 import { unwrapList } from '@/utils/api';
 import { getCurrencies, searchPartnerOptions } from '@/utils/options';
 
@@ -39,8 +50,8 @@ export const businessTypeValueEnum: Record<number | string, { text: string }> =
   );
 
 export const tradeDirectionOptions = [
-  { label: '出口', value: 1 },
-  { label: '进口', value: 2 },
+  { label: '出口', value: TradeDirection.TRADE_DIRECTION_EXPORT },
+  { label: '进口', value: TradeDirection.TRADE_DIRECTION_IMPORT },
 ];
 
 export const tradeDirectionValueEnum: Record<
@@ -51,39 +62,42 @@ export const tradeDirectionValueEnum: Record<
 );
 
 export const tradeTermOptions = [
-  { label: 'EXW', value: 1 },
-  { label: 'FCA', value: 2 },
-  { label: 'FOB', value: 3 },
-  { label: 'CFR', value: 4 },
-  { label: 'CIF', value: 5 },
-  { label: 'CPT', value: 6 },
-  { label: 'CIP', value: 7 },
-  { label: 'DAP', value: 8 },
-  { label: 'DPU', value: 9 },
-  { label: 'DDU', value: 10 },
-  { label: 'DDP', value: 11 },
-  { label: 'LDP', value: 12 },
+  { label: 'EXW', value: TradeTerm.TRADE_TERM_EXW },
+  { label: 'FCA', value: TradeTerm.TRADE_TERM_FCA },
+  { label: 'FOB', value: TradeTerm.TRADE_TERM_FOB },
+  { label: 'CFR', value: TradeTerm.TRADE_TERM_CFR },
+  { label: 'CIF', value: TradeTerm.TRADE_TERM_CIF },
+  { label: 'CPT', value: TradeTerm.TRADE_TERM_CPT },
+  { label: 'CIP', value: TradeTerm.TRADE_TERM_CIP },
+  { label: 'DAP', value: TradeTerm.TRADE_TERM_DAP },
+  { label: 'DPU', value: TradeTerm.TRADE_TERM_DPU },
+  { label: 'DDU', value: TradeTerm.TRADE_TERM_DDU },
+  { label: 'DDP', value: TradeTerm.TRADE_TERM_DDP },
+  { label: 'LDP', value: TradeTerm.TRADE_TERM_LDP },
 ];
 
 export const paymentTermOptions = [
-  { label: '预付 (PP)', value: 1 },
-  { label: '到付 (CC)', value: 2 },
+  { label: '预付 (PP)', value: PaymentTerm.PAYMENT_TERM_PREPAID },
+  { label: '到付 (CC)', value: PaymentTerm.PAYMENT_TERM_COLLECT },
 ];
 
 export const shipmentTypeOptions = [
-  { label: '整箱', value: 1 },
-  { label: '拼箱', value: 2 },
-  { label: '散杂', value: 3 },
+  { label: '整箱', value: ShipmentType.SHIPMENT_TYPE_FCL },
+  { label: '拼箱', value: ShipmentType.SHIPMENT_TYPE_LCL },
+  { label: '散杂', value: ShipmentType.SHIPMENT_TYPE_BREAK_BULK },
 ];
 
 export const containerOwnershipOptions = [
-  { label: '船东箱 (COC)', value: 1 },
-  { label: '自备箱 (SOC)', value: 2 },
+  { label: '船东箱 (COC)', value: ContainerOwnership.CONTAINER_OWNERSHIP_COC },
+  { label: '自备箱 (SOC)', value: ContainerOwnership.CONTAINER_OWNERSHIP_SOC },
 ];
 
 export const shipmentModeOptions = [
-  { label: '集运', value: 1 },
-  { label: '跨境', value: 2 },
+  {
+    label: '集运',
+    value: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
+  },
+  { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
 ];
 
 export const loadingTermsOptions = [
@@ -131,14 +145,14 @@ export function requireSeaServiceTypeOptions<
 }
 
 export const orderPersonnelRoleOptions = [
-  { label: '创建人 (CREATOR)', value: 1 },
-  { label: '操作专员 (OPERATOR)', value: 2 },
-  { label: '业务销售 (SALES)', value: 3 },
-  { label: '客服专员 (CUSTOMER_SERVICE)', value: 4 },
-  { label: '单证专员 (DOCUMENT)', value: 5 },
-  { label: '商务采购 (COMMERCIAL)', value: 6 },
-  { label: '协同助理 (ASSOCIATE)', value: 7 },
-  { label: '副协同 (ASSOCIATE2)', value: 8 },
+  { label: '创建人 (CREATOR)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR },
+  { label: '操作专员 (OPERATOR)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR },
+  { label: '业务销售 (SALES)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES },
+  { label: '客服专员 (CUSTOMER_SERVICE)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE },
+  { label: '单证专员 (DOCUMENT)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT },
+  { label: '商务采购 (COMMERCIAL)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL },
+  { label: '协同助理 (ASSOCIATE)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE },
+  { label: '副协同 (ASSOCIATE2)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2 },
 ];
 
 export const orderPersonnelRoleValueEnum: Record<
@@ -152,9 +166,9 @@ export const shippingDocumentStatusValueEnum: Record<
   number,
   { text: string; status: 'Default' | 'Processing' | 'Success' }
 > = {
-  1: { text: '草稿', status: 'Default' },
-  2: { text: '已确认', status: 'Processing' },
-  3: { text: '已放货', status: 'Success' },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT]: { text: '草稿', status: 'Default' },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED]: { text: '已确认', status: 'Processing' },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED]: { text: '已放货', status: 'Success' },
 };
 
 export const MASTER_DATA_KINDS = {
@@ -172,10 +186,10 @@ export function isMasterDataKind(
 }
 
 export const PARTNER_ROLES = {
-  CUSTOMER: 1,
-  SUPPLIER: 2,
-  FOREIGN_AGENT: 3,
-  CARRIER: 4,
+  CUSTOMER: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+  SUPPLIER: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+  FOREIGN_AGENT: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
+  CARRIER: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER,
 } as const;
 
 export type OrderKind = 'sea-export';
@@ -191,8 +205,8 @@ export interface OrderKindConfig {
 export const ORDER_KIND_CONFIGS: Record<string, OrderKindConfig> = {
   'sea-export': {
     kind: 'sea-export',
-    businessType: 1,
-    tradeDirection: 1,
+    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
     title: '海运出口订单',
     category: 'sea',
   },

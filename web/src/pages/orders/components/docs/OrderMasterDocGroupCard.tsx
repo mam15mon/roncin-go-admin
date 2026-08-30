@@ -15,6 +15,7 @@ import {
   Tooltip,
 } from 'antd';
 import React from 'react';
+import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
   SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
   SEA_MASTER_RELEASE_METHOD_OPTIONS,
@@ -66,7 +67,11 @@ export default function OrderMasterDocGroupCard({
   onHouseFieldChange,
 }: OrderMasterDocGroupCardProps) {
   const masterTrimmed = group.masterNo?.trim();
-  const groupHasReleased = group.houses.some((house) => house.status === 3);
+  const groupHasReleased = group.houses.some(
+    (house) =>
+      house.status ===
+      OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED,
+  );
   const groupHasContent =
     group.houses.some(
       (house) =>
@@ -351,7 +356,9 @@ export default function OrderMasterDocGroupCard({
         <div style={{ background: '#ffffff', padding: '6px 12px' }}>
           {group.houses.map((house, houseIdx) => {
             const isOnlyOne = group.houses.length === 1 && totalGroups === 1;
-            const isReleased = house.status === 3;
+            const isReleased =
+              house.status ===
+              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED;
             const normalizedHouseNo = house.houseNo.trim().toLowerCase();
             const isDuplicate =
               Boolean(normalizedHouseNo) &&

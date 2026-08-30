@@ -5,6 +5,7 @@ import type {
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import {
   OrderClosureStatus,
+  OrderNumberFilterType,
   OrderTerminationStatus,
 } from '@/enums.generated';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
@@ -35,11 +36,11 @@ export async function queryOrderList(
     pageSize: params.pageSize,
     numberType:
       params.numberType === 'order'
-        ? 1
+        ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_ORDER
         : params.numberType === 'master'
-          ? 2
+          ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_MASTER
           : params.numberType === 'consolidated_master'
-            ? 3
+            ? OrderNumberFilterType.ORDER_NUMBER_FILTER_TYPE_CONSOLIDATED_MASTER
             : undefined,
     numberKeyword: params.numberKeyword,
     ...lifecycleFilters,

@@ -9,6 +9,11 @@ import { history } from '@umijs/max';
 import { Button, Dropdown, type MenuProps } from 'antd';
 import React from 'react';
 import { DocumentDetailLayout } from '@/components/ui/document-detail-layout';
+import {
+  OrderAllowedAction,
+  OrderClosureStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 
 type OrderDetailHeaderProps = {
   kind: string;
@@ -56,7 +61,7 @@ export default function OrderDetailHeader({
       actions={
         <>
           {/* 实心蓝底主保存按钮 */}
-          {hasAction(1) && (
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -68,30 +73,64 @@ export default function OrderDetailHeader({
             </Button>
           )}
 
-          {hasAction(3) && (
-            <Button danger onClick={() => onConfirmTermination(2)}>
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION) && (
+            <Button
+              danger
+              onClick={() =>
+                onConfirmTermination(
+                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
+                )
+              }
+            >
               发起退关
             </Button>
           )}
-          {hasAction(4) && (
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION) && (
             <Button
               danger
               type="primary"
-              onClick={() => onConfirmTermination(3)}
+              onClick={() =>
+                onConfirmTermination(
+                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+                )
+              }
             >
               完成退关
             </Button>
           )}
-          {hasAction(5) && (
-            <Button onClick={() => onConfirmTermination(1)}>取消退关</Button>
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION) && (
+            <Button
+              onClick={() =>
+                onConfirmTermination(
+                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+                )
+              }
+            >
+              取消退关
+            </Button>
           )}
-          {hasAction(6) && (
-            <Button type="primary" onClick={() => onConfirmClosure(2)}>
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE) && (
+            <Button
+              type="primary"
+              onClick={() =>
+                onConfirmClosure(
+                  OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+                )
+              }
+            >
               完结订单
             </Button>
           )}
-          {hasAction(7) && (
-            <Button onClick={() => onConfirmClosure(1)}>反结案</Button>
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN) && (
+            <Button
+              onClick={() =>
+                onConfirmClosure(
+                  OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+                )
+              }
+            >
+              反结案
+            </Button>
           )}
 
           {/* 费用录入（直达独立全屏费用工作台页面） */}

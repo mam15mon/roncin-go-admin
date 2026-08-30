@@ -13,9 +13,8 @@ import {
 import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import {
-  shippingDocumentStatusValueEnum,
-} from '../../common';
+import { OrderShippingDocumentStatus } from '@/enums.generated';
+import { shippingDocumentStatusValueEnum } from '../../common';
 import {
   SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
@@ -144,9 +143,11 @@ const ShippingDocumentDrawer = forwardRef<
         shippingDocumentStatusValueEnum[record.status] ? (
           <Tag
             color={
-              record.status === 3
+              record.status ===
+              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED
                 ? 'success'
-                : record.status === 2
+                : record.status ===
+                    OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED
                   ? 'processing'
                   : 'default'
             }
@@ -179,7 +180,8 @@ const ShippingDocumentDrawer = forwardRef<
             >
               编辑
             </Button>
-            {record.status === 1 && (
+            {record.status ===
+              OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT && (
               <Popconfirm
                 title="确认将该提单状态流转为【已确认】？"
                 onConfirm={async () => {
@@ -192,8 +194,10 @@ const ShippingDocumentDrawer = forwardRef<
                     {
                       orderId: order.id,
                       id: record.id,
-                      expectedStatus: 1,
-                      toStatus: 2,
+                      expectedStatus:
+                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT,
+                      toStatus:
+                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
                     },
                   );
                   message.success('提单已确认');

@@ -1,21 +1,29 @@
 import { Col, Space, Tag } from 'antd';
 import React from 'react';
 import type { OrderFormTemplateSection } from '@/components/ui';
+import {
+  OrderClosureStatus,
+  OrderFlowStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 
 const STEPS = [
-  { value: 2, key: 'booked', label: '已订舱' },
-  { value: 3, key: 'allocated', label: '已配舱' },
-  { value: 4, key: 'trucked', label: '拖车已安排' },
-  { value: 5, key: 'si_cutoff', label: '已截单' },
-  { value: 6, key: 'customs', label: '报关已安排' },
-  { value: 7, key: 'released', label: '已放单' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED, key: 'booked', label: '已订舱' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED, key: 'allocated', label: '已配舱' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_TRUCKING_ARRANGED, key: 'trucked', label: '拖车已安排' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_CUTOFF, key: 'si_cutoff', label: '已截单' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED, key: 'customs', label: '报关已安排' },
+  { value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED, key: 'released', label: '已放单' },
 ];
 
 export function buildOrderStatusSection(
   order?: API.Order,
 ): OrderFormTemplateSection {
-  const isUnreturned = order?.terminationStatus !== 3;
-  const isUncompleted = order?.closureStatus !== 2;
+  const isUnreturned =
+    order?.terminationStatus !==
+    OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED;
+  const isUncompleted =
+    order?.closureStatus !== OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
 
   return {
     key: 'orderStatusSection',

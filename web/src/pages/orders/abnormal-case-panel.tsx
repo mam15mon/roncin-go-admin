@@ -13,6 +13,7 @@ import {
   orderAbnormalCaseStatusMeta,
   statusTag,
 } from '@/constants/statusMeta';
+import { OrderAbnormalCaseStatus } from '@/enums.generated';
 import {
   orderAbnormalCaseServiceListAbnormalCases,
   orderAbnormalCaseServiceMarkAbnormalCase,
@@ -155,7 +156,8 @@ const AbnormalCasePanel = forwardRef<
         if (!canManage) return null;
         return (
           <Space size={6}>
-            {record.status === 1 && (
+            {record.status ===
+              OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_ACTIVE && (
               <Popconfirm
                 title="确定解决该异常？"
                 onConfirm={async () => {

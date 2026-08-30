@@ -5,6 +5,11 @@ import { App, Button, Result } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { PageHeaderShell } from '@/components/ui';
+import {
+  OrderReferenceType,
+  ShipmentMode,
+  ShipmentType,
+} from '@/enums.generated';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import {
   orderServiceCheckOrderReference,
@@ -44,8 +49,9 @@ export default function NewOrderPage() {
   } = useOrderCreateOptions(config);
 
   const checkOrderReference = useCallback(
-    async (referenceType: 1 | 2) => {
-      const isCustomerReference = referenceType === 1;
+    async (referenceType: OrderReferenceType) => {
+      const isCustomerReference =
+        referenceType === OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER;
       const fieldName = isCustomerReference
         ? 'customerReferenceNo'
         : 'internalReferenceNo';
@@ -107,8 +113,14 @@ export default function NewOrderPage() {
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
-      checkCustomerReferenceNo: () => checkOrderReference(1),
-      checkInternalReferenceNo: () => checkOrderReference(2),
+      checkCustomerReferenceNo: () =>
+        checkOrderReference(
+          OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER,
+        ),
+      checkInternalReferenceNo: () =>
+        checkOrderReference(
+          OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL,
+        ),
       personnelOptions,
       creator:
         initialState?.currentUser?.id &&
@@ -209,8 +221,9 @@ export default function NewOrderPage() {
         orderDate: dayjs(),
         ...(config.category === 'sea'
           ? {
-              shipmentMode: 1,
-              shipmentType: 1,
+              shipmentMode:
+                ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
+              shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
               serviceTypeIds: recommendedServiceIDs(
                 serviceTypeOptions,
                 SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,

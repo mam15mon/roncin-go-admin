@@ -1,4 +1,10 @@
 import dayjs from 'dayjs';
+import {
+  ContainerOwnership,
+  OrderPersonnelRole,
+  ShipmentMode,
+  ShipmentType,
+} from '@/enums.generated';
 
 export function buildInitialValues(
   order?: API.Order,
@@ -37,9 +43,13 @@ export function buildInitialValues(
     insurancePremium: order.insurancePremium,
     insuranceCurrency: order.insuranceCurrency || 'CNY',
     loadingTerms: order.loadingTerms,
-    shipmentType: order.shipmentType ?? 1,
-    containerOwnership: order.containerOwnership ?? 1,
-    shipmentMode: order.shipmentMode ?? 1,
+    shipmentType: order.shipmentType ?? ShipmentType.SHIPMENT_TYPE_FCL,
+    containerOwnership:
+      order.containerOwnership ??
+      ContainerOwnership.CONTAINER_OWNERSHIP_COC,
+    shipmentMode:
+      order.shipmentMode ??
+      ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     serviceTypeIds: order.serviceTypeIds ?? [],
     cargoCategoryIds: order.cargoCategoryIds ?? [],
     originLocationId: order.originLocationId,
@@ -70,22 +80,51 @@ export function buildInitialValues(
     shippingDocuments:
       shippingDocs.length > 0 ? shippingDocs : order.shippingDocuments,
     containerRequests: order.containerRequests,
-    creatorUserId: personnelRoleMap[0]?.userId,
-    creatorOrganizationId: personnelRoleMap[0]?.organizationId,
-    operatorUserId: personnelRoleMap[1]?.userId,
-    operatorOrganizationId: personnelRoleMap[1]?.organizationId,
-    salesUserId: personnelRoleMap[2]?.userId,
-    salesOrganizationId: personnelRoleMap[2]?.organizationId,
-    customerServiceUserId: personnelRoleMap[3]?.userId,
-    customerServiceOrganizationId: personnelRoleMap[3]?.organizationId,
-    documentUserId: personnelRoleMap[4]?.userId,
-    documentOrganizationId: personnelRoleMap[4]?.organizationId,
-    commercialUserId: personnelRoleMap[6]?.userId,
-    commercialOrganizationId: personnelRoleMap[6]?.organizationId,
-    associateUserId: personnelRoleMap[7]?.userId,
-    associateOrganizationId: personnelRoleMap[7]?.organizationId,
-    associate2UserId: personnelRoleMap[8]?.userId,
-    associate2OrganizationId: personnelRoleMap[8]?.organizationId,
+    creatorUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR]?.userId,
+    creatorOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR]
+        ?.organizationId,
+    operatorUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]?.userId,
+    operatorOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR]
+        ?.organizationId,
+    salesUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES]?.userId,
+    salesOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES]
+        ?.organizationId,
+    customerServiceUserId:
+      personnelRoleMap[
+        OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE
+      ]?.userId,
+    customerServiceOrganizationId:
+      personnelRoleMap[
+        OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE
+      ]?.organizationId,
+    documentUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]?.userId,
+    documentOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT]
+        ?.organizationId,
+    commercialUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL]
+        ?.userId,
+    commercialOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL]
+        ?.organizationId,
+    associateUserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]?.userId,
+    associateOrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE]
+        ?.organizationId,
+    associate2UserId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
+        ?.userId,
+    associate2OrganizationId:
+      personnelRoleMap[OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2]
+        ?.organizationId,
   };
 }
 
