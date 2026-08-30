@@ -413,108 +413,87 @@ func (r *enterpriseResourceRepo) BatchPartners(ctx context.Context, organization
 }
 
 func (r *enterpriseResourceRepo) BatchAddressTypes(ctx context.Context, organizationID uuid.UUID, resourceIDs []uuid.UUID, values []biz.EnterpriseAddressType, assign bool, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	count, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeADDRESS), resourceent.IDIn(resourceIDs...)).Count(ctx)
-	if err != nil || count != len(uniqueEnterpriseUUIDs(resourceIDs)) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrEnterpriseResourceInvalidArgument
-	}
-	converted := make([]addresstypeent.AddressType, len(values))
-	for i, value := range values {
-		converted[i] = addresstypeent.AddressType(value)
-	}
 	affected := 0
-	if assign {
-		for _, resourceID := range uniqueEnterpriseUUIDs(resourceIDs) {
-			for _, value := range converted {
-				exists, err := tx.EnterpriseResourceAddressType.Query().Where(addresstypeent.ResourceIDEQ(resourceID), addresstypeent.AddressTypeEQ(value)).Exist(ctx)
-				if err != nil {
-					_ = tx.Rollback()
-					return 0, err
-				}
-				if !exists {
-					if _, err := tx.EnterpriseResourceAddressType.Create().SetResourceID(resourceID).SetAddressType(value).Save(ctx); err != nil {
-						_ = tx.Rollback()
-						return 0, err
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		count, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeADDRESS), resourceent.IDIn(resourceIDs...)).Count(ctx)
+		if err != nil || count != len(uniqueEnterpriseUUIDs(resourceIDs)) {
+			if err != nil {
+				return err
+			}
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
+		converted := make([]addresstypeent.AddressType, len(values))
+		for i, value := range values {
+			converted[i] = addresstypeent.AddressType(value)
+		}
+		if assign {
+			for _, resourceID := range uniqueEnterpriseUUIDs(resourceIDs) {
+				for _, value := range converted {
+					exists, err := tx.EnterpriseResourceAddressType.Query().Where(addresstypeent.ResourceIDEQ(resourceID), addresstypeent.AddressTypeEQ(value)).Exist(ctx)
+					if err != nil {
+						return err
 					}
-					affected++
+					if !exists {
+						if _, err := tx.EnterpriseResourceAddressType.Create().SetResourceID(resourceID).SetAddressType(value).Save(ctx); err != nil {
+							return err
+						}
+						affected++
+					}
 				}
 			}
+		} else {
+			affected, err = tx.EnterpriseResourceAddressType.Delete().Where(addresstypeent.ResourceIDIn(resourceIDs...), addresstypeent.AddressTypeIn(converted...)).Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
-	} else {
-		affected, err = tx.EnterpriseResourceAddressType.Delete().Where(addresstypeent.ResourceIDIn(resourceIDs...), addresstypeent.AddressTypeIn(converted...)).Exec(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return 0, err
 	}
 	return affected, nil
 }
 
 func (r *enterpriseResourceRepo) BatchAssignees(ctx context.Context, organizationID uuid.UUID, resourceIDs, userIDs []uuid.UUID, assign bool, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	count, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeADDRESS), resourceent.IDIn(resourceIDs...)).Count(ctx)
-	if err != nil || count != len(uniqueEnterpriseUUIDs(resourceIDs)) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrEnterpriseResourceInvalidArgument
-	}
-	members, err := tx.Membership.Query().Where(membershipent.OrganizationIDEQ(organizationID), membershipent.UserIDIn(userIDs...), membershipent.EnabledEQ(true)).Count(ctx)
-	if err != nil || members != len(uniqueEnterpriseUUIDs(userIDs)) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrEnterpriseResourceInvalidArgument
-	}
 	affected := 0
-	if assign {
-		for _, resourceID := range uniqueEnterpriseUUIDs(resourceIDs) {
-			for _, userID := range uniqueEnterpriseUUIDs(userIDs) {
-				exists, err := tx.EnterpriseResourceAssignee.Query().Where(assigneeent.ResourceIDEQ(resourceID), assigneeent.UserIDEQ(userID)).Exist(ctx)
-				if err != nil {
-					_ = tx.Rollback()
-					return 0, err
-				}
-				if !exists {
-					if _, err := tx.EnterpriseResourceAssignee.Create().SetResourceID(resourceID).SetUserID(userID).Save(ctx); err != nil {
-						_ = tx.Rollback()
-						return 0, err
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		count, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceTypeADDRESS), resourceent.IDIn(resourceIDs...)).Count(ctx)
+		if err != nil || count != len(uniqueEnterpriseUUIDs(resourceIDs)) {
+			if err != nil {
+				return err
+			}
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
+		members, err := tx.Membership.Query().Where(membershipent.OrganizationIDEQ(organizationID), membershipent.UserIDIn(userIDs...), membershipent.EnabledEQ(true)).Count(ctx)
+		if err != nil || members != len(uniqueEnterpriseUUIDs(userIDs)) {
+			if err != nil {
+				return err
+			}
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
+		if assign {
+			for _, resourceID := range uniqueEnterpriseUUIDs(resourceIDs) {
+				for _, userID := range uniqueEnterpriseUUIDs(userIDs) {
+					exists, err := tx.EnterpriseResourceAssignee.Query().Where(assigneeent.ResourceIDEQ(resourceID), assigneeent.UserIDEQ(userID)).Exist(ctx)
+					if err != nil {
+						return err
 					}
-					affected++
+					if !exists {
+						if _, err := tx.EnterpriseResourceAssignee.Create().SetResourceID(resourceID).SetUserID(userID).Save(ctx); err != nil {
+							return err
+						}
+						affected++
+					}
 				}
 			}
+		} else {
+			affected, err = tx.EnterpriseResourceAssignee.Delete().Where(assigneeent.ResourceIDIn(resourceIDs...), assigneeent.UserIDIn(userIDs...)).Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
-	} else {
-		affected, err = tx.EnterpriseResourceAssignee.Delete().Where(assigneeent.ResourceIDIn(resourceIDs...), assigneeent.UserIDIn(userIDs...)).Exec(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
-		}
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return 0, err
 	}
 	return affected, nil
