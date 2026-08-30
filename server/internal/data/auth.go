@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"sort"
 	"strings"
@@ -44,17 +45,12 @@ func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []strin
 }
 
 func (r *authRepo) RecordLoginFailure(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int, audit *biz.AuditEvent) (bool, error) {
-	tx, err := r.data.sqlDB.BeginTx(ctx, nil)
-	if err != nil {
-		return false, err
-	}
-	defer tx.Rollback()
-
 	exceeded := false
-	for _, keyHash := range keyHashes {
-		var attempts int
-		// PostgreSQL upsert 保证同一限流桶的并发失败计数不会丢失。
-		err = tx.QueryRowContext(ctx, `
+	err := r.data.withSQLTx(ctx, func(tx *sql.Tx) error {
+		for _, keyHash := range keyHashes {
+			var attempts int
+			// PostgreSQL upsert 保证同一限流桶的并发失败计数不会丢失。
+			if err := tx.QueryRowContext(ctx, `
 INSERT INTO "login_rate_limit_buckets" ("id", "created_at", "updated_at", "key_hash", "window_started_at", "attempts")
 VALUES ($1, $2, $2, $3, $2, 1)
 ON CONFLICT ("key_hash") DO UPDATE SET
@@ -67,34 +63,33 @@ ON CONFLICT ("key_hash") DO UPDATE SET
     WHEN "login_rate_limit_buckets"."window_started_at" <= $4 THEN 1
     ELSE "login_rate_limit_buckets"."attempts" + 1
   END
-RETURNING "attempts"`, uuid.Must(uuid.NewV7()), now, keyHash, now.Add(-window)).Scan(&attempts)
+RETURNING "attempts"`, uuid.Must(uuid.NewV7()), now, keyHash, now.Add(-window)).Scan(&attempts); err != nil {
+				return err
+			}
+			if attempts > maxAttempts {
+				exceeded = true
+			}
+		}
+		requestID, traceID, ipAddress, details, err := resolveAuditValues(ctx, audit)
 		if err != nil {
-			return false, err
+			return err
 		}
-		if attempts > maxAttempts {
-			exceeded = true
+		var resourceType, resourceID, auditDetails any
+		if audit.ResourceType != "" {
+			resourceType = audit.ResourceType
 		}
-	}
-	requestID, traceID, ipAddress, details, err := resolveAuditValues(ctx, audit)
-	if err != nil {
-		return false, err
-	}
-	var resourceType, resourceID, auditDetails any
-	if audit.ResourceType != "" {
-		resourceType = audit.ResourceType
-	}
-	if audit.ResourceID != "" {
-		resourceID = audit.ResourceID
-	}
-	if len(details) > 0 {
-		auditDetails = string(details)
-	}
-	if _, err = tx.ExecContext(ctx, `
+		if audit.ResourceID != "" {
+			resourceID = audit.ResourceID
+		}
+		if len(details) > 0 {
+			auditDetails = string(details)
+		}
+		_, err = tx.ExecContext(ctx, `
 INSERT INTO "audit_logs" ("id", "created_at", "updated_at", "organization_id", "user_id", "action", "resource_type", "resource_id", "result", "request_id", "trace_id", "ip_address", "details")
-VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, uuid.Must(uuid.NewV7()), now, audit.OrganizationID, audit.UserID, audit.Action, resourceType, resourceID, audit.Result, requestID, traceID, ipAddress, auditDetails); err != nil {
-		return false, err
-	}
-	if err := tx.Commit(); err != nil {
+VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, uuid.Must(uuid.NewV7()), now, audit.OrganizationID, audit.UserID, audit.Action, resourceType, resourceID, audit.Result, requestID, traceID, ipAddress, auditDetails)
+		return err
+	})
+	if err != nil {
 		return false, err
 	}
 	return exceeded, nil

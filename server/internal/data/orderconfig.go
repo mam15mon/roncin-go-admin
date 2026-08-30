@@ -50,69 +50,57 @@ func (r *orderConfigRepo) ListNumberRules(ctx context.Context, organizationID uu
 }
 
 func (r *orderConfigRepo) CreateNumberRule(ctx context.Context, organizationID uuid.UUID, input *biz.NumberRule, audit *biz.AuditEvent) (*biz.NumberRule, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := tx.NumberRule.Create().SetOrganizationID(organizationID).SetDocumentType(numberrule.DocumentType(input.DocumentType)).SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(true).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
+	var created *ent.NumberRule
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		created, err = tx.NumberRule.Create().SetOrganizationID(organizationID).SetDocumentType(numberrule.DocumentType(input.DocumentType)).SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(true).Save(ctx)
 		if ent.IsConstraintError(err) {
-			return nil, biz.ErrNumberRuleExists
+			return biz.ErrNumberRuleExists
 		}
-		return nil, err
-	}
-	audit.Details["number_rule.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if err != nil {
+			return err
+		}
+		audit.Details["number_rule.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return numberRuleToBiz(created), nil
 }
 
 func (r *orderConfigRepo) UpdateNumberRule(ctx context.Context, organizationID, id uuid.UUID, input *biz.NumberRule, audit *biz.AuditEvent) (*biz.NumberRule, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.NumberRule.Query().Where(numberrule.IDEQ(id), numberrule.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
+	var updated *ent.NumberRule
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.NumberRule.Query().Where(numberrule.IDEQ(id), numberrule.OrganizationIDEQ(organizationID)).Only(ctx)
 		if ent.IsNotFound(err) {
-			return nil, biz.ErrNumberRuleNotFound
+			return biz.ErrNumberRuleNotFound
 		}
-		return nil, err
-	}
-	updated, err := existing.Update().SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(input.Enabled).Save(ctx)
+		if err != nil {
+			return err
+		}
+		updated, err = existing.Update().SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(input.Enabled).Save(ctx)
+		if err != nil {
+			return err
+		}
+		audit.Details["document_type"] = string(updated.DocumentType)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["document_type"] = string(updated.DocumentType)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return numberRuleToBiz(updated), nil
 }
 
 func (r *orderConfigRepo) AllocateNumber(ctx context.Context, organizationID uuid.UUID, documentType biz.DocumentType, at time.Time) (*biz.NumberRule, int64, error) {
-	tx, err := r.data.db.Tx(ctx)
+	var rule *biz.NumberRule
+	var sequence int64
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		rule, sequence, err = allocateNumberInTx(ctx, tx, organizationID, documentType, at)
+		return err
+	})
 	if err != nil {
-		return nil, 0, err
-	}
-	rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, documentType, at)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, 0, err
 	}
 	return rule, sequence, nil
