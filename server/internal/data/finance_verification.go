@@ -138,7 +138,10 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 			return e
 		}
 		for _, x := range existing {
-			z, _ := decimal.NewFromString(x.Amount)
+			z, parseErr := decimalOf(x.Amount)
+			if parseErr != nil {
+				return parseErr
+			}
 			usedCash[x.CashflowID] = usedCash[x.CashflowID].Add(z)
 			usedBill[x.BillID] = usedBill[x.BillID].Add(z)
 		}
@@ -158,8 +161,14 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 			} else if v.Direction != biz.OrderFeeDirection(c.Direction) || v.SettlementPartyID != c.SettlementPartyID || v.Currency != c.Currency {
 				return biz.ErrVerificationMismatch
 			}
-			ca, _ := decimal.NewFromString(c.Amount)
-			ba, _ := decimal.NewFromString(b.TotalAmount)
+			ca, parseErr := decimalOf(c.Amount)
+			if parseErr != nil {
+				return parseErr
+			}
+			ba, parseErr := decimalOf(b.TotalAmount)
+			if parseErr != nil {
+				return parseErr
+			}
 			cashBaseTotal, parseErr := decimalOf(c.BaseAmount)
 			if parseErr != nil {
 				return parseErr
