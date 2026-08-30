@@ -95,10 +95,7 @@ func (r *notificationRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (
 		WithRecipientUser().
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrNotificationNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrNotificationNotFound, nil)
 	}
 	recipient, err := item.Edges.RecipientUserOrErr()
 	if err != nil {

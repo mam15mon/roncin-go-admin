@@ -165,10 +165,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
 		if existing.Version != expectedVersion {
 			return biz.ErrOrderStatusConflict
@@ -267,10 +264,7 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
 		if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
@@ -293,10 +287,7 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
 		if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
@@ -329,10 +320,7 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uuid.UUID) (*biz.OrderClosureReadiness, error) {
 	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	hasActiveException, err := r.data.db.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
 	if err != nil {
@@ -349,10 +337,7 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
 		if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict

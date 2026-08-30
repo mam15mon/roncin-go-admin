@@ -186,10 +186,7 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 			membershipent.HasUserWith(userent.EnabledEQ(true)),
 		).WithUser().Only(ctx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				return biz.ErrOrderPersonnelUserInvalid
-			}
-			return err
+			return mapEntError(err, biz.ErrOrderPersonnelUserInvalid, nil)
 		}
 		user, err := membership.Edges.UserOrErr()
 		if err != nil {
