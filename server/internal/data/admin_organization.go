@@ -32,10 +32,7 @@ func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganiza
 func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.AdminOrganization, error) {
 	item, err := r.data.db.Organization.Get(ctx, id)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminOrganizationNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrAdminOrganizationNotFound, nil)
 	}
 	return r.organizationToBiz(ctx, item)
 }
@@ -56,10 +53,7 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		var saveErr error
 		created, saveErr = create.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrAdminOrganizationCodeExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrAdminOrganizationCodeExists)
 		}
 		if defaultErr := CreateDefaultNumberRules(ctx, tx, created.ID); defaultErr != nil {
 			return defaultErr
@@ -96,10 +90,7 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 		var saveErr error
 		updated, saveErr = update.Save(ctx)
 		if saveErr != nil {
-			if ent.IsNotFound(saveErr) {
-				return biz.ErrAdminOrganizationNotFound
-			}
-			return saveErr
+			return mapEntError(saveErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
