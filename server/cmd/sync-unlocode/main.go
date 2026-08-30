@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,7 +17,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/cmd/internal/syncrunner"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"golang.org/x/text/encoding/charmap"
 )
@@ -31,13 +30,6 @@ var (
 	releasePattern  = regexp.MustCompile(`^(\d{4}-[12])\s+`)
 	partNames       = []string{"UNLOCODE CodeListPart1.csv", "UNLOCODE CodeListPart2.csv", "UNLOCODE CodeListPart3.csv"}
 )
-
-type options struct {
-	apply            bool
-	source           string
-	release          string
-	organizationCode string
-}
 
 type unlocodeParseSummary struct {
 	RawRows        int
@@ -53,51 +45,55 @@ type unlocodeParseSummary struct {
 }
 
 func main() {
-	ctx := context.Background()
+	syncrunner.Run(run)
+}
+
+func run(ctx context.Context) error {
 	options := parseOptions()
-	raw, err := os.ReadFile(options.source)
+	raw, err := os.ReadFile(options.Source)
 	if err != nil {
-		fail("读取 UN/LOCODE 发布包失败", err)
+		return fmt.Errorf("读取 UN/LOCODE 发布包失败: %w", err)
 	}
 	files, detectedRelease, err := readCodeListFiles(raw)
 	if err != nil {
-		fail("解析 UN/LOCODE 发布包失败", err)
+		return fmt.Errorf("解析 UN/LOCODE 发布包失败: %w", err)
 	}
-	if options.release == "" {
-		options.release = detectedRelease
+	if options.Release == "" {
+		options.Release = detectedRelease
 	}
-	if options.release == "" {
-		fail("缺少 UN/LOCODE 版本", errors.New("发布包文件名不含版本前缀，请显式传 -release"))
+	if options.Release == "" {
+		return errors.New("缺少 UN/LOCODE 版本: 发布包文件名不含版本前缀，请显式传 -release")
 	}
 	rows, summary, err := parseUNLocode(files, raw)
 	if err != nil {
-		fail("解析 UN/LOCODE 数据失败", err)
+		return fmt.Errorf("解析 UN/LOCODE 数据失败: %w", err)
 	}
-	store, cleanup, err := openStore()
+	store, cleanup, err := syncrunner.OpenStore()
 	if err != nil {
-		fail("初始化港口同步存储失败", err)
+		return fmt.Errorf("初始化港口同步存储失败: %w", err)
 	}
 	defer cleanup()
-	conflicts, err := store.CheckPorts(ctx, options.organizationCode, unlocodeSource, rows)
+	conflicts, err := store.CheckPorts(ctx, options.OrganizationCode, unlocodeSource, rows)
 	if err != nil {
-		fail("检查港口同步冲突失败", err)
+		return fmt.Errorf("检查港口同步冲突失败: %w", err)
 	}
 	printSummary(options, summary, conflicts)
 	if len(summary.FatalProblems) > 0 || len(conflicts) > 0 {
-		fail("港口数据存在致命冲突", fmt.Errorf("源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts)))
+		return fmt.Errorf("港口数据存在致命冲突: 源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts))
 	}
-	if !options.apply {
+	if !options.Apply {
 		fmt.Println("当前为预览模式；确认统计后使用 -apply 写入数据库")
-		return
+		return nil
 	}
-	result, err := store.ApplyPorts(ctx, options.organizationCode, unlocodeSource, options.release, summary.SourceHash, rows)
+	result, err := store.ApplyPorts(ctx, options.OrganizationCode, unlocodeSource, options.Release, summary.SourceHash, rows)
 	if err != nil {
-		fail("写入港口数据失败", err)
+		return fmt.Errorf("写入港口数据失败: %w", err)
 	}
 	fmt.Printf("港口同步完成：新增 %d，更新 %d，停用 %d\n", result.Created, result.Updated, result.Disabled)
+	return nil
 }
 
-func parseOptions() options {
+func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将港口数据写入数据库")
 	source := flag.String("source", "", "UNECE UN/LOCODE 官方 ZIP 路径")
 	release := flag.String("release", "", "数据版本；文件名无版本前缀时必填")
@@ -109,7 +105,7 @@ func parseOptions() options {
 		fmt.Fprintln(os.Stderr, "source 和 org-code 均不能为空")
 		os.Exit(2)
 	}
-	return options{apply: *apply, source: filepath.Clean(path), release: strings.TrimSpace(*release), organizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release), OrganizationCode: code}
 }
 
 func resolveSourcePath(source string) string {
@@ -314,21 +310,9 @@ func decodeCSV(raw []byte) (string, error) {
 	return string(decoded), nil
 }
 
-func openStore() (*data.IndustryReferenceSyncStore, func(), error) {
-	databaseSource := strings.TrimSpace(os.Getenv("DATABASE_SOURCE"))
-	if databaseSource == "" {
-		return nil, nil, errors.New("DATABASE_SOURCE 不能为空")
-	}
-	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: databaseSource}}, slog.Default())
-	if err != nil {
-		return nil, nil, err
-	}
-	return data.NewIndustryReferenceSyncStore(storage), cleanup, nil
-}
-
-func printSummary(options options, summary unlocodeParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
-	fmt.Printf("UN/LOCODE 数据源：%s\n", options.source)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.organizationCode, options.release, summary.SourceHash)
+func printSummary(options syncrunner.Options, summary unlocodeParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
+	fmt.Printf("UN/LOCODE 数据源：%s\n", options.Source)
+	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效海港 %d，非海港 %d，国家标题 %d，别名 %d，变更覆盖 %d，无效行 %d，撤销港口 %d\n", summary.RawRows, summary.ValidPorts, summary.NonPorts, summary.CountryHeaders, summary.Aliases, summary.Superseded, summary.InvalidRows, summary.Withdrawn)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {
@@ -344,9 +328,4 @@ func printSummary(options options, summary unlocodeParseSummary, conflicts []dat
 		}
 		fmt.Printf("数据库冲突：%s %s\n", conflict.Code, conflict.Message)
 	}
-}
-
-func fail(message string, err error) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", message, err)
-	os.Exit(1)
 }
