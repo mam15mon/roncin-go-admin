@@ -89,39 +89,35 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	builder := tx.OrderContainer.Create().
-		SetID(input.ID).
-		SetOrderID(orderID).
-		SetContainerNo(input.ContainerNo).
-		SetContainerSpecID(input.ContainerSpecID).
-		SetGrossWeightKg(input.GrossWeightKg).
-		SetVolumeCbm(input.VolumeCbm)
-	if input.ShippingDocumentID != nil {
-		builder.SetShippingDocumentID(*input.ShippingDocumentID)
-	}
-	if input.SealNo != nil {
-		builder.SetSealNo(*input.SealNo)
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	}
-	created, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordercontainer_order_id_container_no") {
-			return nil, biz.ErrOrderContainerExists
+	var created *ent.OrderContainer
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		builder := tx.OrderContainer.Create().
+			SetID(input.ID).
+			SetOrderID(orderID).
+			SetContainerNo(input.ContainerNo).
+			SetContainerSpecID(input.ContainerSpecID).
+			SetGrossWeightKg(input.GrossWeightKg).
+			SetVolumeCbm(input.VolumeCbm)
+		if input.ShippingDocumentID != nil {
+			builder.SetShippingDocumentID(*input.ShippingDocumentID)
 		}
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if input.SealNo != nil {
+			builder.SetSealNo(*input.SealNo)
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		}
+		var saveErr error
+		created, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordercontainer_order_id_container_no") {
+				return biz.ErrOrderContainerExists
+			}
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return orderContainerToBiz(created), nil
@@ -161,57 +157,52 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderContainer.Query().
-		Where(
-			ordercontainerent.IDEQ(id),
-			ordercontainerent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderContainerNotFound
+	var updated *ent.OrderContainer
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderContainer.Query().
+			Where(
+				ordercontainerent.IDEQ(id),
+				ordercontainerent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderContainerNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	builder := tx.OrderContainer.UpdateOne(item).
-		SetContainerNo(input.ContainerNo).
-		SetContainerSpecID(input.ContainerSpecID).
-		SetGrossWeightKg(input.GrossWeightKg).
-		SetVolumeCbm(input.VolumeCbm)
-	if input.ShippingDocumentID != nil {
-		builder.SetShippingDocumentID(*input.ShippingDocumentID)
-	} else {
-		builder.ClearShippingDocumentID()
-	}
-	if input.SealNo != nil {
-		builder.SetSealNo(*input.SealNo)
-	} else {
-		builder.ClearSealNo()
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	} else {
-		builder.ClearNote()
-	}
-	updated, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordercontainer_order_id_container_no") {
-			return nil, biz.ErrOrderContainerExists
+		builder := tx.OrderContainer.UpdateOne(item).
+			SetContainerNo(input.ContainerNo).
+			SetContainerSpecID(input.ContainerSpecID).
+			SetGrossWeightKg(input.GrossWeightKg).
+			SetVolumeCbm(input.VolumeCbm)
+		if input.ShippingDocumentID != nil {
+			builder.SetShippingDocumentID(*input.ShippingDocumentID)
+		} else {
+			builder.ClearShippingDocumentID()
 		}
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if input.SealNo != nil {
+			builder.SetSealNo(*input.SealNo)
+		} else {
+			builder.ClearSealNo()
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		} else {
+			builder.ClearNote()
+		}
+		var saveErr error
+		updated, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordercontainer_order_id_container_no") {
+				return biz.ErrOrderContainerExists
+			}
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return orderContainerToBiz(updated), nil
@@ -221,29 +212,21 @@ func (r *orderContainerRepo) Remove(ctx context.Context, organizationID, orderID
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	n, err := tx.OrderContainer.Delete().
-		Where(
-			ordercontainerent.IDEQ(id),
-			ordercontainerent.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderContainerNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		n, deleteErr := tx.OrderContainer.Delete().
+			Where(
+				ordercontainerent.IDEQ(id),
+				ordercontainerent.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
+			return biz.ErrOrderContainerNotFound
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderContainerToBiz(item *ent.OrderContainer) *biz.OrderContainer {

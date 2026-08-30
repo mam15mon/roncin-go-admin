@@ -50,33 +50,29 @@ func (r *orderCargoItemRepo) Add(ctx context.Context, organizationID, orderID uu
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
+	var created *ent.OrderCargoItem
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		builder := tx.OrderCargoItem.Create().
+			SetID(input.ID).
+			SetOrderID(orderID).
+			SetCargoName(input.CargoName).
+			SetPackageCount(input.PackageCount).
+			SetGrossWeightKg(input.GrossWeightKg).
+			SetVolumeCbm(input.VolumeCbm)
+		if input.NetWeightKg != nil {
+			builder.SetNetWeightKg(*input.NetWeightKg)
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		}
+		var saveErr error
+		created, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	builder := tx.OrderCargoItem.Create().
-		SetID(input.ID).
-		SetOrderID(orderID).
-		SetCargoName(input.CargoName).
-		SetPackageCount(input.PackageCount).
-		SetGrossWeightKg(input.GrossWeightKg).
-		SetVolumeCbm(input.VolumeCbm)
-	if input.NetWeightKg != nil {
-		builder.SetNetWeightKg(*input.NetWeightKg)
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	}
-	created, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderCargoItemToBiz(created), nil
@@ -86,49 +82,44 @@ func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderCargoItem.Query().
-		Where(
-			ordercargoitement.IDEQ(id),
-			ordercargoitement.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderCargoItemNotFound
+	var updated *ent.OrderCargoItem
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderCargoItem.Query().
+			Where(
+				ordercargoitement.IDEQ(id),
+				ordercargoitement.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderCargoItemNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	builder := tx.OrderCargoItem.UpdateOne(item).
-		SetCargoName(input.CargoName).
-		SetPackageCount(input.PackageCount).
-		SetGrossWeightKg(input.GrossWeightKg).
-		SetVolumeCbm(input.VolumeCbm)
-	if input.NetWeightKg != nil {
-		builder.SetNetWeightKg(*input.NetWeightKg)
-	} else {
-		builder.ClearNetWeightKg()
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	} else {
-		builder.ClearNote()
-	}
-	updated, err := builder.Save(ctx)
+		builder := tx.OrderCargoItem.UpdateOne(item).
+			SetCargoName(input.CargoName).
+			SetPackageCount(input.PackageCount).
+			SetGrossWeightKg(input.GrossWeightKg).
+			SetVolumeCbm(input.VolumeCbm)
+		if input.NetWeightKg != nil {
+			builder.SetNetWeightKg(*input.NetWeightKg)
+		} else {
+			builder.ClearNetWeightKg()
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		} else {
+			builder.ClearNote()
+		}
+		var saveErr error
+		updated, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderCargoItemToBiz(updated), nil
@@ -138,29 +129,21 @@ func (r *orderCargoItemRepo) Remove(ctx context.Context, organizationID, orderID
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	n, err := tx.OrderCargoItem.Delete().
-		Where(
-			ordercargoitement.IDEQ(id),
-			ordercargoitement.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderCargoItemNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		n, deleteErr := tx.OrderCargoItem.Delete().
+			Where(
+				ordercargoitement.IDEQ(id),
+				ordercargoitement.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
+			return biz.ErrOrderCargoItemNotFound
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderCargoItemToBiz(item *ent.OrderCargoItem) *biz.OrderCargoItem {
