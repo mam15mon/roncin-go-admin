@@ -82,14 +82,22 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 	return out, nil
 }
 func (r *verificationRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceVerification, error) {
-	x, e := r.withAll(r.data.db.FinanceVerification.Query()).Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).Only(ctx)
+	client, e := r.data.client(ctx)
+	if e != nil {
+		return nil, e
+	}
+	x, e := r.withAll(client.FinanceVerification.Query()).Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrVerificationNotFound, nil)
 	}
 	return verificationToBiz(x)
 }
 func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceVerification, error) {
-	x, e := r.withAll(r.data.db.FinanceVerification.Query()).Where(ver.OrganizationIDEQ(org), ver.IdempotencyKeyEQ(key)).Only(ctx)
+	client, e := r.data.client(ctx)
+	if e != nil {
+		return nil, e
+	}
+	x, e := r.withAll(client.FinanceVerification.Query()).Where(ver.OrganizationIDEQ(org), ver.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(e) {
 		return nil, nil
 	}
@@ -99,7 +107,11 @@ func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key stri
 	return verificationToBiz(x)
 }
 func (r *verificationRepo) LoadCashflowContext(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
-	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
+	client, e := r.data.client(ctx)
+	if e != nil {
+		return nil, e
+	}
+	x, e := client.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrFinanceCashflowNotFound, nil)
 	}
@@ -224,6 +236,9 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 	})
 	if e != nil {
 		return nil, e
+	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		return v, nil
 	}
 	return r.Get(ctx, org, v.ID)
 }

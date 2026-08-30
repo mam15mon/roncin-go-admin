@@ -89,10 +89,11 @@ type VerificationRepo interface {
 type VerificationUsecase struct {
 	repo         VerificationRepo
 	exchangeRate *ExchangeRateUsecase
+	transactor   Transactor
 }
 
-func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecase) *VerificationUsecase {
-	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate}
+func NewVerificationUsecase(r VerificationRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor) *VerificationUsecase {
+	return &VerificationUsecase{repo: r, exchangeRate: exchangeRate, transactor: transactor}
 }
 func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
@@ -106,14 +107,6 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 	in.Note = normalizedOptionalFinanceString(in.Note)
 	if org == uuid.Nil || actor == uuid.Nil || len(in.Allocations) == 0 || len(in.Allocations) > 500 || !validFinanceDate(in.VerificationDate) || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return nil, ErrVerificationInvalid
-	}
-	if old, e := u.repo.GetByKey(ctx, org, in.IdempotencyKey); e != nil {
-		return nil, e
-	} else if old != nil {
-		if sameVerificationIntent(old, in) {
-			return old, nil
-		}
-		return nil, ErrVerificationIdempotency
 	}
 	id := uuid.Must(uuid.NewV7())
 	v := &FinanceVerification{ID: id, OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Status: VerificationActive, VerificationDate: in.VerificationDate, Note: in.Note, Version: 1, Allocations: in.Allocations}
@@ -135,37 +128,52 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 	if u.exchangeRate == nil {
 		return nil, ErrVerificationInvalid
 	}
-	// 核销记录只能包含同一收付方向和币种；实际方向由仓储在锁内校验。
-	// 先取首笔资金流水确定方向和币种，随后锁内再次核对全部分摊。
-	firstCashflow, err := u.repo.LoadCashflowContext(ctx, org, v.Allocations[0].CashflowID)
-	if err != nil {
-		return nil, err
-	}
-	resolved, err := u.exchangeRate.Resolve(ctx, org, WriteOffRateType, firstCashflow.Direction, firstCashflow.Currency, map[string]string{WriteOffTimeStandard: in.VerificationDate})
-	if err != nil {
-		return nil, err
-	}
-	baseCurrency, err := u.exchangeRate.BaseCurrency(ctx, org)
-	if err != nil {
-		return nil, err
-	}
-	v.Direction = firstCashflow.Direction
-	v.Currency = firstCashflow.Currency
-	v.BaseCurrency = baseCurrency
-	v.ExchangeRate = resolved.Rate
-	v.ExchangeRateSource = resolved.Source
-	v.ExchangeRateDate = resolved.RateDate
-	v.ExchangeRateSettingID = resolved.SettingID
-	v.BaseAmount = v.Amount.Mul(resolved.Rate).RoundBank(8)
-	created, e := u.repo.Create(ctx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
-	if e == nil {
-		return created, nil
+	var created *FinanceVerification
+	err := u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		old, transactionErr := u.repo.GetByKey(txCtx, org, in.IdempotencyKey)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		if old != nil {
+			if !sameVerificationIntent(old, in) {
+				return ErrVerificationIdempotency
+			}
+			created = old
+			return nil
+		}
+		// 核销记录只能包含同一收付方向和币种；实际方向由仓储在锁内校验。
+		// 先取首笔资金流水确定方向和币种，随后锁内再次核对全部分摊。
+		firstCashflow, transactionErr := u.repo.LoadCashflowContext(txCtx, org, v.Allocations[0].CashflowID)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		resolved, transactionErr := u.exchangeRate.Resolve(txCtx, org, WriteOffRateType, firstCashflow.Direction, firstCashflow.Currency, map[string]string{WriteOffTimeStandard: in.VerificationDate})
+		if transactionErr != nil {
+			return transactionErr
+		}
+		baseCurrency, transactionErr := u.exchangeRate.BaseCurrency(txCtx, org)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		v.Direction = firstCashflow.Direction
+		v.Currency = firstCashflow.Currency
+		v.BaseCurrency = baseCurrency
+		v.ExchangeRate = resolved.Rate
+		v.ExchangeRateSource = resolved.Source
+		v.ExchangeRateDate = resolved.RateDate
+		v.ExchangeRateSettingID = resolved.SettingID
+		v.BaseAmount = v.Amount.Mul(resolved.Rate).RoundBank(8)
+		created, transactionErr = u.repo.Create(txCtx, org, actor, v, verifyAudit(org, actor, id, "finance.verification.create"))
+		return transactionErr
+	})
+	if err == nil {
+		return u.repo.Get(ctx, org, created.ID)
 	}
 	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
 	if lookupErr == nil && old != nil && sameVerificationIntent(old, in) {
 		return old, nil
 	}
-	return nil, e
+	return nil, err
 }
 
 func CalculateVerificationAllocationAmounts(direction OrderFeeDirection, amount, billTotal, billBaseTotal, cashflowTotal, cashflowBaseTotal, writeOffRate decimal.Decimal) (billBase, cashflowBase, writeOffBase, gainLoss decimal.Decimal, err error) {

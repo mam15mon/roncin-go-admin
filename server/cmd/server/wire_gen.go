@@ -138,7 +138,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	financeCashflowRepo := data.NewFinanceCashflowRepo(dataData)
 	financeCashflowUsecase := biz.NewFinanceCashflowUsecase(financeCashflowRepo, exchangeRateUsecase)
 	verificationRepo := data.NewVerificationRepo(dataData)
-	verificationUsecase := biz.NewVerificationUsecase(verificationRepo, exchangeRateUsecase)
+	verificationUsecase := biz.NewVerificationUsecase(verificationRepo, exchangeRateUsecase, dataData)
 	commissionRepo := data.NewCommissionRepo(dataData)
 	commissionUsecase := biz.NewCommissionUsecase(commissionRepo, orderConfigUsecase)
 	feeLedgerPreferenceRepo := data.NewFeeLedgerPreferenceRepo(dataData)
