@@ -89,6 +89,9 @@ func TestProductionConfigUsesSafeDefaults(t *testing.T) {
 	if bootstrap.GetData().GetDatabase().GetDebug() {
 		t.Fatal("生产配置不得启用数据库调试日志")
 	}
+	if bootstrap.GetLogging().GetLevel() != "info" {
+		t.Fatalf("生产日志级别应默认为 info，实际为 %q", bootstrap.GetLogging().GetLevel())
+	}
 	if !bootstrap.GetSecurity().GetSession().GetSecure() {
 		t.Fatal("生产配置必须启用 Secure 会话 Cookie")
 	}
@@ -116,6 +119,35 @@ func TestDevelopmentConfigSupportsExternalIdentityLogin(t *testing.T) {
 	}
 	if got := bootstrap.GetServer().GetHttp().GetTimeout().AsDuration(); got != 30*time.Second {
 		t.Fatalf("开发 HTTP 超时应允许外部身份认证完成，实际为 %s", got)
+	}
+	if bootstrap.GetLogging().GetLevel() != "debug" {
+		t.Fatalf("开发日志级别应默认为 debug，实际为 %q", bootstrap.GetLogging().GetLevel())
+	}
+}
+
+func TestParseLogLevel(t *testing.T) {
+	tests := []struct {
+		value string
+		want  string
+	}{
+		{value: "debug", want: "DEBUG"},
+		{value: "info", want: "INFO"},
+		{value: "warn", want: "WARN"},
+		{value: "error", want: "ERROR"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			level, err := parseLogLevel(tt.value)
+			if err != nil {
+				t.Fatalf("解析日志级别失败: %v", err)
+			}
+			if level.String() != tt.want {
+				t.Fatalf("日志级别 = %q，期望 %q", level.String(), tt.want)
+			}
+		})
+	}
+	if _, err := parseLogLevel("verbose"); err == nil {
+		t.Fatal("非法日志级别应返回错误")
 	}
 }
 

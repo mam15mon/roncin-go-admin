@@ -5,6 +5,8 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: ${GRPC_TIMEOUT:30s}
+logging:
+  level: ${LOG_LEVEL:info}
 data:
   database:
     driver: postgres

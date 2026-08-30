@@ -11,6 +11,12 @@ message Bootstrap {
   Data data = 2;
   Security security = 3;
   Telemetry telemetry = 4;
+  Logging logging = 5;
+}
+
+message Logging {
+  // 支持 debug、info、warn、error，非法值会阻止服务启动。
+  string level = 1;
 }
 
 message Telemetry {

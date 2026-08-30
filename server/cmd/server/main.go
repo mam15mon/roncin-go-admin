@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -63,12 +64,19 @@ func newRuntimeConfig(path string) config.Config {
 	)
 }
 
-func main() {
-	flag.Parse()
-	logger := log.NewLogger(
+func parseLogLevel(value string) (slog.Level, error) {
+	var level slog.Level
+	if err := level.UnmarshalText([]byte(value)); err != nil {
+		return 0, fmt.Errorf("invalid logging level %q: %w", value, err)
+	}
+	return level, nil
+}
+
+func newLogger(level slog.Level) *slog.Logger {
+	return log.NewLogger(
 		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			AddSource: true,
-			Level:     slog.LevelInfo,
+			Level:     level,
 		}),
 		log.WithExtractor(tracing.TraceAttrs),
 	).With(
@@ -76,7 +84,10 @@ func main() {
 		slog.String("service.name", Name),
 		slog.String("service.version", Version),
 	)
-	log.SetDefault(logger)
+}
+
+func main() {
+	flag.Parse()
 	c := newRuntimeConfig(flagconf)
 	defer c.Close()
 
@@ -88,6 +99,12 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
+	logLevel, err := parseLogLevel(bc.GetLogging().GetLevel())
+	if err != nil {
+		panic(err)
+	}
+	logger := newLogger(logLevel)
+	log.SetDefault(logger)
 	shutdownTelemetry, err := telemetry.Setup(context.Background(), bc.Telemetry, Name, Version)
 	if err != nil {
 		panic(err)
