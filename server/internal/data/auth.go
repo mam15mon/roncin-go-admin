@@ -28,10 +28,7 @@ func NewAuthRepo(data *Data) biz.AuthRepo { return &authRepo{data: data} }
 func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Credential, error) {
 	account, err := r.data.db.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrInvalidCredentials
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrInvalidCredentials, nil)
 	}
 	return r.credentialForAccount(ctx, account)
 }
@@ -153,10 +150,7 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	}
 	account, err := r.data.db.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrDingTalkNotRegistered
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrDingTalkNotRegistered, nil)
 	}
 	account, err = updateDingTalkProfile(ctx, account, identity)
 	if err != nil {
@@ -330,10 +324,7 @@ func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) 
 func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID uuid.UUID) (*biz.Principal, error) {
 	account, err := r.data.db.User.Query().Where(user.IDEQ(userID), user.EnabledEQ(true)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrSessionExpired
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
 	memberships, err := r.data.db.Membership.Query().
 		Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).
@@ -418,10 +409,7 @@ func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearL
 func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.Time) (*biz.Session, error) {
 	stored, err := r.data.db.Session.Query().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now), sessionent.HasUserWith(user.EnabledEQ(true)), sessionent.HasOrganizationWith(organization.EnabledEQ(true))).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrSessionExpired
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
 }
