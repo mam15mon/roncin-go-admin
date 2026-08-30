@@ -106,28 +106,23 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := tx.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrAdminRoleCodeExists
+	var created *ent.Role
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var saveErr error
+		created, saveErr = tx.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrAdminRoleCodeExists
+			}
+			return saveErr
 		}
-		return nil, err
-	}
-	if err := replaceRoleOrderOrganizationAccesses(ctx, tx, created.ID, input.OrderOrganizationAccesses); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["resource_id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, created.ID, input.OrderOrganizationAccesses); replaceErr != nil {
+			return replaceErr
+		}
+		audit.Details["resource_id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	created, err = r.data.db.Role.Query().Where(role.IDEQ(created.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)
@@ -142,27 +137,22 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	updated, err := tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminRoleNotFound
+	var updated *ent.Role
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var saveErr error
+		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+		if saveErr != nil {
+			if ent.IsNotFound(saveErr) {
+				return biz.ErrAdminRoleNotFound
+			}
+			return saveErr
 		}
-		return nil, err
-	}
-	if err := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); replaceErr != nil {
+			return replaceErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated, err = r.data.db.Role.Query().Where(role.IDEQ(updated.ID)).WithPermissions().WithOrderOrganizationAccesses().Only(ctx)

@@ -41,47 +41,39 @@ func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.Adm
 }
 
 func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name).SetKind(organization.Kind(input.Kind))
-	if input.Kind == biz.OrganizationKindCompany || input.Kind == biz.OrganizationKindHeadquarters {
-		if err := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	var created *ent.Organization
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name).SetKind(organization.Kind(input.Kind))
+		if input.Kind == biz.OrganizationKindCompany || input.Kind == biz.OrganizationKindHeadquarters {
+			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
+				return currencyErr
+			}
+			create.SetBaseCurrency(input.BaseCurrency)
 		}
-		create.SetBaseCurrency(input.BaseCurrency)
-	}
-	if input.ParentID != nil {
-		create.SetParentID(*input.ParentID)
-	}
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrAdminOrganizationCodeExists
+		if input.ParentID != nil {
+			create.SetParentID(*input.ParentID)
 		}
-		return nil, err
-	}
-	if err := CreateDefaultNumberRules(ctx, tx, created.ID); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := CreateDefaultOrderOptions(ctx, tx, created.ID); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := CreateDefaultCountries(ctx, tx, created.ID); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["value"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		var saveErr error
+		created, saveErr = create.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrAdminOrganizationCodeExists
+			}
+			return saveErr
+		}
+		if defaultErr := CreateDefaultNumberRules(ctx, tx, created.ID); defaultErr != nil {
+			return defaultErr
+		}
+		if defaultErr := CreateDefaultOrderOptions(ctx, tx, created.ID); defaultErr != nil {
+			return defaultErr
+		}
+		if defaultErr := CreateDefaultCountries(ctx, tx, created.ID); defaultErr != nil {
+			return defaultErr
+		}
+		audit.Details["value"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	result := organizationToBiz(created)
@@ -92,31 +84,26 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 }
 
 func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.UUID, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	update := tx.Organization.UpdateOneID(input.ID).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(input.Name).SetEnabled(input.Enabled)
-	if input.Kind == biz.OrganizationKindHeadquarters || input.Kind == biz.OrganizationKindCompany {
-		if err := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	var updated *ent.Organization
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		update := tx.Organization.UpdateOneID(input.ID).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(input.Name).SetEnabled(input.Enabled)
+		if input.Kind == biz.OrganizationKindHeadquarters || input.Kind == biz.OrganizationKindCompany {
+			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
+				return currencyErr
+			}
+			update.SetBaseCurrency(input.BaseCurrency)
 		}
-		update.SetBaseCurrency(input.BaseCurrency)
-	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminOrganizationNotFound
+		var saveErr error
+		updated, saveErr = update.Save(ctx)
+		if saveErr != nil {
+			if ent.IsNotFound(saveErr) {
+				return biz.ErrAdminOrganizationNotFound
+			}
+			return saveErr
 		}
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.organizationToBiz(ctx, updated)
