@@ -6,8 +6,8 @@ import {
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { searchPartnerOptions } from '@/utils/options';
 import {
   MASTER_DATA_KINDS,
   type OrderKindConfig,
@@ -28,27 +28,22 @@ export function useOrderListResources(config?: OrderKindConfig) {
       masterDataServiceListOptions(),
       masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
       masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
-      partnerServiceListPartners({ role: 1, page: 1, pageSize: 50, enabled: true }),
+      searchPartnerOptions(undefined, { role: 1, enabled: true }),
     ])
       .then(
         ([
           optionsResponse,
           portsResponse,
           airportsResponse,
-          partnersResponse,
+          partnerOptions,
         ]) => {
           setMasterOptions(unwrapList(optionsResponse));
           setPorts(unwrapList(portsResponse));
           setAirports(unwrapList(airportsResponse));
-          const partnerList = unwrapList(partnersResponse);
           setCustomerMap((prev) => {
             const next = { ...prev };
-            for (const p of partnerList) {
-              if (p.id) {
-                next[p.id] = p.legalName
-                  ? `${p.legalName} (${p.code})`
-                  : p.code || p.id;
-              }
+            for (const option of partnerOptions) {
+              next[option.value] = option.label;
             }
             return next;
           });
@@ -133,27 +128,18 @@ export function useOrderListResources(config?: OrderKindConfig) {
   ];
 
   const searchCustomers = async (keyword?: string) => {
-    const res = await partnerServiceListPartners({
+    const options = await searchPartnerOptions(keyword, {
       role: 1,
       enabled: true,
-      keyword,
     });
-    const partners = unwrapList(res);
     setCustomerMap((prev) => {
       const next = { ...prev };
-      for (const p of partners) {
-        if (p.id) {
-          next[p.id] = p.legalName
-            ? `${p.legalName} (${p.code})`
-            : p.code || p.id;
-        }
+      for (const option of options) {
+        next[option.value] = option.label;
       }
       return next;
     });
-    return partners.map((p) => ({
-      label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
-      value: p.id ?? '',
-    }));
+    return options;
   };
 
   const searchOrderPorts = async (keyword?: string) => {
@@ -183,19 +169,7 @@ export function useOrderListResources(config?: OrderKindConfig) {
     searchOrderLocations(config?.category === 'air' ? 'air' : 'sea', keyword);
 
   const searchOrderCarriers = async (keyword?: string) => {
-    const response = await partnerServiceListPartners({
-      role: 4,
-      page: 1,
-      pageSize: 50,
-      keyword,
-      enabled: true,
-    });
-    return unwrapList(response).map((item) => ({
-      label: item.legalName
-        ? `${item.legalName} (${item.code})`
-        : item.code || item.id || '',
-      value: item.id ?? '',
-    }));
+    return searchPartnerOptions(keyword, { role: 4, enabled: true });
   };
 
   const searchOrderPersonnel = async (keyword?: string) => {

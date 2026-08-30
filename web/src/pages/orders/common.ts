@@ -1,11 +1,9 @@
 import {
   masterDataServiceListAirports,
-  masterDataServiceListCurrencies,
   masterDataServiceListItems,
   masterDataServiceListOptions,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   businessTypeMeta,
   makeValueEnum,
@@ -13,6 +11,7 @@ import {
 } from '@/constants/statusMeta';
 import { OrderBusinessType } from '@/enums.generated';
 import { unwrapList } from '@/utils/api';
+import { getCurrencies, searchPartnerOptions } from '@/utils/options';
 
 export const businessTypeOptions = [
   {
@@ -227,18 +226,7 @@ export async function searchPartnersByRole(
   role: number,
   keyword?: string,
 ): Promise<{ label: string; value: string; code?: string }[]> {
-  const res = await partnerServiceListPartners({
-    role,
-    enabled: true,
-    keyword,
-    page: 1,
-    pageSize: 50,
-  });
-  return unwrapList(res).map((p) => ({
-    label: p.legalName ? `${p.legalName} (${p.code})` : p.code || p.id || '',
-    value: p.id ?? '',
-    code: p.code,
-  }));
+  return searchPartnerOptions(keyword, { role, enabled: true });
 }
 
 export async function searchOrderLocations(
@@ -275,19 +263,17 @@ export async function searchOrderLocations(
 }
 
 export async function fetchOrderMasterData() {
-  const [optionsResponse, portsResponse, airportsResponse, currenciesResponse] =
+  const [optionsResponse, portsResponse, airportsResponse, currencies] =
     await Promise.all([
       masterDataServiceListOptions(),
       masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true }),
       masterDataServiceListAirports({ page: 1, pageSize: 50, enabled: true }),
-      masterDataServiceListCurrencies(),
+      getCurrencies(),
     ]);
 
   const masterOptions = unwrapList(optionsResponse);
   const ports = unwrapList(portsResponse);
   const airports = unwrapList(airportsResponse);
-  const currencies = unwrapList(currenciesResponse);
-
   const serviceTypeOptions = masterOptions
     .filter(
       (item) =>
