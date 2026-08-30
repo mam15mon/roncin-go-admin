@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
 import type {
   FinanceLedgerGlobalSummary,
@@ -548,17 +549,13 @@ export function FinanceLedgerTemplate<
         }
         request={async (params) => {
           const res = await request(params);
-          const list = res.data || [];
-          setCurrentData(list);
-          setTotalCount(res.total || 0);
+          const page = unwrapPage(res);
+          setCurrentData(page.data);
+          setTotalCount(page.total);
           if (res.summary) {
             setGlobalSummary(res.summary);
           }
-          return {
-            data: list,
-            total: res.total || 0,
-            success: res.success ?? true,
-          };
+          return toTableRequest(res);
         }}
       />
 

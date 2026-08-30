@@ -3,6 +3,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ModalForm, ProTable } from '@ant-design/pro-components';
 import { App, Button, Card } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
+import { toTableRequest } from '@/utils/api';
 import type { SettingTableTemplateProps } from './types';
 
 export function SettingTableTemplate<
@@ -156,11 +157,7 @@ export function SettingTableTemplate<
         scroll={scroll}
         request={async (params) => {
           const res = await query(params);
-          return {
-            data: res.data ?? [],
-            success: res.success ?? true,
-            total: res.total,
-          };
+          return toTableRequest(res);
         }}
         toolBarRender={() => [
           ...extraToolBarButtons,

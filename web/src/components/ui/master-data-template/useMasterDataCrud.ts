@@ -1,5 +1,6 @@
 import { App } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
+import { unwrapPage } from '@/utils/api';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
 export interface UseMasterDataCrudOptions<
@@ -40,8 +41,9 @@ export function useMasterDataCrud<
     setLoading(true);
     try {
       const response = await fetchList(query);
-      setData((response.data ?? []).map(mapItem));
-      setTotal(response.total ?? 0);
+      const page = unwrapPage(response);
+      setData(page.data.map(mapItem));
+      setTotal(page.total);
     } catch (error: any) {
       message.error(error?.message || `${entityName}主数据加载失败`);
     } finally {

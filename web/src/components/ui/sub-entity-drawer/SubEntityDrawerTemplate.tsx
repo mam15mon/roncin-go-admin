@@ -13,6 +13,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { toTableRequest } from '@/utils/api';
 
 export type SubEntityDrawerRef<TParent = any> = {
   open: (parent: TParent) => void;
@@ -215,10 +216,7 @@ export function SubEntityDrawerTemplateInner<
             pagination={false}
             request={async () => {
               const response = await fetchList(parentRecord);
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
+              return toTableRequest(response);
             }}
             toolBarRender={() => [
               ...(extraToolbar ? extraToolbar(parentRecord, actionRef) : []),

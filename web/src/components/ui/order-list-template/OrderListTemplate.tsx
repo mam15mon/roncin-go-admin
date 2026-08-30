@@ -16,6 +16,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { Badge, Button, Card, Dropdown, Space, Tabs, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
+import { toTableRequest } from '@/utils/api';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
 import type {
@@ -702,11 +703,7 @@ export function OrderListTemplate({
               sorterOrder: sorterOrder as 'ascend' | 'descend',
             });
 
-            return {
-              data: res.data ?? [],
-              total: res.total ?? 0,
-              success: res.success ?? true,
-            };
+            return toTableRequest(res);
           }}
         />
       </Card>

@@ -15,6 +15,7 @@ import {
   enterpriseResourceServiceListEnterpriseTagGroups,
 } from '@/services/roncin/enterpriseResourceService';
 import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
+import { unwrapList } from '@/utils/api';
 
 export type BusinessTagModalMode = 'assign' | 'remove';
 
@@ -238,7 +239,7 @@ export function BusinessTagModal({
               void enterpriseResourceServiceListEnterpriseTagGroups().then(
                 (response) => {
                   setGroupOptions(
-                    (response.data ?? []).map((group) => ({
+                    unwrapList(response).map((group) => ({
                       label: group.name ?? '',
                       value: group.id ?? '',
                       color: group.color,
