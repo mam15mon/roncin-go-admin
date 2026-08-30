@@ -48,6 +48,7 @@ POSTGRES_DB=roncin_go_admin
 POSTGRES_USER=roncin
 POSTGRES_PASSWORD=本机密码
 DATABASE_SOURCE=postgres://roncin:本机密码@127.0.0.1:5432/roncin_go_admin?sslmode=disable
+RONCIN_INTEGRATION_DATABASE_SOURCE=postgres://roncin:本机密码@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable
 BOOTSTRAP_ADMIN_USERNAME=admin
 BOOTSTRAP_ADMIN_DISPLAY_NAME=系统管理员
 BOOTSTRAP_ADMIN_PASSWORD=请替换为至少12位密码
@@ -57,6 +58,30 @@ OTEL_ENABLED=false
 ```
 
 `.env.local` 已被 Git 忽略，不要提交真实配置。
+
+### PostgreSQL 集成测试库
+
+需要验证真实事务锁、并发幂等和失败回滚时，单独创建集成测试数据库，禁止复用
+`DATABASE_SOURCE` 指向的日常开发库：
+
+```bash
+sudo -u postgres createdb --owner=roncin roncin_go_admin_integration
+```
+
+把该数据库的连接地址写入 `.env.local` 的
+`RONCIN_INTEGRATION_DATABASE_SOURCE`。测试会自动建表，并使用带唯一后缀的组织数据；
+用例结束后会清理本次业务数据，但仍应保持数据库隔离。
+
+在仓库根目录显式加载 `.env.local` 并运行账单、核销共享事务测试：
+
+```bash
+node --env-file-if-exists=.env.local scripts/run-with-env.mjs \
+  go -C server test ./internal/data \
+  -run 'Test(FinanceBill|Verification)CreateSharedTransactionPostgres$' \
+  -count=1 -v
+```
+
+未配置该变量时，集成测试会明确跳过，不会回退到日常开发数据库。
 
 ## 首次初始化
 
