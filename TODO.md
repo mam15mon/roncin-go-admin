@@ -73,7 +73,8 @@
 - [x] 第三十八批：`finance_bill.go` 单账单创建事务入口。
 - [x] 第三十九批：`finance_bill.go` 批量账单创建事务入口。
 - [x] 第四十批：`finance_commission.go` 提成规则新增、更新事务入口。
-- [ ] 剩余生产仓储手写事务：14 处 / 2 个文件。
+- [x] 第四十一批：`finance_commission.go` 提成单创建事务入口。
+- [ ] 剩余生产仓储手写事务：13 处 / 2 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 
