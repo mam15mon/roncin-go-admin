@@ -48,10 +48,7 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 	var created *ent.Membership
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
 			return queryErr
@@ -105,19 +102,13 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		current, queryErr = tx.Membership.Query().
 			Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID)).
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserMembershipNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserMembershipNotFound, nil)
 		}
 		if account.Enabled && current.Enabled && !input.Enabled {
 			activeCount, countErr := tx.Membership.Query().Where(membership.UserIDEQ(input.UserID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Count(ctx)
@@ -165,19 +156,13 @@ func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membership
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(userID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		current, queryErr := tx.Membership.Query().
 			Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserMembershipNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserMembershipNotFound, nil)
 		}
 		if account.Enabled && current.Enabled {
 			activeCount, countErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Count(ctx)
@@ -213,10 +198,7 @@ func (r *adminRepo) findUserMembership(ctx context.Context, userID, membershipID
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserMembershipNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrAdminUserMembershipNotFound, nil)
 	}
 	return membershipToBiz(item), nil
 }
