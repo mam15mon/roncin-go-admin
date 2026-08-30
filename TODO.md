@@ -282,6 +282,8 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
       四个标准分页列表改用 `paginate`
 - [x] 第五批：管理员用户、后台任务与提成员工候选三个标准
       分页列表改用 `paginate`
+- [x] 第六批：`order_query.go` 订单标准分页列表改用 `paginate`，
+      保留原有边缘预加载与全部筛选语义
 
 ### B5. Principal 提取三连（中，151 处 / 31 文件）
 `PrincipalFromContext + if !ok + ErrSessionRequired` 完全一致。

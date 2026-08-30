@@ -140,23 +140,9 @@ func (r *orderRepo) List(ctx context.Context, organizationIDs []uuid.UUID, optio
 	if len(options.TagIDs) > 0 {
 		query.Where(orderent.HasEnterpriseTagLinksWith(ordertaglinkent.TagResourceIDIn(options.TagIDs...)))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := withOrderEdges(query).
-		Order(orderent.ByCreatedAt(entsql.OrderDesc())).
-		Offset((options.Page - 1) * options.PageSize).
-		Limit(options.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.Order, 0, len(items))
-	for _, item := range items {
-		result = append(result, orderToBiz(item))
-	}
-	return &biz.OrderList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
+		return withOrderEdges(query).Order(orderent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
 }
 
 func orderConsolidatedMasterContainsFold(keyword string) entpredicate.Order {
