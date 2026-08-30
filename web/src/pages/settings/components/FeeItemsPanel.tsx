@@ -14,11 +14,9 @@ import {
   feeCatalogServiceListTaxableServices,
   feeCatalogServiceUpdateFeeSetting,
 } from '@/services/roncin/feeCatalogService';
-import {
-  masterDataServiceListCurrencies,
-  masterDataServiceListOptions,
-} from '@/services/roncin/masterDataService';
+import { masterDataServiceListOptions } from '@/services/roncin/masterDataService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { getCurrencies } from '@/utils/options';
 
 const isServiceType = (kind?: number | string) =>
   kind === 8 ||
@@ -141,14 +139,14 @@ export function FeeItemsPanel() {
           feeCatalogServiceListFeeSettings({ page: 1, pageSize: 200 }),
           feeCatalogServiceListBillingUnits({ page: 1, pageSize: 200 }),
           feeCatalogServiceListTaxableServices({ page: 1, pageSize: 200 }),
-          masterDataServiceListCurrencies({ page: 1, pageSize: 200 }),
+          getCurrencies(),
           masterDataServiceListOptions(),
         ]);
         setBillingUnits(unwrapList(unitResponse).filter((item) => item.enabled));
         setTaxableServices(
           unwrapList(taxableResponse).filter((item) => item.enabled),
         );
-        setCurrencies(unwrapList(currencyResponse).filter((item) => item.enabled));
+        setCurrencies(currencyResponse.filter((item) => item.enabled));
         setServiceTypes(
           unwrapList(optionResponse).filter(
             (item) => isServiceType(item.kind) && item.enabled !== false,

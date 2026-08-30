@@ -8,7 +8,6 @@ import {
   adminServiceListOrganizations,
   adminServiceListUsers,
 } from '@/services/roncin/adminService';
-import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import {
   partnerServiceCreatePartner,
   partnerServiceGetPartner,
@@ -17,6 +16,7 @@ import {
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { getCurrencyOptions } from '@/utils/options';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
@@ -116,7 +116,7 @@ export default function PartnerDetailPage() {
           { skipErrorHandler: true },
         ),
         adminServiceListOrganizations({ skipErrorHandler: true }),
-        masterDataServiceListCurrencies({ skipErrorHandler: true }),
+        getCurrencyOptions(),
         partnerServiceListPartnerAssignmentOptions({ skipErrorHandler: true }),
       ]);
 
@@ -129,15 +129,8 @@ export default function PartnerDetailPage() {
       if (assignRes.status === 'fulfilled' && assignRes.value.data) {
         setAssignmentOptions(assignRes.value.data);
       }
-      if (curRes.status === 'fulfilled' && curRes.value.data) {
-        setCurrencyOptions(
-          curRes.value.data
-            .filter((currency) => currency.code)
-            .map((currency) => ({
-              label: `${currency.code} (${currency.name || currency.code})`,
-              value: currency.code ?? '',
-            })),
-        );
+      if (curRes.status === 'fulfilled') {
+        setCurrencyOptions(curRes.value);
       }
 
       const failedLabels = [
