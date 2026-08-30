@@ -46,35 +46,31 @@ func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, acto
 	if err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	create := tx.PartnerAttachment.Create().
-		SetPartnerID(partnerID).
-		SetIdempotencyKey(input.IdempotencyKey).
-		SetFileName(input.FileName).
-		SetMimeType(input.MIMEType).
-		SetFileSize(input.FileSize).
-		SetObjectKey(input.ObjectKey).
-		SetUploadedBy(actorID)
-	if input.Checksum != "" {
-		create.SetChecksum(input.Checksum)
-	}
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "partner_attachment_idempotency_key") {
-			return nil, biz.ErrPartnerAttachmentExists
+	var created *ent.PartnerAttachment
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		create := tx.PartnerAttachment.Create().
+			SetPartnerID(partnerID).
+			SetIdempotencyKey(input.IdempotencyKey).
+			SetFileName(input.FileName).
+			SetMimeType(input.MIMEType).
+			SetFileSize(input.FileSize).
+			SetObjectKey(input.ObjectKey).
+			SetUploadedBy(actorID)
+		if input.Checksum != "" {
+			create.SetChecksum(input.Checksum)
 		}
-		return nil, err
-	}
-	audit.Details["attachment.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		var saveErr error
+		created, saveErr = create.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "partner_attachment_idempotency_key") {
+				return biz.ErrPartnerAttachmentExists
+			}
+			return saveErr
+		}
+		audit.Details["attachment.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return partnerAttachmentToBiz(created), nil

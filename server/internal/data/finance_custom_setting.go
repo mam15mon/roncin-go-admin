@@ -35,45 +35,40 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.BilledFeeEditPolicy, error) { _ = tx.Rollback(); return nil, value }
-	current, err := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
-	flags := billedFeeFieldFlags(policy.EditableFields)
 	var saved *ent.FinanceCustomSetting
-	switch {
-	case ent.IsNotFound(err):
-		if expectedVersion != 0 {
-			return rollback(biz.ErrFinanceCustomSettingConflict)
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
+		flags := billedFeeFieldFlags(policy.EditableFields)
+		switch {
+		case ent.IsNotFound(queryErr):
+			if expectedVersion != 0 {
+				return biz.ErrFinanceCustomSettingConflict
+			}
+			saved, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).SetBilledFeeEditEnabled(policy.Enabled).
+				SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
+				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
+				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
+				SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
+			if ent.IsConstraintError(queryErr) {
+				return biz.ErrFinanceCustomSettingConflict
+			}
+		case queryErr != nil:
+			return queryErr
+		case current.Version != expectedVersion:
+			return biz.ErrFinanceCustomSettingConflict
+		default:
+			saved, queryErr = tx.FinanceCustomSetting.UpdateOneID(current.ID).SetBilledFeeEditEnabled(policy.Enabled).
+				SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
+				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
+				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
+				SetVersion(current.Version + 1).SetUpdatedBy(actorID).Save(ctx)
 		}
-		saved, err = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).SetBilledFeeEditEnabled(policy.Enabled).
-			SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
-			SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
-			SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
-			SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
-		if ent.IsConstraintError(err) {
-			return rollback(biz.ErrFinanceCustomSettingConflict)
+		if queryErr != nil {
+			return queryErr
 		}
-	case err != nil:
-		return rollback(err)
-	case current.Version != expectedVersion:
-		return rollback(biz.ErrFinanceCustomSettingConflict)
-	default:
-		saved, err = tx.FinanceCustomSetting.UpdateOneID(current.ID).SetBilledFeeEditEnabled(policy.Enabled).
-			SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
-			SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
-			SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
-			SetVersion(current.Version + 1).SetUpdatedBy(actorID).Save(ctx)
-	}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return financeCustomSettingToPolicy(saved), nil

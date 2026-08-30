@@ -48,43 +48,38 @@ func (r *orderAttachmentRepo) List(ctx context.Context, organizationID, orderID 
 }
 
 func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *biz.OrderAttachment, audit *biz.AuditEvent) (*biz.OrderAttachment, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderAttachmentNotFound
+	var created *ent.OrderAttachment
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderAttachmentNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	create := tx.OrderAttachment.Create().
-		SetOrderID(orderID).
-		SetDocType(input.DocType).
-		SetIdempotencyKey(input.IdempotencyKey).
-		SetFileName(input.FileName).
-		SetMimeType(input.MIMEType).
-		SetFileSize(input.FileSize).
-		SetObjectKey(input.ObjectKey).
-		SetUploadedBy(actorID)
-	if input.Checksum != "" {
-		create.SetChecksum(input.Checksum)
-	}
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_attachment_idempotency_key") {
-			return nil, biz.ErrOrderAttachmentExists
+		create := tx.OrderAttachment.Create().
+			SetOrderID(orderID).
+			SetDocType(input.DocType).
+			SetIdempotencyKey(input.IdempotencyKey).
+			SetFileName(input.FileName).
+			SetMimeType(input.MIMEType).
+			SetFileSize(input.FileSize).
+			SetObjectKey(input.ObjectKey).
+			SetUploadedBy(actorID)
+		if input.Checksum != "" {
+			create.SetChecksum(input.Checksum)
 		}
-		return nil, err
-	}
-	audit.Details["attachment.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		var saveErr error
+		created, saveErr = create.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "order_attachment_idempotency_key") {
+				return biz.ErrOrderAttachmentExists
+			}
+			return saveErr
+		}
+		audit.Details["attachment.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return orderAttachmentToBiz(created), nil

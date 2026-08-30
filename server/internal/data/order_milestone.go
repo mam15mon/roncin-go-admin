@@ -35,64 +35,40 @@ func (r *orderMilestoneRepo) List(ctx context.Context, organizationID, orderID u
 }
 
 func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uuid.UUID, milestoneType string, expectedVersion uint64, occurredAt *time.Time, note *string, clearOccurredAt bool, actorID uuid.UUID, audit *biz.AuditEvent) (*biz.OrderMilestone, error) {
-	tx, err := r.data.db.Tx(ctx)
+	var saved *ent.OrderMilestone
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		order, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderNotFound
+			}
+			return queryErr
+		}
+		if order.Version != expectedVersion {
+			return biz.ErrOrderStatusConflict
+		}
+		existing, queryErr := tx.OrderMilestone.Query().Where(ordermilestoneent.OrderIDEQ(orderID), ordermilestoneent.TypeEQ(milestoneType)).Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			saved, queryErr = tx.OrderMilestone.Create().SetOrderID(orderID).SetType(milestoneType).SetNillableOccurredAt(occurredAt).SetNillableNote(note).SetUpdatedBy(actorID).Save(ctx)
+		} else if queryErr == nil {
+			update := existing.Update().SetNillableNote(note).SetUpdatedBy(actorID)
+			if clearOccurredAt {
+				update.ClearOccurredAt()
+			} else if occurredAt != nil {
+				update.SetOccurredAt(*occurredAt)
+			}
+			saved, queryErr = update.Save(ctx)
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		audit.Details["occurred"] = strconv.FormatBool(saved.OccurredAt != nil)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
 		return nil, err
 	}
-	order, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
-	}
-	if order.Version != expectedVersion {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	existing, err := tx.OrderMilestone.Query().Where(ordermilestoneent.OrderIDEQ(orderID), ordermilestoneent.TypeEQ(milestoneType)).Only(ctx)
-	if ent.IsNotFound(err) {
-		create := tx.OrderMilestone.Create().SetOrderID(orderID).SetType(milestoneType).SetNillableOccurredAt(occurredAt).SetNillableNote(note).SetUpdatedBy(actorID)
-		created, saveErr := create.Save(ctx)
-		if saveErr != nil {
-			_ = tx.Rollback()
-			return nil, saveErr
-		}
-		audit.Details["occurred"] = strconv.FormatBool(created.OccurredAt != nil)
-		if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if err := tx.Commit(); err != nil {
-			return nil, err
-		}
-		return orderMilestoneToBiz(created), nil
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	update := existing.Update().SetNillableNote(note).SetUpdatedBy(actorID)
-	if clearOccurredAt {
-		update.ClearOccurredAt()
-	} else if occurredAt != nil {
-		update.SetOccurredAt(*occurredAt)
-	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["occurred"] = strconv.FormatBool(updated.OccurredAt != nil)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return orderMilestoneToBiz(updated), nil
+	return orderMilestoneToBiz(saved), nil
 }
 
 func orderMilestoneToBiz(item *ent.OrderMilestone) *biz.OrderMilestone {
