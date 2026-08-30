@@ -46,95 +46,75 @@ func (r *partnerShippingPresetRepo) List(ctx context.Context, organizationID, pa
 }
 
 func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := ensurePartnerInOrganization(ctx, tx, organizationID, partnerID); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if input.IsDefault {
-		if err := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, uuid.Nil); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	var resource *ent.EnterpriseResource
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if partnerErr := ensurePartnerInOrganization(ctx, tx, organizationID, partnerID); partnerErr != nil {
+			return partnerErr
 		}
-	}
-	actorID := uuid.Nil
-	if audit.UserID != nil {
-		actorID = *audit.UserID
-	}
-	resource, err := tx.EnterpriseResource.Create().SetOrganizationID(organizationID).SetResourceType(resourceent.ResourceType(input.PresetType)).SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetNillableCreatedBy(nonNilUUID(actorID)).SetNillableUpdatedBy(nonNilUUID(actorID)).Save(ctx)
+		if input.IsDefault {
+			if defaultErr := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, uuid.Nil); defaultErr != nil {
+				return defaultErr
+			}
+		}
+		actorID := uuid.Nil
+		if audit.UserID != nil {
+			actorID = *audit.UserID
+		}
+		var saveErr error
+		resource, saveErr = tx.EnterpriseResource.Create().SetOrganizationID(organizationID).SetResourceType(resourceent.ResourceType(input.PresetType)).SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetNillableCreatedBy(nonNilUUID(actorID)).SetNillableUpdatedBy(nonNilUUID(actorID)).Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		if detailErr := createShippingPresetDetail(ctx, tx, resource.ID, organizationID, input); detailErr != nil {
+			return detailErr
+		}
+		link, linkErr := tx.EnterpriseResourcePartner.Create().SetResourceID(resource.ID).SetPartnerID(partnerID).SetResourceType(linkent.ResourceType(input.PresetType)).SetIsDefault(input.IsDefault).Save(ctx)
+		if linkErr != nil {
+			return linkErr
+		}
+		resource.Edges.PartnerLinks = []*ent.EnterpriseResourcePartner{link}
+		audit.Details["preset.id"] = resource.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := createShippingPresetDetail(ctx, tx, resource.ID, organizationID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	link, err := tx.EnterpriseResourcePartner.Create().SetResourceID(resource.ID).SetPartnerID(partnerID).SetResourceType(linkent.ResourceType(input.PresetType)).SetIsDefault(input.IsDefault).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	resource.Edges.PartnerLinks = []*ent.EnterpriseResourcePartner{link}
-	audit.Details["preset.id"] = resource.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.getShippingPreset(ctx, organizationID, partnerID, resource.ID)
 }
 
 func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		_ = tx.Rollback()
-		return nil, biz.ErrPartnerShippingPresetNotFound
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if biz.PartnerShippingPresetType(existing.ResourceType) != input.PresetType {
-		_ = tx.Rollback()
-		return nil, biz.ErrPartnerShippingPresetInvalidArgument
-	}
-	if input.IsDefault {
-		if err := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, id); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrPartnerShippingPresetNotFound
 		}
-	}
-	update := existing.Update().SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
-	if audit.UserID != nil {
-		update.SetUpdatedBy(*audit.UserID)
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := updateShippingPresetDetail(ctx, tx, id, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.EnterpriseResourcePartner.Update().Where(linkent.ResourceIDEQ(id), linkent.PartnerIDEQ(partnerID)).SetIsDefault(input.IsDefault && input.Enabled).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if queryErr != nil {
+			return queryErr
+		}
+		if biz.PartnerShippingPresetType(existing.ResourceType) != input.PresetType {
+			return biz.ErrPartnerShippingPresetInvalidArgument
+		}
+		if input.IsDefault {
+			if defaultErr := lockAndClearResourceDefault(ctx, tx, partnerID, input.PresetType, id); defaultErr != nil {
+				return defaultErr
+			}
+		}
+		update := existing.Update().SetShortName(input.Title).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
+		if audit.UserID != nil {
+			update.SetUpdatedBy(*audit.UserID)
+		}
+		if _, saveErr := update.Save(ctx); saveErr != nil {
+			return saveErr
+		}
+		if detailErr := updateShippingPresetDetail(ctx, tx, id, input); detailErr != nil {
+			return detailErr
+		}
+		if _, linkErr := tx.EnterpriseResourcePartner.Update().Where(linkent.ResourceIDEQ(id), linkent.PartnerIDEQ(partnerID)).SetIsDefault(input.IsDefault && input.Enabled).Save(ctx); linkErr != nil {
+			return linkErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.getShippingPreset(ctx, organizationID, partnerID, id)

@@ -33,103 +33,97 @@ func (r *partnerInvoiceProfileRepo) List(ctx context.Context, organizationID, pa
 }
 
 func (r *partnerInvoiceProfileRepo) Create(ctx context.Context, organizationID uuid.UUID, profile *biz.PartnerInvoiceProfile, audit *biz.AuditEvent) (*biz.PartnerInvoiceProfile, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.PartnerInvoiceProfile, error) { _ = tx.Rollback(); return nil, value }
-	if err = lockInvoiceProfilePartner(ctx, tx, organizationID, profile.PartnerID); err != nil {
-		return rollback(err)
-	}
-	count, err := tx.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID)).Count(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	profile.IsDefault = profile.IsDefault || count == 0
-	if profile.IsDefault {
-		if _, err = tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
-			return rollback(err)
+	var item *ent.PartnerInvoiceProfile
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if lockErr := lockInvoiceProfilePartner(ctx, tx, organizationID, profile.PartnerID); lockErr != nil {
+			return lockErr
 		}
-	}
-	item, err := tx.PartnerInvoiceProfile.Create().
-		SetID(profile.ID).
-		SetOrganizationID(organizationID).
-		SetPartnerID(profile.PartnerID).
-		SetInvoiceTitle(profile.InvoiceTitle).
-		SetTaxpayerIdentificationNo(profile.TaxpayerIdentificationNo).
-		SetRegisteredAddress(profile.RegisteredAddress).
-		SetRegisteredPhone(profile.RegisteredPhone).
-		SetBankName(profile.BankName).
-		SetBankAccount(profile.BankAccount).
-		SetDefaultInvoiceType(profileent.DefaultInvoiceType(profile.DefaultInvoiceType)).
-		SetIsDefault(profile.IsDefault).
-		SetEnabled(true).
-		SetVersion(1).
-		Save(ctx)
+		count, countErr := tx.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID)).Count(ctx)
+		if countErr != nil {
+			return countErr
+		}
+		profile.IsDefault = profile.IsDefault || count == 0
+		if profile.IsDefault {
+			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
+				return updateErr
+			}
+		}
+		var saveErr error
+		item, saveErr = tx.PartnerInvoiceProfile.Create().
+			SetID(profile.ID).
+			SetOrganizationID(organizationID).
+			SetPartnerID(profile.PartnerID).
+			SetInvoiceTitle(profile.InvoiceTitle).
+			SetTaxpayerIdentificationNo(profile.TaxpayerIdentificationNo).
+			SetRegisteredAddress(profile.RegisteredAddress).
+			SetRegisteredPhone(profile.RegisteredPhone).
+			SetBankName(profile.BankName).
+			SetBankAccount(profile.BankAccount).
+			SetDefaultInvoiceType(profileent.DefaultInvoiceType(profile.DefaultInvoiceType)).
+			SetIsDefault(profile.IsDefault).
+			SetEnabled(true).
+			SetVersion(1).
+			Save(ctx)
+		if saveErr != nil {
+			return mapEntConstraint(saveErr, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists)
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return rollback(mapEntConstraint(err, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists))
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerInvoiceProfileToBiz(item), nil
 }
 
 func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID uuid.UUID, profile *biz.PartnerInvoiceProfile, expectedVersion uint64, audit *biz.AuditEvent) (*biz.PartnerInvoiceProfile, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.PartnerInvoiceProfile, error) { _ = tx.Rollback(); return nil, value }
-	if err = lockInvoiceProfilePartner(ctx, tx, organizationID, profile.PartnerID); err != nil {
-		return rollback(err)
-	}
-	current, err := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profile.ID), profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrPartnerInvoiceProfileNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if current.Version != expectedVersion {
-		return rollback(biz.ErrPartnerInvoiceProfileVersionConflict)
-	}
-	if current.IsDefault && !profile.IsDefault {
-		otherEnabled, countErr := tx.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.EnabledEQ(true)).Exist(ctx)
-		if countErr != nil {
-			return rollback(countErr)
+	var item *ent.PartnerInvoiceProfile
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if lockErr := lockInvoiceProfilePartner(ctx, tx, organizationID, profile.PartnerID); lockErr != nil {
+			return lockErr
 		}
-		if profile.Enabled || otherEnabled {
-			return rollback(biz.ErrPartnerInvoiceProfileDefaultRequired)
+		current, queryErr := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profile.ID), profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrPartnerInvoiceProfileNotFound
 		}
-	}
-	if profile.IsDefault {
-		if _, err = tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
-			return rollback(err)
+		if queryErr != nil {
+			return queryErr
 		}
-	}
-	item, err := current.Update().
-		SetInvoiceTitle(profile.InvoiceTitle).
-		SetTaxpayerIdentificationNo(profile.TaxpayerIdentificationNo).
-		SetRegisteredAddress(profile.RegisteredAddress).
-		SetRegisteredPhone(profile.RegisteredPhone).
-		SetBankName(profile.BankName).
-		SetBankAccount(profile.BankAccount).
-		SetDefaultInvoiceType(profileent.DefaultInvoiceType(profile.DefaultInvoiceType)).
-		SetIsDefault(profile.IsDefault).
-		SetEnabled(profile.Enabled).
-		SetVersion(current.Version + 1).
-		Save(ctx)
+		if current.Version != expectedVersion {
+			return biz.ErrPartnerInvoiceProfileVersionConflict
+		}
+		if current.IsDefault && !profile.IsDefault {
+			otherEnabled, countErr := tx.PartnerInvoiceProfile.Query().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.EnabledEQ(true)).Exist(ctx)
+			if countErr != nil {
+				return countErr
+			}
+			if profile.Enabled || otherEnabled {
+				return biz.ErrPartnerInvoiceProfileDefaultRequired
+			}
+		}
+		if profile.IsDefault {
+			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
+				return updateErr
+			}
+		}
+		var saveErr error
+		item, saveErr = current.Update().
+			SetInvoiceTitle(profile.InvoiceTitle).
+			SetTaxpayerIdentificationNo(profile.TaxpayerIdentificationNo).
+			SetRegisteredAddress(profile.RegisteredAddress).
+			SetRegisteredPhone(profile.RegisteredPhone).
+			SetBankName(profile.BankName).
+			SetBankAccount(profile.BankAccount).
+			SetDefaultInvoiceType(profileent.DefaultInvoiceType(profile.DefaultInvoiceType)).
+			SetIsDefault(profile.IsDefault).
+			SetEnabled(profile.Enabled).
+			SetVersion(current.Version + 1).
+			Save(ctx)
+		if saveErr != nil {
+			return mapEntConstraint(saveErr, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists)
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return rollback(mapEntConstraint(err, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists))
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerInvoiceProfileToBiz(item), nil
