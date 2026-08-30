@@ -196,11 +196,8 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 	var updated *ent.FinanceCommissionRule
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, err := tx.FinanceCommissionRule.Query().Where(rule.IDEQ(in.ID), rule.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionRuleNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionRuleNotFound, nil)
 		}
 		if x.Version != in.ExpectedVersion {
 			return biz.ErrCommissionRuleConflict
@@ -325,11 +322,8 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 		uq.ForUpdate()
 	}
 	employee, err := uq.Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrCommissionInvalid
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrCommissionInvalid, nil)
 	}
 	aq := store.attributions.Query().Where(
 		attribution.OrganizationIDEQ(org),
@@ -366,11 +360,8 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		rq.ForUpdate()
 	}
 	ruleItem, err := rq.Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrCommissionRuleNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrCommissionRuleNotFound, nil)
 	}
 	if !ruleItem.Enabled || (ruleItem.EffectiveFrom != nil && v.VerificationDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && v.VerificationDate > *ruleItem.EffectiveTo) {
 		return nil, biz.ErrCommissionRuleInvalid
@@ -654,11 +645,8 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if target == biz.CommissionConfirmed {
 			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
-			if ent.IsNotFound(lookupErr) {
-				return biz.ErrCommissionNotFound
-			}
 			if lookupErr != nil {
-				return lookupErr
+				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
 			}
 			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, snapshot.VerificationID, snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
 			if calculateErr != nil {
@@ -680,11 +668,8 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			}
 		}
 		x, err := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionNotFound, nil)
 		}
 		if x.Version != version {
 			return biz.ErrCommissionTransition
@@ -740,11 +725,8 @@ func (r *commissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.Finan
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
 	}).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrCommissionNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrCommissionNotFound, nil)
 	}
 	return commissionWithLinesToBiz(x)
 }
@@ -870,21 +852,15 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 	var created *ent.FinanceCommissionAdjustment
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(item.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionNotFound, nil)
 		}
 		if parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID {
 			return biz.ErrCommissionAdjustmentTransition
 		}
 		line, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(item.OrderID)).Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionAdjustmentInvalid
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionAdjustmentInvalid, nil)
 		}
 		sequence := parent.AdjustmentSequence + 1
 		item.AdjustmentNo = fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)
@@ -919,21 +895,15 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 	var updated *ent.FinanceCommissionAdjustment
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, err := tx.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionAdjustmentNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
 		}
 		if x.Version != version {
 			return biz.ErrCommissionAdjustmentTransition
 		}
 		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(x.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrCommissionNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrCommissionNotFound, nil)
 		}
 		now := time.Now().UTC()
 		update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)
