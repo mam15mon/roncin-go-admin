@@ -423,25 +423,17 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 }
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearLoginFailureKey string, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	if clearLoginFailureKey != "" {
-		if _, err = tx.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(clearLoginFailureKey)).Exec(ctx); err != nil {
-			_ = tx.Rollback()
-			return err
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if clearLoginFailureKey != "" {
+			if _, deleteErr := tx.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(clearLoginFailureKey)).Exec(ctx); deleteErr != nil {
+				return deleteErr
+			}
 		}
-	}
-	if _, err = tx.Session.Create().SetTokenHash(input.TokenHash).SetUserID(input.UserID).SetOrganizationID(input.OrganizationID).SetExpiresAt(input.ExpiresAt).SetUserAgent(input.UserAgent).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		if _, createErr := tx.Session.Create().SetTokenHash(input.TokenHash).SetUserID(input.UserID).SetOrganizationID(input.OrganizationID).SetExpiresAt(input.ExpiresAt).SetUserAgent(input.UserAgent).Save(ctx); createErr != nil {
+			return createErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.Time) (*biz.Session, error) {
@@ -456,48 +448,36 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 }
 
 func (r *authRepo) SwitchSessionOrganization(ctx context.Context, tokenHash string, userID, organizationID uuid.UUID, now time.Time, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	rollback := func(value error) error { _ = tx.Rollback(); return value }
-	exists, err := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if !exists {
-		return rollback(biz.ErrOrganizationForbidden)
-	}
-	updated, err := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now)).SetOrganizationID(organizationID).Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if updated != 1 {
-		return rollback(biz.ErrSessionExpired)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		exists, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if !exists {
+			return biz.ErrOrganizationForbidden
+		}
+		updated, updateErr := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now)).SetOrganizationID(organizationID).Save(ctx)
+		if updateErr != nil {
+			return updateErr
+		}
+		if updated != 1 {
+			return biz.ErrSessionExpired
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time.Time, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	rollback := func(value error) error { _ = tx.Rollback(); return value }
-	updated, err := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil()).SetRevokedAt(now).Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if updated != 1 {
-		return rollback(biz.ErrSessionExpired)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		updated, updateErr := tx.Session.Update().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil()).SetRevokedAt(now).Save(ctx)
+		if updateErr != nil {
+			return updateErr
+		}
+		if updated != 1 {
+			return biz.ErrSessionExpired
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 var _ biz.AuthRepo = (*authRepo)(nil)
