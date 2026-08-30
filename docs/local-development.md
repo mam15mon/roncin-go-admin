@@ -72,12 +72,12 @@ sudo -u postgres createdb --owner=roncin roncin_go_admin_integration
 `RONCIN_INTEGRATION_DATABASE_SOURCE`。测试会自动建表，并使用带唯一后缀的组织数据；
 用例结束后会清理本次业务数据，但仍应保持数据库隔离。
 
-在仓库根目录显式加载 `.env.local` 并运行账单、核销共享事务测试：
+在仓库根目录显式加载 `.env.local` 并运行账单、核销共享事务与订单事务测试：
 
 ```bash
 node --env-file-if-exists=.env.local scripts/run-with-env.mjs \
   go -C server test ./internal/data \
-  -run 'Test(FinanceBill|Verification)CreateSharedTransactionPostgres$' \
+  -run 'Test((FinanceBill|Verification)CreateSharedTransaction|OrderCreateTransaction)Postgres$' \
   -count=1 -v
 ```
 
