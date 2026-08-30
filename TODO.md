@@ -377,8 +377,9 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 
 ### C7. 详情抽屉骨架统一（中低）
 4 套手写 Drawer + Descriptions 骨架，props 契约两种。
-- [ ] 抽 `DescriptionsDetailDrawer`（统一 open/detail/loading 契约 +
-      空值兜底 `DItem`）
+- [x] 新增 `DescriptionsDetailDrawer`，统一 `open/detail/loading/onClose`
+      契约与 `DItem` 空值展示，并迁移真正同构的账单、发票只读详情；组织
+      抽屉含树导航、提成抽屉含状态操作，保留各自业务骨架，不扩张成万能组件
 
 ### C8. react-query 决策（低 · 需确认方向）
 依赖已装、插件已开但全项目 0 处使用；4 个选项加载 hooks 结构雷同。
