@@ -334,22 +334,14 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
 		))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	memberships, err := query.WithUser().WithOrganization().
-		Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
-		Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.OrderPersonnelOption, 0, len(memberships))
-	for _, membership := range memberships {
-		result = append(result, &biz.OrderPersonnelOption{
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
+		return query.WithUser().WithOrganization().
+			Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
+			Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(func(membership *ent.Membership) *biz.OrderPersonnelOption {
+		return &biz.OrderPersonnelOption{
 			UserID: membership.UserID, DisplayName: membership.Edges.User.DisplayName,
 			OrganizationID: membership.OrganizationID, OrganizationName: membership.Edges.Organization.Name,
-		})
-	}
-	return &biz.PagedList[*biz.OrderPersonnelOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+		}
+	}))
 }

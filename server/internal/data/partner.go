@@ -63,23 +63,9 @@ func (r *partnerRepo) List(ctx context.Context, organizationID uuid.UUID, option
 	if options.Enabled != nil {
 		query.Where(partnerent.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := withPartnerEdges(query).
-		Order(partnerent.ByLegalName()).
-		Offset((options.Page - 1) * options.PageSize).
-		Limit(options.PageSize).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	partners := make([]*biz.Partner, 0, len(items))
-	for _, item := range items {
-		partners = append(partners, partnerToBiz(item))
-	}
-	return &biz.PartnerList{Items: partners, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Partner, error) {
+		return withPartnerEdges(query).Order(partnerent.ByLegalName()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(partnerToBiz))
 }
 
 func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.PartnerAssignmentOption], error) {
@@ -111,25 +97,17 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 			membershipent.HasOrganizationWith(organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword))),
 		))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	memberships, err := query.WithUser().WithOrganization().
-		Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
-		Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.PartnerAssignmentOption, 0, len(memberships))
-	for _, item := range memberships {
-		result = append(result, &biz.PartnerAssignmentOption{
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Membership, error) {
+		return query.WithUser().WithOrganization().
+			Order(membershipent.ByUserField(userent.FieldDisplayName), membershipent.ByOrganizationField(organizationent.FieldName)).
+			Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.Membership) *biz.PartnerAssignmentOption {
+		return &biz.PartnerAssignmentOption{
 			UserID: item.UserID, DisplayName: item.Edges.User.DisplayName,
 			OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name,
 			MembershipEnabled: item.Enabled,
-		})
-	}
-	return &biz.PagedList[*biz.PartnerAssignmentOption]{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+		}
+	}))
 }
 
 func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partnerID uuid.UUID, page, pageSize int) (*biz.PartnerAuditLogList, error) {

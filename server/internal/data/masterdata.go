@@ -83,15 +83,9 @@ func (r *masterDataRepo) List(ctx context.Context, organizationID uuid.UUID, opt
 	if options.Enabled != nil {
 		query.Where(masterdataent.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &biz.MasterDataList{Items: masterDataItemsToBiz(items), Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.MasterDataItem, error) {
+		return query.Order(masterdataent.ByKind(), masterdataent.BySortOrder(), masterdataent.ByCode()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(masterDataItemToBiz))
 }
 
 func (r *masterDataRepo) ListEnabled(ctx context.Context, organizationID uuid.UUID) ([]*biz.MasterDataItem, error) {
