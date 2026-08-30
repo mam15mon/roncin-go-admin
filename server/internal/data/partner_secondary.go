@@ -63,44 +63,39 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if exists, err := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	} else if !exists {
-		_ = tx.Rollback()
-		return nil, biz.ErrPartnerAccountInvalidArgument
-	}
-	if input.IsDefault {
-		if _, err := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	var item *ent.PartnerAccount
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		exists, queryErr := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
 		}
-	}
-	created := tx.PartnerAccount.Create().
-		SetPartnerRoleID(role.ID).
-		SetAccountType(partneraccountent.AccountTypeCustomerSettlement).
-		SetCurrency(input.Currency).
-		SetBankName(input.BankName).
-		SetBankAccount(input.BankAccount).
-		SetSwiftCode(input.SwiftCode).
-		SetIsDefault(input.IsDefault).
-		SetStatus(partneraccountent.Status(input.Status)).
-		SetRemark(input.Remark)
-	item, err := created.Save(ctx)
+		if !exists {
+			return biz.ErrPartnerAccountInvalidArgument
+		}
+		if input.IsDefault {
+			if _, updateErr := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
+				return updateErr
+			}
+		}
+		created := tx.PartnerAccount.Create().
+			SetPartnerRoleID(role.ID).
+			SetAccountType(partneraccountent.AccountTypeCustomerSettlement).
+			SetCurrency(input.Currency).
+			SetBankName(input.BankName).
+			SetBankAccount(input.BankAccount).
+			SetSwiftCode(input.SwiftCode).
+			SetIsDefault(input.IsDefault).
+			SetStatus(partneraccountent.Status(input.Status)).
+			SetRemark(input.Remark)
+		var createErr error
+		item, createErr = created.Save(ctx)
+		if createErr != nil {
+			return mapPartnerSecondaryConstraint(createErr)
+		}
+		audit.Details["account.id"] = item.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerSecondaryConstraint(err)
-	}
-	audit.Details["account.id"] = item.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	item, err = r.data.db.PartnerAccount.Get(ctx, item.ID)
@@ -115,42 +110,35 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if exists, err := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	} else if !exists {
-		_ = tx.Rollback()
-		return nil, biz.ErrPartnerAccountInvalidArgument
-	}
-	existing, err := tx.PartnerAccount.Query().Where(partneraccountent.IDEQ(id), partneraccountent.PartnerRoleIDEQ(role.ID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerAccountNotFound
+	var updated *ent.PartnerAccount
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		exists, queryErr := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
 		}
-		return nil, err
-	}
-	if input.IsDefault {
-		if _, err := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true), partneraccountent.IDNEQ(id)).SetIsDefault(false).Save(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+		if !exists {
+			return biz.ErrPartnerAccountInvalidArgument
 		}
-	}
-	update := existing.Update().SetCurrency(input.Currency).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark)
-	updated, err := update.Save(ctx)
+		existing, queryErr := tx.PartnerAccount.Query().Where(partneraccountent.IDEQ(id), partneraccountent.PartnerRoleIDEQ(role.ID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrPartnerAccountNotFound
+			}
+			return queryErr
+		}
+		if input.IsDefault {
+			if _, updateErr := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true), partneraccountent.IDNEQ(id)).SetIsDefault(false).Save(ctx); updateErr != nil {
+				return updateErr
+			}
+		}
+		var updateErr error
+		updated, updateErr = existing.Update().SetCurrency(input.Currency).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark).Save(ctx)
+		if updateErr != nil {
+			return mapPartnerSecondaryConstraint(updateErr)
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerSecondaryConstraint(err)
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerAccountToBiz(updated), nil
@@ -211,63 +199,53 @@ func (r *partnerContractRepo) Create(ctx context.Context, organizationID, partne
 	if _, err := r.partner(ctx, organizationID, partnerID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
+	var created *ent.PartnerContract
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var createErr error
+		created, createErr = tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
+		if createErr != nil {
+			return mapPartnerSecondaryConstraint(createErr)
+		}
+		audit.Details["contract.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	created, err := tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerSecondaryConstraint(err)
-	}
-	audit.Details["contract.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerContractToBiz(created), nil
 }
 
 func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, expectedStatus biz.PartnerContractStatus, input *biz.PartnerContract, audit *biz.AuditEvent) (*biz.PartnerContract, error) {
-	tx, err := r.data.db.Tx(ctx)
+	var item *ent.PartnerContract
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		updated, updateErr := tx.PartnerContract.Update().Where(
+			partnercontractent.IDEQ(id),
+			partnercontractent.PartnerIDEQ(partnerID),
+			partnercontractent.StatusEQ(partnercontractent.Status(expectedStatus)),
+			partnercontractent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
+		).
+			SetName(input.Name).
+			SetStatus(partnercontractent.Status(input.Status)).
+			SetStartDate(input.StartDate).
+			SetEndDate(input.EndDate).
+			SetPaymentTerms(input.PaymentTerms).
+			SetDisputeResolution(input.DisputeResolution).
+			SetOtherNotes(input.OtherNotes).
+			Save(ctx)
+		if updateErr != nil {
+			return mapPartnerSecondaryConstraint(updateErr)
+		}
+		if updated == 0 {
+			return biz.ErrPartnerContractStatusConflict
+		}
+		var getErr error
+		item, getErr = tx.PartnerContract.Get(ctx, id)
+		if getErr != nil {
+			return getErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	updated, err := tx.PartnerContract.Update().Where(
-		partnercontractent.IDEQ(id),
-		partnercontractent.PartnerIDEQ(partnerID),
-		partnercontractent.StatusEQ(partnercontractent.Status(expectedStatus)),
-		partnercontractent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
-	).
-		SetName(input.Name).
-		SetStatus(partnercontractent.Status(input.Status)).
-		SetStartDate(input.StartDate).
-		SetEndDate(input.EndDate).
-		SetPaymentTerms(input.PaymentTerms).
-		SetDisputeResolution(input.DisputeResolution).
-		SetOtherNotes(input.OtherNotes).
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerSecondaryConstraint(err)
-	}
-	if updated == 0 {
-		_ = tx.Rollback()
-		return nil, biz.ErrPartnerContractStatusConflict
-	}
-	item, err := tx.PartnerContract.Get(ctx, id)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return partnerContractToBiz(item), nil
