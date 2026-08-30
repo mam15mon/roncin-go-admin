@@ -54,40 +54,37 @@ func (r *orderShippingDocumentRepo) Add(ctx context.Context, organizationID, ord
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	builder := tx.OrderShippingDocument.Create().
-		SetID(input.ID).
-		SetOrderID(orderID).
-		SetConsolidationID(consolidation.ID).
-		SetHouseNo(input.HouseNo).
-		SetStatus(ordershippingdocumentent.StatusDRAFT)
-	if input.ReleaseType != nil {
-		builder.SetReleaseType(*input.ReleaseType)
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	}
-	created, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
-			return nil, biz.ErrOrderShippingDocumentExists
+	var created *ent.OrderShippingDocument
+	var consolidation *ent.OrderConsolidation
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var resolveErr error
+		consolidation, resolveErr = resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
+		if resolveErr != nil {
+			return resolveErr
 		}
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		builder := tx.OrderShippingDocument.Create().
+			SetID(input.ID).
+			SetOrderID(orderID).
+			SetConsolidationID(consolidation.ID).
+			SetHouseNo(input.HouseNo).
+			SetStatus(ordershippingdocumentent.StatusDRAFT)
+		if input.ReleaseType != nil {
+			builder.SetReleaseType(*input.ReleaseType)
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		}
+		var saveErr error
+		created, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordershippingdocument_order_id_house_no") {
+				return biz.ErrOrderShippingDocumentExists
+			}
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	created.Edges.Consolidation = consolidation
@@ -99,59 +96,54 @@ func (r *orderShippingDocumentRepo) Update(ctx context.Context, organizationID, 
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderShippingDocument.Query().
-		Where(
-			ordershippingdocumentent.IDEQ(id),
-			ordershippingdocumentent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderShippingDocumentNotFound
+	var updated *ent.OrderShippingDocument
+	var consolidation *ent.OrderConsolidation
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderShippingDocument.Query().
+			Where(
+				ordershippingdocumentent.IDEQ(id),
+				ordershippingdocumentent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderShippingDocumentNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if item.Status != ordershippingdocumentent.StatusDRAFT && item.Status != ordershippingdocumentent.StatusCONFIRMED {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderShippingDocumentInvalidStatus
-	}
-	consolidation, err := resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	builder := tx.OrderShippingDocument.UpdateOne(item).
-		SetConsolidationID(consolidation.ID).
-		SetHouseNo(input.HouseNo)
-	if input.ReleaseType != nil {
-		builder.SetReleaseType(*input.ReleaseType)
-	} else {
-		builder.ClearReleaseType()
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	} else {
-		builder.ClearNote()
-	}
-	updated, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
-			return nil, biz.ErrOrderShippingDocumentExists
+		if item.Status != ordershippingdocumentent.StatusDRAFT && item.Status != ordershippingdocumentent.StatusCONFIRMED {
+			return biz.ErrOrderShippingDocumentInvalidStatus
 		}
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		var resolveErr error
+		consolidation, resolveErr = resolveOrderConsolidation(ctx, tx, organizationID, biz.OrderBusinessType(orderItem.BusinessType), input)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		builder := tx.OrderShippingDocument.UpdateOne(item).
+			SetConsolidationID(consolidation.ID).
+			SetHouseNo(input.HouseNo)
+		if input.ReleaseType != nil {
+			builder.SetReleaseType(*input.ReleaseType)
+		} else {
+			builder.ClearReleaseType()
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		} else {
+			builder.ClearNote()
+		}
+		var saveErr error
+		updated, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordershippingdocument_order_id_house_no") {
+				return biz.ErrOrderShippingDocumentExists
+			}
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated.Edges.Consolidation = consolidation
@@ -162,51 +154,45 @@ func (r *orderShippingDocumentRepo) Transition(ctx context.Context, organization
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderShippingDocument.Query().
-		Where(
-			ordershippingdocumentent.IDEQ(id),
-			ordershippingdocumentent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderShippingDocumentNotFound
+	var updated *ent.OrderShippingDocument
+	var consolidation *ent.OrderConsolidation
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderShippingDocument.Query().
+			Where(
+				ordershippingdocumentent.IDEQ(id),
+				ordershippingdocumentent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderShippingDocumentNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if item.Status != ordershippingdocumentent.Status(from) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderShippingDocumentStatusConflict
-	}
-	consolidation, err := item.QueryConsolidation().Only(ctx)
+		if item.Status != ordershippingdocumentent.Status(from) {
+			return biz.ErrOrderShippingDocumentStatusConflict
+		}
+		var consolidationErr error
+		consolidation, consolidationErr = item.QueryConsolidation().Only(ctx)
+		if consolidationErr != nil {
+			return consolidationErr
+		}
+		if item.Status == ordershippingdocumentent.StatusRELEASED ||
+			(item.Status == ordershippingdocumentent.StatusDRAFT && to != biz.OrderShippingDocumentStatusConfirmed) ||
+			(item.Status == ordershippingdocumentent.StatusCONFIRMED && to != biz.OrderShippingDocumentStatusReleased) {
+			return biz.ErrOrderShippingDocumentInvalidStatus
+		}
+		var saveErr error
+		updated, saveErr = tx.OrderShippingDocument.UpdateOne(item).
+			SetStatus(ordershippingdocumentent.Status(to)).
+			Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if item.Status == ordershippingdocumentent.StatusRELEASED ||
-		(item.Status == ordershippingdocumentent.StatusDRAFT && to != biz.OrderShippingDocumentStatusConfirmed) ||
-		(item.Status == ordershippingdocumentent.StatusCONFIRMED && to != biz.OrderShippingDocumentStatusReleased) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderShippingDocumentInvalidStatus
-	}
-	updated, err := tx.OrderShippingDocument.UpdateOne(item).
-		SetStatus(ordershippingdocumentent.Status(to)).
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	updated.Edges.Consolidation = consolidation
@@ -217,47 +203,37 @@ func (r *orderShippingDocumentRepo) Remove(ctx context.Context, organizationID, 
 	if _, err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	item, err := tx.OrderShippingDocument.Query().
-		Where(
-			ordershippingdocumentent.IDEQ(id),
-			ordershippingdocumentent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderShippingDocument.Query().
+			Where(
+				ordershippingdocumentent.IDEQ(id),
+				ordershippingdocumentent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderShippingDocumentNotFound
+			}
+			return queryErr
+		}
+		if item.Status == ordershippingdocumentent.StatusRELEASED {
+			return biz.ErrOrderShippingDocumentInvalidStatus
+		}
+		n, deleteErr := tx.OrderShippingDocument.Delete().
+			Where(
+				ordershippingdocumentent.IDEQ(id),
+				ordershippingdocumentent.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
 			return biz.ErrOrderShippingDocumentNotFound
 		}
-		return err
-	}
-	if item.Status == ordershippingdocumentent.StatusRELEASED {
-		_ = tx.Rollback()
-		return biz.ErrOrderShippingDocumentInvalidStatus
-	}
-	n, err := tx.OrderShippingDocument.Delete().
-		Where(
-			ordershippingdocumentent.IDEQ(id),
-			ordershippingdocumentent.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderShippingDocumentNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderShippingDocumentToBiz(item *ent.OrderShippingDocument) *biz.OrderShippingDocument {

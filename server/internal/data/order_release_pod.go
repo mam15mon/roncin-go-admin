@@ -74,36 +74,32 @@ func (r *orderReleasePodRepo) Add(ctx context.Context, organizationID, orderID u
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
+	var created *ent.OrderReleasePod
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		builder := tx.OrderReleasePod.Create().
+			SetID(input.ID).
+			SetOrderID(orderID).
+			SetStatus(orderreleasepodent.StatusPENDING)
+		if input.ShippingDocumentID != nil {
+			builder.SetShippingDocumentID(*input.ShippingDocumentID)
+		}
+		if input.ReleaseNo != nil {
+			builder.SetReleaseNo(*input.ReleaseNo)
+		}
+		if input.PodNo != nil {
+			builder.SetPodNo(*input.PodNo)
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		}
+		var saveErr error
+		created, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	builder := tx.OrderReleasePod.Create().
-		SetID(input.ID).
-		SetOrderID(orderID).
-		SetStatus(orderreleasepodent.StatusPENDING)
-	if input.ShippingDocumentID != nil {
-		builder.SetShippingDocumentID(*input.ShippingDocumentID)
-	}
-	if input.ReleaseNo != nil {
-		builder.SetReleaseNo(*input.ReleaseNo)
-	}
-	if input.PodNo != nil {
-		builder.SetPodNo(*input.PodNo)
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	}
-	created, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(created), nil
@@ -116,59 +112,53 @@ func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderI
 	if err := r.validateShippingDocument(ctx, orderID, input.ShippingDocumentID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderReleasePod.Query().
-		Where(
-			orderreleasepodent.IDEQ(id),
-			orderreleasepodent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderReleasePodNotFound
+	var updated *ent.OrderReleasePod
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderReleasePod.Query().
+			Where(
+				orderreleasepodent.IDEQ(id),
+				orderreleasepodent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderReleasePodNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if item.Status == orderreleasepodent.StatusRETURNED {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderReleasePodInvalidStatus
-	}
-	builder := tx.OrderReleasePod.UpdateOne(item)
-	if input.ShippingDocumentID != nil {
-		builder.SetShippingDocumentID(*input.ShippingDocumentID)
-	} else {
-		builder.ClearShippingDocumentID()
-	}
-	if input.ReleaseNo != nil {
-		builder.SetReleaseNo(*input.ReleaseNo)
-	} else {
-		builder.ClearReleaseNo()
-	}
-	if input.PodNo != nil {
-		builder.SetPodNo(*input.PodNo)
-	} else {
-		builder.ClearPodNo()
-	}
-	if input.Note != nil {
-		builder.SetNote(*input.Note)
-	} else {
-		builder.ClearNote()
-	}
-	updated, err := builder.Save(ctx)
+		if item.Status == orderreleasepodent.StatusRETURNED {
+			return biz.ErrOrderReleasePodInvalidStatus
+		}
+		builder := tx.OrderReleasePod.UpdateOne(item)
+		if input.ShippingDocumentID != nil {
+			builder.SetShippingDocumentID(*input.ShippingDocumentID)
+		} else {
+			builder.ClearShippingDocumentID()
+		}
+		if input.ReleaseNo != nil {
+			builder.SetReleaseNo(*input.ReleaseNo)
+		} else {
+			builder.ClearReleaseNo()
+		}
+		if input.PodNo != nil {
+			builder.SetPodNo(*input.PodNo)
+		} else {
+			builder.ClearPodNo()
+		}
+		if input.Note != nil {
+			builder.SetNote(*input.Note)
+		} else {
+			builder.ClearNote()
+		}
+		var saveErr error
+		updated, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(updated), nil
@@ -178,49 +168,42 @@ func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, or
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	item, err := tx.OrderReleasePod.Query().
-		Where(
-			orderreleasepodent.IDEQ(id),
-			orderreleasepodent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderReleasePodNotFound
+	var updated *ent.OrderReleasePod
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderReleasePod.Query().
+			Where(
+				orderreleasepodent.IDEQ(id),
+				orderreleasepodent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderReleasePodNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if item.Status != orderreleasepodent.Status(from) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderReleasePodStatusConflict
-	}
-	if item.Status == orderreleasepodent.StatusRETURNED ||
-		(item.Status == orderreleasepodent.StatusPENDING && to != biz.OrderReleasePodStatusSigned) ||
-		(item.Status == orderreleasepodent.StatusSIGNED && to != biz.OrderReleasePodStatusReturned) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderReleasePodInvalidStatus
-	}
-	builder := tx.OrderReleasePod.UpdateOne(item).
-		SetStatus(orderreleasepodent.Status(to))
-	if to == biz.OrderReleasePodStatusSigned {
-		builder.SetSignedAt(time.Now()).SetSignedBy(actorID)
-	}
-	updated, err := builder.Save(ctx)
+		if item.Status != orderreleasepodent.Status(from) {
+			return biz.ErrOrderReleasePodStatusConflict
+		}
+		if item.Status == orderreleasepodent.StatusRETURNED ||
+			(item.Status == orderreleasepodent.StatusPENDING && to != biz.OrderReleasePodStatusSigned) ||
+			(item.Status == orderreleasepodent.StatusSIGNED && to != biz.OrderReleasePodStatusReturned) {
+			return biz.ErrOrderReleasePodInvalidStatus
+		}
+		builder := tx.OrderReleasePod.UpdateOne(item).
+			SetStatus(orderreleasepodent.Status(to))
+		if to == biz.OrderReleasePodStatusSigned {
+			builder.SetSignedAt(time.Now()).SetSignedBy(actorID)
+		}
+		var saveErr error
+		updated, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return orderReleasePodToBiz(updated), nil
@@ -230,47 +213,37 @@ func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderI
 	if err := r.order(ctx, organizationID, orderID); err != nil {
 		return err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	item, err := tx.OrderReleasePod.Query().
-		Where(
-			orderreleasepodent.IDEQ(id),
-			orderreleasepodent.OrderIDEQ(orderID),
-		).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.OrderReleasePod.Query().
+			Where(
+				orderreleasepodent.IDEQ(id),
+				orderreleasepodent.OrderIDEQ(orderID),
+			).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderReleasePodNotFound
+			}
+			return queryErr
+		}
+		if item.Status == orderreleasepodent.StatusRETURNED {
+			return biz.ErrOrderReleasePodInvalidStatus
+		}
+		n, deleteErr := tx.OrderReleasePod.Delete().
+			Where(
+				orderreleasepodent.IDEQ(id),
+				orderreleasepodent.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
 			return biz.ErrOrderReleasePodNotFound
 		}
-		return err
-	}
-	if item.Status == orderreleasepodent.StatusRETURNED {
-		_ = tx.Rollback()
-		return biz.ErrOrderReleasePodInvalidStatus
-	}
-	n, err := tx.OrderReleasePod.Delete().
-		Where(
-			orderreleasepodent.IDEQ(id),
-			orderreleasepodent.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderReleasePodNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderReleasePodToBiz(item *ent.OrderReleasePod) *biz.OrderReleasePod {
