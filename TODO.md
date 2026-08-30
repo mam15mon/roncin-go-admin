@@ -348,9 +348,11 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 `src/pages/orders/fee-reason-confirm.tsx` 的 `confirmWithReason()` 已存在，
 finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**只统计当前页**
 （分页后口径错误）。
-- [ ] `confirmWithReason` 提升到 `src/utils/`
-- [ ] 抽 `makeVersionActions()` 与 `aggregateByDirection()`，修复当前页
-      口径问题
+- [x] `confirmWithReason` 已提升到 `src/utils/`；新增
+      `makeVersionActions()` 统一五个财务页面的 ID、乐观锁版本与原因确认入口
+- [x] 账单、发票、核销及资金流水指标均改用服务端按完整筛选集生成的数据库
+      汇总；原计划的前端 `aggregateByDirection()` 仍只能处理当前页，已取消该
+      方案，资金流水汇总契约同时返回实际本币币种
 
 ### C5. 选项加载收敛（中，10 文件 / 13+ 处）
 合作方下拉 10 处重复且 label 3 种格式；币种 options 4 种实现（含 2 处
