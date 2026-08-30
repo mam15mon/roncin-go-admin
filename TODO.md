@@ -294,13 +294,16 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
       三连样板归零；`adminAuditEvent` 仅可选读取组织信息，保留直接读取
 
 ### B6. 微样板收口（中低）
-- [ ] UUID helper 5 份拷贝（`parseUUIDs`/`parseUUIDStrings`/`parseUUIDList`/
+- [x] UUID helper 5 份拷贝（`parseUUIDs`/`parseUUIDStrings`/`parseUUIDList`/
       `enterpriseParseUUIDs`、`formatOptionalUUIDString` ≡ `uuidStringPtr`）
       收口到 service 包 `idutil`
 - [x] UUID 第一批：在共享 `uuid.go` 中补充有序去重解析，迁移
       管理员角色 ID 的 6 处调用并删除私有 `parseUUIDs`
 - [x] UUID 第二批：迁移财务 UUID 列表的去空白解析，统一管理员与
       财务 DTO 的 UUID 指针格式化，删除 `financeUUIDs`/`financeUUID`/`uuidString`
+- [x] UUID 最终审计：共享实现集中在 `service/uuid.go`，按严格解析、有序
+      去重和去空白解析保留三种显式语义；UUID 指针格式化仅保留
+      `uuidStringPtr`，无需为同包少量 helper 额外创建 `idutil` 子包
 - [ ] 26 处 `decimal.NewFromString` + err 三连抽 `data.decimalOf(s)`
 
 ### B7. cmd 同步工具框架（低）
