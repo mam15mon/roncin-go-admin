@@ -511,92 +511,68 @@ func (r *enterpriseResourceRepo) ListTagGroups(ctx context.Context, organization
 	return result, nil
 }
 func (r *enterpriseResourceRepo) CreateTagGroup(ctx context.Context, organizationID uuid.UUID, input *biz.EnterpriseTagGroup, audit *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := tx.EnterpriseTagGroup.Create().SetOrganizationID(organizationID).SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetNillableColor(optionalString(input.Color)).SetSortOrder(input.SortOrder).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.ResourceID = created.ID.String()
-	audit.Details["resource.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var created *ent.EnterpriseTagGroup
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		created, err = tx.EnterpriseTagGroup.Create().SetOrganizationID(organizationID).SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetNillableColor(optionalString(input.Color)).SetSortOrder(input.SortOrder).Save(ctx)
+		if err != nil {
+			return err
+		}
+		audit.ResourceID = created.ID.String()
+		audit.Details["resource.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return enterpriseTagGroupToBiz(created), nil
 }
 func (r *enterpriseResourceRepo) UpdateTagGroup(ctx context.Context, organizationID, id uuid.UUID, input *biz.EnterpriseTagGroup, audit *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		_ = tx.Rollback()
-		return nil, biz.ErrEnterpriseResourceNotFound
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	builder := existing.Update().SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetSortOrder(input.SortOrder)
-	if input.Color == "" {
-		builder.ClearColor()
-	} else {
-		builder.SetColor(input.Color)
-	}
-	updated, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var updated *ent.EnterpriseTagGroup
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrEnterpriseResourceNotFound
+		}
+		if err != nil {
+			return err
+		}
+		builder := existing.Update().SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetSortOrder(input.SortOrder)
+		if input.Color == "" {
+			builder.ClearColor()
+		} else {
+			builder.SetColor(input.Color)
+		}
+		updated, err = builder.Save(ctx)
+		if err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return enterpriseTagGroupToBiz(updated), nil
 }
 func (r *enterpriseResourceRepo) DeleteTagGroup(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	group, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		_ = tx.Rollback()
-		return biz.ErrEnterpriseResourceNotFound
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	has, err := group.QueryTags().Exist(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if has {
-		_ = tx.Rollback()
-		return biz.ErrEnterpriseTagGroupNotEmpty
-	}
-	if err := tx.EnterpriseTagGroup.DeleteOne(group).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		group, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrEnterpriseResourceNotFound
+		}
+		if err != nil {
+			return err
+		}
+		has, err := group.QueryTags().Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if has {
+			return biz.ErrEnterpriseTagGroupNotEmpty
+		}
+		if err := tx.EnterpriseTagGroup.DeleteOne(group).Exec(ctx); err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 func (r *enterpriseResourceRepo) FindImportConflicts(ctx context.Context, organizationID uuid.UUID, inputs []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
 	return findEnterpriseResourceImportConflicts(ctx, r.data.db.EnterpriseResourceParty, organizationID, inputs)
