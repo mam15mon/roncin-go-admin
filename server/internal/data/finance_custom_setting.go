@@ -49,8 +49,8 @@ func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, 
 				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
 				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).
 				SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
-			if ent.IsConstraintError(queryErr) {
-				return biz.ErrFinanceCustomSettingConflict
+			if queryErr != nil {
+				return mapEntError(queryErr, nil, biz.ErrFinanceCustomSettingConflict)
 			}
 		case queryErr != nil:
 			return queryErr
