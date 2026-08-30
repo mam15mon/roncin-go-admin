@@ -15,3 +15,4 @@ export * from './quick-create-modal';
 export * from './exchange-rate-input';
 export * from './document-detail-layout';
 export * from './sub-entity-card-grid';
+export * from './descriptions-detail-drawer';

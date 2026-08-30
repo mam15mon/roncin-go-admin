@@ -1,5 +1,6 @@
-import { Descriptions, Drawer, Space, Table, Tag } from 'antd';
+import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
+import { DItem, DescriptionsDetailDrawer } from '@/components/ui';
 import { statusOptions } from './billConstants';
 
 interface BillDetailDrawerProps {
@@ -16,21 +17,16 @@ export default function BillDetailDrawer({
   onClose,
 }: BillDetailDrawerProps) {
   return (
-    <Drawer
-      title={`账单详情 ${detail?.billNo || ''}`}
+    <DescriptionsDetailDrawer
+      title={(current) => `账单详情 ${current?.billNo || ''}`}
       open={open}
+      detail={detail}
       size={1020}
       loading={loading}
+      column={3}
       onClose={onClose}
-    >
-      {detail && (
+      descriptions={(detail) => (
         <>
-          <Descriptions
-            bordered
-            size="small"
-            column={3}
-            style={{ marginBottom: 16 }}
-          >
             <Descriptions.Item label="状态">
               <Tag color={statusOptions[detail.status || 'DRAFT']?.color}>
                 {statusOptions[detail.status || 'DRAFT']?.text}
@@ -42,12 +38,8 @@ export default function BillDetailDrawer({
             <Descriptions.Item label="结算单位">
               {detail.settlementPartyName}
             </Descriptions.Item>
-            <Descriptions.Item label="建单批次">
-              {detail.batchNo || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="对账抬头">
-              {detail.statementTitle || '-'}
-            </Descriptions.Item>
+            <DItem label="建单批次">{detail.batchNo}</DItem>
+            <DItem label="对账抬头">{detail.statementTitle}</DItem>
             <Descriptions.Item label="含税总额">
               <strong style={{ color: '#262626' }}>
                 {detail.totalAmount} {detail.currency}
@@ -109,15 +101,16 @@ export default function BillDetailDrawer({
             <Descriptions.Item label="费用笔数">
               {detail.feeCount} 笔
             </Descriptions.Item>
-            <Descriptions.Item label="备注" span={3}>
-              {detail.note || '-'}
-            </Descriptions.Item>
+            <DItem label="备注" span={3}>{detail.note}</DItem>
             {detail.cancellationReason && (
               <Descriptions.Item label="取消原因" span={3}>
                 {detail.cancellationReason}
               </Descriptions.Item>
             )}
-          </Descriptions>
+        </>
+      )}
+    >
+      {(detail) => (
           <Table<API.FinanceBillLine>
             rowKey="id"
             size="small"
@@ -176,8 +169,7 @@ export default function BillDetailDrawer({
               },
             ]}
           />
-        </>
       )}
-    </Drawer>
+    </DescriptionsDetailDrawer>
   );
 }

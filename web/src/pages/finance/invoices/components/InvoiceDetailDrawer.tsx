@@ -1,5 +1,6 @@
-import { Descriptions, Drawer, Space, Table, Tag } from 'antd';
+import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
+import { DItem, DescriptionsDetailDrawer } from '@/components/ui';
 import { invoiceStates } from './invoiceConstants';
 
 interface InvoiceDetailDrawerProps {
@@ -12,44 +13,30 @@ export default function InvoiceDetailDrawer({
   onClose,
 }: InvoiceDetailDrawerProps) {
   return (
-    <Drawer
-      title={`开票详情 ${detail?.recordNo || ''}`}
+    <DescriptionsDetailDrawer
+      title={(current) => `开票详情 ${current?.recordNo || ''}`}
       open={Boolean(detail)}
+      detail={detail}
       size={760}
+      column={2}
       onClose={onClose}
-    >
-      {detail && (
+      descriptions={(detail) => (
         <>
-          <Descriptions bordered size="small" column={2}>
             <Descriptions.Item label="状态">
               <Tag color={invoiceStates[detail.status || 'DRAFT']?.color}>
                 {invoiceStates[detail.status || 'DRAFT']?.text}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="税务发票号">
-              {detail.taxInvoiceNo || '-'}
-            </Descriptions.Item>
+            <DItem label="税务发票号">{detail.taxInvoiceNo}</DItem>
             <Descriptions.Item label="结算单位">
               {detail.settlementPartyName}
             </Descriptions.Item>
-            <Descriptions.Item label="发票抬头">
-              {detail.invoiceTitle || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="纳税人识别号" span={2}>
-              {detail.taxpayerIdentificationNo || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="注册地址">
-              {detail.registeredAddress || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="注册电话">
-              {detail.registeredPhone || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="开户银行">
-              {detail.bankName || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="银行账号">
-              {detail.bankAccount || '-'}
-            </Descriptions.Item>
+            <DItem label="发票抬头">{detail.invoiceTitle}</DItem>
+            <DItem label="纳税人识别号" span={2}>{detail.taxpayerIdentificationNo}</DItem>
+            <DItem label="注册地址">{detail.registeredAddress}</DItem>
+            <DItem label="注册电话">{detail.registeredPhone}</DItem>
+            <DItem label="开户银行">{detail.bankName}</DItem>
+            <DItem label="银行账号">{detail.bankAccount}</DItem>
             <Descriptions.Item label="开票日期">
               {detail.invoiceDate || '-'}
             </Descriptions.Item>
@@ -104,9 +91,7 @@ export default function InvoiceDetailDrawer({
             <Descriptions.Item label="汇率生效日期">
               {detail.exchangeRateDate || detail.invoiceDate || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="备注" span={2}>
-              {detail.note || '-'}
-            </Descriptions.Item>
+            <DItem label="备注" span={2}>{detail.note}</DItem>
             {detail.cancellationReason && (
               <Descriptions.Item label="取消原因" span={2}>
                 {detail.cancellationReason}
@@ -125,7 +110,11 @@ export default function InvoiceDetailDrawer({
                 </Descriptions.Item>
               </>
             )}
-          </Descriptions>
+        </>
+      )}
+    >
+      {(detail) => (
+        <>
           <Table<API.FinanceInvoiceLine>
             rowKey="id"
             size="small"
@@ -172,6 +161,6 @@ export default function InvoiceDetailDrawer({
           />
         </>
       )}
-    </Drawer>
+    </DescriptionsDetailDrawer>
   );
 }
