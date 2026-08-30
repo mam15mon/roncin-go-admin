@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
@@ -29,7 +30,8 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 		t.Fatalf("打开集成测试数据库: %v", err)
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
-	defer client.Close()
+	// 关库注册为最早的 t.Cleanup（LIFO 中最后执行），保证数据清理先于连接关闭。
+	t.Cleanup(func() { _ = client.Close() })
 	if err := client.Schema.Create(ctx); err != nil {
 		t.Fatalf("初始化集成测试 Schema: %v", err)
 	}
@@ -47,7 +49,7 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建测试组织: %v", err)
 	}
-	defer client.Organization.DeleteOneID(organization.ID).Exec(ctx)
+	t.Cleanup(func() { cleanupPermissionSyncOrganization(t, client, organization.ID) })
 
 	roleUpdate, err := client.Permission.Query().Where(permissionent.KeyEQ(access.RoleUpdate)).Only(ctx)
 	if err != nil {
@@ -123,5 +125,30 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 	}
 	if second.Created != 0 || second.Updated != 0 || second.Removed != 0 || second.Attached != 0 {
 		t.Fatalf("重复同步不是幂等操作: %+v", second)
+	}
+}
+
+// cleanupPermissionSyncOrganization 先删除组织下的角色及其权限关联再删除组织，
+// 避免直接删组织被外键挡下而残留测试数据。
+func cleanupPermissionSyncOrganization(t *testing.T, client *ent.Client, organizationID uuid.UUID) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	roles, err := client.Role.Query().Where(roleent.OrganizationIDEQ(organizationID)).All(ctx)
+	if err != nil {
+		t.Errorf("查询测试角色失败: %v", err)
+		return
+	}
+	for _, item := range roles {
+		if err := item.Update().ClearPermissions().Exec(ctx); err != nil {
+			t.Errorf("清理角色权限关联失败: %v", err)
+			return
+		}
+	}
+	if _, err := client.Role.Delete().Where(roleent.OrganizationIDEQ(organizationID)).Exec(ctx); err != nil {
+		t.Errorf("清理测试角色失败: %v", err)
+		return
+	}
+	if err := client.Organization.DeleteOneID(organizationID).Exec(ctx); err != nil {
+		t.Errorf("清理测试组织失败: %v", err)
 	}
 }
