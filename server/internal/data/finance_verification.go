@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -206,14 +205,14 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		}
 		_, e = tx.FinanceVerification.Create().SetID(v.ID).SetOrganizationID(org).SetVerificationNo(v.VerificationNo).SetIdempotencyKey(v.IdempotencyKey).SetStatus(ver.StatusACTIVE).SetDirection(ver.Direction(v.Direction)).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetBaseCurrency(v.BaseCurrency).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(ver.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetBillBaseAmount(v.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(v.CashflowBaseAmount.StringFixed(8)).SetExchangeGainLoss(v.ExchangeGainLoss.StringFixed(8)).SetVerificationDate(v.VerificationDate).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
 		if e != nil {
-			return mapVerificationConstraint(e)
+			return mapEntConstraint(e, "financeverification_org_idempotency", biz.ErrVerificationIdempotency)
 		}
 		builders := make([]*ent.FinanceVerificationAllocationCreate, 0, len(v.Allocations))
 		for _, x := range v.Allocations {
 			builders = append(builders, tx.FinanceVerificationAllocation.Create().SetID(x.ID).SetVerificationID(v.ID).SetCashflowID(x.CashflowID).SetBillID(x.BillID).SetCashflowNo(x.CashflowNo).SetBillNo(x.BillNo).SetAmount(x.Amount.StringFixed(8)).SetBillBaseAmount(x.BillBaseAmount.StringFixed(8)).SetCashflowBaseAmount(x.CashflowBaseAmount.StringFixed(8)).SetWriteOffBaseAmount(x.WriteOffBaseAmount.StringFixed(8)).SetExchangeGainLoss(x.ExchangeGainLoss.StringFixed(8)).SetActive(true))
 		}
 		if _, e = tx.FinanceVerificationAllocation.CreateBulk(builders...).Save(ctx); e != nil {
-			return mapVerificationConstraint(e)
+			return mapEntConstraint(e, "verification_allocation_pair_unique", biz.ErrVerificationInvalid)
 		}
 		if e = writeAudit(ctx, tx.AuditLog, audit); e != nil {
 			return e
@@ -235,20 +234,6 @@ func sortedFinanceUUIDs(values map[uuid.UUID]struct{}) []uuid.UUID {
 	return ids
 }
 
-func mapVerificationConstraint(err error) error {
-	if !ent.IsConstraintError(err) {
-		return err
-	}
-	message := err.Error()
-	switch {
-	case strings.Contains(message, "financeverification_org_idempotency"):
-		return biz.ErrVerificationIdempotency
-	case strings.Contains(message, "verification_allocation_pair_unique"):
-		return biz.ErrVerificationInvalid
-	default:
-		return err
-	}
-}
 func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, queryErr := tx.FinanceVerification.Query().Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
