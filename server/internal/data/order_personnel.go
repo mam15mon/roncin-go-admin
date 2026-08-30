@@ -50,110 +50,91 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 }
 
 func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID, memberOrganizationID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.OrderPersonnel, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderRecord, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderPersonnelNotFound
+	var created *ent.OrderPersonnel
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderPersonnelNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-	for _, organization := range organizations {
-		parentByID[organization.ID] = organization.ParentID
-	}
-	if !organizationWithinRoot(parentByID, organizationID, memberOrganizationID) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderPersonnelUserInvalid
-	}
-	m, err := tx.Membership.Query().
-		Where(
-			membership.OrganizationIDEQ(memberOrganizationID),
-			membership.UserIDEQ(userID),
-			membership.EnabledEQ(true),
-		).
-		WithUser().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderPersonnelUserInvalid
+		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
+		if queryErr != nil {
+			return queryErr
 		}
-		return nil, err
-	}
-	user, err := m.Edges.UserOrErr()
-	if err != nil || !user.Enabled {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderPersonnelUserInvalid
-	}
-	created, err := tx.OrderPersonnel.Create().
-		SetOrderID(orderID).
-		SetUserID(userID).
-		SetOrganizationID(memberOrganizationID).
-		SetRole(orderpersonnelent.Role(role)).
-		Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_personnel_order_id_role") {
-			return nil, biz.ErrOrderPersonnelExists
+		parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
+		for _, organization := range organizations {
+			parentByID[organization.ID] = organization.ParentID
 		}
-		return nil, err
-	}
-	if err := enqueueOrderPersonnelNotification(ctx, tx, organizationID, orderID, orderRecord.OrderNo, role, user, notification); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["personnel.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if !organizationWithinRoot(parentByID, organizationID, memberOrganizationID) {
+			return biz.ErrOrderPersonnelUserInvalid
+		}
+		m, queryErr := tx.Membership.Query().
+			Where(
+				membership.OrganizationIDEQ(memberOrganizationID),
+				membership.UserIDEQ(userID),
+				membership.EnabledEQ(true),
+			).
+			WithUser().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderPersonnelUserInvalid
+			}
+			return queryErr
+		}
+		user, userErr := m.Edges.UserOrErr()
+		if userErr != nil || !user.Enabled {
+			return biz.ErrOrderPersonnelUserInvalid
+		}
+		var saveErr error
+		created, saveErr = tx.OrderPersonnel.Create().
+			SetOrderID(orderID).
+			SetUserID(userID).
+			SetOrganizationID(memberOrganizationID).
+			SetRole(orderpersonnelent.Role(role)).
+			Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "order_personnel_order_id_role") {
+				return biz.ErrOrderPersonnelExists
+			}
+			return saveErr
+		}
+		if notificationErr := enqueueOrderPersonnelNotification(ctx, tx, organizationID, orderID, orderRecord.OrderNo, role, user, notification); notificationErr != nil {
+			return notificationErr
+		}
+		audit.Details["personnel.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return orderPersonnelToBiz(created), nil
 }
 
 func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	if _, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderPersonnelNotFound
+			}
+			return queryErr
+		}
+		n, deleteErr := tx.OrderPersonnel.Delete().
+			Where(
+				orderpersonnelent.IDEQ(id),
+				orderpersonnelent.OrderIDEQ(orderID),
+			).
+			Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		if n == 0 {
 			return biz.ErrOrderPersonnelNotFound
 		}
-		return err
-	}
-	n, err := tx.OrderPersonnel.Delete().
-		Where(
-			orderpersonnelent.IDEQ(id),
-			orderpersonnelent.OrderIDEQ(orderID),
-		).
-		Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if n == 0 {
-		_ = tx.Rollback()
-		return biz.ErrOrderPersonnelNotFound
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func orderPersonnelToBiz(item *ent.OrderPersonnel) *biz.OrderPersonnel {
