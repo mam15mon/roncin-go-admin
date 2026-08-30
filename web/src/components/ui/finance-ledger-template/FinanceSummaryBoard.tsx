@@ -1,5 +1,6 @@
 import { Divider, Space, Typography } from 'antd';
 import React, { useMemo } from 'react';
+import { formatAmount } from '@/utils/format';
 import type {
   FinanceLedgerGlobalSummary,
   FinanceLedgerSummaryItem,
@@ -22,13 +23,6 @@ interface AggregatedMetrics {
   profitByCurrency: Record<string, number>;
   profitBaseTotal: number;
   baseCurrency: string;
-}
-
-function formatNumber(num: number): string {
-  return num.toLocaleString('zh-CN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }
 
 function aggregateFees(
@@ -153,7 +147,7 @@ export function FinanceSummaryBoard({
               )}
               <strong style={{ color }}>
                 {isProfit && val > 0 ? '+' : ''}
-                {formatNumber(val)}
+                {formatAmount(val)}
               </strong>{' '}
               <span style={{ fontSize: 11, color: '#595959' }}>{curr}</span>
             </span>
@@ -176,7 +170,7 @@ export function FinanceSummaryBoard({
         </Text>
         <strong style={{ color, fontSize: 13 }}>
           {isProfit && val > 0 ? '+' : ''}
-          {formatNumber(val)}
+          {formatAmount(val)}
         </strong>{' '}
         <span style={{ fontSize: 11, color: '#8c8c8c' }}>{baseCurr}</span>
       </span>

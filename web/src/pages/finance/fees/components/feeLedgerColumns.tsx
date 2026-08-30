@@ -11,6 +11,7 @@ import {
 } from '@/constants/statusMeta';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { formatAmount } from '@/utils/format';
 
 const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
@@ -67,16 +68,6 @@ export const financialProgressLabels: Record<
 
 export function amount(value?: string | number) {
   return Number(value || 0);
-}
-
-export function formatMoney(value?: any, decimals = 2): string {
-  if (value === undefined || value === null || value === '') return '-';
-  const num = Number(value);
-  if (Number.isNaN(num)) return String(value);
-  return num.toLocaleString('zh-CN', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
 }
 
 export function formatRate(value?: any): string {
@@ -267,7 +258,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
             whiteSpace: 'nowrap',
           }}
         >
-          {formatMoney(row.totalAmount)}
+          {formatAmount(row.totalAmount)}
         </span>
       ),
     },
@@ -394,7 +385,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       search: false,
       render: (val) => (
         <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-          {formatMoney(val)}
+          {formatAmount(val as string | number | undefined)}
         </span>
       ),
     },
@@ -406,7 +397,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       search: false,
       render: (val) => (
         <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-          {formatMoney(val)}
+          {formatAmount(val as string | number | undefined)}
         </span>
       ),
     },
@@ -478,7 +469,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
             color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
           }}
         >
-          {formatMoney(row.baseCurrencyAmount)}
+          {formatAmount(row.baseCurrencyAmount)}
         </span>
       ),
     },
