@@ -11,6 +11,7 @@ import {
   adminServiceListOrganizationRoles,
   adminServiceUpdateUserMembership,
 } from '@/services/roncin/adminService';
+import { unwrapList } from '@/utils/api';
 import type { UserMembershipFormValues } from './userConstants';
 
 interface UserMembershipModalProps {
@@ -126,7 +127,7 @@ export default function UserMembershipModal({
             const response = await adminServiceListOrganizationRoles({
               organizationId,
             });
-            onMembershipRolesChange(response.data ?? []);
+            onMembershipRolesChange(unwrapList(response));
           },
         }}
       />

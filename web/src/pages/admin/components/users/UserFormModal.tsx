@@ -13,6 +13,7 @@ import {
   adminServiceListUserMemberships,
   adminServiceUpdateUser,
 } from '@/services/roncin/adminService';
+import { unwrapList } from '@/utils/api';
 import UserMembershipModal from './UserMembershipModal';
 import {
   organizationKindLabels,
@@ -63,7 +64,7 @@ export default function UserFormModal({
     setMembershipsLoading(true);
     try {
       const response = await adminServiceListUserMemberships({ userId });
-      setMemberships(response.data ?? []);
+      setMemberships(unwrapList(response));
     } finally {
       setMembershipsLoading(false);
     }
@@ -100,7 +101,7 @@ export default function UserFormModal({
       const response = await adminServiceListOrganizationRoles({
         organizationId: membership.organizationId,
       });
-      setMembershipRoles(response.data ?? []);
+      setMembershipRoles(unwrapList(response));
     }
   };
 
@@ -205,7 +206,7 @@ export default function UserFormModal({
               const response = await adminServiceListOrganizationRoles({
                 organizationId,
               });
-              setApprovalRoles(response.data ?? []);
+              setApprovalRoles(unwrapList(response));
             },
           }}
         />

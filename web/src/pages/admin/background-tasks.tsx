@@ -26,6 +26,7 @@ import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
+import { toTableRequest } from '@/utils/api';
 import {
   backgroundTaskExecutionSummary,
   backgroundTaskHasNextRunAt,
@@ -315,11 +316,7 @@ export default function BackgroundTasksPanel() {
             ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
             : undefined,
         });
-        return {
-          data: response.data ?? [],
-          success: response.success ?? true,
-          total: response.total ?? 0,
-        };
+        return toTableRequest(response);
       }}
       toolBarRender={() => [
         <Button

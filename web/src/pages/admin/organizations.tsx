@@ -23,6 +23,7 @@ import {
 import type { DataNode } from 'antd/es/tree';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminServiceListOrganizations } from '@/services/roncin/adminService';
+import { unwrapList } from '@/utils/api';
 import OrgChartCanvas from './components/org/OrgChartCanvas';
 import OrgCreateModal from './components/org/OrgCreateModal';
 import OrgDetailCard from './components/org/OrgDetailCard';
@@ -74,7 +75,7 @@ export default function OrganizationsPanel() {
       setLoading(true);
       try {
         const response = await adminServiceListOrganizations();
-        const list = (response.data ?? []).map((organization) => ({
+        const list = unwrapList(response).map((organization) => ({
           ...organization,
           kind: normalizeOrganizationKind(organization.kind),
         }));

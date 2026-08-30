@@ -4,6 +4,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Space, Tag, Typography } from 'antd';
 import React, { useRef } from 'react';
 import { adminServiceListPermissions } from '@/services/roncin/adminService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -66,7 +67,7 @@ export default function PermissionsPanel() {
       pagination={false}
       request={async () => {
         const response = await adminServiceListPermissions();
-        return { data: response.data ?? [], success: response.success ?? true };
+        return toTableRequest(response);
       }}
       toolBarRender={() => [
         <Button key="refresh" icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>

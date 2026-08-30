@@ -22,6 +22,7 @@ import {
   adminServiceListPermissions,
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import RoleFormModal from './components/roles/RoleFormModal';
 import {
   buildPermissionTree,
@@ -64,14 +65,14 @@ export default function RolesPanel() {
   useEffect(() => {
     if (!access.canReadPermissions) return;
     adminServiceListPermissions()
-      .then((response) => setPermissions(response.data ?? []))
+      .then((response) => setPermissions(unwrapList(response)))
       .catch(() => message.error('加载权限字典失败'));
   }, [access.canReadPermissions, message]);
 
   useEffect(() => {
     if (!access.canReadOrganizations) return;
     adminServiceListOrganizations()
-      .then((response) => setOrganizations(response.data ?? []))
+      .then((response) => setOrganizations(unwrapList(response)))
       .catch(() => message.error('加载组织列表失败'));
   }, [access.canReadOrganizations, message]);
 
@@ -357,7 +358,7 @@ export default function RolesPanel() {
         pagination={false}
         request={async () => {
           const response = await adminServiceListRoles();
-          let list = response.data ?? [];
+          let list = unwrapList(response);
           if (searchParams.keyword) {
             const kw = searchParams.keyword.toLowerCase().trim();
             list = list.filter(
@@ -369,7 +370,7 @@ export default function RolesPanel() {
           if (searchParams.dataScope !== undefined) {
             list = list.filter((r) => r.dataScope === searchParams.dataScope);
           }
-          return { data: list, success: response.success ?? true };
+          return toTableRequest({ ...response, data: list });
         }}
         toolBarRender={false}
       />

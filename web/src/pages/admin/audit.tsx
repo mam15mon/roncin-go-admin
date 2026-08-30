@@ -5,6 +5,7 @@ import { Button, Descriptions, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
 import { adminServiceListAuditLogs } from '@/services/roncin/adminService';
+import { toTableRequest } from '@/utils/api';
 import {
   auditActionPresentation,
   auditActorName,
@@ -137,11 +138,7 @@ export default function AuditPanel() {
             ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
             : undefined,
         });
-        return {
-          data: response.data ?? [],
-          success: response.success ?? true,
-          total: response.total ?? 0,
-        };
+        return toTableRequest(response);
       }}
       expandable={{
         expandedRowRender: (record) => {

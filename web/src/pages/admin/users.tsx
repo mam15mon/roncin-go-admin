@@ -11,6 +11,7 @@ import {
   adminServiceListUsers,
   adminServiceTerminateUser,
 } from '@/services/roncin/adminService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import ResetPasswordModal from './components/users/ResetPasswordModal';
 import UserFormModal from './components/users/UserFormModal';
 import { buildUserColumns } from './components/users/userColumns';
@@ -31,9 +32,9 @@ export default function UsersPanel() {
   const [searchParams, setSearchParams] = useState<{ keyword?: string }>({});
 
   useEffect(() => {
-    adminServiceListRoles().then((response) => setRoles(response.data ?? []));
+    adminServiceListRoles().then((response) => setRoles(unwrapList(response)));
     adminServiceListOrganizations().then((response) =>
-      setOrganizations(response.data ?? []),
+      setOrganizations(unwrapList(response)),
     );
   }, []);
 
@@ -123,11 +124,7 @@ export default function UsersPanel() {
             pageSize: params.pageSize,
             keyword: searchParams.keyword,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-            total: response.total ?? 0,
-          };
+          return toTableRequest(response);
         }}
         search={false}
         toolBarRender={false}
