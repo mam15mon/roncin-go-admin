@@ -216,6 +216,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共错误映射，保留首次标记时创建的分流语义
 - [x] 第十九批：`order_release_pod.go` 订单与放单标准 NotFound 分支
       改用公共 `mapEntError`
+- [x] 第二十批：`order_personnel.go` 订单、成员 NotFound 与角色唯一约束
+      改用公共错误映射
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -23,10 +22,7 @@ func NewOrderPersonnelRepo(data *Data) biz.OrderPersonnelRepo {
 
 func (r *orderPersonnelRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrOrderPersonnelNotFound
-		}
-		return err
+		return mapEntError(err, biz.ErrOrderPersonnelNotFound, nil)
 	}
 	return nil
 }
@@ -54,10 +50,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderPersonnelNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
 		}
 		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID).All(ctx)
 		if queryErr != nil {
@@ -79,10 +72,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 			WithUser().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderPersonnelUserInvalid
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderPersonnelUserInvalid, nil)
 		}
 		user, userErr := m.Edges.UserOrErr()
 		if userErr != nil || !user.Enabled {
@@ -96,10 +86,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 			SetRole(orderpersonnelent.Role(role)).
 			Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "order_personnel_order_id_role") {
-				return biz.ErrOrderPersonnelExists
-			}
-			return saveErr
+			return mapEntConstraint(saveErr, "order_personnel_order_id_role", biz.ErrOrderPersonnelExists)
 		}
 		if notificationErr := enqueueOrderPersonnelNotification(ctx, tx, organizationID, orderID, orderRecord.OrderNo, role, user, notification); notificationErr != nil {
 			return notificationErr
@@ -116,10 +103,7 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderPersonnelNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
 		}
 		n, deleteErr := tx.OrderPersonnel.Delete().
 			Where(
