@@ -358,8 +358,12 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 合作方下拉 10 处重复且 label 3 种格式；币种 options 4 种实现（含 2 处
 硬编码列表）；公共函数 `searchPartnersByRole`（`orders/common.ts:205`）
 已存在但 finance 全部绕过。
-- [ ] `utils/options.ts`：`usePartnerSearch(role?)`、
-      `getCurrencyOptions()`（模块级缓存）
+- [x] 新增 `utils/options.ts`：`searchPartnerOptions()` 统一首批 50 条服务端
+      联想、角色/启用状态与标签格式；采用纯函数以同时支持组件内请求和静态
+      ProTable 列配置，不引入仅为包裹请求而存在的 Hook
+- [x] `getCurrencies()` / `getCurrencyOptions()` 使用模块级请求缓存，失败后可
+      重试；订单、财务、伙伴与设置页面已复用，硬编码币种选项清零。币种主
+      数据维护页保留直接请求，以确保主动刷新读取最新数据
 
 ### C6. partners 双轨 CRUD 收敛（中）
 旧手写套（AccountCardList/ContractCardList/ShippingPresetSection 等 6 个）
