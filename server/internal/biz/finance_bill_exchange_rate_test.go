@@ -16,7 +16,7 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 		timeStandards: []*ExchangeRateTimeStandardSetting{{RateType: BillRateType, TimeStandards: []string{BillDateStandard}}},
 		resolved:      &ResolvedExchangeRate{Rate: decimal.RequireFromString("7.20"), Source: "SYSTEM", RateDate: "2026-08-26", SettingID: &settingID},
 	}
-	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo))
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo), &financeBillTransactorStub{})
 	bill := &FinanceBill{
 		Direction:    OrderFeeReceivable,
 		Currency:     "USD",

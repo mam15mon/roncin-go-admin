@@ -232,10 +232,11 @@ type FinanceBillRepo interface {
 type FinanceBillUsecase struct {
 	repo         FinanceBillRepo
 	exchangeRate *ExchangeRateUsecase
+	transactor   Transactor
 }
 
-func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate}
+func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor) *FinanceBillUsecase {
+	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor}
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -387,28 +388,33 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 	if err != nil {
 		return nil, err
 	}
-	existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		if sameFinanceBillCreateIntent(existing, normalized) {
-			return existing, nil
+	var created *FinanceBill
+	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		existing, transactionErr := uc.repo.GetByIdempotencyKey(txCtx, organizationID, normalized.IdempotencyKey)
+		if transactionErr != nil {
+			return transactionErr
 		}
-		return nil, ErrFinanceBillIdempotencyConflict
-	}
-	fees, err := uc.repo.LoadBillableFees(ctx, organizationID, normalized.FeeIDs)
-	if err != nil {
-		return nil, err
-	}
-	bill, err := buildFinanceBill(organizationID, fees, normalized)
-	if err != nil {
-		return nil, err
-	}
-	if err = uc.applyBillExchangeRate(ctx, organizationID, bill); err != nil {
-		return nil, err
-	}
-	created, err := uc.repo.Create(ctx, bill, financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create"))
+		if existing != nil {
+			if !sameFinanceBillCreateIntent(existing, normalized) {
+				return ErrFinanceBillIdempotencyConflict
+			}
+			created = existing
+			return nil
+		}
+		fees, transactionErr := uc.repo.LoadBillableFees(txCtx, organizationID, normalized.FeeIDs)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		bill, transactionErr := buildFinanceBill(organizationID, fees, normalized)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		if transactionErr = uc.applyBillExchangeRate(txCtx, organizationID, bill); transactionErr != nil {
+			return transactionErr
+		}
+		created, transactionErr = uc.repo.Create(txCtx, bill, financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create"))
+		return transactionErr
+	})
 	if err == nil {
 		return created, nil
 	}

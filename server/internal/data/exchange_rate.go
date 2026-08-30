@@ -21,10 +21,18 @@ type exchangeRateRepo struct{ data *Data }
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
 
 func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	currentID := organizationID
 	baseCurrency := ""
 	for {
-		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
+		query := client.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true))
+		if _, transactional := transactionFromContext(ctx); transactional {
+			query.ForShare()
+		}
+		item, err := query.Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
 		}
@@ -169,9 +177,17 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 }
 
 func (r *exchangeRateRepo) ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateTimeStandardSetting, error) {
-	items, err := r.data.db.ExchangeRateTimeStandard.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.ExchangeRateTimeStandard.Query().
 		Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).
-		Order(exchangeratetimestandardent.ByRateType(), exchangeratetimestandardent.BySortOrder()).All(ctx)
+		Order(exchangeratetimestandardent.ByRateType(), exchangeratetimestandardent.BySortOrder())
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	items, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -212,9 +228,15 @@ func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizatio
 }
 
 func (r *exchangeRateRepo) GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateCustomSetting, error) {
-	item, err := r.data.db.ExchangeRateCustomSetting.Query().
-		Where(exchangeratecustomsettingent.OrganizationIDEQ(organizationID)).
-		Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.ExchangeRateCustomSetting.Query().Where(exchangeratecustomsettingent.OrganizationIDEQ(organizationID))
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	item, err := query.Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, nil
@@ -277,12 +299,20 @@ func (r *exchangeRateRepo) Resolve(ctx context.Context, organizationID uuid.UUID
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
-	items, err := r.data.db.ExchangeRateSetting.Query().Where(
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.ExchangeRateSetting.Query().Where(
 		exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(rateType)),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
 		exchangerateent.IsActiveEQ(true),
 		exchangerateent.EffectiveFromLTE(lookupTime), exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(lookupTime)),
-	).Limit(2).All(ctx)
+	).Limit(2)
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	items, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}

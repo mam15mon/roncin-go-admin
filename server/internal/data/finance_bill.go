@@ -132,7 +132,11 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 }
 
 func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.FinanceBill, error) {
-	item, err := r.financeBillQueryWithLines(r.data.db.FinanceBill.Query()).
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
 		Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -159,7 +163,11 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		bill.VerifiedAmount = decimal.Zero
 		bill.UnverifiedAmount = bill.TotalAmount
 	}
-	allocations, err := r.data.db.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDIn(ids...), verificationallocationent.ActiveEQ(true)).All(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	allocations, err := client.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDIn(ids...), verificationallocationent.ActiveEQ(true)).All(ctx)
 	if err != nil {
 		return err
 	}
@@ -182,7 +190,11 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 }
 
 func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*biz.FinanceBill, error) {
-	item, err := r.financeBillQueryWithLines(r.data.db.FinanceBill.Query()).
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := r.financeBillQueryWithLines(client.FinanceBill.Query()).
 		Where(financebillent.OrganizationIDEQ(organizationID), financebillent.IdempotencyKeyEQ(idempotencyKey)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
@@ -263,7 +275,11 @@ func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery)
 }
 
 func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
-	items, err := r.data.db.OrderFee.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := client.OrderFee.Query().
 		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).
 		WithSettlementParty().WithOrder().All(ctx)
 	if err != nil {
