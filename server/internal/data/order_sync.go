@@ -228,7 +228,7 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 			builder := tx.OrderShippingDocument.Create().SetID(uuid.Must(uuid.NewV7())).SetOrderID(orderID).SetConsolidationID(consolidation.ID).SetHouseNo(input.HouseNo).SetStatus(ordershippingdocumentent.StatusDRAFT)
 			setShippingDocumentOptionalFieldsOnCreate(builder, input)
 			if _, err := builder.Save(ctx); err != nil {
-				return mapShippingDocumentConstraint(err)
+				return mapEntConstraint(err, "ordershippingdocument_order_id_house_no", biz.ErrOrderShippingDocumentExists)
 			}
 			continue
 		}
@@ -242,7 +242,7 @@ func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID 
 		builder := item.Update().SetConsolidationID(consolidation.ID).SetHouseNo(input.HouseNo)
 		setShippingDocumentOptionalFieldsOnUpdate(builder, input)
 		if _, err := builder.Save(ctx); err != nil {
-			return mapShippingDocumentConstraint(err)
+			return mapEntConstraint(err, "ordershippingdocument_order_id_house_no", biz.ErrOrderShippingDocumentExists)
 		}
 		delete(remaining, input.ID)
 	}
@@ -318,13 +318,6 @@ func setShippingDocumentOptionalFieldsOnUpdate(builder *ent.OrderShippingDocumen
 	} else {
 		builder.SetNote(*input.Note)
 	}
-}
-
-func mapShippingDocumentConstraint(err error) error {
-	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "ordershippingdocument_order_id_house_no") {
-		return biz.ErrOrderShippingDocumentExists
-	}
-	return err
 }
 
 func syncOrderContainerRequests(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID, inputs []*biz.OrderContainerRequest) error {

@@ -1,8 +1,6 @@
 package data
 
 import (
-	"strings"
-
 	"github.com/google/uuid"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -229,11 +227,4 @@ func nonNilUUIDs(values ...*uuid.UUID) []uuid.UUID {
 		}
 	}
 	return result
-}
-
-func mapOrderConstraint(err error) error {
-	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "order_organization_id_order_no") {
-		return biz.ErrOrderNumberExists
-	}
-	return err
 }

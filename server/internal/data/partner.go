@@ -734,12 +734,12 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID u
 		}
 		if len(existingRules) == 0 {
 			if _, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(partnerRole.ID), role.SettlementRule); err != nil {
-				return mapPartnerSettlementRuleConstraint(err)
+				return mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
 			}
 			continue
 		}
 		if _, err := updatePartnerSettlementRule(ctx, existingRules[0].Update(), role.SettlementRule); err != nil {
-			return mapPartnerSettlementRuleConstraint(err)
+			return mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
 		}
 	}
 	return nil

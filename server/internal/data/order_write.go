@@ -90,7 +90,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
 		created, err := create.Save(ctx)
 		if err != nil {
-			return mapOrderConstraint(err)
+			return mapEntConstraint(err, "order_organization_id_order_no", biz.ErrOrderNumberExists)
 		}
 		createdID = created.ID
 		if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
@@ -244,7 +244,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 	}
 	if _, err := update.Save(ctx); err != nil {
 		_ = tx.Rollback()
-		return nil, mapOrderConstraint(err)
+		return nil, mapEntConstraint(err, "order_organization_id_order_no", biz.ErrOrderNumberExists)
 	}
 	if err := replaceOrderSelections(ctx, tx, id, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
 		_ = tx.Rollback()

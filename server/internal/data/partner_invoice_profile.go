@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -68,7 +67,7 @@ func (r *partnerInvoiceProfileRepo) Create(ctx context.Context, organizationID u
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		return rollback(mapPartnerInvoiceProfileConstraint(err))
+		return rollback(mapEntConstraint(err, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists))
 	}
 	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		return rollback(err)
@@ -125,7 +124,7 @@ func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID u
 		SetVersion(current.Version + 1).
 		Save(ctx)
 	if err != nil {
-		return rollback(mapPartnerInvoiceProfileConstraint(err))
+		return rollback(mapEntConstraint(err, "partner_invoice_profile_title_key", biz.ErrPartnerInvoiceProfileTitleExists))
 	}
 	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		return rollback(err)
@@ -140,13 +139,6 @@ func lockInvoiceProfilePartner(ctx context.Context, tx *ent.Tx, organizationID, 
 	_, err := tx.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).ForUpdate().Only(ctx)
 	if ent.IsNotFound(err) {
 		return biz.ErrPartnerNotFound
-	}
-	return err
-}
-
-func mapPartnerInvoiceProfileConstraint(err error) error {
-	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "partner_invoice_profile_title_key") {
-		return biz.ErrPartnerInvoiceProfileTitleExists
 	}
 	return err
 }

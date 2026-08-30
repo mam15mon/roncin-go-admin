@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -146,7 +145,7 @@ func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow
 	}
 	x, e := tx.FinanceCashflow.Create().SetID(v.ID).SetOrganizationID(v.OrganizationID).SetFlowNo(v.FlowNo).SetIdempotencyKey(v.IdempotencyKey).SetDirection(cash.Direction(v.Direction)).SetStatus(cash.StatusDRAFT).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(cash.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetTransactionDate(v.TransactionDate).SetOurAccount(v.OurAccount).SetNillableCounterpartyAccount(v.CounterpartyAccount).SetPaymentMethod(v.PaymentMethod).SetNillableBankReferenceNo(v.BankReferenceNo).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
 	if e != nil {
-		return rollback(mapFinanceCashflowConstraint(e))
+		return rollback(mapEntConstraint(e, "financecashflow_organization_id_idempotency_key", biz.ErrFinanceCashflowIdempotencyConflict))
 	}
 	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
 		return rollback(e)
@@ -157,15 +156,6 @@ func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow
 	return r.Get(ctx, v.OrganizationID, x.ID)
 }
 
-func mapFinanceCashflowConstraint(err error) error {
-	if !ent.IsConstraintError(err) {
-		return err
-	}
-	if strings.Contains(err.Error(), "financecashflow_organization_id_idempotency_key") {
-		return biz.ErrFinanceCashflowIdempotencyConflict
-	}
-	return err
-}
 func (r *financeCashflowRepo) Confirm(ctx context.Context, org, id, actor uuid.UUID, v uint64, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
 	return r.transition(ctx, org, id, actor, v, "", true, a)
 }

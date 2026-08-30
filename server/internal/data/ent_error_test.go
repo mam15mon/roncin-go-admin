@@ -41,3 +41,18 @@ func TestMapEntErrorIgnoresUnconfiguredKinds(t *testing.T) {
 		t.Fatalf("未配置 Constraint 映射时不应改写错误: %v", got)
 	}
 }
+
+func TestMapEntConstraint(t *testing.T) {
+	constraintErr := &ent.ConstraintError{}
+	domainErr := errors.New("领域约束冲突")
+	if got := mapEntConstraint(constraintErr, "", domainErr); got != domainErr {
+		t.Fatalf("命中约束名时错误 = %v，期望领域错误", got)
+	}
+	if got := mapEntConstraint(constraintErr, "other_constraint", domainErr); got != constraintErr {
+		t.Fatalf("未命中约束名时不应改写错误: %v", got)
+	}
+	rawErr := errors.New("数据库连接失败")
+	if got := mapEntConstraint(rawErr, "", domainErr); got != rawErr {
+		t.Fatalf("非约束错误不应改写: %v", got)
+	}
+}

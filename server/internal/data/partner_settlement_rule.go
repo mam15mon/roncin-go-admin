@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -67,7 +66,7 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	created, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
 	if err != nil {
 		_ = tx.Rollback()
-		return nil, mapPartnerSettlementRuleConstraint(err)
+		return nil, mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
 	}
 	audit.Details["rule.id"] = created.ID.String()
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
@@ -99,7 +98,7 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrPartnerSettlementRuleNotFound
 		}
-		return nil, mapPartnerSettlementRuleConstraint(err)
+		return nil, mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
 	}
 	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
 		_ = tx.Rollback()
@@ -157,13 +156,6 @@ func updatePartnerSettlementRule(ctx context.Context, update *ent.PartnerSettlem
 		update.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
 	return update.Save(ctx)
-}
-
-func mapPartnerSettlementRuleConstraint(err error) error {
-	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "partner_settlement_rule_key") {
-		return biz.ErrPartnerSettlementRuleExists
-	}
-	return err
 }
 
 func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSettlementRule {
