@@ -30,10 +30,7 @@ func NewPartnerRepo(data *Data) biz.PartnerRepo { return &partnerRepo{data: data
 func (r *partnerRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.Partner, error) {
 	item, err := withPartnerEdges(r.data.db.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID))).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerNotFound, nil)
 	}
 	return partnerToBiz(item), nil
 }
@@ -235,10 +232,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrPartnerNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerNotFound, nil)
 		}
 		previousRoles = partnerRolesToBiz(existing.Edges.Roles)
 		update := existing.Update().
@@ -298,20 +292,14 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 	previouslyBlacklisted := false
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrPartnerNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerNotFound, nil)
 		}
 		role, queryErr := tx.PartnerRole.Query().Where(
 			partnerroleent.PartnerIDEQ(id),
 			partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeSupplier),
 		).Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrPartnerSupplierRoleRequired
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerSupplierRoleRequired, nil)
 		}
 		previouslyBlacklisted = role.Blacklisted
 		update := role.Update().SetBlacklisted(input.Blacklisted)

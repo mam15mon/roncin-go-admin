@@ -232,6 +232,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共 `mapEntError`
 - [x] 第二十七批：`finance_verification.go` 核销单与现金流水标准 NotFound
       改用公共 `mapEntError`，保留幂等键未命中时返回空的语义
+- [x] 第二十八批：`partner.go` 获取、更新与黑名单设置的标准 NotFound
+      改用公共 `mapEntError`，保留导入时不存在则创建的分流语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
