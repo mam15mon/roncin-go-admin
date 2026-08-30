@@ -432,18 +432,12 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		}
 		itemSnapshot, queryErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderFeeNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
 		if itemSnapshot.Status == orderfeeent.StatusBILLED {
 			lineSnapshot, lineErr := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).Only(ctx)
-			if ent.IsNotFound(lineErr) {
-				return biz.ErrBilledFeeBillLocked
-			}
 			if lineErr != nil {
-				return lineErr
+				return mapEntError(lineErr, biz.ErrBilledFeeBillLocked, nil)
 			}
 			// 与账单确认、取消保持“账单 -> 账单行 -> 费用”的锁顺序，避免并发事务互相等待。
 			activeBill, queryErr = tx.FinanceBill.Query().Where(financebillent.IDEQ(lineSnapshot.BillID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
@@ -451,11 +445,8 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 				return queryErr
 			}
 			activeLine, queryErr = tx.FinanceBillLine.Query().Where(financebilllineent.IDEQ(lineSnapshot.ID), financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().Only(ctx)
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrBilledFeeBillLocked
-			}
 			if queryErr != nil {
-				return queryErr
+				return mapEntError(queryErr, biz.ErrBilledFeeBillLocked, nil)
 			}
 			item, queryErr = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().ForUpdate().Only(ctx)
 			if queryErr != nil {
@@ -471,11 +462,8 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			return biz.ErrOrderFeeVersionConflict
 		}
 		party, queryErr = tx.Partner.Query().Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrOrderFeePartyInvalid
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderFeePartyInvalid, nil)
 		}
 		if (item.Status != orderfeeent.StatusBILLED || item.SettlementPartyID != input.SettlementPartyID) && !party.Enabled {
 			return biz.ErrOrderFeePartyInvalid
@@ -501,11 +489,8 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 				return ownerErr
 			}
 			setting, settingErr := tx.FinanceCustomSetting.Query().Where(financecustomsettingent.OrganizationIDEQ(ownerID)).ForShare().Only(ctx)
-			if ent.IsNotFound(settingErr) {
-				return biz.ErrBilledFeeEditDisabled
-			}
 			if settingErr != nil {
-				return settingErr
+				return mapEntError(settingErr, biz.ErrBilledFeeEditDisabled, nil)
 			}
 			if !setting.BilledFeeEditEnabled {
 				return biz.ErrBilledFeeEditDisabled
@@ -660,10 +645,7 @@ func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, 
 		}
 		item, queryErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderFeeNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
 		if item.Version != expectedVersion {
 			return biz.ErrOrderFeeVersionConflict
@@ -708,10 +690,7 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		}
 		item, queryErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderFeeNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
 		if item.Version != expectedVersion {
 			return biz.ErrOrderFeeVersionConflict
