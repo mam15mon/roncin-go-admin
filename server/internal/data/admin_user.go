@@ -189,97 +189,79 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 }
 
 func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	account, err := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrAdminUserNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	_, err = tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
+		if _, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Only(ctx); queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrAdminUserNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if !hasExternalIdentity(account) || account.Enabled {
-		_ = tx.Rollback()
-		return nil, biz.ErrAdminInvalidArgument
-	}
-	if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
-		_ = tx.Rollback()
-		return nil, queryErr
-	} else if !exists {
-		_ = tx.Rollback()
-		return nil, biz.ErrAdminOrganizationNotFound
-	}
-	roles, err := rolesForOrganization(ctx, tx.Role.Query(), targetOrganizationID, roleIDs)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	userUpdate := tx.User.UpdateOneID(input.ID).SetDisplayName(input.DisplayName).SetEnabled(true)
-	if input.Email == nil {
-		userUpdate.ClearEmail()
-	} else {
-		userUpdate.SetEmail(*input.Email)
-	}
-	if _, err := userUpdate.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	membershipIDs, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if len(membershipIDs) > 0 {
-		if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+		if !hasExternalIdentity(account) || account.Enabled {
+			return biz.ErrAdminInvalidArgument
 		}
-	}
-	if _, err := tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	targetMembership, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		targetMembership, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(ctx)
-	} else if err == nil {
-		targetMembership, err = tx.Membership.UpdateOneID(targetMembership.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := replaceRoleAssignments(ctx, tx, targetMembership.ID, roles); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if notification != nil {
-		if err := enqueueDingTalkUserAuthorizedNotification(ctx, tx, targetOrganizationID, account, notification); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+		exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
 		}
-	}
-	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(input.ID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["value"] = account.Username
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if !exists {
+			return biz.ErrAdminOrganizationNotFound
+		}
+		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), targetOrganizationID, roleIDs)
+		if queryErr != nil {
+			return queryErr
+		}
+		userUpdate := tx.User.UpdateOneID(input.ID).SetDisplayName(input.DisplayName).SetEnabled(true)
+		if input.Email == nil {
+			userUpdate.ClearEmail()
+		} else {
+			userUpdate.SetEmail(*input.Email)
+		}
+		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(membershipIDs) > 0 {
+			if _, deleteErr := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); deleteErr != nil {
+				return deleteErr
+			}
+		}
+		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		targetMembership, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			targetMembership, queryErr = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(ctx)
+		} else if queryErr == nil {
+			targetMembership, queryErr = tx.Membership.UpdateOneID(targetMembership.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if replaceErr := replaceRoleAssignments(ctx, tx, targetMembership.ID, roles); replaceErr != nil {
+			return replaceErr
+		}
+		if notification != nil {
+			if notificationErr := enqueueDingTalkUserAuthorizedNotification(ctx, tx, targetOrganizationID, account, notification); notificationErr != nil {
+				return notificationErr
+			}
+		}
+		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(input.ID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		audit.Details["value"] = account.Username
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.findUser(ctx, targetOrganizationID, input.ID)
