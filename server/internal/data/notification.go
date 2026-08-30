@@ -90,7 +90,11 @@ func enqueueDingTalkUserAuthorizedNotification(ctx context.Context, tx *ent.Tx, 
 }
 
 func (r *notificationRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (*biz.NotificationDelivery, error) {
-	item, err := r.data.db.NotificationDelivery.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.NotificationDelivery.Query().
 		Where(notificationent.BackgroundTaskIDEQ(taskID)).
 		WithRecipientUser().
 		Only(ctx)

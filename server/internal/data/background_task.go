@@ -21,7 +21,11 @@ func NewBackgroundTaskRepo(data *Data) biz.BackgroundTaskRepo {
 }
 
 func (r *backgroundTaskRepo) Enqueue(ctx context.Context, organizationID uuid.UUID, input *biz.BackgroundTask) (*biz.BackgroundTask, error) {
-	create := r.data.db.BackgroundTask.Create().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	create := client.BackgroundTask.Create().
 		SetOrganizationID(organizationID).
 		SetKind(backgroundtaskent.Kind(input.Kind)).
 		SetIdempotencyKey(input.IdempotencyKey).
@@ -231,7 +235,11 @@ func (r *backgroundTaskRepo) Fail(ctx context.Context, organizationID, id uuid.U
 }
 
 func (r *backgroundTaskRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.BackgroundTask, error) {
-	task, err := r.data.db.BackgroundTask.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	task, err := client.BackgroundTask.Query().
 		Where(
 			backgroundtaskent.IDEQ(id),
 			backgroundtaskent.OrganizationIDEQ(organizationID),
@@ -247,7 +255,11 @@ func (r *backgroundTaskRepo) Get(ctx context.Context, organizationID, id uuid.UU
 }
 
 func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.BackgroundTaskListOptions) (*biz.BackgroundTaskList, error) {
-	query := r.data.db.BackgroundTask.Query().Where(backgroundtaskent.OrganizationIDEQ(organizationID))
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.BackgroundTask.Query().Where(backgroundtaskent.OrganizationIDEQ(organizationID))
 	if options.Status != nil {
 		query.Where(backgroundtaskent.StatusEQ(backgroundtaskent.Status(*options.Status)))
 	}

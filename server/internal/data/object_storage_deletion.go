@@ -16,7 +16,11 @@ type objectDeletionRepo struct{ data *Data }
 func NewObjectDeletionRepo(data *Data) biz.ObjectDeletionRepo { return &objectDeletionRepo{data: data} }
 
 func (r *objectDeletionRepo) FindByTaskID(ctx context.Context, taskID uuid.UUID) (*biz.ObjectDeletion, error) {
-	item, err := r.data.db.ObjectStorageDeletion.Query().
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	item, err := client.ObjectStorageDeletion.Query().
 		Where(objectdeletionent.BackgroundTaskIDEQ(taskID)).
 		Only(ctx)
 	if err != nil {
