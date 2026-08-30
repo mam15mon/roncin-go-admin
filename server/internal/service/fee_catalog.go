@@ -28,7 +28,10 @@ func (s *FeeCatalogService) ListFeeSettings(ctx context.Context, _ *v1.ListFeeSe
 }
 
 func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.SearchFeeSettingsRequest) (*v1.SearchFeeSettingsResponse, error) {
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFeeCatalogInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	data, total, resultPage, resultPageSize, err := s.listFeeSettings(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err
@@ -97,7 +100,10 @@ func (s *FeeCatalogService) ListBillingUnits(ctx context.Context, _ *v1.ListBill
 }
 
 func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.SearchBillingUnitsRequest) (*v1.SearchBillingUnitsResponse, error) {
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFeeCatalogInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	data, total, resultPage, resultPageSize, err := s.listBillingUnits(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err
@@ -158,7 +164,10 @@ func (s *FeeCatalogService) ListTaxableServices(ctx context.Context, _ *v1.ListT
 }
 
 func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *v1.SearchTaxableServicesRequest) (*v1.SearchTaxableServicesResponse, error) {
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFeeCatalogInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	data, total, resultPage, resultPageSize, err := s.listTaxableServices(ctx, biz.FeeCatalogListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err

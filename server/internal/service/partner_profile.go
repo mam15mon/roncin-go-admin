@@ -68,7 +68,10 @@ func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1
 }
 
 func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, request *v1.SearchPartnerAssignmentOptionsRequest) (*v1.SearchPartnerAssignmentOptionsResponse, error) {
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrPartnerInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	data, total, resultPage, resultPageSize, err := s.listPartnerAssignmentOptions(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err

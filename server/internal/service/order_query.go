@@ -253,7 +253,10 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrOrderInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	result, err := s.usecase.ListPersonnelOptions(ctx, principal.Organization.ID, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err

@@ -51,7 +51,10 @@ func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.Se
 	if _, err := requirePrincipal(ctx); err != nil {
 		return nil, err
 	}
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrReferenceDataInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	result, err := s.referenceDataUsecase.SearchCurrencies(ctx, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
 	if err != nil {
 		return nil, err
