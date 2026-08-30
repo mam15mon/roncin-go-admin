@@ -2,7 +2,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { Tag, Typography } from 'antd';
-import dayjs from 'dayjs';
 import React, { forwardRef } from 'react';
 import {
   SubEntityDrawerTemplate,
@@ -17,6 +16,7 @@ import {
   orderPersonnelServiceListPersonnel,
   orderPersonnelServiceRemovePersonnel,
 } from '@/services/roncin/orderPersonnelService';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -65,10 +65,7 @@ const columns: ProColumns<API.OrderPersonnel>[] = [
     dataIndex: 'assignedAt',
     valueType: 'dateTime',
     width: 180,
-    render: (_, record) =>
-      record.assignedAt
-        ? dayjs(record.assignedAt).format('YYYY-MM-DD HH:mm:ss')
-        : '-',
+    render: (_, record) => formatDate(record.assignedAt),
   },
 ];
 

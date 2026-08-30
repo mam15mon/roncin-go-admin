@@ -7,7 +7,6 @@ import type {
 import { ModalForm, ProTable } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { App, Button, Drawer, Popconfirm, Space, Typography } from 'antd';
-import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   makeValueEnum,
@@ -21,6 +20,7 @@ import {
   orderAbnormalCaseServiceResolveAbnormalCase,
 } from '@/services/roncin/orderAbnormalCaseService';
 import { toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -107,10 +107,7 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'markedAt',
       valueType: 'dateTime',
       width: 170,
-      render: (_, record) =>
-        record.markedAt
-          ? dayjs(record.markedAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
+      render: (_, record) => formatDate(record.markedAt),
     },
     {
       title: '标记人',
@@ -130,7 +127,7 @@ const AbnormalCasePanel = forwardRef<
       width: 170,
       render: (_, record) =>
         record.resolvedAt
-          ? dayjs(record.resolvedAt).format('YYYY-MM-DD HH:mm:ss')
+          ? formatDate(record.resolvedAt)
           : <Text type="secondary">待解决</Text>,
     },
     {

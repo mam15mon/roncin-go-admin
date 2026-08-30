@@ -32,6 +32,7 @@ import {
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
@@ -263,8 +264,8 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                       <CalendarOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
                       <span style={{ color: '#8c8c8c' }}>有效期: </span>
                       <span>
-                        {item.startDate ? dayjs(item.startDate).format('YYYY-MM-DD') : '-'} 至{' '}
-                        {item.endDate ? dayjs(item.endDate).format('YYYY-MM-DD') : '-'}
+                        {formatDate(item.startDate, 'date')} 至{' '}
+                        {formatDate(item.endDate, 'date')}
                       </span>
                     </div>
                     {item.paymentTerms && (

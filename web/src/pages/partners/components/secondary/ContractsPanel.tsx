@@ -26,6 +26,7 @@ import {
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
 import { toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -104,11 +105,9 @@ export default function ContractsPanel({
       width: 220,
       render: (_, record) => (
         <span>
-          {record.startDate
-            ? dayjs(record.startDate).format('YYYY-MM-DD')
-            : '-'}
+          {formatDate(record.startDate, 'date')}
           {' ~ '}
-          {record.endDate ? dayjs(record.endDate).format('YYYY-MM-DD') : '-'}
+          {formatDate(record.endDate, 'date')}
         </span>
       ),
     },

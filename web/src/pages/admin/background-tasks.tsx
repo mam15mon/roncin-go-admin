@@ -33,6 +33,7 @@ import {
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
 import { toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import {
   backgroundTaskExecutionSummary,
   backgroundTaskHasNextRunAt,
@@ -166,9 +167,7 @@ export default function BackgroundTasksPanel() {
       width: 170,
       search: false,
       render: (_, record) =>
-        backgroundTaskHasNextRunAt(record) && record.nextRunAt
-          ? dayjs(record.nextRunAt).format('YYYY-MM-DD HH:mm:ss')
-          : '-',
+        backgroundTaskHasNextRunAt(record) ? formatDate(record.nextRunAt) : '-',
     },
     {
       title: '最近错误信息',
@@ -283,9 +282,7 @@ export default function BackgroundTasksPanel() {
               {
                 key: 'updatedAt',
                 label: '最近更新时间',
-                children: record.updatedAt
-                  ? dayjs(record.updatedAt).format('YYYY-MM-DD HH:mm:ss')
-                  : '-',
+                children: formatDate(record.updatedAt),
               },
             ]}
           />

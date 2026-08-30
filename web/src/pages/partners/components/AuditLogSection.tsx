@@ -1,9 +1,9 @@
 import { ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { Alert, Button, Empty, Pagination, Space, Spin, Tag, Timeline, Typography } from 'antd';
-import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { partnerServiceListPartnerAuditLogs } from '@/services/roncin/partnerService';
 import { unwrapPage } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -104,7 +104,7 @@ export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
                       </Tag>
                       <Text type="secondary" style={{ fontSize: 12 }}>
                         <ClockCircleOutlined style={{ marginRight: 4 }} />
-                        {log.createdAt ? dayjs(log.createdAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                        {formatDate(log.createdAt)}
                       </Text>
                     </Space>
                     {detailString && (

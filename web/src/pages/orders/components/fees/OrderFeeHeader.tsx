@@ -10,8 +10,8 @@ import {
   Statistic,
   Tag,
 } from 'antd';
-import dayjs from 'dayjs';
 import React from 'react';
+import { formatDate } from '@/utils/format';
 
 type OrderFeeHeaderProps = {
   order: API.Order;
@@ -98,7 +98,7 @@ export default function OrderFeeHeader({
             {order.bookingAgentId || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="ETD">
-            {order.etd ? dayjs(order.etd).format('YYYY-MM-DD') : '-'}
+            {formatDate(order.etd, 'date')}
           </Descriptions.Item>
           <Descriptions.Item label="件重尺">
             {order.totalPackages || '-'} 件 / {order.totalGrossWeightKg || '-'}{' '}

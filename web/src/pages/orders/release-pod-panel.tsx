@@ -19,7 +19,6 @@ import {
   Space,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   makeValueEnum,
@@ -36,6 +35,7 @@ import {
   orderReleasePodServiceUpdateReleasePod,
 } from '@/services/roncin/orderReleasePodService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 
 const { Text } = Typography;
@@ -181,7 +181,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         width: 170,
         render: (_, record) =>
           record.signedAt ? (
-            dayjs(record.signedAt).format('YYYY-MM-DD HH:mm:ss')
+            formatDate(record.signedAt)
           ) : (
             <Text type="secondary">-</Text>
           ),
@@ -211,10 +211,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         dataIndex: 'createdAt',
         valueType: 'dateTime',
         width: 170,
-        render: (_, record) =>
-          record.createdAt
-            ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
-            : '-',
+        render: (_, record) => formatDate(record.createdAt),
       },
       {
         title: '操作',

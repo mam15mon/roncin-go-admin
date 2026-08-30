@@ -1,7 +1,7 @@
 import { Col, Space, Tag, Timeline, Typography } from 'antd';
-import dayjs from 'dayjs';
 import React from 'react';
 import type { OrderFormTemplateSection } from '@/components/ui';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -32,9 +32,7 @@ export function buildOrderAuditTimelineSection(
                         marginTop: 2,
                       }}
                     >
-                      {order?.createdAt
-                        ? dayjs(order.createdAt).format('YYYY-MM-DD HH:mm:ss')
-                        : '-'}
+                      {formatDate(order?.createdAt)}
                     </div>
                   </div>
                 ),
@@ -54,9 +52,7 @@ export function buildOrderAuditTimelineSection(
                         marginTop: 2,
                       }}
                     >
-                      {order?.updatedAt
-                        ? dayjs(order.updatedAt).format('YYYY-MM-DD HH:mm:ss')
-                        : '-'}
+                      {formatDate(order?.updatedAt)}
                     </div>
                   </div>
                 ),

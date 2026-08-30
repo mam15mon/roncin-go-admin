@@ -4,7 +4,6 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import dayjs from 'dayjs';
 import React, { forwardRef } from 'react';
 import {
   SubEntityDrawerTemplate,
@@ -16,6 +15,7 @@ import {
   orderCargoItemServiceRemoveCargoItem,
   orderCargoItemServiceUpdateCargoItem,
 } from '@/services/roncin/orderCargoItemService';
+import { formatDate } from '@/utils/format';
 
 export type CargoItemDrawerRef = SubEntityDrawerRef<API.Order>;
 
@@ -79,10 +79,7 @@ const columns: ProColumns<API.OrderCargoItem>[] = [
     dataIndex: 'createdAt',
     valueType: 'dateTime',
     width: 180,
-    render: (_, record) =>
-      record.createdAt
-        ? dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss')
-        : '-',
+    render: (_, record) => formatDate(record.createdAt),
   },
 ];
 
