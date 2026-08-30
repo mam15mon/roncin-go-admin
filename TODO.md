@@ -401,19 +401,26 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 
 ---
 
-## 待评估项（优先级待确认）
+## 基础框架复核（2026-08-30）
 
-以下问题来自 2026-08 基础框架检查，尚未排期：
+原“待评估项”已按当前代码重新核验，不能继续沿用初次检查时的结论：
 
-- CI workflow 仍为 Kratos 模板旧版（Go ^1.20），未接入 `pnpm run check`
-  （proto lint / vet / govulncheck / 前端 lint 与测试均不在 CI 中）。
-- 前端请求无超时配置，慢请求会无限挂起（`web/src/app.tsx`）。
-- 访问日志缺 HTTP 状态码、路径、客户端 IP、UA；无慢查询日志。
-- `internal/data/data.go`、`internal/data/wecom.go` 两处混用 Kratos 全局
-  log，未用注入的 slog logger。
-- `web/config/proxy.ts` 仅导出 `dev`，`start:test`、`start:pre` 脚本
-  实际无法代理到后端。
-- `data.redis` 配置存在但代码零使用（死配置）。
-- 跨仓储用例无共享事务边界（如订单号分配与订单落库非原子），需结合
-  事务封装一并设计。
-- `web/types/index.d.ts` 为 Ant Design Pro 模板遗留 mock 类型，建议删除。
+- [x] CI 已使用仓库声明的 Node、pnpm 与 Go 版本，执行整仓 `check`、`build`
+      和独立的 Go 依赖漏洞检查；不上传构建产物、不执行部署。
+- [x] 前端普通请求统一为 30 秒超时，导入、上传等长操作显式使用 120 秒；
+      超时后提示用户确认操作结果，不自动重试。
+- [x] HTTP/gRPC 访问日志已包含状态码、路径、客户端 IP、UA、请求 ID、追踪 ID
+      和耗时，且不记录查询参数或请求正文。
+- [x] `web/config/proxy.ts` 已支持 `dev`、`test`、`pre`；测试和预发布必须通过
+      `RONCIN_API_PROXY_TARGET` 显式指定目标，缺失或非法时启动失败。
+- [x] 未使用的 `data.redis` 配置和生成类型已删除，并保留原字段号及名称。
+- [x] 旧 `web/types/index.d.ts` 模板 mock 类型已经删除。
+- [x] 已复核跨仓储事务：订单创建的发号、业务数据、通知意图和审计当前已在
+      同一事务中，原“订单号与订单落库非原子”结论不成立；未来共享事务及外部
+      副作用边界见 [跨仓储事务与外部副作用边界设计](docs/cross-repository-transactions.md)。
+
+仍保留为后续独立治理项的问题：
+
+- 慢请求、慢 SQL 的阈值、采样和告警口径尚未设计；不能只按固定耗时打印大量日志。
+- `internal/data/data.go`、`internal/data/wecom.go` 仍有 Kratos 全局 log 调用，
+  后续应统一使用注入的 `slog.Logger`，但不与事务设计混改。
