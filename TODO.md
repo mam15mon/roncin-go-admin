@@ -78,7 +78,8 @@
 - [x] 第四十三批：`finance_commission.go` 提成调整单新增、状态流转事务入口。
 - [x] 第四十四批：`enterprise_resource.go` 企业资源新增、更新事务入口。
 - [x] 第四十五批：`enterprise_resource.go` 企业资源删除事务入口。
-- [ ] 剩余生产仓储手写事务：7 处 / 1 个文件。
+- [x] 第四十六批：`enterprise_resource.go` 企业资源批量合作方关联事务入口。
+- [ ] 剩余生产仓储手写事务：6 处 / 1 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 

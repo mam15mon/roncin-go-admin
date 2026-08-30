@@ -357,68 +357,56 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 }
 
 func (r *enterpriseResourceRepo) BatchPartners(ctx context.Context, organizationID uuid.UUID, resourceIDs, partnerIDs []uuid.UUID, create bool, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	resources, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.IDIn(resourceIDs...)).All(ctx)
-	if err != nil || len(resources) != len(uniqueEnterpriseUUIDs(resourceIDs)) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrEnterpriseResourceInvalidArgument
-	}
-	for _, item := range resources {
-		if !biz.EnterpriseResourceType(item.ResourceType).BatchAssociable() {
-			_ = tx.Rollback()
-			return 0, biz.ErrEnterpriseResourceInvalidArgument
-		}
-	}
-	count, err := tx.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(partnerIDs...)).Count(ctx)
-	if err != nil || count != len(uniqueEnterpriseUUIDs(partnerIDs)) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrPartnerNotFound
-	}
 	affected := 0
-	if create {
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		resources, err := tx.EnterpriseResource.Query().Where(resourceent.OrganizationIDEQ(organizationID), resourceent.IDIn(resourceIDs...)).All(ctx)
+		if err != nil || len(resources) != len(uniqueEnterpriseUUIDs(resourceIDs)) {
+			if err != nil {
+				return err
+			}
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
 		for _, item := range resources {
-			for _, partnerID := range uniqueEnterpriseUUIDs(partnerIDs) {
-				exists, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(item.ID), partnerlinkent.PartnerIDEQ(partnerID)).Exist(ctx)
-				if err != nil {
-					_ = tx.Rollback()
-					return 0, err
-				}
-				if exists {
-					continue
-				}
-				if _, err := tx.EnterpriseResourcePartner.Create().SetResourceID(item.ID).SetPartnerID(partnerID).SetResourceType(partnerlinkent.ResourceType(item.ResourceType)).Save(ctx); err != nil {
-					_ = tx.Rollback()
-					return 0, err
-				}
-				affected++
+			if !biz.EnterpriseResourceType(item.ResourceType).BatchAssociable() {
+				return biz.ErrEnterpriseResourceInvalidArgument
 			}
 		}
-	} else {
-		affected, err = tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDIn(resourceIDs...), partnerlinkent.PartnerIDIn(partnerIDs...)).Exec(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
+		count, err := tx.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(partnerIDs...)).Count(ctx)
+		if err != nil || count != len(uniqueEnterpriseUUIDs(partnerIDs)) {
+			if err != nil {
+				return err
+			}
+			return biz.ErrPartnerNotFound
 		}
-	}
-	key := "unlinked_count"
-	if create {
-		key = "linked_count"
-	}
-	audit.Details[key] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
+		if create {
+			for _, item := range resources {
+				for _, partnerID := range uniqueEnterpriseUUIDs(partnerIDs) {
+					exists, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(item.ID), partnerlinkent.PartnerIDEQ(partnerID)).Exist(ctx)
+					if err != nil {
+						return err
+					}
+					if exists {
+						continue
+					}
+					if _, err := tx.EnterpriseResourcePartner.Create().SetResourceID(item.ID).SetPartnerID(partnerID).SetResourceType(partnerlinkent.ResourceType(item.ResourceType)).Save(ctx); err != nil {
+						return err
+					}
+					affected++
+				}
+			}
+		} else {
+			affected, err = tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDIn(resourceIDs...), partnerlinkent.PartnerIDIn(partnerIDs...)).Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		key := "unlinked_count"
+		if create {
+			key = "linked_count"
+		}
+		audit.Details[key] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return 0, err
 	}
 	return affected, nil
