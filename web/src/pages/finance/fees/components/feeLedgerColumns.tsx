@@ -9,9 +9,8 @@ import {
   statusTag,
   statusText,
 } from '@/constants/statusMeta';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
-import { unwrapList } from '@/utils/api';
 import { formatAmount } from '@/utils/format';
+import { searchPartnerOptions } from '@/utils/options';
 
 const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
@@ -157,18 +156,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 180,
       valueType: 'select',
       order: 75,
-      request: async ({ keyWords }) => {
-        const response = await partnerServiceListPartners({
-          role: 1,
-          page: 1,
-          pageSize: 200,
-          keyword: keyWords,
-        });
-        return unwrapList(response).map((item) => ({
-          label: item.legalName || item.code || item.id,
-          value: item.id,
-        }));
-      },
+      request: ({ keyWords }) => searchPartnerOptions(keyWords, { role: 1 }),
       fieldProps: {
         showSearch: true,
         filterOption: false,
@@ -183,17 +171,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       ellipsis: true,
       valueType: 'select',
       order: 80,
-      request: async ({ keyWords }) => {
-        const response = await partnerServiceListPartners({
-          page: 1,
-          pageSize: 200,
-          keyword: keyWords,
-        });
-        return unwrapList(response).map((item) => ({
-          label: item.legalName || item.code || item.id,
-          value: item.id,
-        }));
-      },
+      request: ({ keyWords }) => searchPartnerOptions(keyWords),
       fieldProps: {
         showSearch: true,
         filterOption: false,

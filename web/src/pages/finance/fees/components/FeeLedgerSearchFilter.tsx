@@ -3,8 +3,7 @@ import {
   SearchFilterTemplate,
   type SearchFilterFieldItem,
 } from '@/components/ui';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
-import { unwrapList } from '@/utils/api';
+import { searchPartnerOptions } from '@/utils/options';
 
 export interface FeeLedgerFilterParams {
   keyword?: string;
@@ -112,17 +111,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: async ({ keyWords }) => {
-        const res = await partnerServiceListPartners({
-          page: 1,
-          pageSize: 200,
-          keyword: keyWords,
-        });
-        return unwrapList(res).map((p) => ({
-          label: p.legalName || p.code || p.id || '',
-          value: p.id || '',
-        }));
-      },
+      request: ({ keyWords }) => searchPartnerOptions(keyWords),
     },
 
     // --- 展开后展示的其余 33 项全维高密度业务字段 (一行 6 列) ---
@@ -137,18 +126,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       label: '委托单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索委托单位',
-      request: async ({ keyWords }) => {
-        const res = await partnerServiceListPartners({
-          role: 1,
-          page: 1,
-          pageSize: 200,
-          keyword: keyWords,
-        });
-        return unwrapList(res).map((p) => ({
-          label: p.legalName || p.code || p.id || '',
-          value: p.id || '',
-        }));
-      },
+      request: ({ keyWords }) => searchPartnerOptions(keyWords, { role: 1 }),
     },
     {
       name: 'billNo',

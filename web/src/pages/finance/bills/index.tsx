@@ -11,7 +11,6 @@ import {
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   settlementServiceBatchAssignFinanceBillTags,
   settlementServiceBatchRemoveFinanceBillTags,
@@ -22,7 +21,8 @@ import {
   settlementServiceListFinanceBillTagOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { toTableRequest, unwrapPage } from '@/utils/api';
+import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 import { makeVersionActions } from '@/utils/versionActions';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
@@ -147,29 +147,14 @@ export default function FinanceBillsPage() {
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: async ({ keyWords }) => {
-        const res = await partnerServiceListPartners({
-          page: 1,
-          pageSize: 200,
-          keyword: keyWords,
-        });
-        return unwrapList(res).map((p) => ({
-          label: p.legalName || p.code || p.id || '',
-          value: p.id || '',
-        }));
-      },
+      request: ({ keyWords }) => searchPartnerOptions(keyWords),
     },
     {
       name: 'currency',
       label: '计价币种',
-      type: 'select',
+      type: 'searchable-select',
       placeholder: '全部币种',
-      options: [
-        { label: 'CNY - 人民币', value: 'CNY' },
-        { label: 'USD - 美元', value: 'USD' },
-        { label: 'EUR - 欧元', value: 'EUR' },
-        { label: 'HKD - 港币', value: 'HKD' },
-      ],
+      request: getCurrencyOptions,
     },
   ];
 

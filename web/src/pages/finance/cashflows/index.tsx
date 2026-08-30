@@ -19,14 +19,14 @@ import { useAccess } from '@umijs/max';
 import { App, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { toTableRequest } from '@/utils/api';
+import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 import { makeVersionActions } from '@/utils/versionActions';
 
 type Values = {
@@ -400,29 +400,15 @@ export default function FinanceCashflowsPage() {
           name="settlementPartyId"
           label="往来结算单位"
           rules={[{ required: true }]}
-          request={async ({ keyWords }) => {
-            const r = await partnerServiceListPartners({
-              page: 1,
-              pageSize: 200,
-              enabled: true,
-              keyword: keyWords,
-            });
-            return unwrapList(r).map((x) => ({
-              value: x.id,
-              label: `${x.legalName || x.code} (${x.code})`,
-              code: x.code,
-              name: x.legalName,
-            }));
-          }}
+          request={({ keyWords }) =>
+            searchPartnerOptions(keyWords, { enabled: true })
+          }
         />
         <ProFormSearchableSelect
           name="currency"
           label="原币币种"
           rules={[{ required: true }]}
-          options={['CNY', 'USD', 'EUR', 'HKD'].map((x) => ({
-            label: x,
-            value: x,
-          }))}
+          request={getCurrencyOptions}
         />
         <ProFormText
           name="amount"
