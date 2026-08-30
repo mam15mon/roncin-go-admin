@@ -69,80 +69,65 @@ func (r *businessTagRepo) LoadOrderTags(ctx context.Context, orderIDs []uuid.UUI
 }
 
 func (r *businessTagRepo) AssignOrderTags(ctx context.Context, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	existing, err := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.OrderIDIn(orderIDs...), ordertaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	existingPairKeys := make(map[[2]uuid.UUID]struct{}, len(existing))
-	for _, link := range existing {
-		existingPairKeys[[2]uuid.UUID{link.OrderID, link.TagResourceID}] = struct{}{}
-	}
-	builders := make([]*ent.OrderEnterpriseTagCreate, 0, len(orderIDs)*len(tagResourceIDs))
-	for _, orderID := range orderIDs {
-		for _, tagResourceID := range tagResourceIDs {
-			if _, exists := existingPairKeys[[2]uuid.UUID{orderID, tagResourceID}]; exists {
-				continue
-			}
-			builders = append(builders, tx.OrderEnterpriseTag.Create().SetOrganizationID(organizationID).SetOrderID(orderID).SetTagResourceID(tagResourceID))
-		}
-	}
 	affected := 0
-	if len(builders) > 0 {
-		created, err := tx.OrderEnterpriseTag.CreateBulk(builders...).Save(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
+			return validateErr
 		}
-		affected = len(created)
-	}
-	audit.Details["assigned_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
+		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
+			return validateErr
+		}
+		existing, queryErr := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.OrderIDIn(orderIDs...), ordertaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		existingPairKeys := make(map[[2]uuid.UUID]struct{}, len(existing))
+		for _, link := range existing {
+			existingPairKeys[[2]uuid.UUID{link.OrderID, link.TagResourceID}] = struct{}{}
+		}
+		builders := make([]*ent.OrderEnterpriseTagCreate, 0, len(orderIDs)*len(tagResourceIDs))
+		for _, orderID := range orderIDs {
+			for _, tagResourceID := range tagResourceIDs {
+				if _, exists := existingPairKeys[[2]uuid.UUID{orderID, tagResourceID}]; exists {
+					continue
+				}
+				builders = append(builders, tx.OrderEnterpriseTag.Create().SetOrganizationID(organizationID).SetOrderID(orderID).SetTagResourceID(tagResourceID))
+			}
+		}
+		if len(builders) > 0 {
+			created, createErr := tx.OrderEnterpriseTag.CreateBulk(builders...).Save(ctx)
+			if createErr != nil {
+				return createErr
+			}
+			affected = len(created)
+		}
+		audit.Details["assigned_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return 0, err
 	}
 	return affected, nil
 }
 
 func (r *businessTagRepo) RemoveOrderTags(ctx context.Context, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
+	affected := 0
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
+			return validateErr
+		}
+		if validateErr := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); validateErr != nil {
+			return validateErr
+		}
+		var deleteErr error
+		affected, deleteErr = tx.OrderEnterpriseTag.Delete().Where(ordertaglinkent.OrganizationIDEQ(organizationID), ordertaglinkent.OrderIDIn(orderIDs...), ordertaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		audit.Details["removed_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := validateOrderTagTargets(ctx, tx, organizationID, businessType, orderIDs); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	affected, err := tx.OrderEnterpriseTag.Delete().Where(ordertaglinkent.OrganizationIDEQ(organizationID), ordertaglinkent.OrderIDIn(orderIDs...), ordertaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	audit.Details["removed_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 	return affected, nil
@@ -246,58 +231,46 @@ func (r *businessTagRepo) LoadOrderFeeTags(ctx context.Context, feeIDs []uuid.UU
 }
 
 func (r *businessTagRepo) AssignOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
+	affected := 0
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
+			return validateErr
+		}
+		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
+			return validateErr
+		}
+		var upsertErr error
+		affected, upsertErr = upsertOrderFeeTagLinks(ctx, tx, organizationID, feeIDs, tagResourceIDs, true)
+		if upsertErr != nil {
+			return upsertErr
+		}
+		audit.Details["assigned_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	affected, err := upsertOrderFeeTagLinks(ctx, tx, organizationID, feeIDs, tagResourceIDs, true)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	audit.Details["assigned_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 	return affected, nil
 }
 
 func (r *businessTagRepo) RemoveOrderFeeTags(ctx context.Context, organizationID uuid.UUID, orderID *uuid.UUID, feeIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
+	affected := 0
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
+			return validateErr
+		}
+		if validateErr := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); validateErr != nil {
+			return validateErr
+		}
+		var upsertErr error
+		affected, upsertErr = upsertOrderFeeTagLinks(ctx, tx, organizationID, feeIDs, tagResourceIDs, false)
+		if upsertErr != nil {
+			return upsertErr
+		}
+		audit.Details["removed_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := validateOrderFeeTagTargets(ctx, tx, organizationID, orderID, feeIDs); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	affected, err := upsertOrderFeeTagLinks(ctx, tx, organizationID, feeIDs, tagResourceIDs, false)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	audit.Details["removed_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 	return affected, nil
@@ -386,88 +359,73 @@ func (r *businessTagRepo) LoadFinanceBillTags(ctx context.Context, billIDs []uui
 }
 
 func (r *businessTagRepo) AssignFinanceBillTags(ctx context.Context, organizationID uuid.UUID, billIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	count, err := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
-	if err != nil || count != len(billIDs) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, biz.ErrBusinessTagInvalidArgument
-	}
-	existing, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	existingKeys := make(map[[2]uuid.UUID]struct{}, len(existing))
-	for _, link := range existing {
-		existingKeys[[2]uuid.UUID{link.FinanceBillID, link.TagResourceID}] = struct{}{}
-	}
-	builders := make([]*ent.FinanceBillEnterpriseTagCreate, 0, len(billIDs)*len(tagResourceIDs))
-	for _, billID := range billIDs {
-		for _, tagResourceID := range tagResourceIDs {
-			if _, exists := existingKeys[[2]uuid.UUID{billID, tagResourceID}]; exists {
-				continue
-			}
-			builders = append(builders, tx.FinanceBillEnterpriseTag.Create().SetOrganizationID(organizationID).SetFinanceBillID(billID).SetTagResourceID(tagResourceID))
-		}
-	}
 	affected := 0
-	if len(builders) > 0 {
-		created, err := tx.FinanceBillEnterpriseTag.CreateBulk(builders...).Save(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return 0, err
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, true); validateErr != nil {
+			return validateErr
 		}
-		affected = len(created)
-	}
-	audit.Details["assigned_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
+		count, queryErr := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if count != len(billIDs) {
+			return biz.ErrBusinessTagInvalidArgument
+		}
+		existing, queryErr := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		existingKeys := make(map[[2]uuid.UUID]struct{}, len(existing))
+		for _, link := range existing {
+			existingKeys[[2]uuid.UUID{link.FinanceBillID, link.TagResourceID}] = struct{}{}
+		}
+		builders := make([]*ent.FinanceBillEnterpriseTagCreate, 0, len(billIDs)*len(tagResourceIDs))
+		for _, billID := range billIDs {
+			for _, tagResourceID := range tagResourceIDs {
+				if _, exists := existingKeys[[2]uuid.UUID{billID, tagResourceID}]; exists {
+					continue
+				}
+				builders = append(builders, tx.FinanceBillEnterpriseTag.Create().SetOrganizationID(organizationID).SetFinanceBillID(billID).SetTagResourceID(tagResourceID))
+			}
+		}
+		if len(builders) > 0 {
+			created, createErr := tx.FinanceBillEnterpriseTag.CreateBulk(builders...).Save(ctx)
+			if createErr != nil {
+				return createErr
+			}
+			affected = len(created)
+		}
+		audit.Details["assigned_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return 0, err
 	}
 	return affected, nil
 }
 
 func (r *businessTagRepo) RemoveFinanceBillTags(ctx context.Context, organizationID uuid.UUID, billIDs, tagResourceIDs []uuid.UUID, audit *biz.AuditEvent) (int, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if err := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	count, err := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
-	if err != nil || count != len(billIDs) {
-		_ = tx.Rollback()
-		if err != nil {
-			return 0, err
+	affected := 0
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if validateErr := lockAndValidateTagResources(ctx, tx, organizationID, tagResourceIDs, false); validateErr != nil {
+			return validateErr
 		}
-		return 0, biz.ErrBusinessTagInvalidArgument
-	}
-	affected, err := tx.FinanceBillEnterpriseTag.Delete().Where(billtaglinkent.OrganizationIDEQ(organizationID), billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
+		count, queryErr := tx.FinanceBill.Query().Where(billent.OrganizationIDEQ(organizationID), billent.IDIn(billIDs...)).Count(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if count != len(billIDs) {
+			return biz.ErrBusinessTagInvalidArgument
+		}
+		var deleteErr error
+		affected, deleteErr = tx.FinanceBillEnterpriseTag.Delete().Where(billtaglinkent.OrganizationIDEQ(organizationID), billtaglinkent.FinanceBillIDIn(billIDs...), billtaglinkent.TagResourceIDIn(tagResourceIDs...)).Exec(ctx)
+		if deleteErr != nil {
+			return deleteErr
+		}
+		audit.Details["removed_count"] = stringInt(affected)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	audit.Details["removed_count"] = stringInt(affected)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	}
-	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
 	return affected, nil
