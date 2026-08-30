@@ -44,7 +44,6 @@
     "@ant-design/x": "^2.9.0",
     "@ant-design/x-markdown": "^2.9.0",
     "@ant-design/x-sdk": "^2.9.0",
-    "@tanstack/react-query": "^5.101.2",
     "antd": "^6.6.0",
     "antd-style": "^4.1.0",
     "china-division": "^2.7.0",
