@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,9 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
+	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/internal/data"
 )
 
 const (
@@ -57,14 +56,7 @@ type mcaResponse struct {
 	Message string      `json:"message"`
 }
 
-type regionRow struct {
-	Code          string
-	Name          string
-	Level         int
-	ParentCode    *string
-	RegionType    *string
-	SourceVersion string
-}
+type regionRow = data.AdministrativeRegionSyncRecord
 
 type syncOptions struct {
 	Apply         bool
@@ -88,11 +80,12 @@ func main() {
 		fmt.Println("当前为预览模式；确认数据后使用 -apply 写入数据库")
 		return
 	}
-	if err := applyRegions(ctx, rows); err != nil {
+	result, err := applyRegions(ctx, rows)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "写入行政区划失败: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("行政区划写入完成，数据版本：%s\n", options.SourceVersion)
+	fmt.Printf("行政区划写入完成：新增 %d，更新 %d，停用 %d，数据版本：%s\n", result.Created, result.Updated, result.Disabled, options.SourceVersion)
 }
 
 func parseOptions() syncOptions {
@@ -244,47 +237,17 @@ func requestTree(ctx context.Context, client *http.Client, endpoint string) (*re
 	return payload.Data, false, nil
 }
 
-func applyRegions(ctx context.Context, rows []regionRow) error {
+func applyRegions(ctx context.Context, rows []regionRow) (data.IndustryReferenceSyncResult, error) {
 	source := strings.TrimSpace(os.Getenv("DATABASE_SOURCE"))
 	if source == "" {
-		return errors.New("DATABASE_SOURCE 不能为空")
+		return data.IndustryReferenceSyncResult{}, errors.New("DATABASE_SOURCE 不能为空")
 	}
-	db, err := sql.Open("pgx", source)
+	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: source}}, slog.Default())
 	if err != nil {
-		return err
+		return data.IndustryReferenceSyncResult{}, err
 	}
-	defer db.Close()
-	if err := db.PingContext(ctx); err != nil {
-		return fmt.Errorf("连接数据库失败: %w", err)
-	}
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	if _, err := tx.ExecContext(ctx, `UPDATE administrative_regions SET enabled = false, updated_at = CURRENT_TIMESTAMP WHERE source = $1`, mcaSource); err != nil {
-		return err
-	}
-	statement := `
-		INSERT INTO administrative_regions
-			(id, created_at, updated_at, code, name, level, parent_code, region_type, source, source_version, enabled, search_keywords)
-		VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $3, $4, $5, $6, $7, $8, true, $9)
-		ON CONFLICT (code) DO UPDATE SET
-			name = EXCLUDED.name,
-			level = EXCLUDED.level,
-			parent_code = EXCLUDED.parent_code,
-			region_type = EXCLUDED.region_type,
-			source = EXCLUDED.source,
-			source_version = EXCLUDED.source_version,
-			search_keywords = EXCLUDED.search_keywords,
-			enabled = true,
-			updated_at = CURRENT_TIMESTAMP`
-	for _, row := range rows {
-		if _, err := tx.ExecContext(ctx, statement, uuid.Must(uuid.NewV7()), row.Code, row.Name, row.Level, row.ParentCode, row.RegionType, mcaSource, row.SourceVersion, searchtext.Build(row.Name)); err != nil {
-			return fmt.Errorf("写入行政区划 %s 失败: %w", row.Code, err)
-		}
-	}
-	return tx.Commit()
+	defer cleanup()
+	return data.NewIndustryReferenceSyncStore(storage).ApplyAdministrativeRegions(ctx, mcaSource, rows)
 }
 
 func countLevels(rows []regionRow) (int, int, int) {

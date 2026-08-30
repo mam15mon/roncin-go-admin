@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
@@ -26,6 +27,15 @@ type PortSyncRecord struct {
 	CountryCode    string
 	TransportModes []string
 	Enabled        bool
+}
+
+type AdministrativeRegionSyncRecord struct {
+	Code          string
+	Name          string
+	Level         int
+	ParentCode    *string
+	RegionType    *string
+	SourceVersion string
 }
 
 type IndustryReferenceSyncConflict struct {
@@ -196,6 +206,71 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, organizatio
 		result.Disabled, countErr = tx.Port.Query().Where(port.OrganizationIDEQ(organizationID), port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用港口失败: %w", countErr)
+		}
+		return nil
+	})
+	if err != nil {
+		return IndustryReferenceSyncResult{}, err
+	}
+	return result, nil
+}
+
+func (s *IndustryReferenceSyncStore) ApplyAdministrativeRegions(ctx context.Context, source string, rows []AdministrativeRegionSyncRecord) (IndustryReferenceSyncResult, error) {
+	result := IndustryReferenceSyncResult{}
+	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
+		items, queryErr := tx.AdministrativeRegion.Query().All(ctx)
+		if queryErr != nil {
+			return fmt.Errorf("查询现有行政区划失败: %w", queryErr)
+		}
+		if _, updateErr := tx.AdministrativeRegion.Update().Where(administrativeregion.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
+			return fmt.Errorf("停用旧行政区划失败: %w", updateErr)
+		}
+		existingByCode := make(map[string]*ent.AdministrativeRegion, len(items))
+		for _, item := range items {
+			existingByCode[item.Code] = item
+		}
+		for _, row := range rows {
+			if existing := existingByCode[row.Code]; existing != nil {
+				update := tx.AdministrativeRegion.UpdateOneID(existing.ID).
+					SetName(row.Name).
+					SetLevel(row.Level).
+					SetSource(source).
+					SetSourceVersion(row.SourceVersion).
+					SetEnabled(true)
+				if row.ParentCode == nil {
+					update.ClearParentCode()
+				} else {
+					update.SetParentCode(*row.ParentCode)
+				}
+				if row.RegionType == nil {
+					update.ClearRegionType()
+				} else {
+					update.SetRegionType(*row.RegionType)
+				}
+				if _, updateErr := update.Save(ctx); updateErr != nil {
+					return fmt.Errorf("更新行政区划 %s 失败: %w", row.Code, updateErr)
+				}
+				result.Updated++
+				continue
+			}
+			if _, createErr := tx.AdministrativeRegion.Create().
+				SetCode(row.Code).
+				SetName(row.Name).
+				SetLevel(row.Level).
+				SetNillableParentCode(row.ParentCode).
+				SetNillableRegionType(row.RegionType).
+				SetSource(source).
+				SetSourceVersion(row.SourceVersion).
+				SetEnabled(true).
+				Save(ctx); createErr != nil {
+				return fmt.Errorf("新增行政区划 %s 失败: %w", row.Code, createErr)
+			}
+			result.Created++
+		}
+		var countErr error
+		result.Disabled, countErr = tx.AdministrativeRegion.Query().Where(administrativeregion.SourceEQ(source), administrativeregion.EnabledEQ(false)).Count(ctx)
+		if countErr != nil {
+			return fmt.Errorf("统计停用行政区划失败: %w", countErr)
 		}
 		return nil
 	})
