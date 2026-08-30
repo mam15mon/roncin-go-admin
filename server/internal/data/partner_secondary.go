@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -90,7 +89,7 @@ func (r *partnerAccountRepo) Create(ctx context.Context, organizationID, partner
 		var createErr error
 		item, createErr = created.Save(ctx)
 		if createErr != nil {
-			return mapPartnerSecondaryConstraint(createErr)
+			return mapEntConstraint(createErr, "partner_account_default_key", biz.ErrPartnerAccountDefaultConflict)
 		}
 		audit.Details["account.id"] = item.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -134,7 +133,7 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 		var updateErr error
 		updated, updateErr = existing.Update().SetCurrency(input.Currency).SetBankName(input.BankName).SetBankAccount(input.BankAccount).SetSwiftCode(input.SwiftCode).SetIsDefault(input.IsDefault).SetStatus(partneraccountent.Status(input.Status)).SetRemark(input.Remark).Save(ctx)
 		if updateErr != nil {
-			return mapPartnerSecondaryConstraint(updateErr)
+			return mapEntConstraint(updateErr, "partner_account_default_key", biz.ErrPartnerAccountDefaultConflict)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -204,7 +203,7 @@ func (r *partnerContractRepo) Create(ctx context.Context, organizationID, partne
 		var createErr error
 		created, createErr = tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
 		if createErr != nil {
-			return mapPartnerSecondaryConstraint(createErr)
+			return mapEntConstraint(createErr, "partner_contract_no_key", biz.ErrPartnerContractNoExists)
 		}
 		audit.Details["contract.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -233,7 +232,7 @@ func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partne
 			SetOtherNotes(input.OtherNotes).
 			Save(ctx)
 		if updateErr != nil {
-			return mapPartnerSecondaryConstraint(updateErr)
+			return mapEntConstraint(updateErr, "partner_contract_no_key", biz.ErrPartnerContractNoExists)
 		}
 		if updated == 0 {
 			return biz.ErrPartnerContractStatusConflict
@@ -249,19 +248,6 @@ func (r *partnerContractRepo) Update(ctx context.Context, organizationID, partne
 		return nil, err
 	}
 	return partnerContractToBiz(item), nil
-}
-
-func mapPartnerSecondaryConstraint(err error) error {
-	if !ent.IsConstraintError(err) {
-		return err
-	}
-	if strings.Contains(err.Error(), "partner_contract_no_key") {
-		return biz.ErrPartnerContractNoExists
-	}
-	if strings.Contains(err.Error(), "partner_account_default_key") {
-		return biz.ErrPartnerAccountDefaultConflict
-	}
-	return err
 }
 
 func partnerAccountToBiz(item *ent.PartnerAccount) *biz.PartnerAccount {
