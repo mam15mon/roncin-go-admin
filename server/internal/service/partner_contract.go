@@ -132,6 +132,14 @@ func partnerContractToAPI(value *biz.PartnerContract) *v1.PartnerContract {
 		Id: value.ID.String(), PartnerId: value.PartnerID.String(), ContractNo: value.ContractNo, Name: value.Name,
 		Status: partnerContractStatusToAPI(value.Status), StartDate: value.StartDate.Format(time.RFC3339), EndDate: value.EndDate.Format(time.RFC3339),
 		PaymentTerms: value.PaymentTerms, DisputeResolution: value.DisputeResolution, OtherNotes: value.OtherNotes,
-		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
+		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339), AllowedStatuses: partnerContractStatusesToAPI(value.AllowedStatuses()),
 	}
+}
+
+func partnerContractStatusesToAPI(statuses []biz.PartnerContractStatus) []v1.PartnerContractStatus {
+	result := make([]v1.PartnerContractStatus, 0, len(statuses))
+	for _, status := range statuses {
+		result = append(result, partnerContractStatusToAPI(status))
+	}
+	return result
 }

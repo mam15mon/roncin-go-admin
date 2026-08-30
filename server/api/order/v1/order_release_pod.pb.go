@@ -78,20 +78,21 @@ func (OrderReleasePodStatus) EnumDescriptor() ([]byte, []int) {
 
 // OrderReleasePod 放货凭证信息。
 type OrderReleasePod struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId            string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	ShippingDocumentId *string                `protobuf:"bytes,3,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
-	ReleaseNo          *string                `protobuf:"bytes,4,opt,name=release_no,json=releaseNo,proto3,oneof" json:"release_no,omitempty"`
-	PodNo              *string                `protobuf:"bytes,5,opt,name=pod_no,json=podNo,proto3,oneof" json:"pod_no,omitempty"`
-	Status             OrderReleasePodStatus  `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderReleasePodStatus" json:"status,omitempty"`
-	SignedAt           *string                `protobuf:"bytes,7,opt,name=signed_at,json=signedAt,proto3,oneof" json:"signed_at,omitempty"`
-	SignedBy           *string                `protobuf:"bytes,8,opt,name=signed_by,json=signedBy,proto3,oneof" json:"signed_by,omitempty"`
-	Note               *string                `protobuf:"bytes,9,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	CreatedAt          string                 `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          string                 `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                 protoimpl.MessageState  `protogen:"open.v1"`
+	Id                    string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId               string                  `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ShippingDocumentId    *string                 `protobuf:"bytes,3,opt,name=shipping_document_id,json=shippingDocumentId,proto3,oneof" json:"shipping_document_id,omitempty"`
+	ReleaseNo             *string                 `protobuf:"bytes,4,opt,name=release_no,json=releaseNo,proto3,oneof" json:"release_no,omitempty"`
+	PodNo                 *string                 `protobuf:"bytes,5,opt,name=pod_no,json=podNo,proto3,oneof" json:"pod_no,omitempty"`
+	Status                OrderReleasePodStatus   `protobuf:"varint,6,opt,name=status,proto3,enum=order.v1.OrderReleasePodStatus" json:"status,omitempty"`
+	SignedAt              *string                 `protobuf:"bytes,7,opt,name=signed_at,json=signedAt,proto3,oneof" json:"signed_at,omitempty"`
+	SignedBy              *string                 `protobuf:"bytes,8,opt,name=signed_by,json=signedBy,proto3,oneof" json:"signed_by,omitempty"`
+	Note                  *string                 `protobuf:"bytes,9,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	CreatedAt             string                  `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt             string                  `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AllowedTargetStatuses []OrderReleasePodStatus `protobuf:"varint,12,rep,packed,name=allowed_target_statuses,json=allowedTargetStatuses,proto3,enum=order.v1.OrderReleasePodStatus" json:"allowed_target_statuses,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *OrderReleasePod) Reset() {
@@ -199,6 +200,13 @@ func (x *OrderReleasePod) GetUpdatedAt() string {
 		return x.UpdatedAt
 	}
 	return ""
+}
+
+func (x *OrderReleasePod) GetAllowedTargetStatuses() []OrderReleasePodStatus {
+	if x != nil {
+		return x.AllowedTargetStatuses
+	}
+	return nil
 }
 
 // ListReleasePodsRequest 获取放货凭证列表请求。
@@ -909,7 +917,7 @@ var File_order_v1_order_release_pod_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"\n" +
-	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xdf\x03\n" +
+	" order/v1/order_release_pod.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xb8\x04\n" +
 	"\x0fOrderReleasePod\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x125\n" +
@@ -925,7 +933,8 @@ const file_order_v1_order_release_pod_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\tR\tupdatedAtB\x17\n" +
+	"updated_at\x18\v \x01(\tR\tupdatedAt\x12W\n" +
+	"\x17allowed_target_statuses\x18\f \x03(\x0e2\x1f.order.v1.OrderReleasePodStatusR\x15allowedTargetStatusesB\x17\n" +
 	"\x15_shipping_document_idB\r\n" +
 	"\v_release_noB\t\n" +
 	"\a_pod_noB\f\n" +
@@ -1038,27 +1047,28 @@ var file_order_v1_order_release_pod_proto_goTypes = []any{
 }
 var file_order_v1_order_release_pod_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderReleasePod.status:type_name -> order.v1.OrderReleasePodStatus
-	0,  // 1: order.v1.TransitionReleasePodStatusRequest.expected_status:type_name -> order.v1.OrderReleasePodStatus
-	0,  // 2: order.v1.TransitionReleasePodStatusRequest.to_status:type_name -> order.v1.OrderReleasePodStatus
-	1,  // 3: order.v1.AddReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 4: order.v1.UpdateReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 5: order.v1.TransitionReleasePodStatusResponse.data:type_name -> order.v1.OrderReleasePod
-	1,  // 6: order.v1.ListReleasePodsResponse.data:type_name -> order.v1.OrderReleasePod
-	2,  // 7: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
-	3,  // 8: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
-	4,  // 9: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
-	5,  // 10: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
-	6,  // 11: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
-	10, // 12: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.ListReleasePodsResponse
-	7,  // 13: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.AddReleasePodResponse
-	8,  // 14: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.UpdateReleasePodResponse
-	9,  // 15: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.TransitionReleasePodStatusResponse
-	11, // 16: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.RemoveReleasePodResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	0,  // 1: order.v1.OrderReleasePod.allowed_target_statuses:type_name -> order.v1.OrderReleasePodStatus
+	0,  // 2: order.v1.TransitionReleasePodStatusRequest.expected_status:type_name -> order.v1.OrderReleasePodStatus
+	0,  // 3: order.v1.TransitionReleasePodStatusRequest.to_status:type_name -> order.v1.OrderReleasePodStatus
+	1,  // 4: order.v1.AddReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 5: order.v1.UpdateReleasePodResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 6: order.v1.TransitionReleasePodStatusResponse.data:type_name -> order.v1.OrderReleasePod
+	1,  // 7: order.v1.ListReleasePodsResponse.data:type_name -> order.v1.OrderReleasePod
+	2,  // 8: order.v1.OrderReleasePodService.ListReleasePods:input_type -> order.v1.ListReleasePodsRequest
+	3,  // 9: order.v1.OrderReleasePodService.AddReleasePod:input_type -> order.v1.AddReleasePodRequest
+	4,  // 10: order.v1.OrderReleasePodService.UpdateReleasePod:input_type -> order.v1.UpdateReleasePodRequest
+	5,  // 11: order.v1.OrderReleasePodService.TransitionReleasePodStatus:input_type -> order.v1.TransitionReleasePodStatusRequest
+	6,  // 12: order.v1.OrderReleasePodService.RemoveReleasePod:input_type -> order.v1.RemoveReleasePodRequest
+	10, // 13: order.v1.OrderReleasePodService.ListReleasePods:output_type -> order.v1.ListReleasePodsResponse
+	7,  // 14: order.v1.OrderReleasePodService.AddReleasePod:output_type -> order.v1.AddReleasePodResponse
+	8,  // 15: order.v1.OrderReleasePodService.UpdateReleasePod:output_type -> order.v1.UpdateReleasePodResponse
+	9,  // 16: order.v1.OrderReleasePodService.TransitionReleasePodStatus:output_type -> order.v1.TransitionReleasePodStatusResponse
+	11, // 17: order.v1.OrderReleasePodService.RemoveReleasePod:output_type -> order.v1.RemoveReleasePodResponse
+	13, // [13:18] is the sub-list for method output_type
+	8,  // [8:13] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_release_pod_proto_init() }

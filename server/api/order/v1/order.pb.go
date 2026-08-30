@@ -900,87 +900,88 @@ func (x *BusinessTagSummary) GetEnabled() bool {
 }
 
 type Order struct {
-	state                 protoimpl.MessageState   `protogen:"open.v1"`
-	Id                    string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId        string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrderNo               string                   `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	CustomerId            string                   `protobuf:"bytes,4,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	CarrierId             *string                  `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
-	BookingAgentId        *string                  `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
-	BusinessType          BusinessType             `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
-	TradeDirection        TradeDirection           `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
-	TradeTerm             TradeTerm                `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
-	PaymentTerm           PaymentTerm              `protobuf:"varint,10,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
-	ShipmentType          *ShipmentType            `protobuf:"varint,11,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
-	ContainerOwnership    *ContainerOwnership      `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
-	ShipmentMode          *ShipmentMode            `protobuf:"varint,13,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
-	FlowStatus            OrderFlowStatus          `protobuf:"varint,14,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus" json:"flow_status,omitempty"`
-	ServiceTypeIds        []string                 `protobuf:"bytes,16,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
-	CargoCategoryIds      []string                 `protobuf:"bytes,17,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
-	OriginLocationId      *string                  `protobuf:"bytes,18,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
-	DestinationLocationId *string                  `protobuf:"bytes,19,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
-	DischargeLocationId   *string                  `protobuf:"bytes,20,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
-	TransitLocationId     *string                  `protobuf:"bytes,21,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
-	VesselVoyage          *string                  `protobuf:"bytes,22,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
-	Etd                   *string                  `protobuf:"bytes,23,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
-	Eta                   *string                  `protobuf:"bytes,24,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
-	SiCutoff              *string                  `protobuf:"bytes,25,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
-	DocCutoff             *string                  `protobuf:"bytes,26,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
-	CustomsCutoff         *string                  `protobuf:"bytes,27,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
-	VgmCutoff             *string                  `protobuf:"bytes,28,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
-	GoodsDescription      *string                  `protobuf:"bytes,29,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
-	TotalPackages         *int32                   `protobuf:"varint,30,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
-	TotalPackageUnit      *string                  `protobuf:"bytes,31,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
-	SpecialRequirements   *string                  `protobuf:"bytes,32,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
-	OrderDate             *string                  `protobuf:"bytes,33,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
-	Notes                 *string                  `protobuf:"bytes,34,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
-	CreatedAt             string                   `protobuf:"bytes,35,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt             string                   `protobuf:"bytes,36,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CustomerReferenceNo   *string                  `protobuf:"bytes,37,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
-	ForeignAgentId        *string                  `protobuf:"bytes,38,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
-	ContractNo            *string                  `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
-	CargoValue            *string                  `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
-	CargoCurrency         *string                  `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
-	InternalReferenceNo   *string                  `protobuf:"bytes,42,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
-	ShippingAgentId       *string                  `protobuf:"bytes,43,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
-	InsurancePremium      *string                  `protobuf:"bytes,44,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
-	InsuranceCurrency     *string                  `protobuf:"bytes,45,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
-	UnNumber              *string                  `protobuf:"bytes,46,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
-	HazardClass           *string                  `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
-	FactoryName           *string                  `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
-	CargoReadyAt          *string                  `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
-	LoadingTerms          *string                  `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
-	ReceivedAt            *string                  `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
-	OrganizationName      string                   `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	CanModify             bool                     `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
-	BookingNotes          *string                  `protobuf:"bytes,54,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
-	AllocationNotes       *string                  `protobuf:"bytes,55,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
-	OperationNotes        *string                  `protobuf:"bytes,56,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
-	ShippingDocuments     []*OrderShippingDocument `protobuf:"bytes,57,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
-	ContainerRequests     []*OrderContainerRequest `protobuf:"bytes,58,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
-	DeclarationCutoffAt   *string                  `protobuf:"bytes,59,opt,name=declaration_cutoff_at,json=declarationCutoffAt,proto3,oneof" json:"declaration_cutoff_at,omitempty"`
-	TotalGrossWeightKg    *float64                 `protobuf:"fixed64,60,opt,name=total_gross_weight_kg,json=totalGrossWeightKg,proto3,oneof" json:"total_gross_weight_kg,omitempty"`
-	TotalVolumeCbm        *float64                 `protobuf:"fixed64,61,opt,name=total_volume_cbm,json=totalVolumeCbm,proto3,oneof" json:"total_volume_cbm,omitempty"`
-	TerminationStatus     OrderTerminationStatus   `protobuf:"varint,62,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus" json:"termination_status,omitempty"`
-	TerminationType       *OrderTerminationType    `protobuf:"varint,63,opt,name=termination_type,json=terminationType,proto3,enum=order.v1.OrderTerminationType,oneof" json:"termination_type,omitempty"`
-	TerminationReason     *string                  `protobuf:"bytes,64,opt,name=termination_reason,json=terminationReason,proto3,oneof" json:"termination_reason,omitempty"`
-	TerminatedAt          *string                  `protobuf:"bytes,65,opt,name=terminated_at,json=terminatedAt,proto3,oneof" json:"terminated_at,omitempty"`
-	TerminatedBy          *string                  `protobuf:"bytes,66,opt,name=terminated_by,json=terminatedBy,proto3,oneof" json:"terminated_by,omitempty"`
-	ClosureStatus         OrderClosureStatus       `protobuf:"varint,67,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus" json:"closure_status,omitempty"`
-	ClosureReason         *string                  `protobuf:"bytes,68,opt,name=closure_reason,json=closureReason,proto3,oneof" json:"closure_reason,omitempty"`
-	ClosedAt              *string                  `protobuf:"bytes,69,opt,name=closed_at,json=closedAt,proto3,oneof" json:"closed_at,omitempty"`
-	ClosedBy              *string                  `protobuf:"bytes,70,opt,name=closed_by,json=closedBy,proto3,oneof" json:"closed_by,omitempty"`
-	Version               uint64                   `protobuf:"varint,71,opt,name=version,proto3" json:"version,omitempty"`
-	HasActiveException    bool                     `protobuf:"varint,72,opt,name=has_active_exception,json=hasActiveException,proto3" json:"has_active_exception,omitempty"`
-	ActiveExceptionCount  int32                    `protobuf:"varint,73,opt,name=active_exception_count,json=activeExceptionCount,proto3" json:"active_exception_count,omitempty"`
-	AllowedActions        []OrderAllowedAction     `protobuf:"varint,74,rep,packed,name=allowed_actions,json=allowedActions,proto3,enum=order.v1.OrderAllowedAction" json:"allowed_actions,omitempty"`
-	ShipperShortName      *string                  `protobuf:"bytes,75,opt,name=shipper_short_name,json=shipperShortName,proto3,oneof" json:"shipper_short_name,omitempty"`
-	ConsigneeShortName    *string                  `protobuf:"bytes,76,opt,name=consignee_short_name,json=consigneeShortName,proto3,oneof" json:"consignee_short_name,omitempty"`
-	LockedAt              *string                  `protobuf:"bytes,77,opt,name=locked_at,json=lockedAt,proto3,oneof" json:"locked_at,omitempty"`
-	IsShared              bool                     `protobuf:"varint,78,opt,name=is_shared,json=isShared,proto3" json:"is_shared,omitempty"`
-	Tags                  []*BusinessTagSummary    `protobuf:"bytes,79,rep,name=tags,proto3" json:"tags,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                     protoimpl.MessageState   `protogen:"open.v1"`
+	Id                        string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId            string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrderNo                   string                   `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	CustomerId                string                   `protobuf:"bytes,4,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CarrierId                 *string                  `protobuf:"bytes,5,opt,name=carrier_id,json=carrierId,proto3,oneof" json:"carrier_id,omitempty"`
+	BookingAgentId            *string                  `protobuf:"bytes,6,opt,name=booking_agent_id,json=bookingAgentId,proto3,oneof" json:"booking_agent_id,omitempty"`
+	BusinessType              BusinessType             `protobuf:"varint,7,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType" json:"business_type,omitempty"`
+	TradeDirection            TradeDirection           `protobuf:"varint,8,opt,name=trade_direction,json=tradeDirection,proto3,enum=order.v1.TradeDirection" json:"trade_direction,omitempty"`
+	TradeTerm                 TradeTerm                `protobuf:"varint,9,opt,name=trade_term,json=tradeTerm,proto3,enum=order.v1.TradeTerm" json:"trade_term,omitempty"`
+	PaymentTerm               PaymentTerm              `protobuf:"varint,10,opt,name=payment_term,json=paymentTerm,proto3,enum=order.v1.PaymentTerm" json:"payment_term,omitempty"`
+	ShipmentType              *ShipmentType            `protobuf:"varint,11,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
+	ContainerOwnership        *ContainerOwnership      `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
+	ShipmentMode              *ShipmentMode            `protobuf:"varint,13,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
+	FlowStatus                OrderFlowStatus          `protobuf:"varint,14,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus" json:"flow_status,omitempty"`
+	ServiceTypeIds            []string                 `protobuf:"bytes,16,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
+	CargoCategoryIds          []string                 `protobuf:"bytes,17,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
+	OriginLocationId          *string                  `protobuf:"bytes,18,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
+	DestinationLocationId     *string                  `protobuf:"bytes,19,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
+	DischargeLocationId       *string                  `protobuf:"bytes,20,opt,name=discharge_location_id,json=dischargeLocationId,proto3,oneof" json:"discharge_location_id,omitempty"`
+	TransitLocationId         *string                  `protobuf:"bytes,21,opt,name=transit_location_id,json=transitLocationId,proto3,oneof" json:"transit_location_id,omitempty"`
+	VesselVoyage              *string                  `protobuf:"bytes,22,opt,name=vessel_voyage,json=vesselVoyage,proto3,oneof" json:"vessel_voyage,omitempty"`
+	Etd                       *string                  `protobuf:"bytes,23,opt,name=etd,proto3,oneof" json:"etd,omitempty"`
+	Eta                       *string                  `protobuf:"bytes,24,opt,name=eta,proto3,oneof" json:"eta,omitempty"`
+	SiCutoff                  *string                  `protobuf:"bytes,25,opt,name=si_cutoff,json=siCutoff,proto3,oneof" json:"si_cutoff,omitempty"`
+	DocCutoff                 *string                  `protobuf:"bytes,26,opt,name=doc_cutoff,json=docCutoff,proto3,oneof" json:"doc_cutoff,omitempty"`
+	CustomsCutoff             *string                  `protobuf:"bytes,27,opt,name=customs_cutoff,json=customsCutoff,proto3,oneof" json:"customs_cutoff,omitempty"`
+	VgmCutoff                 *string                  `protobuf:"bytes,28,opt,name=vgm_cutoff,json=vgmCutoff,proto3,oneof" json:"vgm_cutoff,omitempty"`
+	GoodsDescription          *string                  `protobuf:"bytes,29,opt,name=goods_description,json=goodsDescription,proto3,oneof" json:"goods_description,omitempty"`
+	TotalPackages             *int32                   `protobuf:"varint,30,opt,name=total_packages,json=totalPackages,proto3,oneof" json:"total_packages,omitempty"`
+	TotalPackageUnit          *string                  `protobuf:"bytes,31,opt,name=total_package_unit,json=totalPackageUnit,proto3,oneof" json:"total_package_unit,omitempty"`
+	SpecialRequirements       *string                  `protobuf:"bytes,32,opt,name=special_requirements,json=specialRequirements,proto3,oneof" json:"special_requirements,omitempty"`
+	OrderDate                 *string                  `protobuf:"bytes,33,opt,name=order_date,json=orderDate,proto3,oneof" json:"order_date,omitempty"`
+	Notes                     *string                  `protobuf:"bytes,34,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	CreatedAt                 string                   `protobuf:"bytes,35,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                 string                   `protobuf:"bytes,36,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CustomerReferenceNo       *string                  `protobuf:"bytes,37,opt,name=customer_reference_no,json=customerReferenceNo,proto3,oneof" json:"customer_reference_no,omitempty"`
+	ForeignAgentId            *string                  `protobuf:"bytes,38,opt,name=foreign_agent_id,json=foreignAgentId,proto3,oneof" json:"foreign_agent_id,omitempty"`
+	ContractNo                *string                  `protobuf:"bytes,39,opt,name=contract_no,json=contractNo,proto3,oneof" json:"contract_no,omitempty"`
+	CargoValue                *string                  `protobuf:"bytes,40,opt,name=cargo_value,json=cargoValue,proto3,oneof" json:"cargo_value,omitempty"`
+	CargoCurrency             *string                  `protobuf:"bytes,41,opt,name=cargo_currency,json=cargoCurrency,proto3,oneof" json:"cargo_currency,omitempty"`
+	InternalReferenceNo       *string                  `protobuf:"bytes,42,opt,name=internal_reference_no,json=internalReferenceNo,proto3,oneof" json:"internal_reference_no,omitempty"`
+	ShippingAgentId           *string                  `protobuf:"bytes,43,opt,name=shipping_agent_id,json=shippingAgentId,proto3,oneof" json:"shipping_agent_id,omitempty"`
+	InsurancePremium          *string                  `protobuf:"bytes,44,opt,name=insurance_premium,json=insurancePremium,proto3,oneof" json:"insurance_premium,omitempty"`
+	InsuranceCurrency         *string                  `protobuf:"bytes,45,opt,name=insurance_currency,json=insuranceCurrency,proto3,oneof" json:"insurance_currency,omitempty"`
+	UnNumber                  *string                  `protobuf:"bytes,46,opt,name=un_number,json=unNumber,proto3,oneof" json:"un_number,omitempty"`
+	HazardClass               *string                  `protobuf:"bytes,47,opt,name=hazard_class,json=hazardClass,proto3,oneof" json:"hazard_class,omitempty"`
+	FactoryName               *string                  `protobuf:"bytes,48,opt,name=factory_name,json=factoryName,proto3,oneof" json:"factory_name,omitempty"`
+	CargoReadyAt              *string                  `protobuf:"bytes,49,opt,name=cargo_ready_at,json=cargoReadyAt,proto3,oneof" json:"cargo_ready_at,omitempty"`
+	LoadingTerms              *string                  `protobuf:"bytes,50,opt,name=loading_terms,json=loadingTerms,proto3,oneof" json:"loading_terms,omitempty"`
+	ReceivedAt                *string                  `protobuf:"bytes,51,opt,name=received_at,json=receivedAt,proto3,oneof" json:"received_at,omitempty"`
+	OrganizationName          string                   `protobuf:"bytes,52,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	CanModify                 bool                     `protobuf:"varint,53,opt,name=can_modify,json=canModify,proto3" json:"can_modify,omitempty"`
+	BookingNotes              *string                  `protobuf:"bytes,54,opt,name=booking_notes,json=bookingNotes,proto3,oneof" json:"booking_notes,omitempty"`
+	AllocationNotes           *string                  `protobuf:"bytes,55,opt,name=allocation_notes,json=allocationNotes,proto3,oneof" json:"allocation_notes,omitempty"`
+	OperationNotes            *string                  `protobuf:"bytes,56,opt,name=operation_notes,json=operationNotes,proto3,oneof" json:"operation_notes,omitempty"`
+	ShippingDocuments         []*OrderShippingDocument `protobuf:"bytes,57,rep,name=shipping_documents,json=shippingDocuments,proto3" json:"shipping_documents,omitempty"`
+	ContainerRequests         []*OrderContainerRequest `protobuf:"bytes,58,rep,name=container_requests,json=containerRequests,proto3" json:"container_requests,omitempty"`
+	DeclarationCutoffAt       *string                  `protobuf:"bytes,59,opt,name=declaration_cutoff_at,json=declarationCutoffAt,proto3,oneof" json:"declaration_cutoff_at,omitempty"`
+	TotalGrossWeightKg        *float64                 `protobuf:"fixed64,60,opt,name=total_gross_weight_kg,json=totalGrossWeightKg,proto3,oneof" json:"total_gross_weight_kg,omitempty"`
+	TotalVolumeCbm            *float64                 `protobuf:"fixed64,61,opt,name=total_volume_cbm,json=totalVolumeCbm,proto3,oneof" json:"total_volume_cbm,omitempty"`
+	TerminationStatus         OrderTerminationStatus   `protobuf:"varint,62,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus" json:"termination_status,omitempty"`
+	TerminationType           *OrderTerminationType    `protobuf:"varint,63,opt,name=termination_type,json=terminationType,proto3,enum=order.v1.OrderTerminationType,oneof" json:"termination_type,omitempty"`
+	TerminationReason         *string                  `protobuf:"bytes,64,opt,name=termination_reason,json=terminationReason,proto3,oneof" json:"termination_reason,omitempty"`
+	TerminatedAt              *string                  `protobuf:"bytes,65,opt,name=terminated_at,json=terminatedAt,proto3,oneof" json:"terminated_at,omitempty"`
+	TerminatedBy              *string                  `protobuf:"bytes,66,opt,name=terminated_by,json=terminatedBy,proto3,oneof" json:"terminated_by,omitempty"`
+	ClosureStatus             OrderClosureStatus       `protobuf:"varint,67,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus" json:"closure_status,omitempty"`
+	ClosureReason             *string                  `protobuf:"bytes,68,opt,name=closure_reason,json=closureReason,proto3,oneof" json:"closure_reason,omitempty"`
+	ClosedAt                  *string                  `protobuf:"bytes,69,opt,name=closed_at,json=closedAt,proto3,oneof" json:"closed_at,omitempty"`
+	ClosedBy                  *string                  `protobuf:"bytes,70,opt,name=closed_by,json=closedBy,proto3,oneof" json:"closed_by,omitempty"`
+	Version                   uint64                   `protobuf:"varint,71,opt,name=version,proto3" json:"version,omitempty"`
+	HasActiveException        bool                     `protobuf:"varint,72,opt,name=has_active_exception,json=hasActiveException,proto3" json:"has_active_exception,omitempty"`
+	ActiveExceptionCount      int32                    `protobuf:"varint,73,opt,name=active_exception_count,json=activeExceptionCount,proto3" json:"active_exception_count,omitempty"`
+	AllowedActions            []OrderAllowedAction     `protobuf:"varint,74,rep,packed,name=allowed_actions,json=allowedActions,proto3,enum=order.v1.OrderAllowedAction" json:"allowed_actions,omitempty"`
+	ShipperShortName          *string                  `protobuf:"bytes,75,opt,name=shipper_short_name,json=shipperShortName,proto3,oneof" json:"shipper_short_name,omitempty"`
+	ConsigneeShortName        *string                  `protobuf:"bytes,76,opt,name=consignee_short_name,json=consigneeShortName,proto3,oneof" json:"consignee_short_name,omitempty"`
+	LockedAt                  *string                  `protobuf:"bytes,77,opt,name=locked_at,json=lockedAt,proto3,oneof" json:"locked_at,omitempty"`
+	IsShared                  bool                     `protobuf:"varint,78,opt,name=is_shared,json=isShared,proto3" json:"is_shared,omitempty"`
+	Tags                      []*BusinessTagSummary    `protobuf:"bytes,79,rep,name=tags,proto3" json:"tags,omitempty"`
+	AllowedTargetFlowStatuses []OrderFlowStatus        `protobuf:"varint,80,rep,packed,name=allowed_target_flow_statuses,json=allowedTargetFlowStatuses,proto3,enum=order.v1.OrderFlowStatus" json:"allowed_target_flow_statuses,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -1555,6 +1556,13 @@ func (x *Order) GetIsShared() bool {
 func (x *Order) GetTags() []*BusinessTagSummary {
 	if x != nil {
 		return x.Tags
+	}
+	return nil
+}
+
+func (x *Order) GetAllowedTargetFlowStatuses() []OrderFlowStatus {
+	if x != nil {
+		return x.AllowedTargetFlowStatuses
 	}
 	return nil
 }
@@ -5016,7 +5024,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x85%\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xe1%\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -5110,7 +5118,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14consignee_short_name\x18L \x01(\tH3R\x12consigneeShortName\x88\x01\x01\x12 \n" +
 	"\tlocked_at\x18M \x01(\tH4R\blockedAt\x88\x01\x01\x12\x1b\n" +
 	"\tis_shared\x18N \x01(\bR\bisShared\x120\n" +
-	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tagsB\r\n" +
+	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tags\x12Z\n" +
+	"\x1callowed_target_flow_statuses\x18P \x03(\x0e2\x19.order.v1.OrderFlowStatusR\x19allowedTargetFlowStatusesB\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -5837,77 +5846,78 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	12, // 12: order.v1.Order.closure_status:type_name -> order.v1.OrderClosureStatus
 	13, // 13: order.v1.Order.allowed_actions:type_name -> order.v1.OrderAllowedAction
 	14, // 14: order.v1.Order.tags:type_name -> order.v1.BusinessTagSummary
-	16, // 15: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	16, // 16: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
-	16, // 17: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	16, // 18: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
-	17, // 19: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
-	49, // 20: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
-	9,  // 21: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
-	0,  // 22: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
-	10, // 23: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
-	12, // 24: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
-	8,  // 25: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
-	7,  // 26: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
-	0,  // 27: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
-	0,  // 28: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 29: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 30: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 31: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 32: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 33: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 34: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	22, // 35: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
-	19, // 36: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	20, // 37: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	0,  // 38: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 39: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 40: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 41: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 42: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 43: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 44: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	19, // 45: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	20, // 46: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	9,  // 47: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
-	10, // 48: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
-	11, // 49: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
-	12, // 50: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
-	15, // 51: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
-	15, // 52: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
-	15, // 53: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
-	15, // 54: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
-	15, // 55: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
-	15, // 56: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
-	15, // 57: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
-	18, // 58: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
-	32, // 59: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
-	23, // 60: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	27, // 61: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	28, // 62: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	29, // 63: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	30, // 64: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
-	31, // 65: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
-	33, // 66: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	34, // 67: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	35, // 68: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	36, // 69: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
-	37, // 70: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
-	38, // 71: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
-	44, // 72: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	46, // 73: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
-	47, // 74: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
-	45, // 75: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
-	39, // 76: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
-	40, // 77: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
-	41, // 78: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
-	42, // 79: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
-	43, // 80: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
-	71, // [71:81] is the sub-list for method output_type
-	61, // [61:71] is the sub-list for method input_type
-	61, // [61:61] is the sub-list for extension type_name
-	61, // [61:61] is the sub-list for extension extendee
-	0,  // [0:61] is the sub-list for field type_name
+	9,  // 15: order.v1.Order.allowed_target_flow_statuses:type_name -> order.v1.OrderFlowStatus
+	16, // 16: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	16, // 17: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
+	16, // 18: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	16, // 19: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
+	17, // 20: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
+	49, // 21: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
+	9,  // 22: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
+	0,  // 23: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
+	10, // 24: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
+	12, // 25: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
+	8,  // 26: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
+	7,  // 27: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
+	0,  // 28: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
+	0,  // 29: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 30: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 31: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 32: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 33: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 34: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 35: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	22, // 36: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
+	19, // 37: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	20, // 38: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	0,  // 39: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 40: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 41: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 42: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 43: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 44: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 45: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	19, // 46: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	20, // 47: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	9,  // 48: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
+	10, // 49: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
+	11, // 50: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
+	12, // 51: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
+	15, // 52: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
+	15, // 53: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
+	15, // 54: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
+	15, // 55: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
+	15, // 56: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
+	15, // 57: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
+	15, // 58: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
+	18, // 59: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
+	32, // 60: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
+	23, // 61: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
+	27, // 62: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	28, // 63: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	29, // 64: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	30, // 65: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
+	31, // 66: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
+	33, // 67: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	34, // 68: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	35, // 69: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	36, // 70: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
+	37, // 71: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
+	38, // 72: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	44, // 73: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	46, // 74: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	47, // 75: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
+	45, // 76: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
+	39, // 77: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	40, // 78: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	41, // 79: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	42, // 80: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
+	43, // 81: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
+	72, // [72:82] is the sub-list for method output_type
+	62, // [62:72] is the sub-list for method input_type
+	62, // [62:62] is the sub-list for extension type_name
+	62, // [62:62] is the sub-list for extension extendee
+	0,  // [0:62] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }

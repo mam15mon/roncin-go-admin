@@ -298,6 +298,7 @@ message Order {
   optional string locked_at = 77;
   bool is_shared = 78;
   repeated BusinessTagSummary tags = 79;
+  repeated OrderFlowStatus allowed_target_flow_statuses = 80;
 }
 
 message OrderCargoMeasurement {

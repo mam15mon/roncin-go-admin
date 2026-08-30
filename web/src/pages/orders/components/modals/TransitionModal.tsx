@@ -7,8 +7,8 @@ import {
 } from '@ant-design/pro-components';
 import { App } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { seFlowStatusLabels } from '../../common';
 import { orderServiceTransitionOrderStatus } from '@/services/roncin/orderService';
+import { seFlowStatusLabels } from '../../common';
 
 export type TransitionModalRef = {
   open: (order: API.Order) => void;
@@ -21,18 +21,6 @@ type TransitionModalProps = {
 type TransitionFormValues = {
   targetStatus: number;
   reason?: string;
-};
-
-const transitionsByStatus: Record<number, { label: string; value: number }[]> = {
-  1: [{ label: '已订舱', value: 2 }],
-  2: [{ label: '已配舱', value: 3 }],
-  3: [
-    { label: '拖车已安排', value: 4 },
-    { label: '已截单（无拖车）', value: 5 },
-  ],
-  4: [{ label: '已截单', value: 5 }],
-  5: [{ label: '报关已安排', value: 6 }],
-  6: [{ label: '已放单', value: 7 }],
 };
 
 const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
@@ -54,7 +42,12 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
           targetStatus: undefined,
           reason: undefined,
         });
-        setTargetStatusOptions(transitionsByStatus[order.flowStatus ?? 0] ?? []);
+        setTargetStatusOptions(
+          (order.allowedTargetFlowStatuses ?? []).map((status) => ({
+            label: seFlowStatusLabels[status] ?? '未知状态',
+            value: status,
+          })),
+        );
         setOpen(true);
       },
     }));

@@ -74,6 +74,7 @@ message OrderReleasePod {
   optional string note = 9;
   string created_at = 10;
   string updated_at = 11;
+  repeated OrderReleasePodStatus allowed_target_statuses = 12;
 }
 
 // ListReleasePodsRequest 获取放货凭证列表请求。

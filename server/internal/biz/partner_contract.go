@@ -45,6 +45,22 @@ type PartnerContract struct {
 	UpdatedAt         time.Time
 }
 
+// AllowedStatuses 返回编辑合同时可保持或流转到的状态。
+func (contract *PartnerContract) AllowedStatuses() []PartnerContractStatus {
+	switch contract.Status {
+	case PartnerContractPending:
+		return []PartnerContractStatus{PartnerContractPending, PartnerContractActive, PartnerContractTerminated}
+	case PartnerContractActive:
+		return []PartnerContractStatus{PartnerContractActive, PartnerContractExpired, PartnerContractTerminated}
+	case PartnerContractExpired:
+		return []PartnerContractStatus{PartnerContractExpired}
+	case PartnerContractTerminated:
+		return []PartnerContractStatus{PartnerContractTerminated}
+	default:
+		return nil
+	}
+}
+
 type PartnerContractRepo interface {
 	List(context.Context, uuid.UUID, uuid.UUID, *PartnerContractStatus) ([]*PartnerContract, error)
 	Get(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerContract, error)
@@ -118,15 +134,11 @@ func normalizePartnerContract(input *PartnerContract, creating bool, previous *P
 }
 
 func validContractTransition(from, to PartnerContractStatus) bool {
-	if from == to {
-		return true
+	contract := &PartnerContract{Status: from}
+	for _, target := range contract.AllowedStatuses() {
+		if target == to {
+			return true
+		}
 	}
-	switch from {
-	case PartnerContractPending:
-		return to == PartnerContractActive || to == PartnerContractTerminated
-	case PartnerContractActive:
-		return to == PartnerContractExpired || to == PartnerContractTerminated
-	default:
-		return false
-	}
+	return false
 }

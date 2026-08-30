@@ -12494,6 +12494,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.BusinessTagSummary'
+                allowedTargetFlowStatuses:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
         order.v1.OrderAbnormalCase:
             type: object
             properties:
@@ -12922,6 +12927,11 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                allowedTargetStatuses:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
             description: OrderReleasePod 放货凭证信息。
         order.v1.OrderShippingDocument:
             type: object
@@ -14466,6 +14476,11 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                allowedStatuses:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
         partner.v1.PartnerExportItem:
             type: object
             properties:

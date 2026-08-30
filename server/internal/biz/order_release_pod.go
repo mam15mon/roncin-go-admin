@@ -38,13 +38,22 @@ func (s OrderReleasePodStatus) Valid() bool {
 }
 
 func validReleasePodTransition(from, to OrderReleasePodStatus) bool {
-	switch from {
+	for _, target := range allowedReleasePodTargetStatuses(from) {
+		if target == to {
+			return true
+		}
+	}
+	return false
+}
+
+func allowedReleasePodTargetStatuses(status OrderReleasePodStatus) []OrderReleasePodStatus {
+	switch status {
 	case OrderReleasePodStatusPending:
-		return to == OrderReleasePodStatusSigned
+		return []OrderReleasePodStatus{OrderReleasePodStatusSigned}
 	case OrderReleasePodStatusSigned:
-		return to == OrderReleasePodStatusReturned
+		return []OrderReleasePodStatus{OrderReleasePodStatusReturned}
 	default:
-		return false
+		return nil
 	}
 }
 
@@ -60,6 +69,11 @@ type OrderReleasePod struct {
 	Note               *string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+}
+
+// AllowedTargetStatuses 返回当前放货凭证可执行的目标状态。
+func (pod *OrderReleasePod) AllowedTargetStatuses() []OrderReleasePodStatus {
+	return allowedReleasePodTargetStatuses(pod.Status)
 }
 
 type OrderReleasePodRepo interface {

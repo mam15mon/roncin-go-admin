@@ -3272,6 +3272,7 @@ declare namespace API {
     lockedAt?: string;
     isShared?: boolean;
     tags?: BusinessTagSummary[];
+    allowedTargetFlowStatuses?: number[];
   };
 
   type OrderAbnormalCase = {
@@ -3638,6 +3639,7 @@ declare namespace API {
     note?: string;
     createdAt?: string;
     updatedAt?: string;
+    allowedTargetStatuses?: number[];
   };
 
   type OrderReleasePodServiceAddReleasePodParams = {
@@ -3945,6 +3947,7 @@ declare namespace API {
     otherNotes?: string;
     createdAt?: string;
     updatedAt?: string;
+    allowedStatuses?: number[];
   };
 
   type PartnerExportItem = {

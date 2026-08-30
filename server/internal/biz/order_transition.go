@@ -39,24 +39,30 @@ type OrderClosureReadiness struct {
 	HasUnbilledOrderFees bool
 }
 
-var allowedSEFlowTransitions = map[OrderFlowStatus]map[OrderFlowStatus]struct{}{
-	OrderFlowDraft:          {OrderFlowBooked: {}},
-	OrderFlowBooked:         {OrderFlowSpaceAllocated: {}},
-	OrderFlowSpaceAllocated: {OrderFlowTruckingArranged: {}, OrderFlowDocumentCutoff: {}},
-	OrderFlowTruckingArranged: {
-		OrderFlowDocumentCutoff: {},
-	},
-	OrderFlowDocumentCutoff: {
-		OrderFlowCustomsDeclarationArranged: {},
-	},
-	OrderFlowCustomsDeclarationArranged: {
-		OrderFlowDocumentReleased: {},
-	},
+var allowedSEFlowTransitions = map[OrderFlowStatus][]OrderFlowStatus{
+	OrderFlowDraft:                      {OrderFlowBooked},
+	OrderFlowBooked:                     {OrderFlowSpaceAllocated},
+	OrderFlowSpaceAllocated:             {OrderFlowTruckingArranged, OrderFlowDocumentCutoff},
+	OrderFlowTruckingArranged:           {OrderFlowDocumentCutoff},
+	OrderFlowDocumentCutoff:             {OrderFlowCustomsDeclarationArranged},
+	OrderFlowCustomsDeclarationArranged: {OrderFlowDocumentReleased},
 }
 
 func validSEFlowTransition(from, to OrderFlowStatus) bool {
-	_, valid := allowedSEFlowTransitions[from][to]
-	return valid
+	for _, target := range allowedSEFlowTransitions[from] {
+		if target == to {
+			return true
+		}
+	}
+	return false
+}
+
+// AllowedTargetFlowStatuses 返回当前订单可执行的主流程目标状态。
+func (order *Order) AllowedTargetFlowStatuses() []OrderFlowStatus {
+	if order.BusinessType != OrderBusinessSE || order.TerminationStatus != OrderTerminationActive || order.ClosureStatus != OrderClosureOpen {
+		return nil
+	}
+	return append([]OrderFlowStatus(nil), allowedSEFlowTransitions[order.FlowStatus]...)
 }
 
 func validTerminationTransition(from, to OrderTerminationStatus) bool {

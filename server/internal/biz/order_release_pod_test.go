@@ -119,6 +119,26 @@ func TestOrderReleasePodStatusValid(t *testing.T) {
 	}
 }
 
+func TestOrderReleasePodAllowedTargetStatuses(t *testing.T) {
+	tests := []struct {
+		status OrderReleasePodStatus
+		want   OrderReleasePodStatus
+	}{
+		{status: OrderReleasePodStatusPending, want: OrderReleasePodStatusSigned},
+		{status: OrderReleasePodStatusSigned, want: OrderReleasePodStatusReturned},
+		{status: OrderReleasePodStatusReturned},
+	}
+	for _, tt := range tests {
+		targets := (&OrderReleasePod{Status: tt.status}).AllowedTargetStatuses()
+		if tt.want == "" && len(targets) != 0 {
+			t.Fatalf("状态 %q 不应允许流转: %v", tt.status, targets)
+		}
+		if tt.want != "" && (len(targets) != 1 || targets[0] != tt.want) {
+			t.Fatalf("状态 %q 允许流转 = %v，期望 %q", tt.status, targets, tt.want)
+		}
+	}
+}
+
 func TestOrderReleasePodListValidates(t *testing.T) {
 	repo := &orderReleasePodRepoStub{}
 	usecase := NewOrderReleasePodUsecase(repo)

@@ -668,6 +668,7 @@ message PartnerContract {
   string other_notes = 10;
   string created_at = 12;
   string updated_at = 13;
+  repeated PartnerContractStatus allowed_statuses = 14;
 }
 
 message CreatePartnerContractInput {

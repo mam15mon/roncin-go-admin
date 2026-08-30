@@ -10,10 +10,19 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
-import { Alert, App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Popconfirm,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
   orderReleasePodServiceAddReleasePod,
   orderReleasePodServiceListReleasePods,
@@ -49,14 +58,15 @@ const releasePodStatusValueEnum: Record<
   3: { text: '已回单', color: 'success' },
 };
 
-export function getReleasePodTransition(status?: number) {
-  if (status === 1) {
-    return { currentText: '待签收', nextText: '已签收', toStatus: 2 };
-  }
-  if (status === 2) {
-    return { currentText: '已签收', nextText: '已回单', toStatus: 3 };
-  }
-  return undefined;
+export function getReleasePodTransition(record?: API.OrderReleasePod) {
+  const status = record?.status;
+  const toStatus = record?.allowedTargetStatuses?.[0];
+  if (!status || !toStatus) return undefined;
+  return {
+    currentText: releasePodStatusValueEnum[status]?.text ?? '未知状态',
+    nextText: releasePodStatusValueEnum[toStatus]?.text ?? '未知状态',
+    toStatus,
+  };
 }
 
 const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
@@ -179,24 +189,25 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         valueType: 'dateTime',
         width: 170,
         render: (_, record) =>
-          record.signedAt
-            ? dayjs(record.signedAt).format('YYYY-MM-DD HH:mm:ss')
-            : <Text type="secondary">-</Text>,
+          record.signedAt ? (
+            dayjs(record.signedAt).format('YYYY-MM-DD HH:mm:ss')
+          ) : (
+            <Text type="secondary">-</Text>
+          ),
       },
       {
         title: '签收人',
         dataIndex: 'signedBy',
         copyable: true,
         ellipsis: true,
-        render: (_, record) => (
+        render: (_, record) =>
           record.signedBy ? (
             <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>
               {record.signedBy}
             </Text>
           ) : (
             <Text type="secondary">-</Text>
-          )
-        ),
+          ),
       },
       {
         title: '备注',
@@ -221,7 +232,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         width: 170,
         fixed: 'right',
         render: (_, record) => {
-          const transition = getReleasePodTransition(record.status);
+          const transition = getReleasePodTransition(record);
           if (!canManage) return null;
           return (
             <Space size="small">

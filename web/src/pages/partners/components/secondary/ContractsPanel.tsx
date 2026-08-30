@@ -1,4 +1,8 @@
-import { EditOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  EditOutlined,
+  FileTextOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
@@ -58,18 +62,9 @@ type ContractsPanelProps = {
 
 function availableContractStatuses(contract?: API.PartnerContract) {
   if (!contract) return contractStatusOptions.slice(0, 2);
-  if (contract.status === 1) {
-    return contractStatusOptions.filter((option) =>
-      [1, 2, 4].includes(option.value),
-    );
-  }
-  if (contract.status === 2) {
-    return contractStatusOptions.filter((option) =>
-      [2, 3, 4].includes(option.value),
-    );
-  }
-  return contractStatusOptions.filter(
-    (option) => option.value === contract.status,
+  const allowedStatuses = new Set(contract.allowedStatuses ?? []);
+  return contractStatusOptions.filter((option) =>
+    allowedStatuses.has(option.value),
   );
 }
 

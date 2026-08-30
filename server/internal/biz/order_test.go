@@ -378,6 +378,24 @@ func TestOrderTransitionValidatesEdgeAndAudits(t *testing.T) {
 	}
 }
 
+func TestOrderAllowedTargetFlowStatusesFollowDomainState(t *testing.T) {
+	order := &Order{
+		BusinessType:      OrderBusinessSE,
+		FlowStatus:        OrderFlowSpaceAllocated,
+		TerminationStatus: OrderTerminationActive,
+		ClosureStatus:     OrderClosureOpen,
+	}
+	targets := order.AllowedTargetFlowStatuses()
+	if len(targets) != 2 || targets[0] != OrderFlowTruckingArranged || targets[1] != OrderFlowDocumentCutoff {
+		t.Fatalf("配舱后允许状态 = %v", targets)
+	}
+
+	order.TerminationStatus = OrderTerminationTerminating
+	if targets := order.AllowedTargetFlowStatuses(); len(targets) != 0 {
+		t.Fatalf("终止中的订单不应允许主流程流转: %v", targets)
+	}
+}
+
 func TestOrderTerminationTransitionRequiresReasonAndValidEdge(t *testing.T) {
 	terminationType := OrderTerminationCustomsReturn
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 4}}

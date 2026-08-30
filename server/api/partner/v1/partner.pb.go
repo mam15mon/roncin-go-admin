@@ -4486,19 +4486,20 @@ func (x *ListPartnerAccountsResponse) GetTraceId() string {
 }
 
 type PartnerContract struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	PartnerId         string                 `protobuf:"bytes,2,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
-	ContractNo        string                 `protobuf:"bytes,3,opt,name=contract_no,json=contractNo,proto3" json:"contract_no,omitempty"`
-	Name              string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Status            PartnerContractStatus  `protobuf:"varint,5,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
-	StartDate         string                 `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
-	EndDate           string                 `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
-	PaymentTerms      string                 `protobuf:"bytes,8,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`
-	DisputeResolution string                 `protobuf:"bytes,9,opt,name=dispute_resolution,json=disputeResolution,proto3" json:"dispute_resolution,omitempty"`
-	OtherNotes        string                 `protobuf:"bytes,10,opt,name=other_notes,json=otherNotes,proto3" json:"other_notes,omitempty"`
-	CreatedAt         string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt         string                 `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	state             protoimpl.MessageState  `protogen:"open.v1"`
+	Id                string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartnerId         string                  `protobuf:"bytes,2,opt,name=partner_id,json=partnerId,proto3" json:"partner_id,omitempty"`
+	ContractNo        string                  `protobuf:"bytes,3,opt,name=contract_no,json=contractNo,proto3" json:"contract_no,omitempty"`
+	Name              string                  `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Status            PartnerContractStatus   `protobuf:"varint,5,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
+	StartDate         string                  `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate           string                  `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	PaymentTerms      string                  `protobuf:"bytes,8,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`
+	DisputeResolution string                  `protobuf:"bytes,9,opt,name=dispute_resolution,json=disputeResolution,proto3" json:"dispute_resolution,omitempty"`
+	OtherNotes        string                  `protobuf:"bytes,10,opt,name=other_notes,json=otherNotes,proto3" json:"other_notes,omitempty"`
+	CreatedAt         string                  `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt         string                  `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AllowedStatuses   []PartnerContractStatus `protobuf:"varint,14,rep,packed,name=allowed_statuses,json=allowedStatuses,proto3,enum=partner.v1.PartnerContractStatus" json:"allowed_statuses,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -4615,6 +4616,13 @@ func (x *PartnerContract) GetUpdatedAt() string {
 		return x.UpdatedAt
 	}
 	return ""
+}
+
+func (x *PartnerContract) GetAllowedStatuses() []PartnerContractStatus {
+	if x != nil {
+		return x.AllowedStatuses
+	}
+	return nil
 }
 
 type CreatePartnerContractInput struct {
@@ -7714,7 +7722,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x03(\v2\x1a.partner.v1.PartnerAccountR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9d\x03\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xeb\x03\n" +
 	"\x0fPartnerContract\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -7734,7 +7742,8 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\tR\tupdatedAt\"\xd4\x02\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAt\x12L\n" +
+	"\x10allowed_statuses\x18\x0e \x03(\x0e2!.partner.v1.PartnerContractStatusR\x0fallowedStatuses\"\xd4\x02\n" +
 	"\x1aCreatePartnerContractInput\x12$\n" +
 	"\vcontract_no\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"contractNo\x12\x17\n" +
@@ -8271,97 +8280,98 @@ var file_partner_v1_partner_proto_depIdxs = []int32{
 	50,  // 55: partner.v1.UpdatePartnerAccountResponse.data:type_name -> partner.v1.PartnerAccount
 	50,  // 56: partner.v1.ListPartnerAccountsResponse.data:type_name -> partner.v1.PartnerAccount
 	7,   // 57: partner.v1.PartnerContract.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 58: partner.v1.CreatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 59: partner.v1.UpdatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
-	7,   // 60: partner.v1.ListPartnerContractsRequest.status:type_name -> partner.v1.PartnerContractStatus
-	59,  // 61: partner.v1.CreatePartnerContractRequest.contract:type_name -> partner.v1.CreatePartnerContractInput
-	60,  // 62: partner.v1.UpdatePartnerContractRequest.contract:type_name -> partner.v1.UpdatePartnerContractInput
-	58,  // 63: partner.v1.CreatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
-	58,  // 64: partner.v1.UpdatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
-	58,  // 65: partner.v1.ListPartnerContractsResponse.data:type_name -> partner.v1.PartnerContract
-	8,   // 66: partner.v1.PartnerSettlementRule.statement_mode:type_name -> partner.v1.PartnerStatementMode
-	9,   // 67: partner.v1.PartnerSettlementRule.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
-	10,  // 68: partner.v1.PartnerSettlementRule.settlement_base:type_name -> partner.v1.PartnerSettlementBase
-	8,   // 69: partner.v1.PartnerSettlementRuleInput.statement_mode:type_name -> partner.v1.PartnerStatementMode
-	9,   // 70: partner.v1.PartnerSettlementRuleInput.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
-	10,  // 71: partner.v1.PartnerSettlementRuleInput.settlement_base:type_name -> partner.v1.PartnerSettlementBase
-	0,   // 72: partner.v1.ListPartnerSettlementRulesRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	0,   // 73: partner.v1.CreatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	68,  // 74: partner.v1.CreatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
-	0,   // 75: partner.v1.UpdatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
-	68,  // 76: partner.v1.UpdatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
-	67,  // 77: partner.v1.CreatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	67,  // 78: partner.v1.UpdatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	67,  // 79: partner.v1.ListPartnerSettlementRulesResponse.data:type_name -> partner.v1.PartnerSettlementRule
-	75,  // 80: partner.v1.RegisterPartnerAttachmentResponse.data:type_name -> partner.v1.PartnerAttachment
-	75,  // 81: partner.v1.ListPartnerAttachmentsResponse.data:type_name -> partner.v1.PartnerAttachment
-	22,  // 82: partner.v1.GetPartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 83: partner.v1.CreatePartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 84: partner.v1.UpdatePartnerResponse.data:type_name -> partner.v1.Partner
-	22,  // 85: partner.v1.SetSupplierBlacklistResponse.data:type_name -> partner.v1.Partner
-	22,  // 86: partner.v1.ListPartnersResponse.data:type_name -> partner.v1.Partner
-	85,  // 87: partner.v1.ListPartnerInvoiceProfilesResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	85,  // 88: partner.v1.CreatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	85,  // 89: partner.v1.UpdatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
-	26,  // 90: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
-	27,  // 91: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
-	18,  // 92: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
-	19,  // 93: partner.v1.PartnerService.SearchPartnerAssignmentOptions:input_type -> partner.v1.SearchPartnerAssignmentOptionsRequest
-	28,  // 94: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
-	29,  // 95: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
-	86,  // 96: partner.v1.PartnerService.ListPartnerInvoiceProfiles:input_type -> partner.v1.ListPartnerInvoiceProfilesRequest
-	87,  // 97: partner.v1.PartnerService.CreatePartnerInvoiceProfile:input_type -> partner.v1.CreatePartnerInvoiceProfileRequest
-	88,  // 98: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:input_type -> partner.v1.UpdatePartnerInvoiceProfileRequest
-	49,  // 99: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
-	52,  // 100: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
-	53,  // 101: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
-	54,  // 102: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
-	61,  // 103: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
-	62,  // 104: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
-	63,  // 105: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
-	69,  // 106: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
-	70,  // 107: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
-	71,  // 108: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
-	77,  // 109: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
-	76,  // 110: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
-	31,  // 111: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
-	33,  // 112: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
-	40,  // 113: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
-	47,  // 114: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
-	41,  // 115: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
-	42,  // 116: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
-	80,  // 117: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
-	84,  // 118: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
-	20,  // 119: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
-	21,  // 120: partner.v1.PartnerService.SearchPartnerAssignmentOptions:output_type -> partner.v1.SearchPartnerAssignmentOptionsResponse
-	81,  // 121: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
-	82,  // 122: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
-	89,  // 123: partner.v1.PartnerService.ListPartnerInvoiceProfiles:output_type -> partner.v1.ListPartnerInvoiceProfilesResponse
-	90,  // 124: partner.v1.PartnerService.CreatePartnerInvoiceProfile:output_type -> partner.v1.CreatePartnerInvoiceProfileResponse
-	91,  // 125: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:output_type -> partner.v1.UpdatePartnerInvoiceProfileResponse
-	83,  // 126: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
-	57,  // 127: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
-	55,  // 128: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
-	56,  // 129: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
-	66,  // 130: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
-	64,  // 131: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
-	65,  // 132: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
-	74,  // 133: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
-	72,  // 134: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
-	73,  // 135: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
-	79,  // 136: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
-	78,  // 137: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
-	32,  // 138: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
-	35,  // 139: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
-	45,  // 140: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
-	48,  // 141: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
-	43,  // 142: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
-	44,  // 143: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
-	117, // [117:144] is the sub-list for method output_type
-	90,  // [90:117] is the sub-list for method input_type
-	90,  // [90:90] is the sub-list for extension type_name
-	90,  // [90:90] is the sub-list for extension extendee
-	0,   // [0:90] is the sub-list for field type_name
+	7,   // 58: partner.v1.PartnerContract.allowed_statuses:type_name -> partner.v1.PartnerContractStatus
+	7,   // 59: partner.v1.CreatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	7,   // 60: partner.v1.UpdatePartnerContractInput.status:type_name -> partner.v1.PartnerContractStatus
+	7,   // 61: partner.v1.ListPartnerContractsRequest.status:type_name -> partner.v1.PartnerContractStatus
+	59,  // 62: partner.v1.CreatePartnerContractRequest.contract:type_name -> partner.v1.CreatePartnerContractInput
+	60,  // 63: partner.v1.UpdatePartnerContractRequest.contract:type_name -> partner.v1.UpdatePartnerContractInput
+	58,  // 64: partner.v1.CreatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
+	58,  // 65: partner.v1.UpdatePartnerContractResponse.data:type_name -> partner.v1.PartnerContract
+	58,  // 66: partner.v1.ListPartnerContractsResponse.data:type_name -> partner.v1.PartnerContract
+	8,   // 67: partner.v1.PartnerSettlementRule.statement_mode:type_name -> partner.v1.PartnerStatementMode
+	9,   // 68: partner.v1.PartnerSettlementRule.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
+	10,  // 69: partner.v1.PartnerSettlementRule.settlement_base:type_name -> partner.v1.PartnerSettlementBase
+	8,   // 70: partner.v1.PartnerSettlementRuleInput.statement_mode:type_name -> partner.v1.PartnerStatementMode
+	9,   // 71: partner.v1.PartnerSettlementRuleInput.settlement_method:type_name -> partner.v1.PartnerSettlementMethod
+	10,  // 72: partner.v1.PartnerSettlementRuleInput.settlement_base:type_name -> partner.v1.PartnerSettlementBase
+	0,   // 73: partner.v1.ListPartnerSettlementRulesRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	0,   // 74: partner.v1.CreatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	68,  // 75: partner.v1.CreatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
+	0,   // 76: partner.v1.UpdatePartnerSettlementRuleRequest.role_type:type_name -> partner.v1.PartnerRoleType
+	68,  // 77: partner.v1.UpdatePartnerSettlementRuleRequest.rule:type_name -> partner.v1.PartnerSettlementRuleInput
+	67,  // 78: partner.v1.CreatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	67,  // 79: partner.v1.UpdatePartnerSettlementRuleResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	67,  // 80: partner.v1.ListPartnerSettlementRulesResponse.data:type_name -> partner.v1.PartnerSettlementRule
+	75,  // 81: partner.v1.RegisterPartnerAttachmentResponse.data:type_name -> partner.v1.PartnerAttachment
+	75,  // 82: partner.v1.ListPartnerAttachmentsResponse.data:type_name -> partner.v1.PartnerAttachment
+	22,  // 83: partner.v1.GetPartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 84: partner.v1.CreatePartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 85: partner.v1.UpdatePartnerResponse.data:type_name -> partner.v1.Partner
+	22,  // 86: partner.v1.SetSupplierBlacklistResponse.data:type_name -> partner.v1.Partner
+	22,  // 87: partner.v1.ListPartnersResponse.data:type_name -> partner.v1.Partner
+	85,  // 88: partner.v1.ListPartnerInvoiceProfilesResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	85,  // 89: partner.v1.CreatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	85,  // 90: partner.v1.UpdatePartnerInvoiceProfileResponse.data:type_name -> partner.v1.PartnerInvoiceProfile
+	26,  // 91: partner.v1.PartnerService.GetPartner:input_type -> partner.v1.GetPartnerRequest
+	27,  // 92: partner.v1.PartnerService.ListPartners:input_type -> partner.v1.ListPartnersRequest
+	18,  // 93: partner.v1.PartnerService.ListPartnerAssignmentOptions:input_type -> partner.v1.ListPartnerAssignmentOptionsRequest
+	19,  // 94: partner.v1.PartnerService.SearchPartnerAssignmentOptions:input_type -> partner.v1.SearchPartnerAssignmentOptionsRequest
+	28,  // 95: partner.v1.PartnerService.CreatePartner:input_type -> partner.v1.CreatePartnerRequest
+	29,  // 96: partner.v1.PartnerService.UpdatePartner:input_type -> partner.v1.UpdatePartnerRequest
+	86,  // 97: partner.v1.PartnerService.ListPartnerInvoiceProfiles:input_type -> partner.v1.ListPartnerInvoiceProfilesRequest
+	87,  // 98: partner.v1.PartnerService.CreatePartnerInvoiceProfile:input_type -> partner.v1.CreatePartnerInvoiceProfileRequest
+	88,  // 99: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:input_type -> partner.v1.UpdatePartnerInvoiceProfileRequest
+	49,  // 100: partner.v1.PartnerService.SetSupplierBlacklist:input_type -> partner.v1.SetSupplierBlacklistRequest
+	52,  // 101: partner.v1.PartnerService.ListPartnerAccounts:input_type -> partner.v1.ListPartnerAccountsRequest
+	53,  // 102: partner.v1.PartnerService.CreatePartnerAccount:input_type -> partner.v1.CreatePartnerAccountRequest
+	54,  // 103: partner.v1.PartnerService.UpdatePartnerAccount:input_type -> partner.v1.UpdatePartnerAccountRequest
+	61,  // 104: partner.v1.PartnerService.ListPartnerContracts:input_type -> partner.v1.ListPartnerContractsRequest
+	62,  // 105: partner.v1.PartnerService.CreatePartnerContract:input_type -> partner.v1.CreatePartnerContractRequest
+	63,  // 106: partner.v1.PartnerService.UpdatePartnerContract:input_type -> partner.v1.UpdatePartnerContractRequest
+	69,  // 107: partner.v1.PartnerService.ListPartnerSettlementRules:input_type -> partner.v1.ListPartnerSettlementRulesRequest
+	70,  // 108: partner.v1.PartnerService.CreatePartnerSettlementRule:input_type -> partner.v1.CreatePartnerSettlementRuleRequest
+	71,  // 109: partner.v1.PartnerService.UpdatePartnerSettlementRule:input_type -> partner.v1.UpdatePartnerSettlementRuleRequest
+	77,  // 110: partner.v1.PartnerService.ListPartnerAttachments:input_type -> partner.v1.ListPartnerAttachmentsRequest
+	76,  // 111: partner.v1.PartnerService.RegisterPartnerAttachment:input_type -> partner.v1.RegisterPartnerAttachmentRequest
+	31,  // 112: partner.v1.PartnerService.ImportPartners:input_type -> partner.v1.ImportPartnersRequest
+	33,  // 113: partner.v1.PartnerService.ExportPartners:input_type -> partner.v1.ExportPartnersRequest
+	40,  // 114: partner.v1.PartnerService.ListPartnerShippingPresets:input_type -> partner.v1.ListPartnerShippingPresetsRequest
+	47,  // 115: partner.v1.PartnerService.ListPartnerAuditLogs:input_type -> partner.v1.ListPartnerAuditLogsRequest
+	41,  // 116: partner.v1.PartnerService.CreatePartnerShippingPreset:input_type -> partner.v1.CreatePartnerShippingPresetRequest
+	42,  // 117: partner.v1.PartnerService.UpdatePartnerShippingPreset:input_type -> partner.v1.UpdatePartnerShippingPresetRequest
+	80,  // 118: partner.v1.PartnerService.GetPartner:output_type -> partner.v1.GetPartnerResponse
+	84,  // 119: partner.v1.PartnerService.ListPartners:output_type -> partner.v1.ListPartnersResponse
+	20,  // 120: partner.v1.PartnerService.ListPartnerAssignmentOptions:output_type -> partner.v1.ListPartnerAssignmentOptionsResponse
+	21,  // 121: partner.v1.PartnerService.SearchPartnerAssignmentOptions:output_type -> partner.v1.SearchPartnerAssignmentOptionsResponse
+	81,  // 122: partner.v1.PartnerService.CreatePartner:output_type -> partner.v1.CreatePartnerResponse
+	82,  // 123: partner.v1.PartnerService.UpdatePartner:output_type -> partner.v1.UpdatePartnerResponse
+	89,  // 124: partner.v1.PartnerService.ListPartnerInvoiceProfiles:output_type -> partner.v1.ListPartnerInvoiceProfilesResponse
+	90,  // 125: partner.v1.PartnerService.CreatePartnerInvoiceProfile:output_type -> partner.v1.CreatePartnerInvoiceProfileResponse
+	91,  // 126: partner.v1.PartnerService.UpdatePartnerInvoiceProfile:output_type -> partner.v1.UpdatePartnerInvoiceProfileResponse
+	83,  // 127: partner.v1.PartnerService.SetSupplierBlacklist:output_type -> partner.v1.SetSupplierBlacklistResponse
+	57,  // 128: partner.v1.PartnerService.ListPartnerAccounts:output_type -> partner.v1.ListPartnerAccountsResponse
+	55,  // 129: partner.v1.PartnerService.CreatePartnerAccount:output_type -> partner.v1.CreatePartnerAccountResponse
+	56,  // 130: partner.v1.PartnerService.UpdatePartnerAccount:output_type -> partner.v1.UpdatePartnerAccountResponse
+	66,  // 131: partner.v1.PartnerService.ListPartnerContracts:output_type -> partner.v1.ListPartnerContractsResponse
+	64,  // 132: partner.v1.PartnerService.CreatePartnerContract:output_type -> partner.v1.CreatePartnerContractResponse
+	65,  // 133: partner.v1.PartnerService.UpdatePartnerContract:output_type -> partner.v1.UpdatePartnerContractResponse
+	74,  // 134: partner.v1.PartnerService.ListPartnerSettlementRules:output_type -> partner.v1.ListPartnerSettlementRulesResponse
+	72,  // 135: partner.v1.PartnerService.CreatePartnerSettlementRule:output_type -> partner.v1.CreatePartnerSettlementRuleResponse
+	73,  // 136: partner.v1.PartnerService.UpdatePartnerSettlementRule:output_type -> partner.v1.UpdatePartnerSettlementRuleResponse
+	79,  // 137: partner.v1.PartnerService.ListPartnerAttachments:output_type -> partner.v1.ListPartnerAttachmentsResponse
+	78,  // 138: partner.v1.PartnerService.RegisterPartnerAttachment:output_type -> partner.v1.RegisterPartnerAttachmentResponse
+	32,  // 139: partner.v1.PartnerService.ImportPartners:output_type -> partner.v1.ImportPartnersResponse
+	35,  // 140: partner.v1.PartnerService.ExportPartners:output_type -> partner.v1.ExportPartnersResponse
+	45,  // 141: partner.v1.PartnerService.ListPartnerShippingPresets:output_type -> partner.v1.ListPartnerShippingPresetsResponse
+	48,  // 142: partner.v1.PartnerService.ListPartnerAuditLogs:output_type -> partner.v1.ListPartnerAuditLogsResponse
+	43,  // 143: partner.v1.PartnerService.CreatePartnerShippingPreset:output_type -> partner.v1.CreatePartnerShippingPresetResponse
+	44,  // 144: partner.v1.PartnerService.UpdatePartnerShippingPreset:output_type -> partner.v1.UpdatePartnerShippingPresetResponse
+	118, // [118:145] is the sub-list for method output_type
+	91,  // [91:118] is the sub-list for method input_type
+	91,  // [91:91] is the sub-list for extension type_name
+	91,  // [91:91] is the sub-list for extension extendee
+	0,   // [0:91] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }

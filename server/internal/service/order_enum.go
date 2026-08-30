@@ -98,6 +98,14 @@ func orderAllowedActionsToAPI(values []biz.OrderAllowedAction) []v1.OrderAllowed
 	return result
 }
 
+func orderFlowStatusesToAPI(values []biz.OrderFlowStatus) []v1.OrderFlowStatus {
+	result := make([]v1.OrderFlowStatus, 0, len(values))
+	for _, value := range values {
+		result = append(result, orderFlowStatusToAPI(value))
+	}
+	return result
+}
+
 func orderBusinessTypeFromAPI(value v1.BusinessType) biz.OrderBusinessType {
 	switch value {
 	case v1.BusinessType_BUSINESS_TYPE_SE:

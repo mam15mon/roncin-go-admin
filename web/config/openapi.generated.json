@@ -19443,6 +19443,13 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
             }
+          },
+          "allowedTargetFlowStatuses": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
           }
         }
       },
@@ -20075,6 +20082,13 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "allowedTargetStatuses": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
           }
         },
         "description": "OrderReleasePod 放货凭证信息。"
@@ -22338,6 +22352,13 @@
           },
           "updatedAt": {
             "type": "string"
+          },
+          "allowedStatuses": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
           }
         }
       },

@@ -136,11 +136,12 @@ func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *
 
 func orderReleasePodToAPI(value *biz.OrderReleasePod) *v1.OrderReleasePod {
 	item := &v1.OrderReleasePod{
-		Id:        value.ID.String(),
-		OrderId:   value.OrderID.String(),
-		Status:    orderReleasePodStatusToAPI(value.Status),
-		CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:                    value.ID.String(),
+		OrderId:               value.OrderID.String(),
+		Status:                orderReleasePodStatusToAPI(value.Status),
+		AllowedTargetStatuses: orderReleasePodStatusesToAPI(value.AllowedTargetStatuses()),
+		CreatedAt:             value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:             value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 	if value.ShippingDocumentID != nil {
 		documentID := value.ShippingDocumentID.String()
@@ -215,6 +216,14 @@ func orderReleasePodStatusToAPI(status biz.OrderReleasePodStatus) v1.OrderReleas
 	default:
 		return v1.OrderReleasePodStatus_ORDER_RELEASE_POD_STATUS_UNSPECIFIED
 	}
+}
+
+func orderReleasePodStatusesToAPI(statuses []biz.OrderReleasePodStatus) []v1.OrderReleasePodStatus {
+	result := make([]v1.OrderReleasePodStatus, 0, len(statuses))
+	for _, status := range statuses {
+		result = append(result, orderReleasePodStatusToAPI(status))
+	}
+	return result
 }
 
 var _ v1.OrderReleasePodServiceServer = (*OrderReleasePodService)(nil)
