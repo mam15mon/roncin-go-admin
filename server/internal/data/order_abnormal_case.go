@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,10 +22,7 @@ func NewOrderAbnormalCaseRepo(data *Data) biz.OrderAbnormalCaseRepo {
 
 func (r *orderAbnormalCaseRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrOrderAbnormalCaseNotFound
-		}
-		return err
+		return mapEntError(err, biz.ErrOrderAbnormalCaseNotFound, nil)
 	}
 	return nil
 }
@@ -99,10 +95,7 @@ func (r *orderAbnormalCaseRepo) Mark(ctx context.Context, organizationID, orderI
 				SetMarkedBy(actorID).
 				Save(ctx)
 			if saveErr != nil {
-				if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "orderabnormalcase_order_id_abnormal_case_id") {
-					return biz.ErrOrderAbnormalCaseExists
-				}
-				return saveErr
+				return mapEntConstraint(saveErr, "orderabnormalcase_order_id_abnormal_case_id", biz.ErrOrderAbnormalCaseExists)
 			}
 		} else {
 			if queryErr != nil {
@@ -150,10 +143,7 @@ func (r *orderAbnormalCaseRepo) Resolve(ctx context.Context, organizationID, ord
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderAbnormalCaseNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderAbnormalCaseNotFound, nil)
 		}
 		if item.Status != orderabnormalcaseent.StatusACTIVE {
 			return biz.ErrOrderAbnormalCaseStatusConflict
