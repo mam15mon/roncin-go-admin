@@ -176,69 +176,60 @@ func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.Com
 	return result, nil
 }
 func (r *commissionRepo) CreateRule(ctx context.Context, org uuid.UUID, item *biz.FinanceCommissionRule, audit *biz.AuditEvent) (*biz.FinanceCommissionRule, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceCommissionRule, error) { _ = tx.Rollback(); return nil, err }
-	x, err := tx.FinanceCommissionRule.Create().SetID(item.ID).SetOrganizationID(org).SetName(item.Name).SetPersonnelRole(rule.PersonnelRole(item.PersonnelRole)).SetCalculationBasis(rule.CalculationBasis(item.CalculationBasis)).SetRatePercent(item.RatePercent.StringFixed(4)).SetNillableEffectiveFrom(item.EffectiveFrom).SetNillableEffectiveTo(item.EffectiveTo).SetEnabled(item.Enabled).SetNillableNote(item.Note).SetVersion(1).Save(ctx)
-	if ent.IsConstraintError(err) {
-		return rollback(biz.ErrCommissionRuleConflict)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+	var x *ent.FinanceCommissionRule
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		x, err = tx.FinanceCommissionRule.Create().SetID(item.ID).SetOrganizationID(org).SetName(item.Name).SetPersonnelRole(rule.PersonnelRole(item.PersonnelRole)).SetCalculationBasis(rule.CalculationBasis(item.CalculationBasis)).SetRatePercent(item.RatePercent.StringFixed(4)).SetNillableEffectiveFrom(item.EffectiveFrom).SetNillableEffectiveTo(item.EffectiveTo).SetEnabled(item.Enabled).SetNillableNote(item.Note).SetVersion(1).Save(ctx)
+		if ent.IsConstraintError(err) {
+			return biz.ErrCommissionRuleConflict
+		}
+		if err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return commissionRuleToBiz(x)
 }
 func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.UpdateCommissionRuleInput, audit *biz.AuditEvent) (*biz.FinanceCommissionRule, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceCommissionRule, error) { _ = tx.Rollback(); return nil, err }
-	x, err := tx.FinanceCommissionRule.Query().Where(rule.IDEQ(in.ID), rule.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionRuleNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if x.Version != in.ExpectedVersion {
-		return rollback(biz.ErrCommissionRuleConflict)
-	}
-	u := tx.FinanceCommissionRule.UpdateOneID(in.ID).SetName(in.Name).SetPersonnelRole(rule.PersonnelRole(in.PersonnelRole)).SetCalculationBasis(rule.CalculationBasis(in.CalculationBasis)).SetRatePercent(in.RatePercent.StringFixed(4)).SetEnabled(in.Enabled).SetVersion(x.Version + 1)
-	if in.EffectiveFrom == nil {
-		u.ClearEffectiveFrom()
-	} else {
-		u.SetEffectiveFrom(*in.EffectiveFrom)
-	}
-	if in.EffectiveTo == nil {
-		u.ClearEffectiveTo()
-	} else {
-		u.SetEffectiveTo(*in.EffectiveTo)
-	}
-	if in.Note == nil {
-		u.ClearNote()
-	} else {
-		u.SetNote(*in.Note)
-	}
-	updated, err := u.Save(ctx)
-	if ent.IsConstraintError(err) {
-		return rollback(biz.ErrCommissionRuleConflict)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+	var updated *ent.FinanceCommissionRule
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		x, err := tx.FinanceCommissionRule.Query().Where(rule.IDEQ(in.ID), rule.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionRuleNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if x.Version != in.ExpectedVersion {
+			return biz.ErrCommissionRuleConflict
+		}
+		u := tx.FinanceCommissionRule.UpdateOneID(in.ID).SetName(in.Name).SetPersonnelRole(rule.PersonnelRole(in.PersonnelRole)).SetCalculationBasis(rule.CalculationBasis(in.CalculationBasis)).SetRatePercent(in.RatePercent.StringFixed(4)).SetEnabled(in.Enabled).SetVersion(x.Version + 1)
+		if in.EffectiveFrom == nil {
+			u.ClearEffectiveFrom()
+		} else {
+			u.SetEffectiveFrom(*in.EffectiveFrom)
+		}
+		if in.EffectiveTo == nil {
+			u.ClearEffectiveTo()
+		} else {
+			u.SetEffectiveTo(*in.EffectiveTo)
+		}
+		if in.Note == nil {
+			u.ClearNote()
+		} else {
+			u.SetNote(*in.Note)
+		}
+		updated, err = u.Save(ctx)
+		if ent.IsConstraintError(err) {
+			return biz.ErrCommissionRuleConflict
+		}
+		if err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return commissionRuleToBiz(updated)
