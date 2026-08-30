@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,10 +50,7 @@ func (r *orderFeeRepo) order(ctx context.Context, organizationID, orderID uuid.U
 func (r *orderFeeRepo) settlementParty(ctx context.Context, organizationID, partyID uuid.UUID) (*ent.Partner, error) {
 	item, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderFeePartyInvalid
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeePartyInvalid, nil)
 	}
 	return item, nil
 }
@@ -95,11 +91,8 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 
 func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.OrderFee, error) {
 	item, err := r.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrOrderFeeNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
 	return orderFeeToBiz(item)
 }
@@ -108,11 +101,8 @@ func (r *orderFeeRepo) BilledBillContext(ctx context.Context, organizationID, or
 	line, err := r.data.db.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true), financebilllineent.OrderIDEQ(orderID)).WithBill(func(query *ent.FinanceBillQuery) {
 		query.Where(financebillent.OrganizationIDEQ(organizationID))
 	}).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrBilledFeeBillLocked
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrBilledFeeBillLocked, nil)
 	}
 	bill, err := line.Edges.BillOrErr()
 	if err != nil {
@@ -142,10 +132,7 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 func (r *orderFeeRepo) ExchangeRateContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeExchangeRateContext, error) {
 	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderFeeNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
 	return &biz.OrderFeeExchangeRateContext{
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection),
@@ -159,11 +146,8 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		return nil, err
 	}
 	businessOrder, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).WithCustomer().Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrOrderFeeNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
 	customer, err := businessOrder.Edges.CustomerOrErr()
 	if err != nil {
@@ -277,11 +261,8 @@ func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizatio
 
 func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) error {
 	_, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return biz.ErrOrderFeeNotFound
-	}
 	if err != nil {
-		return err
+		return mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
 	locked, err := tx.FinanceCommissionLine.Query().Where(
 		commissionlineent.OrganizationIDEQ(organizationID),
@@ -310,10 +291,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 		Where(feesettingent.IDEQ(feeSettingID), feesettingent.OrganizationIDEQ(headquartersID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderFeeSettingInvalid
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeeSettingInvalid, nil)
 	}
 	defaultBillingUnit, billingErr := feeSetting.Edges.BillingUnitOrErr()
 	taxableService, taxableErr := feeSetting.Edges.TaxableServiceOrErr()
@@ -327,10 +305,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	billingUnit, err := r.data.db.BillingUnit.Query().
 		Where(billingunitent.IDEQ(billingUnitID), billingunitent.OrganizationIDEQ(headquartersID), billingunitent.EnabledEQ(true)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderFeeBillingUnitInvalid
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderFeeBillingUnitInvalid, nil)
 	}
 	taxRate, err := decimal.NewFromString(feeSetting.TaxRate)
 	if err != nil {
@@ -428,10 +403,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			SetVersion(input.Version).
 			Save(ctx)
 		if createErr != nil {
-			if ent.IsConstraintError(createErr) && strings.Contains(createErr.Error(), "orderfee_order_id_idempotency_key") {
-				return biz.ErrOrderFeeIdempotencyConflict
-			}
-			return createErr
+			return mapEntConstraint(createErr, "orderfee_order_id_idempotency_key", biz.ErrOrderFeeIdempotencyConflict)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

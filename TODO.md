@@ -252,6 +252,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       的标准 NotFound 改用公共 `mapEntError`，保留订单同步 upsert 分流
 - [x] 第三十七批：`auth.go` 无效凭据、钉钉未注册与会话过期标准 NotFound
       改用公共 `mapEntError`，保留第三方账号和返聘成员创建/恢复分流
+- [x] 第三十八批：`order_fee.go` 读取、目录快照与创建阶段的标准
+      NotFound/幂等约束改用公共错误映射，保留幂等查询返回空语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
