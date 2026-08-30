@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -24,10 +23,7 @@ func NewOrderContainerRepo(data *Data) biz.OrderContainerRepo {
 func (r *orderContainerRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) (*ent.Order, error) {
 	item, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderContainerNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderContainerNotFound, nil)
 	}
 	return item, nil
 }
@@ -110,10 +106,7 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 		var saveErr error
 		created, saveErr = builder.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordercontainer_order_id_container_no") {
-				return biz.ErrOrderContainerExists
-			}
-			return saveErr
+			return mapEntConstraint(saveErr, "ordercontainer_order_id_container_no", biz.ErrOrderContainerExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -167,10 +160,7 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderContainerNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
 		}
 		builder := tx.OrderContainer.UpdateOne(item).
 			SetContainerNo(input.ContainerNo).
@@ -195,10 +185,7 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 		var saveErr error
 		updated, saveErr = builder.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "ordercontainer_order_id_container_no") {
-				return biz.ErrOrderContainerExists
-			}
-			return saveErr
+			return mapEntConstraint(saveErr, "ordercontainer_order_id_container_no", biz.ErrOrderContainerExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

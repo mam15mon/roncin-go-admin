@@ -204,6 +204,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       `mapEntError`，保留默认策略及不存在时创建语义
 - [x] 第十三批：`order_shipping_document.go` 标准 NotFound 与提单号命名
       约束改用公共错误映射
+- [x] 第十四批：`order_container.go` 标准 NotFound 与箱号命名约束改用
+      公共错误映射
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
