@@ -146,7 +146,6 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 - [x] 流程状态文案统一到 `orderFlowStatusMeta`；订单列表标签由该元数据生成，
       生命周期筛选使用生成枚举，并删除 `seStatusTabs`、`seFlowStatusLabels`
       两套手抄状态表
-      等手抄颜色表
 
 ### A4. 状态机流转改为服务端下发
 **问题**：3 处状态机与后端逐边复制——`TransitionModal.tsx:26` ≡
@@ -166,6 +165,9 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 `error_reason.proto`，改名即静默失效。
 **方案**：service 层错误 reason 统一取自 proto ErrorReason 值，生成
 `web/src/errorReasons.generated.ts` 供前端分支判断。
+- [x] 10 个财务前端控制流错误均由 `finance/v1/error_reason.proto` 定义，
+      biz 通过 `reasonFromProto` 构造错误，前端仅比较
+      `errorReasons.generated.ts` 生成常量，并有领域测试与生成一致性检查覆盖
 
 ## 模块 B：后端 server
 
