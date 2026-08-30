@@ -313,7 +313,9 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 `sync-airports` 与 `sync-unlocode` 高度同构（options 结构体、main 流程、
 `fail()`、`openStore()` 逐字重复）；`sync-regions` 裸 SQL 未复用
 `IndustryReferenceSyncStore`。
-- [ ] 抽共享 `syncRunner` 框架；sync-regions 迁到 SyncStore
+- [x] 抽共享 `cmd/internal/syncrunner` 运行器，统一运行期错误出口、数据库
+      存储初始化和机场/港口通用选项；`sync-regions` 已从裸 SQL 迁入
+      `IndustryReferenceSyncStore`，保留其不同的抓取参数模型
 
 ## 模块 C：前端 web
 
