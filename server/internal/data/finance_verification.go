@@ -83,11 +83,8 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 }
 func (r *verificationRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceVerification, error) {
 	x, e := r.withAll(r.data.db.FinanceVerification.Query()).Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).Only(ctx)
-	if ent.IsNotFound(e) {
-		return nil, biz.ErrVerificationNotFound
-	}
 	if e != nil {
-		return nil, e
+		return nil, mapEntError(e, biz.ErrVerificationNotFound, nil)
 	}
 	return verificationToBiz(x)
 }
@@ -103,11 +100,8 @@ func (r *verificationRepo) GetByKey(ctx context.Context, org uuid.UUID, key stri
 }
 func (r *verificationRepo) LoadCashflowContext(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
 	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
-	if ent.IsNotFound(e) {
-		return nil, biz.ErrFinanceCashflowNotFound
-	}
 	if e != nil {
-		return nil, e
+		return nil, mapEntError(e, biz.ErrFinanceCashflowNotFound, nil)
 	}
 	return cashflowToBiz(x)
 }
@@ -237,11 +231,8 @@ func sortedFinanceUUIDs(values map[uuid.UUID]struct{}) []uuid.UUID {
 func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, queryErr := tx.FinanceVerification.Query().Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrVerificationNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrVerificationNotFound, nil)
 		}
 		if x.Version != version || x.Status != ver.StatusACTIVE {
 			return biz.ErrVerificationTransition
