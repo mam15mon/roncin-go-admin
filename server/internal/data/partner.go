@@ -224,75 +224,61 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 }
 
 func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.PartnerUpdateResult, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Partner.Query().
-		Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).
-		WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerNotFound
+	var previousRoles []*biz.PartnerRole
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.Partner.Query().
+			Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).
+			WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
+			ForUpdate().
+			Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrPartnerNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	previousRoles := partnerRolesToBiz(existing.Edges.Roles)
-	update := existing.Update().
-		SetLegalName(input.LegalName).
-		SetNormalizedName(input.NormalizedName).
-		SetRegisteredAddress(input.RegisteredAddress).
-		SetEnabled(input.Enabled)
-	if input.UnifiedSocialCreditCode == "" {
-		update.ClearUnifiedSocialCreditCode()
-	} else {
-		update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerConstraint(err)
-	}
-	if err := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, input.Roles); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := savePartnerRoleSettlementRules(ctx, tx, id, input.Roles); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(id)).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.PartnerAlias.Delete().Where(partneraliasent.PartnerIDEQ(id)).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := createPartnerContacts(ctx, tx, id, input.Contacts); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := createPartnerAliases(ctx, tx, id, input.Aliases); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := replacePartnerProfile(ctx, tx, id, input.Profile); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := replacePartnerAssignments(ctx, tx, organizationID, id, input.Assignments); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["from_roles"] = biz.FormatPartnerRolesAuditValue(previousRoles)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		previousRoles = partnerRolesToBiz(existing.Edges.Roles)
+		update := existing.Update().
+			SetLegalName(input.LegalName).
+			SetNormalizedName(input.NormalizedName).
+			SetRegisteredAddress(input.RegisteredAddress).
+			SetEnabled(input.Enabled)
+		if input.UnifiedSocialCreditCode == "" {
+			update.ClearUnifiedSocialCreditCode()
+		} else {
+			update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+		}
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			return mapPartnerConstraint(updateErr)
+		}
+		if replaceErr := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, input.Roles); replaceErr != nil {
+			return replaceErr
+		}
+		if saveErr := savePartnerRoleSettlementRules(ctx, tx, id, input.Roles); saveErr != nil {
+			return saveErr
+		}
+		if _, deleteErr := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(id)).Exec(ctx); deleteErr != nil {
+			return deleteErr
+		}
+		if _, deleteErr := tx.PartnerAlias.Delete().Where(partneraliasent.PartnerIDEQ(id)).Exec(ctx); deleteErr != nil {
+			return deleteErr
+		}
+		if createErr := createPartnerContacts(ctx, tx, id, input.Contacts); createErr != nil {
+			return createErr
+		}
+		if createErr := createPartnerAliases(ctx, tx, id, input.Aliases); createErr != nil {
+			return createErr
+		}
+		if replaceErr := replacePartnerProfile(ctx, tx, id, input.Profile); replaceErr != nil {
+			return replaceErr
+		}
+		if replaceErr := replacePartnerAssignments(ctx, tx, organizationID, id, input.Assignments); replaceErr != nil {
+			return replaceErr
+		}
+		audit.Details["from_roles"] = biz.FormatPartnerRolesAuditValue(previousRoles)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated, err := r.Get(ctx, organizationID, id)
@@ -345,66 +331,56 @@ func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, 
 }
 
 func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner, audit *biz.AuditEvent) (*biz.PartnerImportResult, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
 	result := &biz.PartnerImportResult{}
-	for _, input := range inputs {
-		existing, queryErr := tx.Partner.Query().
-			Where(partnerent.OrganizationIDEQ(organizationID), partnerent.CodeEQ(input.Code)).
-			WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
-			WithContacts(func(query *ent.PartnerContactQuery) {
-				query.Order(partnercontactent.ByIsPrimary(entsql.OrderDesc()), partnercontactent.ByName())
-			}).
-			WithAliases(func(query *ent.PartnerAliasQuery) {
-				query.Order(partneraliasent.BySortOrder(), partneraliasent.ByAliasName())
-			}).
-			Only(ctx)
-		if queryErr != nil && !ent.IsNotFound(queryErr) {
-			_ = tx.Rollback()
-			return nil, queryErr
-		}
-		if ent.IsNotFound(queryErr) {
-			create := tx.Partner.Create().
-				SetOrganizationID(organizationID).
-				SetCode(input.Code).
-				SetLegalName(input.LegalName).
-				SetNormalizedName(input.NormalizedName).
-				SetRegisteredAddress(input.RegisteredAddress).
-				SetEnabled(true)
-			if input.UnifiedSocialCreditCode != "" {
-				create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		for _, input := range inputs {
+			existing, queryErr := tx.Partner.Query().
+				Where(partnerent.OrganizationIDEQ(organizationID), partnerent.CodeEQ(input.Code)).
+				WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
+				WithContacts(func(query *ent.PartnerContactQuery) {
+					query.Order(partnercontactent.ByIsPrimary(entsql.OrderDesc()), partnercontactent.ByName())
+				}).
+				WithAliases(func(query *ent.PartnerAliasQuery) {
+					query.Order(partneraliasent.BySortOrder(), partneraliasent.ByAliasName())
+				}).
+				Only(ctx)
+			if queryErr != nil && !ent.IsNotFound(queryErr) {
+				return queryErr
 			}
-			created, saveErr := create.Save(ctx)
-			if saveErr != nil {
-				_ = tx.Rollback()
-				return nil, mapPartnerConstraint(saveErr)
+			if ent.IsNotFound(queryErr) {
+				create := tx.Partner.Create().
+					SetOrganizationID(organizationID).
+					SetCode(input.Code).
+					SetLegalName(input.LegalName).
+					SetNormalizedName(input.NormalizedName).
+					SetRegisteredAddress(input.RegisteredAddress).
+					SetEnabled(true)
+				if input.UnifiedSocialCreditCode != "" {
+					create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+				}
+				created, saveErr := create.Save(ctx)
+				if saveErr != nil {
+					return mapPartnerConstraint(saveErr)
+				}
+				if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
+					return childErr
+				}
+				result.CreatedCount++
+				continue
 			}
-			if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
-				_ = tx.Rollback()
-				return nil, childErr
+			if mode == biz.PartnerImportCreateOnly {
+				return biz.ErrPartnerCodeExists
 			}
-			result.CreatedCount++
-			continue
+			if updateErr := updatePartnerInTx(ctx, tx, organizationID, existing, input); updateErr != nil {
+				return updateErr
+			}
+			result.UpdatedCount++
 		}
-		if mode == biz.PartnerImportCreateOnly {
-			_ = tx.Rollback()
-			return nil, biz.ErrPartnerCodeExists
-		}
-		if updateErr := updatePartnerInTx(ctx, tx, organizationID, existing, input); updateErr != nil {
-			_ = tx.Rollback()
-			return nil, updateErr
-		}
-		result.UpdatedCount++
-	}
-	audit.Details["created_count"] = strconv.Itoa(result.CreatedCount)
-	audit.Details["updated_count"] = strconv.Itoa(result.UpdatedCount)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		audit.Details["created_count"] = strconv.Itoa(result.CreatedCount)
+		audit.Details["updated_count"] = strconv.Itoa(result.UpdatedCount)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return result, nil
