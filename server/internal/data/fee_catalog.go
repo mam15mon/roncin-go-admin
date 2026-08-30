@@ -266,31 +266,26 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	current, err := tx.BillingUnit.Query().Where(billingunitent.IDEQ(input.ID), billingunitent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrBillingUnitNotFound
+	var saved *ent.BillingUnit
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(input.ID), billingunitent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrBillingUnitNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	saved, err := current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrBillingUnitCodeExists
+		var saveErr error
+		saved, saveErr = current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrBillingUnitCodeExists
+			}
+			return saveErr
 		}
-		return nil, err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return billingUnitToBiz(saved), nil
@@ -328,23 +323,19 @@ func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.Ta
 	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	saved, err := tx.TaxableService.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetName(input.Name).SetNillableShortName(input.ShortName).SetNillableGoodsCode(input.GoodsCode).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(true).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrTaxableServiceNameExists
+	var saved *ent.TaxableService
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var saveErr error
+		saved, saveErr = tx.TaxableService.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetName(input.Name).SetNillableShortName(input.ShortName).SetNillableGoodsCode(input.GoodsCode).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(true).Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrTaxableServiceNameExists
+			}
+			return saveErr
 		}
-		return nil, err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return taxableServiceToBiz(saved)
@@ -354,42 +345,37 @@ func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.Ta
 	if err := r.requireHeadquarters(ctx, input.OrganizationID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	current, err := tx.TaxableService.Query().Where(taxableserviceent.IDEQ(input.ID), taxableserviceent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrTaxableServiceNotFound
+	var saved *ent.TaxableService
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.TaxableService.Query().Where(taxableserviceent.IDEQ(input.ID), taxableserviceent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrTaxableServiceNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	builder := current.Update().SetName(input.Name).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(input.Enabled)
-	if input.ShortName == nil {
-		builder.ClearShortName()
-	} else {
-		builder.SetShortName(*input.ShortName)
-	}
-	if input.GoodsCode == nil {
-		builder.ClearGoodsCode()
-	} else {
-		builder.SetGoodsCode(*input.GoodsCode)
-	}
-	saved, err := builder.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrTaxableServiceNameExists
+		builder := current.Update().SetName(input.Name).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(input.Enabled)
+		if input.ShortName == nil {
+			builder.ClearShortName()
+		} else {
+			builder.SetShortName(*input.ShortName)
 		}
-		return nil, err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
+		if input.GoodsCode == nil {
+			builder.ClearGoodsCode()
+		} else {
+			builder.SetGoodsCode(*input.GoodsCode)
+		}
+		var saveErr error
+		saved, saveErr = builder.Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrTaxableServiceNameExists
+			}
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return taxableServiceToBiz(saved)
