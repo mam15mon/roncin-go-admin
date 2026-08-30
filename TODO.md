@@ -289,7 +289,9 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 
 ### B5. Principal 提取三连（中，151 处 / 31 文件）
 `PrincipalFromContext + if !ok + ErrSessionRequired` 完全一致。
-- [ ] `biz.RequirePrincipal(ctx) (*Principal, error)` 一行替换
+- [x] `biz.RequirePrincipal(ctx) (*Principal, error)` 一行替换
+- [x] 最终审计：生产代码已有 152 处 `RequirePrincipal` 调用，service 层
+      三连样板归零；`adminAuditEvent` 仅可选读取组织信息，保留直接读取
 
 ### B6. 微样板收口（中低）
 - [ ] UUID helper 5 份拷贝（`parseUUIDs`/`parseUUIDStrings`/`parseUUIDList`/
