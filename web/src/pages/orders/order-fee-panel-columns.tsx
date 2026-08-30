@@ -5,12 +5,9 @@ import {
   FEE_BILLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
-  PAYABLE,
-  feeDirectionCode,
   feeStatusCode,
 } from './components/fees/feeConstants';
-import { normalizeOrderFeeStatus, orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
-import { trimDecimal } from '@/utils/format';
+import { feeBaseColumns } from './components/fees/feeBaseColumns';
 
 interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;
@@ -57,105 +54,7 @@ export function buildOrderFeePanelColumns({
           '-'
         ),
     },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 90,
-      render: (_, record) =>
-        statusTag(
-          orderFeeStatusMeta,
-          normalizeOrderFeeStatus(record.status),
-        ),
-    },
-    {
-      title: '收付方向',
-      dataIndex: 'direction',
-      width: 90,
-      render: (_, record) =>
-        feeDirectionCode(record.direction) === PAYABLE ? (
-          <Tag color="volcano">应付</Tag>
-        ) : (
-          <Tag color="green">应收</Tag>
-        ),
-    },
-    {
-      title: '费用代码',
-      dataIndex: 'feeCode',
-      width: 130,
-      copyable: true,
-    },
-    {
-      title: '费用名称',
-      dataIndex: 'feeName',
-      width: 150,
-      ellipsis: true,
-    },
-    {
-      title: '结算单位',
-      dataIndex: 'settlementPartyName',
-      width: 190,
-      ellipsis: true,
-    },
-    {
-      title: '计费单位',
-      dataIndex: 'billingUnit',
-      width: 90,
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 110,
-      align: 'right',
-      render: (_, record) => trimDecimal(record.quantity),
-    },
-    {
-      title: '单价',
-      dataIndex: 'unitPrice',
-      width: 130,
-      align: 'right',
-      render: (_, record) => trimDecimal(record.unitPrice),
-    },
-    {
-      title: '总金额',
-      dataIndex: 'totalAmount',
-      width: 150,
-      align: 'right',
-      render: (_, record) => (
-        <strong>
-          {trimDecimal(record.totalAmount)} {record.currency}
-        </strong>
-      ),
-    },
-    {
-      title: '汇率',
-      dataIndex: 'exchangeRate',
-      width: 160,
-      align: 'right',
-      render: (_, record) => (
-        <Space size={4}>
-          {trimDecimal(record.exchangeRate)}
-          {record.exchangeRateSource === 'MANUAL' && (
-            <Tag color="gold">手工</Tag>
-          )}
-          {record.exchangeRateSource === 'SYSTEM' && (
-            <Tag color="blue">系统</Tag>
-          )}
-          {record.exchangeRateSource === 'BASE_CURRENCY' && <Tag>本币</Tag>}
-        </Space>
-      ),
-    },
-    {
-      title: '费用日期',
-      dataIndex: 'expenseDate',
-      width: 110,
-    },
-    {
-      title: '备注',
-      dataIndex: 'note',
-      width: 180,
-      ellipsis: true,
-      render: (_, record) => record.note || '-',
-    },
+    ...feeBaseColumns({ variant: 'panel' }),
     {
       title: '操作',
       valueType: 'option',

@@ -1,16 +1,13 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Button, Popconfirm, Space, Tag } from 'antd';
-import React from 'react';
-import { normalizeOrderFeeStatus, orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
+import { Button, Popconfirm } from 'antd';
 import {
   FEE_BILLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
-  RECEIVABLE,
   feeStatusCode,
 } from './feeConstants';
-import { trimDecimal } from '@/utils/format';
+import { feeBaseColumns } from './feeBaseColumns';
 
 type OrderFeeColumnProps = {
   direction: number;
@@ -30,107 +27,7 @@ export function getOrderFeeTableColumns({
   onCancelFee,
 }: OrderFeeColumnProps): ProColumns<API.OrderFee>[] {
   return [
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 90,
-      render: (_, record) =>
-        statusTag(
-          orderFeeStatusMeta,
-          normalizeOrderFeeStatus(record.status),
-        ),
-    },
-    {
-      title: '费用代码',
-      dataIndex: 'feeCode',
-      width: 120,
-      copyable: true,
-      render: (_, record) => record.feeCode || '-',
-    },
-    {
-      title: '费用名称',
-      dataIndex: 'feeName',
-      width: 140,
-      render: (_, record) => record.feeName || '-',
-    },
-    {
-      title: '结算单位',
-      dataIndex: 'settlementPartyName',
-      width: 180,
-      ellipsis: true,
-      render: (_, record) => record.settlementPartyName || '-',
-    },
-    {
-      title: '币种',
-      dataIndex: 'currency',
-      width: 80,
-      render: (_, record) => <Tag color="blue">{record.currency}</Tag>,
-    },
-    {
-      title: '单价',
-      dataIndex: 'unitPrice',
-      width: 100,
-      align: 'right',
-      render: (_, record) => trimDecimal(record.unitPrice),
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 80,
-      align: 'right',
-      render: (_, record) => trimDecimal(record.quantity),
-    },
-    {
-      title: '计费单位',
-      dataIndex: 'billingUnit',
-      width: 90,
-      render: (_, record) => record.billingUnit || '-',
-    },
-    {
-      title: '总金额',
-      dataIndex: 'totalAmount',
-      width: 130,
-      align: 'right',
-      render: (_, record) => (
-        <span
-          style={{
-            fontWeight: 600,
-            color: direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
-          }}
-        >
-          {trimDecimal(record.totalAmount)} {record.currency}
-        </span>
-      ),
-    },
-    {
-      title: '汇率',
-      dataIndex: 'exchangeRate',
-      width: 100,
-      align: 'right',
-      render: (_, record) => (
-        <Space size={4}>
-          <span>{trimDecimal(record.exchangeRate)}</span>
-          {record.exchangeRateSource === 'MANUAL' && (
-            <Tag color="gold">手工</Tag>
-          )}
-          {record.exchangeRateSource === 'SYSTEM' && (
-            <Tag color="blue">系统</Tag>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: '发生日期',
-      dataIndex: 'expenseDate',
-      width: 220,
-      render: (_, record) => record.expenseDate || '-',
-    },
-    {
-      title: '备注',
-      dataIndex: 'note',
-      ellipsis: true,
-      render: (_, record) => record.note || '-',
-    },
+    ...feeBaseColumns({ variant: 'workbench', direction }),
     {
       title: '操作',
       valueType: 'option',

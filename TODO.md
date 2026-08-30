@@ -388,7 +388,8 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 
 ### C9. 费用列定义合并（低）
 `orderFeeColumns.tsx` 与 `order-fee-panel-columns.tsx` 约 80% 相同。
-- [ ] 抽 `feeBaseColumns(opts)` builder，两个入口只传差量
+- [x] 抽 `feeBaseColumns(opts)` builder，保留工作台与抽屉既有列序、宽度和展示
+      差异；两个入口只维护标签、权限操作等场景差量
 
 ---
 
