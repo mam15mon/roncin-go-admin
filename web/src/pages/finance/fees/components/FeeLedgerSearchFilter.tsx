@@ -3,7 +3,7 @@ import {
   SearchFilterTemplate,
   type SearchFilterFieldItem,
 } from '@/components/ui';
-import { searchPartnerOptions } from '@/utils/options';
+import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 
 export interface FeeLedgerFilterParams {
   keyword?: string;
@@ -176,14 +176,9 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
     {
       name: 'currency',
       label: '计价币种',
-      type: 'select',
+      type: 'searchable-select',
       placeholder: '全部币种',
-      options: [
-        { label: 'CNY - 人民币', value: 'CNY' },
-        { label: 'USD - 美元', value: 'USD' },
-        { label: 'EUR - 欧元', value: 'EUR' },
-        { label: 'HKD - 港币', value: 'HKD' },
-      ],
+      request: getCurrencyOptions,
     },
     {
       name: 'etdRange',
