@@ -27,10 +27,7 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 	for {
 		item, err := r.data.db.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true)).Only(ctx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				return nil, biz.ErrExchangeRateOrganizationInvalid
-			}
-			return nil, err
+			return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
 		}
 		if baseCurrency == "" && item.BaseCurrency != nil {
 			baseCurrency = *item.BaseCurrency
@@ -103,10 +100,7 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 		if updating {
 			current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
 			if queryErr != nil {
-				if ent.IsNotFound(queryErr) {
-					return biz.ErrExchangeRateNotFound
-				}
-				return queryErr
+				return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 			}
 			if !current.IsActive {
 				return biz.ErrExchangeRateNotFound
@@ -166,10 +160,7 @@ func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrExchangeRateNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 		}
 		if _, updateErr := item.Update().SetIsActive(false).Save(ctx); updateErr != nil {
 			return updateErr
@@ -256,11 +247,8 @@ func (r *exchangeRateRepo) SaveCustomSetting(ctx context.Context, setting *biz.E
 				SetVersion(1).
 				SetUpdatedBy(*setting.UpdatedBy).
 				Save(ctx)
-			if ent.IsConstraintError(createErr) {
-				return biz.ErrExchangeRateCustomSettingConflict
-			}
 			if createErr != nil {
-				return createErr
+				return mapEntError(createErr, nil, biz.ErrExchangeRateCustomSettingConflict)
 			}
 		case queryErr != nil:
 			return queryErr
