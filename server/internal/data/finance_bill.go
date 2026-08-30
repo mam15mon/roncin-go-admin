@@ -370,6 +370,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 	}); err != nil {
 		return nil, err
 	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		return bill, nil
+	}
 	return r.Get(ctx, bill.OrganizationID, bill.ID)
 }
 

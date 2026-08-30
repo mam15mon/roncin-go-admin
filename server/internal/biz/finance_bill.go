@@ -416,7 +416,7 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		return transactionErr
 	})
 	if err == nil {
-		return created, nil
+		return uc.repo.Get(ctx, organizationID, created.ID)
 	}
 	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
 	if lookupErr == nil && existing != nil && sameFinanceBillCreateIntent(existing, normalized) {
