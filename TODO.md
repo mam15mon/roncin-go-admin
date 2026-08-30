@@ -276,6 +276,8 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
       港口、机场、航空公司与船公司四个标准分页列表
 - [x] 第二批：`fee_catalog.go` 费用设置、计费单位与应税服务
       三个标准分页列表改用 `paginate`
+- [x] 第三批：`reference_data.go` 币种搜索与行政区划两个标准
+      分页列表改用 `paginate`
 
 ### B5. Principal 提取三连（中，151 处 / 31 文件）
 `PrincipalFromContext + if !ok + ErrSessionRequired` 完全一致。
