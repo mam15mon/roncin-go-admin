@@ -231,59 +231,48 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 
 func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User, audit *biz.AuditEvent) (*biz.Credential, error) {
 	userID := account.ID
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	headquarters, err := tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	membershipIDs, err := tx.Membership.Query().Where(membership.UserIDEQ(userID)).IDs(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if len(membershipIDs) > 0 {
-		if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	var headquarters *ent.Organization
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, queryErr := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx); queryErr != nil {
+			return queryErr
 		}
-	}
-	if _, err := tx.Membership.Update().Where(membership.UserIDEQ(userID)).SetEnabled(false).SetPrimary(false).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	intake, err := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(headquarters.ID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		_, err = tx.Membership.Create().SetUserID(userID).SetOrganizationID(headquarters.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-	} else if err == nil {
-		_, err = tx.Membership.UpdateOneID(intake.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-	}
+		var queryErr error
+		headquarters, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID)).IDs(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(membershipIDs) > 0 {
+			if _, deleteErr := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); deleteErr != nil {
+				return deleteErr
+			}
+		}
+		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(userID)).SetEnabled(false).SetPrimary(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		intake, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(headquarters.ID)).Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			_, queryErr = tx.Membership.Create().SetUserID(userID).SetOrganizationID(headquarters.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+		} else if queryErr == nil {
+			_, queryErr = tx.Membership.UpdateOneID(intake.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if _, updateErr := tx.User.UpdateOneID(userID).SetEnabled(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		audit.UserID = &userID
+		audit.OrganizationID = &headquarters.ID
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.User.UpdateOneID(userID).SetEnabled(false).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.Session.Update().Where(sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.UserID = &userID
-	audit.OrganizationID = &headquarters.ID
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	account.Enabled = false
