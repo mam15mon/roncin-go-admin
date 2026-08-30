@@ -43,7 +43,7 @@ export const DOC_TYPES: DocTypeMeta[] = [
     label: '发票记录号',
     shortLabel: '发票',
     color: 'purple',
-    defaultPrefix: 'IV',
+    defaultPrefix: '',
   },
   {
     key: 'DOCUMENT_TYPE_RECEIPT_PAYMENT',
@@ -75,7 +75,7 @@ export const DOC_TYPES: DocTypeMeta[] = [
     label: '分提单号 (HBL)',
     shortLabel: '分单',
     color: 'volcano',
-    defaultPrefix: 'HB',
+    defaultPrefix: '',
   },
   {
     key: 'DOCUMENT_TYPE_QUOTATION',
@@ -107,7 +107,7 @@ export const DOC_TYPES: DocTypeMeta[] = [
     label: '内部参考号',
     shortLabel: '内部',
     color: 'default',
-    defaultPrefix: 'REF',
+    defaultPrefix: '',
   },
   {
     key: 'DOCUMENT_TYPE_CUSTOMER_REFERENCE',
@@ -115,7 +115,7 @@ export const DOC_TYPES: DocTypeMeta[] = [
     label: '客户参考号',
     shortLabel: '客户',
     color: 'default',
-    defaultPrefix: 'CREF',
+    defaultPrefix: '',
   },
 ];
 

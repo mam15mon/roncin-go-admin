@@ -36,4 +36,15 @@ describe('单据编号规则体系', () => {
       'house',
     ]);
   });
+
+  it('前端新建规则默认前缀与后端保持一致', () => {
+    const prefixes = Object.fromEntries(
+      DOC_TYPES.map((item) => [item.key, item.defaultPrefix]),
+    );
+
+    expect(prefixes.DOCUMENT_TYPE_INVOICE).toBe('');
+    expect(prefixes.DOCUMENT_TYPE_HOUSE_BILL).toBe('');
+    expect(prefixes.DOCUMENT_TYPE_INTERNAL_REFERENCE).toBe('');
+    expect(prefixes.DOCUMENT_TYPE_CUSTOMER_REFERENCE).toBe('');
+  });
 });
