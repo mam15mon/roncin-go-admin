@@ -59,11 +59,8 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 }
 func (r *financeCashflowRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCashflow, error) {
 	x, e := r.data.db.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).Only(ctx)
-	if ent.IsNotFound(e) {
-		return nil, biz.ErrFinanceCashflowNotFound
-	}
 	if e != nil {
-		return nil, e
+		return nil, mapEntError(e, biz.ErrFinanceCashflowNotFound, nil)
 	}
 	v, e := cashflowToBiz(x)
 	if e != nil {
@@ -120,11 +117,8 @@ func (r *financeCashflowRepo) GetByIdempotencyKey(ctx context.Context, org uuid.
 }
 func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUID) (string, error) {
 	x, e := r.data.db.Partner.Query().Where(partner.IDEQ(id), partner.OrganizationIDEQ(org), partner.EnabledEQ(true)).Only(ctx)
-	if ent.IsNotFound(e) {
-		return "", biz.ErrOrderFeePartyInvalid
-	}
 	if e != nil {
-		return "", e
+		return "", mapEntError(e, biz.ErrOrderFeePartyInvalid, nil)
 	}
 	return x.LegalName, nil
 }
@@ -161,11 +155,8 @@ func (r *financeCashflowRepo) Cancel(ctx context.Context, org, id, actor uuid.UU
 func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uuid.UUID, v uint64, reason string, confirm bool, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
 	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, queryErr := tx.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrFinanceCashflowNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFinanceCashflowNotFound, nil)
 		}
 		if x.Version != v {
 			return biz.ErrFinanceCashflowVersionConflict

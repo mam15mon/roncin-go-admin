@@ -188,6 +188,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       约束名映射领域错误，移除私有映射器
 - [x] 第五批：`finance_invoice.go` 标准 NotFound 分支改用公共
       `mapEntError`，保留幂等查询的正常空结果语义
+- [x] 第六批：`finance_cashflow.go` 标准 NotFound 分支改用公共
+      `mapEntError`，保留幂等查询的正常空结果语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
