@@ -271,7 +271,7 @@ order_tag/partner，默认页大小均 20）+ 8 处散调；泛型 `biz.PagedLis
 ### B4. data 层 List 查询样板（中高，16-21 处 / 8 文件）
 Count → Offset/Limit → 循环转换 → 组装 五步同构
 （`industry_reference.go` 4 份、`fee_catalog.go` 3 份等）。
-- [ ] 抽 `data.paginate[E, T](ctx, countFn, itemsFn, page, pageSize, conv)`
+- [x] 抽 `data.paginate[E, T](ctx, countFn, itemsFn, page, pageSize, conv)`
 - [x] 第一批：新增通用 `paginate` 执行器，迁移 `industry_reference.go`
       港口、机场、航空公司与船公司四个标准分页列表
 - [x] 第二批：`fee_catalog.go` 费用设置、计费单位与应税服务
@@ -284,6 +284,8 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
       分页列表改用 `paginate`
 - [x] 第六批：`order_query.go` 订单标准分页列表改用 `paginate`，
       保留原有边缘预加载与全部筛选语义
+- [x] 最终审计：17 个标准 `PagedList` 查询已统一；管理员审计日志需要
+      分页后按整页用户 ID 批量补全名称，保留专用组装以避免 N+1
 
 ### B5. Principal 提取三连（中，151 处 / 31 文件）
 `PrincipalFromContext + if !ok + ErrSessionRequired` 完全一致。
