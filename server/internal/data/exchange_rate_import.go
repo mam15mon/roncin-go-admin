@@ -78,11 +78,8 @@ func (r *exchangeRateRepo) CreateImportPreview(ctx context.Context, batch *biz.E
 
 func (r *exchangeRateRepo) GetImport(ctx context.Context, organizationID, id uuid.UUID) (*biz.ExchangeRateImportBatch, error) {
 	item, err := r.data.db.ExchangeRateImportBatch.Query().Where(importent.IDEQ(id), importent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrExchangeRateImportNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrExchangeRateImportNotFound, nil)
 	}
 	return exchangeRateImportBatchToBiz(item)
 }
@@ -92,11 +89,8 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 		importent.OrganizationIDEQ(organizationID), importent.OwnerOrganizationIDEQ(ownerOrganizationID),
 		importent.CreatedByEQ(actorID), importent.PreviewTokenHashEQ(previewTokenHash),
 	).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrExchangeRateImportNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrExchangeRateImportNotFound, nil)
 	}
 	if preview.Status == importent.StatusIMPORTED {
 		if preview.IdempotencyKey != nil && *preview.IdempotencyKey == idempotencyKey {
@@ -196,10 +190,7 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 			SetImportedBy(actorID).
 			Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrExchangeRateImportIdempotencyConflict
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrExchangeRateImportIdempotencyConflict)
 		}
 		audit.ResourceID = current.ID.String()
 		audit.Details = map[string]string{"exchange_rate_import.file_checksum": current.FileChecksum, "exchange_rate_import.imported_count": fmt.Sprintf("%d", len(rows))}
