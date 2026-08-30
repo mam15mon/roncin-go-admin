@@ -193,36 +193,31 @@ func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partner
 }
 
 func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.Partner, error) {
-	tx, err := r.data.db.Tx(ctx)
+	var created *ent.Partner
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		create := tx.Partner.Create().
+			SetOrganizationID(organizationID).
+			SetCode(input.Code).
+			SetLegalName(input.LegalName).
+			SetNormalizedName(input.NormalizedName).
+			SetRegisteredAddress(input.RegisteredAddress).
+			SetEnabled(true)
+		if input.UnifiedSocialCreditCode != "" {
+			create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
+		}
+		var createErr error
+		created, createErr = create.Save(ctx)
+		if createErr != nil {
+			return mapPartnerConstraint(createErr)
+		}
+		if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
+			return childErr
+		}
+		audit.ResourceID = created.ID.String()
+		audit.Details["partner.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	create := tx.Partner.Create().
-		SetOrganizationID(organizationID).
-		SetCode(input.Code).
-		SetLegalName(input.LegalName).
-		SetNormalizedName(input.NormalizedName).
-		SetRegisteredAddress(input.RegisteredAddress).
-		SetEnabled(true)
-	if input.UnifiedSocialCreditCode != "" {
-		create.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
-	}
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapPartnerConstraint(err)
-	}
-	if err := createPartnerChildren(ctx, tx, organizationID, created.ID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.ResourceID = created.ID.String()
-	audit.Details["partner.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, created.ID)
@@ -308,45 +303,38 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 }
 
 func (r *partnerRepo) SetSupplierBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate, audit *biz.AuditEvent) (*biz.PartnerBlacklistResult, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := tx.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerNotFound
+	previouslyBlacklisted := false
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, queryErr := tx.Partner.Query().Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx); queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrPartnerNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	role, err := tx.PartnerRole.Query().Where(
-		partnerroleent.PartnerIDEQ(id),
-		partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeSupplier),
-	).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerSupplierRoleRequired
+		role, queryErr := tx.PartnerRole.Query().Where(
+			partnerroleent.PartnerIDEQ(id),
+			partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeSupplier),
+		).Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrPartnerSupplierRoleRequired
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	previouslyBlacklisted := role.Blacklisted
-	update := role.Update().SetBlacklisted(input.Blacklisted)
-	if input.Blacklisted {
-		update.SetBlacklistReason(input.Reason).SetBlacklistedAt(input.ChangedAt).SetBlacklistedBy(input.ChangedBy)
-	} else {
-		update.ClearBlacklistReason().ClearBlacklistedAt().ClearBlacklistedBy()
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["previously_blacklisted"] = strconv.FormatBool(previouslyBlacklisted)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		previouslyBlacklisted = role.Blacklisted
+		update := role.Update().SetBlacklisted(input.Blacklisted)
+		if input.Blacklisted {
+			update.SetBlacklistReason(input.Reason).SetBlacklistedAt(input.ChangedAt).SetBlacklistedBy(input.ChangedBy)
+		} else {
+			update.ClearBlacklistReason().ClearBlacklistedAt().ClearBlacklistedBy()
+		}
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		audit.Details["previously_blacklisted"] = strconv.FormatBool(previouslyBlacklisted)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated, err := r.Get(ctx, organizationID, id)
