@@ -170,53 +170,41 @@ func (r *industryReferenceRepo) ListAirlines(ctx context.Context, organizationID
 }
 
 func (r *industryReferenceRepo) CreateAirline(ctx context.Context, organizationID uuid.UUID, input *biz.Airline, audit *biz.AuditEvent) (*biz.Airline, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := tx.Airline.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
-	}
-	audit.Details["industry_reference.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var created *ent.Airline
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		created, err = tx.Airline.Create().SetOrganizationID(organizationID).SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+		if err != nil {
+			return mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
+		}
+		audit.Details["industry_reference.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return airlineToBiz(created), nil
 }
 
 func (r *industryReferenceRepo) UpdateAirline(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airline, audit *biz.AuditEvent) (*biz.Airline, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Airline.Query().Where(airline.IDEQ(id), airline.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
-	}
-	update := existing.Update().SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
-	if input.ICAOCode == nil {
-		update.ClearIcaoCode()
-	} else {
-		update.SetIcaoCode(*input.ICAOCode)
-	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
-	}
-	audit.Details["standard_code"] = updated.IataCode
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var updated *ent.Airline
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.Airline.Query().Where(airline.IDEQ(id), airline.OrganizationIDEQ(organizationID)).Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
+		}
+		update := existing.Update().SetAwbPrefix(input.AWBPrefix).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetCargoOnly(input.CargoOnly).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
+		if input.ICAOCode == nil {
+			update.ClearIcaoCode()
+		} else {
+			update.SetIcaoCode(*input.ICAOCode)
+		}
+		updated, err = update.Save(ctx)
+		if err != nil {
+			return mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
+		}
+		audit.Details["standard_code"] = updated.IataCode
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return airlineToBiz(updated), nil
