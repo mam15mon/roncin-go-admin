@@ -273,103 +273,87 @@ func (r *enterpriseResourceRepo) Update(ctx context.Context, organizationID, act
 }
 
 func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	item, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		_ = tx.Rollback()
-		return biz.ErrEnterpriseResourceNotFound
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	audit.Details["resource.type"] = string(item.ResourceType)
-	if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
-		// 与批量关联写入使用同一行锁：先锁标签资源再统计使用，防止统计与删除之间并发写入关联
-		locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id)).Order(resourceent.ByID()).ForUpdate().All(ctx)
-		if err != nil || len(locked) != 1 {
-			_ = tx.Rollback()
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrEnterpriseResourceNotFound
+		}
+		if err != nil {
+			return err
+		}
+		audit.Details["resource.type"] = string(item.ResourceType)
+		if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
+			// 与批量关联写入使用同一行锁：先锁标签资源再统计使用，防止统计与删除之间并发写入关联
+			locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id)).Order(resourceent.ByID()).ForUpdate().All(ctx)
+			if err != nil || len(locked) != 1 {
+				if err != nil {
+					return err
+				}
+				return biz.ErrEnterpriseResourceNotFound
+			}
+			partnerCount, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).Count(ctx)
 			if err != nil {
 				return err
 			}
-			return biz.ErrEnterpriseResourceNotFound
+			orderTagCount, err := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.TagResourceIDEQ(id)).Count(ctx)
+			if err != nil {
+				return err
+			}
+			feeTagCount, err := tx.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.TagResourceIDEQ(id)).Count(ctx)
+			if err != nil {
+				return err
+			}
+			billTagCount, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.TagResourceIDEQ(id)).Count(ctx)
+			if err != nil {
+				return err
+			}
+			if partnerCount > 0 || orderTagCount > 0 || feeTagCount > 0 || billTagCount > 0 {
+				return biz.ErrEnterpriseTagInUse.WithMetadata(map[string]string{
+					"partner_count":      stringInt(partnerCount),
+					"order_count":        stringInt(orderTagCount),
+					"order_fee_count":    stringInt(feeTagCount),
+					"finance_bill_count": stringInt(billTagCount),
+				})
+			}
 		}
-		partnerCount, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).Count(ctx)
-		if err != nil {
-			_ = tx.Rollback()
+		for _, deleteRows := range []func(context.Context) (int, error){
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDEQ(id)).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceAssignee.Delete().Where(assigneeent.ResourceIDEQ(id)).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceAddressType.Delete().Where(addresstypeent.ResourceIDEQ(id)).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceAddress.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceRemark.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceImage.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceParty.Delete().Where(partyent.ResourceIDEQ(id)).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseResourceShippingText.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
+			},
+			func(ctx context.Context) (int, error) {
+				return tx.EnterpriseTag.Delete().Where(tagent.ResourceIDEQ(id)).Exec(ctx)
+			},
+		} {
+			if _, err := deleteRows(ctx); err != nil {
+				return err
+			}
+		}
+		if err := tx.EnterpriseResource.DeleteOneID(id).Exec(ctx); err != nil {
 			return err
 		}
-		orderTagCount, err := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.TagResourceIDEQ(id)).Count(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return err
-		}
-		feeTagCount, err := tx.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.TagResourceIDEQ(id)).Count(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return err
-		}
-		billTagCount, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.TagResourceIDEQ(id)).Count(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return err
-		}
-		if partnerCount > 0 || orderTagCount > 0 || feeTagCount > 0 || billTagCount > 0 {
-			_ = tx.Rollback()
-			return biz.ErrEnterpriseTagInUse.WithMetadata(map[string]string{
-				"partner_count":      stringInt(partnerCount),
-				"order_count":        stringInt(orderTagCount),
-				"order_fee_count":    stringInt(feeTagCount),
-				"finance_bill_count": stringInt(billTagCount),
-			})
-		}
-	}
-	for _, deleteRows := range []func(context.Context) (int, error){
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDEQ(id)).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceAssignee.Delete().Where(assigneeent.ResourceIDEQ(id)).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceAddressType.Delete().Where(addresstypeent.ResourceIDEQ(id)).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceAddress.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceRemark.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceImage.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceParty.Delete().Where(partyent.ResourceIDEQ(id)).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseResourceShippingText.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
-		},
-		func(ctx context.Context) (int, error) {
-			return tx.EnterpriseTag.Delete().Where(tagent.ResourceIDEQ(id)).Exec(ctx)
-		},
-	} {
-		if _, err := deleteRows(ctx); err != nil {
-			_ = tx.Rollback()
-			return err
-		}
-	}
-	if err := tx.EnterpriseResource.DeleteOneID(id).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *enterpriseResourceRepo) BatchPartners(ctx context.Context, organizationID uuid.UUID, resourceIDs, partnerIDs []uuid.UUID, create bool, audit *biz.AuditEvent) (int, error) {
