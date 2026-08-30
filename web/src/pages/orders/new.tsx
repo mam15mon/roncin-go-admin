@@ -100,7 +100,7 @@ export default function NewOrderPage() {
       searchCarriers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CARRIER, keyword),
       searchBookingAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.BOOKING_AGENT, keyword),
+        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       searchForeignAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
       searchShippingAgents: (keyword?: string) =>

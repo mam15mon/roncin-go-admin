@@ -4,6 +4,10 @@
 > 记录验证结果；新增待办须注明问题来源与优先级。规范依据见 `AGENTS.md`
 > 的「数据库事务与并发控制规范」一节。
 
+> 2026-08-30 基线复核：原始计划从 `change.zip` 并入仓库后，按当前代码重新
+> 核验完成状态。事务封装已落地，但仍有 131 处存量 `Tx(ctx)` 待迁移；已完成
+> 项只按源码、生成校验或测试可以直接证明的结果勾选。
+
 ## 待办一：统一事务封装（高 · server/data）
 
 **问题**：全项目共 132 处手动事务模板（`db.Tx(ctx)` 加逐点
@@ -18,11 +22,11 @@
 在本文件更新。
 
 **验收**：
-- [ ] `internal/data` 提供 `WithTx` 封装并附单测（覆盖出错回滚、panic
+- [x] `internal/data` 提供 `WithTx` 封装并附单测（覆盖出错回滚、panic
       回滚、成功提交三条路径）
 - [ ] 新增仓储代码零手动 `db.Tx` 分散写法
 - [ ] 存量 132 处完成迁移或分批列入后续计划
-- [ ] `internal/data/auth.go:47` 的原生事务写法并入封装
+- [x] `internal/data/auth.go:47` 的原生事务写法并入封装
 
 ## 待办二：日志级别可配置（高 · server/platform）
 
@@ -37,9 +41,9 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 `config.production.yaml` 保持 info 与现状一致。
 
 **验收**：
-- [ ] 修改配置文件日志级别后重启即生效，无需改代码重新编译
-- [ ] `database.debug: true` 且级别为 debug 时，ent 查询日志可见
-- [ ] 生产配置默认 info，行为与现状一致
+- [x] 修改配置文件日志级别后重启即生效，无需改代码重新编译
+- [x] `database.debug: true` 且级别为 debug 时，ent 查询日志可见
+- [x] 生产配置默认 info，行为与现状一致
 
 ---
 
@@ -52,14 +56,14 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 ## 模块 A：前后端契约（高 · 已含 5 处实际漂移）
 
 ### A1. 先修已漂移项（quick fix，不依赖生成链路）
-- [ ] `web/src/pages/orders/common.ts:163` `PARTNER_ROLES` 中
+- [x] `web/src/pages/orders/common.ts:163` `PARTNER_ROLES` 中
       `BOOKING_AGENT: 2` 与 `SUPPLIER: 2` 同值冲突（proto 无 BOOKING_AGENT）
-- [ ] `web/src/pages/orders/common.ts:81` seaServiceTypes 前端 16 项 /
+- [x] `web/src/pages/orders/common.ts:81` seaServiceTypes 前端 16 项 /
       后端 19 项（`biz/masterdata.go:81`），缺 3 项且
       `requireSeaServiceTypeOptions` 遇缺项抛错
-- [ ] `web/src/pages/finance/bills/components/billConstants.ts` 前端多出
+- [x] `web/src/pages/finance/bills/components/billConstants.ts` 前端多出
       INVOICED/VERIFIED 两态，后端仅 DRAFT/CONFIRMED/CANCELLED
-- [ ] `web/src/pages/settings/components/number-rules/numberRulesConstants.ts`
+- [x] `web/src/pages/settings/components/number-rules/numberRulesConstants.ts`
       前端默认前缀 IV/HB/REF/CREF，后端 `biz/orderconfig.go:110` 无前缀
 
 ### A2. proto 枚举生成链路（根治，消除 30+ 处手抄）
@@ -70,7 +74,7 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 数值常量 + 联合类型），与 `pnpm run generate:web-client` 同一提交；
 前端仅保留「枚举名 → 中文文案/颜色」的展示层映射。
 **验收**：
-- [ ] 生成脚本接入根 `package.json`，与 web-client 生成串联
+- [x] 生成脚本接入根 `package.json`，与 web-client 生成串联
 - [ ] 订单/费用/账单/发票/伙伴/后台任务等手抄枚举改用生成常量
 - [ ] finance 域 stringly 状态（`biz/finance_bill.go:37`、
       `biz/settlement.go:20`）提升为 proto enum 后纳入同一链路
@@ -120,8 +124,9 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
 order_tag/partner，默认页大小均 20）+ 8 处散调；泛型 `biz.PagedList[T]`
 已存在但 11 个逐域手写 `XxxList` 并存。
-- [ ] 抽 `biz.ParseListPage(page, pageSize)` 共用
-- [ ] 11 个手写列表结构体逐步迁移到 `PagedList[T]`
+- [x] 通过 `biz.ListPagination`、`biz.ValidListPagination` 与 service 层
+      `listPageValues` 统一分页默认值和边界校验
+- [x] 11 个手写列表结构体迁移到 `PagedList[T]`
 
 ### B4. data 层 List 查询样板（中高，16-21 处 / 8 文件）
 Count → Offset/Limit → 循环转换 → 组装 五步同构
@@ -218,4 +223,3 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 - 跨仓储用例无共享事务边界（如订单号分配与订单落库非原子），需结合
   事务封装一并设计。
 - `web/types/index.d.ts` 为 Ant Design Pro 模板遗留 mock 类型，建议删除。
-

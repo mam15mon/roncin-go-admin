@@ -86,6 +86,7 @@ export const seaServiceTypes = [
   { code: 'CUSTOMS_IMPORT', name: '清关' },
   { code: 'OVERSEA_SEGMENT', name: '海外段' },
   { code: 'INSURANCE', name: '保险' },
+  { code: 'PALLET_CHARTER', name: '包板' },
   { code: 'CONTAINER_LEASE', name: '租箱' },
   { code: 'FUMIGATION', name: '熏蒸' },
   { code: 'DOC_BUY', name: '买单' },
@@ -93,7 +94,9 @@ export const seaServiceTypes = [
   { code: 'DOC_PREP', name: '制单' },
   { code: 'DANGEROUS_SERVICE', name: '危险品' },
   { code: 'OVERWEIGHT_SERVICE', name: '超重' },
+  { code: 'DOCUMENT_EXCHANGE', name: '换单' },
   { code: 'WAREHOUSING', name: '仓储' },
+  { code: 'INSPECTION', name: '报检' },
   { code: 'CONTAINER_PURCHASE', name: '买箱' },
 ] as const;
 
@@ -163,7 +166,6 @@ export function isMasterDataKind(
 export const PARTNER_ROLES = {
   CUSTOMER: 1,
   SUPPLIER: 2,
-  BOOKING_AGENT: 2,
   FOREIGN_AGENT: 3,
   CARRIER: 4,
 } as const;

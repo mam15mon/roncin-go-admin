@@ -34,7 +34,7 @@ describe('orders common and config', () => {
       { label: '海运出口', value: 1, color: 'blue' },
     ]);
     expect(tradeDirectionOptions).toHaveLength(2);
-    expect(PARTNER_ROLES.BOOKING_AGENT).toBe(PARTNER_ROLES.SUPPLIER);
+    expect(PARTNER_ROLES).not.toHaveProperty('BOOKING_AGENT');
     expect(PARTNER_ROLES.FOREIGN_AGENT).toBe(3);
     expect(shipmentModeOptions).toEqual([
       { label: '集运', value: 1 },
@@ -46,7 +46,14 @@ describe('orders common and config', () => {
       { label: '散杂', value: 3 },
     ]);
     expect(seaServiceTypes[0]).toEqual({ code: 'BOOKING', name: '订舱' });
-    expect(seaServiceTypes).toHaveLength(16);
+    expect(seaServiceTypes).toHaveLength(19);
+    expect(seaServiceTypes).toEqual(
+      expect.arrayContaining([
+        { code: 'PALLET_CHARTER', name: '包板' },
+        { code: 'DOCUMENT_EXCHANGE', name: '换单' },
+        { code: 'INSPECTION', name: '报检' },
+      ]),
+    );
   });
 
   it('按业务编码解析海运服务类型', () => {
