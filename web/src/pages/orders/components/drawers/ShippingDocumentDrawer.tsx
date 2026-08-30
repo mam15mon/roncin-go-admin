@@ -29,6 +29,7 @@ import {
   orderShippingDocumentServiceTransitionShippingDocumentStatus,
   orderShippingDocumentServiceUpdateShippingDocument,
 } from '@/services/roncin/orderShippingDocumentService';
+import { toTableRequest } from '@/utils/api';
 
 export type ShippingDocumentDrawerRef = {
   open: (order: API.Order) => void;
@@ -255,10 +256,7 @@ const ShippingDocumentDrawer = forwardRef<
                 await orderShippingDocumentServiceListShippingDocuments({
                   orderId: order.id as string,
                 });
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
+              return toTableRequest(response);
             }}
             toolBarRender={() => [
               canManage && (

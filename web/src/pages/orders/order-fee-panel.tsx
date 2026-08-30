@@ -23,6 +23,7 @@ import {
   orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
+import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import FeeFormModal, {
   type FeeFormValues,
@@ -396,10 +397,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                 const response = await orderFeeServiceListFees({
                   orderId: order.id as string,
                 });
-                return {
-                  data: response.data ?? [],
-                  success: response.success ?? true,
-                };
+                return toTableRequest(response);
               }}
               toolBarRender={() => [
                 canCreate && (

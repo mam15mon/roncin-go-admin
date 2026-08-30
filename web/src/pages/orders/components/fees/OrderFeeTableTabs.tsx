@@ -12,6 +12,7 @@ import {
   feeStatusCode,
 } from './feeConstants';
 import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
+import { unwrapList } from '@/utils/api';
 
 interface OrderFeeTableTabsProps {
   orderId: string;
@@ -114,7 +115,7 @@ export default function OrderFeeTableTabs({
               request={async () => {
                 if (!orderId) return { data: [], success: true };
                 const res = await orderFeeServiceListFees({ orderId });
-                const rItems = (res.data ?? []).filter(
+                const rItems = unwrapList(res).filter(
                   (f) => feeDirectionCode(f.direction) === RECEIVABLE,
                 );
                 setAllReceivableItems(rItems);
@@ -192,7 +193,7 @@ export default function OrderFeeTableTabs({
               request={async () => {
                 if (!orderId) return { data: [], success: true };
                 const res = await orderFeeServiceListFees({ orderId });
-                const pItems = (res.data ?? []).filter(
+                const pItems = unwrapList(res).filter(
                   (f) => feeDirectionCode(f.direction) === PAYABLE,
                 );
                 setAllPayableItems(pItems);

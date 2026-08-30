@@ -30,6 +30,7 @@ import {
   orderReleasePodServiceTransitionReleasePodStatus,
   orderReleasePodServiceUpdateReleasePod,
 } from '@/services/roncin/orderReleasePodService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 
 const { Text } = Typography;
@@ -95,7 +96,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         })
           .then((response) => {
             if (activeOrderIdRef.current === orderId) {
-              setDocuments(response.data ?? []);
+              setDocuments(unwrapList(response));
             }
           })
           .catch((error: Error) => {
@@ -330,10 +331,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                 const response = await orderReleasePodServiceListReleasePods({
                   orderId: order.id as string,
                 });
-                return {
-                  data: response.data ?? [],
-                  success: response.success ?? true,
-                };
+                return toTableRequest(response);
               }}
               toolBarRender={() => [
                 canManage && (

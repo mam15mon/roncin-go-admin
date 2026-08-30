@@ -18,6 +18,7 @@ import {
   orderContainerServiceUpdateContainer,
 } from '@/services/roncin/orderContainerService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+import { unwrapList } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -157,7 +158,7 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
           })
             .then((res) => {
               if (requestSequence === documentRequestRef.current) {
-                setContainerDocuments(res.data ?? []);
+                setContainerDocuments(unwrapList(res));
               }
             })
             .catch((error: Error) => {

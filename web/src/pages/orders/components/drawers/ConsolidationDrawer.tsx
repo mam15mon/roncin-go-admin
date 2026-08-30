@@ -2,6 +2,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { orderServiceListOrderConsolidations } from '@/services/roncin/orderService';
+import { toTableRequest } from '@/utils/api';
 
 function formatCargoMeasurement(value?: API.OrderCargoMeasurement) {
   return `${value?.packages ?? 0} 件 / ${(value?.grossWeightKg ?? 0).toFixed(3)} KGS / ${(value?.volumeCbm ?? 0).toFixed(3)} CBM`;
@@ -48,10 +49,7 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
               const response = await orderServiceListOrderConsolidations({
                 id: order.id as string,
               });
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
+              return toTableRequest(response);
             }}
             columns={[
               { title: '主单号', dataIndex: 'masterNo', copyable: true },

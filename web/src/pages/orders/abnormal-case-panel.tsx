@@ -15,6 +15,7 @@ import {
   orderAbnormalCaseServiceRemoveAbnormalCase,
   orderAbnormalCaseServiceResolveAbnormalCase,
 } from '@/services/roncin/orderAbnormalCaseService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -235,10 +236,7 @@ const AbnormalCasePanel = forwardRef<
               const response = await orderAbnormalCaseServiceListAbnormalCases({
                 orderId: order.id as string,
               });
-              return {
-                data: response.data ?? [],
-                success: response.success ?? true,
-              };
+              return toTableRequest(response);
             }}
             toolBarRender={() => [
               canManage && (

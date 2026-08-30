@@ -22,6 +22,7 @@ import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { FinanceSummaryBoard } from '@/components/ui';
 import BillCreationWorkbench from '@/pages/finance/bills/components/BillCreationWorkbench';
+import { unwrapList } from '@/utils/api';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
@@ -149,7 +150,7 @@ export default function OrderFeesPage() {
       const res = await feeCatalogServiceListTaxableServices({
         skipErrorHandler: true,
       });
-      setTaxableServices(res.data || []);
+      setTaxableServices(unwrapList(res));
     } catch {
       // ignore
     }
