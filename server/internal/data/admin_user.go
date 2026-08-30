@@ -70,10 +70,7 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 		var createErr error
 		account, createErr = create.Save(ctx)
 		if createErr != nil {
-			if ent.IsConstraintError(createErr) {
-				return biz.ErrAdminUsernameExists
-			}
-			return createErr
+			return mapEntError(createErr, nil, biz.ErrAdminUsernameExists)
 		}
 		membershipRecord, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organizationID).SetPrimary(true).SetEnabled(true).Save(ctx)
 		if createErr != nil {
@@ -95,17 +92,11 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		membershipRecord, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if account.Enabled && !input.Enabled {
 			return biz.ErrAdminUserTerminationRequired
@@ -124,10 +115,7 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 			update.SetEmail(*input.Email)
 		}
 		if _, updateErr := update.Save(ctx); updateErr != nil {
-			if ent.IsNotFound(updateErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return updateErr
+			return mapEntError(updateErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if replaceErr := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); replaceErr != nil {
 			return replaceErr
@@ -143,16 +131,10 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if _, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id)).IDs(ctx)
 		if queryErr != nil {
@@ -192,16 +174,10 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if _, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		if !hasExternalIdentity(account) || account.Enabled {
 			return biz.ErrAdminInvalidArgument
@@ -274,10 +250,7 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		exists, queryErr := tx.Membership.Query().Where(
 			membership.UserIDEQ(id),
@@ -298,13 +271,7 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 			return biz.ErrAdminInvalidArgument
 		}
 		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
-			if ent.IsConstraintError(updateErr) {
-				return biz.ErrAdminUsernameExists
-			}
-			if ent.IsNotFound(updateErr) {
-				return biz.ErrAdminUserNotFound
-			}
-			return updateErr
+			return mapEntError(updateErr, biz.ErrAdminUserNotFound, biz.ErrAdminUsernameExists)
 		}
 		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
 			return updateErr
@@ -323,10 +290,7 @@ func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UU
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrAdminUserNotFound, nil)
 	}
 	return membershipToUser(item), nil
 }

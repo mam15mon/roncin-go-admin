@@ -246,6 +246,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       标准 NotFound/约束改用公共错误映射，保留幂等查询返回空语义
 - [x] 第三十四批：`admin_user_membership.go` 用户与成员关系标准 NotFound
       改用公共 `mapEntError`，保留已有关系启用/不存在创建的分流语义
+- [x] 第三十五批：`admin_user.go` 用户、成员关系与用户名约束的标准错误
+      改用公共映射，保留授权时目标成员关系创建/恢复分流语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
