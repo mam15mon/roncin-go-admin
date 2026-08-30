@@ -14,7 +14,7 @@ func (s *SettlementService) ListFinanceBillTagOptions(ctx context.Context, reque
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

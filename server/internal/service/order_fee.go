@@ -409,7 +409,7 @@ func (s *OrderFeeService) ListOrderFeeTagOptions(ctx context.Context, request *v
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

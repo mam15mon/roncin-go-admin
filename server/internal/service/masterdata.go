@@ -91,7 +91,7 @@ func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListItems
 	if err != nil {
 		return nil, err
 	}
-	page, pageSize, err := adminPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrAdminInvalidArgument)
 	if err != nil {
 		return nil, biz.ErrMasterDataInvalidArgument
 	}

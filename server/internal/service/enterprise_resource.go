@@ -26,7 +26,7 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourcePartnerOptions(ctx c
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx 
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx cont
 	if _, principalErr := biz.RequirePrincipal(ctx); principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context,
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -517,19 +517,6 @@ func enterpriseResourcePrincipalAndID(ctx context.Context, idText string) (*biz.
 		return nil, uuid.Nil, biz.ErrEnterpriseResourceInvalidArgument
 	}
 	return principal, id, nil
-}
-func enterpriseResourcePageValues(page, pageSize int32) (int, int, error) {
-	p, ps := int(page), int(pageSize)
-	if p == 0 {
-		p = 1
-	}
-	if ps == 0 {
-		ps = 20
-	}
-	if !biz.ValidListPagination(p, ps) {
-		return 0, 0, biz.ErrEnterpriseResourceInvalidArgument
-	}
-	return p, ps, nil
 }
 func enterpriseParseUUIDs(values []string) ([]uuid.UUID, error) {
 	result := make([]uuid.UUID, len(values))

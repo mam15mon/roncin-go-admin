@@ -113,24 +113,3 @@ func TestBackgroundTaskToAPIOmitsLeaseFields(t *testing.T) {
 		t.Fatalf("expected recipient user ID %q, got %q", recipientUserID, apiTask.GetRecipientUserId())
 	}
 }
-
-func TestBackgroundTaskPageValues(t *testing.T) {
-	page, pageSize, err := backgroundTaskPageValues(0, 0)
-	if err != nil || page != 1 || pageSize != 20 {
-		t.Fatalf("expected defaults 1/20, got %d/%d err %v", page, pageSize, err)
-	}
-	page, pageSize, err = backgroundTaskPageValues(2, 50)
-	if err != nil || page != 2 || pageSize != 50 {
-		t.Fatalf("expected 2/50, got %d/%d err %v", page, pageSize, err)
-	}
-	if _, _, err := backgroundTaskPageValues(-1, 20); err != biz.ErrBackgroundTaskInvalidArgument {
-		t.Fatalf("expected invalid argument for negative page, got %v", err)
-	}
-	page, pageSize, err = backgroundTaskPageValues(1, biz.MaxListPageSize)
-	if err != nil || page != 1 || pageSize != biz.MaxListPageSize {
-		t.Fatalf("expected maximum page size, got %d/%d err %v", page, pageSize, err)
-	}
-	if _, _, err := backgroundTaskPageValues(1, biz.MaxListPageSize+1); err != biz.ErrBackgroundTaskInvalidArgument {
-		t.Fatalf("expected invalid argument for oversized page size, got %v", err)
-	}
-}

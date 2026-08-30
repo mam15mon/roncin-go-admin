@@ -29,21 +29,6 @@ func NewPartnerService(usecase *biz.PartnerUsecase, accountUsecase *biz.PartnerA
 	return &PartnerService{usecase: usecase, accountUsecase: accountUsecase, contractUsecase: contractUsecase, settlementRuleUsecase: settlementRuleUsecase, attachmentUsecase: attachmentUsecase, shippingPresetUsecase: shippingPresetUsecase, invoiceProfileUsecase: invoiceProfileUsecase}
 }
 
-func pageValues(page, pageSize int32) (int, int, error) {
-	pageValue := int(page)
-	if pageValue == 0 {
-		pageValue = 1
-	}
-	pageSizeValue := int(pageSize)
-	if pageSizeValue == 0 {
-		pageSizeValue = 20
-	}
-	if !biz.ValidListPagination(pageValue, pageSizeValue) {
-		return 0, 0, biz.ErrPartnerInvalidArgument
-	}
-	return pageValue, pageSizeValue, nil
-}
-
 func formatOptionalTime(value *time.Time) string {
 	if value == nil {
 		return ""

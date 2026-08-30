@@ -34,7 +34,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

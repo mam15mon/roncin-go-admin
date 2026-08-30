@@ -24,7 +24,7 @@ func (s *OrderTagService) ListOrderTagOptions(ctx context.Context, request *v1.L
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -69,19 +69,6 @@ func (s *OrderTagService) BatchRemoveOrderTags(ctx context.Context, request *v1.
 		return nil, err
 	}
 	return &v1.BatchRemoveOrderTagsResponse{RemovedCount: int32(affected), TraceId: requestmeta.TraceID(ctx)}, nil
-}
-
-func orderTagPageValues(page, pageSize int32) (int, int, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 20
-	}
-	if !biz.ValidListPagination(int(page), int(pageSize)) {
-		return 0, 0, biz.ErrBusinessTagInvalidArgument
-	}
-	return int(page), int(pageSize), nil
 }
 
 func orderTagBatchIDs(orderIDValues, tagIDValues []string) ([]uuid.UUID, []uuid.UUID, error) {

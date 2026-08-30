@@ -77,7 +77,7 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	if err != nil {
 		return nil, err
 	}
-	page, pageSize, err := adminPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrAdminInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +382,7 @@ func (s *AdminService) ListAuditLogs(ctx context.Context, request *v1.ListAuditL
 	if err != nil {
 		return nil, err
 	}
-	page, pageSize, err := adminPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrAdminInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -422,21 +422,6 @@ func requirePrincipal(ctx context.Context) (*biz.Principal, error) {
 		return nil, principalErr
 	}
 	return principal, nil
-}
-
-func adminPageValues(page, pageSize int32) (int, int, error) {
-	pageValue := int(page)
-	if pageValue == 0 {
-		pageValue = 1
-	}
-	pageSizeValue := int(pageSize)
-	if pageSizeValue == 0 {
-		pageSizeValue = 20
-	}
-	if !biz.ValidListPagination(pageValue, pageSizeValue) {
-		return 0, 0, biz.ErrAdminInvalidArgument
-	}
-	return pageValue, pageSizeValue, nil
 }
 
 func parseUUIDs(values []string) ([]uuid.UUID, error) {

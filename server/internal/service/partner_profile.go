@@ -31,7 +31,7 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrPartnerInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.L
 	if err != nil {
 		return nil, biz.ErrPartnerInvalidArgument
 	}
-	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrPartnerInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

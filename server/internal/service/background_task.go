@@ -25,7 +25,7 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize, err := backgroundTaskPageValues(request.GetPage(), request.GetPageSize())
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrBackgroundTaskInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -138,21 +138,6 @@ func backgroundTaskToAPI(value *biz.BackgroundTask) *taskv1.BackgroundTask {
 		RecipientDisplayName: value.RecipientDisplayName,
 		RecipientUserId:      recipientUserID,
 	}
-}
-
-func backgroundTaskPageValues(page, pageSize int32) (int, int, error) {
-	pageValue := int(page)
-	if pageValue == 0 {
-		pageValue = 1
-	}
-	pageSizeValue := int(pageSize)
-	if pageSizeValue == 0 {
-		pageSizeValue = 20
-	}
-	if !biz.ValidListPagination(pageValue, pageSizeValue) {
-		return 0, 0, biz.ErrBackgroundTaskInvalidArgument
-	}
-	return pageValue, pageSizeValue, nil
 }
 
 func backgroundTaskKindFromAPI(kind taskv1.BackgroundTaskKind) (biz.BackgroundTaskKind, error) {
