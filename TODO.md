@@ -176,7 +176,7 @@ requestmeta.TraceID(ctx)}` 同构重复，封套字段调整需改 200+ 站点�
 ### B2. ent 错误映射统一（高，213 处）
 NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 helper
 （`mapOrderConstraint`、`mapPartnerConstraint` 等），其余约 30 个内联。
-- [ ] 统一 `mapEntError(err, notFoundErr, constraintErr)`，替换 10 个
+- [x] 统一 `mapEntError(err, notFoundErr, constraintErr)`，替换 10 个
       私有版本与全部内联点
 - [x] 第一批：`finance_invoice.go` 开票与红冲编号约束改用公共
       `mapEntConstraint`，移除私有映射器
@@ -256,6 +256,9 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       NotFound/幂等约束改用公共错误映射，保留幂等查询返回空语义
 - [x] 第三十九批：`order_fee.go` 已开票编辑、状态流转与删除阶段的
       标准 NotFound 改用公共 `mapEntError`，保留锁顺序与版本/状态校验
+- [x] 最终审计：生产代码仅保留 30 处直接 Ent 判断，其中 13 处用于
+      幂等/默认/空结果、15 处用于创建或 upsert 分流、1 处用于死信提交
+      分流、1 处用于同步命令保留组织代码上下文；无剩余普通映射样板
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
