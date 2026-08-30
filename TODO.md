@@ -68,7 +68,8 @@
 - [x] 第三十三批：`industry_reference.go` 港口与机场新增、更新事务入口。
 - [x] 第三十四批：`industry_reference.go` 航空公司新增、更新事务入口。
 - [x] 第三十五批：`industry_reference.go` 船公司及箱号前缀新增、更新事务入口。
-- [ ] 剩余生产仓储手写事务：22 处 / 3 个文件。
+- [x] 第三十六批：`finance_bill.go` 账单更新、确认及取消事务入口。
+- [ ] 剩余生产仓储手写事务：19 处 / 3 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 

@@ -498,168 +498,150 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 }
 
 func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.FinanceBill, error) { _ = tx.Rollback(); return nil, value }
-	item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceBillNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != input.ExpectedVersion {
-		return rollback(biz.ErrFinanceBillVersionConflict)
-	}
-	if item.Status != financebillent.StatusDRAFT {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
-	if input.ExchangeRateSettingID == nil {
-		update.ClearExchangeRateSettingID()
-	} else {
-		update.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
-	}
-	if input.DueDate == nil {
-		update.ClearDueDate()
-	} else {
-		update.SetDueDate(*input.DueDate)
-	}
-	if input.Note == nil {
-		update.ClearNote()
-	} else {
-		update.SetNote(*input.Note)
-	}
-	if input.StatementTitle == nil {
-		update.ClearStatementTitle()
-	} else {
-		update.SetStatementTitle(*input.StatementTitle)
-	}
-	if input.PaymentTermsDays == nil {
-		update.ClearPaymentTermsDays()
-	} else {
-		update.SetPaymentTermsDays(*input.PaymentTermsDays)
-	}
-	if _, err = update.Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrFinanceBillNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if item.Version != input.ExpectedVersion {
+			return biz.ErrFinanceBillVersionConflict
+		}
+		if item.Status != financebillent.StatusDRAFT {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		update := tx.FinanceBill.UpdateOneID(input.ID).SetBillDate(input.BillDate).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(input.ExchangeRateSource)).SetExchangeRateDate(input.ExchangeRateDate).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).SetVersion(item.Version + 1)
+		if input.ExchangeRateSettingID == nil {
+			update.ClearExchangeRateSettingID()
+		} else {
+			update.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
+		}
+		if input.DueDate == nil {
+			update.ClearDueDate()
+		} else {
+			update.SetDueDate(*input.DueDate)
+		}
+		if input.Note == nil {
+			update.ClearNote()
+		} else {
+			update.SetNote(*input.Note)
+		}
+		if input.StatementTitle == nil {
+			update.ClearStatementTitle()
+		} else {
+			update.SetStatementTitle(*input.StatementTitle)
+		}
+		if input.PaymentTermsDays == nil {
+			update.ClearPaymentTermsDays()
+		} else {
+			update.SetPaymentTermsDays(*input.PaymentTermsDays)
+		}
+		if _, err = update.Save(ctx); err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, input.ID)
 }
 
 func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.FinanceBill, error) { _ = tx.Rollback(); return nil, value }
-	item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceBillNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != expectedVersion {
-		return rollback(biz.ErrFinanceBillVersionConflict)
-	}
-	if item.Status != financebillent.StatusDRAFT {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	now := time.Now()
-	if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrFinanceBillNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if item.Version != expectedVersion {
+			return biz.ErrFinanceBillVersionConflict
+		}
+		if item.Status != financebillent.StatusDRAFT {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		now := time.Now()
+		if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(item.Version + 1).Save(ctx); err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
 }
 
 func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.FinanceBill, error) { _ = tx.Rollback(); return nil, value }
-	item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceBillNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != expectedVersion {
-		return rollback(biz.ErrFinanceBillVersionConflict)
-	}
-	if item.Status != financebillent.StatusDRAFT && item.Status != financebillent.StatusCONFIRMED {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	invoiced, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDEQ(id), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if invoiced {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	verified, err := tx.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDEQ(id), verificationallocationent.ActiveEQ(true)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if verified {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(lines) == 0 {
-		return rollback(biz.ErrFinanceBillInvalidTransition)
-	}
-	feeIDs := make([]uuid.UUID, 0, len(lines))
-	for _, line := range lines {
-		feeIDs = append(feeIDs, line.OrderFeeID)
-	}
-	fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(fees) != len(feeIDs) {
-		return rollback(biz.ErrFinanceBillFeeInvalid)
-	}
-	for _, fee := range fees {
-		if fee.Status != orderfeeent.StatusBILLED {
-			return rollback(biz.ErrFinanceBillFeeInvalid)
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrFinanceBillNotFound
 		}
-	}
-	affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusBILLED)).SetStatus(orderfeeent.StatusCONFIRMED).AddVersion(1).Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if affected != len(feeIDs) {
-		return rollback(biz.ErrFinanceBillFeeInvalid)
-	}
-	if _, err = tx.FinanceBillLine.Update().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	now := time.Now()
-	if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actorID).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+		if err != nil {
+			return err
+		}
+		if item.Version != expectedVersion {
+			return biz.ErrFinanceBillVersionConflict
+		}
+		if item.Status != financebillent.StatusDRAFT && item.Status != financebillent.StatusCONFIRMED {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		invoiced, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDEQ(id), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if invoiced {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		verified, err := tx.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDEQ(id), verificationallocationent.ActiveEQ(true)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if verified {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(lines) == 0 {
+			return biz.ErrFinanceBillInvalidTransition
+		}
+		feeIDs := make([]uuid.UUID, 0, len(lines))
+		for _, line := range lines {
+			feeIDs = append(feeIDs, line.OrderFeeID)
+		}
+		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		if len(fees) != len(feeIDs) {
+			return biz.ErrFinanceBillFeeInvalid
+		}
+		for _, fee := range fees {
+			if fee.Status != orderfeeent.StatusBILLED {
+				return biz.ErrFinanceBillFeeInvalid
+			}
+		}
+		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusBILLED)).SetStatus(orderfeeent.StatusCONFIRMED).AddVersion(1).Save(ctx)
+		if err != nil {
+			return err
+		}
+		if affected != len(feeIDs) {
+			return biz.ErrFinanceBillFeeInvalid
+		}
+		if _, err = tx.FinanceBillLine.Update().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
+			return err
+		}
+		now := time.Now()
+		if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actorID).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
