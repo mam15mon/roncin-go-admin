@@ -220,6 +220,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共错误映射
 - [x] 第二十一批：合作方附件、开票资料、结算规则与托运预设的
       标准 NotFound 和命名约束改用公共错误映射
+- [x] 第二十二批：`partner_secondary.go` 账户与合同标准 NotFound 分支
+      改用公共 `mapEntError`
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

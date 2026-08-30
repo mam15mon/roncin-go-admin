@@ -25,10 +25,7 @@ func (r *partnerAccountRepo) role(ctx context.Context, organizationID, partnerID
 		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
 	).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerAccountInvalidArgument
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerAccountInvalidArgument, nil)
 	}
 	return role, nil
 }
@@ -120,10 +117,7 @@ func (r *partnerAccountRepo) Update(ctx context.Context, organizationID, partner
 		}
 		existing, queryErr := tx.PartnerAccount.Query().Where(partneraccountent.IDEQ(id), partneraccountent.PartnerRoleIDEQ(role.ID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrPartnerAccountNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerAccountNotFound, nil)
 		}
 		if input.IsDefault {
 			if _, updateErr := tx.PartnerAccount.Update().Where(partneraccountent.PartnerRoleIDEQ(role.ID), partneraccountent.AccountTypeEQ(partneraccountent.AccountTypeCustomerSettlement), partneraccountent.IsDefaultEQ(true), partneraccountent.IDNEQ(id)).SetIsDefault(false).Save(ctx); updateErr != nil {
@@ -152,10 +146,7 @@ func NewPartnerContractRepo(data *Data) biz.PartnerContractRepo {
 func (r *partnerContractRepo) partner(ctx context.Context, organizationID, partnerID uuid.UUID) (*ent.Partner, error) {
 	item, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerContractInvalidArgument
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerContractInvalidArgument, nil)
 	}
 	return item, nil
 }
@@ -186,10 +177,7 @@ func (r *partnerContractRepo) Get(ctx context.Context, organizationID, partnerID
 		partnercontractent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
 	).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerContractNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerContractNotFound, nil)
 	}
 	return partnerContractToBiz(item), nil
 }
