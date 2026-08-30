@@ -79,10 +79,7 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
 			SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
 		if _, createErr := builder.Save(ctx); createErr != nil {
-			if ent.IsConstraintError(createErr) {
-				return biz.ErrFeeSettingCodeExists
-			}
-			return createErr
+			return mapEntError(createErr, nil, biz.ErrFeeSettingCodeExists)
 		}
 		if auditErr := writeAudit(ctx, tx.AuditLog, audit); auditErr != nil {
 			return auditErr
@@ -113,10 +110,7 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), feesettingent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrFeeSettingNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFeeSettingNotFound, nil)
 		}
 		builder := current.Update().
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
@@ -143,10 +137,7 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 			builder.SetAbnormalCaseID(*input.AbnormalCaseID)
 		}
 		if _, updateErr := builder.Save(ctx); updateErr != nil {
-			if ent.IsConstraintError(updateErr) {
-				return biz.ErrFeeSettingCodeExists
-			}
-			return updateErr
+			return mapEntError(updateErr, nil, biz.ErrFeeSettingCodeExists)
 		}
 		if auditErr := writeAudit(ctx, tx.AuditLog, audit); auditErr != nil {
 			return auditErr
@@ -236,10 +227,7 @@ func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.Billi
 		var saveErr error
 		saved, saveErr = tx.BillingUnit.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrBillingUnitCodeExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrBillingUnitCodeExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -257,18 +245,12 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(input.ID), billingunitent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrBillingUnitNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrBillingUnitNotFound, nil)
 		}
 		var saveErr error
 		saved, saveErr = current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrBillingUnitCodeExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrBillingUnitCodeExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -315,10 +297,7 @@ func (r *feeCatalogRepo) CreateTaxableService(ctx context.Context, input *biz.Ta
 		var saveErr error
 		saved, saveErr = tx.TaxableService.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).SetName(input.Name).SetNillableShortName(input.ShortName).SetNillableGoodsCode(input.GoodsCode).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(true).Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrTaxableServiceNameExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrTaxableServiceNameExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -336,10 +315,7 @@ func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.Ta
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		current, queryErr := tx.TaxableService.Query().Where(taxableserviceent.IDEQ(input.ID), taxableserviceent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrTaxableServiceNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrTaxableServiceNotFound, nil)
 		}
 		builder := current.Update().SetName(input.Name).SetDefaultTaxRate(input.DefaultTaxRate.StringFixed(2)).SetEnabled(input.Enabled)
 		if input.ShortName == nil {
@@ -355,10 +331,7 @@ func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.Ta
 		var saveErr error
 		saved, saveErr = builder.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrTaxableServiceNameExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrTaxableServiceNameExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

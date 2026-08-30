@@ -240,6 +240,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共错误映射，保留未配置返回空和首次创建语义
 - [x] 第三十一批：`finance_bill.go` 单据、单据行与批次保存约束
       改用公共错误映射，保留幂等键未命中时返回空的语义
+- [x] 第三十二批：`fee_catalog.go` 费用设置、计费单位与应税服务的
+      标准 NotFound/约束改用公共 `mapEntError`
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
