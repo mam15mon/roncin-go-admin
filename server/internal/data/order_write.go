@@ -280,81 +280,63 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 }
 
 func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, targetStatus biz.OrderFlowStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	if _, err := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionFLOW).SetFromStatus(string(event.FromStatus)).SetToStatus(string(targetStatus)).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
+			return biz.ErrOrderStatusConflict
+		}
+		if _, updateErr := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionFLOW).SetFromStatus(string(event.FromStatus)).SetToStatus(string(targetStatus)).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
+			return eventErr
+		}
+		return writeAudit(ctx, tx.AuditLog, event.AuditEvent())
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
 }
 
 func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderTerminationStatus, terminationType *biz.OrderTerminationType, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
-	if target == biz.OrderTerminationActive {
-		update.ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy()
-	} else {
-		update.SetTerminationType(orderent.TerminationType(*terminationType)).SetTerminationReason(reason)
-		if target == biz.OrderTerminationTerminated {
-			update.SetTerminatedAt(event.OccurredAt).SetTerminatedBy(actorID)
+		if existing.Version != expectedVersion || string(existing.TerminationStatus) != event.FromStatus {
+			return biz.ErrOrderStatusConflict
+		}
+		update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
+		if target == biz.OrderTerminationActive {
+			update.ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy()
 		} else {
-			update.ClearTerminatedAt().ClearTerminatedBy()
+			update.SetTerminationType(orderent.TerminationType(*terminationType)).SetTerminationReason(reason)
+			if target == biz.OrderTerminationTerminated {
+				update.SetTerminatedAt(event.OccurredAt).SetTerminatedBy(actorID)
+			} else {
+				update.ClearTerminatedAt().ClearTerminatedBy()
+			}
 		}
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
+			return eventErr
+		}
+		return writeAudit(ctx, tx.AuditLog, event.AuditEvent())
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
@@ -380,63 +362,50 @@ func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uui
 }
 
 func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderClosureStatus, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
-	tx, err := r.data.db.Tx(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderNotFound
+			}
+			return queryErr
+		}
+		if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
+			return biz.ErrOrderStatusConflict
+		}
+		if target == biz.OrderClosureClosed {
+			flowFinished := biz.OrderFlowStatus(existing.FlowStatus) == biz.OrderFlowDocumentReleased
+			terminated := biz.OrderTerminationStatus(existing.TerminationStatus) == biz.OrderTerminationTerminated
+			if !flowFinished && !terminated {
+				return biz.ErrOrderClosureBlocked
+			}
+			hasActiveException, readinessErr := tx.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
+			if readinessErr != nil {
+				return readinessErr
+			}
+			hasUnbilledFees, readinessErr := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.StatusNotIn(orderfeeent.StatusBILLED, orderfeeent.StatusCANCELLED)).Exist(ctx)
+			if readinessErr != nil {
+				return readinessErr
+			}
+			if hasActiveException || hasUnbilledFees {
+				return biz.ErrOrderClosureBlocked
+			}
+		}
+		update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)
+		if target == biz.OrderClosureClosed {
+			update.SetClosureReason(reason).SetClosedAt(event.OccurredAt).SetClosedBy(actorID)
+		} else {
+			update.ClearClosureReason().ClearClosedAt().ClearClosedBy()
+		}
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionCLOSURE).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
+			return eventErr
+		}
+		return writeAudit(ctx, tx.AuditLog, event.AuditEvent())
+	})
 	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
-	}
-	if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	if target == biz.OrderClosureClosed {
-		flowFinished := biz.OrderFlowStatus(existing.FlowStatus) == biz.OrderFlowDocumentReleased
-		terminated := biz.OrderTerminationStatus(existing.TerminationStatus) == biz.OrderTerminationTerminated
-		if !flowFinished && !terminated {
-			_ = tx.Rollback()
-			return nil, biz.ErrOrderClosureBlocked
-		}
-		hasActiveException, err := tx.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		hasUnbilledFees, err := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.StatusNotIn(orderfeeent.StatusBILLED, orderfeeent.StatusCANCELLED)).Exist(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if hasActiveException || hasUnbilledFees {
-			_ = tx.Rollback()
-			return nil, biz.ErrOrderClosureBlocked
-		}
-	}
-	update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)
-	if target == biz.OrderClosureClosed {
-		update.SetClosureReason(reason).SetClosedAt(event.OccurredAt).SetClosedBy(actorID)
-	} else {
-		update.ClearClosureReason().ClearClosedAt().ClearClosedBy()
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionCLOSURE).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, event.AuditEvent()); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
