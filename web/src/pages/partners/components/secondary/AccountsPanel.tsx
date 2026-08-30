@@ -19,6 +19,7 @@ import {
   partnerServiceListPartnerAccounts,
   partnerServiceUpdatePartnerAccount,
 } from '@/services/roncin/partnerService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -152,10 +153,7 @@ export default function AccountsPanel({
           const response = await partnerServiceListPartnerAccounts({
             partnerId: partner.id,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-          };
+          return toTableRequest(response);
         }}
         toolBarRender={() =>
           canManage

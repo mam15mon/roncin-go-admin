@@ -3,6 +3,7 @@ import { Alert, Button, Empty, Pagination, Space, Spin, Tag, Timeline, Typograph
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { partnerServiceListPartnerAuditLogs } from '@/services/roncin/partnerService';
+import { unwrapPage } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -31,8 +32,9 @@ export default function AuditLogSection({ partnerId }: AuditLogSectionProps) {
         pageSize: size,
       });
       if (requestSequence !== requestSequenceRef.current) return;
-      setLogs(res.data || []);
-      setTotal(res.total || 0);
+      const result = unwrapPage(res);
+      setLogs(result.data);
+      setTotal(result.total);
     } catch (error) {
       if (requestSequence !== requestSequenceRef.current) return;
       setLogs([]);

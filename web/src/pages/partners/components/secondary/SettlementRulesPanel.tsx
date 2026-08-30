@@ -19,6 +19,7 @@ import {
   partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 const roleOptions = [
   { label: '客户', value: 1, color: 'blue' },
@@ -224,7 +225,7 @@ export default function SettlementRulesPanel({
                 partnerId,
                 roleType,
               });
-              return (response.data ?? []).map((item) => ({
+              return unwrapList(response).map((item) => ({
                 ...item,
                 roleType,
               }));

@@ -31,6 +31,7 @@ import {
   partnerServiceListPartnerContracts,
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 const { Text, Paragraph } = Typography;
 
@@ -58,7 +59,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
     setLoading(true);
     try {
       const res = await partnerServiceListPartnerContracts({ partnerId });
-      setContracts(res.data || []);
+      setContracts(unwrapList(res));
     } catch {
       message.error('加载合同列表失败');
     } finally {

@@ -16,6 +16,7 @@ import {
   partnerServiceListPartnerAttachments,
   partnerServiceRegisterPartnerAttachment,
 } from '@/services/roncin/partnerService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -110,10 +111,7 @@ export default function AttachmentsPanel({
           const response = await partnerServiceListPartnerAttachments({
             partnerId: partner.id,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-          };
+          return toTableRequest(response);
         }}
         toolBarRender={() =>
           canManage

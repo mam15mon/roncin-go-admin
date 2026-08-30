@@ -16,6 +16,7 @@ import {
   partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 import { PageHeaderShell, SectionCard, StickyFooterBar } from '@/components/ui';
 import AccountCardList from './components/AccountCardList';
 import AuditLogSection from './components/AuditLogSection';
@@ -175,7 +176,7 @@ export default function PartnerDetailPage() {
         .then(([partnerRes, ruleRes]) => {
           const p = partnerRes.data;
           setPartner(p);
-          const rules = ruleRes.data ?? [];
+          const rules = unwrapList(ruleRes);
           const currentRule = rules[0];
 
           if (p) {

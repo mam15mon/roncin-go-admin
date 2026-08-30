@@ -24,6 +24,7 @@ import {
   partnerServiceListPartnerContracts,
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -164,10 +165,7 @@ export default function ContractsPanel({
           const response = await partnerServiceListPartnerContracts({
             partnerId: partner.id,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-          };
+          return toTableRequest(response);
         }}
         toolBarRender={() =>
           canManage

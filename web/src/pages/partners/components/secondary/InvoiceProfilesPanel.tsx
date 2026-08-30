@@ -15,6 +15,7 @@ import {
   partnerServiceListPartnerInvoiceProfiles,
   partnerServiceUpdatePartnerInvoiceProfile,
 } from '@/services/roncin/partnerService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -128,10 +129,7 @@ export default function InvoiceProfilesPanel({
           const response = await partnerServiceListPartnerInvoiceProfiles({
             partnerId: partner.id,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-          };
+          return toTableRequest(response);
         }}
         toolBarRender={() =>
           canManage

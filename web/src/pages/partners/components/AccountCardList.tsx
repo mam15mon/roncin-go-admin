@@ -25,6 +25,7 @@ import {
   partnerServiceListPartnerAccounts,
   partnerServiceUpdatePartnerAccount,
 } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -51,7 +52,7 @@ export default function AccountCardList({
     setLoading(true);
     try {
       const res = await partnerServiceListPartnerAccounts({ partnerId });
-      setAccounts(res.data || []);
+      setAccounts(unwrapList(res));
     } catch {
       message.error('加载账户列表失败');
     } finally {

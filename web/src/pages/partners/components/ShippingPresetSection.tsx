@@ -37,6 +37,7 @@ import {
   partnerServiceListPartnerShippingPresets,
   partnerServiceUpdatePartnerShippingPreset,
 } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 const { Text, Paragraph } = Typography;
 
@@ -72,7 +73,7 @@ export default function ShippingPresetSection({
     setLoading(true);
     try {
       const res = await partnerServiceListPartnerShippingPresets({ partnerId });
-      setPresets(res.data || []);
+      setPresets(unwrapList(res));
     } catch {
       message.error('加载单证常用信息失败');
     } finally {

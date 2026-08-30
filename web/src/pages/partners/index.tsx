@@ -32,6 +32,7 @@ import {
   partnerServiceListPartners,
   partnerServiceSetSupplierBlacklist,
 } from '@/services/roncin/partnerService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import PartnerSecondary from './partner-secondary';
 
 const { Text } = Typography;
@@ -125,7 +126,7 @@ export default function Partners() {
     try {
       setExporting(true);
       const response = await partnerServiceExportPartners({ role: currentView.roleType });
-      const data = response.data ?? [];
+      const data = unwrapList(response);
       if (data.length === 0) {
         message.warning('没有可导出的数据');
         return;
@@ -413,11 +414,7 @@ export default function Partners() {
             role: currentView.roleType,
             enabled: searchParams.enabled,
           });
-          return {
-            data: response.data ?? [],
-            success: response.success ?? true,
-            total: response.total ?? 0,
-          };
+          return toTableRequest(response);
         }}
         search={false}
         toolBarRender={false}
