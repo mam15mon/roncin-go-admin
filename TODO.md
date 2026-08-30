@@ -321,8 +321,10 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 
 ### C1. 响应解包与表格 request 样板（高，107 处 / 59 文件）
 `.data ?? []` 75 处与 `.data || []` 32 处两种风格并存。
-- [ ] `utils/api.ts` 提供 `unwrapList` / `unwrapPage` / `toTableRequest`
-      并统一 `??` 写法
+- [x] `utils/api.ts` 提供 `unwrapList` / `unwrapPage` / `toTableRequest`：业务
+      代码中原有 75 处 `.data ?? []` 与 32 处 `.data || []` 已清零；分页
+      总数统一兼容生成客户端的 `number | string`，ProTable request 保留后端
+      `success`，且非分页响应不虚构 `total`
 
 ### C2. 状态映射集中（高，27 文件 / 50+ 张表，同一状态 3 种键制）
 费用状态同时存在 string 键（`feeLedgerColumns.tsx:16`）与 number 键
