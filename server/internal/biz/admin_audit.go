@@ -20,12 +20,7 @@ type AdminAuditLogListOptions struct {
 	ResourceID   string
 }
 
-type AdminAuditLogList struct {
-	Items    []*AuditLog
-	Total    int
-	Page     int
-	PageSize int
-}
+type AdminAuditLogList = PagedList[*AuditLog]
 
 func (uc *AdminUsecase) ListAuditLogs(ctx context.Context, organizationID uuid.UUID, options AdminAuditLogListOptions) (*AdminAuditLogList, error) {
 	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {

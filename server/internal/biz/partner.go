@@ -185,24 +185,14 @@ type PartnerListOptions struct {
 	Enabled  *bool
 }
 
-type PartnerList struct {
-	Items    []*Partner
-	Total    int
-	Page     int
-	PageSize int
-}
+type PartnerList = PagedList[*Partner]
 
 type PartnerAuditLog struct {
 	Log             *AuditLog
 	UserDisplayName string
 }
 
-type PartnerAuditLogList struct {
-	Items    []*PartnerAuditLog
-	Total    int
-	Page     int
-	PageSize int
-}
+type PartnerAuditLogList = PagedList[*PartnerAuditLog]
 
 type PartnerImportMode string
 

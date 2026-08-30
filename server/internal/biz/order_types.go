@@ -323,12 +323,7 @@ type OrderListOptions struct {
 	IsShared              *bool
 }
 
-type OrderList struct {
-	Items    []*Order
-	Total    int
-	Page     int
-	PageSize int
-}
+type OrderList = PagedList[*Order]
 
 type OrderCargoMeasurement struct {
 	Packages      int

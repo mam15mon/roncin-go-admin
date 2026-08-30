@@ -41,12 +41,7 @@ type Port struct {
 	UpdatedAt      time.Time
 }
 
-type PortList struct {
-	Items    []*Port
-	Total    int
-	Page     int
-	PageSize int
-}
+type PortList = PagedList[*Port]
 
 type Airport struct {
 	ID             uuid.UUID
@@ -67,12 +62,7 @@ type Airport struct {
 	UpdatedAt      time.Time
 }
 
-type AirportList struct {
-	Items    []*Airport
-	Total    int
-	Page     int
-	PageSize int
-}
+type AirportList = PagedList[*Airport]
 
 type Airline struct {
 	ID             uuid.UUID
@@ -91,12 +81,7 @@ type Airline struct {
 	UpdatedAt      time.Time
 }
 
-type AirlineList struct {
-	Items    []*Airline
-	Total    int
-	Page     int
-	PageSize int
-}
+type AirlineList = PagedList[*Airline]
 
 type ShippingLine struct {
 	ID                uuid.UUID
@@ -115,12 +100,7 @@ type ShippingLine struct {
 	UpdatedAt         time.Time
 }
 
-type ShippingLineList struct {
-	Items    []*ShippingLine
-	Total    int
-	Page     int
-	PageSize int
-}
+type ShippingLineList = PagedList[*ShippingLine]
 
 type IndustryReferenceRepo interface {
 	ListPorts(context.Context, uuid.UUID, IndustryReferenceListOptions) (*PortList, error)

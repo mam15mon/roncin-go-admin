@@ -59,12 +59,7 @@ type AdminUserListOptions struct {
 	Keyword  string
 }
 
-type AdminUserList struct {
-	Items    []*AdminUser
-	Total    int
-	Page     int
-	PageSize int
-}
+type AdminUserList = PagedList[*AdminUser]
 
 func (uc *AdminUsecase) ListUsers(ctx context.Context, organizationID uuid.UUID, options AdminUserListOptions) (*AdminUserList, error) {
 	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {

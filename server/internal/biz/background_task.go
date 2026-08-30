@@ -123,12 +123,7 @@ type BackgroundTaskListOptions struct {
 	EndTime   *time.Time
 }
 
-type BackgroundTaskList struct {
-	Items    []*BackgroundTask
-	Total    int
-	Page     int
-	PageSize int
-}
+type BackgroundTaskList = PagedList[*BackgroundTask]
 
 type BackgroundTaskRepo interface {
 	Enqueue(context.Context, uuid.UUID, *BackgroundTask) (*BackgroundTask, error)

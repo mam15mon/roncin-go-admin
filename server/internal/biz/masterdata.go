@@ -238,12 +238,7 @@ type MasterDataListOptions struct {
 	Enabled  *bool
 }
 
-type MasterDataList struct {
-	Items    []*MasterDataItem
-	Total    int
-	Page     int
-	PageSize int
-}
+type MasterDataList = PagedList[*MasterDataItem]
 
 type MasterDataImportMode string
 
