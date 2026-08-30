@@ -18,10 +18,7 @@ func NewOrderMilestoneRepo(data *Data) biz.OrderMilestoneRepo { return &orderMil
 
 func (r *orderMilestoneRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderMilestone, error) {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	items, err := r.data.db.OrderMilestone.Query().Where(ordermilestoneent.OrderIDEQ(orderID)).Order(ordermilestoneent.ByOccurredAt(), ordermilestoneent.ByType()).All(ctx)
 	if err != nil {
@@ -39,10 +36,7 @@ func (r *orderMilestoneRepo) Set(ctx context.Context, organizationID, orderID uu
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		order, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
 		if order.Version != expectedVersion {
 			return biz.ErrOrderStatusConflict

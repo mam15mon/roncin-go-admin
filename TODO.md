@@ -210,6 +210,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共错误映射
 - [x] 第十六批：`order_cargo_item.go` 订单与货物明细标准 NotFound 分支
       改用公共 `mapEntError`
+- [x] 第十七批：`order_milestone.go` 订单标准 NotFound 分支改用公共
+      `mapEntError`，保留不存在里程碑时创建的分流语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
