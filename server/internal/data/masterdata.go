@@ -110,25 +110,21 @@ func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, i
 	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	create := tx.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrMasterDataCodeExists
+	var created *ent.MasterDataItem
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		create := tx.MasterDataItem.Create().SetOrganizationID(organizationID).SetKind(masterdataent.Kind(input.Kind)).SetCode(input.Code).SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).SetAttributes(masterDataAttributesToEnt(input.Attributes))
+		var createErr error
+		created, createErr = create.Save(ctx)
+		if createErr != nil {
+			if ent.IsConstraintError(createErr) {
+				return biz.ErrMasterDataCodeExists
+			}
+			return createErr
 		}
-		return nil, err
-	}
-	audit.Details["master_data.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		audit.Details["master_data.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return masterDataItemToBiz(created), nil
@@ -138,97 +134,16 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrMasterDataNotFound
-		}
-		return nil, err
-	}
-	update := existing.Update().SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).SetAttributes(masterDataAttributesToEnt(input.Attributes))
-	if input.NameEN == nil {
-		update.ClearNameEn()
-	}
-	if input.ParentCode == nil {
-		update.ClearParentCode()
-	}
-	if input.TEUFactor == nil {
-		update.ClearTeuFactor()
-	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["master_data.code"] = updated.Code
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return masterDataItemToBiz(updated), nil
-}
-
-func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataImportResult, error) {
-	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
-		return nil, err
-	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := &biz.MasterDataImportResult{Items: make([]*biz.MasterDataItem, 0, len(inputs))}
-	for _, input := range inputs {
-		existing, err := tx.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind)), masterdataent.CodeEQ(input.Code)).Only(ctx)
-		if ent.IsNotFound(err) {
-			created, createErr := tx.MasterDataItem.Create().
-				SetOrganizationID(organizationID).
-				SetKind(masterdataent.Kind(input.Kind)).
-				SetCode(input.Code).
-				SetName(input.Name).
-				SetNillableNameEn(input.NameEN).
-				SetNillableParentCode(input.ParentCode).
-				SetNillableTeuFactor(input.TEUFactor).
-				SetSource(input.Source).
-				SetSortOrder(input.SortOrder).
-				SetEnabled(input.Enabled).
-				SetAttributes(masterDataAttributesToEnt(input.Attributes)).
-				Save(ctx)
-			if createErr != nil {
-				_ = tx.Rollback()
-				if ent.IsConstraintError(createErr) {
-					return nil, biz.ErrMasterDataCodeExists
-				}
-				return nil, createErr
+	var updated *ent.MasterDataItem
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrMasterDataNotFound
 			}
-			result.Items = append(result.Items, masterDataItemToBiz(created))
-			result.Created++
-			continue
+			return queryErr
 		}
-		if err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if mode == biz.MasterDataImportModeCreateOnly {
-			_ = tx.Rollback()
-			return nil, biz.ErrMasterDataCodeExists
-		}
-		update := existing.Update().
-			SetName(input.Name).
-			SetNillableNameEn(input.NameEN).
-			SetNillableParentCode(input.ParentCode).
-			SetNillableTeuFactor(input.TEUFactor).
-			SetSource(input.Source).
-			SetSortOrder(input.SortOrder).
-			SetEnabled(input.Enabled)
-		update.SetAttributes(masterDataAttributesToEnt(input.Attributes))
+		update := existing.Update().SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 		if input.NameEN == nil {
 			update.ClearNameEn()
 		}
@@ -238,21 +153,88 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 		if input.TEUFactor == nil {
 			update.ClearTeuFactor()
 		}
-		updated, updateErr := update.Save(ctx)
+		var updateErr error
+		updated, updateErr = update.Save(ctx)
 		if updateErr != nil {
-			_ = tx.Rollback()
-			return nil, updateErr
+			return updateErr
 		}
-		result.Items = append(result.Items, masterDataItemToBiz(updated))
-		result.Updated++
-	}
-	audit.Details["created"] = fmt.Sprintf("%d", result.Created)
-	audit.Details["updated"] = fmt.Sprintf("%d", result.Updated)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
+		audit.Details["master_data.code"] = updated.Code
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
-	if err := tx.Commit(); err != nil {
+	return masterDataItemToBiz(updated), nil
+}
+
+func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.MasterDataImportMode, inputs []*biz.MasterDataItem, audit *biz.AuditEvent) (*biz.MasterDataImportResult, error) {
+	if err := r.requireHeadquarters(ctx, organizationID); err != nil {
+		return nil, err
+	}
+	result := &biz.MasterDataImportResult{Items: make([]*biz.MasterDataItem, 0, len(inputs))}
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		for _, input := range inputs {
+			existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind)), masterdataent.CodeEQ(input.Code)).Only(ctx)
+			if ent.IsNotFound(queryErr) {
+				created, createErr := tx.MasterDataItem.Create().
+					SetOrganizationID(organizationID).
+					SetKind(masterdataent.Kind(input.Kind)).
+					SetCode(input.Code).
+					SetName(input.Name).
+					SetNillableNameEn(input.NameEN).
+					SetNillableParentCode(input.ParentCode).
+					SetNillableTeuFactor(input.TEUFactor).
+					SetSource(input.Source).
+					SetSortOrder(input.SortOrder).
+					SetEnabled(input.Enabled).
+					SetAttributes(masterDataAttributesToEnt(input.Attributes)).
+					Save(ctx)
+				if createErr != nil {
+					if ent.IsConstraintError(createErr) {
+						return biz.ErrMasterDataCodeExists
+					}
+					return createErr
+				}
+				result.Items = append(result.Items, masterDataItemToBiz(created))
+				result.Created++
+				continue
+			}
+			if queryErr != nil {
+				return queryErr
+			}
+			if mode == biz.MasterDataImportModeCreateOnly {
+				return biz.ErrMasterDataCodeExists
+			}
+			update := existing.Update().
+				SetName(input.Name).
+				SetNillableNameEn(input.NameEN).
+				SetNillableParentCode(input.ParentCode).
+				SetNillableTeuFactor(input.TEUFactor).
+				SetSource(input.Source).
+				SetSortOrder(input.SortOrder).
+				SetEnabled(input.Enabled)
+			update.SetAttributes(masterDataAttributesToEnt(input.Attributes))
+			if input.NameEN == nil {
+				update.ClearNameEn()
+			}
+			if input.ParentCode == nil {
+				update.ClearParentCode()
+			}
+			if input.TEUFactor == nil {
+				update.ClearTeuFactor()
+			}
+			updated, updateErr := update.Save(ctx)
+			if updateErr != nil {
+				return updateErr
+			}
+			result.Items = append(result.Items, masterDataItemToBiz(updated))
+			result.Updated++
+		}
+		audit.Details["created"] = fmt.Sprintf("%d", result.Created)
+		audit.Details["updated"] = fmt.Sprintf("%d", result.Updated)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return result, nil

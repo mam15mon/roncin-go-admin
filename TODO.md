@@ -45,7 +45,8 @@
 - [x] 第十批：`exchange_rate_import.go`、`industry_reference_sync.go` 共 4 个批处理事务入口。
 - [x] 第十一批：`exchange_rate.go` 三个汇率停用及配置事务入口。
 - [x] 第十二批：`background_task.go` 共 4 个任务领取及状态变更事务入口。
-- [ ] 剩余生产仓储手写事务：74 处 / 15 个文件。
+- [x] 第十三批：`masterdata.go` 共 3 个主数据写入及导入事务入口。
+- [ ] 剩余生产仓储手写事务：71 处 / 14 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 
