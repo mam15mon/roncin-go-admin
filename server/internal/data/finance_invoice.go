@@ -137,69 +137,63 @@ func (r *financeInvoiceRepo) LoadInvoiceProfile(ctx context.Context, org, partne
 }
 
 func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInvoice, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(e error) (*biz.FinanceInvoice, error) { _ = tx.Rollback(); return nil, e }
-	if invoice.InvoiceProfileID == nil {
-		return rollback(biz.ErrFinanceInvoiceProfileRequired)
-	}
-	profile, err := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID), profileent.EnabledEQ(true)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceInvoiceProfileRequired)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if profile.InvoiceTitle != invoice.InvoiceTitle || profile.TaxpayerIdentificationNo != invoice.TaxpayerIdentificationNo || profile.RegisteredAddress != invoice.RegisteredAddress || profile.RegisteredPhone != invoice.RegisteredPhone || profile.BankName != invoice.BankName || profile.BankAccount != invoice.BankAccount {
-		return rollback(biz.ErrFinanceInvoiceProfileRequired)
-	}
-	ids := make([]uuid.UUID, 0, len(invoice.Links))
-	for _, l := range invoice.Links {
-		ids = append(ids, l.BillID)
-	}
-	bills, err := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(invoice.OrganizationID)).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(bills) != len(ids) {
-		return rollback(biz.ErrFinanceInvoiceBillInvalid)
-	}
-	for _, b := range bills {
-		if b.Status != financebillent.StatusCONFIRMED || string(b.Direction) != string(invoice.Direction) || b.SettlementPartyID != invoice.SettlementPartyID || b.Currency != invoice.Currency {
-			return rollback(biz.ErrFinanceInvoiceBillInvalid)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if invoice.InvoiceProfileID == nil {
+			return biz.ErrFinanceInvoiceProfileRequired
 		}
-	}
-	active, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDIn(ids...), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
+		profile, queryErr := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID), profileent.EnabledEQ(true)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrFinanceInvoiceProfileRequired
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if profile.InvoiceTitle != invoice.InvoiceTitle || profile.TaxpayerIdentificationNo != invoice.TaxpayerIdentificationNo || profile.RegisteredAddress != invoice.RegisteredAddress || profile.RegisteredPhone != invoice.RegisteredPhone || profile.BankName != invoice.BankName || profile.BankAccount != invoice.BankAccount {
+			return biz.ErrFinanceInvoiceProfileRequired
+		}
+		ids := make([]uuid.UUID, 0, len(invoice.Links))
+		for _, link := range invoice.Links {
+			ids = append(ids, link.BillID)
+		}
+		bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(invoice.OrganizationID)).ForUpdate().All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(bills) != len(ids) {
+			return biz.ErrFinanceInvoiceBillInvalid
+		}
+		for _, bill := range bills {
+			if bill.Status != financebillent.StatusCONFIRMED || string(bill.Direction) != string(invoice.Direction) || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency {
+				return biz.ErrFinanceInvoiceBillInvalid
+			}
+		}
+		active, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDIn(ids...), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if active {
+			return biz.ErrFinanceInvoiceBillInvalid
+		}
+		if _, createErr := tx.FinanceInvoice.Create().SetID(invoice.ID).SetOrganizationID(invoice.OrganizationID).SetRecordNo(invoice.RecordNo).SetIdempotencyKey(invoice.IdempotencyKey).SetDirection(financeinvoiceent.Direction(invoice.Direction)).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceType(invoice.InvoiceType)).SetNillableInvoiceProfileID(invoice.InvoiceProfileID).SetSettlementPartyID(invoice.SettlementPartyID).SetSettlementPartyName(invoice.SettlementPartyName).SetInvoiceTitle(invoice.InvoiceTitle).SetTaxpayerIdentificationNo(invoice.TaxpayerIdentificationNo).SetRegisteredAddress(invoice.RegisteredAddress).SetRegisteredPhone(invoice.RegisteredPhone).SetBankName(invoice.BankName).SetBankAccount(invoice.BankAccount).SetCurrency(invoice.Currency).SetBaseCurrency(invoice.BaseCurrency).SetTotalAmount(invoice.TotalAmount.StringFixed(8)).SetNetAmount(invoice.NetAmount.StringFixed(8)).SetTaxAmount(invoice.TaxAmount.StringFixed(8)).SetBillCount(invoice.BillCount).SetNillableNote(invoice.Note).SetVersion(1).Save(ctx); createErr != nil {
+			return createErr
+		}
+		builders := make([]*ent.FinanceInvoiceBillCreate, 0, len(invoice.Links))
+		for _, link := range invoice.Links {
+			builders = append(builders, tx.FinanceInvoiceBill.Create().SetID(link.ID).SetInvoiceID(invoice.ID).SetBillID(link.BillID).SetBillNo(link.BillNo).SetAmount(link.Amount.StringFixed(8)).SetTaxAmount(link.TaxAmount.StringFixed(8)).SetActive(true))
+		}
+		if _, createErr := tx.FinanceInvoiceBill.CreateBulk(builders...).Save(ctx); createErr != nil {
+			return biz.ErrFinanceInvoiceBillInvalid
+		}
+		lineBuilders := make([]*ent.FinanceInvoiceLineCreate, 0, len(invoice.Lines))
+		for _, line := range invoice.Lines {
+			lineBuilders = append(lineBuilders, tx.FinanceInvoiceLine.Create().SetID(line.ID).SetInvoiceID(invoice.ID).SetLineNo(line.LineNo).SetItemCode(line.ItemCode).SetItemName(line.ItemName).SetTaxRate(line.TaxRate.StringFixed(4)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetCurrency(line.Currency).SetSourceLineCount(line.SourceLineCount))
+		}
+		if _, createErr := tx.FinanceInvoiceLine.CreateBulk(lineBuilders...).Save(ctx); createErr != nil {
+			return createErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return rollback(err)
-	}
-	if active {
-		return rollback(biz.ErrFinanceInvoiceBillInvalid)
-	}
-	_, err = tx.FinanceInvoice.Create().SetID(invoice.ID).SetOrganizationID(invoice.OrganizationID).SetRecordNo(invoice.RecordNo).SetIdempotencyKey(invoice.IdempotencyKey).SetDirection(financeinvoiceent.Direction(invoice.Direction)).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceType(invoice.InvoiceType)).SetNillableInvoiceProfileID(invoice.InvoiceProfileID).SetSettlementPartyID(invoice.SettlementPartyID).SetSettlementPartyName(invoice.SettlementPartyName).SetInvoiceTitle(invoice.InvoiceTitle).SetTaxpayerIdentificationNo(invoice.TaxpayerIdentificationNo).SetRegisteredAddress(invoice.RegisteredAddress).SetRegisteredPhone(invoice.RegisteredPhone).SetBankName(invoice.BankName).SetBankAccount(invoice.BankAccount).SetCurrency(invoice.Currency).SetBaseCurrency(invoice.BaseCurrency).SetTotalAmount(invoice.TotalAmount.StringFixed(8)).SetNetAmount(invoice.NetAmount.StringFixed(8)).SetTaxAmount(invoice.TaxAmount.StringFixed(8)).SetBillCount(invoice.BillCount).SetNillableNote(invoice.Note).SetVersion(1).Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	builders := make([]*ent.FinanceInvoiceBillCreate, 0, len(invoice.Links))
-	for _, l := range invoice.Links {
-		builders = append(builders, tx.FinanceInvoiceBill.Create().SetID(l.ID).SetInvoiceID(invoice.ID).SetBillID(l.BillID).SetBillNo(l.BillNo).SetAmount(l.Amount.StringFixed(8)).SetTaxAmount(l.TaxAmount.StringFixed(8)).SetActive(true))
-	}
-	if _, err = tx.FinanceInvoiceBill.CreateBulk(builders...).Save(ctx); err != nil {
-		return rollback(biz.ErrFinanceInvoiceBillInvalid)
-	}
-	lineBuilders := make([]*ent.FinanceInvoiceLineCreate, 0, len(invoice.Lines))
-	for _, line := range invoice.Lines {
-		lineBuilders = append(lineBuilders, tx.FinanceInvoiceLine.Create().SetID(line.ID).SetInvoiceID(invoice.ID).SetLineNo(line.LineNo).SetItemCode(line.ItemCode).SetItemName(line.ItemName).SetTaxRate(line.TaxRate.StringFixed(4)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetCurrency(line.Currency).SetSourceLineCount(line.SourceLineCount))
-	}
-	if _, err = tx.FinanceInvoiceLine.CreateBulk(lineBuilders...).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, invoice.OrganizationID, invoice.ID)
@@ -277,49 +271,44 @@ func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUI
 }
 
 func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.UUID, version uint64, redInvoiceNo, redInvoiceDate, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	tx, err := r.data.db.Tx(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrFinanceInvoiceNotFound
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if item.Version != version {
+			return biz.ErrFinanceInvoiceVersionConflict
+		}
+		if item.Status != financeinvoiceent.StatusISSUED {
+			return biz.ErrFinanceInvoiceInvalidTransition
+		}
+		duplicate, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.RedInvoiceNoEQ(redInvoiceNo)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if duplicate {
+			return biz.ErrFinanceInvoiceRedNoExists
+		}
+		links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(links) == 0 {
+			return biz.ErrFinanceInvoiceInvalidTransition
+		}
+		if _, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		now := time.Now()
+		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
+			return mapFinanceInvoiceNumberConstraint(updateErr)
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceInvoice, error) { _ = tx.Rollback(); return nil, err }
-	item, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceInvoiceNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != version {
-		return rollback(biz.ErrFinanceInvoiceVersionConflict)
-	}
-	if item.Status != financeinvoiceent.StatusISSUED {
-		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
-	}
-	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.RedInvoiceNoEQ(redInvoiceNo)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if duplicate {
-		return rollback(biz.ErrFinanceInvoiceRedNoExists)
-	}
-	links, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(links) == 0 {
-		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
-	}
-	if _, err = tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	now := time.Now()
-	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(mapFinanceInvoiceNumberConstraint(err))
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
