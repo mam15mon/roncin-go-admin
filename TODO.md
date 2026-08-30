@@ -139,13 +139,13 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
       `biz/settlement.go:20`）提升为 proto enum 后纳入同一链路
 
 ### A3. 状态标签三份真相收敛
-**问题**：状态文本/颜色同时存在于 proto 枚举、DB 种子
-（`migrations/20260823200000_default_status_templates.sql` 的
-status_template_items，含 label + color_token，本就按组织可配）与前端
-常量，已互不一致（SE 的 DRAFT 在 DB 叫「新建」，proto/前端叫「草稿」，
-节点集合也不同）。
-**方案**：前端状态标签/颜色改为消费后端 `status_template_items` 接口。
-- [ ] 订单状态标签改由 status template 驱动，删除前端 `seStatusTabs`
+**复核**：原计划依据的 `status_template_items` 已在
+`20260827160000_order_lifecycle.sql` 中连同模板外键、表和权限一起删除，订单
+改为服务端代码内 SE 状态机，并拆分流程、终止和结案维度，因此不再恢复已废弃
+的动态模板接口。展示文案与颜色只属于前端展示层，状态值以 proto 枚举为准。
+- [x] 流程状态文案统一到 `orderFlowStatusMeta`；订单列表标签由该元数据生成，
+      生命周期筛选使用生成枚举，并删除 `seStatusTabs`、`seFlowStatusLabels`
+      两套手抄状态表
       等手抄颜色表
 
 ### A4. 状态机流转改为服务端下发

@@ -5,6 +5,7 @@ import {
   BackgroundTaskStatus,
   OrderAbnormalCaseStatus,
   OrderBusinessType,
+  OrderFlowStatus,
   OrderFeeStatus,
   OrderReleasePodStatus,
   PartnerContractStatus,
@@ -22,6 +23,37 @@ export const businessTypeMeta: Record<number, StatusMeta> = {
   [OrderBusinessType.BUSINESS_TYPE_AI]: { text: '空运进口' },
   [OrderBusinessType.BUSINESS_TYPE_LAND]: { text: '陆运' },
   [OrderBusinessType.BUSINESS_TYPE_RAIL]: { text: '铁路' },
+};
+
+export const orderFlowStatusMeta: Record<number, StatusMeta> = {
+  [OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT]: {
+    text: '草稿',
+    color: 'default',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED]: {
+    text: '已订舱',
+    color: 'blue',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED]: {
+    text: '已配舱',
+    color: 'cyan',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_TRUCKING_ARRANGED]: {
+    text: '拖车已安排',
+    color: 'purple',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_CUTOFF]: {
+    text: '已截单',
+    color: 'magenta',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED]: {
+    text: '报关已安排',
+    color: 'geekblue',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED]: {
+    text: '已放单',
+    color: 'success',
+  },
 };
 
 export const orderFeeStatusMeta: Record<number, StatusMeta> = {

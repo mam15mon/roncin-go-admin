@@ -7,8 +7,8 @@ import {
 } from '@ant-design/pro-components';
 import { App } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import { orderServiceTransitionOrderStatus } from '@/services/roncin/orderService';
-import { seFlowStatusLabels } from '../../common';
 
 export type TransitionModalRef = {
   open: (order: API.Order) => void;
@@ -38,13 +38,13 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
         setRecord(order);
         formRef.current?.setFieldsValue({
           currentStatus:
-            seFlowStatusLabels[order.flowStatus ?? 0] ?? '未知状态',
+            statusText(orderFlowStatusMeta, order.flowStatus ?? 0, '未知状态'),
           targetStatus: undefined,
           reason: undefined,
         });
         setTargetStatusOptions(
           (order.allowedTargetFlowStatuses ?? []).map((status) => ({
-            label: seFlowStatusLabels[status] ?? '未知状态',
+            label: statusText(orderFlowStatusMeta, status, '未知状态'),
             value: status,
           })),
         );
@@ -61,7 +61,11 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
           record
             ? {
                 currentStatus:
-                  seFlowStatusLabels[record.flowStatus ?? 0] ?? '未知状态',
+                  statusText(
+                    orderFlowStatusMeta,
+                    record.flowStatus ?? 0,
+                    '未知状态',
+                  ),
               }
             : undefined
         }
@@ -93,7 +97,11 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
           label="当前状态"
           readonly
           initialValue={
-            seFlowStatusLabels[record?.flowStatus ?? 0] ?? '未知状态'
+            statusText(
+              orderFlowStatusMeta,
+              record?.flowStatus ?? 0,
+              '未知状态',
+            )
           }
         />
         <ProFormSelect

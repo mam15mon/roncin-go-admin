@@ -157,16 +157,6 @@ export const shippingDocumentStatusValueEnum: Record<
   3: { text: '已放货', status: 'Success' },
 };
 
-export const seFlowStatusLabels: Record<number, string> = {
-  1: '草稿',
-  2: '已订舱',
-  3: '已配舱',
-  4: '拖车已安排',
-  5: '已截单',
-  6: '报关已安排',
-  7: '已放单',
-};
-
 export const MASTER_DATA_KINDS = {
   REGION: 'MASTER_DATA_KIND_REGION',
   CONTAINER_SPEC: 'MASTER_DATA_KIND_CONTAINER_SPEC',

@@ -2,11 +2,15 @@ import type {
   OrderListFilterParams,
   OrderListItem,
 } from '@/components/ui';
+import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
+import {
+  OrderClosureStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import {
   paymentTermOptions,
-  seFlowStatusLabels,
   tradeTermOptions,
   type OrderKindConfig,
 } from './common';
@@ -118,11 +122,13 @@ export async function queryOrderList(
       orderKind: config.kind as any,
       businessType: config.title,
       stage:
-        order.closureStatus === 2
+        order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
           ? '已完结'
-          : order.terminationStatus === 3
+          : order.terminationStatus ===
+              OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
             ? '已退关'
-            : order.terminationStatus === 2
+            : order.terminationStatus ===
+                OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING
               ? '退关中'
               : order.hasActiveException
                 ? '异常挂起'
@@ -155,7 +161,7 @@ export async function queryOrderList(
       tags: order.tags,
       notes: order.notes,
       statusName:
-        seFlowStatusLabels[order.flowStatus ?? 0] ?? '未知状态',
+        statusText(orderFlowStatusMeta, order.flowStatus ?? 0, '未知状态'),
       abnormalLevel: order.hasActiveException ? 'high' : 'normal',
       rawRecord: order,
     };
