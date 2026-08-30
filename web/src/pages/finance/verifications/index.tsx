@@ -12,7 +12,7 @@ import {
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
-import { confirmWithReason } from '@/utils/confirmWithReason';
+import { makeVersionActions } from '@/utils/versionActions';
 import VerificationWorkbench from './VerificationWorkbench';
 
 export default function FinanceVerificationsPage() {
@@ -29,17 +29,18 @@ export default function FinanceVerificationsPage() {
   });
 
   const reload = () => actionRef.current?.reload();
+  const verificationActions = makeVersionActions<API.FinanceVerification>({
+    modal,
+    message,
+  });
   const reverse = (r: API.FinanceVerification) => {
-    const id = r.id;
-    const v = r.version;
-    if (!id || !v) return;
-    confirmWithReason(
-      { modal, message },
+    verificationActions.confirm(
+      r,
       '反核销该批分配？',
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         await settlementServiceReverseVerification(
           { id },
-          { id, expectedVersion: v, reason },
+          { id, expectedVersion, reason },
         );
         message.success('反核销成功；相关未支付提成已自动取消，资金与账单余额已释放');
         reload();

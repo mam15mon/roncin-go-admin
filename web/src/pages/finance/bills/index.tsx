@@ -22,8 +22,8 @@ import {
   settlementServiceListFinanceBillTagOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
-import { confirmWithReason } from '@/utils/confirmWithReason';
 import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { makeVersionActions } from '@/utils/versionActions';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -174,6 +174,7 @@ export default function FinanceBillsPage() {
   ];
 
   const reload = () => actionRef.current?.reload();
+  const billActions = makeVersionActions<API.FinanceBill>({ modal, message });
   const openCreate = () => {
     setWorkbenchOpen(true);
   };
@@ -229,31 +230,25 @@ export default function FinanceBillsPage() {
     }
   };
 
-  const confirmBill = async (bill: API.FinanceBill) => {
-    if (!bill.id || !bill.version) return;
-    try {
-      await settlementServiceConfirmBill(
-        { id: bill.id },
-        { id: bill.id, expectedVersion: bill.version },
-      );
-      message.success('账单已确认，进入待开票/待核销流');
-      reload();
-    } catch (error: any) {
-      message.error(error.message || '确认账单失败');
-    }
-  };
+  const confirmBill = (bill: API.FinanceBill) =>
+    billActions.run(bill, async ({ id, expectedVersion }) => {
+      try {
+        await settlementServiceConfirmBill({ id }, { id, expectedVersion });
+        message.success('账单已确认，进入待开票/待核销流');
+        reload();
+      } catch (error: any) {
+        message.error(error.message || '确认账单失败');
+      }
+    });
 
   const cancelBill = (bill: API.FinanceBill) => {
-    const id = bill.id;
-    const version = bill.version;
-    if (!id || !version) return;
-    confirmWithReason(
-      { modal, message },
+    billActions.confirm(
+      bill,
       '取消账单并释放关联费用？',
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelBill(
           { id },
-          { id, expectedVersion: version, reason },
+          { id, expectedVersion, reason },
         );
         message.success('账单已取消，关联明细费用已释放并可重新建单');
         reload();

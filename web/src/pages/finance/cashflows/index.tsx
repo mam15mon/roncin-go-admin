@@ -27,7 +27,7 @@ import {
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapList } from '@/utils/api';
-import { confirmWithReason } from '@/utils/confirmWithReason';
+import { makeVersionActions } from '@/utils/versionActions';
 
 type Values = {
   direction: string;
@@ -67,30 +67,28 @@ export default function FinanceCashflowsPage() {
   });
 
   const reload = () => actionRef.current?.reload();
-  const confirm = async (r: API.FinanceCashflow) => {
-    if (!r.id || !r.version) return;
-    try {
-      await settlementServiceConfirmCashflow(
-        { id: r.id },
-        { id: r.id, expectedVersion: r.version },
-      );
-      message.success('资金流水已确认，可进入核销');
-      reload();
-    } catch (e: any) {
-      message.error(e.message || '确认失败');
-    }
-  };
+  const cashflowActions = makeVersionActions<API.FinanceCashflow>({
+    modal,
+    message,
+  });
+  const confirm = (r: API.FinanceCashflow) =>
+    cashflowActions.run(r, async ({ id, expectedVersion }) => {
+      try {
+        await settlementServiceConfirmCashflow({ id }, { id, expectedVersion });
+        message.success('资金流水已确认，可进入核销');
+        reload();
+      } catch (e: any) {
+        message.error(e.message || '确认失败');
+      }
+    });
   const cancel = (r: API.FinanceCashflow) => {
-    const id = r.id;
-    const v = r.version;
-    if (!id || !v) return;
-    confirmWithReason(
-      { modal, message },
+    cashflowActions.confirm(
+      r,
       '取消资金流水？',
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelCashflow(
           { id },
-          { id, expectedVersion: v, reason },
+          { id, expectedVersion, reason },
         );
         message.success('资金流水已取消');
         reload();

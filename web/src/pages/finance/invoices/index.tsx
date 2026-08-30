@@ -24,8 +24,8 @@ import {
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
-import { confirmWithReason } from '@/utils/confirmWithReason';
 import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { makeVersionActions } from '@/utils/versionActions';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
 import {
@@ -73,6 +73,10 @@ export default function FinanceInvoicesPage() {
     baseCurrency: '',
   });
   const reload = () => actionRef.current?.reload();
+  const invoiceActions = makeVersionActions<API.FinanceInvoice>({
+    modal,
+    message,
+  });
 
   const loadSelectedProfiles = async (partnerId?: string) => {
     if (!partnerId) {
@@ -171,16 +175,13 @@ export default function FinanceInvoicesPage() {
   };
 
   const cancelInvoice = (row: API.FinanceInvoice) => {
-    const id = row.id;
-    const version = row.version;
-    if (!id || !version) return;
-    confirmWithReason(
-      { modal, message },
+    invoiceActions.confirm(
+      row,
       '取消开票记录并释放账单？',
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         await settlementServiceCancelInvoice(
           { id },
-          { id, expectedVersion: version, reason },
+          { id, expectedVersion, reason },
         );
         message.success('开票记录已取消，账单已释放');
         reload();

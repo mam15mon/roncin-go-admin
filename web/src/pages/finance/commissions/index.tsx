@@ -24,7 +24,7 @@ import {
   settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
-import { confirmWithReason } from '@/utils/confirmWithReason';
+import { makeVersionActions } from '@/utils/versionActions';
 import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
@@ -56,6 +56,16 @@ export default function FinanceCommissionsPage() {
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
 
   const reload = () => actionRef.current?.reload();
+  const commissionActions = makeVersionActions<API.FinanceCommission>({
+    modal,
+    message,
+  });
+  const adjustmentActions = makeVersionActions<API.FinanceCommissionAdjustment>(
+    {
+      modal,
+      message,
+    },
+  );
 
   const openDetail = async (record: API.FinanceCommission) => {
     if (!record.id) return;
@@ -155,17 +165,14 @@ export default function FinanceCommissionsPage() {
   };
 
   const cancelAdjustment = (record: API.FinanceCommissionAdjustment) => {
-    if (!record.id || !record.version) return;
-    const adjustmentID = record.id;
-    const adjustmentVersion = record.version;
-    confirmWithReason(
-      { modal, message },
+    adjustmentActions.confirm(
+      record,
       `取消调整 ${record.adjustmentNo}？`,
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         try {
           await settlementServiceCancelCommissionAdjustment(
-            { id: adjustmentID },
-            { id: adjustmentID, expectedVersion: adjustmentVersion, reason },
+            { id },
+            { id, expectedVersion, reason },
           );
           message.success('调整已取消');
           await refreshDetail();
@@ -241,17 +248,14 @@ export default function FinanceCommissionsPage() {
   };
 
   const cancel = (record: API.FinanceCommission) => {
-    if (!record.id || !record.version) return;
-    const id = record.id;
-    const version = record.version;
-    confirmWithReason(
-      { modal, message },
+    commissionActions.confirm(
+      record,
       `取消提成 ${record.commissionNo}？`,
-      async (reason) => {
+      async ({ id, expectedVersion }, reason) => {
         try {
           await settlementServiceCancelCommission(
             { id },
-            { id, expectedVersion: version, reason },
+            { id, expectedVersion, reason },
           );
           message.success('提成已取消');
           reload();

@@ -1,8 +1,8 @@
 import { type App, Input } from 'antd';
 
-type AppInstance = ReturnType<typeof App.useApp>;
+export type AppInstance = ReturnType<typeof App.useApp>;
 
-type ConfirmWithReasonOptions = {
+export type ConfirmWithReasonOptions = {
   danger?: boolean;
   placeholder?: string;
   requiredMessage?: string;
