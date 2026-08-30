@@ -23,6 +23,12 @@ import {
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
+  backgroundTaskStatusMeta,
+  makeValueEnum,
+  statusTag,
+} from '@/constants/statusMeta';
+import { BackgroundTaskStatus } from '@/enums.generated';
+import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
@@ -35,26 +41,23 @@ import {
 
 const { Text } = Typography;
 
-const statusTagMap: Record<number, { color: string; label: string }> = {
-  1: { color: 'default', label: '待执行' },
-  2: { color: 'processing', label: '执行中' },
-  3: { color: 'success', label: '执行成功' },
-  4: { color: 'warning', label: '等待重试' },
-  5: { color: 'error', label: '已停止' },
-};
-
 type BackgroundTaskPhase = 1 | 2;
 
-const activeStatusValueEnum = {
-  1: { text: '待执行' },
-  2: { text: '执行中' },
-  4: { text: '等待重试' },
-};
+const activeStatusValueEnum = makeValueEnum({
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING]:
+    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING],
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING]:
+    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING],
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED]:
+    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED],
+});
 
-const historyStatusValueEnum = {
-  3: { text: '执行成功' },
-  5: { text: '已停止' },
-};
+const historyStatusValueEnum = makeValueEnum({
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED]:
+    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED],
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER]:
+    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER],
+});
 
 export default function BackgroundTasksPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -137,10 +140,8 @@ export default function BackgroundTasksPanel() {
       width: 110,
       valueEnum:
         taskPhase === 1 ? activeStatusValueEnum : historyStatusValueEnum,
-      render: (_, record) => {
-        const config = record.status ? statusTagMap[record.status] : undefined;
-        return config ? <Tag color={config.color}>{config.label}</Tag> : '-';
-      },
+      render: (_, record) =>
+        statusTag(backgroundTaskStatusMeta, record.status ?? 0),
     },
     {
       title: '执行情况',

@@ -1,6 +1,14 @@
 import { createElement } from 'react';
 import { Tag, type TagProps } from 'antd';
-import { OrderBusinessType, OrderFeeStatus } from '@/enums.generated';
+import {
+  AdminUserStatus,
+  BackgroundTaskStatus,
+  OrderAbnormalCaseStatus,
+  OrderBusinessType,
+  OrderFeeStatus,
+  OrderReleasePodStatus,
+  PartnerContractStatus,
+} from '@/enums.generated';
 
 export type StatusMeta = {
   text: string;
@@ -29,6 +37,96 @@ export const orderFeeStatusMeta: Record<number, StatusMeta> = {
   [OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED]: {
     text: '已作废',
     color: 'default',
+  },
+};
+
+export const adminUserStatusMeta: Record<number, StatusMeta> = {
+  [AdminUserStatus.ADMIN_USER_STATUS_ACTIVE]: {
+    text: '在职',
+    color: 'success',
+  },
+  [AdminUserStatus.ADMIN_USER_STATUS_PENDING_AUTHORIZATION]: {
+    text: '待授权',
+    color: 'warning',
+  },
+  [AdminUserStatus.ADMIN_USER_STATUS_TERMINATED]: {
+    text: '已离职',
+    color: 'default',
+  },
+  [AdminUserStatus.ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION]: {
+    text: '已移出本组织',
+    color: 'default',
+  },
+  [AdminUserStatus.ADMIN_USER_STATUS_DISABLED]: {
+    text: '已停用',
+    color: 'default',
+  },
+};
+
+export const backgroundTaskStatusMeta: Record<number, StatusMeta> = {
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING]: {
+    text: '待执行',
+    color: 'default',
+  },
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING]: {
+    text: '执行中',
+    color: 'processing',
+  },
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED]: {
+    text: '执行成功',
+    color: 'success',
+  },
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED]: {
+    text: '等待重试',
+    color: 'warning',
+  },
+  [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER]: {
+    text: '已停止',
+    color: 'error',
+  },
+};
+
+export const partnerContractStatusMeta: Record<number, StatusMeta> = {
+  [PartnerContractStatus.PARTNER_CONTRACT_STATUS_PENDING]: {
+    text: '待生效',
+    color: 'processing',
+  },
+  [PartnerContractStatus.PARTNER_CONTRACT_STATUS_ACTIVE]: {
+    text: '生效中',
+    color: 'success',
+  },
+  [PartnerContractStatus.PARTNER_CONTRACT_STATUS_EXPIRED]: {
+    text: '已到期',
+  },
+  [PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED]: {
+    text: '已终止',
+    color: 'error',
+  },
+};
+
+export const orderAbnormalCaseStatusMeta: Record<number, StatusMeta> = {
+  [OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_ACTIVE]: {
+    text: '处理中',
+    color: 'error',
+  },
+  [OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_RESOLVED]: {
+    text: '已解决',
+    color: 'success',
+  },
+};
+
+export const orderReleasePodStatusMeta: Record<number, StatusMeta> = {
+  [OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_PENDING]: {
+    text: '待签收',
+    color: 'default',
+  },
+  [OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED]: {
+    text: '已签收',
+    color: 'processing',
+  },
+  [OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED]: {
+    text: '已回单',
+    color: 'success',
   },
 };
 

@@ -22,14 +22,6 @@ export const organizationKindLabels: Record<number, string> = {
   4: '组',
 };
 
-export const userStatusLabels: Record<number, { text: string; color?: string }> = {
-  1: { text: '在职', color: 'success' },
-  2: { text: '待授权', color: 'warning' },
-  3: { text: '已离职', color: 'default' },
-  4: { text: '已移出本组织', color: 'default' },
-  5: { text: '已停用', color: 'default' },
-};
-
 export function pendingExternalProvider(
   user?: API.AdminUser,
 ): 'wecom' | 'dingtalk' | undefined {

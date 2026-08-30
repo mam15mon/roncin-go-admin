@@ -6,9 +6,14 @@ import type {
 } from '@ant-design/pro-components';
 import { ModalForm, ProTable } from '@ant-design/pro-components';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { App, Button, Drawer, Popconfirm, Space, Tag, Typography } from 'antd';
+import { App, Button, Drawer, Popconfirm, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  makeValueEnum,
+  orderAbnormalCaseStatusMeta,
+  statusTag,
+} from '@/constants/statusMeta';
 import {
   orderAbnormalCaseServiceListAbnormalCases,
   orderAbnormalCaseServiceMarkAbnormalCase,
@@ -37,14 +42,6 @@ const isAbnormalCase = (kind?: number | string) =>
   kind === '10' ||
   kind === 'MASTER_DATA_KIND_ABNORMAL_CASE' ||
   kind === 'abnormal_case';
-
-const abnormalCaseStatusValueEnum: Record<
-  number,
-  { text: string; color: string }
-> = {
-  1: { text: '处理中', color: 'error' },
-  2: { text: '已解决', color: 'success' },
-};
 
 const AbnormalCasePanel = forwardRef<
   AbnormalCasePanelRef,
@@ -101,14 +98,9 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'status',
       width: 100,
       valueType: 'select',
-      valueEnum: {
-        1: { text: '处理中' },
-        2: { text: '已解决' },
-      },
-      render: (_, record) => {
-        const config = abnormalCaseStatusValueEnum[record.status ?? 0];
-        return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
-      },
+      valueEnum: makeValueEnum(orderAbnormalCaseStatusMeta),
+      render: (_, record) =>
+        statusTag(orderAbnormalCaseStatusMeta, record.status ?? 0),
     },
     {
       title: '标记时间',

@@ -17,11 +17,16 @@ import {
   Drawer,
   Popconfirm,
   Space,
-  Tag,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  makeValueEnum,
+  orderReleasePodStatusMeta,
+  statusTag,
+  statusText,
+} from '@/constants/statusMeta';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
   orderReleasePodServiceAddReleasePod,
@@ -50,22 +55,13 @@ export type ReleasePodPanelRef = {
   open: (order: API.Order) => void;
 };
 
-const releasePodStatusValueEnum: Record<
-  number,
-  { text: string; color: string }
-> = {
-  1: { text: '待签收', color: 'default' },
-  2: { text: '已签收', color: 'processing' },
-  3: { text: '已回单', color: 'success' },
-};
-
 export function getReleasePodTransition(record?: API.OrderReleasePod) {
   const status = record?.status;
   const toStatus = record?.allowedTargetStatuses?.[0];
   if (!status || !toStatus) return undefined;
   return {
-    currentText: releasePodStatusValueEnum[status]?.text ?? '未知状态',
-    nextText: releasePodStatusValueEnum[toStatus]?.text ?? '未知状态',
+    currentText: statusText(orderReleasePodStatusMeta, status, '未知状态'),
+    nextText: statusText(orderReleasePodStatusMeta, toStatus, '未知状态'),
     toStatus,
   };
 }
@@ -174,15 +170,9 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         title: '状态',
         dataIndex: 'status',
         valueType: 'select',
-        valueEnum: {
-          1: { text: '待签收' },
-          2: { text: '已签收' },
-          3: { text: '已回单' },
-        },
-        render: (_, record) => {
-          const config = releasePodStatusValueEnum[record.status ?? 0];
-          return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
-        },
+        valueEnum: makeValueEnum(orderReleasePodStatusMeta),
+        render: (_, record) =>
+          statusTag(orderReleasePodStatusMeta, record.status ?? 0),
       },
       {
         title: '签收时间',

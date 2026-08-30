@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
-import { userStatusLabels } from './userConstants';
+import { adminUserStatusMeta, statusTag } from '@/constants/statusMeta';
 
 const { Text } = Typography;
 
@@ -229,13 +229,8 @@ export function buildUserColumns({
       dataIndex: 'status',
       width: 120,
       search: false,
-      render: (_, record) => {
-        const status = userStatusLabels[record.status ?? 0] ?? {
-          text: '未知',
-          color: 'default',
-        };
-        return <Tag color={status.color}>{status.text}</Tag>;
-      },
+      render: (_, record) =>
+        statusTag(adminUserStatusMeta, record.status ?? 0, '未知'),
     },
     {
       title: '更新时间',

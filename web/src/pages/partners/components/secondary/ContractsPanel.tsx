@@ -16,9 +16,10 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { App, Button, Space, Tag, Typography } from 'antd';
+import { App, Button, Space, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { partnerContractStatusMeta, statusTag } from '@/constants/statusMeta';
 import {
   partnerServiceCreatePartnerContract,
   partnerServiceListPartnerContracts,
@@ -29,22 +30,11 @@ import { toTableRequest } from '@/utils/api';
 const { Text } = Typography;
 
 const contractStatusOptions = [
-  { label: '待生效', value: 1 },
-  { label: '生效中', value: 2 },
-  { label: '已到期', value: 3 },
-  { label: '已终止', value: 4 },
+  ...Object.entries(partnerContractStatusMeta).map(([value, meta]) => ({
+    label: meta.text,
+    value: Number(value),
+  })),
 ];
-
-const contractStatusLabels: Record<number, string> = Object.fromEntries(
-  contractStatusOptions.map((option) => [option.value, option.label]),
-);
-
-const contractStatusColors: Record<number, string | undefined> = {
-  1: 'processing',
-  2: 'success',
-  3: undefined,
-  4: 'error',
-};
 
 type ContractFormValues = {
   contractNo?: string;
@@ -105,11 +95,8 @@ export default function ContractsPanel({
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (_, record) => (
-        <Tag color={contractStatusColors[record.status ?? 0]}>
-          {contractStatusLabels[record.status ?? 0] ?? '未知'}
-        </Tag>
-      ),
+      render: (_, record) =>
+        statusTag(partnerContractStatusMeta, record.status ?? 0, '未知'),
     },
     {
       title: '生效起止日期',
