@@ -3,7 +3,7 @@
 import { join } from 'node:path';
 import { defineConfig } from '@umijs/max';
 import defaultSettings from './defaultSettings';
-import proxy from './proxy';
+import { getProxyConfig } from './proxy';
 
 import routes from './routes';
 
@@ -81,7 +81,7 @@ export default defineConfig({
    * @doc 代理介绍 https://umijs.org/docs/guides/proxy
    * @doc 代理配置 https://umijs.org/docs/api/config#proxy
    */
-  proxy: proxy[UMI_ENV as keyof typeof proxy],
+  proxy: getProxyConfig(UMI_ENV),
   /**
    * @name 快速热更新配置
    * @description 一个不错的热更新组件，更新时可以保留 state
