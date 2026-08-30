@@ -304,7 +304,10 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 - [x] UUID 最终审计：共享实现集中在 `service/uuid.go`，按严格解析、有序
       去重和去空白解析保留三种显式语义；UUID 指针格式化仅保留
       `uuidStringPtr`，无需为同包少量 helper 额外创建 `idutil` 子包
-- [ ] 26 处 `decimal.NewFromString` + err 三连抽 `data.decimalOf(s)`
+- [x] decimal 解析治理：审计生产数据层 98 个业务解析点，97 个严格错误路径
+      统一复用 `data.decimalOf(s)` 并补充存储解析上下文；同时移除核销金额
+      解析失败时静默归零的 3 处逻辑。仅保留 `financeDecimalStringEqual` 中
+      1 处布尔比较直调，非法存量值按“不相等”处理并触发上层校验失败
 
 ### B7. cmd 同步工具框架（低）
 `sync-airports` 与 `sync-unlocode` 高度同构（options 结构体、main 流程、
