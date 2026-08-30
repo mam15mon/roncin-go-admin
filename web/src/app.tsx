@@ -145,6 +145,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
 
 export const request: RequestConfig = {
   baseURL: '',
+  timeout: 30_000,
   withCredentials: true,
   ...errorConfig,
 };

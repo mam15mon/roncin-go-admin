@@ -1,0 +1,63 @@
+name: 持续集成
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: 前端检查与构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+      - name: 安装 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.14.1
+          cache: pnpm
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+      - name: 执行前端检查
+        run: pnpm run check:web
+      - name: 构建前端
+        run: pnpm run build:web
+
+  server:
+    name: 服务端检查与构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 安装 Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: 安装 Buf
+        uses: bufbuild/buf-action@v1
+        with:
+          version: 1.72.0
+          setup_only: true
+      - name: 检查 Protobuf
+        run: buf lint server
+      - name: 执行服务端测试
+        run: go -C server test ./...
+      - name: 执行静态检查
+        run: go -C server vet ./...
+      - name: 执行漏洞检查
+        run: go -C server tool govulncheck ./...
+      - name: 构建服务端
+        run: go -C server build -o /tmp/roncin-server ./cmd/server

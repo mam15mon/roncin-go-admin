@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/go-kratos/kratos/v3/middleware"
 	"github.com/go-kratos/kratos/v3/transport"
 	"github.com/google/uuid"
@@ -82,19 +83,37 @@ func Logging(logger *slog.Logger) middleware.Middleware {
 		return func(ctx context.Context, req any) (reply any, err error) {
 			startedAt := time.Now()
 			operation := ""
+			transportKind := ""
+			method := ""
+			path := ""
+			userAgent := ""
 			if tr, ok := transport.FromServerContext(ctx); ok {
 				operation = tr.Operation()
+				transportKind = tr.Kind().String()
+				userAgent = tr.RequestHeader().Get("User-Agent")
+				if requestTransport, ok := tr.(requestCarrier); ok && requestTransport.Request() != nil {
+					method = requestTransport.Request().Method
+					path = requestTransport.Request().URL.Path
+				}
 			}
 			reply, err = handler(ctx, req)
 			level := slog.LevelInfo
+			statusCode := 200
 			if err != nil {
 				level = slog.LevelError
+				statusCode = int(kratoserrors.FromError(err).Code)
 			}
 			logger.Log(ctx, level, "request completed",
 				slog.String("event", "transport.request.completed"),
 				slog.String("request.id", FromContext(ctx)),
 				slog.String("trace.id", TraceID(ctx)),
+				slog.String("transport.kind", transportKind),
 				slog.String("rpc.operation", operation),
+				slog.String("http.method", method),
+				slog.String("http.path", path),
+				slog.Int("status.code", statusCode),
+				slog.String("client.ip", IPAddress(ctx)),
+				slog.String("user_agent", userAgent),
 				slog.Duration("duration", time.Since(startedAt)),
 				slog.Any("error", err),
 			)
