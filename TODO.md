@@ -25,8 +25,8 @@
 **验收**：
 - [x] `internal/data` 提供 `WithTx` 封装并附单测（覆盖出错回滚、panic
       回滚、成功提交三条路径）
-- [ ] 新增仓储代码零手动 `db.Tx` 分散写法
-- [ ] 存量 132 处完成迁移或分批列入后续计划
+- [x] 新增仓储代码零手动 `db.Tx` 分散写法
+- [x] 存量 132 处完成迁移或分批列入后续计划
 - [x] `internal/data/auth.go:47` 的原生事务写法并入封装
 
 迁移记录：
@@ -82,7 +82,10 @@
 - [x] 第四十七批：`enterprise_resource.go` 地址类型与负责人批量关联事务入口。
 - [x] 第四十八批：`enterprise_resource.go` 标签组新增、更新及删除事务入口。
 - [x] 第四十九批：`enterprise_resource.go` 企业资源导入事务入口。
-- [x] 生产仓储手写事务已清零：0 处 / 0 个文件。
+- [x] 第五十批：`permission_manifest_sync.go`、
+      `default_order_options_sync.go` 两处原生 SQL 同步事务并入统一生命周期。
+- [x] 生产仓储手写事务生命周期已清零：业务函数无显式提交或回滚，Ent 与
+      原生 SQL 事务统一通过 `WithTx`、`withSQLTx` 或 `runTransaction` 执行。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 
