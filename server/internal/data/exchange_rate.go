@@ -14,7 +14,6 @@ import (
 	exchangerateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	exchangeratetimestandardent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratetimestandard"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/shopspring/decimal"
 )
 
 type exchangeRateRepo struct{ data *Data }
@@ -317,11 +316,11 @@ func (r *exchangeRateRepo) validateCurrencies(ctx context.Context, codes ...stri
 }
 
 func exchangeRateToBiz(item *ent.ExchangeRateSetting) (*biz.ExchangeRateSetting, error) {
-	receivable, err := decimal.NewFromString(item.ReceivableRate)
+	receivable, err := decimalOf(item.ReceivableRate)
 	if err != nil {
 		return nil, err
 	}
-	payable, err := decimal.NewFromString(item.PayableRate)
+	payable, err := decimalOf(item.PayableRate)
 	if err != nil {
 		return nil, err
 	}

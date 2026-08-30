@@ -221,7 +221,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		if billingErr != nil || taxableErr != nil || !billingUnit.Enabled || !taxableService.Enabled || !currencyEnabled || !feeSettingApplies(feeSetting, applicability) {
 			continue
 		}
-		taxRate, parseErr := decimal.NewFromString(feeSetting.TaxRate)
+		taxRate, parseErr := decimalOf(feeSetting.TaxRate)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -307,7 +307,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeBillingUnitInvalid, nil)
 	}
-	taxRate, err := decimal.NewFromString(feeSetting.TaxRate)
+	taxRate, err := decimalOf(feeSetting.TaxRate)
 	if err != nil {
 		return nil, err
 	}
@@ -583,21 +583,21 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			}
 			total, net, tax := decimal.Zero, decimal.Zero, decimal.Zero
 			for _, line := range lines {
-				lineTotal, parseErr := decimal.NewFromString(line.TotalAmount)
+				lineTotal, parseErr := decimalOf(line.TotalAmount)
 				if parseErr != nil {
 					return parseErr
 				}
-				lineNet, parseErr := decimal.NewFromString(line.NetAmount)
+				lineNet, parseErr := decimalOf(line.NetAmount)
 				if parseErr != nil {
 					return parseErr
 				}
-				lineTax, parseErr := decimal.NewFromString(line.TaxAmount)
+				lineTax, parseErr := decimalOf(line.TaxAmount)
 				if parseErr != nil {
 					return parseErr
 				}
 				total, net, tax = total.Add(lineTotal), net.Add(lineNet), tax.Add(lineTax)
 			}
-			billRate, parseErr := decimal.NewFromString(activeBill.ExchangeRate)
+			billRate, parseErr := decimalOf(activeBill.ExchangeRate)
 			if parseErr != nil {
 				return parseErr
 			}
@@ -723,31 +723,31 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	if err != nil {
 		return nil, err
 	}
-	quantity, err := decimal.NewFromString(item.Quantity)
+	quantity, err := decimalOf(item.Quantity)
 	if err != nil {
 		return nil, err
 	}
-	unitPrice, err := decimal.NewFromString(item.UnitPrice)
+	unitPrice, err := decimalOf(item.UnitPrice)
 	if err != nil {
 		return nil, err
 	}
-	totalAmount, err := decimal.NewFromString(item.TotalAmount)
+	totalAmount, err := decimalOf(item.TotalAmount)
 	if err != nil {
 		return nil, err
 	}
-	netAmount, err := decimal.NewFromString(item.NetAmount)
+	netAmount, err := decimalOf(item.NetAmount)
 	if err != nil {
 		return nil, err
 	}
-	taxAmount, err := decimal.NewFromString(item.TaxAmount)
+	taxAmount, err := decimalOf(item.TaxAmount)
 	if err != nil {
 		return nil, err
 	}
-	baseCurrencyAmount, err := decimal.NewFromString(item.BaseCurrencyAmount)
+	baseCurrencyAmount, err := decimalOf(item.BaseCurrencyAmount)
 	if err != nil {
 		return nil, err
 	}
-	exchangeRate, err := decimal.NewFromString(item.ExchangeRate)
+	exchangeRate, err := decimalOf(item.ExchangeRate)
 	if err != nil {
 		return nil, err
 	}
@@ -788,7 +788,7 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		UpdatedAt:             item.UpdatedAt,
 	}
 	if item.TaxRate != nil {
-		taxRate, err := decimal.NewFromString(*item.TaxRate)
+		taxRate, err := decimalOf(*item.TaxRate)
 		if err != nil {
 			return nil, err
 		}

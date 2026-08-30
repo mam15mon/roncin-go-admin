@@ -11,7 +11,6 @@ import (
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	masterdataitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	taxableserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
-	"github.com/shopspring/decimal"
 )
 
 type feeCatalogRepo struct{ data *Data }
@@ -303,7 +302,7 @@ func (r *feeCatalogRepo) UpdateTaxableService(ctx context.Context, input *biz.Ta
 }
 
 func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
-	taxRate, err := decimal.NewFromString(item.TaxRate)
+	taxRate, err := decimalOf(item.TaxRate)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +331,7 @@ func billingUnitToBiz(item *ent.BillingUnit) *biz.BillingUnit {
 }
 
 func taxableServiceToBiz(item *ent.TaxableService) (*biz.TaxableService, error) {
-	taxRate, err := decimal.NewFromString(item.DefaultTaxRate)
+	taxRate, err := decimalOf(item.DefaultTaxRate)
 	if err != nil {
 		return nil, err
 	}
