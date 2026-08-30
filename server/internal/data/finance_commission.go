@@ -651,83 +651,77 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 }
 
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceCommission, error) { _ = tx.Rollback(); return nil, err }
-	if target == biz.CommissionConfirmed {
-		snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
-		if ent.IsNotFound(lookupErr) {
-			return rollback(biz.ErrCommissionNotFound)
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if target == biz.CommissionConfirmed {
+			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
+			if ent.IsNotFound(lookupErr) {
+				return biz.ErrCommissionNotFound
+			}
+			if lookupErr != nil {
+				return lookupErr
+			}
+			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, snapshot.VerificationID, snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
+			if calculateErr != nil {
+				return biz.ErrCommissionSourceChanged
+			}
+			if snapshot.SourceFingerprint == "" || snapshot.SourceFingerprint != current.SourceFingerprint {
+				return biz.ErrCommissionSourceChanged
+			}
+			orderIDs := make([]uuid.UUID, 0, len(current.Lines))
+			for _, line := range current.Lines {
+				orderIDs = append(orderIDs, line.OrderID)
+			}
+			hasDraftFees, draftErr := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
+			if draftErr != nil {
+				return draftErr
+			}
+			if hasDraftFees {
+				return biz.ErrCommissionUnconfirmedFees
+			}
 		}
-		if lookupErr != nil {
-			return rollback(lookupErr)
+		x, err := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionNotFound
 		}
-		current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, snapshot.VerificationID, snapshot.EmployeeID, valueOrNilUUID(snapshot.RuleID), true)
-		if calculateErr != nil {
-			return rollback(biz.ErrCommissionSourceChanged)
+		if err != nil {
+			return err
 		}
-		if snapshot.SourceFingerprint == "" || snapshot.SourceFingerprint != current.SourceFingerprint {
-			return rollback(biz.ErrCommissionSourceChanged)
+		if x.Version != version {
+			return biz.ErrCommissionTransition
 		}
-		orderIDs := make([]uuid.UUID, 0, len(current.Lines))
-		for _, line := range current.Lines {
-			orderIDs = append(orderIDs, line.OrderID)
+		now := time.Now()
+		update := tx.FinanceCommission.UpdateOneID(id).SetVersion(version + 1)
+		switch target {
+		case biz.CommissionConfirmed:
+			if x.Status != commission.StatusDRAFT {
+				return biz.ErrCommissionTransition
+			}
+			update.SetStatus(commission.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
+		case biz.CommissionPaid:
+			if x.Status != commission.StatusCONFIRMED {
+				return biz.ErrCommissionTransition
+			}
+			update.SetStatus(commission.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
+		case biz.CommissionCancelled:
+			if x.Status != commission.StatusDRAFT && x.Status != commission.StatusCONFIRMED {
+				return biz.ErrCommissionTransition
+			}
+			hasAdjustments, adjustmentErr := tx.FinanceCommissionAdjustment.Query().Where(adjustment.CommissionIDEQ(id), adjustment.StatusNEQ(adjustment.StatusCANCELLED)).Exist(ctx)
+			if adjustmentErr != nil {
+				return adjustmentErr
+			}
+			if hasAdjustments {
+				return biz.ErrCommissionTransition
+			}
+			update.SetStatus(commission.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
+		default:
+			return biz.ErrCommissionInvalid
 		}
-		hasDraftFees, draftErr := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
-		if draftErr != nil {
-			return rollback(draftErr)
+		if _, err = update.Save(ctx); err != nil {
+			return err
 		}
-		if hasDraftFees {
-			return rollback(biz.ErrCommissionUnconfirmedFees)
-		}
-	}
-	x, err := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if x.Version != version {
-		return rollback(biz.ErrCommissionTransition)
-	}
-	now := time.Now()
-	update := tx.FinanceCommission.UpdateOneID(id).SetVersion(version + 1)
-	switch target {
-	case biz.CommissionConfirmed:
-		if x.Status != commission.StatusDRAFT {
-			return rollback(biz.ErrCommissionTransition)
-		}
-		update.SetStatus(commission.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
-	case biz.CommissionPaid:
-		if x.Status != commission.StatusCONFIRMED {
-			return rollback(biz.ErrCommissionTransition)
-		}
-		update.SetStatus(commission.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
-	case biz.CommissionCancelled:
-		if x.Status != commission.StatusDRAFT && x.Status != commission.StatusCONFIRMED {
-			return rollback(biz.ErrCommissionTransition)
-		}
-		hasAdjustments, adjustmentErr := tx.FinanceCommissionAdjustment.Query().Where(adjustment.CommissionIDEQ(id), adjustment.StatusNEQ(adjustment.StatusCANCELLED)).Exist(ctx)
-		if adjustmentErr != nil {
-			return rollback(adjustmentErr)
-		}
-		if hasAdjustments {
-			return rollback(biz.ErrCommissionTransition)
-		}
-		update.SetStatus(commission.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
-	default:
-		return rollback(biz.ErrCommissionInvalid)
-	}
-	if _, err = update.Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
