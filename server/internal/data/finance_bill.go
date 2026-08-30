@@ -295,85 +295,79 @@ func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID u
 }
 
 func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.FinanceBill, error) { _ = tx.Rollback(); return nil, value }
-	feeIDs := make([]uuid.UUID, 0, len(bill.Lines))
-	expected := make(map[uuid.UUID]*biz.FinanceBillLine, len(bill.Lines))
-	for _, line := range bill.Lines {
-		feeIDs = append(feeIDs, line.OrderFeeID)
-		expected[line.OrderFeeID] = line
-	}
-	fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(bill.OrganizationID))).Order(orderfeeent.ByID()).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(fees) != len(feeIDs) {
-		return rollback(biz.ErrFinanceBillFeeInvalid)
-	}
-	for _, fee := range fees {
-		line := expected[fee.ID]
-		if line == nil || fee.Status != orderfeeent.StatusCONFIRMED || string(fee.Direction) != string(bill.Direction) || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
-			return rollback(biz.ErrFinanceBillFeeInvalid)
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		feeIDs := make([]uuid.UUID, 0, len(bill.Lines))
+		expected := make(map[uuid.UUID]*biz.FinanceBillLine, len(bill.Lines))
+		for _, line := range bill.Lines {
+			feeIDs = append(feeIDs, line.OrderFeeID)
+			expected[line.OrderFeeID] = line
 		}
-	}
-	active, err := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDIn(feeIDs...), financebilllineent.ActiveEQ(true)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if active {
-		return rollback(biz.ErrFinanceBillFeeInvalid)
-	}
-	now := time.Now().UTC()
-	billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
-	if err != nil {
-		return rollback(err)
-	}
-	bill.BillNo, err = biz.FormatAllocatedNumber(now, billRule, billSequence, "")
-	if err != nil {
-		return rollback(err)
-	}
-	_, err = tx.FinanceBill.Create().
-		SetID(bill.ID).SetOrganizationID(bill.OrganizationID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).
-		SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
-		SetNillableBatchID(bill.BatchID).
-		SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
-		SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).
-		SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
-		SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
-	if err != nil {
-		if ent.IsConstraintError(err) && strings.Contains(err.Error(), "idempotency") {
-			return rollback(biz.ErrFinanceBillIdempotencyConflict)
+		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(bill.OrganizationID))).Order(orderfeeent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			return err
 		}
-		return rollback(err)
-	}
-	builders := make([]*ent.FinanceBillLineCreate, 0, len(bill.Lines))
-	for _, line := range bill.Lines {
-		builders = append(builders, tx.FinanceBillLine.Create().
-			SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).
-			SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetQuantity(line.Quantity.StringFixed(4)).SetUnitPrice(line.UnitPrice.StringFixed(4)).
-			SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).
-			SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
-	}
-	if _, err = tx.FinanceBillLine.CreateBulk(builders...).Save(ctx); err != nil {
-		if ent.IsConstraintError(err) {
-			return rollback(biz.ErrFinanceBillFeeInvalid)
+		if len(fees) != len(feeIDs) {
+			return biz.ErrFinanceBillFeeInvalid
 		}
-		return rollback(err)
-	}
-	affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED)).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if affected != len(feeIDs) {
-		return rollback(biz.ErrFinanceBillFeeInvalid)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+		for _, fee := range fees {
+			line := expected[fee.ID]
+			if line == nil || fee.Status != orderfeeent.StatusCONFIRMED || string(fee.Direction) != string(bill.Direction) || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+				return biz.ErrFinanceBillFeeInvalid
+			}
+		}
+		active, err := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDIn(feeIDs...), financebilllineent.ActiveEQ(true)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if active {
+			return biz.ErrFinanceBillFeeInvalid
+		}
+		now := time.Now().UTC()
+		billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
+		if err != nil {
+			return err
+		}
+		bill.BillNo, err = biz.FormatAllocatedNumber(now, billRule, billSequence, "")
+		if err != nil {
+			return err
+		}
+		_, err = tx.FinanceBill.Create().
+			SetID(bill.ID).SetOrganizationID(bill.OrganizationID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).
+			SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
+			SetNillableBatchID(bill.BatchID).
+			SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
+			SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).
+			SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
+			SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+		if err != nil {
+			if ent.IsConstraintError(err) && strings.Contains(err.Error(), "idempotency") {
+				return biz.ErrFinanceBillIdempotencyConflict
+			}
+			return err
+		}
+		builders := make([]*ent.FinanceBillLineCreate, 0, len(bill.Lines))
+		for _, line := range bill.Lines {
+			builders = append(builders, tx.FinanceBillLine.Create().
+				SetID(line.ID).SetBillID(bill.ID).SetOrderFeeID(line.OrderFeeID).SetOrderID(line.OrderID).
+				SetOrderNo(line.OrderNo).SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetQuantity(line.Quantity.StringFixed(4)).SetUnitPrice(line.UnitPrice.StringFixed(4)).
+				SetTotalAmount(line.TotalAmount.StringFixed(8)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetNillableTaxRate(financeDecimalString(line.TaxRate, 4)).SetCurrency(line.Currency).
+				SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrency(line.BaseCurrency).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).SetActive(true))
+		}
+		if _, err = tx.FinanceBillLine.CreateBulk(builders...).Save(ctx); err != nil {
+			if ent.IsConstraintError(err) {
+				return biz.ErrFinanceBillFeeInvalid
+			}
+			return err
+		}
+		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED)).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx)
+		if err != nil {
+			return err
+		}
+		if affected != len(feeIDs) {
+			return biz.ErrFinanceBillFeeInvalid
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, bill.OrganizationID, bill.ID)
