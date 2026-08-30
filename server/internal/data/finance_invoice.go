@@ -90,11 +90,8 @@ func (r *financeInvoiceRepo) queryWithLinks(q *ent.FinanceInvoiceQuery) *ent.Fin
 }
 func (r *financeInvoiceRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceInvoice, error) {
 	item, err := r.queryWithLinks(r.data.db.FinanceInvoice.Query()).Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrFinanceInvoiceNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrFinanceInvoiceNotFound, nil)
 	}
 	return financeInvoiceToBiz(item)
 }
@@ -126,11 +123,8 @@ func (r *financeInvoiceRepo) LoadBills(ctx context.Context, org uuid.UUID, ids [
 
 func (r *financeInvoiceRepo) LoadInvoiceProfile(ctx context.Context, org, partnerID, profileID uuid.UUID) (*biz.PartnerInvoiceProfile, error) {
 	item, err := r.data.db.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profileID), profileent.OrganizationIDEQ(org), profileent.PartnerIDEQ(partnerID), profileent.EnabledEQ(true)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrPartnerInvoiceProfileNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerInvoiceProfileNotFound, nil)
 	}
 	return partnerInvoiceProfileToBiz(item), nil
 }
@@ -141,11 +135,8 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 			return biz.ErrFinanceInvoiceProfileRequired
 		}
 		profile, queryErr := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID), profileent.EnabledEQ(true)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrFinanceInvoiceProfileRequired
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFinanceInvoiceProfileRequired, nil)
 		}
 		if profile.InvoiceTitle != invoice.InvoiceTitle || profile.TaxpayerIdentificationNo != invoice.TaxpayerIdentificationNo || profile.RegisteredAddress != invoice.RegisteredAddress || profile.RegisteredPhone != invoice.RegisteredPhone || profile.BankName != invoice.BankName || profile.BankAccount != invoice.BankAccount {
 			return biz.ErrFinanceInvoiceProfileRequired
@@ -201,11 +192,8 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID, version uint64, issue biz.FinanceInvoiceIssueInput, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrFinanceInvoiceNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
 		}
 		if item.Version != version {
 			return biz.ErrFinanceInvoiceVersionConflict
@@ -235,11 +223,8 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrFinanceInvoiceNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
 		}
 		if item.Version != version {
 			return biz.ErrFinanceInvoiceVersionConflict
@@ -272,11 +257,8 @@ func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUI
 func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.UUID, version uint64, redInvoiceNo, redInvoiceDate, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrFinanceInvoiceNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
 		}
 		if item.Version != version {
 			return biz.ErrFinanceInvoiceVersionConflict
