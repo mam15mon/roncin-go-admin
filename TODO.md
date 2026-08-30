@@ -329,8 +329,11 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 ### C2. 状态映射集中（高，27 文件 / 50+ 张表，同一状态 3 种键制）
 费用状态同时存在 string 键（`feeLedgerColumns.tsx:16`）与 number 键
 （`finance/fees/detail.tsx:39`）且文案不同；业务类型字典两处键制不同。
-- [ ] 建 `constants/statusMeta.ts` 单一键制（依赖 A2 的枚举生成），
-      提供 `statusTag()` 渲染器与 `makeValueEnum()` 工具
+- [x] 建 `constants/statusMeta.ts`，以生成枚举数值作为 canonical key，提供
+      `statusTag()`、`statusText()`、`makeValueEnum()` 与字符串边界规范化；
+      已收敛费用状态、业务类型、后台用户/任务、伙伴合同、订单异常与放单状态
+- [ ] bill/invoice/cashflow/commission 等 finance stringly 状态待 A2 将 proto
+      字段提升为 enum 后迁入；当前不在前端重复创造一套伪枚举
 
 ### C3. 格式化工具收敛（中高）
 日期空值守卫 `val ? dayjs(val).format(...) : '-'` 重复 52 处 / 29 文件；
