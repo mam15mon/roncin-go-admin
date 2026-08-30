@@ -16,7 +16,7 @@ import {
   type FinanceLedgerMetricCard,
 } from '@/components/ui';
 import { useAccess } from '@umijs/max';
-import { App, Input, Popconfirm, Space, Tag } from 'antd';
+import { App, Popconfirm, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
@@ -26,6 +26,7 @@ import {
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 
 type Values = {
   direction: string;
@@ -81,23 +82,10 @@ export default function FinanceCashflowsPage() {
     const id = r.id;
     const v = r.version;
     if (!id || !v) return;
-    let reason = '';
-    modal.confirm({
-      title: '取消资金流水？',
-      content: (
-        <Input.TextArea
-          placeholder="请输入取消原因（必填）"
-          onChange={(e) => {
-            reason = e.target.value.trim();
-          }}
-        />
-      ),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入取消原因');
-          throw new Error('原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      '取消资金流水？',
+      async (reason) => {
         await settlementServiceCancelCashflow(
           { id },
           { id, expectedVersion: v, reason },
@@ -105,7 +93,12 @@ export default function FinanceCashflowsPage() {
         message.success('资金流水已取消');
         reload();
       },
-    });
+      {
+        danger: true,
+        placeholder: '请输入取消原因（必填）',
+        requiredMessage: '请输入取消原因',
+      },
+    );
   };
 
   const metricCards: FinanceLedgerMetricCard[] = [

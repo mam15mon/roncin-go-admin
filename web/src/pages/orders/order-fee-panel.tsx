@@ -23,6 +23,7 @@ import {
   orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
@@ -34,7 +35,6 @@ import {
 } from './components/fees/feeConstants';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
-import { confirmWithReason } from './fee-reason-confirm';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
 import { useOrderFeePanelExchangeRate } from './use-order-fee-panel-rate';
 

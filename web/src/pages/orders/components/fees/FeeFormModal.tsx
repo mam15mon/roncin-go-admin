@@ -16,7 +16,7 @@ import React, { useRef } from 'react';
 import {
   exchangeRatePattern,
   quantityOrPricePattern,
-} from '../../order-fee-decimal';
+} from '@/utils/decimal';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {

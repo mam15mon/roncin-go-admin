@@ -1,7 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Input, Select } from 'antd';
+import { App, Form, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
@@ -22,6 +22,7 @@ import {
   settlementServiceListFinanceBillTagOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -245,24 +246,10 @@ export default function FinanceBillsPage() {
     const id = bill.id;
     const version = bill.version;
     if (!id || !version) return;
-    let reason = '';
-    modal.confirm({
-      title: '取消账单并释放关联费用？',
-      content: (
-        <Input.TextArea
-          placeholder="请输入取消原因（必填）"
-          maxLength={500}
-          onChange={(e) => {
-            reason = e.target.value.trim();
-          }}
-        />
-      ),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入取消原因');
-          throw new Error('取消原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      '取消账单并释放关联费用？',
+      async (reason) => {
         await settlementServiceCancelBill(
           { id },
           { id, expectedVersion: version, reason },
@@ -270,7 +257,12 @@ export default function FinanceBillsPage() {
         message.success('账单已取消，关联明细费用已释放并可重新建单');
         reload();
       },
-    });
+      {
+        danger: true,
+        placeholder: '请输入取消原因（必填）',
+        requiredMessage: '请输入取消原因',
+      },
+    );
   };
 
   const metricCards: FinanceLedgerMetricCard[] = [
@@ -321,16 +313,16 @@ export default function FinanceBillsPage() {
         <Select
           mode="multiple"
           allowClear
-          showSearch
-          filterOption={false}
+          showSearch={{
+            filterOption: false,
+            onSearch: (keyword) =>
+              void loadTagFilterOptions(keyword, tagFilterIds),
+          }}
           loading={tagOptionsLoading}
           style={{ minWidth: 320 }}
           placeholder="命中任一标签即返回"
           options={tagOptions}
           value={tagFilterIds}
-          onSearch={(keyword) =>
-            void loadTagFilterOptions(keyword, tagFilterIds)
-          }
           onChange={(value) => {
             setTagFilterIds(value.length ? value : undefined);
             actionRef.current?.reload();

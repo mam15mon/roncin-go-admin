@@ -9,7 +9,7 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Input, Space, Tag, Typography } from 'antd';
+import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import { financeErrorReasons } from '@/errorReasons.generated';
@@ -23,6 +23,7 @@ import {
   settlementServiceMarkCommissionAdjustmentPaid,
   settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
@@ -156,23 +157,10 @@ export default function FinanceCommissionsPage() {
     if (!record.id || !record.version) return;
     const adjustmentID = record.id;
     const adjustmentVersion = record.version;
-    let reason = '';
-    modal.confirm({
-      title: `取消调整 ${record.adjustmentNo}？`,
-      content: (
-        <Input.TextArea
-          placeholder="请输入取消原因（必填）"
-          maxLength={500}
-          onChange={(event) => {
-            reason = event.target.value.trim();
-          }}
-        />
-      ),
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入取消原因');
-          throw new Error('取消原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      `取消调整 ${record.adjustmentNo}？`,
+      async (reason) => {
         try {
           await settlementServiceCancelCommissionAdjustment(
             { id: adjustmentID },
@@ -184,7 +172,11 @@ export default function FinanceCommissionsPage() {
           message.error(error.message || '取消调整失败');
         }
       },
-    });
+      {
+        placeholder: '请输入取消原因（必填）',
+        requiredMessage: '请输入取消原因',
+      },
+    );
   };
 
   const transition = async (
@@ -251,23 +243,10 @@ export default function FinanceCommissionsPage() {
     if (!record.id || !record.version) return;
     const id = record.id;
     const version = record.version;
-    let reason = '';
-    modal.confirm({
-      title: `取消提成 ${record.commissionNo}？`,
-      content: (
-        <Input.TextArea
-          placeholder="请输入取消原因（必填）"
-          maxLength={500}
-          onChange={(event) => {
-            reason = event.target.value.trim();
-          }}
-        />
-      ),
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入取消原因');
-          throw new Error('取消原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      `取消提成 ${record.commissionNo}？`,
+      async (reason) => {
         try {
           await settlementServiceCancelCommission(
             { id },
@@ -282,7 +261,11 @@ export default function FinanceCommissionsPage() {
           message.error(error.message || '取消提成失败');
         }
       },
-    });
+      {
+        placeholder: '请输入取消原因（必填）',
+        requiredMessage: '请输入取消原因',
+      },
+    );
   };
 
   const columns: ProColumns<API.FinanceCommission>[] = [

@@ -46,7 +46,7 @@ import {
   exchangeRateServiceUpdateExchangeRateTimeStandards,
 } from '@/services/roncin/exchangeRateService';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
-import { isPositiveExactDecimal, trimExactDecimal } from '../../orders/order-fee-decimal';
+import { isPositiveExactDecimal, trimExactDecimal } from '@/utils/decimal';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;

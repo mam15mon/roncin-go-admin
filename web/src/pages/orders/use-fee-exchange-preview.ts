@@ -8,7 +8,7 @@ import {
   calculateExactFeeTotal,
   quantityOrPricePattern,
   trimExactDecimal,
-} from './order-fee-decimal';
+} from '@/utils/decimal';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 

@@ -11,7 +11,7 @@ import {
   feeDirectionCode,
   feeStatusCode,
 } from './components/fees/feeConstants';
-import { trimExactDecimal } from './order-fee-decimal';
+import { trimExactDecimal } from '@/utils/decimal';
 
 interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;

@@ -10,7 +10,7 @@ import {
   RECEIVABLE,
   feeStatusCode,
 } from './feeConstants';
-import { trimExactDecimal } from '../../order-fee-decimal';
+import { trimExactDecimal } from '@/utils/decimal';
 
 type OrderFeeColumnProps = {
   direction: number;

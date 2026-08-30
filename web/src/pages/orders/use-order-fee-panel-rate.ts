@@ -2,7 +2,7 @@ import { App } from 'antd';
 import { useRef, useState } from 'react';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
-import { trimExactDecimal } from './order-fee-decimal';
+import { trimExactDecimal } from '@/utils/decimal';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 

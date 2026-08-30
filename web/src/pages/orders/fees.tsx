@@ -39,13 +39,13 @@ import {
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { parseOrderKind } from './common';
-import { trimExactDecimal } from './order-fee-decimal';
+import { trimExactDecimal } from '@/utils/decimal';
 import {
   FEE_BILLED,
   RECEIVABLE,
   feeStatusCode,
 } from './components/fees/feeConstants';
-import { confirmWithReason } from './fee-reason-confirm';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
 

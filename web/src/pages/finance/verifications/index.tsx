@@ -1,7 +1,7 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Descriptions, Drawer, Input, Space, Table, Tag } from 'antd';
+import { App, Descriptions, Drawer, Space, Table, Tag } from 'antd';
 import { useRef, useState } from 'react';
 import {
   FinanceLedgerTemplate,
@@ -11,6 +11,7 @@ import {
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import VerificationWorkbench from './VerificationWorkbench';
 
 export default function FinanceVerificationsPage() {
@@ -31,22 +32,10 @@ export default function FinanceVerificationsPage() {
     const id = r.id;
     const v = r.version;
     if (!id || !v) return;
-    let reason = '';
-    modal.confirm({
-      title: '反核销该批分配？',
-      content: (
-        <Input.TextArea
-          placeholder="请输入反核销原因（必填）"
-          onChange={(e) => {
-            reason = e.target.value.trim();
-          }}
-        />
-      ),
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入原因');
-          throw new Error('原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      '反核销该批分配？',
+      async (reason) => {
         await settlementServiceReverseVerification(
           { id },
           { id, expectedVersion: v, reason },
@@ -54,7 +43,11 @@ export default function FinanceVerificationsPage() {
         message.success('反核销成功；相关未支付提成已自动取消，资金与账单余额已释放');
         reload();
       },
-    });
+      {
+        placeholder: '请输入反核销原因（必填）',
+        requiredMessage: '请输入原因',
+      },
+    );
   };
 
   const metricCards: FinanceLedgerMetricCard[] = [

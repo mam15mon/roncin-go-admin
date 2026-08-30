@@ -4,7 +4,7 @@ import {
   exchangeRatePattern,
   isPositiveExactDecimal,
   trimExactDecimal,
-} from './order-fee-decimal';
+} from './decimal';
 
 describe('订单费用十进制计算', () => {
   it('不经过 Number 精确计算常见浮点陷阱', () => {

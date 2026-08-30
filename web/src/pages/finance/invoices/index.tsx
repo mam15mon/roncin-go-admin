@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Form, Input, Space, Tag } from 'antd';
+import { App, Form, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
@@ -24,6 +24,7 @@ import {
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
+import { confirmWithReason } from '@/utils/confirmWithReason';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
 import {
@@ -172,24 +173,10 @@ export default function FinanceInvoicesPage() {
     const id = row.id;
     const version = row.version;
     if (!id || !version) return;
-    let reason = '';
-    modal.confirm({
-      title: '取消开票记录并释放账单？',
-      content: (
-        <Input.TextArea
-          placeholder="请输入取消原因（必填）"
-          maxLength={500}
-          onChange={(e) => {
-            reason = e.target.value.trim();
-          }}
-        />
-      ),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        if (!reason) {
-          message.warning('请输入取消原因');
-          throw new Error('取消原因不能为空');
-        }
+    confirmWithReason(
+      { modal, message },
+      '取消开票记录并释放账单？',
+      async (reason) => {
         await settlementServiceCancelInvoice(
           { id },
           { id, expectedVersion: version, reason },
@@ -197,7 +184,12 @@ export default function FinanceInvoicesPage() {
         message.success('开票记录已取消，账单已释放');
         reload();
       },
-    });
+      {
+        danger: true,
+        placeholder: '请输入取消原因（必填）',
+        requiredMessage: '请输入取消原因',
+      },
+    );
   };
 
   const redFlushInvoice = async () => {
