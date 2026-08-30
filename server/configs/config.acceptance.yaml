@@ -14,10 +14,6 @@ data:
     max_open_connections: 10
     max_idle_connections: 5
     connection_max_lifetime: 1800s
-  redis:
-    addr: ${REDIS_ADDR:127.0.0.1:6379}
-    read_timeout: 0.2s
-    write_timeout: 0.2s
   object_storage:
     enabled: ${OBJECT_STORAGE_ENABLED:false}
     endpoint: ${OBJECT_STORAGE_ENDPOINT:}

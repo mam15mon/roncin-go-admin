@@ -60,12 +60,6 @@ message Data {
     int32 max_idle_connections = 6;
     google.protobuf.Duration connection_max_lifetime = 7;
   }
-  message Redis {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration read_timeout = 3;
-    google.protobuf.Duration write_timeout = 4;
-  }
   message ObjectStorage {
     bool enabled = 1;
     string endpoint = 2;
@@ -76,7 +70,8 @@ message Data {
     bool path_style = 7;
   }
   Database database = 1;
-  Redis redis = 2;
+  reserved 2;
+  reserved "redis";
   ObjectStorage object_storage = 3;
 }
 
