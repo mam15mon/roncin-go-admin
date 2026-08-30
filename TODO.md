@@ -370,7 +370,10 @@ finance 五页全部绕过自写；应收/应付聚合在 5 个页面重复且**
 与新模板套（secondary/*Panel 用 SubEntityDrawerTemplate）并存，合同状态
 映射因此两份；`ContactCardList.tsx:18 ContactItem` 与
 `API.PartnerContact`（typings.d.ts:3893）类型漂移。
-- [ ] 旧卡片组迁移到 SubEntity 模板，或至少共享状态映射与 fetch 骨架
+- [x] 确认两套入口均在线：详情路由承载完整编辑，列表页抽屉承载快捷维护，
+      暂不强行合并交互；旧合同卡片已复用 `partnerContractStatusMeta` 与生成
+      枚举，联系人编辑类型改为从 `API.PartnerContact` 派生，消除已确认的
+      状态和类型漂移
 
 ### C7. 详情抽屉骨架统一（中低）
 4 套手写 Drawer + Descriptions 骨架，props 契约两种。
