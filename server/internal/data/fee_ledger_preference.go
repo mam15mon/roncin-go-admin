@@ -71,11 +71,8 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 			builder.SetSortField(value.SortField).SetSortDirection(financefeeledgerpreference.SortDirection(value.SortDirection))
 		}
 		created, createErr := builder.Save(ctx)
-		if ent.IsConstraintError(createErr) {
-			return nil, biz.ErrFeeLedgerPreferenceConflict
-		}
 		if createErr != nil {
-			return nil, createErr
+			return nil, mapEntError(createErr, nil, biz.ErrFeeLedgerPreferenceConflict)
 		}
 		return feeLedgerPreferenceToBiz(created)
 	}
@@ -98,11 +95,8 @@ func (repo *feeLedgerPreferenceRepo) Save(ctx context.Context, value *biz.FeeLed
 		builder.SetSortField(value.SortField).SetSortDirection(financefeeledgerpreference.SortDirection(value.SortDirection))
 	}
 	updated, err := builder.Save(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrFeeLedgerPreferenceConflict
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrFeeLedgerPreferenceConflict, nil)
 	}
 	return feeLedgerPreferenceToBiz(updated)
 }

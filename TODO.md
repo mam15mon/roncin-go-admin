@@ -196,6 +196,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       NotFound 分支改用公共 `mapEntError`，保留联合校验及幂等空结果语义
 - [x] 第九批：`enterprise_resource.go` 资源与标签组标准 NotFound 分支
       改用公共 `mapEntError`
+- [x] 第十批：`fee_ledger_preference.go` 创建约束与乐观锁更新错误改用公共
+      `mapEntError`，保留查询、创建分流及幂等删除语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
