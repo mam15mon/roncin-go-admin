@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { errorConfig, getRequestErrorStatus } from './requestErrorConfig';
+import {
+  errorConfig,
+  getRequestErrorStatus,
+  isRequestTimeoutError,
+} from './requestErrorConfig';
 import { showErrorMessage, showErrorNotification } from './utils/appFeedback';
 
 const replace = vi.hoisted(() => vi.fn());
@@ -116,6 +120,20 @@ describe('requestErrorConfig', () => {
     expect(showErrorNotification).toHaveBeenCalledWith({
       title: '请求失败',
       description: '请联系系统管理员查看服务日志。',
+    });
+  });
+
+  it('明确识别请求库和 Fetch 的超时错误', () => {
+    expect(isRequestTimeoutError({ code: 'ECONNABORTED' })).toBe(true);
+    expect(isRequestTimeoutError({ code: 'ETIMEDOUT' })).toBe(true);
+    expect(isRequestTimeoutError({ name: 'TimeoutError' })).toBe(true);
+    expect(isRequestTimeoutError(new Error('Network error'))).toBe(false);
+
+    errorHandler({ code: 'ECONNABORTED' } as any, {});
+
+    expect(showErrorNotification).toHaveBeenCalledWith({
+      title: '请求超时',
+      description: '请确认操作结果后再重试，避免重复提交。',
     });
   });
 

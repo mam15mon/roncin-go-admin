@@ -12,6 +12,7 @@ interface ErrorEnvelope {
 }
 
 export interface RequestError extends Error {
+  code?: string;
   response?: { status?: number; data?: ErrorEnvelope };
   data?: ErrorEnvelope;
 }
@@ -33,6 +34,15 @@ export function getRequestErrorStatus(rawError: unknown): number | undefined {
   );
 }
 
+export function isRequestTimeoutError(rawError: unknown): boolean {
+  const error = rawError as RequestError;
+  return (
+    error.code === 'ECONNABORTED' ||
+    error.code === 'ETIMEDOUT' ||
+    error.name === 'TimeoutError'
+  );
+}
+
 export const errorConfig: RequestConfig = {
   errorConfig: {
     errorThrower: (response) => {
@@ -50,6 +60,13 @@ export const errorConfig: RequestConfig = {
       const envelope = error.data ?? error.response?.data;
       const status = getRequestErrorStatus(error);
 
+      if (isRequestTimeoutError(error)) {
+        showErrorNotification({
+          title: '请求超时',
+          description: '请确认操作结果后再重试，避免重复提交。',
+        });
+        return;
+      }
       if (status === 401) {
         redirectToLogin();
         return;

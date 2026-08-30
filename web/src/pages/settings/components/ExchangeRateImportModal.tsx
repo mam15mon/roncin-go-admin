@@ -18,12 +18,14 @@ import {
 } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
+import { isRequestTimeoutError } from '@/requestErrorConfig';
 import {
   exchangeRateServiceConfirmExchangeRateImport,
   exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServicePreviewExchangeRateImport,
 } from '@/services/roncin/exchangeRateService';
 import { formatDate } from '@/utils/format';
+import { longRequestOptions } from '@/utils/requestTimeout';
 
 const rateTypeLabels: Record<string, string> = {
   BASE_CURRENCY: '折本币',
@@ -121,10 +123,13 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
         reader.readAsDataURL(file);
       });
 
-      const res = await exchangeRateServicePreviewExchangeRateImport({
-        fileName: file.name,
-        fileContent: base64,
-      });
+      const res = await exchangeRateServicePreviewExchangeRateImport(
+        {
+          fileName: file.name,
+          fileContent: base64,
+        },
+        longRequestOptions,
+      );
 
       setPreviewToken(res.previewToken);
       setBatch(res.data);
@@ -134,7 +139,11 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
         message.warning(`预检发现问题：存在 ${res.data?.invalidCount || 0} 条无效数据`);
       }
     } catch (e: any) {
-      message.error(e.message || '上传预检失败');
+      message.error(
+        isRequestTimeoutError(e)
+          ? '上传预检超时，请确认操作结果后重试'
+          : e.message || '上传预检失败',
+      );
       setBatch(undefined);
       setPreviewToken(undefined);
     } finally {
@@ -149,15 +158,22 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
     }
     setConfirming(true);
     try {
-      await exchangeRateServiceConfirmExchangeRateImport({
-        previewToken,
-        idempotencyKey: globalThis.crypto.randomUUID(),
-      });
+      await exchangeRateServiceConfirmExchangeRateImport(
+        {
+          previewToken,
+          idempotencyKey: globalThis.crypto.randomUUID(),
+        },
+        longRequestOptions,
+      );
       message.success('汇率批量导入成功');
       onSuccess();
       handleClose();
     } catch (e: any) {
-      message.error(e.message || '确认导入失败');
+      message.error(
+        isRequestTimeoutError(e)
+          ? '确认导入超时，请确认操作结果后重试'
+          : e.message || '确认导入失败',
+      );
     } finally {
       setConfirming(false);
     }

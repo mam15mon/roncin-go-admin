@@ -10,6 +10,7 @@ import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
 import { AppFeedbackBridge } from '@/utils/appFeedback';
+import { DEFAULT_REQUEST_TIMEOUT } from '@/utils/requestTimeout';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig, getRequestErrorStatus } from './requestErrorConfig';
 
@@ -145,7 +146,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
 
 export const request: RequestConfig = {
   baseURL: '',
-  timeout: 30_000,
+  timeout: DEFAULT_REQUEST_TIMEOUT,
   withCredentials: true,
   ...errorConfig,
 };

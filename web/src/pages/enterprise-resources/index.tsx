@@ -31,6 +31,7 @@ import {
 import type { UploadFile } from 'antd';
 import type { RcFile } from 'antd/es/upload';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isRequestTimeoutError } from '@/requestErrorConfig';
 import {
   enterpriseResourceServiceBatchCreateAssociations,
   enterpriseResourceServiceBatchAssignAddressTypes,
@@ -56,6 +57,10 @@ import {
   enterpriseResourceServiceUpdateEnterpriseTagGroup,
 } from '@/services/roncin/enterpriseResourceService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import {
+  LONG_REQUEST_TIMEOUT,
+  longRequestOptions,
+} from '@/utils/requestTimeout';
 
 const resourceTabs = [
   { key: 'addresses', label: '地址管理', type: 1 },
@@ -360,14 +365,14 @@ const EnterpriseResourcesPage: React.FC = () => {
 
   const previewImport = async () => {
     setImportLoading(true);
-    try { setImportPreview(await enterpriseResourceServicePreviewEnterpriseResourceImport({ resourceType: active.type, rows: importRows })); }
+    try { setImportPreview(await enterpriseResourceServicePreviewEnterpriseResourceImport({ resourceType: active.type, rows: importRows }, longRequestOptions)); }
     finally { setImportLoading(false); }
   };
 
   const commitImport = async () => {
     setImportLoading(true);
     try {
-      const response = await enterpriseResourceServiceCommitEnterpriseResourceImport({ resourceType: active.type, rows: importRows, overwriteConflicts: (importPreview?.conflictCount ?? 0) > 0 });
+      const response = await enterpriseResourceServiceCommitEnterpriseResourceImport({ resourceType: active.type, rows: importRows, overwriteConflicts: (importPreview?.conflictCount ?? 0) > 0 }, longRequestOptions);
       message.success(`已新增 ${response.createdCount ?? 0} 条，更新 ${response.updatedCount ?? 0} 条资源`);
       setImportOpen(false); setImportPreview(undefined); setImportFiles([]); setImportRows([]); actionRef.current?.reload();
     } finally { setImportLoading(false); }
@@ -434,7 +439,7 @@ const EnterpriseResourcesPage: React.FC = () => {
             <Form.Item name="partyRemark" label="内部备注"><Input.TextArea rows={2} /></Form.Item>
           </>}
           {active.type === 4 && <Form.Item name="groupId" label="标签组" rules={[{ required: true }]}><Select options={tagGroups.flatMap((group) => group.id ? [{ value: group.id, label: group.name }] : [])} /></Form.Item>}
-          {active.type === 3 && <Form.Item label="图片" required><Upload.Dragger accept="image/jpeg,image/png,image/bmp,image/gif" maxCount={1} fileList={imageFiles} beforeUpload={(file) => { if (file.size > Number(capabilities?.imageMaxFileSize)) { message.error(`图片不能超过 ${Number(capabilities?.imageMaxFileSize) / 1024 / 1024} MiB`); return Upload.LIST_IGNORE; } return true; }} customRequest={async ({ file, onError, onSuccess }) => { try { const source = file as RcFile; const checksum = await imageChecksum(source); const prepared = await enterpriseResourceServicePrepareEnterpriseResourceImageUpload({ fileName: source.name, mimeType: source.type, fileSize: String(source.size), checksum }); if (!prepared.uploadUrl || !prepared.objectKey) throw new Error('未获得上传凭证'); const response = await fetch(prepared.uploadUrl, { method: 'PUT', headers: prepared.headers, body: source }); if (!response.ok) throw new Error(`对象存储上传失败：${response.status}`); const uploadResponse = { objectKey: prepared.objectKey, checksum }; setImageFiles([{ uid: source.uid, name: source.name, status: 'done', originFileObj: source, response: uploadResponse }]); onSuccess?.(uploadResponse); } catch (error) { onError?.(error as Error); message.error(error instanceof Error ? error.message : '图片上传失败'); } }} onChange={({ fileList }) => setImageFiles(fileList)} onRemove={() => { setImageFiles([]); return true; }}><p><UploadOutlined /> 点击或拖拽图片上传</p><p>支持 JPG、PNG、BMP、GIF，最大 {Number(capabilities?.imageMaxFileSize) / 1024 / 1024} MiB</p></Upload.Dragger></Form.Item>}
+          {active.type === 3 && <Form.Item label="图片" required><Upload.Dragger accept="image/jpeg,image/png,image/bmp,image/gif" maxCount={1} fileList={imageFiles} beforeUpload={(file) => { if (file.size > Number(capabilities?.imageMaxFileSize)) { message.error(`图片不能超过 ${Number(capabilities?.imageMaxFileSize) / 1024 / 1024} MiB`); return Upload.LIST_IGNORE; } return true; }} customRequest={async ({ file, onError, onSuccess }) => { try { const source = file as RcFile; const checksum = await imageChecksum(source); const prepared = await enterpriseResourceServicePrepareEnterpriseResourceImageUpload({ fileName: source.name, mimeType: source.type, fileSize: String(source.size), checksum }); if (!prepared.uploadUrl || !prepared.objectKey) throw new Error('未获得上传凭证'); const response = await fetch(prepared.uploadUrl, { method: 'PUT', headers: prepared.headers, body: source, signal: AbortSignal.timeout(LONG_REQUEST_TIMEOUT) }); if (!response.ok) throw new Error(`对象存储上传失败：${response.status}`); const uploadResponse = { objectKey: prepared.objectKey, checksum }; setImageFiles([{ uid: source.uid, name: source.name, status: 'done', originFileObj: source, response: uploadResponse }]); onSuccess?.(uploadResponse); } catch (error) { onError?.(error as Error); message.error(isRequestTimeoutError(error) ? '图片上传超时，请确认文件状态后重试' : error instanceof Error ? error.message : '图片上传失败'); } }} onChange={({ fileList }) => setImageFiles(fileList)} onRemove={() => { setImageFiles([]); return true; }}><p><UploadOutlined /> 点击或拖拽图片上传</p><p>支持 JPG、PNG、BMP、GIF，最大 {Number(capabilities?.imageMaxFileSize) / 1024 / 1024} MiB</p></Upload.Dragger></Form.Item>}
         </Form>
       </Modal>
 

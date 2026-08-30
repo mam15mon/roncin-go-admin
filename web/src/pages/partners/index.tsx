@@ -34,6 +34,7 @@ import {
   partnerServiceSetSupplierBlacklist,
 } from '@/services/roncin/partnerService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { longRequestOptions } from '@/utils/requestTimeout';
 import PartnerSecondary from './partner-secondary';
 
 const { Text } = Typography;
@@ -482,11 +483,14 @@ export default function Partners() {
             modeNumber = 2;
           }
 
-          const response = await partnerServiceImportPartners({
-            source,
-            mode: modeNumber,
-            items,
-          });
+          const response = await partnerServiceImportPartners(
+            {
+              source,
+              mode: modeNumber,
+              items,
+            },
+            longRequestOptions,
+          );
 
           message.success(
             `导入成功: 新增 ${response.createdCount ?? 0} 条，更新 ${response.updatedCount ?? 0} 条`,
