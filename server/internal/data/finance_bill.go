@@ -135,11 +135,8 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 func (r *financeBillRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.FinanceBill, error) {
 	item, err := r.financeBillQueryWithLines(r.data.db.FinanceBill.Query()).
 		Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrFinanceBillNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
 	converted, err := financeBillToBiz(item)
 	if err != nil {
@@ -218,11 +215,8 @@ func (r *financeBillRepo) financeBillBatchQuery(query *ent.FinanceBillBatchQuery
 
 func (r *financeBillRepo) getBatch(ctx context.Context, organizationID, batchID uuid.UUID) (*biz.FinanceBillBatch, error) {
 	item, err := r.financeBillBatchQuery(r.data.db.FinanceBillBatch.Query()).Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrFinanceBillNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 	}
 	return financeBillBatchToBiz(item)
 }
@@ -230,11 +224,8 @@ func (r *financeBillRepo) getBatch(ctx context.Context, organizationID, batchID 
 func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		_, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrFinanceBillNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
 		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDEQ(organizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
@@ -482,11 +473,8 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrFinanceBillNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
 		if item.Version != input.ExpectedVersion {
 			return biz.ErrFinanceBillVersionConflict
@@ -533,11 +521,8 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationID uuid.UUID, 
 func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrFinanceBillNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
 		if item.Version != expectedVersion {
 			return biz.ErrFinanceBillVersionConflict
@@ -559,11 +544,8 @@ func (r *financeBillRepo) Confirm(ctx context.Context, organizationID, id, actor
 func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrFinanceBillNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
 		}
 		if item.Version != expectedVersion {
 			return biz.ErrFinanceBillVersionConflict

@@ -190,6 +190,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       `mapEntError`，保留幂等查询的正常空结果语义
 - [x] 第六批：`finance_cashflow.go` 标准 NotFound 分支改用公共
       `mapEntError`，保留幂等查询的正常空结果语义
+- [x] 第七批：`finance_bill.go` 账单与批次标准 NotFound 分支改用公共
+      `mapEntError`，保留两类幂等查询的正常空结果语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
