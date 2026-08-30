@@ -228,45 +228,39 @@ func (r *financeBillRepo) getBatch(ctx context.Context, organizationID, batchID 
 }
 
 func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.FinanceBillBatch, error) { _ = tx.Rollback(); return nil, value }
-	_, err = tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceBillNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDEQ(organizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(bills) == 0 || len(bills) != len(expectedVersions) {
-		return rollback(biz.ErrFinanceBillBatchMismatch)
-	}
-	now := time.Now().UTC()
-	for _, bill := range bills {
-		expected, exists := expectedVersions[bill.ID]
-		if !exists {
-			return rollback(biz.ErrFinanceBillBatchMismatch)
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		_, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrFinanceBillNotFound
 		}
-		if bill.Version != expected {
-			return rollback(biz.ErrFinanceBillVersionConflict)
+		if err != nil {
+			return err
 		}
-		if bill.Status != financebillent.StatusDRAFT {
-			return rollback(biz.ErrFinanceBillInvalidTransition)
+		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDEQ(organizationID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			return err
 		}
-		if _, err = tx.FinanceBill.UpdateOneID(bill.ID).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(bill.Version + 1).Save(ctx); err != nil {
-			return rollback(err)
+		if len(bills) == 0 || len(bills) != len(expectedVersions) {
+			return biz.ErrFinanceBillBatchMismatch
 		}
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+		now := time.Now().UTC()
+		for _, bill := range bills {
+			expected, exists := expectedVersions[bill.ID]
+			if !exists {
+				return biz.ErrFinanceBillBatchMismatch
+			}
+			if bill.Version != expected {
+				return biz.ErrFinanceBillVersionConflict
+			}
+			if bill.Status != financebillent.StatusDRAFT {
+				return biz.ErrFinanceBillInvalidTransition
+			}
+			if _, err = tx.FinanceBill.UpdateOneID(bill.ID).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(bill.Version + 1).Save(ctx); err != nil {
+				return err
+			}
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.getBatch(ctx, organizationID, batchID)
