@@ -350,7 +350,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	if !ruleItem.Enabled || (ruleItem.EffectiveFrom != nil && v.VerificationDate < *ruleItem.EffectiveFrom) || (ruleItem.EffectiveTo != nil && v.VerificationDate > *ruleItem.EffectiveTo) {
 		return nil, biz.ErrCommissionRuleInvalid
 	}
-	rate, err := decimal.NewFromString(ruleItem.RatePercent)
+	rate, err := decimalOf(ruleItem.RatePercent)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	allocationByBill := make(map[uuid.UUID]decimal.Decimal)
 	seenBills := make(map[uuid.UUID]struct{})
 	for _, item := range v.Edges.Allocations {
-		amount, parseErr := decimal.NewFromString(item.Amount)
+		amount, parseErr := decimalOf(item.Amount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -391,7 +391,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	orderRealized := make(map[uuid.UUID]decimal.Decimal)
 	baseCurrency := ""
 	for _, billItem := range bills {
-		total, parseErr := decimal.NewFromString(billItem.TotalAmount)
+		total, parseErr := decimalOf(billItem.TotalAmount)
 		if parseErr != nil || !total.IsPositive() {
 			return nil, biz.ErrCommissionSource
 		}
@@ -401,7 +401,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 			if !billLine.Active {
 				continue
 			}
-			base, parseErr := decimal.NewFromString(billLine.BaseCurrencyAmount)
+			base, parseErr := decimalOf(billLine.BaseCurrencyAmount)
 			if parseErr != nil {
 				return nil, parseErr
 			}
@@ -506,15 +506,15 @@ func calculateCommissionFromSource(source *commissionCalculationSource, employee
 			if partyErr != nil {
 				return nil, partyErr
 			}
-			totalAmount, parseErr := decimal.NewFromString(feeItem.TotalAmount)
+			totalAmount, parseErr := decimalOf(feeItem.TotalAmount)
 			if parseErr != nil {
 				return nil, parseErr
 			}
-			exchangeRate, parseErr := decimal.NewFromString(feeItem.ExchangeRate)
+			exchangeRate, parseErr := decimalOf(feeItem.ExchangeRate)
 			if parseErr != nil {
 				return nil, parseErr
 			}
-			baseAmount, parseErr := decimal.NewFromString(feeItem.BaseCurrencyAmount)
+			baseAmount, parseErr := decimalOf(feeItem.BaseCurrencyAmount)
 			if parseErr != nil {
 				return nil, parseErr
 			}
@@ -746,27 +746,27 @@ func commissionWithLinesToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission,
 }
 
 func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
-	revenue, err := decimal.NewFromString(x.RealizedRevenue)
+	revenue, err := decimalOf(x.RealizedRevenue)
 	if err != nil {
 		return nil, err
 	}
-	cost, err := decimal.NewFromString(x.AllocatedCost)
+	cost, err := decimalOf(x.AllocatedCost)
 	if err != nil {
 		return nil, err
 	}
-	profit, err := decimal.NewFromString(x.RealizedProfit)
+	profit, err := decimalOf(x.RealizedProfit)
 	if err != nil {
 		return nil, err
 	}
-	rate, err := decimal.NewFromString(x.RatePercent)
+	rate, err := decimalOf(x.RatePercent)
 	if err != nil {
 		return nil, err
 	}
-	amount, err := decimal.NewFromString(x.CommissionAmount)
+	amount, err := decimalOf(x.CommissionAmount)
 	if err != nil {
 		return nil, err
 	}
-	commissionBase, err := decimal.NewFromString(x.CommissionBaseAmount)
+	commissionBase, err := decimalOf(x.CommissionBaseAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -787,27 +787,27 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 }
 
 func commissionLineToBiz(x *ent.FinanceCommissionLine) (*biz.FinanceCommissionLine, error) {
-	revenue, err := decimal.NewFromString(x.RealizedRevenue)
+	revenue, err := decimalOf(x.RealizedRevenue)
 	if err != nil {
 		return nil, err
 	}
-	cost, err := decimal.NewFromString(x.AllocatedCost)
+	cost, err := decimalOf(x.AllocatedCost)
 	if err != nil {
 		return nil, err
 	}
-	profit, err := decimal.NewFromString(x.RealizedProfit)
+	profit, err := decimalOf(x.RealizedProfit)
 	if err != nil {
 		return nil, err
 	}
-	rate, err := decimal.NewFromString(x.RatePercent)
+	rate, err := decimalOf(x.RatePercent)
 	if err != nil {
 		return nil, err
 	}
-	amount, err := decimal.NewFromString(x.CommissionAmount)
+	amount, err := decimalOf(x.CommissionAmount)
 	if err != nil {
 		return nil, err
 	}
-	commissionBase, err := decimal.NewFromString(x.CommissionBaseAmount)
+	commissionBase, err := decimalOf(x.CommissionBaseAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -898,12 +898,12 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 				if queryErr != nil {
 					return queryErr
 				}
-				effective, parseErr := decimal.NewFromString(parent.CommissionAmount)
+				effective, parseErr := decimalOf(parent.CommissionAmount)
 				if parseErr != nil {
 					return parseErr
 				}
 				for _, old := range active {
-					amount, amountErr := decimal.NewFromString(old.Amount)
+					amount, amountErr := decimalOf(old.Amount)
 					if amountErr != nil {
 						return amountErr
 					}
@@ -913,7 +913,7 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 						effective = effective.Add(amount)
 					}
 				}
-				currentAmount, parseErr := decimal.NewFromString(x.Amount)
+				currentAmount, parseErr := decimalOf(x.Amount)
 				if parseErr != nil {
 					return parseErr
 				}
@@ -947,7 +947,7 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 }
 
 func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.FinanceCommissionAdjustment, error) {
-	amount, err := decimal.NewFromString(x.Amount)
+	amount, err := decimalOf(x.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -963,7 +963,7 @@ func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.Finance
 }
 
 func commissionRuleToBiz(x *ent.FinanceCommissionRule) (*biz.FinanceCommissionRule, error) {
-	rate, err := decimal.NewFromString(x.RatePercent)
+	rate, err := decimalOf(x.RatePercent)
 	if err != nil {
 		return nil, err
 	}

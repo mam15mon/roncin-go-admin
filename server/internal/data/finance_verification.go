@@ -56,7 +56,7 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 	}
 	summary := biz.VerificationSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
 	for _, row := range summaryRows {
-		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		amount, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -160,11 +160,11 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 			}
 			ca, _ := decimal.NewFromString(c.Amount)
 			ba, _ := decimal.NewFromString(b.TotalAmount)
-			cashBaseTotal, parseErr := decimal.NewFromString(c.BaseAmount)
+			cashBaseTotal, parseErr := decimalOf(c.BaseAmount)
 			if parseErr != nil {
 				return parseErr
 			}
-			billBaseTotal, parseErr := decimal.NewFromString(b.BaseCurrencyAmount)
+			billBaseTotal, parseErr := decimalOf(b.BaseCurrencyAmount)
 			if parseErr != nil {
 				return parseErr
 			}
@@ -277,14 +277,14 @@ func reconcileCommissionsForVerificationReversal(ctx context.Context, tx *ent.Tx
 		if queryErr != nil {
 			return queryErr
 		}
-		baseAmount, parseErr := decimal.NewFromString(parent.CommissionAmount)
+		baseAmount, parseErr := decimalOf(parent.CommissionAmount)
 		if parseErr != nil {
 			return parseErr
 		}
 		domainLines := make([]biz.CommissionReversalLine, 0, len(lines))
 		lineByOrder := make(map[uuid.UUID]*ent.FinanceCommissionLine, len(lines))
 		for _, line := range lines {
-			lineAmount, amountErr := decimal.NewFromString(line.CommissionAmount)
+			lineAmount, amountErr := decimalOf(line.CommissionAmount)
 			if amountErr != nil {
 				return amountErr
 			}
@@ -353,49 +353,49 @@ func limitedFinanceReason(value string) string {
 	return string(runes[:500])
 }
 func verificationToBiz(x *ent.FinanceVerification) (*biz.FinanceVerification, error) {
-	amount, e := decimal.NewFromString(x.Amount)
+	amount, e := decimalOf(x.Amount)
 	if e != nil {
 		return nil, e
 	}
-	exchangeRate, e := decimal.NewFromString(x.ExchangeRate)
+	exchangeRate, e := decimalOf(x.ExchangeRate)
 	if e != nil {
 		return nil, e
 	}
-	baseAmount, e := decimal.NewFromString(x.BaseAmount)
+	baseAmount, e := decimalOf(x.BaseAmount)
 	if e != nil {
 		return nil, e
 	}
-	billBaseAmount, e := decimal.NewFromString(x.BillBaseAmount)
+	billBaseAmount, e := decimalOf(x.BillBaseAmount)
 	if e != nil {
 		return nil, e
 	}
-	cashflowBaseAmount, e := decimal.NewFromString(x.CashflowBaseAmount)
+	cashflowBaseAmount, e := decimalOf(x.CashflowBaseAmount)
 	if e != nil {
 		return nil, e
 	}
-	exchangeGainLoss, e := decimal.NewFromString(x.ExchangeGainLoss)
+	exchangeGainLoss, e := decimalOf(x.ExchangeGainLoss)
 	if e != nil {
 		return nil, e
 	}
 	v := &biz.FinanceVerification{ID: x.ID, OrganizationID: x.OrganizationID, VerificationNo: x.VerificationNo, IdempotencyKey: x.IdempotencyKey, Status: biz.VerificationStatus(x.Status), Direction: biz.OrderFeeDirection(x.Direction), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, Currency: x.Currency, Amount: amount, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: string(x.ExchangeRateSource), ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseAmount: baseAmount, BillBaseAmount: billBaseAmount, CashflowBaseAmount: cashflowBaseAmount, ExchangeGainLoss: exchangeGainLoss, VerificationDate: x.VerificationDate, Note: x.Note, Version: x.Version, ReversedAt: x.ReversedAt, ReversedBy: x.ReversedBy, ReversalReason: x.ReversalReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Allocations: make([]*biz.VerificationAllocation, 0, len(x.Edges.Allocations))}
 	for _, a := range x.Edges.Allocations {
-		z, e := decimal.NewFromString(a.Amount)
+		z, e := decimalOf(a.Amount)
 		if e != nil {
 			return nil, e
 		}
-		billBase, e := decimal.NewFromString(a.BillBaseAmount)
+		billBase, e := decimalOf(a.BillBaseAmount)
 		if e != nil {
 			return nil, e
 		}
-		cashBase, e := decimal.NewFromString(a.CashflowBaseAmount)
+		cashBase, e := decimalOf(a.CashflowBaseAmount)
 		if e != nil {
 			return nil, e
 		}
-		writeOffBase, e := decimal.NewFromString(a.WriteOffBaseAmount)
+		writeOffBase, e := decimalOf(a.WriteOffBaseAmount)
 		if e != nil {
 			return nil, e
 		}
-		gainLoss, e := decimal.NewFromString(a.ExchangeGainLoss)
+		gainLoss, e := decimalOf(a.ExchangeGainLoss)
 		if e != nil {
 			return nil, e
 		}
