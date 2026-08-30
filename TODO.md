@@ -43,7 +43,8 @@
 - [x] 第八批：`order_release_pod.go`、`order_shipping_document.go` 共 8 个事务入口。
 - [x] 第九批：`order_write.go` 三个订单状态流转事务入口。
 - [x] 第十批：`exchange_rate_import.go`、`industry_reference_sync.go` 共 4 个批处理事务入口。
-- [ ] 剩余生产仓储手写事务：81 处 / 16 个文件。
+- [x] 第十一批：`exchange_rate.go` 三个汇率停用及配置事务入口。
+- [ ] 剩余生产仓储手写事务：78 处 / 16 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 

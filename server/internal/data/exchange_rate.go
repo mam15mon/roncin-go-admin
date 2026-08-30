@@ -173,27 +173,19 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 }
 
 func (r *exchangeRateRepo) Disable(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	item, err := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return biz.ErrExchangeRateNotFound
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(organizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrExchangeRateNotFound
+			}
+			return queryErr
 		}
-		return err
-	}
-	if _, err = item.Update().SetIsActive(false).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		if _, updateErr := item.Update().SetIsActive(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *exchangeRateRepo) ListTimeStandards(ctx context.Context, organizationID uuid.UUID) ([]*biz.ExchangeRateTimeStandardSetting, error) {
@@ -219,32 +211,24 @@ func (r *exchangeRateRepo) ListTimeStandards(ctx context.Context, organizationID
 }
 
 func (r *exchangeRateRepo) ReplaceTimeStandards(ctx context.Context, organizationID uuid.UUID, settings []*biz.ExchangeRateTimeStandardSetting, audit *biz.AuditEvent) error {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return err
-	}
-	if _, err := tx.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	for _, setting := range settings {
-		for index, standard := range setting.TimeStandards {
-			if _, err := tx.ExchangeRateTimeStandard.Create().
-				SetOrganizationID(organizationID).
-				SetRateType(exchangeratetimestandardent.RateType(setting.RateType)).
-				SetTimeStandard(exchangeratetimestandardent.TimeStandard(standard)).
-				SetSortOrder(index).
-				Save(ctx); err != nil {
-				_ = tx.Rollback()
-				return err
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, deleteErr := tx.ExchangeRateTimeStandard.Delete().Where(exchangeratetimestandardent.OrganizationIDEQ(organizationID)).Exec(ctx); deleteErr != nil {
+			return deleteErr
+		}
+		for _, setting := range settings {
+			for index, standard := range setting.TimeStandards {
+				if _, createErr := tx.ExchangeRateTimeStandard.Create().
+					SetOrganizationID(organizationID).
+					SetRateType(exchangeratetimestandardent.RateType(setting.RateType)).
+					SetTimeStandard(exchangeratetimestandardent.TimeStandard(standard)).
+					SetSortOrder(index).
+					Save(ctx); createErr != nil {
+					return createErr
+				}
 			}
 		}
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	return tx.Commit()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 }
 
 func (r *exchangeRateRepo) GetCustomSetting(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateCustomSetting, error) {
@@ -264,53 +248,48 @@ func (r *exchangeRateRepo) SaveCustomSetting(ctx context.Context, setting *biz.E
 	if setting == nil || setting.OrganizationID == uuid.Nil || setting.UpdatedBy == nil || *setting.UpdatedBy == uuid.Nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	current, err := tx.ExchangeRateCustomSetting.Query().
-		Where(exchangeratecustomsettingent.OrganizationIDEQ(setting.OrganizationID)).
-		ForUpdate().
-		Only(ctx)
 	var saved *ent.ExchangeRateCustomSetting
-	switch {
-	case ent.IsNotFound(err):
-		if expectedVersion != 0 {
-			_ = tx.Rollback()
-			return nil, biz.ErrExchangeRateCustomSettingConflict
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.ExchangeRateCustomSetting.Query().
+			Where(exchangeratecustomsettingent.OrganizationIDEQ(setting.OrganizationID)).
+			ForUpdate().
+			Only(ctx)
+		switch {
+		case ent.IsNotFound(queryErr):
+			if expectedVersion != 0 {
+				return biz.ErrExchangeRateCustomSettingConflict
+			}
+			var createErr error
+			saved, createErr = tx.ExchangeRateCustomSetting.Create().
+				SetOrganizationID(setting.OrganizationID).
+				SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
+				SetVersion(1).
+				SetUpdatedBy(*setting.UpdatedBy).
+				Save(ctx)
+			if ent.IsConstraintError(createErr) {
+				return biz.ErrExchangeRateCustomSettingConflict
+			}
+			if createErr != nil {
+				return createErr
+			}
+		case queryErr != nil:
+			return queryErr
+		case current.Version != expectedVersion:
+			return biz.ErrExchangeRateCustomSettingConflict
+		default:
+			var updateErr error
+			saved, updateErr = tx.ExchangeRateCustomSetting.UpdateOneID(current.ID).
+				SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
+				SetVersion(current.Version + 1).
+				SetUpdatedBy(*setting.UpdatedBy).
+				Save(ctx)
+			if updateErr != nil {
+				return updateErr
+			}
 		}
-		saved, err = tx.ExchangeRateCustomSetting.Create().
-			SetOrganizationID(setting.OrganizationID).
-			SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
-			SetVersion(1).
-			SetUpdatedBy(*setting.UpdatedBy).
-			Save(ctx)
-		if ent.IsConstraintError(err) {
-			_ = tx.Rollback()
-			return nil, biz.ErrExchangeRateCustomSettingConflict
-		}
-	case err != nil:
-		_ = tx.Rollback()
-		return nil, err
-	case current.Version != expectedVersion:
-		_ = tx.Rollback()
-		return nil, biz.ErrExchangeRateCustomSettingConflict
-	default:
-		saved, err = tx.ExchangeRateCustomSetting.UpdateOneID(current.ID).
-			SetInheritBaseCurrencyRate(setting.InheritBaseCurrencyRate).
-			SetVersion(current.Version + 1).
-			SetUpdatedBy(*setting.UpdatedBy).
-			Save(ctx)
-	}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return exchangeRateCustomSettingToBiz(saved), nil
