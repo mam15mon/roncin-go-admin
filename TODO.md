@@ -339,8 +339,10 @@ Count → Offset/Limit → 循环转换 → 组装 五步同构
 日期空值守卫 `val ? dayjs(val).format(...) : '-'` 重复 52 处 / 29 文件；
 金额格式化 4 套实现（`utils/format.ts` 已有但仍被绕过）；小数去尾零
 2 套；`ExchangeRatesPanel` 跨页面目录相对引用 `order-fee-decimal`。
-- [ ] 扩展 `utils/format.ts`：`formatDate(v, 'datetime'|'date')`、
-      `formatAmount`、`trimDecimal`；`order-fee-decimal.ts` 迁入 utils
+- [x] 扩展 `utils/format.ts`：`formatDate(v, 'datetime'|'date')`、
+      `formatAmount`、`trimDecimal`；展示层日期时间直调和自定义金额格式化已
+      清零，剩余 4 处 `YYYY-MM-DD` 均为请求参数序列化。订单费用十进制工具
+      已位于 `utils/decimal.ts`，展示去尾零职责迁入 `format.ts`
 
 ### C4. 财务单据 confirm/cancel 复用（中高，7 页逐行重复）
 `src/pages/orders/fee-reason-confirm.tsx` 的 `confirmWithReason()` 已存在，

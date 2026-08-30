@@ -1,6 +1,6 @@
 import { Space, Table, Tag, Typography } from 'antd';
-import dayjs from 'dayjs';
 import React from 'react';
+import { formatDate } from '@/utils/format';
 import {
   decimalText,
   personnelRoleText,
@@ -149,7 +149,7 @@ export const previewColumns = [
         <span>{`${line.employeeName} · ${personnelRoleText(line.personnelRole)}`}</span>
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           {line.customerAssignedAt || line.personnelAssignedAt
-            ? `归属于 ${dayjs(line.customerAssignedAt || line.personnelAssignedAt).format('YYYY-MM-DD')}`
+            ? `归属于 ${formatDate(line.customerAssignedAt || line.personnelAssignedAt, 'date')}`
             : '-'}
         </Typography.Text>
       </Space>
