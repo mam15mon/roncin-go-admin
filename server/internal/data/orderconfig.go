@@ -54,11 +54,8 @@ func (r *orderConfigRepo) CreateNumberRule(ctx context.Context, organizationID u
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var err error
 		created, err = tx.NumberRule.Create().SetOrganizationID(organizationID).SetDocumentType(numberrule.DocumentType(input.DocumentType)).SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(true).Save(ctx)
-		if ent.IsConstraintError(err) {
-			return biz.ErrNumberRuleExists
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, nil, biz.ErrNumberRuleExists)
 		}
 		audit.Details["number_rule.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -73,11 +70,8 @@ func (r *orderConfigRepo) UpdateNumberRule(ctx context.Context, organizationID, 
 	var updated *ent.NumberRule
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, err := tx.NumberRule.Query().Where(numberrule.IDEQ(id), numberrule.OrganizationIDEQ(organizationID)).Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrNumberRuleNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrNumberRuleNotFound, nil)
 		}
 		updated, err = existing.Update().SetPrefix(input.Prefix).SetDateFormat(numberrule.DateFormat(input.DateFormat)).SetSequenceLength(input.SequenceLength).SetResetPolicy(numberrule.ResetPolicy(input.ResetPolicy)).SetEnabled(input.Enabled).Save(ctx)
 		if err != nil {
@@ -108,11 +102,8 @@ func (r *orderConfigRepo) AllocateNumber(ctx context.Context, organizationID uui
 
 func allocateNumberInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, documentType biz.DocumentType, at time.Time) (*biz.NumberRule, int64, error) {
 	lockedRule, err := tx.NumberRule.Query().Where(numberrule.OrganizationIDEQ(organizationID), numberrule.DocumentTypeEQ(numberrule.DocumentType(documentType)), numberrule.EnabledEQ(true)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, 0, biz.ErrNumberRuleNotFound
-	}
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, mapEntError(err, biz.ErrNumberRuleNotFound, nil)
 	}
 	maximum := int64(1)
 	for range lockedRule.SequenceLength {

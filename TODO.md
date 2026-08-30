@@ -226,6 +226,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共 `mapEntError`
 - [x] 第二十四批：`admin_organization.go` 组织 NotFound 与编码约束
       改用公共 `mapEntError`
+- [x] 第二十五批：`masterdata.go` 与 `orderconfig.go` 的标准 NotFound/约束
+      改用公共错误映射，保留不存在时创建的分流语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

@@ -116,10 +116,7 @@ func (r *masterDataRepo) Create(ctx context.Context, organizationID uuid.UUID, i
 		var createErr error
 		created, createErr = create.Save(ctx)
 		if createErr != nil {
-			if ent.IsConstraintError(createErr) {
-				return biz.ErrMasterDataCodeExists
-			}
-			return createErr
+			return mapEntError(createErr, nil, biz.ErrMasterDataCodeExists)
 		}
 		audit.Details["master_data.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -138,10 +135,7 @@ func (r *masterDataRepo) Update(ctx context.Context, organizationID, id uuid.UUI
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.MasterDataItem.Query().Where(masterdataent.IDEQ(id), masterdataent.OrganizationIDEQ(organizationID), masterdataent.KindEQ(masterdataent.Kind(input.Kind))).Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrMasterDataNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrMasterDataNotFound, nil)
 		}
 		update := existing.Update().SetName(input.Name).SetNillableNameEn(input.NameEN).SetNillableParentCode(input.ParentCode).SetNillableTeuFactor(input.TEUFactor).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).SetAttributes(masterDataAttributesToEnt(input.Attributes))
 		if input.NameEN == nil {
@@ -190,10 +184,7 @@ func (r *masterDataRepo) Import(ctx context.Context, organizationID uuid.UUID, m
 					SetAttributes(masterDataAttributesToEnt(input.Attributes)).
 					Save(ctx)
 				if createErr != nil {
-					if ent.IsConstraintError(createErr) {
-						return biz.ErrMasterDataCodeExists
-					}
-					return createErr
+					return mapEntError(createErr, nil, biz.ErrMasterDataCodeExists)
 				}
 				result.Items = append(result.Items, masterDataItemToBiz(created))
 				result.Created++
