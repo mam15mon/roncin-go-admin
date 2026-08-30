@@ -20,6 +20,7 @@ import { App, Button, Space, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { partnerContractStatusMeta, statusTag } from '@/constants/statusMeta';
+import { PartnerContractStatus } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerContract,
   partnerServiceListPartnerContracts,
@@ -185,7 +186,10 @@ export default function ContractsPanel({
                       ]
                     : undefined,
               }
-            : { status: 1 }
+            : {
+                status:
+                  PartnerContractStatus.PARTNER_CONTRACT_STATUS_PENDING,
+              }
         }
         modalProps={{
           destroyOnHidden: true,

@@ -197,7 +197,11 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                   size="small"
                   style={{
                     height: '100%',
-                    borderColor: item.status === 2 ? '#91caff' : '#e8e8e8',
+                    borderColor:
+                      item.status ===
+                      PartnerContractStatus.PARTNER_CONTRACT_STATUS_ACTIVE
+                        ? '#91caff'
+                        : '#e8e8e8',
                     borderRadius: 6,
                     backgroundColor: '#ffffff',
                   }}

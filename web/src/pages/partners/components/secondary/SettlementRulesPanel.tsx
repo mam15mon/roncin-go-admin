@@ -15,6 +15,12 @@ import {
 import { App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
+  PartnerRoleType,
+  PartnerSettlementBase,
+  PartnerSettlementMethod,
+  PartnerStatementMode,
+} from '@/enums.generated';
+import {
   partnerServiceCreatePartnerSettlementRule,
   partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartnerSettlementRule,
@@ -22,21 +28,23 @@ import {
 import { unwrapList } from '@/utils/api';
 
 const roleOptions = [
-  { label: '客户', value: 1, color: 'blue' },
-  { label: '供应商', value: 2, color: 'green' },
-  { label: '国外代理', value: 3, color: 'purple' },
-  { label: '承运人', value: 4, color: 'orange' },
+  { label: '客户', value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, color: 'blue' },
+  { label: '供应商', value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER, color: 'green' },
+  { label: '国外代理', value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT, color: 'purple' },
+  { label: '承运人', value: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER, color: 'orange' },
 ];
 
-const roleMap = new Map(roleOptions.map((opt) => [opt.value, opt]));
+const roleMap = new Map<number, (typeof roleOptions)[number]>(
+  roleOptions.map((option) => [option.value, option]),
+);
 
 const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
 );
 
 const statementModeOptions = [
-  { label: '单票对账', value: 1 },
-  { label: '汇总对账', value: 2 },
+  { label: '单票对账', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE },
+  { label: '汇总对账', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_MULTI },
 ];
 
 const statementModeLabels: Record<number, string> = Object.fromEntries(
@@ -44,14 +52,14 @@ const statementModeLabels: Record<number, string> = Object.fromEntries(
 );
 
 const settlementMethodOptions = [
-  { label: '单票结算', value: 1 },
-  { label: '月结', value: 2 },
-  { label: '周结', value: 3 },
-  { label: '半月结', value: 4 },
-  { label: '双月结', value: 5 },
-  { label: '季结', value: 6 },
-  { label: '45天', value: 7 },
-  { label: '预付', value: 8 },
+  { label: '单票结算', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET },
+  { label: '月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_MONTHLY },
+  { label: '周结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_WEEKLY },
+  { label: '半月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY },
+  { label: '双月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BI_MONTHLY },
+  { label: '季结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_QUARTERLY },
+  { label: '45天', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_DAYS_45 },
+  { label: '预付', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID },
 ];
 
 const settlementMethodLabels: Record<number, string> = Object.fromEntries(
@@ -59,9 +67,9 @@ const settlementMethodLabels: Record<number, string> = Object.fromEntries(
 );
 
 const settlementBaseOptions = [
-  { label: '账单日', value: 1 },
-  { label: '开航日', value: 2 },
-  { label: '到港日', value: 3 },
+  { label: '账单日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE },
+  { label: '开航日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_SAILING_DATE },
+  { label: '到港日', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE },
 ];
 
 const settlementBaseLabels: Record<number, string> = Object.fromEntries(
@@ -256,8 +264,9 @@ export default function SettlementRulesPanel({
         initialValues={
           editingRule ?? {
             roleType: partner?.roles?.[0]?.type ?? 1,
-            statementMode: 1,
-            settlementMethod: 1,
+            statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
+            settlementMethod:
+              PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
             settlementCurrency: 'CNY',
             isActive: true,
           }

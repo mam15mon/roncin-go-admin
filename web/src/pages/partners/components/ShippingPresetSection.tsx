@@ -32,6 +32,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
+import { PartnerShippingPresetType } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerShippingPreset,
   partnerServiceListPartnerShippingPresets,
@@ -42,15 +43,17 @@ import { unwrapList } from '@/utils/api';
 const { Text, Paragraph } = Typography;
 
 export const PRESET_TYPES = [
-  { key: 1, label: '发货人 (Shipper)', icon: <SendOutlined />, short: '发货人', isParty: true },
-  { key: 2, label: '收货人 (Consignee)', icon: <ContainerOutlined />, short: '收货人', isParty: true },
-  { key: 3, label: '通知人 (Notify)', icon: <UsergroupAddOutlined />, short: '通知人', isParty: true },
-  { key: 4, label: '英文品名 (Cargo Name)', icon: <FileTextOutlined />, short: '英文品名', isParty: false },
-  { key: 5, label: 'HS编码 (HS Code)', icon: <NumberOutlined />, short: 'HS', isParty: false },
-  { key: 6, label: '唛头 (Shipping Marks)', icon: <TagsOutlined />, short: '唛头', isParty: false },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER, label: '发货人 (Shipper)', icon: <SendOutlined />, short: '发货人', isParty: true },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_CONSIGNEE, label: '收货人 (Consignee)', icon: <ContainerOutlined />, short: '收货人', isParty: true },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY, label: '通知人 (Notify)', icon: <UsergroupAddOutlined />, short: '通知人', isParty: true },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_ENGLISH_CARGO_NAME, label: '英文品名 (Cargo Name)', icon: <FileTextOutlined />, short: '英文品名', isParty: false },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_HS_CODE, label: 'HS编码 (HS Code)', icon: <NumberOutlined />, short: 'HS', isParty: false },
+  { key: PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_MARKS, label: '唛头 (Shipping Marks)', icon: <TagsOutlined />, short: '唛头', isParty: false },
 ];
 
-const PRESET_TYPE_MAP = new Map(PRESET_TYPES.map((t) => [t.key, t]));
+const PRESET_TYPE_MAP = new Map<number, (typeof PRESET_TYPES)[number]>(
+  PRESET_TYPES.map((type) => [type.key, type]),
+);
 
 interface ShippingPresetSectionProps {
   partnerId?: string;
@@ -64,7 +67,9 @@ export default function ShippingPresetSection({
   const [presets, setPresets] = useState<API.PartnerShippingPreset[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentType, setCurrentType] = useState<number>(1);
+  const [currentType, setCurrentType] = useState<number>(
+    PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER,
+  );
   const [editingPreset, setEditingPreset] = useState<API.PartnerShippingPreset | undefined>(undefined);
   const [form] = Form.useForm();
 
@@ -227,7 +232,9 @@ export default function ShippingPresetSection({
     return activePresets.filter((p) => p.presetType === typeNum);
   }, [activePresets, activeTab]);
 
-  const isPartyForm = currentType <= 3;
+  const isPartyForm =
+    currentType <=
+    PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY;
   const currentPresetMeta = PRESET_TYPE_MAP.get(currentType);
 
   return (
@@ -287,8 +294,13 @@ export default function ShippingPresetSection({
         ) : (
           <Row gutter={[16, 16]}>
             {filteredPresets.map((preset) => {
-              const meta = PRESET_TYPE_MAP.get(preset.presetType || 1);
-              const isParty = (preset.presetType || 1) <= 3;
+              const presetType =
+                preset.presetType ||
+                PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_SHIPPER;
+              const meta = PRESET_TYPE_MAP.get(presetType);
+              const isParty =
+                presetType <=
+                PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_NOTIFY_PARTY;
               return (
                 <Col xs={24} sm={12} md={8} lg={6} key={preset.id}>
                   <Card
@@ -496,7 +508,8 @@ export default function ShippingPresetSection({
           </>
         ) : (
           <>
-            {currentType === 5 && (
+            {currentType ===
+              PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_HS_CODE && (
               <Col span={24}>
                 <ProFormText
                   name="code"
@@ -509,9 +522,15 @@ export default function ShippingPresetSection({
             <Col span={24}>
               <ProFormTextArea
                 name="content"
-                label={currentType === 6 ? '唛头与件号' : '英文详细品名'}
+                label={
+                  currentType ===
+                  PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_MARKS
+                    ? '唛头与件号'
+                    : '英文详细品名'
+                }
                 placeholder={
-                  currentType === 6
+                  currentType ===
+                  PartnerShippingPresetType.PARTNER_SHIPPING_PRESET_TYPE_MARKS
                     ? 'N/M 或\nABC CO., LTD\nC/NO. 1-100\nMADE IN CHINA'
                     : 'AUTOMATIC DATA PROCESSING MACHINES AND UNITS THEREOF'
                 }

@@ -5,6 +5,14 @@ import { history, useLocation, useParams } from '@umijs/max';
 import { App, Button, Col, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  PartnerBusinessType,
+  PartnerCustomerType,
+  PartnerRoleType,
+  PartnerSettlementBase,
+  PartnerSettlementMethod,
+  PartnerStatementMode,
+} from '@/enums.generated';
+import {
   adminServiceListOrganizations,
   adminServiceListUsers,
 } from '@/services/roncin/adminService';
@@ -89,19 +97,23 @@ export default function PartnerDetailPage() {
     const path = location.pathname;
     if (path.includes('/suppliers')) {
       return {
-        roleType: 2,
+        roleType: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
         roleLabel: '供应商',
         listUrl: '/partners/suppliers',
       };
     }
     if (path.includes('/foreign-agents')) {
       return {
-        roleType: 3,
+        roleType: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
         roleLabel: '国外代理',
         listUrl: '/partners/foreign-agents',
       };
     }
-    return { roleType: 1, roleLabel: '客户', listUrl: '/partners/customers' };
+    return {
+      roleType: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+      roleLabel: '客户',
+      listUrl: '/partners/customers',
+    };
   }, [location.pathname]);
 
   const partnerId = params.id && params.id !== 'create' ? params.id : undefined;
@@ -278,12 +290,14 @@ export default function PartnerDetailPage() {
       formRef.current?.setFieldsValue({
         enabled: true,
         nature: roleLabel,
-        customerTypes: [1],
+        customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
         developmentMethod: '自主开发',
-        businessTypes: [1],
-        statementMode: 1,
-        settlementMethod: 1,
-        settlementBase: 1,
+        businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
+        statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
+        settlementMethod:
+          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
+        settlementBase:
+          PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
         settlementDay: 25,
         settlementCurrency: 'CNY',
         creditDays: 30,

@@ -26,6 +26,7 @@ import { history, useAccess, useLocation } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
+import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import {
   partnerServiceExportPartners,
   partnerServiceImportPartners,
@@ -38,10 +39,10 @@ import PartnerSecondary from './partner-secondary';
 const { Text } = Typography;
 
 const roleOptions = [
-  { label: '客户', value: 1, color: 'blue' },
-  { label: '供应商', value: 2, color: 'green' },
-  { label: '国外代理', value: 3, color: 'purple' },
-  { label: '承运人', value: 4, color: 'orange' },
+  { label: '客户', value: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, color: 'blue' },
+  { label: '供应商', value: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER, color: 'green' },
+  { label: '国外代理', value: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT, color: 'purple' },
+  { label: '承运人', value: PartnerRoleType.PARTNER_ROLE_TYPE_CARRIER, color: 'orange' },
 ];
 
 const partnerViews: Record<
@@ -50,25 +51,27 @@ const partnerViews: Record<
 > = {
   '/partners/customers': {
     title: '客户',
-    roleType: 1,
+    roleType: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
     codeExample: 'CUST001',
     description: '维护客户企业档案、联系人、合同与结算资料',
   },
   '/partners/suppliers': {
     title: '供应商',
-    roleType: 2,
+    roleType: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
     codeExample: 'SUPP001',
     description: '维护供应商企业档案、联系人、合同与黑名单',
   },
   '/partners/foreign-agents': {
     title: '国外代理',
-    roleType: 3,
+    roleType: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
     codeExample: 'AGENT001',
     description: '维护国外代理企业档案、联系人、合同与结算资料',
   },
 };
 
-const roleMap = new Map(roleOptions.map((opt) => [opt.value, opt]));
+const roleMap = new Map<number, (typeof roleOptions)[number]>(
+  roleOptions.map((option) => [option.value, option]),
+);
 
 const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
@@ -310,7 +313,10 @@ export default function Partners() {
               >
                 编辑
               </Button>
-              {record.roles?.some((role) => role.type === 2) && (
+              {record.roles?.some(
+                (role) =>
+                  role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+              ) && (
                 <Button
                   type="link"
                   size="small"
@@ -472,7 +478,7 @@ export default function Partners() {
           }
 
           let modeNumber = 1;
-          if (values.mode === 2) {
+          if (values.mode === PartnerImportMode.PARTNER_IMPORT_MODE_UPSERT) {
             modeNumber = 2;
           }
 
@@ -500,8 +506,14 @@ export default function Partners() {
           name="mode"
           label="数据导入模式"
           options={[
-            { label: '仅新增 (若存在则忽略或跳过)', value: 1 },
-            { label: '存在则更新 (Upsert 按编码匹配覆盖)', value: 2 },
+            {
+              label: '仅新增 (若存在则忽略或跳过)',
+              value: PartnerImportMode.PARTNER_IMPORT_MODE_CREATE_ONLY,
+            },
+            {
+              label: '存在则更新 (Upsert 按编码匹配覆盖)',
+              value: PartnerImportMode.PARTNER_IMPORT_MODE_UPSERT,
+            },
           ]}
           rules={[{ required: true, message: '请选择导入模式' }]}
         />
@@ -529,7 +541,10 @@ export default function Partners() {
         formRef={blacklistFormRef}
         initialValues={{
           blacklisted: Boolean(
-            blacklistPartner?.roles?.find((role) => role.type === 2)?.blacklisted,
+            blacklistPartner?.roles?.find(
+              (role) =>
+                role.type === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+            )?.blacklisted,
           ),
         }}
         modalProps={{

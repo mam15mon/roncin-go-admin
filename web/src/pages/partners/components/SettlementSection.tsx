@@ -3,28 +3,33 @@ import { ProFormDigit, ProFormSelect } from '@ant-design/pro-components';
 import { SectionCard } from '@/components/ui';
 import { Button, Col, Form, Input, Row, Select, Space, Tooltip } from 'antd';
 import React from 'react';
+import {
+  PartnerSettlementBase,
+  PartnerSettlementMethod,
+  PartnerStatementMode,
+} from '@/enums.generated';
 import type { InterestRuleValues } from './InterestRuleModal';
 
 export const STATEMENT_MODE_OPTIONS = [
-  { label: '单票', value: 1 },
-  { label: '汇总', value: 2 },
+  { label: '单票', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE },
+  { label: '汇总', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_MULTI },
 ];
 
 export const SETTLEMENT_METHOD_OPTIONS = [
-  { label: '票结', value: 1 },
-  { label: '月结', value: 2 },
-  { label: '周结', value: 3 },
-  { label: '半月结', value: 4 },
-  { label: '双月结', value: 5 },
-  { label: '季结', value: 6 },
-  { label: '45天', value: 7 },
-  { label: '预付', value: 8 },
+  { label: '票结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET },
+  { label: '月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_MONTHLY },
+  { label: '周结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_WEEKLY },
+  { label: '半月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY },
+  { label: '双月结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BI_MONTHLY },
+  { label: '季结', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_QUARTERLY },
+  { label: '45天', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_DAYS_45 },
+  { label: '预付', value: PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID },
 ];
 
 export const SETTLEMENT_BASE_OPTIONS = [
-  { label: '开票后', value: 1 },
-  { label: '出运后', value: 2 },
-  { label: '到港后', value: 3 },
+  { label: '开票后', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE },
+  { label: '出运后', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_SAILING_DATE },
+  { label: '到港后', value: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE },
 ];
 
 export const SETTLEMENT_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => ({

@@ -14,6 +14,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { PartnerAccountStatus, PartnerRoleType } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceListPartnerAccounts,
@@ -24,8 +25,8 @@ import { toTableRequest } from '@/utils/api';
 const { Text } = Typography;
 
 const accountStatusOptions = [
-  { label: '启用', value: 1 },
-  { label: '停用', value: 2 },
+  { label: '启用', value: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE },
+  { label: '停用', value: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE },
 ];
 
 type AccountFormValues = API.PartnerAccountInput;
@@ -46,7 +47,9 @@ export default function AccountsPanel({
   const [editingAccount, setEditingAccount] = useState<API.PartnerAccount>();
 
   const hasCustomerRole =
-    partner?.roles?.some((role) => role.type === 1) ?? false;
+    partner?.roles?.some(
+      (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+    ) ?? false;
 
   const openForm = (account?: API.PartnerAccount) => {
     setEditingAccount(account);
@@ -89,7 +92,7 @@ export default function AccountsPanel({
       dataIndex: 'status',
       width: 90,
       render: (_, record) =>
-        record.status === 1 ? (
+        record.status === PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE ? (
           <Tag color="success">启用</Tag>
         ) : (
           <Tag color="default">停用</Tag>
@@ -176,7 +179,11 @@ export default function AccountsPanel({
         open={modalOpen}
         formRef={formRef}
         initialValues={
-          editingAccount ?? { currency: 'CNY', status: 1, isDefault: false }
+          editingAccount ?? {
+            currency: 'CNY',
+            status: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE,
+            isDefault: false,
+          }
         }
         modalProps={{
           destroyOnHidden: true,

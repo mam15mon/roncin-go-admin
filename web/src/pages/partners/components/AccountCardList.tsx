@@ -20,6 +20,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { PartnerAccountStatus } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerAccount,
   partnerServiceListPartnerAccounts,
@@ -73,7 +74,7 @@ export default function AccountCardList({
     form.resetFields();
     form.setFieldsValue({
       currency: 'CNY',
-      status: 1, // ACTIVE
+      status: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE,
       isDefault: accounts.length === 0,
     });
     setModalOpen(true);
@@ -88,7 +89,10 @@ export default function AccountCardList({
       bankAccount: item.bankAccount,
       swiftCode: item.swiftCode,
       isDefault: item.isDefault ?? false,
-      status: item.status === 2 ? 2 : 1,
+      status:
+        item.status === PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE
+          ? PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE
+          : PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE,
       remark: item.remark,
     });
     setModalOpen(true);
@@ -108,7 +112,7 @@ export default function AccountCardList({
             bankAccount: item.bankAccount,
             swiftCode: item.swiftCode,
             isDefault: false,
-            status: 2, // INACTIVE
+            status: PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE,
             remark: item.remark,
           },
         },
@@ -129,7 +133,8 @@ export default function AccountCardList({
         bankAccount: values.bankAccount?.trim(),
         swiftCode: values.swiftCode?.trim(),
         isDefault: Boolean(values.isDefault),
-        status: values.status ?? 1,
+        status:
+          values.status ?? PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_ACTIVE,
         remark: values.remark?.trim(),
       };
 
@@ -162,7 +167,10 @@ export default function AccountCardList({
     }
   };
 
-  const activeAccounts = accounts.filter((a) => a.status !== 2);
+  const activeAccounts = accounts.filter(
+    (account) =>
+      account.status !== PartnerAccountStatus.PARTNER_ACCOUNT_STATUS_INACTIVE,
+  );
 
   return (
     <div>

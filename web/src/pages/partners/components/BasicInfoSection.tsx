@@ -24,21 +24,22 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { PartnerBusinessType, PartnerCustomerType } from '@/enums.generated';
 
 const { Text } = Typography;
 
 export const BUSINESS_TYPE_OPTIONS = [
-  { label: 'SE（海运出口）', value: 1 },
-  { label: 'SI（海运进口）', value: 2 },
-  { label: 'AE（空运出口）', value: 3 },
-  { label: 'AI（空运进口）', value: 4 },
-  { label: 'LAND（陆运业务）', value: 5 },
-  { label: 'RAIL（铁路运输）', value: 6 },
+  { label: 'SE（海运出口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE },
+  { label: 'SI（海运进口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_SI },
+  { label: 'AE（空运出口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AE },
+  { label: 'AI（空运进口）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_AI },
+  { label: 'LAND（陆运业务）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_LAND },
+  { label: 'RAIL（铁路运输）', value: PartnerBusinessType.PARTNER_BUSINESS_TYPE_RAIL },
 ];
 
 export const CUSTOMER_TYPE_OPTIONS = [
-  { label: '直客', value: 1 },
-  { label: '同行', value: 2 },
+  { label: '直客', value: PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT },
+  { label: '同行', value: PartnerCustomerType.PARTNER_CUSTOMER_TYPE_PEER },
 ];
 
 export const DEVELOPMENT_METHOD_OPTIONS = [
