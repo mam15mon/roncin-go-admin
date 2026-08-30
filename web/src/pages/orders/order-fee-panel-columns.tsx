@@ -3,13 +3,13 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, Tag } from 'antd';
 import {
   FEE_BILLED,
-  FEE_CANCELLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
   PAYABLE,
   feeDirectionCode,
   feeStatusCode,
 } from './components/fees/feeConstants';
+import { normalizeOrderFeeStatus, orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
 import { trimExactDecimal } from '@/utils/decimal';
 
 interface OrderFeePanelColumnsDeps {
@@ -61,15 +61,11 @@ export function buildOrderFeePanelColumns({
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      render: (_, record) => {
-        if (feeStatusCode(record.status) === FEE_CONFIRMED)
-          return <Tag color="green">已确认</Tag>;
-        if (feeStatusCode(record.status) === FEE_BILLED)
-          return <Tag color="blue">已进账单</Tag>;
-        if (feeStatusCode(record.status) === FEE_CANCELLED)
-          return <Tag>已作废</Tag>;
-        return <Tag color="gold">草稿</Tag>;
-      },
+      render: (_, record) =>
+        statusTag(
+          orderFeeStatusMeta,
+          normalizeOrderFeeStatus(record.status),
+        ),
     },
     {
       title: '收付方向',

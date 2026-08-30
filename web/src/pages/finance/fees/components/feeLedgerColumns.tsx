@@ -1,24 +1,36 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
 import { Tag } from 'antd';
+import {
+  businessTypeMeta,
+  normalizeBusinessType,
+  normalizeOrderFeeStatus,
+  orderFeeStatusMeta,
+  statusTag,
+  statusText,
+} from '@/constants/statusMeta';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
 
-export const businessLabels: Record<string, string> = {
-  SE: '海运出口',
-  SI: '海运进口',
-  AE: '空运出口',
-  AI: '空运进口',
-  LAND: '陆运',
-  RAIL: '铁路',
-};
+const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
+  ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
+    code,
+    { text: statusText(businessTypeMeta, normalizeBusinessType(code), code) },
+  ]),
+);
 
-export const feeStatusLabels: Record<string, { text: string; color: string }> = {
-  DRAFT: { text: '草稿', color: 'gold' },
-  CONFIRMED: { text: '已确认', color: 'green' },
-  BILLED: { text: '已进账单', color: 'blue' },
-  CANCELLED: { text: '已作废', color: 'default' },
-};
+const feeLedgerStatusValueEnum = Object.fromEntries(
+  ['DRAFT', 'CONFIRMED', 'BILLED', 'CANCELLED'].map((status) => [
+    status,
+    {
+      text: statusText(
+        orderFeeStatusMeta,
+        normalizeOrderFeeStatus(status),
+        status,
+      ),
+    },
+  ]),
+);
 
 export const financialProgressLabels: Record<
   string,
@@ -204,9 +216,13 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 95,
       valueType: 'select',
       order: 50,
-      valueEnum: Object.fromEntries(
-        Object.entries(businessLabels).map(([key, text]) => [key, { text }]),
-      ),
+      valueEnum: feeLedgerBusinessTypeValueEnum,
+      render: (_, row) =>
+        statusText(
+          businessTypeMeta,
+          normalizeBusinessType(row.businessType),
+          row.businessType || '-',
+        ),
     },
 
     // 3. 费用名称、币种、金额、发票号、费用状态、汇率
@@ -296,29 +312,13 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 90,
       valueType: 'select',
       order: 82,
-      valueEnum: {
-        DRAFT: { text: '草稿' },
-        CONFIRMED: { text: '已确认' },
-        BILLED: { text: '已开账' },
-        CANCELLED: { text: '已作废' },
-      },
-      render: (_, row) => {
-        const statusMap: Record<string, { text: string; color: string }> = {
-          DRAFT: { text: '草稿', color: 'default' },
-          CONFIRMED: { text: '已确认', color: 'blue' },
-          BILLED: { text: '已开账', color: 'green' },
-          CANCELLED: { text: '已作废', color: 'error' },
-        };
-        const item = statusMap[row.status || 'DRAFT'] || {
-          text: row.status || '-',
-          color: 'default',
-        };
-        return (
-          <Tag color={item.color} style={{ margin: 0 }}>
-            {item.text}
-          </Tag>
-        );
-      },
+      valueEnum: feeLedgerStatusValueEnum,
+      render: (_, row) =>
+        statusTag(
+          orderFeeStatusMeta,
+          normalizeOrderFeeStatus(row.status),
+          row.status || '-',
+        ),
     },
     {
       title: '汇率',

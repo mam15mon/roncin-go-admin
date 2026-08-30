@@ -6,10 +6,23 @@ import {
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import {
+  businessTypeMeta,
+  makeValueEnum,
+  statusText,
+} from '@/constants/statusMeta';
+import { OrderBusinessType } from '@/enums.generated';
 import { unwrapList } from '@/utils/api';
 
 export const businessTypeOptions = [
-  { label: '海运出口', value: 1, color: 'blue' },
+  {
+    label: statusText(
+      businessTypeMeta,
+      OrderBusinessType.BUSINESS_TYPE_SE,
+    ),
+    value: OrderBusinessType.BUSINESS_TYPE_SE,
+    color: 'blue',
+  },
 ];
 
 export const businessTypeMap = new Map(
@@ -17,8 +30,13 @@ export const businessTypeMap = new Map(
 );
 
 export const businessTypeValueEnum: Record<number | string, { text: string }> =
-  Object.fromEntries(
-    businessTypeOptions.map((opt) => [opt.value, { text: opt.label }]),
+  makeValueEnum(
+    Object.fromEntries(
+      businessTypeOptions.map((option) => [
+        option.value,
+        businessTypeMeta[option.value],
+      ]),
+    ),
   );
 
 export const tradeDirectionOptions = [

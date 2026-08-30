@@ -16,32 +16,24 @@ import {
   PageHeaderShell,
   SectionCard,
 } from '@/components/ui';
+import {
+  businessTypeMeta,
+  normalizeBusinessType,
+  normalizeOrderFeeStatus,
+  orderFeeStatusMeta,
+  statusTag,
+  statusText,
+} from '@/constants/statusMeta';
 import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
-
-const businessLabels: Record<number, string> = {
-  1: '海运出口',
-  2: '海运进口',
-  3: '空运出口',
-  4: '空运进口',
-  5: '陆运',
-  6: '铁路',
-};
 
 const businessRoutes: Record<number, string> = {
   1: 'sea-export',
   2: 'sea-import',
   3: 'air-export',
   4: 'air-import',
-};
-
-const statusLabels: Record<number, { text: string; color: string }> = {
-  1: { text: '账单未建立', color: 'gold' },
-  2: { text: '未核销未开票', color: 'orange' },
-  3: { text: '已进账单', color: 'blue' },
-  4: { text: '已作废', color: 'default' },
 };
 
 export default function FinanceFeeDetailPage() {
@@ -277,17 +269,11 @@ export default function FinanceFeeDetailPage() {
       dataIndex: 'status',
       key: 'status',
       width: 110,
-      render: (val: any) => {
-        const st = statusLabels[Number(val) || 1] || {
-          text: '账单未建立',
-          color: 'default',
-        };
-        return (
-          <Tag color={st.color} style={{ margin: 0 }}>
-            {st.text}
-          </Tag>
-        );
-      },
+      render: (val: any) =>
+        statusTag(
+          orderFeeStatusMeta,
+          normalizeOrderFeeStatus(val),
+        ),
     },
     {
       title: '备注',
@@ -400,7 +386,10 @@ export default function FinanceFeeDetailPage() {
               </EllipsisTooltip>
             </Descriptions.Item>
             <Descriptions.Item label="业务类型">
-              {businessLabels[order?.businessType || 0] || '-'}
+              {statusText(
+                businessTypeMeta,
+                normalizeBusinessType(order?.businessType),
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="服务类型">订舱</Descriptions.Item>
             <Descriptions.Item label="主单号">

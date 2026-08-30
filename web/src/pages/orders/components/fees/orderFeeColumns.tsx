@@ -2,9 +2,9 @@ import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, Tag } from 'antd';
 import React from 'react';
+import { normalizeOrderFeeStatus, orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
 import {
   FEE_BILLED,
-  FEE_CANCELLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
   RECEIVABLE,
@@ -34,15 +34,11 @@ export function getOrderFeeTableColumns({
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      render: (_, record) => {
-        if (feeStatusCode(record.status) === FEE_CONFIRMED)
-          return <Tag color="green">已确认</Tag>;
-        if (feeStatusCode(record.status) === FEE_BILLED)
-          return <Tag color="blue">已进账单</Tag>;
-        if (feeStatusCode(record.status) === FEE_CANCELLED)
-          return <Tag>已作废</Tag>;
-        return <Tag color="gold">草稿</Tag>;
-      },
+      render: (_, record) =>
+        statusTag(
+          orderFeeStatusMeta,
+          normalizeOrderFeeStatus(record.status),
+        ),
     },
     {
       title: '费用代码',
