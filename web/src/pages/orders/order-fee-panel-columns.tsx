@@ -1,4 +1,3 @@
-import React from 'react';
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, Tag } from 'antd';
@@ -38,24 +37,22 @@ export function buildOrderFeePanelColumns({
       width: 120,
       render: (_, row) =>
         row.tags?.length ? (
-          <React.Fragment>
-            {row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? {
-                        color: tag.groupColor,
-                        borderColor: tag.groupColor,
-                        marginInlineEnd: 4,
-                      }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))}
-          </React.Fragment>
+          row.tags.map((tag) => (
+            <Tag
+              key={tag.id}
+              style={
+                tag.groupColor
+                  ? {
+                      color: tag.groupColor,
+                      borderColor: tag.groupColor,
+                      marginInlineEnd: 4,
+                    }
+                  : { marginInlineEnd: 4 }
+              }
+            >
+              {tag.name}
+            </Tag>
+          ))
         ) : (
           '-'
         ),

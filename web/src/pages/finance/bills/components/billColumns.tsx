@@ -7,7 +7,6 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Popconfirm, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React from 'react';
 import { statusOptions } from './billConstants';
 
 interface GetFinanceBillColumnsParams {
@@ -35,20 +34,18 @@ export function getFinanceBillColumns({
       width: 140,
       render: (_, row) =>
         row.tags?.length ? (
-          <React.Fragment>
-            {row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))}
-          </React.Fragment>
+          row.tags.map((tag) => (
+            <Tag
+              key={tag.id}
+              style={
+                tag.groupColor
+                  ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
+                  : { marginInlineEnd: 4 }
+              }
+            >
+              {tag.name}
+            </Tag>
+          ))
         ) : (
           '-'
         ),

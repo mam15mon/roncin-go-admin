@@ -1,7 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
 import { Tag } from 'antd';
-import React from 'react';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 
 export const businessLabels: Record<string, string> = {
@@ -103,20 +102,18 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       search: false,
       render: (_, row) =>
         row.tags?.length ? (
-          <React.Fragment>
-            {row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))}
-          </React.Fragment>
+          row.tags.map((tag) => (
+            <Tag
+              key={tag.id}
+              style={
+                tag.groupColor
+                  ? { color: tag.groupColor, borderColor: tag.groupColor, marginInlineEnd: 4 }
+                  : { marginInlineEnd: 4 }
+              }
+            >
+              {tag.name}
+            </Tag>
+          ))
         ) : (
           '-'
         ),
