@@ -92,62 +92,50 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 }
 
 func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	account, err := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		account, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrAdminUserNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	membershipRecord, err := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
+		membershipRecord, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(id), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrAdminUserNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	if account.Enabled && !input.Enabled {
-		_ = tx.Rollback()
-		return nil, biz.ErrAdminUserTerminationRequired
-	}
-	if !account.Enabled && input.Enabled && (account.WecomUserid != nil || account.DingtalkUnionid != nil) {
-		_ = tx.Rollback()
-		return nil, biz.ErrAdminUserAuthorizationRequired
-	}
-	roles, err := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	update := tx.User.UpdateOneID(id).SetDisplayName(input.DisplayName).SetEnabled(input.Enabled)
-	if input.Email == nil {
-		update.ClearEmail()
-	} else {
-		update.SetEmail(*input.Email)
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminUserNotFound
+		if account.Enabled && !input.Enabled {
+			return biz.ErrAdminUserTerminationRequired
 		}
-		return nil, err
-	}
-	if err := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["value"] = account.Username
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if !account.Enabled && input.Enabled && (account.WecomUserid != nil || account.DingtalkUnionid != nil) {
+			return biz.ErrAdminUserAuthorizationRequired
+		}
+		roles, queryErr := rolesForOrganization(ctx, tx.Role.Query(), organizationID, roleIDs)
+		if queryErr != nil {
+			return queryErr
+		}
+		update := tx.User.UpdateOneID(id).SetDisplayName(input.DisplayName).SetEnabled(input.Enabled)
+		if input.Email == nil {
+			update.ClearEmail()
+		} else {
+			update.SetEmail(*input.Email)
+		}
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			if ent.IsNotFound(updateErr) {
+				return biz.ErrAdminUserNotFound
+			}
+			return updateErr
+		}
+		if replaceErr := replaceRoleAssignments(ctx, tx, membershipRecord.ID, roles); replaceErr != nil {
+			return replaceErr
+		}
+		audit.Details["value"] = account.Username
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return r.findUser(ctx, organizationID, id)
