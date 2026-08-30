@@ -15,14 +15,7 @@ import { SubEntityCardGrid } from '@/components/ui/sub-entity-card-grid';
 
 const { Text } = Typography;
 
-export interface ContactItem {
-  id?: string;
-  name: string;
-  phone?: string;
-  email?: string;
-  note?: string;
-  isPrimary?: boolean;
-}
+export type ContactItem = API.PartnerContact & { name: string };
 
 interface ContactCardListProps {
   contacts: ContactItem[];

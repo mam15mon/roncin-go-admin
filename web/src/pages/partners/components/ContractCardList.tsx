@@ -26,6 +26,8 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useState } from 'react';
+import { partnerContractStatusMeta } from '@/constants/statusMeta';
+import { PartnerContractStatus } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerContract,
   partnerServiceListPartnerContracts,
@@ -36,12 +38,9 @@ import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
-const CONTRACT_STATUS_MAP: Record<number, { label: string; color: string }> = {
-  1: { label: '待生效', color: 'processing' },
-  2: { label: '生效中', color: 'success' },
-  3: { label: '已到期', color: 'default' },
-  4: { label: '已终止', color: 'error' },
-};
+const contractStatusOptions = Object.entries(partnerContractStatusMeta).map(
+  ([value, meta]) => ({ label: meta.text, value: Number(value) }),
+);
 
 interface ContractCardListProps {
   partnerId?: string;
@@ -80,7 +79,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
     setEditingContract(undefined);
     form.resetFields();
     form.setFieldsValue({
-      status: 2, // 生效中
+      status: PartnerContractStatus.PARTNER_CONTRACT_STATUS_ACTIVE,
       dateRange: [dayjs(), dayjs().add(1, 'year')],
     });
     setModalOpen(true);
@@ -114,7 +113,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
           id: item.id,
           contract: {
             name: item.name || '',
-            status: 4, // 已终止
+            status: PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED,
             startDate: item.startDate || '',
             endDate: item.endDate || '',
             paymentTerms: item.paymentTerms,
@@ -188,8 +187,8 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>
           {contracts.map((item) => {
-            const statusMeta = CONTRACT_STATUS_MAP[item.status ?? 1] || {
-              label: '未知',
+            const statusMeta = partnerContractStatusMeta[item.status ?? 0] || {
+              text: '未知',
               color: 'default',
             };
             return (
@@ -228,7 +227,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                           {item.contractNo}
                         </Tag>
                         <Tag color={statusMeta.color} style={{ fontSize: 11, padding: '0 4px', margin: 0 }}>
-                          {statusMeta.label}
+                          {statusMeta.text}
                         </Tag>
                       </Space>
                     </div>
@@ -240,7 +239,8 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
                         onClick={() => handleOpenEdit(item)}
                         style={{ padding: '0 4px', height: 22 }}
                       />
-                      {item.status !== 4 && (
+                      {item.status !==
+                        PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED && (
                         <Popconfirm
                           title="确定要终止此合同吗？"
                           onConfirm={() => handleTerminate(item)}
@@ -372,12 +372,7 @@ export default function ContractCardList({ partnerId }: ContractCardListProps) {
           <ProFormSelect
             name="status"
             label="合同状态"
-            options={[
-              { label: '待生效', value: 1 },
-              { label: '生效中', value: 2 },
-              { label: '已到期', value: 3 },
-              { label: '已终止', value: 4 },
-            ]}
+            options={contractStatusOptions}
             rules={[{ required: true, message: '请选择状态' }]}
           />
         </Col>
