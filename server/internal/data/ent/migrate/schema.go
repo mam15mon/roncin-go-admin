@@ -226,7 +226,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION", "OBJECT_STORAGE_DELETION"}},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER"}, Default: "PENDING"},
 		{Name: "attempts", Type: field.TypeInt, Default: 0},
@@ -2620,6 +2620,40 @@ var (
 			},
 		},
 	}
+	// ObjectStorageDeletionsColumns holds the columns for the "object_storage_deletions" table.
+	ObjectStorageDeletionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "object_key", Type: field.TypeString, Size: 256},
+		{Name: "background_task_id", Type: field.TypeUUID, Unique: true},
+	}
+	// ObjectStorageDeletionsTable holds the schema information for the "object_storage_deletions" table.
+	ObjectStorageDeletionsTable = &schema.Table{
+		Name:       "object_storage_deletions",
+		Columns:    ObjectStorageDeletionsColumns,
+		PrimaryKey: []*schema.Column{ObjectStorageDeletionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "object_storage_deletions_background_tasks_object_storage_deletion",
+				Columns:    []*schema.Column{ObjectStorageDeletionsColumns[4]},
+				RefColumns: []*schema.Column{BackgroundTasksColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "objectstoragedeletion_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ObjectStorageDeletionsColumns[2]},
+			},
+			{
+				Name:    "objectstoragedeletion_background_task_id",
+				Unique:  true,
+				Columns: []*schema.Column{ObjectStorageDeletionsColumns[4]},
+			},
+		},
+	}
 	// OrdersColumns holds the columns for the "orders" table.
 	OrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4794,6 +4828,7 @@ var (
 		NotificationDeliveriesTable,
 		NumberRulesTable,
 		NumberSequencesTable,
+		ObjectStorageDeletionsTable,
 		OrdersTable,
 		OrderAbnormalCasesTable,
 		OrderAttachmentsTable,
@@ -4929,6 +4964,7 @@ func init() {
 	NotificationDeliveriesTable.ForeignKeys[1].RefTable = UsersTable
 	NumberRulesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NumberSequencesTable.ForeignKeys[0].RefTable = NumberRulesTable
+	ObjectStorageDeletionsTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	OrdersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrdersTable.ForeignKeys[1].RefTable = PartnersTable
 	OrderAbnormalCasesTable.ForeignKeys[0].RefTable = OrdersTable

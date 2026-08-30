@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -56,9 +57,11 @@ type BackgroundTaskEdges struct {
 	Organization *Organization `json:"organization,omitempty"`
 	// NotificationDelivery holds the value of the notification_delivery edge.
 	NotificationDelivery *NotificationDelivery `json:"notification_delivery,omitempty"`
+	// ObjectStorageDeletion holds the value of the object_storage_deletion edge.
+	ObjectStorageDeletion *ObjectStorageDeletion `json:"object_storage_deletion,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -81,6 +84,17 @@ func (e BackgroundTaskEdges) NotificationDeliveryOrErr() (*NotificationDelivery,
 		return nil, &NotFoundError{label: notificationdelivery.Label}
 	}
 	return nil, &NotLoadedError{edge: "notification_delivery"}
+}
+
+// ObjectStorageDeletionOrErr returns the ObjectStorageDeletion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e BackgroundTaskEdges) ObjectStorageDeletionOrErr() (*ObjectStorageDeletion, error) {
+	if e.ObjectStorageDeletion != nil {
+		return e.ObjectStorageDeletion, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: objectstoragedeletion.Label}
+	}
+	return nil, &NotLoadedError{edge: "object_storage_deletion"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -213,6 +227,11 @@ func (_m *BackgroundTask) QueryOrganization() *OrganizationQuery {
 // QueryNotificationDelivery queries the "notification_delivery" edge of the BackgroundTask entity.
 func (_m *BackgroundTask) QueryNotificationDelivery() *NotificationDeliveryQuery {
 	return NewBackgroundTaskClient(_m.config).QueryNotificationDelivery(_m)
+}
+
+// QueryObjectStorageDeletion queries the "object_storage_deletion" edge of the BackgroundTask entity.
+func (_m *BackgroundTask) QueryObjectStorageDeletion() *ObjectStorageDeletionQuery {
+	return NewBackgroundTaskClient(_m.config).QueryObjectStorageDeletion(_m)
 }
 
 // Update returns a builder for updating this BackgroundTask.

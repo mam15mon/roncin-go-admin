@@ -51,6 +51,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -3938,6 +3939,45 @@ func init() {
 	numbersequenceDescID := numbersequenceMixinFields0[0].Descriptor()
 	// numbersequence.DefaultID holds the default value on creation for the id field.
 	numbersequence.DefaultID = numbersequenceDescID.Default.(func() uuid.UUID)
+	objectstoragedeletionMixin := schema.ObjectStorageDeletion{}.Mixin()
+	objectstoragedeletionMixinFields0 := objectstoragedeletionMixin[0].Fields()
+	_ = objectstoragedeletionMixinFields0
+	objectstoragedeletionMixinFields1 := objectstoragedeletionMixin[1].Fields()
+	_ = objectstoragedeletionMixinFields1
+	objectstoragedeletionFields := schema.ObjectStorageDeletion{}.Fields()
+	_ = objectstoragedeletionFields
+	// objectstoragedeletionDescCreatedAt is the schema descriptor for created_at field.
+	objectstoragedeletionDescCreatedAt := objectstoragedeletionMixinFields1[0].Descriptor()
+	// objectstoragedeletion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	objectstoragedeletion.DefaultCreatedAt = objectstoragedeletionDescCreatedAt.Default.(func() time.Time)
+	// objectstoragedeletionDescUpdatedAt is the schema descriptor for updated_at field.
+	objectstoragedeletionDescUpdatedAt := objectstoragedeletionMixinFields1[1].Descriptor()
+	// objectstoragedeletion.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	objectstoragedeletion.DefaultUpdatedAt = objectstoragedeletionDescUpdatedAt.Default.(func() time.Time)
+	// objectstoragedeletion.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	objectstoragedeletion.UpdateDefaultUpdatedAt = objectstoragedeletionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// objectstoragedeletionDescObjectKey is the schema descriptor for object_key field.
+	objectstoragedeletionDescObjectKey := objectstoragedeletionFields[1].Descriptor()
+	// objectstoragedeletion.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
+	objectstoragedeletion.ObjectKeyValidator = func() func(string) error {
+		validators := objectstoragedeletionDescObjectKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(object_key string) error {
+			for _, fn := range fns {
+				if err := fn(object_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// objectstoragedeletionDescID is the schema descriptor for id field.
+	objectstoragedeletionDescID := objectstoragedeletionMixinFields0[0].Descriptor()
+	// objectstoragedeletion.DefaultID holds the default value on creation for the id field.
+	objectstoragedeletion.DefaultID = objectstoragedeletionDescID.Default.(func() uuid.UUID)
 	orderMixin := schema.Order{}.Mixin()
 	orderMixinFields0 := orderMixin[0].Fields()
 	_ = orderMixinFields0

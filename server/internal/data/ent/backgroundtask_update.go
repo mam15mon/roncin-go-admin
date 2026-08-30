@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -233,6 +234,25 @@ func (_u *BackgroundTaskUpdate) SetNotificationDelivery(v *NotificationDelivery)
 	return _u.SetNotificationDeliveryID(v.ID)
 }
 
+// SetObjectStorageDeletionID sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity by ID.
+func (_u *BackgroundTaskUpdate) SetObjectStorageDeletionID(id uuid.UUID) *BackgroundTaskUpdate {
+	_u.mutation.SetObjectStorageDeletionID(id)
+	return _u
+}
+
+// SetNillableObjectStorageDeletionID sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdate) SetNillableObjectStorageDeletionID(id *uuid.UUID) *BackgroundTaskUpdate {
+	if id != nil {
+		_u = _u.SetObjectStorageDeletionID(*id)
+	}
+	return _u
+}
+
+// SetObjectStorageDeletion sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity.
+func (_u *BackgroundTaskUpdate) SetObjectStorageDeletion(v *ObjectStorageDeletion) *BackgroundTaskUpdate {
+	return _u.SetObjectStorageDeletionID(v.ID)
+}
+
 // Mutation returns the BackgroundTaskMutation object of the builder.
 func (_u *BackgroundTaskUpdate) Mutation() *BackgroundTaskMutation {
 	return _u.mutation
@@ -247,6 +267,12 @@ func (_u *BackgroundTaskUpdate) ClearOrganization() *BackgroundTaskUpdate {
 // ClearNotificationDelivery clears the "notification_delivery" edge to the NotificationDelivery entity.
 func (_u *BackgroundTaskUpdate) ClearNotificationDelivery() *BackgroundTaskUpdate {
 	_u.mutation.ClearNotificationDelivery()
+	return _u
+}
+
+// ClearObjectStorageDeletion clears the "object_storage_deletion" edge to the ObjectStorageDeletion entity.
+func (_u *BackgroundTaskUpdate) ClearObjectStorageDeletion() *BackgroundTaskUpdate {
+	_u.mutation.ClearObjectStorageDeletion()
 	return _u
 }
 
@@ -437,6 +463,35 @@ func (_u *BackgroundTaskUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ObjectStorageDeletionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.ObjectStorageDeletionTable,
+			Columns: []string{backgroundtask.ObjectStorageDeletionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(objectstoragedeletion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ObjectStorageDeletionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.ObjectStorageDeletionTable,
+			Columns: []string{backgroundtask.ObjectStorageDeletionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(objectstoragedeletion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -666,6 +721,25 @@ func (_u *BackgroundTaskUpdateOne) SetNotificationDelivery(v *NotificationDelive
 	return _u.SetNotificationDeliveryID(v.ID)
 }
 
+// SetObjectStorageDeletionID sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity by ID.
+func (_u *BackgroundTaskUpdateOne) SetObjectStorageDeletionID(id uuid.UUID) *BackgroundTaskUpdateOne {
+	_u.mutation.SetObjectStorageDeletionID(id)
+	return _u
+}
+
+// SetNillableObjectStorageDeletionID sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdateOne) SetNillableObjectStorageDeletionID(id *uuid.UUID) *BackgroundTaskUpdateOne {
+	if id != nil {
+		_u = _u.SetObjectStorageDeletionID(*id)
+	}
+	return _u
+}
+
+// SetObjectStorageDeletion sets the "object_storage_deletion" edge to the ObjectStorageDeletion entity.
+func (_u *BackgroundTaskUpdateOne) SetObjectStorageDeletion(v *ObjectStorageDeletion) *BackgroundTaskUpdateOne {
+	return _u.SetObjectStorageDeletionID(v.ID)
+}
+
 // Mutation returns the BackgroundTaskMutation object of the builder.
 func (_u *BackgroundTaskUpdateOne) Mutation() *BackgroundTaskMutation {
 	return _u.mutation
@@ -680,6 +754,12 @@ func (_u *BackgroundTaskUpdateOne) ClearOrganization() *BackgroundTaskUpdateOne 
 // ClearNotificationDelivery clears the "notification_delivery" edge to the NotificationDelivery entity.
 func (_u *BackgroundTaskUpdateOne) ClearNotificationDelivery() *BackgroundTaskUpdateOne {
 	_u.mutation.ClearNotificationDelivery()
+	return _u
+}
+
+// ClearObjectStorageDeletion clears the "object_storage_deletion" edge to the ObjectStorageDeletion entity.
+func (_u *BackgroundTaskUpdateOne) ClearObjectStorageDeletion() *BackgroundTaskUpdateOne {
+	_u.mutation.ClearObjectStorageDeletion()
 	return _u
 }
 
@@ -900,6 +980,35 @@ func (_u *BackgroundTaskUpdateOne) sqlSave(ctx context.Context) (_node *Backgrou
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(notificationdelivery.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ObjectStorageDeletionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.ObjectStorageDeletionTable,
+			Columns: []string{backgroundtask.ObjectStorageDeletionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(objectstoragedeletion.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ObjectStorageDeletionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.ObjectStorageDeletionTable,
+			Columns: []string{backgroundtask.ObjectStorageDeletionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(objectstoragedeletion.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

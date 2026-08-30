@@ -44,6 +44,8 @@ const (
 	EdgeOrganization = "organization"
 	// EdgeNotificationDelivery holds the string denoting the notification_delivery edge name in mutations.
 	EdgeNotificationDelivery = "notification_delivery"
+	// EdgeObjectStorageDeletion holds the string denoting the object_storage_deletion edge name in mutations.
+	EdgeObjectStorageDeletion = "object_storage_deletion"
 	// Table holds the table name of the backgroundtask in the database.
 	Table = "background_tasks"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -60,6 +62,13 @@ const (
 	NotificationDeliveryInverseTable = "notification_deliveries"
 	// NotificationDeliveryColumn is the table column denoting the notification_delivery relation/edge.
 	NotificationDeliveryColumn = "background_task_id"
+	// ObjectStorageDeletionTable is the table that holds the object_storage_deletion relation/edge.
+	ObjectStorageDeletionTable = "object_storage_deletions"
+	// ObjectStorageDeletionInverseTable is the table name for the ObjectStorageDeletion entity.
+	// It exists in this package in order to avoid circular dependency with the "objectstoragedeletion" package.
+	ObjectStorageDeletionInverseTable = "object_storage_deletions"
+	// ObjectStorageDeletionColumn is the table column denoting the object_storage_deletion relation/edge.
+	ObjectStorageDeletionColumn = "background_task_id"
 )
 
 // Columns holds all SQL columns for backgroundtask fields.
@@ -121,11 +130,12 @@ type Kind string
 
 // Kind values.
 const (
-	KindMASTER_DATA_IMPORT    Kind = "MASTER_DATA_IMPORT"
-	KindUNLOCODE_IMPORT       Kind = "UNLOCODE_IMPORT"
-	KindORDER_REMINDER        Kind = "ORDER_REMINDER"
-	KindINTEGRATION           Kind = "INTEGRATION"
-	KindDINGTALK_NOTIFICATION Kind = "DINGTALK_NOTIFICATION"
+	KindMASTER_DATA_IMPORT      Kind = "MASTER_DATA_IMPORT"
+	KindUNLOCODE_IMPORT         Kind = "UNLOCODE_IMPORT"
+	KindORDER_REMINDER          Kind = "ORDER_REMINDER"
+	KindINTEGRATION             Kind = "INTEGRATION"
+	KindDINGTALK_NOTIFICATION   Kind = "DINGTALK_NOTIFICATION"
+	KindOBJECT_STORAGE_DELETION Kind = "OBJECT_STORAGE_DELETION"
 )
 
 func (k Kind) String() string {
@@ -135,7 +145,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION:
+	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION, KindOBJECT_STORAGE_DELETION:
 		return nil
 	default:
 		return fmt.Errorf("backgroundtask: invalid enum value for kind field: %q", k)
@@ -252,6 +262,13 @@ func ByNotificationDeliveryField(field string, opts ...sql.OrderTermOption) Orde
 		sqlgraph.OrderByNeighborTerms(s, newNotificationDeliveryStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByObjectStorageDeletionField orders the results by object_storage_deletion field.
+func ByObjectStorageDeletionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newObjectStorageDeletionStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -264,5 +281,12 @@ func newNotificationDeliveryStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NotificationDeliveryInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, NotificationDeliveryTable, NotificationDeliveryColumn),
+	)
+}
+func newObjectStorageDeletionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ObjectStorageDeletionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ObjectStorageDeletionTable, ObjectStorageDeletionColumn),
 	)
 }

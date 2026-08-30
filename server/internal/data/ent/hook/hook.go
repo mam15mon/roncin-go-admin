@@ -549,6 +549,18 @@ func (f NumberSequenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NumberSequenceMutation", m)
 }
 
+// The ObjectStorageDeletionFunc type is an adapter to allow the use of ordinary
+// function as ObjectStorageDeletion mutator.
+type ObjectStorageDeletionFunc func(context.Context, *ent.ObjectStorageDeletionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ObjectStorageDeletionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ObjectStorageDeletionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ObjectStorageDeletionMutation", m)
+}
+
 // The OrderFunc type is an adapter to allow the use of ordinary
 // function as Order mutator.
 type OrderFunc func(context.Context, *ent.OrderMutation) (ent.Value, error)

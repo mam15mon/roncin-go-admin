@@ -274,6 +274,14 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 		}
 		audit.Details["resource.type"] = string(item.ResourceType)
+		imageObjectKey := ""
+		if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceImageType) {
+			image, imageErr := tx.EnterpriseResourceImage.Query().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Only(ctx)
+			if imageErr != nil {
+				return imageErr
+			}
+			imageObjectKey = image.ObjectKey
+		}
 		if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
 			// 与批量关联写入使用同一行锁：先锁标签资源再统计使用，防止统计与删除之间并发写入关联
 			locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id)).Order(resourceent.ByID()).ForUpdate().All(ctx)
@@ -343,6 +351,11 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 		}
 		if err := tx.EnterpriseResource.DeleteOneID(id).Exec(ctx); err != nil {
 			return err
+		}
+		if imageObjectKey != "" {
+			if err := enqueueObjectStorageDeletion(ctx, tx, organizationID, imageObjectKey); err != nil {
+				return err
+			}
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

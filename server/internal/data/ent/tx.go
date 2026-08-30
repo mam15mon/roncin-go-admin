@@ -102,6 +102,8 @@ type Tx struct {
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
 	NumberSequence *NumberSequenceClient
+	// ObjectStorageDeletion is the client for interacting with the ObjectStorageDeletion builders.
+	ObjectStorageDeletion *ObjectStorageDeletionClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
 	// OrderAbnormalCase is the client for interacting with the OrderAbnormalCase builders.
@@ -358,6 +360,7 @@ func (tx *Tx) init() {
 	tx.NotificationDelivery = NewNotificationDeliveryClient(tx.config)
 	tx.NumberRule = NewNumberRuleClient(tx.config)
 	tx.NumberSequence = NewNumberSequenceClient(tx.config)
+	tx.ObjectStorageDeletion = NewObjectStorageDeletionClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
 	tx.OrderAbnormalCase = NewOrderAbnormalCaseClient(tx.config)
 	tx.OrderAttachment = NewOrderAttachmentClient(tx.config)

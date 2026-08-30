@@ -141,6 +141,9 @@ type NumberRule func(*sql.Selector)
 // NumberSequence is the predicate function for numbersequence builders.
 type NumberSequence func(*sql.Selector)
 
+// ObjectStorageDeletion is the predicate function for objectstoragedeletion builders.
+type ObjectStorageDeletion func(*sql.Selector)
+
 // Order is the predicate function for order builders.
 type Order func(*sql.Selector)
 

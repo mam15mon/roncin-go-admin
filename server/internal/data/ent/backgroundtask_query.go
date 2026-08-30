@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -23,13 +24,14 @@ import (
 // BackgroundTaskQuery is the builder for querying BackgroundTask entities.
 type BackgroundTaskQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []backgroundtask.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.BackgroundTask
-	withOrganization         *OrganizationQuery
-	withNotificationDelivery *NotificationDeliveryQuery
-	modifiers                []func(*sql.Selector)
+	ctx                       *QueryContext
+	order                     []backgroundtask.OrderOption
+	inters                    []Interceptor
+	predicates                []predicate.BackgroundTask
+	withOrganization          *OrganizationQuery
+	withNotificationDelivery  *NotificationDeliveryQuery
+	withObjectStorageDeletion *ObjectStorageDeletionQuery
+	modifiers                 []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -103,6 +105,28 @@ func (_q *BackgroundTaskQuery) QueryNotificationDelivery() *NotificationDelivery
 			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
 			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.NotificationDeliveryTable, backgroundtask.NotificationDeliveryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryObjectStorageDeletion chains the current query on the "object_storage_deletion" edge.
+func (_q *BackgroundTaskQuery) QueryObjectStorageDeletion() *ObjectStorageDeletionQuery {
+	query := (&ObjectStorageDeletionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
+			sqlgraph.To(objectstoragedeletion.Table, objectstoragedeletion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.ObjectStorageDeletionTable, backgroundtask.ObjectStorageDeletionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -297,13 +321,14 @@ func (_q *BackgroundTaskQuery) Clone() *BackgroundTaskQuery {
 		return nil
 	}
 	return &BackgroundTaskQuery{
-		config:                   _q.config,
-		ctx:                      _q.ctx.Clone(),
-		order:                    append([]backgroundtask.OrderOption{}, _q.order...),
-		inters:                   append([]Interceptor{}, _q.inters...),
-		predicates:               append([]predicate.BackgroundTask{}, _q.predicates...),
-		withOrganization:         _q.withOrganization.Clone(),
-		withNotificationDelivery: _q.withNotificationDelivery.Clone(),
+		config:                    _q.config,
+		ctx:                       _q.ctx.Clone(),
+		order:                     append([]backgroundtask.OrderOption{}, _q.order...),
+		inters:                    append([]Interceptor{}, _q.inters...),
+		predicates:                append([]predicate.BackgroundTask{}, _q.predicates...),
+		withOrganization:          _q.withOrganization.Clone(),
+		withNotificationDelivery:  _q.withNotificationDelivery.Clone(),
+		withObjectStorageDeletion: _q.withObjectStorageDeletion.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -329,6 +354,17 @@ func (_q *BackgroundTaskQuery) WithNotificationDelivery(opts ...func(*Notificati
 		opt(query)
 	}
 	_q.withNotificationDelivery = query
+	return _q
+}
+
+// WithObjectStorageDeletion tells the query-builder to eager-load the nodes that are connected to
+// the "object_storage_deletion" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *BackgroundTaskQuery) WithObjectStorageDeletion(opts ...func(*ObjectStorageDeletionQuery)) *BackgroundTaskQuery {
+	query := (&ObjectStorageDeletionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withObjectStorageDeletion = query
 	return _q
 }
 
@@ -410,9 +446,10 @@ func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*BackgroundTask{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOrganization != nil,
 			_q.withNotificationDelivery != nil,
+			_q.withObjectStorageDeletion != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -445,6 +482,12 @@ func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := _q.withNotificationDelivery; query != nil {
 		if err := _q.loadNotificationDelivery(ctx, query, nodes, nil,
 			func(n *BackgroundTask, e *NotificationDelivery) { n.Edges.NotificationDelivery = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withObjectStorageDeletion; query != nil {
+		if err := _q.loadObjectStorageDeletion(ctx, query, nodes, nil,
+			func(n *BackgroundTask, e *ObjectStorageDeletion) { n.Edges.ObjectStorageDeletion = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -492,6 +535,33 @@ func (_q *BackgroundTaskQuery) loadNotificationDelivery(ctx context.Context, que
 	}
 	query.Where(predicate.NotificationDelivery(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(backgroundtask.NotificationDeliveryColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BackgroundTaskID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "background_task_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *BackgroundTaskQuery) loadObjectStorageDeletion(ctx context.Context, query *ObjectStorageDeletionQuery, nodes []*BackgroundTask, init func(*BackgroundTask), assign func(*BackgroundTask, *ObjectStorageDeletion)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*BackgroundTask)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(objectstoragedeletion.FieldBackgroundTaskID)
+	}
+	query.Where(predicate.ObjectStorageDeletion(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(backgroundtask.ObjectStorageDeletionColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

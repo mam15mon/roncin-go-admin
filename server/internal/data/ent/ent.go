@@ -57,6 +57,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -202,6 +203,7 @@ func checkColumn(t, c string) error {
 			notificationdelivery.Table:           notificationdelivery.ValidColumn,
 			numberrule.Table:                     numberrule.ValidColumn,
 			numbersequence.Table:                 numbersequence.ValidColumn,
+			objectstoragedeletion.Table:          objectstoragedeletion.ValidColumn,
 			order.Table:                          order.ValidColumn,
 			orderabnormalcase.Table:              orderabnormalcase.ValidColumn,
 			orderattachment.Table:                orderattachment.ValidColumn,

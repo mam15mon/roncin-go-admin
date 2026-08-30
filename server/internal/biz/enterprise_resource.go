@@ -316,11 +316,8 @@ func (uc *EnterpriseResourceUsecase) Delete(ctx context.Context, organizationID,
 	if err != nil {
 		return err
 	}
-	if resource.ResourceType == EnterpriseResourceImageType && resource.Image != nil {
-		if err := uc.storage.Delete(ctx, organizationID, resource.Image.ObjectKey); err != nil {
-			return err
-		}
-	}
+	// 图片对象不在删除事务内直接删除：仓储会在同一事务登记类型化删除任务，
+	// 提交后由对象删除 Worker 领取执行，避免数据库删除失败后对象先被删掉。
 	action := "enterprise_resource.delete"
 	if resource.ResourceType == EnterpriseResourceTagType {
 		action = "enterprise_tag.delete"

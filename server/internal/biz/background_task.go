@@ -23,11 +23,12 @@ var (
 type BackgroundTaskKind string
 
 const (
-	BackgroundTaskKindMasterDataImport BackgroundTaskKind = "MASTER_DATA_IMPORT"
-	BackgroundTaskKindUnlocodeImport   BackgroundTaskKind = "UNLOCODE_IMPORT"
-	BackgroundTaskKindOrderReminder    BackgroundTaskKind = "ORDER_REMINDER"
-	BackgroundTaskKindIntegration      BackgroundTaskKind = "INTEGRATION"
-	BackgroundTaskKindDingTalkNotice   BackgroundTaskKind = "DINGTALK_NOTIFICATION"
+	BackgroundTaskKindMasterDataImport    BackgroundTaskKind = "MASTER_DATA_IMPORT"
+	BackgroundTaskKindUnlocodeImport      BackgroundTaskKind = "UNLOCODE_IMPORT"
+	BackgroundTaskKindOrderReminder       BackgroundTaskKind = "ORDER_REMINDER"
+	BackgroundTaskKindIntegration         BackgroundTaskKind = "INTEGRATION"
+	BackgroundTaskKindDingTalkNotice      BackgroundTaskKind = "DINGTALK_NOTIFICATION"
+	BackgroundTaskKindObjectStorageDelete BackgroundTaskKind = "OBJECT_STORAGE_DELETION"
 )
 
 func (k BackgroundTaskKind) Valid() bool {
@@ -36,7 +37,8 @@ func (k BackgroundTaskKind) Valid() bool {
 		BackgroundTaskKindUnlocodeImport,
 		BackgroundTaskKindOrderReminder,
 		BackgroundTaskKindIntegration,
-		BackgroundTaskKindDingTalkNotice:
+		BackgroundTaskKindDingTalkNotice,
+		BackgroundTaskKindObjectStorageDelete:
 		return true
 	default:
 		return false

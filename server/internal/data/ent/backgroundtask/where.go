@@ -677,6 +677,29 @@ func HasNotificationDeliveryWith(preds ...predicate.NotificationDelivery) predic
 	})
 }
 
+// HasObjectStorageDeletion applies the HasEdge predicate on the "object_storage_deletion" edge.
+func HasObjectStorageDeletion() predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ObjectStorageDeletionTable, ObjectStorageDeletionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasObjectStorageDeletionWith applies the HasEdge predicate on the "object_storage_deletion" edge with a given conditions (other predicates).
+func HasObjectStorageDeletionWith(preds ...predicate.ObjectStorageDeletion) predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := newObjectStorageDeletionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.BackgroundTask) predicate.BackgroundTask {
 	return predicate.BackgroundTask(sql.AndPredicates(predicates...))

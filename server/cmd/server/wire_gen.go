@@ -150,7 +150,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	notificationRepo := data.NewNotificationRepo(dataData)
 	notificationUsecase := biz.NewNotificationUsecase(backgroundTaskUsecase, notificationRepo, dingTalkIdentityProvider)
 	notificationWorker := server.NewNotificationWorker(notificationUsecase, logger)
-	app := newApp(logger, grpcServer, httpServer, notificationWorker)
+	objectDeletionRepo := data.NewObjectDeletionRepo(dataData)
+	objectDeletionUsecase := biz.NewObjectDeletionUsecase(backgroundTaskUsecase, objectDeletionRepo, enterpriseImageStorage)
+	objectDeletionWorker := server.NewObjectDeletionWorker(objectDeletionUsecase, logger)
+	app := newApp(logger, grpcServer, httpServer, notificationWorker, objectDeletionWorker)
 	return app, func() {
 		cleanup()
 	}, nil

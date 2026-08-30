@@ -61,6 +61,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
@@ -198,6 +199,8 @@ type Client struct {
 	NumberRule *NumberRuleClient
 	// NumberSequence is the client for interacting with the NumberSequence builders.
 	NumberSequence *NumberSequenceClient
+	// ObjectStorageDeletion is the client for interacting with the ObjectStorageDeletion builders.
+	ObjectStorageDeletion *ObjectStorageDeletionClient
 	// Order is the client for interacting with the Order builders.
 	Order *OrderClient
 	// OrderAbnormalCase is the client for interacting with the OrderAbnormalCase builders.
@@ -334,6 +337,7 @@ func (c *Client) init() {
 	c.NotificationDelivery = NewNotificationDeliveryClient(c.config)
 	c.NumberRule = NewNumberRuleClient(c.config)
 	c.NumberSequence = NewNumberSequenceClient(c.config)
+	c.ObjectStorageDeletion = NewObjectStorageDeletionClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.OrderAbnormalCase = NewOrderAbnormalCaseClient(c.config)
 	c.OrderAttachment = NewOrderAttachmentClient(c.config)
@@ -511,6 +515,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
 		NumberRule:                     NewNumberRuleClient(cfg),
 		NumberSequence:                 NewNumberSequenceClient(cfg),
+		ObjectStorageDeletion:          NewObjectStorageDeletionClient(cfg),
 		Order:                          NewOrderClient(cfg),
 		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
 		OrderAttachment:                NewOrderAttachmentClient(cfg),
@@ -615,6 +620,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NotificationDelivery:           NewNotificationDeliveryClient(cfg),
 		NumberRule:                     NewNumberRuleClient(cfg),
 		NumberSequence:                 NewNumberSequenceClient(cfg),
+		ObjectStorageDeletion:          NewObjectStorageDeletionClient(cfg),
 		Order:                          NewOrderClient(cfg),
 		OrderAbnormalCase:              NewOrderAbnormalCaseClient(cfg),
 		OrderAttachment:                NewOrderAttachmentClient(cfg),
@@ -698,16 +704,17 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
 		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
@@ -732,16 +739,17 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceInvoice, c.FinanceInvoiceBill, c.FinanceInvoiceLine,
 		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
 		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderCargoCategory, c.OrderCargoItem, c.OrderCommissionAttribution,
-		c.OrderConsolidation, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderLifecycleEvent, c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod,
-		c.OrderServiceType, c.OrderShippingDocument, c.Organization, c.Partner,
-		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
-		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
-		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderConsolidation, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderLifecycleEvent, c.OrderMilestone,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderShippingDocument, c.Organization, c.Partner, c.PartnerAccount,
+		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
+		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
+		c.RoleOrderOrganizationAccess, c.Session, c.ShippingLine,
 		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -841,6 +849,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NumberRule.mutate(ctx, m)
 	case *NumberSequenceMutation:
 		return c.NumberSequence.mutate(ctx, m)
+	case *ObjectStorageDeletionMutation:
+		return c.ObjectStorageDeletion.mutate(ctx, m)
 	case *OrderMutation:
 		return c.Order.mutate(ctx, m)
 	case *OrderAbnormalCaseMutation:
@@ -1626,6 +1636,22 @@ func (c *BackgroundTaskClient) QueryNotificationDelivery(_m *BackgroundTask) *No
 			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
 			sqlgraph.To(notificationdelivery.Table, notificationdelivery.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.NotificationDeliveryTable, backgroundtask.NotificationDeliveryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryObjectStorageDeletion queries the object_storage_deletion edge of a BackgroundTask.
+func (c *BackgroundTaskClient) QueryObjectStorageDeletion(_m *BackgroundTask) *ObjectStorageDeletionQuery {
+	query := (&ObjectStorageDeletionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
+			sqlgraph.To(objectstoragedeletion.Table, objectstoragedeletion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.ObjectStorageDeletionTable, backgroundtask.ObjectStorageDeletionColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -8917,6 +8943,155 @@ func (c *NumberSequenceClient) mutate(ctx context.Context, m *NumberSequenceMuta
 		return (&NumberSequenceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown NumberSequence mutation op: %q", m.Op())
+	}
+}
+
+// ObjectStorageDeletionClient is a client for the ObjectStorageDeletion schema.
+type ObjectStorageDeletionClient struct {
+	config
+}
+
+// NewObjectStorageDeletionClient returns a client for the ObjectStorageDeletion from the given config.
+func NewObjectStorageDeletionClient(c config) *ObjectStorageDeletionClient {
+	return &ObjectStorageDeletionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `objectstoragedeletion.Hooks(f(g(h())))`.
+func (c *ObjectStorageDeletionClient) Use(hooks ...Hook) {
+	c.hooks.ObjectStorageDeletion = append(c.hooks.ObjectStorageDeletion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `objectstoragedeletion.Intercept(f(g(h())))`.
+func (c *ObjectStorageDeletionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ObjectStorageDeletion = append(c.inters.ObjectStorageDeletion, interceptors...)
+}
+
+// Create returns a builder for creating a ObjectStorageDeletion entity.
+func (c *ObjectStorageDeletionClient) Create() *ObjectStorageDeletionCreate {
+	mutation := newObjectStorageDeletionMutation(c.config, OpCreate)
+	return &ObjectStorageDeletionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ObjectStorageDeletion entities.
+func (c *ObjectStorageDeletionClient) CreateBulk(builders ...*ObjectStorageDeletionCreate) *ObjectStorageDeletionCreateBulk {
+	return &ObjectStorageDeletionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ObjectStorageDeletionClient) MapCreateBulk(slice any, setFunc func(*ObjectStorageDeletionCreate, int)) *ObjectStorageDeletionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ObjectStorageDeletionCreateBulk{err: fmt.Errorf("calling to ObjectStorageDeletionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ObjectStorageDeletionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ObjectStorageDeletionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ObjectStorageDeletion.
+func (c *ObjectStorageDeletionClient) Update() *ObjectStorageDeletionUpdate {
+	mutation := newObjectStorageDeletionMutation(c.config, OpUpdate)
+	return &ObjectStorageDeletionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ObjectStorageDeletionClient) UpdateOne(_m *ObjectStorageDeletion) *ObjectStorageDeletionUpdateOne {
+	mutation := newObjectStorageDeletionMutation(c.config, OpUpdateOne, withObjectStorageDeletion(_m))
+	return &ObjectStorageDeletionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ObjectStorageDeletionClient) UpdateOneID(id uuid.UUID) *ObjectStorageDeletionUpdateOne {
+	mutation := newObjectStorageDeletionMutation(c.config, OpUpdateOne, withObjectStorageDeletionID(id))
+	return &ObjectStorageDeletionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ObjectStorageDeletion.
+func (c *ObjectStorageDeletionClient) Delete() *ObjectStorageDeletionDelete {
+	mutation := newObjectStorageDeletionMutation(c.config, OpDelete)
+	return &ObjectStorageDeletionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ObjectStorageDeletionClient) DeleteOne(_m *ObjectStorageDeletion) *ObjectStorageDeletionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ObjectStorageDeletionClient) DeleteOneID(id uuid.UUID) *ObjectStorageDeletionDeleteOne {
+	builder := c.Delete().Where(objectstoragedeletion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ObjectStorageDeletionDeleteOne{builder}
+}
+
+// Query returns a query builder for ObjectStorageDeletion.
+func (c *ObjectStorageDeletionClient) Query() *ObjectStorageDeletionQuery {
+	return &ObjectStorageDeletionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeObjectStorageDeletion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ObjectStorageDeletion entity by its id.
+func (c *ObjectStorageDeletionClient) Get(ctx context.Context, id uuid.UUID) (*ObjectStorageDeletion, error) {
+	return c.Query().Where(objectstoragedeletion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ObjectStorageDeletionClient) GetX(ctx context.Context, id uuid.UUID) *ObjectStorageDeletion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBackgroundTask queries the background_task edge of a ObjectStorageDeletion.
+func (c *ObjectStorageDeletionClient) QueryBackgroundTask(_m *ObjectStorageDeletion) *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(objectstoragedeletion.Table, objectstoragedeletion.FieldID, id),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, objectstoragedeletion.BackgroundTaskTable, objectstoragedeletion.BackgroundTaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ObjectStorageDeletionClient) Hooks() []Hook {
+	return c.hooks.ObjectStorageDeletion
+}
+
+// Interceptors returns the client interceptors.
+func (c *ObjectStorageDeletionClient) Interceptors() []Interceptor {
+	return c.inters.ObjectStorageDeletion
+}
+
+func (c *ObjectStorageDeletionClient) mutate(ctx context.Context, m *ObjectStorageDeletionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ObjectStorageDeletionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ObjectStorageDeletionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ObjectStorageDeletionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ObjectStorageDeletionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ObjectStorageDeletion mutation op: %q", m.Op())
 	}
 }
 
@@ -17126,16 +17301,16 @@ type (
 		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
 		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence, Order,
-		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
-		OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
-		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, Session, ShippingLine,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
+		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderEnterpriseTag,
+		OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -17151,16 +17326,16 @@ type (
 		FinanceCommissionRule, FinanceCustomSetting, FinanceFeeLedgerPreference,
 		FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence, Order,
-		OrderAbnormalCase, OrderAttachment, OrderCargoCategory, OrderCargoItem,
-		OrderCommissionAttribution, OrderConsolidation, OrderContainer,
-		OrderContainerRequest, OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag,
-		OrderLifecycleEvent, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, Organization, Partner, PartnerAccount,
-		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
-		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
-		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, Session, ShippingLine,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderCargoCategory, OrderCargoItem, OrderCommissionAttribution,
+		OrderConsolidation, OrderContainer, OrderContainerRequest, OrderEnterpriseTag,
+		OrderFee, OrderFeeEnterpriseTag, OrderLifecycleEvent, OrderMilestone,
+		OrderPersonnel, OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
+		RoleAssignment, RoleOrderOrganizationAccess, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )
