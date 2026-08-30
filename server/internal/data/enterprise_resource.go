@@ -192,11 +192,8 @@ func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.U
 
 func (r *enterpriseResourceRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.EnterpriseResource, error) {
 	item, err := enterpriseResourceQuery(r.data.db).Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrEnterpriseResourceNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 	}
 	return enterpriseResourceToBiz(item), nil
 }
@@ -238,11 +235,8 @@ func createEnterpriseResource(ctx context.Context, tx *ent.Tx, organizationID, a
 func (r *enterpriseResourceRepo) Update(ctx context.Context, organizationID, actorID, id uuid.UUID, input *biz.EnterpriseResource, audit *biz.AuditEvent) (*biz.EnterpriseResource, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrEnterpriseResourceNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 		}
 		if biz.EnterpriseResourceType(existing.ResourceType) != input.ResourceType {
 			return biz.ErrEnterpriseResourceInvalidArgument
@@ -276,11 +270,8 @@ func (r *enterpriseResourceRepo) Update(ctx context.Context, organizationID, act
 func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		item, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrEnterpriseResourceNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 		}
 		audit.Details["resource.type"] = string(item.ResourceType)
 		if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
@@ -531,11 +522,8 @@ func (r *enterpriseResourceRepo) UpdateTagGroup(ctx context.Context, organizatio
 	var updated *ent.EnterpriseTagGroup
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrEnterpriseResourceNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 		}
 		builder := existing.Update().SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetSortOrder(input.SortOrder)
 		if input.Color == "" {
@@ -556,11 +544,8 @@ func (r *enterpriseResourceRepo) UpdateTagGroup(ctx context.Context, organizatio
 func (r *enterpriseResourceRepo) DeleteTagGroup(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		group, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if ent.IsNotFound(err) {
-			return biz.ErrEnterpriseResourceNotFound
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
 		}
 		has, err := group.QueryTags().Exist(ctx)
 		if err != nil {

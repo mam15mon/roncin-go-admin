@@ -194,6 +194,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       `mapEntError`，保留两类幂等查询的正常空结果语义
 - [x] 第八批：`finance_commission.go` 规则、提成单与调整单的标准
       NotFound 分支改用公共 `mapEntError`，保留联合校验及幂等空结果语义
+- [x] 第九批：`enterprise_resource.go` 资源与标签组标准 NotFound 分支
+      改用公共 `mapEntError`
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
