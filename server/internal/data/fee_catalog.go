@@ -71,38 +71,32 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, input *biz.FeeSet
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	builder := tx.FeeSetting.Create().
-		SetID(input.ID).SetOrganizationID(input.OrganizationID).SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
-		SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetNillableServiceTypeID(input.ServiceTypeID).
-		SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
-		SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
-	if _, err = builder.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrFeeSettingCodeExists
+	var converted *biz.FeeSetting
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		builder := tx.FeeSetting.Create().
+			SetID(input.ID).SetOrganizationID(input.OrganizationID).SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
+			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetNillableServiceTypeID(input.ServiceTypeID).
+			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
+			SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
+		if _, createErr := builder.Save(ctx); createErr != nil {
+			if ent.IsConstraintError(createErr) {
+				return biz.ErrFeeSettingCodeExists
+			}
+			return createErr
 		}
-		return nil, err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	saved, err := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-		WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+		if auditErr := writeAudit(ctx, tx.AuditLog, audit); auditErr != nil {
+			return auditErr
+		}
+		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
+			WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		var convertErr error
+		converted, convertErr = feeSettingToBiz(saved)
+		return convertErr
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	converted, err := feeSettingToBiz(saved)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return converted, nil
@@ -115,65 +109,58 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, input *biz.FeeSet
 	if err := r.validateFeeSettingReferences(ctx, input); err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	current, err := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), feesettingent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrFeeSettingNotFound
+	var converted *biz.FeeSetting
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), feesettingent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrFeeSettingNotFound
+			}
+			return queryErr
 		}
-		return nil, err
-	}
-	builder := current.Update().
-		SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
-		SetBillingUnitID(input.BillingUnitID).SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).
-		SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
-	if input.NameEN == nil {
-		builder.ClearNameEn()
-	} else {
-		builder.SetNameEn(*input.NameEN)
-	}
-	if input.AliasName == nil {
-		builder.ClearAliasName()
-	} else {
-		builder.SetAliasName(*input.AliasName)
-	}
-	if input.ServiceTypeID == nil {
-		builder.ClearServiceTypeID()
-	} else {
-		builder.SetServiceTypeID(*input.ServiceTypeID)
-	}
-	if input.AbnormalCaseID == nil {
-		builder.ClearAbnormalCaseID()
-	} else {
-		builder.SetAbnormalCaseID(*input.AbnormalCaseID)
-	}
-	if _, err = builder.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrFeeSettingCodeExists
+		builder := current.Update().
+			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
+			SetBillingUnitID(input.BillingUnitID).SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).
+			SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
+		if input.NameEN == nil {
+			builder.ClearNameEn()
+		} else {
+			builder.SetNameEn(*input.NameEN)
 		}
-		return nil, err
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	saved, err := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-		WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+		if input.AliasName == nil {
+			builder.ClearAliasName()
+		} else {
+			builder.SetAliasName(*input.AliasName)
+		}
+		if input.ServiceTypeID == nil {
+			builder.ClearServiceTypeID()
+		} else {
+			builder.SetServiceTypeID(*input.ServiceTypeID)
+		}
+		if input.AbnormalCaseID == nil {
+			builder.ClearAbnormalCaseID()
+		} else {
+			builder.SetAbnormalCaseID(*input.AbnormalCaseID)
+		}
+		if _, updateErr := builder.Save(ctx); updateErr != nil {
+			if ent.IsConstraintError(updateErr) {
+				return biz.ErrFeeSettingCodeExists
+			}
+			return updateErr
+		}
+		if auditErr := writeAudit(ctx, tx.AuditLog, audit); auditErr != nil {
+			return auditErr
+		}
+		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
+			WithServiceType().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		var convertErr error
+		converted, convertErr = feeSettingToBiz(saved)
+		return convertErr
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	converted, err := feeSettingToBiz(saved)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return converted, nil
