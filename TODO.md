@@ -5,8 +5,8 @@
 > 的「数据库事务与并发控制规范」一节。
 
 > 2026-08-30 基线复核：原始计划从 `change.zip` 并入仓库后，按当前代码重新
-> 核验完成状态。事务封装已落地；排除统一封装、生成代码与测试后，仍有 118 处
-> 生产仓储 `Tx(ctx)` 分布在 29 个文件中。已完成项只按源码、生成校验或测试
+> 核验完成状态。事务封装已落地；排除统一封装、生成代码与测试后，仍有 114 处
+> 生产仓储 `Tx(ctx)` 分布在 27 个文件中。已完成项只按源码、生成校验或测试
 > 可以直接证明的结果勾选。
 
 ## 待办一：统一事务封装（高 · server/data）
@@ -35,7 +35,8 @@
       `order_milestone.go`、`partner_attachment.go` 共 4 个事务入口。
 - [x] 第二批：`partner_settlement_rule.go`、`partner_invoice_profile.go`、
       `partner_shipping_preset.go` 共 6 个事务入口。
-- [ ] 剩余生产仓储手写事务：118 处 / 29 个文件。
+- [x] 第三批：`finance_cashflow.go`、`finance_verification.go` 共 4 个事务入口。
+- [ ] 剩余生产仓储手写事务：114 处 / 27 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 

@@ -129,31 +129,27 @@ func (r *financeCashflowRepo) ResolveParty(ctx context.Context, org, id uuid.UUI
 	return x.LegalName, nil
 }
 func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
-	tx, e := r.data.db.Tx(ctx)
+	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		now := time.Now().UTC()
+		rule, sequence, allocateErr := allocateNumberInTx(ctx, tx, v.OrganizationID, biz.DocumentTypeReceiptPayment, now)
+		if allocateErr != nil {
+			return allocateErr
+		}
+		var formatErr error
+		v.FlowNo, formatErr = biz.FormatAllocatedNumber(now, rule, sequence, "")
+		if formatErr != nil {
+			return formatErr
+		}
+		_, saveErr := tx.FinanceCashflow.Create().SetID(v.ID).SetOrganizationID(v.OrganizationID).SetFlowNo(v.FlowNo).SetIdempotencyKey(v.IdempotencyKey).SetDirection(cash.Direction(v.Direction)).SetStatus(cash.StatusDRAFT).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(cash.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetTransactionDate(v.TransactionDate).SetOurAccount(v.OurAccount).SetNillableCounterpartyAccount(v.CounterpartyAccount).SetPaymentMethod(v.PaymentMethod).SetNillableBankReferenceNo(v.BankReferenceNo).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
+		if saveErr != nil {
+			return mapEntConstraint(saveErr, "financecashflow_organization_id_idempotency_key", biz.ErrFinanceCashflowIdempotencyConflict)
+		}
+		return writeAudit(ctx, tx.AuditLog, a)
+	})
 	if e != nil {
 		return nil, e
 	}
-	rollback := func(value error) (*biz.FinanceCashflow, error) { _ = tx.Rollback(); return nil, value }
-	now := time.Now().UTC()
-	rule, sequence, e := allocateNumberInTx(ctx, tx, v.OrganizationID, biz.DocumentTypeReceiptPayment, now)
-	if e != nil {
-		return rollback(e)
-	}
-	v.FlowNo, e = biz.FormatAllocatedNumber(now, rule, sequence, "")
-	if e != nil {
-		return rollback(e)
-	}
-	x, e := tx.FinanceCashflow.Create().SetID(v.ID).SetOrganizationID(v.OrganizationID).SetFlowNo(v.FlowNo).SetIdempotencyKey(v.IdempotencyKey).SetDirection(cash.Direction(v.Direction)).SetStatus(cash.StatusDRAFT).SetSettlementPartyID(v.SettlementPartyID).SetSettlementPartyName(v.SettlementPartyName).SetCurrency(v.Currency).SetAmount(v.Amount.StringFixed(8)).SetExchangeRate(v.ExchangeRate.StringFixed(8)).SetExchangeRateSource(cash.ExchangeRateSource(v.ExchangeRateSource)).SetExchangeRateDate(v.ExchangeRateDate).SetNillableExchangeRateSettingID(v.ExchangeRateSettingID).SetBaseCurrency(v.BaseCurrency).SetBaseAmount(v.BaseAmount.StringFixed(8)).SetTransactionDate(v.TransactionDate).SetOurAccount(v.OurAccount).SetNillableCounterpartyAccount(v.CounterpartyAccount).SetPaymentMethod(v.PaymentMethod).SetNillableBankReferenceNo(v.BankReferenceNo).SetNillableNote(v.Note).SetVersion(1).Save(ctx)
-	if e != nil {
-		return rollback(mapEntConstraint(e, "financecashflow_organization_id_idempotency_key", biz.ErrFinanceCashflowIdempotencyConflict))
-	}
-	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
-		return rollback(e)
-	}
-	if e = tx.Commit(); e != nil {
-		return nil, e
-	}
-	return r.Get(ctx, v.OrganizationID, x.ID)
+	return r.Get(ctx, v.OrganizationID, v.ID)
 }
 
 func (r *financeCashflowRepo) Confirm(ctx context.Context, org, id, actor uuid.UUID, v uint64, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
@@ -163,48 +159,43 @@ func (r *financeCashflowRepo) Cancel(ctx context.Context, org, id, actor uuid.UU
 	return r.transition(ctx, org, id, actor, v, reason, false, a)
 }
 func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uuid.UUID, v uint64, reason string, confirm bool, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
-	tx, e := r.data.db.Tx(ctx)
+	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		x, queryErr := tx.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrFinanceCashflowNotFound
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if x.Version != v {
+			return biz.ErrFinanceCashflowVersionConflict
+		}
+		now := time.Now()
+		u := tx.FinanceCashflow.UpdateOneID(id).SetVersion(v + 1)
+		if confirm {
+			if x.Status != cash.StatusDRAFT {
+				return biz.ErrFinanceCashflowInvalidTransition
+			}
+			u.SetStatus(cash.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
+		} else {
+			if x.Status == cash.StatusCANCELLED {
+				return biz.ErrFinanceCashflowInvalidTransition
+			}
+			used, checkErr := tx.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDEQ(id), allocation.ActiveEQ(true)).Exist(ctx)
+			if checkErr != nil {
+				return checkErr
+			}
+			if used {
+				return biz.ErrFinanceCashflowInvalidTransition
+			}
+			u.SetStatus(cash.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
+		}
+		if _, saveErr := u.Save(ctx); saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, a)
+	})
 	if e != nil {
-		return nil, e
-	}
-	rollback := func(e error) (*biz.FinanceCashflow, error) { _ = tx.Rollback(); return nil, e }
-	x, e := tx.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(e) {
-		return rollback(biz.ErrFinanceCashflowNotFound)
-	}
-	if e != nil {
-		return rollback(e)
-	}
-	if x.Version != v {
-		return rollback(biz.ErrFinanceCashflowVersionConflict)
-	}
-	now := time.Now()
-	u := tx.FinanceCashflow.UpdateOneID(id).SetVersion(v + 1)
-	if confirm {
-		if x.Status != cash.StatusDRAFT {
-			return rollback(biz.ErrFinanceCashflowInvalidTransition)
-		}
-		u.SetStatus(cash.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
-	} else {
-		if x.Status == cash.StatusCANCELLED {
-			return rollback(biz.ErrFinanceCashflowInvalidTransition)
-		}
-		used, checkErr := tx.FinanceVerificationAllocation.Query().Where(allocation.CashflowIDEQ(id), allocation.ActiveEQ(true)).Exist(ctx)
-		if checkErr != nil {
-			return rollback(checkErr)
-		}
-		if used {
-			return rollback(biz.ErrFinanceCashflowInvalidTransition)
-		}
-		u.SetStatus(cash.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
-	}
-	if _, e = u.Save(ctx); e != nil {
-		return rollback(e)
-	}
-	if e = writeAudit(ctx, tx.AuditLog, a); e != nil {
-		return rollback(e)
-	}
-	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
 	return r.Get(ctx, org, id)
