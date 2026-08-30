@@ -74,6 +74,30 @@ scripts/                  根目录开发与构建辅助脚本
   （字段存在时）、中文无声调全拼及拼音首字母；新增可搜索的中文候选实体时，
   应同步维护后端拼音检索键、索引和历史数据回填逻辑。
 
+### 数据库事务与并发控制规范
+
+- 事务一律通过 `internal/data` 提供的统一封装调用（`WithTx(ctx, fn)` 风格，
+  封装内部负责 Begin、出错自动 Rollback、panic 安全回滚、成功 Commit）；
+  禁止在仓储中手写 `db.Tx(ctx)` 加逐点 `tx.Rollback()` 再 `tx.Commit()`
+  的分散模板，禁止混用 `sqlDB.BeginTx` 原生事务。存量手写事务在触碰
+  相关文件时迁移到封装，迁移进度见根目录 `TODO.md`。
+- 并发修改防护统一采用「悲观锁 + 乐观锁」双层模式，范本是
+  `internal/data/order_write.go` 的 `UpdateDraft`：
+  1. 事务内 `ForUpdate()` 锁定目标行；
+  2. 比对 `existing.Version != expectedVersion`，不匹配立即返回
+     `errors.Conflict` 业务错误（HTTP 409，中文提示「已被更新，请刷新后重试」）；
+  3. 通过状态机检查后才允许变更；
+  4. 更新时 `SetVersion(existing.Version + 1)`。
+- 并发防护按实体分层取舍：多人协作编辑的业务实体（订单、账单、结算等）
+  必须具备 `version` 字段与 `expectedVersion` 校验；状态流转、号码分配等
+  原子操作使用 `ForUpdate` 加状态检查；低频单人维护的主数据可不加版本
+  检测。新增实体时按此判定，判定不清时先向用户确认。
+- 多行加锁必须先按主键排序再 `ForUpdate()`，固定加锁顺序防止死锁。
+- 唯一性由数据库唯一索引兜底，驱动错误用 `ent.IsConstraintError` 统一
+  判断并映射为业务错误。
+- 设计事务、锁或版本字段时，遇到范围、命名、分层等不确定的情况，必须
+  先向用户确认，禁止默认直接生成配置或代码。
+
 ### 前端边界
 
 - 路由级权限使用 Ant Design Pro 的 `access`；按钮级权限复用同一权限判断结
