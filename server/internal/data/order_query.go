@@ -25,10 +25,7 @@ import (
 func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz.Order, error) {
 	item, err := withOrderEdges(r.data.db.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID))).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	return orderToBiz(item), nil
 }
@@ -36,10 +33,7 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 func (r *orderRepo) Find(ctx context.Context, id uuid.UUID) (*biz.Order, error) {
 	item, err := withOrderEdges(r.data.db.Order.Query().Where(orderent.IDEQ(id))).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	return orderToBiz(item), nil
 }
@@ -239,10 +233,7 @@ func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID u
 func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderConsolidationSummary, error) {
 	current, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	if current.ShipmentType == nil || *current.ShipmentType != orderent.ShipmentTypeLCL {
 		return nil, biz.ErrOrderConsolidationShipmentType

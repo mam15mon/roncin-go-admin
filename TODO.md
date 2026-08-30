@@ -198,6 +198,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       改用公共 `mapEntError`
 - [x] 第十批：`fee_ledger_preference.go` 创建约束与乐观锁更新错误改用公共
       `mapEntError`，保留查询、创建分流及幂等删除语义
+- [x] 第十一批：`order_query.go` 订单标准 NotFound 分支改用公共
+      `mapEntError`，保留重复单号探测的正常空结果语义
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
