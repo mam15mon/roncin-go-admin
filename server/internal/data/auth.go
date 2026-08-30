@@ -116,37 +116,32 @@ func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *bi
 		return nil, false, err
 	}
 
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	headquarters, err := tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
 	digest := sha256.Sum256([]byte(wecomUserID))
 	username := "wecom_" + hex.EncodeToString(digest[:12])
-	create := tx.User.Create().SetUsername(username).SetDisplayName(wecomName).SetWecomUserid(wecomUserID).SetWecomName(wecomName).SetEnabled(false)
-	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
-		create.SetEmail(strings.TrimSpace(*identity.Email))
-	}
-	account, err = create.Save(ctx)
+	var headquarters *ent.Organization
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var queryErr error
+		headquarters, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		create := tx.User.Create().SetUsername(username).SetDisplayName(wecomName).SetWecomUserid(wecomUserID).SetWecomName(wecomName).SetEnabled(false)
+		if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
+			create.SetEmail(strings.TrimSpace(*identity.Email))
+		}
+		var createErr error
+		account, createErr = create.Save(ctx)
+		if createErr != nil {
+			return createErr
+		}
+		if _, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); createErr != nil {
+			return createErr
+		}
+		audit.UserID = &account.ID
+		audit.OrganizationID = &headquarters.ID
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	if _, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	audit.UserID = &account.ID
-	audit.OrganizationID = &headquarters.ID
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, false, err
 	}
 	return credentialFromAccount(account, headquarters.ID), true, nil
@@ -202,38 +197,33 @@ func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz
 		return nil, false, err
 	}
 
-	tx, err := r.data.db.Tx(ctx)
+	var headquarters *ent.Organization
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var queryErr error
+		headquarters, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkUserid(dingTalkUserID).SetDingtalkName(dingtalkName).SetEnabled(false)
+		if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
+			create.SetEmail(strings.TrimSpace(*identity.Email))
+		}
+		if identity.AvatarURL != nil && strings.TrimSpace(*identity.AvatarURL) != "" {
+			create.SetAvatarURL(strings.TrimSpace(*identity.AvatarURL))
+		}
+		var createErr error
+		account, createErr = create.Save(ctx)
+		if createErr != nil {
+			return createErr
+		}
+		if _, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); createErr != nil {
+			return createErr
+		}
+		audit.UserID = &account.ID
+		audit.OrganizationID = &headquarters.ID
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, false, err
-	}
-	headquarters, err := tx.Organization.Query().Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkUserid(dingTalkUserID).SetDingtalkName(dingtalkName).SetEnabled(false)
-	if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
-		create.SetEmail(strings.TrimSpace(*identity.Email))
-	}
-	if identity.AvatarURL != nil && strings.TrimSpace(*identity.AvatarURL) != "" {
-		create.SetAvatarURL(strings.TrimSpace(*identity.AvatarURL))
-	}
-	account, err = create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	if _, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(headquarters.ID).SetPrimary(true).SetEnabled(true).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	audit.UserID = &account.ID
-	audit.OrganizationID = &headquarters.ID
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, false, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, false, err
 	}
 	return credentialFromAccount(account, headquarters.ID), true, nil
