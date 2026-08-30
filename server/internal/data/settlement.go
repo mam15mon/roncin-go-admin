@@ -183,7 +183,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 		PayableBaseAmount:    decimal.Zero,
 	}
 	for _, row := range summaryRows {
-		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		amount, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -278,7 +278,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			if billErr != nil {
 				return nil, billErr
 			}
-			billAmount, parseErr := decimal.NewFromString(bill.TotalAmount)
+			billAmount, parseErr := decimalOf(bill.TotalAmount)
 			if parseErr != nil {
 				return nil, parseErr
 			}
@@ -292,7 +292,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationID uuid.
 			}
 			verifiedAmount := decimal.Zero
 			for _, allocation := range allocations {
-				amount, amountErr := decimal.NewFromString(allocation.Amount)
+				amount, amountErr := decimalOf(allocation.Amount)
 				if amountErr != nil {
 					return nil, amountErr
 				}

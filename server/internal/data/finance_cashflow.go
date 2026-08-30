@@ -89,7 +89,7 @@ func (r *financeCashflowRepo) enrichVerificationAmounts(ctx context.Context, cas
 		return err
 	}
 	for _, item := range allocations {
-		amount, err := decimal.NewFromString(item.Amount)
+		amount, err := decimalOf(item.Amount)
 		if err != nil {
 			return err
 		}
@@ -192,15 +192,15 @@ func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uui
 	return r.Get(ctx, org, id)
 }
 func cashflowToBiz(x *ent.FinanceCashflow) (*biz.FinanceCashflow, error) {
-	amount, e := decimal.NewFromString(x.Amount)
+	amount, e := decimalOf(x.Amount)
 	if e != nil {
 		return nil, e
 	}
-	rate, e := decimal.NewFromString(x.ExchangeRate)
+	rate, e := decimalOf(x.ExchangeRate)
 	if e != nil {
 		return nil, e
 	}
-	base, e := decimal.NewFromString(x.BaseAmount)
+	base, e := decimalOf(x.BaseAmount)
 	if e != nil {
 		return nil, e
 	}

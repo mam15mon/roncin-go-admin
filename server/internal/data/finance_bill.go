@@ -84,7 +84,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 		UnverifiedBaseAmount: decimal.Zero,
 	}
 	for _, row := range summaryRows {
-		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		amount, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -105,7 +105,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	}
 	verifiedBaseAmount := decimal.Zero
 	if len(verifiedRows) > 0 {
-		verifiedBaseAmount, err = decimal.NewFromString(verifiedRows[0].VerifiedBaseAmount)
+		verifiedBaseAmount, err = decimalOf(verifiedRows[0].VerifiedBaseAmount)
 		if err != nil {
 			return nil, err
 		}
@@ -164,7 +164,7 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		return err
 	}
 	for _, allocation := range allocations {
-		amount, err := decimal.NewFromString(allocation.Amount)
+		amount, err := decimalOf(allocation.Amount)
 		if err != nil {
 			return err
 		}
@@ -599,23 +599,23 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationID, id, actorI
 }
 
 func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
-	totalAmount, err := decimal.NewFromString(item.TotalAmount)
+	totalAmount, err := decimalOf(item.TotalAmount)
 	if err != nil {
 		return nil, err
 	}
-	netAmount, err := decimal.NewFromString(item.NetAmount)
+	netAmount, err := decimalOf(item.NetAmount)
 	if err != nil {
 		return nil, err
 	}
-	taxAmount, err := decimal.NewFromString(item.TaxAmount)
+	taxAmount, err := decimalOf(item.TaxAmount)
 	if err != nil {
 		return nil, err
 	}
-	baseAmount, err := decimal.NewFromString(item.BaseCurrencyAmount)
+	baseAmount, err := decimalOf(item.BaseCurrencyAmount)
 	if err != nil {
 		return nil, err
 	}
-	exchangeRate, err := decimal.NewFromString(item.ExchangeRate)
+	exchangeRate, err := decimalOf(item.ExchangeRate)
 	if err != nil {
 		return nil, err
 	}
@@ -644,37 +644,37 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 }
 
 func financeBillLineToBiz(item *ent.FinanceBillLine) (*biz.FinanceBillLine, error) {
-	quantity, err := decimal.NewFromString(item.Quantity)
+	quantity, err := decimalOf(item.Quantity)
 	if err != nil {
 		return nil, err
 	}
-	unitPrice, err := decimal.NewFromString(item.UnitPrice)
+	unitPrice, err := decimalOf(item.UnitPrice)
 	if err != nil {
 		return nil, err
 	}
-	totalAmount, err := decimal.NewFromString(item.TotalAmount)
+	totalAmount, err := decimalOf(item.TotalAmount)
 	if err != nil {
 		return nil, err
 	}
-	netAmount, err := decimal.NewFromString(item.NetAmount)
+	netAmount, err := decimalOf(item.NetAmount)
 	if err != nil {
 		return nil, err
 	}
-	taxAmount, err := decimal.NewFromString(item.TaxAmount)
+	taxAmount, err := decimalOf(item.TaxAmount)
 	if err != nil {
 		return nil, err
 	}
-	exchangeRate, err := decimal.NewFromString(item.ExchangeRate)
+	exchangeRate, err := decimalOf(item.ExchangeRate)
 	if err != nil {
 		return nil, err
 	}
-	baseAmount, err := decimal.NewFromString(item.BaseCurrencyAmount)
+	baseAmount, err := decimalOf(item.BaseCurrencyAmount)
 	if err != nil {
 		return nil, err
 	}
 	var taxRate *decimal.Decimal
 	if item.TaxRate != nil {
-		value, parseErr := decimal.NewFromString(*item.TaxRate)
+		value, parseErr := decimalOf(*item.TaxRate)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -693,7 +693,7 @@ func financeBillLineToBiz(item *ent.FinanceBillLine) (*biz.FinanceBillLine, erro
 }
 
 func financeBillBatchToBiz(item *ent.FinanceBillBatch) (*biz.FinanceBillBatch, error) {
-	totalBaseAmount, err := decimal.NewFromString(item.TotalBaseAmount)
+	totalBaseAmount, err := decimalOf(item.TotalBaseAmount)
 	if err != nil {
 		return nil, err
 	}

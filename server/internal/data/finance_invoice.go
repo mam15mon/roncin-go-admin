@@ -52,7 +52,7 @@ func (r *financeInvoiceRepo) List(ctx context.Context, org uuid.UUID, filter biz
 	}
 	summary := biz.FinanceInvoiceSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
 	for _, row := range summaryRows {
-		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		amount, parseErr := decimalOf(row.BaseAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -296,28 +296,28 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 }
 
 func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
-	total, e := decimal.NewFromString(x.TotalAmount)
+	total, e := decimalOf(x.TotalAmount)
 	if e != nil {
 		return nil, e
 	}
-	tax, e := decimal.NewFromString(x.TaxAmount)
+	tax, e := decimalOf(x.TaxAmount)
 	if e != nil {
 		return nil, e
 	}
-	net, e := decimal.NewFromString(x.NetAmount)
+	net, e := decimalOf(x.NetAmount)
 	if e != nil {
 		return nil, e
 	}
 	var exchangeRate, baseCurrencyAmount *decimal.Decimal
 	if x.ExchangeRate != nil {
-		value, parseErr := decimal.NewFromString(*x.ExchangeRate)
+		value, parseErr := decimalOf(*x.ExchangeRate)
 		if parseErr != nil {
 			return nil, parseErr
 		}
 		exchangeRate = &value
 	}
 	if x.BaseCurrencyAmount != nil {
-		value, parseErr := decimal.NewFromString(*x.BaseCurrencyAmount)
+		value, parseErr := decimalOf(*x.BaseCurrencyAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -330,30 +330,30 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 	}
 	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, InvoiceProfileID: x.InvoiceProfileID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, InvoiceTitle: financeStringValue(x.InvoiceTitle), TaxpayerIdentificationNo: financeStringValue(x.TaxpayerIdentificationNo), RegisteredAddress: financeStringValue(x.RegisteredAddress), RegisteredPhone: financeStringValue(x.RegisteredPhone), BankName: financeStringValue(x.BankName), BankAccount: financeStringValue(x.BankAccount), Currency: x.Currency, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: exchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrencyAmount: baseCurrencyAmount, TotalAmount: total, NetAmount: net, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks)), Lines: make([]*biz.FinanceInvoiceLine, 0, len(x.Edges.Lines))}
 	for _, l := range x.Edges.BillLinks {
-		amount, e := decimal.NewFromString(l.Amount)
+		amount, e := decimalOf(l.Amount)
 		if e != nil {
 			return nil, e
 		}
-		tax, e := decimal.NewFromString(l.TaxAmount)
+		tax, e := decimalOf(l.TaxAmount)
 		if e != nil {
 			return nil, e
 		}
 		out.Links = append(out.Links, &biz.FinanceInvoiceBill{ID: l.ID, InvoiceID: l.InvoiceID, BillID: l.BillID, BillNo: l.BillNo, Amount: amount, TaxAmount: tax, Active: l.Active})
 	}
 	for _, line := range x.Edges.Lines {
-		taxRate, parseErr := decimal.NewFromString(line.TaxRate)
+		taxRate, parseErr := decimalOf(line.TaxRate)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		netAmount, parseErr := decimal.NewFromString(line.NetAmount)
+		netAmount, parseErr := decimalOf(line.NetAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		taxAmount, parseErr := decimal.NewFromString(line.TaxAmount)
+		taxAmount, parseErr := decimalOf(line.TaxAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		totalAmount, parseErr := decimal.NewFromString(line.TotalAmount)
+		totalAmount, parseErr := decimalOf(line.TotalAmount)
 		if parseErr != nil {
 			return nil, parseErr
 		}
