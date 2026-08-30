@@ -26,6 +26,7 @@ import {
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
+import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 
 type Values = {
@@ -340,7 +341,8 @@ export default function FinanceCashflowsPage() {
             direction: p.direction,
             status: p.status,
           });
-          const list = r.data || [];
+          const page = unwrapPage(r);
+          const list = page.data;
           let incBase = 0;
           let payBase = 0;
           let unvBase = 0;
@@ -355,16 +357,12 @@ export default function FinanceCashflowsPage() {
             unvBase += unverified;
           }
           setMetricStats({
-            totalCount: Number(r.total || 0),
+            totalCount: page.total,
             incomeBase: incBase,
             payoutBase: payBase,
             unverifiedBase: unvBase,
           });
-          return {
-            data: list,
-            total: Number(r.total || 0),
-            success: r.success ?? true,
-          };
+          return { ...toTableRequest(r), total: page.total };
         }}
       />
       <ModalForm<Values>
@@ -424,7 +422,7 @@ export default function FinanceCashflowsPage() {
               enabled: true,
               keyword: keyWords,
             });
-            return (r.data || []).map((x) => ({
+            return unwrapList(r).map((x) => ({
               value: x.id,
               label: `${x.legalName || x.code} (${x.code})`,
               code: x.code,

@@ -23,6 +23,7 @@ import {
   settlementServiceListFeeLedger,
   settlementServiceListFinanceFeeTagOptions,
 } from '@/services/roncin/settlementService';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import {
   type FeeLedgerFilterParams,
   FeeLedgerSearchFilter,
@@ -338,10 +339,10 @@ export default function FinanceFeeLedgerPage() {
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
           });
           setSummary(response.summary);
+          const page = unwrapPage(response);
           return {
-            data: response.data || [],
-            total: Number(response.total || 0),
-            success: response.success ?? true,
+            ...toTableRequest(response),
+            total: page.total,
             summary: response.summary,
           };
         }}

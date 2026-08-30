@@ -14,6 +14,7 @@ import {
   settlementServiceListVerifications,
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
+import { unwrapList } from '@/utils/api';
 import {
   calculationBasisText,
   calculationSignature,
@@ -107,7 +108,7 @@ export default function CommissionCreateModal({
             pageSize: 200,
             status: 'ACTIVE',
           });
-          return (response.data || [])
+          return unwrapList(response)
             .filter((item) => item.direction === 'RECEIVABLE')
             .map((item) => ({
               label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
@@ -125,7 +126,7 @@ export default function CommissionCreateModal({
             pageSize: 200,
             enabled: true,
           });
-          return (response.data || []).map((item) => ({
+          return unwrapList(response).map((item) => ({
             label: `${item.name}｜${personnelRoleText(item.personnelRole)}｜${calculationBasisText(item.calculationBasis)} × ${decimalText(item.ratePercent)}%`,
             value: item.id,
           }));
@@ -147,7 +148,7 @@ export default function CommissionCreateModal({
                 page: 1,
                 pageSize: 200,
               });
-              return (response.data || []).map((item) => ({
+              return unwrapList(response).map((item) => ({
                 label: `${item.employeeName}｜${item.customerCount ?? 0}个客户｜${item.orderCount ?? 0}票订单｜预计 ${decimalText(item.commissionAmount)} ${item.baseCurrency}`,
                 value: item.employeeId,
               }));

@@ -4,6 +4,7 @@ import {
   type SearchFilterFieldItem,
 } from '@/components/ui';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 export interface FeeLedgerFilterParams {
   keyword?: string;
@@ -117,7 +118,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
           pageSize: 200,
           keyword: keyWords,
         });
-        return (res.data || []).map((p) => ({
+        return unwrapList(res).map((p) => ({
           label: p.legalName || p.code || p.id || '',
           value: p.id || '',
         }));
@@ -143,7 +144,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
           pageSize: 200,
           keyword: keyWords,
         });
-        return (res.data || []).map((p) => ({
+        return unwrapList(res).map((p) => ({
           label: p.legalName || p.code || p.id || '',
           value: p.id || '',
         }));

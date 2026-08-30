@@ -27,6 +27,7 @@ import {
   settlementServiceListBills,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
+import { unwrapList } from '@/utils/api';
 import {
   buildVerificationAllocations,
   isPositiveVerificationAmount,
@@ -85,7 +86,7 @@ export default function VerificationWorkbench({
   useEffect(() => {
     if (!open) return;
     void partnerServiceListPartners({ page: 1, pageSize: 200, enabled: true })
-      .then((response) => setPartners(response.data || []))
+      .then((response) => setPartners(unwrapList(response)))
       .catch(() => message.error('加载结算单位失败'));
   }, [message, open]);
 
@@ -120,12 +121,12 @@ export default function VerificationWorkbench({
       .then(([cashflowResponse, billResponse]) => {
         if (cancelled) return;
         setCashflows(
-          (cashflowResponse.data || []).filter((item) =>
+          unwrapList(cashflowResponse).filter((item) =>
             positiveBalance(item.unverifiedAmount),
           ),
         );
         setBills(
-          (billResponse.data || []).filter((item) =>
+          unwrapList(billResponse).filter((item) =>
             positiveBalance(item.unverifiedAmount),
           ),
         );

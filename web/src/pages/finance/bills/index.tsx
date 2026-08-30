@@ -23,6 +23,7 @@ import {
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -152,7 +153,7 @@ export default function FinanceBillsPage() {
           pageSize: 200,
           keyword: keyWords,
         });
-        return (res.data || []).map((p) => ({
+        return unwrapList(res).map((p) => ({
           label: p.legalName || p.code || p.id || '',
           value: p.id || '',
         }));
@@ -404,20 +405,16 @@ export default function FinanceBillsPage() {
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
           });
 
-          const list = response.data || [];
+          const page = unwrapPage(response);
           setMetricStats({
-            totalCount: Number(response.total || list.length),
+            totalCount: page.total,
             receivableBase: Number(response.summary?.receivableBaseAmount || 0),
             payableBase: Number(response.summary?.payableBaseAmount || 0),
             unverifiedBase: Number(response.summary?.unverifiedBaseAmount || 0),
             baseCurrency: response.summary?.baseCurrency || '',
           });
 
-          return {
-            data: list,
-            total: Number(response.total || 0),
-            success: response.success ?? true,
-          };
+          return { ...toTableRequest(response), total: page.total };
         }}
       />
 

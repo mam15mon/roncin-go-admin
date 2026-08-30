@@ -19,6 +19,7 @@ import {
 import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 const businessLabels: Record<number, string> = {
   1: '海运出口',
@@ -64,7 +65,7 @@ export default function FinanceFeeDetailPage() {
       ]);
       const ord = orderRes.data;
       setOrder(ord);
-      setFees(feesRes.data || []);
+      setFees(unwrapList(feesRes));
 
       if (ord?.customerId) {
         partnerServiceGetPartner({

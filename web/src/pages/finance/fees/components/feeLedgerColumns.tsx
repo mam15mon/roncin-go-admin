@@ -2,6 +2,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
 import { Tag } from 'antd';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import { unwrapList } from '@/utils/api';
 
 export const businessLabels: Record<string, string> = {
   SE: '海运出口',
@@ -160,7 +161,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
           pageSize: 200,
           keyword: keyWords,
         });
-        return (response.data || []).map((item) => ({
+        return unwrapList(response).map((item) => ({
           label: item.legalName || item.code || item.id,
           value: item.id,
         }));
@@ -185,7 +186,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
           pageSize: 200,
           keyword: keyWords,
         });
-        return (response.data || []).map((item) => ({
+        return unwrapList(response).map((item) => ({
           label: item.legalName || item.code || item.id,
           value: item.id,
         }));

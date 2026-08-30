@@ -23,6 +23,7 @@ import {
   settlementServiceMarkCommissionAdjustmentPaid,
   settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
+import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionCreateModal from './components/CommissionCreateModal';
@@ -498,11 +499,7 @@ export default function FinanceCommissionsPage() {
             keyword: searchParams.keyword,
             status: searchParams.status,
           });
-          return {
-            data: response.data || [],
-            total: Number(response.total || 0),
-            success: response.success ?? true,
-          };
+          return toTableRequest(response);
         }}
       />
 

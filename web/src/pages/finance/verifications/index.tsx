@@ -11,6 +11,7 @@ import {
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
+import { toTableRequest, unwrapPage } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import VerificationWorkbench from './VerificationWorkbench';
 
@@ -247,18 +248,14 @@ export default function FinanceVerificationsPage() {
             keyword: p.keyword,
             status: p.status,
           });
-          const list = r.data || [];
+          const page = unwrapPage(r);
           setMetricStats({
-            totalCount: Number(r.total || 0),
+            totalCount: page.total,
             receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
             payableTotal: Number(r.summary?.payableBaseAmount || 0),
             baseCurrency: r.summary?.baseCurrency || '',
           });
-          return {
-            data: list,
-            total: Number(r.total || 0),
-            success: r.success ?? true,
-          };
+          return { ...toTableRequest(r), total: page.total };
         }}
       />
       <VerificationWorkbench

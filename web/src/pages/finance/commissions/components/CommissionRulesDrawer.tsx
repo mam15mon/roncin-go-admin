@@ -19,6 +19,7 @@ import {
   settlementServiceListCommissionRules,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
+import { toTableRequest } from '@/utils/api';
 import {
   calculationBasisMeta,
   calculationBasisText,
@@ -168,11 +169,7 @@ export default function CommissionRulesDrawer({
               personnelRole: params.personnelRole,
               enabled: params.enabled,
             });
-            return {
-              data: response.data || [],
-              total: Number(response.total || 0),
-              success: response.success ?? true,
-            };
+            return toTableRequest(response);
           }}
         />
       </Drawer>

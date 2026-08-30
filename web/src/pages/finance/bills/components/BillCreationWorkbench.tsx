@@ -39,6 +39,7 @@ import {
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
@@ -191,7 +192,7 @@ export default function BillCreationWorkbench({
           },
           { skipErrorHandler: true },
         );
-        const groups = response.data || [];
+        const groups = unwrapList(response);
         if (!response.previewToken || groups.length === 0) {
           throw new Error('服务端未返回有效的拆单预览');
         }
@@ -214,7 +215,7 @@ export default function BillCreationWorkbench({
                 { partnerId: partyId },
                 { skipErrorHandler: true },
               );
-              profilesMap[partyId] = res.data || [];
+              profilesMap[partyId] = unwrapList(res);
             } catch {
               profilesMap[partyId] = [];
             }
@@ -603,11 +604,7 @@ export default function BillCreationWorkbench({
                   direction: params.direction,
                   status: 'CONFIRMED',
                 });
-                return {
-                  data: response.data || [],
-                  total: Number(response.total || 0),
-                  success: response.success ?? true,
-                };
+                return toTableRequest(response);
               }}
             />
           ))}

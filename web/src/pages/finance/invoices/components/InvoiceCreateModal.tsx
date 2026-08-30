@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import React from 'react';
 import { settlementServiceListBills } from '@/services/roncin/settlementService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -182,11 +183,7 @@ export default function InvoiceCreateModal({
             pageSize: p.pageSize,
             status: 'CONFIRMED',
           });
-          return {
-            data: r.data || [],
-            total: Number(r.total || 0),
-            success: r.success ?? true,
-          };
+          return toTableRequest(r);
         }}
       />
     </Modal>

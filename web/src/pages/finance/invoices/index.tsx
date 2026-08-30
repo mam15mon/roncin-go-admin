@@ -25,6 +25,7 @@ import {
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
 import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
 import {
@@ -85,7 +86,7 @@ export default function FinanceInvoicesPage() {
         { partnerId },
         { skipErrorHandler: true },
       );
-      const profiles = (response.data || []).filter((item) => item.enabled);
+      const profiles = unwrapList(response).filter((item) => item.enabled);
       setAvailableProfiles(profiles);
       const selected = profiles.find((item) => item.isDefault) || profiles[0];
       setSelectedProfile(selected);
@@ -461,19 +462,15 @@ export default function FinanceInvoicesPage() {
             direction: p.direction,
             status: p.status,
           });
-          const list = r.data || [];
+          const page = unwrapPage(r);
           setMetricStats({
-            totalCount: Number(r.total || list.length),
+            totalCount: page.total,
             receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
             payableTotal: Number(r.summary?.payableBaseAmount || 0),
             issuedCount: Number(r.summary?.issuedCount || 0),
             baseCurrency: r.summary?.baseCurrency || '',
           });
-          return {
-            data: list,
-            total: Number(r.total || 0),
-            success: r.success ?? true,
-          };
+          return { ...toTableRequest(r), total: page.total };
         }}
       />
 
