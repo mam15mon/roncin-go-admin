@@ -36,7 +36,7 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		}
 		filter.SettlementPartyID = &id
 	}
-	tagIDs, err := parseUUIDList(request.GetTagIds())
+	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrFinanceBillInvalidArgument)
 	if err != nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}

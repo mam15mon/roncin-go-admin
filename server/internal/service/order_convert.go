@@ -126,18 +126,6 @@ func personnelAssignmentsFromAPI(values []*v1.OrderPersonnelAssignmentInput) ([]
 
 const timeFormatRFC3339 = "2006-01-02T15:04:05Z07:00"
 
-func parseUUIDStrings(values []string) ([]uuid.UUID, error) {
-	result := make([]uuid.UUID, 0, len(values))
-	for _, value := range values {
-		id, err := uuid.Parse(value)
-		if err != nil {
-			return nil, biz.ErrOrderInvalidArgument
-		}
-		result = append(result, id)
-	}
-	return result, nil
-}
-
 func parseOptionalUUID(value string) (*uuid.UUID, error) {
 	if value == "" {
 		return nil, nil
@@ -156,13 +144,6 @@ func parseOptionalUUIDPointer(value *string) (*uuid.UUID, error) {
 	return parseOptionalUUID(*value)
 }
 
-func uuidStringPtr(value *uuid.UUID) *string {
-	if value == nil {
-		return nil
-	}
-	result := value.String()
-	return &result
-}
 func stringPtrIfNotEmpty(value string) *string {
 	if value == "" {
 		return nil

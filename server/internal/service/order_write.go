@@ -104,11 +104,11 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, biz.ErrOrderCustomerInvalid
 	}
-	serviceTypeIDs, err := parseUUIDStrings(request.GetServiceTypeIds())
+	serviceTypeIDs, err := parseUUIDValues(request.GetServiceTypeIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
-	cargoCategoryIDs, err := parseUUIDStrings(request.GetCargoCategoryIds())
+	cargoCategoryIDs, err := parseUUIDValues(request.GetCargoCategoryIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -275,11 +275,11 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	if request.ShipmentMode != nil {
 		output.ShipmentMode = orderShipmentModeFromAPI(request.ShipmentMode)
 	}
-	output.ServiceTypeIDs, err = parseUUIDStrings(request.GetServiceTypeIds())
+	output.ServiceTypeIDs, err = parseUUIDValues(request.GetServiceTypeIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
-	output.CargoCategoryIDs, err = parseUUIDStrings(request.GetCargoCategoryIds())
+	output.CargoCategoryIDs, err = parseUUIDValues(request.GetCargoCategoryIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

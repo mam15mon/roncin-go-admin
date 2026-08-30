@@ -41,7 +41,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
 	filter.ExpenseDateTo = financeOptionalString(request.ExpenseDateTo)
 	filter.FinanceLocked = request.FinanceLocked
-	tagIDs, err := parseUUIDList(request.GetTagIds())
+	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrFinanceLedgerInvalidArgument)
 	if err != nil {
 		return nil, biz.ErrFinanceLedgerInvalidArgument
 	}

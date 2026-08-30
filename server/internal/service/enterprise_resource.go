@@ -241,11 +241,11 @@ func (s *EnterpriseResourceService) batchAssociations(ctx context.Context, resou
 	if principalErr != nil {
 		return 0, principalErr
 	}
-	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
+	resourceIDs, err := parseUUIDValues(resourceIDValues, biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return 0, err
 	}
-	partnerIDs, err := enterpriseParseUUIDs(partnerIDValues)
+	partnerIDs, err := parseUUIDValues(partnerIDValues, biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return 0, err
 	}
@@ -274,7 +274,7 @@ func (s *EnterpriseResourceService) batchAddressTypes(ctx context.Context, resou
 	if principalErr != nil {
 		return 0, principalErr
 	}
-	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
+	resourceIDs, err := parseUUIDValues(resourceIDValues, biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return 0, err
 	}
@@ -307,11 +307,11 @@ func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resource
 	if principalErr != nil {
 		return 0, principalErr
 	}
-	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
+	resourceIDs, err := parseUUIDValues(resourceIDValues, biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return 0, err
 	}
-	userIDs, err := enterpriseParseUUIDs(assigneeIDValues)
+	userIDs, err := parseUUIDValues(assigneeIDValues, biz.ErrEnterpriseResourceInvalidArgument)
 	if err != nil {
 		return 0, err
 	}
@@ -411,14 +411,14 @@ func enterpriseResourceFromAPI(value *v1.EnterpriseResourceInput) (*biz.Enterpri
 	}
 	result := &biz.EnterpriseResource{ResourceType: enterpriseResourceTypeFromAPI(value.GetResourceType()), ShortName: value.GetShortName(), Enabled: value.GetEnabled(), SortOrder: int(value.GetSortOrder())}
 	if value.PartnerAssociations != nil {
-		ids, err := enterpriseParseUUIDs(value.GetPartnerAssociations().GetPartnerIds())
+		ids, err := parseUUIDValues(value.GetPartnerAssociations().GetPartnerIds(), biz.ErrEnterpriseResourceInvalidArgument)
 		if err != nil {
 			return nil, err
 		}
 		result.PartnerIDs = ids
 	}
 	if value.AssigneeIds != nil {
-		ids, err := enterpriseParseUUIDs(value.GetAssigneeIds())
+		ids, err := parseUUIDValues(value.GetAssigneeIds(), biz.ErrEnterpriseResourceInvalidArgument)
 		if err != nil {
 			return nil, err
 		}
@@ -517,17 +517,6 @@ func enterpriseResourcePrincipalAndID(ctx context.Context, idText string) (*biz.
 		return nil, uuid.Nil, biz.ErrEnterpriseResourceInvalidArgument
 	}
 	return principal, id, nil
-}
-func enterpriseParseUUIDs(values []string) ([]uuid.UUID, error) {
-	result := make([]uuid.UUID, len(values))
-	for i, value := range values {
-		id, err := uuid.Parse(value)
-		if err != nil {
-			return nil, biz.ErrEnterpriseResourceInvalidArgument
-		}
-		result[i] = id
-	}
-	return result, nil
 }
 func enterpriseUUIDStrings(values []uuid.UUID) []string {
 	result := make([]string, len(values))

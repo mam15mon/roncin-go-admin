@@ -112,7 +112,7 @@ func orderContainerToAPI(value *biz.OrderContainer) *v1.OrderContainer {
 		OrderId:            value.OrderID.String(),
 		ContainerNo:        value.ContainerNo,
 		ContainerSpecId:    value.ContainerSpecID.String(),
-		ShippingDocumentId: formatOptionalUUIDString(value.ShippingDocumentID),
+		ShippingDocumentId: uuidStringPtr(value.ShippingDocumentID),
 		SealNo:             value.SealNo,
 		GrossWeightKg:      value.GrossWeightKg,
 		VolumeCbm:          value.VolumeCbm,
@@ -151,14 +151,6 @@ func orderContainerInputFromAPI(orderIDText, specIDText, documentIDText, contain
 		input.Note = &note
 	}
 	return orderID, input, nil
-}
-
-func formatOptionalUUIDString(value *uuid.UUID) *string {
-	if value == nil {
-		return nil
-	}
-	formatted := value.String()
-	return &formatted
 }
 
 var _ v1.OrderContainerServiceServer = (*OrderContainerService)(nil)

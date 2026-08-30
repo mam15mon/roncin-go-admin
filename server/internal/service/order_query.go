@@ -117,7 +117,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId(), request.GetCreatorOrganizationId()); err != nil {
 		return nil, err
 	}
-	tagIDs, err := parseUUIDList(request.GetTagIds())
+	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}

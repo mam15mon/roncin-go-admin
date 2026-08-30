@@ -72,27 +72,15 @@ func (s *OrderTagService) BatchRemoveOrderTags(ctx context.Context, request *v1.
 }
 
 func orderTagBatchIDs(orderIDValues, tagIDValues []string) ([]uuid.UUID, []uuid.UUID, error) {
-	orderIDs, err := parseUUIDList(orderIDValues)
+	orderIDs, err := parseUUIDValues(orderIDValues, biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, nil, err
 	}
-	tagIDs, err := parseUUIDList(tagIDValues)
+	tagIDs, err := parseUUIDValues(tagIDValues, biz.ErrBusinessTagInvalidArgument)
 	if err != nil {
 		return nil, nil, err
 	}
 	return orderIDs, tagIDs, nil
-}
-
-func parseUUIDList(values []string) ([]uuid.UUID, error) {
-	result := make([]uuid.UUID, 0, len(values))
-	for _, value := range values {
-		id, err := uuid.Parse(value)
-		if err != nil {
-			return nil, biz.ErrBusinessTagInvalidArgument
-		}
-		result = append(result, id)
-	}
-	return result, nil
 }
 
 func businessTagSummaryToAPI(item *biz.BusinessTagSummary) *v1.BusinessTagSummary {
