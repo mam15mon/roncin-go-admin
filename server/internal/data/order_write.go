@@ -162,118 +162,102 @@ func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organi
 }
 
 func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
-	tx, err := r.data.db.Tx(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			if ent.IsNotFound(queryErr) {
+				return biz.ErrOrderNotFound
+			}
+			return queryErr
+		}
+		if existing.Version != expectedVersion {
+			return biz.ErrOrderStatusConflict
+		}
+		if existing.FlowStatus != orderent.FlowStatusDRAFT || existing.TerminationStatus != orderent.TerminationStatusACTIVE || existing.ClosureStatus != orderent.ClosureStatusOPEN {
+			return biz.ErrOrderStatusConflict
+		}
+		if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
+			return biz.ErrOrderBusinessUnsupported
+		}
+		if validateErr := validateOrderReferences(ctx, tx, organizationID, input); validateErr != nil {
+			return validateErr
+		}
+		update := existing.Update().
+			SetVersion(existing.Version + 1).
+			SetCustomerID(input.CustomerID).
+			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetInternalReferenceNo(input.InternalReferenceNo).
+			SetShipperShortName(input.ShipperShortName).
+			SetConsigneeShortName(input.ConsigneeShortName).
+			SetContractNo(input.ContractNo).
+			SetCargoValue(input.CargoValue).
+			SetInsurancePremium(input.InsurancePremium).
+			SetUnNumber(input.UNNumber).
+			SetHazardClass(input.HazardClass).
+			SetFactoryName(input.FactoryName).
+			SetCargoReadyAt(input.CargoReadyAt).
+			SetLoadingTerms(input.LoadingTerms).
+			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
+			SetReceivedAt(input.ReceivedAt).
+			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
+			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
+			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
+			SetVesselVoyage(input.VesselVoyage).
+			SetEtd(input.ETD).
+			SetEta(input.ETA).
+			SetSiCutoff(input.SICutoff).
+			SetDocCutoff(input.DocCutoff).
+			SetCustomsCutoff(input.CustomsCutoff).
+			SetVgmCutoff(input.VGMCutoff).
+			SetGoodsDescription(input.GoodsDescription).
+			SetTotalPackageUnit(input.TotalPackageUnit).
+			SetSpecialRequirements(input.SpecialRequirements).
+			SetOrderDate(input.OrderDate).
+			SetNotes(input.Notes).
+			SetBookingNotes(input.BookingNotes).
+			SetAllocationNotes(input.AllocationNotes).
+			SetOperationNotes(input.OperationNotes)
+		setOrderOptionalReferences(update, input)
+		setOrderOptionalAmounts(update, input)
+		if input.TotalPackages == nil {
+			update.ClearTotalPackages()
+		} else {
+			update.SetTotalPackages(*input.TotalPackages)
+		}
+		if input.TotalGrossWeightKg == nil {
+			update.ClearTotalGrossWeightKg()
+		} else {
+			update.SetTotalGrossWeightKg(*input.TotalGrossWeightKg)
+		}
+		if input.TotalVolumeCbm == nil {
+			update.ClearTotalVolumeCbm()
+		} else {
+			update.SetTotalVolumeCbm(*input.TotalVolumeCbm)
+		}
+		if _, updateErr := update.Save(ctx); updateErr != nil {
+			return mapEntConstraint(updateErr, "order_organization_id_order_no", biz.ErrOrderNumberExists)
+		}
+		if replaceErr := replaceOrderSelections(ctx, tx, id, input.ServiceTypeIDs, input.CargoCategoryIDs); replaceErr != nil {
+			return replaceErr
+		}
+		if syncErr := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, id, input.ShippingDocuments); syncErr != nil {
+			return syncErr
+		}
+		if syncErr := syncOrderContainerRequests(ctx, tx, organizationID, id, input.ContainerRequests); syncErr != nil {
+			return syncErr
+		}
+		if existing.CustomerID != input.CustomerID {
+			if _, deleteErr := tx.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrderIDEQ(id)).Exec(ctx); deleteErr != nil {
+				return deleteErr
+			}
+			if snapshotErr := snapshotOrderCommissionAttributions(ctx, tx, organizationID, id, input.CustomerID, existing.CreatedAt); snapshotErr != nil {
+				return snapshotErr
+			}
+		}
+		audit.Details["order.no"] = existing.OrderNo
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrOrderNotFound
-		}
-		return nil, err
-	}
-	if existing.Version != expectedVersion {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	if existing.FlowStatus != orderent.FlowStatusDRAFT || existing.TerminationStatus != orderent.TerminationStatusACTIVE || existing.ClosureStatus != orderent.ClosureStatusOPEN {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderStatusConflict
-	}
-	if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
-		_ = tx.Rollback()
-		return nil, biz.ErrOrderBusinessUnsupported
-	}
-	if err := validateOrderReferences(ctx, tx, organizationID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	update := existing.Update().
-		SetVersion(existing.Version + 1).
-		SetCustomerID(input.CustomerID).
-		SetCustomerReferenceNo(input.CustomerReferenceNo).
-		SetInternalReferenceNo(input.InternalReferenceNo).
-		SetShipperShortName(input.ShipperShortName).
-		SetConsigneeShortName(input.ConsigneeShortName).
-		SetContractNo(input.ContractNo).
-		SetCargoValue(input.CargoValue).
-		SetInsurancePremium(input.InsurancePremium).
-		SetUnNumber(input.UNNumber).
-		SetHazardClass(input.HazardClass).
-		SetFactoryName(input.FactoryName).
-		SetCargoReadyAt(input.CargoReadyAt).
-		SetLoadingTerms(input.LoadingTerms).
-		SetDeclarationCutoffAt(input.DeclarationCutoffAt).
-		SetReceivedAt(input.ReceivedAt).
-		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
-		SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
-		SetVesselVoyage(input.VesselVoyage).
-		SetEtd(input.ETD).
-		SetEta(input.ETA).
-		SetSiCutoff(input.SICutoff).
-		SetDocCutoff(input.DocCutoff).
-		SetCustomsCutoff(input.CustomsCutoff).
-		SetVgmCutoff(input.VGMCutoff).
-		SetGoodsDescription(input.GoodsDescription).
-		SetTotalPackageUnit(input.TotalPackageUnit).
-		SetSpecialRequirements(input.SpecialRequirements).
-		SetOrderDate(input.OrderDate).
-		SetNotes(input.Notes).
-		SetBookingNotes(input.BookingNotes).
-		SetAllocationNotes(input.AllocationNotes).
-		SetOperationNotes(input.OperationNotes)
-	setOrderOptionalReferences(update, input)
-	setOrderOptionalAmounts(update, input)
-	if input.TotalPackages == nil {
-		update.ClearTotalPackages()
-	} else {
-		update.SetTotalPackages(*input.TotalPackages)
-	}
-	if input.TotalGrossWeightKg == nil {
-		update.ClearTotalGrossWeightKg()
-	} else {
-		update.SetTotalGrossWeightKg(*input.TotalGrossWeightKg)
-	}
-	if input.TotalVolumeCbm == nil {
-		update.ClearTotalVolumeCbm()
-	} else {
-		update.SetTotalVolumeCbm(*input.TotalVolumeCbm)
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntConstraint(err, "order_organization_id_order_no", biz.ErrOrderNumberExists)
-	}
-	if err := replaceOrderSelections(ctx, tx, id, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, id, input.ShippingDocuments); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := syncOrderContainerRequests(ctx, tx, organizationID, id, input.ContainerRequests); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if existing.CustomerID != input.CustomerID {
-		if _, err := tx.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrderIDEQ(id)).Exec(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-		if err := snapshotOrderCommissionAttributions(ctx, tx, organizationID, id, input.CustomerID, existing.CreatedAt); err != nil {
-			_ = tx.Rollback()
-			return nil, err
-		}
-	}
-	audit.Details["order.no"] = existing.OrderNo
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)
