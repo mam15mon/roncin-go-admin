@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -223,7 +222,7 @@ func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID
 		}
 		now := time.Now()
 		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(issue.TaxInvoiceNo).SetInvoiceDate(issue.InvoiceDate).SetExchangeRate(issue.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financeinvoiceent.ExchangeRateSource(issue.ExchangeRateSource)).SetExchangeRateDate(issue.ExchangeRateDate).SetNillableExchangeRateSettingID(issue.ExchangeRateSettingID).SetBaseCurrencyAmount(issue.BaseCurrencyAmount.StringFixed(8)).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
-			return mapFinanceInvoiceNumberConstraint(updateErr)
+			return mapEntConstraint(updateErr, "financeinvoice_org_tax_invoice_no", biz.ErrFinanceInvoiceTaxNoExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -304,7 +303,7 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		}
 		now := time.Now()
 		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
-			return mapFinanceInvoiceNumberConstraint(updateErr)
+			return mapEntConstraint(updateErr, "financeinvoice_org_red_invoice_no", biz.ErrFinanceInvoiceRedNoExists)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -312,21 +311,6 @@ func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.U
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
-}
-
-func mapFinanceInvoiceNumberConstraint(err error) error {
-	if !ent.IsConstraintError(err) {
-		return err
-	}
-	message := err.Error()
-	switch {
-	case strings.Contains(message, "financeinvoice_org_tax_invoice_no"):
-		return biz.ErrFinanceInvoiceTaxNoExists
-	case strings.Contains(message, "financeinvoice_org_red_invoice_no"):
-		return biz.ErrFinanceInvoiceRedNoExists
-	default:
-		return err
-	}
 }
 
 func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {

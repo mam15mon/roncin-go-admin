@@ -178,6 +178,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
 （`mapOrderConstraint`、`mapPartnerConstraint` 等），其余约 30 个内联。
 - [ ] 统一 `mapEntError(err, notFoundErr, constraintErr)`，替换 10 个
       私有版本与全部内联点
+- [x] 第一批：`finance_invoice.go` 开票与红冲编号约束改用公共
+      `mapEntConstraint`，移除私有映射器
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/
