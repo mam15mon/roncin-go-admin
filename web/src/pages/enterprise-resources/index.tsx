@@ -55,6 +55,7 @@ import {
   enterpriseResourceServiceUpdateEnterpriseResource,
   enterpriseResourceServiceUpdateEnterpriseTagGroup,
 } from '@/services/roncin/enterpriseResourceService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 
 const resourceTabs = [
   { key: 'addresses', label: '地址管理', type: 1 },
@@ -208,7 +209,7 @@ const EnterpriseResourcesPage: React.FC = () => {
 
   const loadTagGroups = useCallback(async () => {
     const response = await enterpriseResourceServiceListEnterpriseTagGroups();
-    setTagGroups(response.data ?? []);
+    setTagGroups(unwrapList(response));
   }, []);
 
   useEffect(() => {
@@ -218,17 +219,17 @@ const EnterpriseResourcesPage: React.FC = () => {
 
   const searchPartners = useCallback(async (keyword = '') => {
     const response = await enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions({ page: 1, pageSize: 50, keyword });
-    setPartnerOptions((response.data ?? []).flatMap((item) => item.id ? [{ value: item.id, label: `${item.code ?? ''} ${item.name ?? ''}`.trim() }] : []));
+    setPartnerOptions(unwrapList(response).flatMap((item) => item.id ? [{ value: item.id, label: `${item.code ?? ''} ${item.name ?? ''}`.trim() }] : []));
   }, []);
 
   const searchAssignees = useCallback(async (keyword = '') => {
     const response = await enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions({ page: 1, pageSize: 50, keyword });
-    setAssigneeOptions((response.data ?? []).flatMap((item) => item.id ? [{ value: item.id, label: item.displayName ?? item.username ?? item.id }] : []));
+    setAssigneeOptions(unwrapList(response).flatMap((item) => item.id ? [{ value: item.id, label: item.displayName ?? item.username ?? item.id }] : []));
   }, []);
 
   const loadRegions = useCallback(async (level: number, parentCode?: string) => {
     const response = await enterpriseResourceServiceListEnterpriseResourceRegionOptions({ level, parentCode, page: 1, pageSize: 200 });
-    return (response.data ?? []).flatMap((item) => item.code ? [{ value: item.code, label: item.name ?? item.code }] : []);
+    return unwrapList(response).flatMap((item) => item.code ? [{ value: item.code, label: item.name ?? item.code }] : []);
   }, []);
 
   useEffect(() => {
@@ -393,7 +394,7 @@ const EnterpriseResourcesPage: React.FC = () => {
           const sortEntry = Object.entries(sort ?? {})[0];
           const sortBy = sortEntry?.[0] === 'shortName' ? 'short_name' : sortEntry?.[0] === 'updatedAt' ? 'updated_at' : undefined;
           const response = await enterpriseResourceServiceListEnterpriseResources({ resourceType: active.type, page: params.current, pageSize: params.pageSize, keyword: params.keyword as string | undefined, linked: params.linked === 'true' ? true : params.linked === 'false' ? false : undefined, enabled: params.enabled === 'true' ? true : params.enabled === 'false' ? false : undefined, partnerId: params.partnerId as string | undefined, addressType: params.addressType as number | undefined, assigneeId: params.assigneeId as string | undefined, sortBy, sortOrder: sortEntry?.[1] === 'descend' ? 'desc' : sortEntry ? 'asc' : undefined });
-          return { data: response.data ?? [], success: response.success, total: Number(response.total ?? 0) };
+          return toTableRequest(response);
         }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }} scroll={{ x: 1100 }}
         toolBarRender={() => [

@@ -26,6 +26,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
+import { unwrapList } from '@/utils/api';
 import {
   masterDataServiceCreateNumberRule,
   masterDataServiceListNumberRules,
@@ -72,7 +73,7 @@ export function NumberRulesPanel() {
     try {
       const res = await masterDataServiceListNumberRules({});
       setData(
-        filterVisibleNumberRules(res.data || []).sort((left, right) => {
+        filterVisibleNumberRules(unwrapList(res)).sort((left, right) => {
           const leftOrder =
             docTypeMap.get(left.documentType as any)?.numValue ??
             Number.MAX_SAFE_INTEGER;

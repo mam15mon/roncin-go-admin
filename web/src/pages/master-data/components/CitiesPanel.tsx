@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import { masterDataServiceListAdministrativeRegions } from '@/services/roncin/masterDataService';
+import { unwrapList } from '@/utils/api';
 
 export interface RegionItem extends BaseMasterDataItem {
   level: number;
@@ -39,7 +40,7 @@ export default function CitiesPanel() {
     setLoading(true);
     try {
       const response = await masterDataServiceListAdministrativeRegions({});
-      setData((response.data ?? []).map(mapRegion));
+      setData(unwrapList(response).map(mapRegion));
     } catch (error: any) {
       message.error(error.message || '行政区划数据加载失败');
     } finally {

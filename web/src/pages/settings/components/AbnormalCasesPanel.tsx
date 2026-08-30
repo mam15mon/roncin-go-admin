@@ -12,6 +12,7 @@ import {
   masterDataServiceListItems,
   masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import { toTableRequest } from '@/utils/api';
 
 const ABNORMAL_CASE_KIND = 10;
 
@@ -58,10 +59,7 @@ export function AbnormalCasesPanel() {
           page: 1,
           pageSize: 200,
         });
-        return {
-          data: res.data ?? [],
-          success: res.success ?? true,
-        };
+        return toTableRequest(res);
       }}
       canCreate={access.canCreateMasterDataItems}
       canUpdate={access.canUpdateMasterDataItems}

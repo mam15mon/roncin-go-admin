@@ -3,6 +3,7 @@ import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
+import { unwrapList } from '@/utils/api';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 
 export interface CurrencyItem extends BaseMasterDataItem {
@@ -19,7 +20,7 @@ export default function CurrenciesPanel() {
     setLoading(true);
     try {
       const response = await masterDataServiceListCurrencies();
-      const items: CurrencyItem[] = (response.data ?? []).map((item) => ({
+      const items: CurrencyItem[] = unwrapList(response).map((item) => ({
         id: item.id || item.code || '',
         code: item.code || '',
         name: item.name || '',

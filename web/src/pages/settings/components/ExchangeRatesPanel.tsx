@@ -46,6 +46,7 @@ import {
   exchangeRateServiceUpdateExchangeRateTimeStandards,
 } from '@/services/roncin/exchangeRateService';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import { isPositiveExactDecimal, trimExactDecimal } from '@/utils/decimal';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
@@ -247,7 +248,7 @@ export function ExchangeRatesPanel() {
     const response = await exchangeRateServiceListExchangeRateTimeStandards();
     setTimeStandards(
       Object.fromEntries(
-        (response.data ?? []).map((item) => [item.rateType ?? '', item.timeStandards ?? []]),
+        unwrapList(response).map((item) => [item.rateType ?? '', item.timeStandards ?? []]),
       ),
     );
     setTimeStandardsOpen(true);
@@ -434,8 +435,8 @@ export function ExchangeRatesPanel() {
             masterDataServiceListCurrencies(),
           ]);
           setBaseCurrency(rateResponse.baseCurrency ?? '');
-          setCurrencies(currencyResponse.data ?? []);
-          return { data: rateResponse.data ?? [], success: rateResponse.success ?? true };
+          setCurrencies(unwrapList(currencyResponse));
+          return toTableRequest(rateResponse);
         }}
         toolBarRender={() => [
           <Button
