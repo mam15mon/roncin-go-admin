@@ -867,142 +867,132 @@ func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, 
 }
 
 func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.UUID, item *biz.FinanceCommissionAdjustment, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceCommissionAdjustment, error) { _ = tx.Rollback(); return nil, err }
-	parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(item.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID {
-		return rollback(biz.ErrCommissionAdjustmentTransition)
-	}
-	line, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(item.OrderID)).Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionAdjustmentInvalid)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	sequence := parent.AdjustmentSequence + 1
-	item.AdjustmentNo = fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)
-	item.CommissionNo, item.OrderNo = parent.CommissionNo, line.OrderNo
-	item.EmployeeID, item.EmployeeName = parent.EmployeeID, parent.EmployeeName
-	item.BaseCurrency = parent.BaseCurrency
-	created, err := tx.FinanceCommissionAdjustment.Create().
-		SetID(item.ID).SetOrganizationID(org).SetCommissionID(parent.ID).SetOrderID(line.OrderID).
-		SetAdjustmentNo(item.AdjustmentNo).SetIdempotencyKey(item.IdempotencyKey).
-		SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).
-		SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
-		SetSourceType(adjustment.SourceType(item.SourceType)).SetDirection(adjustment.Direction(item.Direction)).SetStatus(adjustment.StatusDRAFT).
-		SetBaseCurrency(parent.BaseCurrency).SetAmount(item.Amount.StringFixed(8)).SetReason(item.Reason).
-		SetNillableNote(item.Note).SetVersion(1).Save(ctx)
-	if ent.IsConstraintError(err) {
-		return rollback(biz.ErrCommissionAdjustmentInvalid)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+	var created *ent.FinanceCommissionAdjustment
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(item.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID {
+			return biz.ErrCommissionAdjustmentTransition
+		}
+		line, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(item.OrderID)).Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionAdjustmentInvalid
+		}
+		if err != nil {
+			return err
+		}
+		sequence := parent.AdjustmentSequence + 1
+		item.AdjustmentNo = fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)
+		item.CommissionNo, item.OrderNo = parent.CommissionNo, line.OrderNo
+		item.EmployeeID, item.EmployeeName = parent.EmployeeID, parent.EmployeeName
+		item.BaseCurrency = parent.BaseCurrency
+		created, err = tx.FinanceCommissionAdjustment.Create().
+			SetID(item.ID).SetOrganizationID(org).SetCommissionID(parent.ID).SetOrderID(line.OrderID).
+			SetAdjustmentNo(item.AdjustmentNo).SetIdempotencyKey(item.IdempotencyKey).
+			SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).
+			SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
+			SetSourceType(adjustment.SourceType(item.SourceType)).SetDirection(adjustment.Direction(item.Direction)).SetStatus(adjustment.StatusDRAFT).
+			SetBaseCurrency(parent.BaseCurrency).SetAmount(item.Amount.StringFixed(8)).SetReason(item.Reason).
+			SetNillableNote(item.Note).SetVersion(1).Save(ctx)
+		if ent.IsConstraintError(err) {
+			return biz.ErrCommissionAdjustmentInvalid
+		}
+		if err != nil {
+			return err
+		}
+		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).Save(ctx); err != nil {
+			return err
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return commissionAdjustmentToBiz(created)
 }
 
 func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(err error) (*biz.FinanceCommissionAdjustment, error) { _ = tx.Rollback(); return nil, err }
-	x, err := tx.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionAdjustmentNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if x.Version != version {
-		return rollback(biz.ErrCommissionAdjustmentTransition)
-	}
-	parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(x.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrCommissionNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	now := time.Now().UTC()
-	update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)
-	switch target {
-	case biz.CommissionConfirmed:
-		if x.Status != adjustment.StatusDRAFT || (parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID) {
-			return rollback(biz.ErrCommissionAdjustmentTransition)
+	var updated *ent.FinanceCommissionAdjustment
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		x, err := tx.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionAdjustmentNotFound
 		}
-		if x.Direction == adjustment.DirectionDECREASE {
-			active, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
-				adjustment.CommissionIDEQ(parent.ID), adjustment.IDNEQ(x.ID),
-				adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
-			).All(ctx)
-			if queryErr != nil {
-				return rollback(queryErr)
+		if err != nil {
+			return err
+		}
+		if x.Version != version {
+			return biz.ErrCommissionAdjustmentTransition
+		}
+		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(x.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrCommissionNotFound
+		}
+		if err != nil {
+			return err
+		}
+		now := time.Now().UTC()
+		update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)
+		switch target {
+		case biz.CommissionConfirmed:
+			if x.Status != adjustment.StatusDRAFT || (parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID) {
+				return biz.ErrCommissionAdjustmentTransition
 			}
-			effective, parseErr := decimal.NewFromString(parent.CommissionAmount)
-			if parseErr != nil {
-				return rollback(parseErr)
-			}
-			for _, old := range active {
-				amount, amountErr := decimal.NewFromString(old.Amount)
-				if amountErr != nil {
-					return rollback(amountErr)
+			if x.Direction == adjustment.DirectionDECREASE {
+				active, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
+					adjustment.CommissionIDEQ(parent.ID), adjustment.IDNEQ(x.ID),
+					adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
+				).All(ctx)
+				if queryErr != nil {
+					return queryErr
 				}
-				if old.Direction == adjustment.DirectionDECREASE {
-					effective = effective.Sub(amount)
-				} else {
-					effective = effective.Add(amount)
+				effective, parseErr := decimal.NewFromString(parent.CommissionAmount)
+				if parseErr != nil {
+					return parseErr
+				}
+				for _, old := range active {
+					amount, amountErr := decimal.NewFromString(old.Amount)
+					if amountErr != nil {
+						return amountErr
+					}
+					if old.Direction == adjustment.DirectionDECREASE {
+						effective = effective.Sub(amount)
+					} else {
+						effective = effective.Add(amount)
+					}
+				}
+				currentAmount, parseErr := decimal.NewFromString(x.Amount)
+				if parseErr != nil {
+					return parseErr
+				}
+				if effective.Sub(currentAmount).IsNegative() {
+					return biz.ErrCommissionAdjustmentExceeds
 				}
 			}
-			currentAmount, parseErr := decimal.NewFromString(x.Amount)
-			if parseErr != nil {
-				return rollback(parseErr)
+			update.SetStatus(adjustment.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
+		case biz.CommissionPaid:
+			if x.Status != adjustment.StatusCONFIRMED {
+				return biz.ErrCommissionAdjustmentTransition
 			}
-			if effective.Sub(currentAmount).IsNegative() {
-				return rollback(biz.ErrCommissionAdjustmentExceeds)
+			update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
+		case biz.CommissionCancelled:
+			if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
+				return biz.ErrCommissionAdjustmentTransition
 			}
+			update.SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
+		default:
+			return biz.ErrCommissionAdjustmentInvalid
 		}
-		update.SetStatus(adjustment.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
-	case biz.CommissionPaid:
-		if x.Status != adjustment.StatusCONFIRMED {
-			return rollback(biz.ErrCommissionAdjustmentTransition)
+		updated, err = update.Save(ctx)
+		if err != nil {
+			return err
 		}
-		update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
-	case biz.CommissionCancelled:
-		if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
-			return rollback(biz.ErrCommissionAdjustmentTransition)
-		}
-		update.SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
-	default:
-		return rollback(biz.ErrCommissionAdjustmentInvalid)
-	}
-	updated, err := update.Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return commissionAdjustmentToBiz(updated)
