@@ -81,6 +81,18 @@ scripts/                  根目录开发与构建辅助脚本
   禁止在仓储中手写 `db.Tx(ctx)` 加逐点 `tx.Rollback()` 再 `tx.Commit()`
   的分散模板，禁止混用 `sqlDB.BeginTx` 原生事务。存量手写事务在触碰
   相关文件时迁移到封装，迁移进度见根目录 `TODO.md`。
+- 跨仓储共享事务统一由 `biz.Transactor` 的 `WithinTransaction` 建立
+  （实现见 `internal/data/transaction.go`）：用例在回调内取得 `txCtx`，
+  多个仓储在同一事务中读写；嵌套 `WithinTransaction` 与 `WithTx` 自动
+  合并到外层事务，事务结束后再使用 `txCtx` 会返回业务错误，不会静默
+  开新事务。
+- 仓储方法取得 Ent 客户端必须经由 `Data.client(ctx)`，禁止直连
+  `d.db`/`r.data.db`：直连查询会静默落到共享事务之外，破坏原子性且没有
+  编译期防护。事务内参与的读取按并发要求加 `ForShare`。
+- `withSQLTx` 原生 SQL 事务不加入共享事务，禁止在 `txCtx` 回调中调用走
+  原生事务的仓储方法；共享事务回调只做校验与写入，完整业务响应在事务
+  提交后用普通上下文重读（范本：`internal/biz/finance_bill.go` 的
+  `Create`），回调错误必须原样外传，不得吞掉后继续提交。
 - 并发修改防护统一采用「悲观锁 + 乐观锁」双层模式，范本是
   `internal/data/order_write.go` 的 `UpdateDraft`：
   1. 事务内 `ForUpdate()` 锁定目标行；
