@@ -206,6 +206,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       约束改用公共错误映射
 - [x] 第十四批：`order_container.go` 标准 NotFound 与箱号命名约束改用
       公共错误映射
+- [x] 第十五批：`order_attachment.go` 标准 NotFound 与附件幂等命名约束
+      改用公共错误映射
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

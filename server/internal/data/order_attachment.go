@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -21,10 +20,7 @@ func NewOrderAttachmentRepo(data *Data) biz.OrderAttachmentRepo {
 
 func (r *orderAttachmentRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrOrderAttachmentNotFound
-		}
-		return err
+		return mapEntError(err, biz.ErrOrderAttachmentNotFound, nil)
 	}
 	return nil
 }
@@ -51,10 +47,7 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 	var created *ent.OrderAttachment
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderAttachmentNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderAttachmentNotFound, nil)
 		}
 		create := tx.OrderAttachment.Create().
 			SetOrderID(orderID).
@@ -71,10 +64,7 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 		var saveErr error
 		created, saveErr = create.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "order_attachment_idempotency_key") {
-				return biz.ErrOrderAttachmentExists
-			}
-			return saveErr
+			return mapEntConstraint(saveErr, "order_attachment_idempotency_key", biz.ErrOrderAttachmentExists)
 		}
 		audit.Details["attachment.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
