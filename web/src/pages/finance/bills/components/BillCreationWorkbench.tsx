@@ -21,25 +21,32 @@ import {
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { financeErrorReasons } from '@/errorReasons.generated';
+import {
+  partnerServiceCreatePartnerInvoiceProfile,
+  partnerServiceListPartnerInvoiceProfiles,
+} from '@/services/roncin/partnerService';
 import {
   settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
   settlementServiceListFeeLedger,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
-import {
-  partnerServiceCreatePartnerInvoiceProfile,
-  partnerServiceListPartnerInvoiceProfiles,
-} from '@/services/roncin/partnerService';
 import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
-import QuickAddInvoiceProfileModal from './QuickAddInvoiceProfileModal';
 import {
   getPreviewFeeColumns,
   selectionFeeColumns,
 } from './billWorkbenchFeeColumns';
+import QuickAddInvoiceProfileModal from './QuickAddInvoiceProfileModal';
 
 const { Text } = Typography;
 
@@ -95,10 +102,10 @@ function requestMessage(error: RequestError, fallback: string) {
       : '');
   if (msg) return msg;
   const reason = requestReason(error);
-  if (reason === 'FINANCE_BILL_FEE_INVALID') {
+  if (reason === financeErrorReasons.FINANCE_BILL_FEE_INVALID) {
     return '所选费用必须为已确认状态且尚未进入其他账单';
   }
-  if (reason === 'FINANCE_BILL_PREVIEW_STALE') {
+  if (reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE) {
     return '费用已发生变化，请重新预览后再生成账单';
   }
   return fallback;
@@ -254,7 +261,9 @@ export default function BillCreationWorkbench({
       previewPendingRef.current = null;
       return;
     }
-    const initialIds = initialFeeKey ? initialFeeKey.split('|').filter(Boolean) : [];
+    const initialIds = initialFeeKey
+      ? initialFeeKey.split('|').filter(Boolean)
+      : [];
     const initKey = `${initialFeeKey}:${open ? 'open' : 'closed'}`;
     let cancelled = false;
     const pending = previewPendingRef.current;
@@ -399,8 +408,6 @@ export default function BillCreationWorkbench({
       setQuickAddSaving(false);
     }
   };
-
-
 
   const next = async () => {
     if (current === 0) {

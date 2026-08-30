@@ -1,5 +1,6 @@
 import { App } from 'antd';
 import { useRef, useState } from 'react';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
 import { trimExactDecimal } from './order-fee-decimal';
 
@@ -66,7 +67,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
       .catch((error: FeeRequestError) => {
         if (currentRequestId !== exchangeRateRequestRef.current) return;
         const reason = error.data?.reason ?? error.response?.data?.reason;
-        if (reason === 'FEE_EXCHANGE_RATE_MISSING') {
+        if (reason === financeErrorReasons.FEE_EXCHANGE_RATE_MISSING) {
           setExchangeRateStatus('missing');
           setManualExchangeRate(true);
           return;

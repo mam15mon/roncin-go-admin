@@ -8,10 +8,11 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { SearchFilterTemplate } from '@/components/ui';
 import { useAccess } from '@umijs/max';
 import { App, Button, Input, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { SearchFilterTemplate } from '@/components/ui';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCancelCommission,
   settlementServiceCancelCommissionAdjustment,
@@ -128,14 +129,19 @@ export default function FinanceCommissionsPage() {
           await refreshDetail();
         } catch (error: any) {
           const reason = getBusinessReason(error);
-          if (reason === 'FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS') {
+          if (
+            reason === financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS
+          ) {
             modal.warning({
               title: '冲减金额超限',
               content: '冲减后的有效提成不能小于零，请检查调整金额。',
             });
             return;
           }
-          if (reason === 'FINANCE_COMMISSION_ADJUSTMENT_TRANSITION') {
+          if (
+            reason ===
+            financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_TRANSITION
+          ) {
             message.warning('调整状态已变化，已刷新详情');
             await refreshDetail();
             return;
@@ -210,7 +216,9 @@ export default function FinanceCommissionsPage() {
           }
         } catch (error: any) {
           const reason = getBusinessReason(error);
-          if (reason === 'FINANCE_COMMISSION_SOURCE_CHANGED') {
+          if (
+            reason === financeErrorReasons.FINANCE_COMMISSION_SOURCE_CHANGED
+          ) {
             modal.warning({
               title: '提成来源已经变化',
               content:
@@ -218,14 +226,16 @@ export default function FinanceCommissionsPage() {
             });
             return;
           }
-          if (reason === 'FINANCE_COMMISSION_UNCONFIRMED_FEES') {
+          if (
+            reason === financeErrorReasons.FINANCE_COMMISSION_UNCONFIRMED_FEES
+          ) {
             modal.warning({
               title: '关联订单存在草稿费用',
               content: '请先确认或作废草稿费用，再确认提成。',
             });
             return;
           }
-          if (reason === 'FINANCE_COMMISSION_TRANSITION') {
+          if (reason === financeErrorReasons.FINANCE_COMMISSION_TRANSITION) {
             message.warning('提成状态已变化，页面已刷新');
             reload();
             if (detail?.id === id) await refreshDetail();

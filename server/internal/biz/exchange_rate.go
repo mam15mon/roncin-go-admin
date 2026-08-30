@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/shopspring/decimal"
 )
 
@@ -16,7 +17,7 @@ var (
 	ErrExchangeRateNotFound              = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
 	ErrExchangeRateInvalidArgument       = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
 	ErrExchangeRateOverlap               = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效区间与现有设置重叠")
-	ErrExchangeRateMissing               = errors.BadRequest("FEE_EXCHANGE_RATE_MISSING", "汇率日期未命中生效汇率")
+	ErrExchangeRateMissing               = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "汇率日期未命中生效汇率")
 	ErrExchangeRateConflict              = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")
 	ErrExchangeRateCurrencyInvalid       = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
 	ErrExchangeRateOrganizationInvalid   = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织未配置有效本币")

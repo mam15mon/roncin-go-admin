@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/shopspring/decimal"
 )
 
@@ -20,7 +21,7 @@ var (
 	ErrFinanceInvoiceVersionConflict     = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
 	ErrFinanceInvoiceInvalidTransition   = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
 	ErrFinanceInvoiceIdempotencyConflict = errors.Conflict("FINANCE_INVOICE_IDEMPOTENCY_CONFLICT", "开票请求幂等键已被其他请求使用")
-	ErrFinanceInvoiceProfileRequired     = errors.Conflict("FINANCE_INVOICE_PROFILE_REQUIRED", "请选择该结算单位下启用且完整的开票抬头")
+	ErrFinanceInvoiceProfileRequired     = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_INVOICE_PROFILE_REQUIRED), "请选择该结算单位下启用且完整的开票抬头")
 	ErrFinanceInvoiceTaxNoExists         = errors.Conflict("FINANCE_INVOICE_TAX_NO_EXISTS", "税控发票号码已被其他开票记录使用")
 	ErrFinanceInvoiceRedNoExists         = errors.Conflict("FINANCE_INVOICE_RED_NO_EXISTS", "红字发票号码已被其他开票记录使用")
 )

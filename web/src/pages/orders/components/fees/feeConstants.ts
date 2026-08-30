@@ -1,9 +1,11 @@
-export const RECEIVABLE = 1;
-export const PAYABLE = 2;
-export const FEE_DRAFT = 1;
-export const FEE_CONFIRMED = 2;
-export const FEE_BILLED = 3;
-export const FEE_CANCELLED = 4;
+import { OrderFeeDirection, OrderFeeStatus } from '@/enums.generated';
+
+export const RECEIVABLE = OrderFeeDirection.ORDER_FEE_DIRECTION_RECEIVABLE;
+export const PAYABLE = OrderFeeDirection.ORDER_FEE_DIRECTION_PAYABLE;
+export const FEE_DRAFT = OrderFeeStatus.ORDER_FEE_STATUS_DRAFT;
+export const FEE_CONFIRMED = OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED;
+export const FEE_BILLED = OrderFeeStatus.ORDER_FEE_STATUS_BILLED;
+export const FEE_CANCELLED = OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED;
 
 export const FEE_STATUS_CODES: Record<string, number> = {
   ORDER_FEE_STATUS_DRAFT: FEE_DRAFT,

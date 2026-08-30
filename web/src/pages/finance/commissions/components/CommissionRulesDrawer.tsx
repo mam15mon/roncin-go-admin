@@ -9,10 +9,11 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { App, Button, Drawer, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCreateCommissionRule,
   settlementServiceListCommissionRules,
@@ -134,12 +135,7 @@ export default function CommissionRulesDrawer({
 
   return (
     <>
-      <Drawer
-        title="提成考核规则"
-        size={980}
-        open={open}
-        onClose={onClose}
-      >
+      <Drawer title="提成考核规则" size={980} open={open} onClose={onClose}>
         <ProTable<API.FinanceCommissionRule>
           actionRef={ruleActionRef}
           rowKey="id"
@@ -238,7 +234,9 @@ export default function CommissionRulesDrawer({
             return true;
           } catch (error: any) {
             const reason = getBusinessReason(error);
-            if (reason === 'FINANCE_COMMISSION_RULE_CONFLICT') {
+            if (
+              reason === financeErrorReasons.FINANCE_COMMISSION_RULE_CONFLICT
+            ) {
               modal.warning({
                 title: '规则名称冲突或版本已变化',
                 content: '请检查规则名称是否重复，或刷新后重试。',
@@ -274,7 +272,10 @@ export default function CommissionRulesDrawer({
               value: 'REALIZED_PROFIT',
               label: '已实现毛利（推荐，按收入配比分摊成本）',
             },
-            { value: 'REALIZED_REVENUE', label: '已实现收入（按核销收入全额）' },
+            {
+              value: 'REALIZED_REVENUE',
+              label: '已实现收入（按核销收入全额）',
+            },
           ]}
         />
         <ProFormDigit

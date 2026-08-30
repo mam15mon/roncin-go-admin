@@ -5,24 +5,16 @@ import {
   PlusOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProColumns,
-} from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import {
-  App,
-  Form,
-  Input,
-  Space,
-  Tag,
-} from 'antd';
+import { App, Form, Input, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
-  FinanceLedgerTemplate,
   type FinanceLedgerMetricCard,
+  FinanceLedgerTemplate,
 } from '@/components/ui';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import { partnerServiceListPartnerInvoiceProfiles } from '@/services/roncin/partnerService';
 import {
   settlementServiceCancelInvoice,
@@ -142,7 +134,7 @@ export default function FinanceInvoicesPage() {
       reload();
     } catch (error: any) {
       const reason = error.data?.reason || error.response?.data?.reason;
-      if (reason === 'FINANCE_INVOICE_PROFILE_REQUIRED') {
+      if (reason === financeErrorReasons.FINANCE_INVOICE_PROFILE_REQUIRED) {
         message.error('请选择该结算单位下启用且完整的开票抬头');
       } else {
         message.error(error.message || '创建开票记录失败');

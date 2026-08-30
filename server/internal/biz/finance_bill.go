@@ -13,18 +13,19 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/shopspring/decimal"
 )
 
 var (
 	ErrFinanceBillNotFound            = errors.NotFound("FINANCE_BILL_NOT_FOUND", "账单不存在")
 	ErrFinanceBillInvalidArgument     = errors.BadRequest("FINANCE_BILL_INVALID_ARGUMENT", "账单字段不合法")
-	ErrFinanceBillFeeInvalid          = errors.Conflict("FINANCE_BILL_FEE_INVALID", "所选费用必须为已确认状态且尚未进入其他账单")
+	ErrFinanceBillFeeInvalid          = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_FEE_INVALID), "所选费用必须为已确认状态且尚未进入其他账单")
 	ErrFinanceBillFeeMismatch         = errors.BadRequest("FINANCE_BILL_FEE_MISMATCH", "同一账单的费用必须具有相同收付方向、结算单位、币种和本币")
 	ErrFinanceBillVersionConflict     = errors.Conflict("FINANCE_BILL_VERSION_CONFLICT", "账单已被其他操作人修改，请刷新后重试")
 	ErrFinanceBillInvalidTransition   = errors.Conflict("FINANCE_BILL_INVALID_TRANSITION", "当前账单状态不允许执行该操作")
 	ErrFinanceBillIdempotencyConflict = errors.Conflict("FINANCE_BILL_IDEMPOTENCY_CONFLICT", "账单请求幂等键已被其他请求使用")
-	ErrFinanceBillPreviewStale        = errors.Conflict("FINANCE_BILL_PREVIEW_STALE", "费用或拆单结果已变化，请重新预览")
+	ErrFinanceBillPreviewStale        = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_PREVIEW_STALE), "费用或拆单结果已变化，请重新预览")
 	ErrFinanceBillBatchMismatch       = errors.BadRequest("FINANCE_BILL_BATCH_MISMATCH", "批量账单分组资料与服务端预览不一致")
 	ErrFinanceBillBatchConflict       = errors.Conflict("FINANCE_BILL_BATCH_CONFLICT", "批量建单幂等键已被其他请求使用")
 )

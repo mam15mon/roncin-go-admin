@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/shopspring/decimal"
 )
 
@@ -16,17 +17,17 @@ var (
 	ErrCommissionInvalid              = errors.BadRequest("FINANCE_COMMISSION_INVALID", "提成参数不合法")
 	ErrCommissionSource               = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")
 	ErrCommissionDuplicate            = errors.Conflict("FINANCE_COMMISSION_DUPLICATE", "该核销、员工与规则已存在提成记录")
-	ErrCommissionTransition           = errors.Conflict("FINANCE_COMMISSION_TRANSITION", "当前提成状态不允许该操作")
+	ErrCommissionTransition           = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_TRANSITION), "当前提成状态不允许该操作")
 	ErrCommissionRuleNotFound         = errors.NotFound("FINANCE_COMMISSION_RULE_NOT_FOUND", "提成规则不存在")
 	ErrCommissionRuleInvalid          = errors.BadRequest("FINANCE_COMMISSION_RULE_INVALID", "提成规则字段不合法")
-	ErrCommissionRuleConflict         = errors.Conflict("FINANCE_COMMISSION_RULE_CONFLICT", "提成规则名称已存在或版本已变化")
+	ErrCommissionRuleConflict         = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT), "提成规则名称已存在或版本已变化")
 	ErrCommissionEmployeeRole         = errors.Conflict("FINANCE_COMMISSION_EMPLOYEE_ROLE", "所选员工未在客户档案中担任规则指定角色")
-	ErrCommissionSourceChanged        = errors.Conflict("FINANCE_COMMISSION_SOURCE_CHANGED", "提成来源数据已变化，请取消当前草稿并重新生成")
-	ErrCommissionUnconfirmedFees      = errors.Conflict("FINANCE_COMMISSION_UNCONFIRMED_FEES", "关联订单仍有草稿费用，请先确认或作废后再确认提成")
+	ErrCommissionSourceChanged        = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_SOURCE_CHANGED), "提成来源数据已变化，请取消当前草稿并重新生成")
+	ErrCommissionUnconfirmedFees      = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES), "关联订单仍有草稿费用，请先确认或作废后再确认提成")
 	ErrCommissionAdjustmentNotFound   = errors.NotFound("FINANCE_COMMISSION_ADJUSTMENT_NOT_FOUND", "提成调整记录不存在")
 	ErrCommissionAdjustmentInvalid    = errors.BadRequest("FINANCE_COMMISSION_ADJUSTMENT_INVALID", "提成调整参数不合法")
-	ErrCommissionAdjustmentTransition = errors.Conflict("FINANCE_COMMISSION_ADJUSTMENT_TRANSITION", "当前提成调整状态不允许该操作")
-	ErrCommissionAdjustmentExceeds    = errors.Conflict("FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS", "冲减后的有效提成金额不能小于零")
+	ErrCommissionAdjustmentTransition = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_TRANSITION), "当前提成调整状态不允许该操作")
+	ErrCommissionAdjustmentExceeds    = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS), "冲减后的有效提成金额不能小于零")
 )
 
 type CommissionStatus string
