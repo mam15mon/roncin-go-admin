@@ -132,15 +132,9 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
 
     if (access?.canReadEnterpriseResources) {
       items.push({
-        type: 'group',
-        label: '资源备忘',
-        children: [
-          {
-            key: '/enterprise-resources/config',
-            icon: <FormOutlined />,
-            label: '配置管理',
-          },
-        ],
+        key: '/enterprise-resources/config',
+        icon: <FormOutlined />,
+        label: '配置管理',
       });
     }
 

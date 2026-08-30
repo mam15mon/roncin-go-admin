@@ -75,4 +75,16 @@ describe('HeaderMenus Component', () => {
     expect(screen.queryByText('设置中心')).not.toBeInTheDocument();
     expect(screen.getByText('企业资源')).toBeInTheDocument();
   });
+
+  it('仅有企业资源配置权限时仅展示企业资源', () => {
+    mockAccess = {
+      canReadMasterData: false,
+      canAccessPlatform: false,
+      canReadPartners: false,
+      canReadEnterpriseResources: true,
+    };
+    render(<HeaderMenus />);
+    expect(screen.queryByText('设置中心')).not.toBeInTheDocument();
+    expect(screen.getByText('企业资源')).toBeInTheDocument();
+  });
 });
