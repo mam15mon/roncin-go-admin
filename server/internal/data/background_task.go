@@ -32,10 +32,7 @@ func (r *backgroundTaskRepo) Enqueue(ctx context.Context, organizationID uuid.UU
 
 	created, err := create.Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			return nil, biz.ErrBackgroundTaskExists
-		}
-		return nil, err
+		return nil, mapEntError(err, nil, biz.ErrBackgroundTaskExists)
 	}
 	return backgroundTaskToBiz(created), nil
 }
@@ -160,10 +157,7 @@ func (r *backgroundTaskRepo) Complete(ctx context.Context, organizationID, id uu
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrBackgroundTaskNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrBackgroundTaskNotFound, nil)
 		}
 		if task.Status != backgroundtaskent.StatusRUNNING {
 			return biz.ErrBackgroundTaskInvalidStatus
@@ -199,10 +193,7 @@ func (r *backgroundTaskRepo) Fail(ctx context.Context, organizationID, id uuid.U
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrBackgroundTaskNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrBackgroundTaskNotFound, nil)
 		}
 		if task.Status != backgroundtaskent.StatusRUNNING {
 			return biz.ErrBackgroundTaskInvalidStatus
@@ -250,10 +241,7 @@ func (r *backgroundTaskRepo) Get(ctx context.Context, organizationID, id uuid.UU
 		}).
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrBackgroundTaskNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrBackgroundTaskNotFound, nil)
 	}
 	return backgroundTaskToBiz(task), nil
 }
@@ -318,10 +306,7 @@ func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uui
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrBackgroundTaskNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrBackgroundTaskNotFound, nil)
 		}
 		if task.Status != backgroundtaskent.StatusFAILED && task.Status != backgroundtaskent.StatusDEAD_LETTER {
 			return biz.ErrBackgroundTaskNotRequeueable
