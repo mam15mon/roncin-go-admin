@@ -11,7 +11,6 @@ import (
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflowsRequest) (*v1.ListCashflowsResponse, error) {
@@ -39,19 +38,17 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 	for _, x := range result.Items {
 		data = append(data, cashflowToAPI(x))
 	}
-	return &v1.ListCashflowsResponse{
-		Success: true,
-		Message: "OK",
-		Data:    data,
-		Total:   result.Total,
-		TraceId: requestmeta.TraceID(ctx),
+	return okList(ctx, &v1.ListCashflowsResponse{
+		Data:  data,
+		Total: result.Total,
+
 		Summary: &v1.FinanceCashflowSummary{
 			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
 			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
 			UnverifiedBaseAmount: result.Summary.UnverifiedBaseAmount.StringFixed(8),
 			BaseCurrency:         result.Summary.BaseCurrency,
 		},
-	}, nil
+	}), nil
 }
 func (s *SettlementService) CreateCashflow(ctx context.Context, r *v1.CreateCashflowRequest) (*v1.CreateCashflowResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
@@ -78,7 +75,7 @@ func (s *SettlementService) CreateCashflow(ctx context.Context, r *v1.CreateCash
 	if e != nil {
 		return nil, e
 	}
-	return &v1.CreateCashflowResponse{Success: true, Message: "OK", Data: cashflowToAPI(x), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateCashflowResponse{Data: cashflowToAPI(x)}), nil
 }
 func (s *SettlementService) ConfirmCashflow(ctx context.Context, r *v1.ConfirmCashflowRequest) (*v1.ConfirmCashflowResponse, error) {
 	p, id, e := financePrincipalAndID(ctx, r.GetId())
@@ -89,7 +86,7 @@ func (s *SettlementService) ConfirmCashflow(ctx context.Context, r *v1.ConfirmCa
 	if e != nil {
 		return nil, e
 	}
-	return &v1.ConfirmCashflowResponse{Success: true, Message: "OK", Data: cashflowToAPI(x), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ConfirmCashflowResponse{Data: cashflowToAPI(x)}), nil
 }
 func (s *SettlementService) CancelCashflow(ctx context.Context, r *v1.CancelCashflowRequest) (*v1.CancelCashflowResponse, error) {
 	p, id, e := financePrincipalAndID(ctx, r.GetId())
@@ -100,7 +97,7 @@ func (s *SettlementService) CancelCashflow(ctx context.Context, r *v1.CancelCash
 	if e != nil {
 		return nil, e
 	}
-	return &v1.CancelCashflowResponse{Success: true, Message: "OK", Data: cashflowToAPI(x), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CancelCashflowResponse{Data: cashflowToAPI(x)}), nil
 }
 func cashflowToAPI(x *biz.FinanceCashflow) *v1.FinanceCashflow {
 	if x == nil {

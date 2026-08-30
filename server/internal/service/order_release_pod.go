@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 // OrderReleasePodService 订单放货凭证服务，只做 DTO 转换、边界校验和用例调用。
@@ -37,13 +36,9 @@ func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v
 	for _, item := range items {
 		data = append(data, orderReleasePodToAPI(item))
 	}
-	return &v1.ListReleasePodsResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListReleasePodsResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.AddReleasePodRequest) (*v1.AddReleasePodResponse, error) {
@@ -59,7 +54,7 @@ func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AddReleasePodResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AddReleasePodResponse{Data: orderReleasePodToAPI(created)}), nil
 }
 
 func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *v1.UpdateReleasePodRequest) (*v1.UpdateReleasePodResponse, error) {
@@ -79,7 +74,7 @@ func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateReleasePodResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateReleasePodResponse{Data: orderReleasePodToAPI(updated)}), nil
 }
 
 func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context, request *v1.TransitionReleasePodStatusRequest) (*v1.TransitionReleasePodStatusResponse, error) {
@@ -107,7 +102,7 @@ func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TransitionReleasePodStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderReleasePodToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TransitionReleasePodStatusResponse{Data: orderReleasePodToAPI(updated)}), nil
 }
 
 func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *v1.RemoveReleasePodRequest) (*v1.RemoveReleasePodResponse, error) {
@@ -126,12 +121,7 @@ func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.RemoveReleasePodResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RemoveReleasePodResponse{}), nil
 }
 
 func orderReleasePodToAPI(value *biz.OrderReleasePod) *v1.OrderReleasePod {

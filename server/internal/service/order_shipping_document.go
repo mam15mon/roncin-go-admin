@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 // OrderShippingDocumentService 订单提单服务，只做 DTO 转换、边界校验和用例调用。
@@ -37,13 +36,9 @@ func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context
 	for _, item := range items {
 		data = append(data, orderShippingDocumentToAPI(item))
 	}
-	return &v1.ListShippingDocumentsResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListShippingDocumentsResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, request *v1.AddShippingDocumentRequest) (*v1.AddShippingDocumentResponse, error) {
@@ -59,7 +54,7 @@ func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AddShippingDocumentResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AddShippingDocumentResponse{Data: orderShippingDocumentToAPI(created)}), nil
 }
 
 func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Context, request *v1.UpdateShippingDocumentRequest) (*v1.UpdateShippingDocumentResponse, error) {
@@ -79,7 +74,7 @@ func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateShippingDocumentResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateShippingDocumentResponse{Data: orderShippingDocumentToAPI(updated)}), nil
 }
 
 func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx context.Context, request *v1.TransitionShippingDocumentStatusRequest) (*v1.TransitionShippingDocumentStatusResponse, error) {
@@ -107,7 +102,7 @@ func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx cont
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TransitionShippingDocumentStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderShippingDocumentToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TransitionShippingDocumentStatusResponse{Data: orderShippingDocumentToAPI(updated)}), nil
 }
 
 func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Context, request *v1.RemoveShippingDocumentRequest) (*v1.RemoveShippingDocumentResponse, error) {
@@ -126,12 +121,7 @@ func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Contex
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.RemoveShippingDocumentResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RemoveShippingDocumentResponse{}), nil
 }
 
 func orderShippingDocumentToAPI(value *biz.OrderShippingDocument) *v1.OrderShippingDocument {

@@ -5,7 +5,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -23,7 +22,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateOrderResponse{Data: orderToAPI(created)}), nil
 }
 
 func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderRequest) (*v1.UpdateOrderResponse, error) {
@@ -47,7 +46,7 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderR
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateOrderResponse{Data: orderToAPI(updated)}), nil
 }
 
 func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.TransitionOrderStatusRequest) (*v1.TransitionOrderStatusResponse, error) {
@@ -63,7 +62,7 @@ func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.Tr
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TransitionOrderStatusResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TransitionOrderStatusResponse{Data: orderToAPI(updated)}), nil
 }
 
 func (s *OrderService) TransitionOrderTermination(ctx context.Context, request *v1.TransitionOrderTerminationRequest) (*v1.TransitionOrderTerminationResponse, error) {
@@ -80,7 +79,7 @@ func (s *OrderService) TransitionOrderTermination(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TransitionOrderTerminationResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TransitionOrderTerminationResponse{Data: orderToAPI(updated)}), nil
 }
 
 func (s *OrderService) TransitionOrderClosure(ctx context.Context, request *v1.TransitionOrderClosureRequest) (*v1.TransitionOrderClosureResponse, error) {
@@ -96,7 +95,7 @@ func (s *OrderService) TransitionOrderClosure(ctx context.Context, request *v1.T
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TransitionOrderClosureResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TransitionOrderClosureResponse{Data: orderToAPI(updated)}), nil
 }
 
 func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) {

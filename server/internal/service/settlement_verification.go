@@ -9,7 +9,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVerificationsRequest) (*v1.ListVerificationsResponse, error) {
@@ -30,14 +29,14 @@ func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVer
 	for _, x := range result.Items {
 		data = append(data, verificationToAPI(x))
 	}
-	return &v1.ListVerificationsResponse{
-		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+	return okList(ctx, &v1.ListVerificationsResponse{
+		Data: data, Total: result.Total,
 		Summary: &v1.FinanceVerificationSummary{
 			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
 			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
 			BaseCurrency:         result.Summary.BaseCurrency,
 		},
-	}, nil
+	}), nil
 }
 func (s *SettlementService) CreateVerification(ctx context.Context, r *v1.CreateVerificationRequest) (*v1.CreateVerificationResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
@@ -64,7 +63,7 @@ func (s *SettlementService) CreateVerification(ctx context.Context, r *v1.Create
 	if e != nil {
 		return nil, e
 	}
-	return &v1.CreateVerificationResponse{Success: true, Message: "OK", Data: verificationToAPI(x), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateVerificationResponse{Data: verificationToAPI(x)}), nil
 }
 func (s *SettlementService) ReverseVerification(ctx context.Context, r *v1.ReverseVerificationRequest) (*v1.ReverseVerificationResponse, error) {
 	p, id, e := financePrincipalAndID(ctx, r.GetId())
@@ -75,7 +74,7 @@ func (s *SettlementService) ReverseVerification(ctx context.Context, r *v1.Rever
 	if e != nil {
 		return nil, e
 	}
-	return &v1.ReverseVerificationResponse{Success: true, Message: "OK", Data: verificationToAPI(x), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ReverseVerificationResponse{Data: verificationToAPI(x)}), nil
 }
 func verificationToAPI(x *biz.FinanceVerification) *v1.FinanceVerification {
 	if x == nil {

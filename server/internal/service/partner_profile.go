@@ -5,7 +5,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -23,7 +22,7 @@ func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerR
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetPartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetPartnerResponse{Data: partnerToAPI(item)}), nil
 }
 
 func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.ListPartnersResponse, error) {
@@ -53,10 +52,10 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 	for _, item := range result.Items {
 		data = append(data, partnerToAPI(item))
 	}
-	return &v1.ListPartnersResponse{
-		Success: true, Code: 0, Message: "OK", Data: data,
-		Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListPartnersResponse{
+		Data:  data,
+		Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize),
+	}), nil
 }
 
 func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1.ListPartnerAssignmentOptionsRequest) (*v1.ListPartnerAssignmentOptionsResponse, error) {
@@ -64,7 +63,7 @@ func (s *PartnerService) ListPartnerAssignmentOptions(ctx context.Context, _ *v1
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerAssignmentOptionsResponse{Data: data, Total: total, Page: page, PageSize: pageSize}), nil
 }
 
 func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, request *v1.SearchPartnerAssignmentOptionsRequest) (*v1.SearchPartnerAssignmentOptionsResponse, error) {
@@ -76,7 +75,7 @@ func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SearchPartnerAssignmentOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchPartnerAssignmentOptionsResponse{Data: data, Total: total, Page: resultPage, PageSize: resultPageSize}), nil
 }
 
 func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, options biz.SelectorListOptions) ([]*v1.PartnerAssignmentOption, int32, int32, int32, error) {
@@ -113,7 +112,7 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerResponse{Data: partnerToAPI(created)}), nil
 }
 
 func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePartnerRequest) (*v1.UpdatePartnerResponse, error) {
@@ -134,7 +133,7 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerResponse{Data: partnerToAPI(updated)}), nil
 }
 
 func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.SetSupplierBlacklistRequest) (*v1.SetSupplierBlacklistResponse, error) {
@@ -150,7 +149,7 @@ func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.S
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SetSupplierBlacklistResponse{Success: true, Code: 0, Message: "OK", Data: partnerToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.SetSupplierBlacklistResponse{Data: partnerToAPI(updated)}), nil
 }
 
 func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.ImportPartnersResponse, error) {
@@ -176,7 +175,7 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ImportPartnersResponse{Success: true, Code: 0, Message: "OK", CreatedCount: int32(result.CreatedCount), UpdatedCount: int32(result.UpdatedCount), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ImportPartnersResponse{CreatedCount: int32(result.CreatedCount), UpdatedCount: int32(result.UpdatedCount)}), nil
 }
 
 func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportPartnersRequest) (*v1.ExportPartnersResponse, error) {
@@ -209,7 +208,7 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 		}
 		options.Page++
 	}
-	return &v1.ExportPartnersResponse{Success: true, Code: 0, Message: "OK", Data: items, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ExportPartnersResponse{Data: items}), nil
 }
 
 func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.ListPartnerAuditLogsResponse, error) {
@@ -233,8 +232,8 @@ func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.L
 	for _, item := range list.Items {
 		data = append(data, partnerAuditLogToAPI(item))
 	}
-	return &v1.ListPartnerAuditLogsResponse{
-		Success: true, Code: 0, Message: "OK", Data: data,
-		Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListPartnerAuditLogsResponse{
+		Data:  data,
+		Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize),
+	}), nil
 }

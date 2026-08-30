@@ -38,7 +38,7 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourcePartnerOptions(ctx c
 	for _, item := range items {
 		data = append(data, &v1.EnterpriseResourcePartnerOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
 	}
-	return &v1.SearchEnterpriseResourcePartnerOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchEnterpriseResourcePartnerOptionsResponse{Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize)}), nil
 }
 
 func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx context.Context, request *v1.SearchEnterpriseResourceAssigneeOptionsRequest) (*v1.SearchEnterpriseResourceAssigneeOptionsResponse, error) {
@@ -58,7 +58,7 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx 
 	for _, item := range items {
 		data = append(data, &v1.EnterpriseResourceAssigneeOption{Id: item.ID.String(), Username: item.Username, DisplayName: item.DisplayName})
 	}
-	return &v1.SearchEnterpriseResourceAssigneeOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchEnterpriseResourceAssigneeOptionsResponse{Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize)}), nil
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx context.Context, request *v1.ListEnterpriseResourceRegionOptionsRequest) (*v1.ListEnterpriseResourceRegionOptionsResponse, error) {
@@ -77,7 +77,7 @@ func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx cont
 	for _, item := range items {
 		data = append(data, &v1.EnterpriseResourceRegionOption{Code: item.Code, Name: item.Name, Level: int32(item.Level), ParentCode: item.ParentCode})
 	}
-	return &v1.ListEnterpriseResourceRegionOptionsResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListEnterpriseResourceRegionOptionsResponse{Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize)}), nil
 }
 
 func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx context.Context, _ *v1.GetEnterpriseResourceCapabilitiesRequest) (*v1.GetEnterpriseResourceCapabilitiesResponse, error) {
@@ -89,15 +89,12 @@ func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx contex
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetEnterpriseResourceCapabilitiesResponse{
-		Success:                true,
-		Message:                "OK",
+	return ok(ctx, &v1.GetEnterpriseResourceCapabilitiesResponse{
 		ImageEnabled:           s.usecase.ImageStorageEnabled(),
 		ImageMaxFileSize:       biz.EnterpriseImageMaxFileSize,
 		ImageUsedStorageBytes:  usedStorage,
 		ImageStorageQuotaBytes: 0,
-		TraceId:                requestmeta.TraceID(ctx),
-	}, nil
+	}), nil
 }
 
 func (s *EnterpriseResourceService) PrepareEnterpriseResourceImageUpload(ctx context.Context, request *v1.PrepareEnterpriseResourceImageUploadRequest) (*v1.PrepareEnterpriseResourceImageUploadResponse, error) {
@@ -109,7 +106,7 @@ func (s *EnterpriseResourceService) PrepareEnterpriseResourceImageUpload(ctx con
 	if err != nil {
 		return nil, err
 	}
-	return &v1.PrepareEnterpriseResourceImageUploadResponse{Success: true, Message: "OK", UploadUrl: result.UploadURL, ObjectKey: result.ObjectKey, Headers: result.Headers, ExpiresAt: result.ExpiresAt.Format(time.RFC3339), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.PrepareEnterpriseResourceImageUploadResponse{UploadUrl: result.UploadURL, ObjectKey: result.ObjectKey, Headers: result.Headers, ExpiresAt: result.ExpiresAt.Format(time.RFC3339)}), nil
 }
 
 func (s *EnterpriseResourceService) GetEnterpriseResourceImageAccess(ctx context.Context, request *v1.GetEnterpriseResourceImageAccessRequest) (*v1.GetEnterpriseResourceImageAccessResponse, error) {
@@ -121,7 +118,7 @@ func (s *EnterpriseResourceService) GetEnterpriseResourceImageAccess(ctx context
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetEnterpriseResourceImageAccessResponse{Success: true, Message: "OK", Url: url, ExpiresAt: expiresAt.Format(time.RFC3339), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetEnterpriseResourceImageAccessResponse{Url: url, ExpiresAt: expiresAt.Format(time.RFC3339)}), nil
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context, request *v1.ListEnterpriseResourcesRequest) (*v1.ListEnterpriseResourcesResponse, error) {
@@ -164,7 +161,7 @@ func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context,
 	for i, item := range items {
 		data[i] = enterpriseResourceToAPI(item)
 	}
-	return &v1.ListEnterpriseResourcesResponse{Success: true, Message: "OK", Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListEnterpriseResourcesResponse{Data: data, Total: total, Page: int32(page), PageSize: int32(pageSize)}), nil
 }
 
 func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, request *v1.GetEnterpriseResourceRequest) (*v1.GetEnterpriseResourceResponse, error) {
@@ -176,7 +173,7 @@ func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, r
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetEnterpriseResourceResponse{Data: enterpriseResourceToAPI(item)}), nil
 }
 
 func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context, request *v1.CreateEnterpriseResourceRequest) (*v1.CreateEnterpriseResourceResponse, error) {
@@ -192,7 +189,7 @@ func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateEnterpriseResourceResponse{Data: enterpriseResourceToAPI(item)}), nil
 }
 
 func (s *EnterpriseResourceService) UpdateEnterpriseResource(ctx context.Context, request *v1.UpdateEnterpriseResourceRequest) (*v1.UpdateEnterpriseResourceResponse, error) {
@@ -208,7 +205,7 @@ func (s *EnterpriseResourceService) UpdateEnterpriseResource(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateEnterpriseResourceResponse{Success: true, Message: "OK", Data: enterpriseResourceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateEnterpriseResourceResponse{Data: enterpriseResourceToAPI(item)}), nil
 }
 
 func (s *EnterpriseResourceService) DeleteEnterpriseResource(ctx context.Context, request *v1.DeleteEnterpriseResourceRequest) (*v1.DeleteEnterpriseResourceResponse, error) {
@@ -219,7 +216,7 @@ func (s *EnterpriseResourceService) DeleteEnterpriseResource(ctx context.Context
 	if err := s.usecase.Delete(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
 		return nil, err
 	}
-	return &v1.DeleteEnterpriseResourceResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DeleteEnterpriseResourceResponse{}), nil
 }
 
 func (s *EnterpriseResourceService) BatchCreateAssociations(ctx context.Context, request *v1.BatchCreateAssociationsRequest) (*v1.BatchCreateAssociationsResponse, error) {
@@ -227,14 +224,14 @@ func (s *EnterpriseResourceService) BatchCreateAssociations(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchCreateAssociationsResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchCreateAssociationsResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) BatchDeleteAssociations(ctx context.Context, request *v1.BatchDeleteAssociationsRequest) (*v1.BatchDeleteAssociationsResponse, error) {
 	count, err := s.batchAssociations(ctx, request.GetResourceIds(), request.GetPartnerIds(), false)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchDeleteAssociationsResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchDeleteAssociationsResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) batchAssociations(ctx context.Context, resourceIDValues, partnerIDValues []string, create bool) (int, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
@@ -260,14 +257,14 @@ func (s *EnterpriseResourceService) BatchAssignAddressTypes(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchAssignAddressTypesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchAssignAddressTypesResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) BatchRemoveAddressTypes(ctx context.Context, request *v1.BatchRemoveAddressTypesRequest) (*v1.BatchRemoveAddressTypesResponse, error) {
 	count, err := s.batchAddressTypes(ctx, request.GetResourceIds(), request.GetAddressTypes(), false)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchRemoveAddressTypesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchRemoveAddressTypesResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) batchAddressTypes(ctx context.Context, resourceIDValues []string, addressTypeValues []v1.EnterpriseAddressType, assign bool) (int, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
@@ -293,14 +290,14 @@ func (s *EnterpriseResourceService) BatchAssignAssignees(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchAssignAssigneesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchAssignAssigneesResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) BatchRemoveAssignees(ctx context.Context, request *v1.BatchRemoveAssigneesRequest) (*v1.BatchRemoveAssigneesResponse, error) {
 	count, err := s.batchAssignees(ctx, request.GetResourceIds(), request.GetAssigneeIds(), false)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.BatchRemoveAssigneesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.BatchRemoveAssigneesResponse{AffectedCount: int32(count)}), nil
 }
 func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resourceIDValues, assigneeIDValues []string, assign bool) (int, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
@@ -335,7 +332,7 @@ func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context,
 	for i, item := range items {
 		data[i] = enterpriseTagGroupToAPI(item)
 	}
-	return &v1.ListEnterpriseTagGroupsResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListEnterpriseTagGroupsResponse{Data: data}), nil
 }
 func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context, request *v1.CreateEnterpriseTagGroupRequest) (*v1.CreateEnterpriseTagGroupResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
@@ -347,7 +344,7 @@ func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateEnterpriseTagGroupResponse{Success: true, Message: "OK", Data: enterpriseTagGroupToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateEnterpriseTagGroupResponse{Data: enterpriseTagGroupToAPI(item)}), nil
 }
 func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context, request *v1.UpdateEnterpriseTagGroupRequest) (*v1.UpdateEnterpriseTagGroupResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
@@ -358,7 +355,7 @@ func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateEnterpriseTagGroupResponse{Success: true, Message: "OK", Data: enterpriseTagGroupToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateEnterpriseTagGroupResponse{Data: enterpriseTagGroupToAPI(item)}), nil
 }
 func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context, request *v1.DeleteEnterpriseTagGroupRequest) (*v1.DeleteEnterpriseTagGroupResponse, error) {
 	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
@@ -368,7 +365,7 @@ func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context
 	if err := s.usecase.DeleteTagGroup(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
 		return nil, err
 	}
-	return &v1.DeleteEnterpriseTagGroupResponse{Success: true, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DeleteEnterpriseTagGroupResponse{}), nil
 }
 
 func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.PreviewEnterpriseResourceImportResponse, error) {

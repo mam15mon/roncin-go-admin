@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +27,7 @@ func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1
 	for _, item := range items {
 		data = append(data, partnerAttachmentToAPI(item))
 	}
-	return &v1.ListPartnerAttachmentsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerAttachmentsResponse{Data: data}), nil
 }
 
 func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request *v1.RegisterPartnerAttachmentRequest) (*v1.RegisterPartnerAttachmentResponse, error) {
@@ -62,5 +61,5 @@ func partnerAttachmentToAPI(value *biz.PartnerAttachment) *v1.PartnerAttachment 
 }
 
 func partnerAttachmentResponse(ctx context.Context, value *biz.PartnerAttachment) *v1.RegisterPartnerAttachmentResponse {
-	return &v1.RegisterPartnerAttachmentResponse{Success: true, Code: 0, Message: "OK", Data: partnerAttachmentToAPI(value), TraceId: requestmeta.TraceID(ctx)}
+	return ok(ctx, &v1.RegisterPartnerAttachmentResponse{Data: partnerAttachmentToAPI(value)})
 }

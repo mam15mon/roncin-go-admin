@@ -60,7 +60,7 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	for _, item := range options.BillingUnits {
 		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
 	}
-	response := &v1.ListFeeOptionsResponse{Success: true, Code: 0, Message: "OK", SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, TraceId: requestmeta.TraceID(ctx), BaseCurrency: options.BaseCurrency, FinanceLocked: options.FinanceLocked, FinanceLockCommissionNos: options.FinanceLockCommissionNos, CustomerId: options.CustomerID.String(), CustomerName: options.CustomerName}
+	response := okList(ctx, &v1.ListFeeOptionsResponse{SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, BaseCurrency: options.BaseCurrency, FinanceLocked: options.FinanceLocked, FinanceLockCommissionNos: options.FinanceLockCommissionNos, CustomerId: options.CustomerID.String(), CustomerName: options.CustomerName})
 	if options.FinanceLockReason != "" {
 		response.FinanceLockReason = &options.FinanceLockReason
 	}
@@ -94,7 +94,7 @@ func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequ
 		converted.Tags = businessTagSummariesToOrderAPI(feeTags[item.ID])
 		data = append(data, converted)
 	}
-	return &v1.ListFeesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListFeesResponse{Data: data}), nil
 }
 
 func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v1.ResolveFeeExchangeRateRequest) (*v1.ResolveFeeExchangeRateResponse, error) {
@@ -106,15 +106,15 @@ func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v
 	if err != nil {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	direction, ok := orderFeeDirectionFromAPI(request.GetDirection())
-	if !ok {
+	direction, valid := orderFeeDirectionFromAPI(request.GetDirection())
+	if !valid {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
 	resolved, err := s.usecase.ResolveExchangeRate(ctx, principal.Organization.ID, orderID, direction, request.GetCurrency(), request.GetExpenseDate())
 	if err != nil {
 		return nil, err
 	}
-	response := &v1.ResolveFeeExchangeRateResponse{Success: true, Code: 0, Message: "OK", ExchangeRate: resolved.Rate.StringFixed(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate, TraceId: requestmeta.TraceID(ctx)}
+	response := ok(ctx, &v1.ResolveFeeExchangeRateResponse{ExchangeRate: resolved.Rate.StringFixed(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.RateDate})
 	if resolved.SettingID != nil {
 		value := resolved.SettingID.String()
 		response.ExchangeRateSettingId = &value
@@ -135,7 +135,7 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AddFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AddFeeResponse{Data: orderFeeToAPI(created)}), nil
 }
 
 func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRequest) (*v1.UpdateFeeResponse, error) {
@@ -166,7 +166,7 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateFeeResponse{Data: orderFeeToAPI(updated)}), nil
 }
 
 func (s *OrderFeeService) ConfirmFee(ctx context.Context, request *v1.ConfirmFeeRequest) (*v1.ConfirmFeeResponse, error) {
@@ -182,7 +182,7 @@ func (s *OrderFeeService) ConfirmFee(ctx context.Context, request *v1.ConfirmFee
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ConfirmFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ConfirmFeeResponse{Data: orderFeeToAPI(updated)}), nil
 }
 
 func (s *OrderFeeService) ReopenFee(ctx context.Context, request *v1.ReopenFeeRequest) (*v1.ReopenFeeResponse, error) {
@@ -198,7 +198,7 @@ func (s *OrderFeeService) ReopenFee(ctx context.Context, request *v1.ReopenFeeRe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ReopenFeeResponse{Success: true, Code: 0, Message: "OK", Data: orderFeeToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ReopenFeeResponse{Data: orderFeeToAPI(updated)}), nil
 }
 
 func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRequest) (*v1.RemoveFeeResponse, error) {
@@ -213,7 +213,7 @@ func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRe
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id, request.GetExpectedVersion(), request.GetReason()); err != nil {
 		return nil, err
 	}
-	return &v1.RemoveFeeResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.RemoveFeeResponse{}), nil
 }
 
 func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 type ExchangeRateService struct {
@@ -32,7 +31,7 @@ func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v
 	for _, item := range items {
 		data = append(data, exchangeRateToAPI(item))
 	}
-	return &v1.ListExchangeRateSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx), BaseCurrency: baseCurrency}, nil
+	return okList(ctx, &v1.ListExchangeRateSettingsResponse{Data: data, BaseCurrency: baseCurrency}), nil
 }
 
 func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, request *v1.CreateExchangeRateSettingRequest) (*v1.CreateExchangeRateSettingResponse, error) {
@@ -48,7 +47,7 @@ func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateExchangeRateSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateExchangeRateSettingResponse{Data: exchangeRateToAPI(created)}), nil
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateSetting(ctx context.Context, request *v1.UpdateExchangeRateSettingRequest) (*v1.UpdateExchangeRateSettingResponse, error) {
@@ -68,7 +67,7 @@ func (s *ExchangeRateService) UpdateExchangeRateSetting(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateExchangeRateSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateExchangeRateSettingResponse{Data: exchangeRateToAPI(updated)}), nil
 }
 
 func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, request *v1.DisableExchangeRateSettingRequest) (*v1.DisableExchangeRateSettingResponse, error) {
@@ -83,7 +82,7 @@ func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, re
 	if err := s.usecase.Disable(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
 		return nil, err
 	}
-	return &v1.DisableExchangeRateSettingResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DisableExchangeRateSettingResponse{}), nil
 }
 
 func (s *ExchangeRateService) ListExchangeRateTimeStandards(ctx context.Context, _ *v1.ListExchangeRateTimeStandardsRequest) (*v1.ListExchangeRateTimeStandardsResponse, error) {
@@ -95,7 +94,7 @@ func (s *ExchangeRateService) ListExchangeRateTimeStandards(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(settings), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListExchangeRateTimeStandardsResponse{Data: exchangeRateTimeStandardsToAPI(settings)}), nil
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Context, request *v1.UpdateExchangeRateTimeStandardsRequest) (*v1.UpdateExchangeRateTimeStandardsResponse, error) {
@@ -111,7 +110,7 @@ func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateExchangeRateTimeStandardsResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateTimeStandardsToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateExchangeRateTimeStandardsResponse{Data: exchangeRateTimeStandardsToAPI(updated)}), nil
 }
 
 func (s *ExchangeRateService) GetExchangeRateCustomSetting(ctx context.Context, _ *v1.GetExchangeRateCustomSettingRequest) (*v1.GetExchangeRateCustomSettingResponse, error) {
@@ -123,7 +122,7 @@ func (s *ExchangeRateService) GetExchangeRateCustomSetting(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetExchangeRateCustomSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateCustomSettingToAPI(setting), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetExchangeRateCustomSettingResponse{Data: exchangeRateCustomSettingToAPI(setting)}), nil
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Context, request *v1.UpdateExchangeRateCustomSettingRequest) (*v1.UpdateExchangeRateCustomSettingResponse, error) {
@@ -138,7 +137,7 @@ func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateExchangeRateCustomSettingResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateCustomSettingToAPI(setting), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateExchangeRateCustomSettingResponse{Data: exchangeRateCustomSettingToAPI(setting)}), nil
 }
 
 func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Context, _ *v1.DownloadExchangeRateImportTemplateRequest) (*v1.DownloadExchangeRateImportTemplateResponse, error) {
@@ -149,7 +148,7 @@ func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
-	return &v1.DownloadExchangeRateImportTemplateResponse{Success: true, Code: 0, Message: "OK", FileName: "汇率导入模板.xlsx", ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Content: content, TemplateVersion: biz.ExchangeRateImportTemplateVersion, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DownloadExchangeRateImportTemplateResponse{FileName: "汇率导入模板.xlsx", ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Content: content, TemplateVersion: biz.ExchangeRateImportTemplateVersion}), nil
 }
 
 func (s *ExchangeRateService) PreviewExchangeRateImport(ctx context.Context, request *v1.PreviewExchangeRateImportRequest) (*v1.PreviewExchangeRateImportResponse, error) {
@@ -165,7 +164,7 @@ func (s *ExchangeRateService) PreviewExchangeRateImport(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	return &v1.PreviewExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), PreviewToken: token, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.PreviewExchangeRateImportResponse{Data: exchangeRateImportBatchToAPI(batch), PreviewToken: token}), nil
 }
 
 func (s *ExchangeRateService) ConfirmExchangeRateImport(ctx context.Context, request *v1.ConfirmExchangeRateImportRequest) (*v1.ConfirmExchangeRateImportResponse, error) {
@@ -177,7 +176,7 @@ func (s *ExchangeRateService) ConfirmExchangeRateImport(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ConfirmExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ConfirmExchangeRateImportResponse{Data: exchangeRateImportBatchToAPI(batch)}), nil
 }
 
 func (s *ExchangeRateService) GetExchangeRateImport(ctx context.Context, request *v1.GetExchangeRateImportRequest) (*v1.GetExchangeRateImportResponse, error) {
@@ -193,7 +192,7 @@ func (s *ExchangeRateService) GetExchangeRateImport(ctx context.Context, request
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetExchangeRateImportResponse{Success: true, Code: 0, Message: "OK", Data: exchangeRateImportBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetExchangeRateImportResponse{Data: exchangeRateImportBatchToAPI(batch)}), nil
 }
 
 func exchangeRateInputFromAPI(rateType, fromCurrency, toCurrency, effectiveFrom string, effectiveTo *string, receivableText, payableText string) (*biz.ExchangeRateSetting, error) {

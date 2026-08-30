@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 type OrderMilestoneService struct {
@@ -36,7 +35,7 @@ func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.
 	for _, item := range items {
 		data = append(data, orderMilestoneToAPI(item))
 	}
-	return &v1.ListMilestonesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListMilestonesResponse{Data: data}), nil
 }
 
 func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.SetMilestoneRequest) (*v1.SetMilestoneResponse, error) {
@@ -62,7 +61,7 @@ func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.Se
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SetMilestoneResponse{Success: true, Code: 0, Message: "OK", Data: orderMilestoneToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.SetMilestoneResponse{Data: orderMilestoneToAPI(item)}), nil
 }
 
 func parseOptionalRFC3339(value string) (*time.Time, error) {

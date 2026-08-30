@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 type OrderAttachmentService struct {
@@ -36,13 +35,9 @@ func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v
 	for _, item := range items {
 		data = append(data, orderAttachmentToAPI(item))
 	}
-	return &v1.ListAttachmentsResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListAttachmentsResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request *v1.RegisterAttachmentRequest) (*v1.RegisterAttachmentResponse, error) {
@@ -71,13 +66,10 @@ func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request
 }
 
 func orderAttachmentResponse(ctx context.Context, value *biz.OrderAttachment) *v1.RegisterAttachmentResponse {
-	return &v1.RegisterAttachmentResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderAttachmentToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
+	return ok(ctx, &v1.RegisterAttachmentResponse{
+		Data: orderAttachmentToAPI(value),
+	})
+
 }
 
 func orderAttachmentToAPI(value *biz.OrderAttachment) *v1.OrderAttachment {

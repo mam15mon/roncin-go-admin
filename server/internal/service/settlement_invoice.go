@@ -9,7 +9,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListInvoicesRequest) (*v1.ListInvoicesResponse, error) {
@@ -30,15 +29,15 @@ func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListIn
 	for _, item := range result.Items {
 		data = append(data, financeInvoiceToAPI(item))
 	}
-	return &v1.ListInvoicesResponse{
-		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+	return okList(ctx, &v1.ListInvoicesResponse{
+		Data: data, Total: result.Total,
 		Summary: &v1.FinanceInvoiceSummary{
 			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
 			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
 			IssuedCount:          result.Summary.IssuedCount,
 			BaseCurrency:         result.Summary.BaseCurrency,
 		},
-	}, nil
+	}), nil
 }
 func (s *SettlementService) GetInvoice(ctx context.Context, request *v1.GetInvoiceRequest) (*v1.GetInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())
@@ -49,7 +48,7 @@ func (s *SettlementService) GetInvoice(ctx context.Context, request *v1.GetInvoi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
 func (s *SettlementService) CreateInvoice(ctx context.Context, request *v1.CreateInvoiceRequest) (*v1.CreateInvoiceResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
@@ -72,7 +71,7 @@ func (s *SettlementService) CreateInvoice(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
 func (s *SettlementService) IssueInvoice(ctx context.Context, request *v1.IssueInvoiceRequest) (*v1.IssueInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())
@@ -83,7 +82,7 @@ func (s *SettlementService) IssueInvoice(ctx context.Context, request *v1.IssueI
 	if err != nil {
 		return nil, err
 	}
-	return &v1.IssueInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.IssueInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
 func (s *SettlementService) CancelInvoice(ctx context.Context, request *v1.CancelInvoiceRequest) (*v1.CancelInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())
@@ -94,7 +93,7 @@ func (s *SettlementService) CancelInvoice(ctx context.Context, request *v1.Cance
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CancelInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CancelInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
 func (s *SettlementService) RedFlushInvoice(ctx context.Context, request *v1.RedFlushInvoiceRequest) (*v1.RedFlushInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())
@@ -105,7 +104,7 @@ func (s *SettlementService) RedFlushInvoice(ctx context.Context, request *v1.Red
 	if err != nil {
 		return nil, err
 	}
-	return &v1.RedFlushInvoiceResponse{Success: true, Message: "OK", Data: financeInvoiceToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.RedFlushInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
 func financeInvoiceToAPI(item *biz.FinanceInvoice) *v1.FinanceInvoice {
 	if item == nil {

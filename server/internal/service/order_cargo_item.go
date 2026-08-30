@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 // OrderCargoItemService 订单货物明细服务，只做 DTO 转换、边界校验和用例调用。
@@ -37,13 +36,9 @@ func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.
 	for _, item := range items {
 		data = append(data, orderCargoItemToAPI(item))
 	}
-	return &v1.ListCargoItemsResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListCargoItemsResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.AddCargoItemRequest) (*v1.AddCargoItemResponse, error) {
@@ -59,7 +54,7 @@ func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.Ad
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AddCargoItemResponse{Success: true, Code: 0, Message: "OK", Data: orderCargoItemToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AddCargoItemResponse{Data: orderCargoItemToAPI(created)}), nil
 }
 
 func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1.UpdateCargoItemRequest) (*v1.UpdateCargoItemResponse, error) {
@@ -79,7 +74,7 @@ func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateCargoItemResponse{Success: true, Code: 0, Message: "OK", Data: orderCargoItemToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateCargoItemResponse{Data: orderCargoItemToAPI(updated)}), nil
 }
 
 func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1.RemoveCargoItemRequest) (*v1.RemoveCargoItemResponse, error) {
@@ -98,12 +93,7 @@ func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.RemoveCargoItemResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RemoveCargoItemResponse{}), nil
 }
 
 func orderCargoItemToAPI(value *biz.OrderCargoItem) *v1.OrderCargoItem {

@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -36,7 +35,7 @@ func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request
 	for _, item := range items {
 		data = append(data, partnerShippingPresetToAPI(item))
 	}
-	return &v1.ListPartnerShippingPresetsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerShippingPresetsResponse{Data: data}), nil
 }
 
 func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, request *v1.CreatePartnerShippingPresetRequest) (*v1.CreatePartnerShippingPresetResponse, error) {
@@ -52,7 +51,7 @@ func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerShippingPresetResponse{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerShippingPresetResponse{Data: partnerShippingPresetToAPI(created)}), nil
 }
 
 func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, request *v1.UpdatePartnerShippingPresetRequest) (*v1.UpdatePartnerShippingPresetResponse, error) {
@@ -69,7 +68,7 @@ func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerShippingPresetResponse{Success: true, Code: 0, Message: "OK", Data: partnerShippingPresetToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerShippingPresetResponse{Data: partnerShippingPresetToAPI(updated)}), nil
 }
 
 func partnerShippingPresetTypeFromAPI(value v1.PartnerShippingPresetType) biz.PartnerShippingPresetType {

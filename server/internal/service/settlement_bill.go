@@ -9,7 +9,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBillsRequest) (*v1.ListBillsResponse, error) {
@@ -57,15 +56,15 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		converted.Tags = businessTagSummariesToFinanceAPI(billTags[item.ID])
 		data = append(data, converted)
 	}
-	return &v1.ListBillsResponse{
-		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+	return okList(ctx, &v1.ListBillsResponse{
+		Data: data, Total: result.Total,
 		Summary: &v1.FinanceBillSummary{
 			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
 			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
 			UnverifiedBaseAmount: result.Summary.UnverifiedBaseAmount.StringFixed(8),
 			BaseCurrency:         result.Summary.BaseCurrency,
 		},
-	}, nil
+	}), nil
 }
 
 func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequest) (*v1.GetBillResponse, error) {
@@ -83,7 +82,7 @@ func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequ
 	}
 	converted := financeBillToAPI(item)
 	converted.Tags = businessTagSummariesToFinanceAPI(billTags[id])
-	return &v1.GetBillResponse{Success: true, Code: 0, Message: "OK", Data: converted, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetBillResponse{Data: converted}), nil
 }
 
 func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBillRequest) (*v1.CreateBillResponse, error) {
@@ -105,7 +104,7 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
 func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.PreviewBillBatchRequest) (*v1.PreviewBillBatchResponse, error) {
@@ -129,7 +128,7 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 		}
 		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8)})
 	}
-	return &v1.PreviewBillBatchResponse{Success: true, Message: "OK", Data: groups, PreviewToken: preview.PreviewToken, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, PreviewToken: preview.PreviewToken}), nil
 }
 
 func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.CreateBillBatchRequest) (*v1.CreateBillBatchResponse, error) {
@@ -152,7 +151,7 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateBillBatchResponse{Success: true, Message: "OK", Data: financeBillBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateBillBatchResponse{Data: financeBillBatchToAPI(batch)}), nil
 }
 
 func (s *SettlementService) ConfirmBillBatch(ctx context.Context, request *v1.ConfirmBillBatchRequest) (*v1.ConfirmBillBatchResponse, error) {
@@ -182,7 +181,7 @@ func (s *SettlementService) ConfirmBillBatch(ctx context.Context, request *v1.Co
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ConfirmBillBatchResponse{Success: true, Message: "OK", Data: financeBillBatchToAPI(batch), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ConfirmBillBatchResponse{Data: financeBillBatchToAPI(batch)}), nil
 }
 
 func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBillRequest) (*v1.UpdateBillResponse, error) {
@@ -196,7 +195,7 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
 func (s *SettlementService) ConfirmBill(ctx context.Context, request *v1.ConfirmBillRequest) (*v1.ConfirmBillResponse, error) {
@@ -208,7 +207,7 @@ func (s *SettlementService) ConfirmBill(ctx context.Context, request *v1.Confirm
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ConfirmBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ConfirmBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
 func (s *SettlementService) CancelBill(ctx context.Context, request *v1.CancelBillRequest) (*v1.CancelBillResponse, error) {
@@ -220,7 +219,7 @@ func (s *SettlementService) CancelBill(ctx context.Context, request *v1.CancelBi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CancelBillResponse{Success: true, Code: 0, Message: "OK", Data: financeBillToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CancelBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
 func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {

@@ -33,7 +33,7 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 		return nil, err
 	}
 	s.setCookie(ctx, token, expiresAt, 0)
-	return &v1.LoginResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.LoginResponse{Data: principalToAPI(principal)}), nil
 }
 
 func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *v1.GetWeComLoginConfigRequest) (*v1.GetWeComLoginConfigResponse, error) {
@@ -46,7 +46,7 @@ func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *v1.GetWeComLog
 		config.AuthorizeUrl = &authorizeURL
 		s.setCookieNamed(ctx, s.wecomStateCookieName(), state, expiresAt, 300)
 	}
-	return &v1.GetWeComLoginConfigResponse{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetWeComLoginConfigResponse{Data: config}), nil
 }
 
 func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequest) (*v1.WeComLoginResponse, error) {
@@ -62,7 +62,7 @@ func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequ
 		return nil, err
 	}
 	s.setCookie(ctx, token, expiresAt, 0)
-	return &v1.WeComLoginResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.WeComLoginResponse{Data: principalToAPI(principal)}), nil
 }
 
 func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingTalkLoginConfigRequest) (*v1.GetDingTalkLoginConfigResponse, error) {
@@ -76,7 +76,7 @@ func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingT
 		s.setCookieNamed(ctx, s.dingTalkStateCookieName(), state, expiresAt, 300)
 		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
 	}
-	return &v1.GetDingTalkLoginConfigResponse{Success: true, Code: 0, Message: "OK", Data: config, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), nil
 }
 
 func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLoginRequest) (*v1.DingTalkLoginResponse, error) {
@@ -104,7 +104,7 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	default:
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	return &v1.DingTalkLoginResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
 }
 
 func (s *AuthService) RegisterDingTalkUser(ctx context.Context, _ *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
@@ -117,13 +117,9 @@ func (s *AuthService) RegisterDingTalkUser(ctx context.Context, _ *v1.RegisterDi
 		return nil, err
 	}
 	s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
-	return &v1.RegisterDingTalkUserResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    &v1.DingTalkRegistration{DisplayName: registration.DisplayName, Status: registration.Status},
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RegisterDingTalkUserResponse{
+		Data: &v1.DingTalkRegistration{DisplayName: registration.DisplayName, Status: registration.Status},
+	}), nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
@@ -135,7 +131,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.Logo
 		return nil, err
 	}
 	s.setCookie(ctx, "", time.Unix(1, 0), -1)
-	return &v1.LogoutResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.LogoutResponse{}), nil
 }
 
 func (s *AuthService) Me(ctx context.Context, _ *v1.MeRequest) (*v1.MeResponse, error) {
@@ -143,7 +139,7 @@ func (s *AuthService) Me(ctx context.Context, _ *v1.MeRequest) (*v1.MeResponse, 
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	return &v1.MeResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(principal), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.MeResponse{Data: principalToAPI(principal)}), nil
 }
 
 func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.SwitchOrganizationRequest) (*v1.SwitchOrganizationResponse, error) {
@@ -159,7 +155,7 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SwitchOrganizationResponse{Success: true, Code: 0, Message: "OK", Data: principalToAPI(next), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.SwitchOrganizationResponse{Data: principalToAPI(next)}), nil
 }
 
 func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 type FeeCatalogService struct {
@@ -24,7 +23,7 @@ func (s *FeeCatalogService) ListFeeSettings(ctx context.Context, _ *v1.ListFeeSe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListFeeSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListFeeSettingsResponse{Data: data, Total: total, Page: page, PageSize: pageSize}), nil
 }
 
 func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.SearchFeeSettingsRequest) (*v1.SearchFeeSettingsResponse, error) {
@@ -36,7 +35,7 @@ func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.S
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SearchFeeSettingsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchFeeSettingsResponse{Data: data, Total: total, Page: resultPage, PageSize: resultPageSize}), nil
 }
 
 func (s *FeeCatalogService) listFeeSettings(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.FeeSetting, int32, int32, int32, error) {
@@ -68,7 +67,7 @@ func (s *FeeCatalogService) CreateFeeSetting(ctx context.Context, request *v1.Cr
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateFeeSettingResponse{Success: true, Code: 0, Message: "OK", Data: feeSettingToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateFeeSettingResponse{Data: feeSettingToAPI(created)}), nil
 }
 
 func (s *FeeCatalogService) UpdateFeeSetting(ctx context.Context, request *v1.UpdateFeeSettingRequest) (*v1.UpdateFeeSettingResponse, error) {
@@ -88,7 +87,7 @@ func (s *FeeCatalogService) UpdateFeeSetting(ctx context.Context, request *v1.Up
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateFeeSettingResponse{Success: true, Code: 0, Message: "OK", Data: feeSettingToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateFeeSettingResponse{Data: feeSettingToAPI(updated)}), nil
 }
 
 func (s *FeeCatalogService) ListBillingUnits(ctx context.Context, _ *v1.ListBillingUnitsRequest) (*v1.ListBillingUnitsResponse, error) {
@@ -96,7 +95,7 @@ func (s *FeeCatalogService) ListBillingUnits(ctx context.Context, _ *v1.ListBill
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListBillingUnitsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListBillingUnitsResponse{Data: data, Total: total, Page: page, PageSize: pageSize}), nil
 }
 
 func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.SearchBillingUnitsRequest) (*v1.SearchBillingUnitsResponse, error) {
@@ -108,7 +107,7 @@ func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SearchBillingUnitsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchBillingUnitsResponse{Data: data, Total: total, Page: resultPage, PageSize: resultPageSize}), nil
 }
 
 func (s *FeeCatalogService) listBillingUnits(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.BillingUnit, int32, int32, int32, error) {
@@ -136,7 +135,7 @@ func (s *FeeCatalogService) CreateBillingUnit(ctx context.Context, request *v1.C
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateBillingUnitResponse{Success: true, Code: 0, Message: "OK", Data: billingUnitToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateBillingUnitResponse{Data: billingUnitToAPI(created)}), nil
 }
 
 func (s *FeeCatalogService) UpdateBillingUnit(ctx context.Context, request *v1.UpdateBillingUnitRequest) (*v1.UpdateBillingUnitResponse, error) {
@@ -152,7 +151,7 @@ func (s *FeeCatalogService) UpdateBillingUnit(ctx context.Context, request *v1.U
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateBillingUnitResponse{Success: true, Code: 0, Message: "OK", Data: billingUnitToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateBillingUnitResponse{Data: billingUnitToAPI(updated)}), nil
 }
 
 func (s *FeeCatalogService) ListTaxableServices(ctx context.Context, _ *v1.ListTaxableServicesRequest) (*v1.ListTaxableServicesResponse, error) {
@@ -160,7 +159,7 @@ func (s *FeeCatalogService) ListTaxableServices(ctx context.Context, _ *v1.ListT
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListTaxableServicesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: page, PageSize: pageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListTaxableServicesResponse{Data: data, Total: total, Page: page, PageSize: pageSize}), nil
 }
 
 func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *v1.SearchTaxableServicesRequest) (*v1.SearchTaxableServicesResponse, error) {
@@ -172,7 +171,7 @@ func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return &v1.SearchTaxableServicesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: total, Page: resultPage, PageSize: resultPageSize, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchTaxableServicesResponse{Data: data, Total: total, Page: resultPage, PageSize: resultPageSize}), nil
 }
 
 func (s *FeeCatalogService) listTaxableServices(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.TaxableService, int32, int32, int32, error) {
@@ -204,7 +203,7 @@ func (s *FeeCatalogService) CreateTaxableService(ctx context.Context, request *v
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateTaxableServiceResponse{Success: true, Code: 0, Message: "OK", Data: taxableServiceToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateTaxableServiceResponse{Data: taxableServiceToAPI(created)}), nil
 }
 
 func (s *FeeCatalogService) UpdateTaxableService(ctx context.Context, request *v1.UpdateTaxableServiceRequest) (*v1.UpdateTaxableServiceResponse, error) {
@@ -224,7 +223,7 @@ func (s *FeeCatalogService) UpdateTaxableService(ctx context.Context, request *v
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateTaxableServiceResponse{Success: true, Code: 0, Message: "OK", Data: taxableServiceToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateTaxableServiceResponse{Data: taxableServiceToAPI(updated)}), nil
 }
 
 func feeSettingInputFromAPI(feeCode, nameZH string, nameEN, aliasName, serviceTypeText *string, defaultCurrency, billingUnitText string, abnormalCaseText *string, taxRateText, taxableServiceText string, sortOrder int, enabled bool) (*biz.FeeSetting, error) {

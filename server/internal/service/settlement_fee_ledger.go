@@ -9,7 +9,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
@@ -84,10 +83,10 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 			data[len(data)-1].BillNo = &item.BillNo
 		}
 	}
-	return &v1.ListFeeLedgerResponse{
-		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+	return okList(ctx, &v1.ListFeeLedgerResponse{
+		Data: data, Total: result.Total,
 		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8), PayableBaseAmount: result.Summary.PayableBaseAmount.StringFixed(8), ProfitBaseAmount: result.Summary.ProfitBaseAmount.StringFixed(8), BaseCurrency: result.Summary.BaseCurrency},
-	}, nil
+	}), nil
 }
 
 func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
@@ -99,13 +98,9 @@ func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.Ge
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetFeeLedgerPreferenceResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    feeLedgerPreferenceToAPI(preference),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.GetFeeLedgerPreferenceResponse{
+		Data: feeLedgerPreferenceToAPI(preference),
+	}), nil
 }
 
 func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, request *v1.UpdateFeeLedgerPreferenceRequest) (*v1.UpdateFeeLedgerPreferenceResponse, error) {
@@ -143,13 +138,9 @@ func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, reque
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateFeeLedgerPreferenceResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    feeLedgerPreferenceToAPI(preference),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.UpdateFeeLedgerPreferenceResponse{
+		Data: feeLedgerPreferenceToAPI(preference),
+	}), nil
 }
 
 func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, request *v1.ResetFeeLedgerPreferenceRequest) (*v1.ResetFeeLedgerPreferenceResponse, error) {
@@ -161,13 +152,9 @@ func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ResetFeeLedgerPreferenceResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    feeLedgerPreferenceToAPI(preference),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.ResetFeeLedgerPreferenceResponse{
+		Data: feeLedgerPreferenceToAPI(preference),
+	}), nil
 }
 
 func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.GetBilledFeeEditPolicyRequest) (*v1.GetBilledFeeEditPolicyResponse, error) {
@@ -179,7 +166,7 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetBilledFeeEditPolicyResponse{Success: true, Code: 0, Message: "OK", Data: billedFeeEditPolicyToAPI(policy), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy)}), nil
 }
 
 func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, request *v1.UpdateBilledFeeEditPolicyRequest) (*v1.UpdateBilledFeeEditPolicyResponse, error) {
@@ -202,7 +189,7 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateBilledFeeEditPolicyResponse{Success: true, Code: 0, Message: "OK", Data: billedFeeEditPolicyToAPI(policy), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy)}), nil
 }
 
 func billedFeeEditableFieldFromAPI(field v1.BilledFeeEditableField) (biz.BilledFeeEditableField, bool) {

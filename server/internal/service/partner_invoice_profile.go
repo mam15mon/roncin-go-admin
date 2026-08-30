@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +27,7 @@ func (s *PartnerService) ListPartnerInvoiceProfiles(ctx context.Context, request
 	for _, item := range items {
 		data = append(data, partnerInvoiceProfileToAPI(item))
 	}
-	return &v1.ListPartnerInvoiceProfilesResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerInvoiceProfilesResponse{Data: data}), nil
 }
 
 func (s *PartnerService) CreatePartnerInvoiceProfile(ctx context.Context, request *v1.CreatePartnerInvoiceProfileRequest) (*v1.CreatePartnerInvoiceProfileResponse, error) {
@@ -44,7 +43,7 @@ func (s *PartnerService) CreatePartnerInvoiceProfile(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerInvoiceProfileResponse{Success: true, Message: "OK", Data: partnerInvoiceProfileToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerInvoiceProfileResponse{Data: partnerInvoiceProfileToAPI(item)}), nil
 }
 
 func (s *PartnerService) UpdatePartnerInvoiceProfile(ctx context.Context, request *v1.UpdatePartnerInvoiceProfileRequest) (*v1.UpdatePartnerInvoiceProfileResponse, error) {
@@ -61,7 +60,7 @@ func (s *PartnerService) UpdatePartnerInvoiceProfile(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerInvoiceProfileResponse{Success: true, Message: "OK", Data: partnerInvoiceProfileToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerInvoiceProfileResponse{Data: partnerInvoiceProfileToAPI(item)}), nil
 }
 
 func partnerInvoiceProfileToAPI(item *biz.PartnerInvoiceProfile) *v1.PartnerInvoiceProfile {

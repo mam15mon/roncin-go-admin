@@ -8,7 +8,6 @@ import (
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -26,7 +25,7 @@ func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetOrderResponse{Success: true, Code: 0, Message: "OK", Data: orderToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.GetOrderResponse{Data: orderToAPI(item)}), nil
 }
 
 func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersRequest) (*v1.ListOrdersResponse, error) {
@@ -140,7 +139,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		output.CanModify = principal.CanAccessOrderOrganization(item.OrganizationID, true)
 		data = append(data, output)
 	}
-	return &v1.ListOrdersResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func orderDateRangeFromAPI(from, to string) (biz.OrderDateRange, error) {
@@ -245,7 +244,7 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 		data.OrderId = &orderID
 		data.OrderNo = &match.OrderNo
 	}
-	return &v1.CheckOrderReferenceResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CheckOrderReferenceResponse{Data: data}), nil
 }
 
 func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.ListPersonnelOptionsRequest) (*v1.ListPersonnelOptionsResponse, error) {
@@ -268,7 +267,7 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 			OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		})
 	}
-	return &v1.ListPersonnelOptionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPersonnelOptionsResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.ListOrderConsolidationsRequest) (*v1.ListOrderConsolidationsResponse, error) {
@@ -298,7 +297,7 @@ func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.
 			Entrusted: cargoMeasurementToAPI(item.Entrusted), Actual: cargoMeasurementToAPI(item.Actual), Members: members,
 		})
 	}
-	return &v1.ListOrderConsolidationsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListOrderConsolidationsResponse{Data: data}), nil
 }
 
 func cargoMeasurementToAPI(value biz.OrderCargoMeasurement) *v1.OrderCargoMeasurement {

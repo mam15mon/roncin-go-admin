@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 // OrderAbnormalCaseService 订单异常标记服务，只做 DTO 转换、边界校验和用例调用。
@@ -37,13 +36,9 @@ func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, reques
 	for _, item := range items {
 		data = append(data, orderAbnormalCaseToAPI(item))
 	}
-	return &v1.ListAbnormalCasesResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListAbnormalCasesResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request *v1.MarkAbnormalCaseRequest) (*v1.MarkAbnormalCaseResponse, error) {
@@ -63,7 +58,7 @@ func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request
 	if err != nil {
 		return nil, err
 	}
-	return &v1.MarkAbnormalCaseResponse{Success: true, Code: 0, Message: "OK", Data: orderAbnormalCaseToAPI(marked), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.MarkAbnormalCaseResponse{Data: orderAbnormalCaseToAPI(marked)}), nil
 }
 
 func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, request *v1.ResolveAbnormalCaseRequest) (*v1.ResolveAbnormalCaseResponse, error) {
@@ -83,7 +78,7 @@ func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, requ
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ResolveAbnormalCaseResponse{Success: true, Code: 0, Message: "OK", Data: orderAbnormalCaseToAPI(resolved), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ResolveAbnormalCaseResponse{Data: orderAbnormalCaseToAPI(resolved)}), nil
 }
 
 func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, request *v1.RemoveAbnormalCaseRequest) (*v1.RemoveAbnormalCaseResponse, error) {
@@ -102,12 +97,7 @@ func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, reque
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.RemoveAbnormalCaseResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RemoveAbnormalCaseResponse{}), nil
 }
 
 func orderAbnormalCaseToAPI(value *biz.OrderAbnormalCase) *v1.OrderAbnormalCase {

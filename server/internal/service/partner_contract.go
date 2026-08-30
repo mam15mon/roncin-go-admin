@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -33,7 +32,7 @@ func (s *PartnerService) ListPartnerContracts(ctx context.Context, request *v1.L
 	for _, item := range items {
 		data = append(data, partnerContractToAPI(item))
 	}
-	return &v1.ListPartnerContractsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerContractsResponse{Data: data}), nil
 }
 
 func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.CreatePartnerContractRequest) (*v1.CreatePartnerContractResponse, error) {
@@ -57,7 +56,7 @@ func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerContractResponse{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerContractResponse{Data: partnerContractToAPI(created)}), nil
 }
 
 func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.UpdatePartnerContractRequest) (*v1.UpdatePartnerContractResponse, error) {
@@ -82,7 +81,7 @@ func (s *PartnerService) UpdatePartnerContract(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerContractResponse{Success: true, Code: 0, Message: "OK", Data: partnerContractToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerContractResponse{Data: partnerContractToAPI(updated)}), nil
 }
 
 func parseContractDates(start, end string) (time.Time, time.Time, error) {

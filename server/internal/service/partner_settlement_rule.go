@@ -5,7 +5,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +27,7 @@ func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request
 	for _, item := range items {
 		data = append(data, partnerSettlementRuleToAPI(item))
 	}
-	return &v1.ListPartnerSettlementRulesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerSettlementRulesResponse{Data: data}), nil
 }
 
 func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, request *v1.CreatePartnerSettlementRuleRequest) (*v1.CreatePartnerSettlementRuleResponse, error) {
@@ -45,7 +44,7 @@ func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerSettlementRuleResponse{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerSettlementRuleResponse{Data: partnerSettlementRuleToAPI(created)}), nil
 }
 
 func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, request *v1.UpdatePartnerSettlementRuleRequest) (*v1.UpdatePartnerSettlementRuleResponse, error) {
@@ -63,7 +62,7 @@ func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, reques
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerSettlementRuleResponse{Success: true, Code: 0, Message: "OK", Data: partnerSettlementRuleToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerSettlementRuleResponse{Data: partnerSettlementRuleToAPI(updated)}), nil
 }
 
 func partnerStatementModeFromAPI(value v1.PartnerStatementMode) biz.PartnerStatementMode {

@@ -7,7 +7,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -34,7 +33,7 @@ func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganiza
 	for _, item := range items {
 		data = append(data, organizationToAPI(item))
 	}
-	return &v1.ListOrganizationsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListOrganizationsResponse{Data: data}), nil
 }
 
 func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.CreateOrganizationRequest) (*v1.CreateOrganizationResponse, error) {
@@ -53,7 +52,7 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateOrganizationResponse{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateOrganizationResponse{Data: organizationToAPI(created)}), nil
 }
 
 func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.UpdateOrganizationRequest) (*v1.UpdateOrganizationResponse, error) {
@@ -69,7 +68,7 @@ func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateOrganizationResponse{Success: true, Code: 0, Message: "OK", Data: organizationToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateOrganizationResponse{Data: organizationToAPI(updated)}), nil
 }
 
 func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersRequest) (*v1.ListUsersResponse, error) {
@@ -89,7 +88,7 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	for _, item := range list.Items {
 		data = append(data, userToAPI(item))
 	}
-	return &v1.ListUsersResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListUsersResponse{Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
 
 func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserRequest) (*v1.CreateUserResponse, error) {
@@ -105,7 +104,7 @@ func (s *AdminService) CreateUser(ctx context.Context, request *v1.CreateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateUserResponse{Data: userToAPI(created)}), nil
 }
 
 func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
@@ -125,7 +124,7 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateUserResponse{Data: userToAPI(updated)}), nil
 }
 
 func (s *AdminService) ListUserMemberships(ctx context.Context, request *v1.ListUserMembershipsRequest) (*v1.ListUserMembershipsResponse, error) {
@@ -144,7 +143,7 @@ func (s *AdminService) ListUserMemberships(ctx context.Context, request *v1.List
 	for _, item := range items {
 		data = append(data, userMembershipToAPI(item))
 	}
-	return &v1.ListUserMembershipsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListUserMembershipsResponse{Data: data}), nil
 }
 
 func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.CreateUserMembershipRequest) (*v1.CreateUserMembershipResponse, error) {
@@ -168,7 +167,7 @@ func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.Cre
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateUserMembershipResponse{Success: true, Code: 0, Message: "OK", Data: userMembershipToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateUserMembershipResponse{Data: userMembershipToAPI(created)}), nil
 }
 
 func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.UpdateUserMembershipRequest) (*v1.UpdateUserMembershipResponse, error) {
@@ -192,7 +191,7 @@ func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.Upd
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateUserMembershipResponse{Success: true, Code: 0, Message: "OK", Data: userMembershipToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateUserMembershipResponse{Data: userMembershipToAPI(updated)}), nil
 }
 
 func (s *AdminService) DeleteUserMembership(ctx context.Context, request *v1.DeleteUserMembershipRequest) (*v1.DeleteUserMembershipResponse, error) {
@@ -211,7 +210,7 @@ func (s *AdminService) DeleteUserMembership(ctx context.Context, request *v1.Del
 	if err := s.usecase.DeleteUserMembership(ctx, principal.UserID, userID, membershipID); err != nil {
 		return nil, err
 	}
-	return &v1.DeleteUserMembershipResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.DeleteUserMembershipResponse{}), nil
 }
 
 func (s *AdminService) TerminateUser(ctx context.Context, request *v1.TerminateUserRequest) (*v1.TerminateUserResponse, error) {
@@ -226,7 +225,7 @@ func (s *AdminService) TerminateUser(ctx context.Context, request *v1.TerminateU
 	if err := s.usecase.TerminateUser(ctx, principal.Organization.ID, principal.UserID, userID); err != nil {
 		return nil, err
 	}
-	return &v1.TerminateUserResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.TerminateUserResponse{}), nil
 }
 
 func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.AuthorizeWeComUserRequest) (*v1.AuthorizeWeComUserResponse, error) {
@@ -250,7 +249,7 @@ func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.Autho
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AuthorizeWeComUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(authorized), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AuthorizeWeComUserResponse{Data: userToAPI(authorized)}), nil
 }
 
 func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.AuthorizeDingTalkUserRequest) (*v1.AuthorizeDingTalkUserResponse, error) {
@@ -274,7 +273,7 @@ func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.Au
 	if err != nil {
 		return nil, err
 	}
-	return &v1.AuthorizeDingTalkUserResponse{Success: true, Code: 0, Message: "OK", Data: userToAPI(authorized), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.AuthorizeDingTalkUserResponse{Data: userToAPI(authorized)}), nil
 }
 
 func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetUserPasswordRequest) (*v1.ResetUserPasswordResponse, error) {
@@ -294,7 +293,7 @@ func (s *AdminService) ResetUserPassword(ctx context.Context, request *v1.ResetU
 	if err := s.usecase.ResetUserPassword(ctx, principal.Organization.ID, principal.UserID, userID, request.GetPassword(), username); err != nil {
 		return nil, err
 	}
-	return &v1.ResetUserPasswordResponse{Success: true, Code: 0, Message: "OK", TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.ResetUserPasswordResponse{}), nil
 }
 
 func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*v1.ListRolesResponse, error) {
@@ -310,7 +309,7 @@ func (s *AdminService) ListRoles(ctx context.Context, _ *v1.ListRolesRequest) (*
 	for _, item := range items {
 		data = append(data, roleToAPI(item))
 	}
-	return &v1.ListRolesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListRolesResponse{Data: data}), nil
 }
 
 func (s *AdminService) ListOrganizationRoles(ctx context.Context, request *v1.ListOrganizationRolesRequest) (*v1.ListOrganizationRolesResponse, error) {
@@ -326,7 +325,7 @@ func (s *AdminService) ListOrganizationRoles(ctx context.Context, request *v1.Li
 	for _, item := range items {
 		data = append(data, roleToAPI(item))
 	}
-	return &v1.ListOrganizationRolesResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListOrganizationRolesResponse{Data: data}), nil
 }
 
 func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleRequest) (*v1.CreateRoleResponse, error) {
@@ -342,7 +341,7 @@ func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateRoleResponse{Success: true, Code: 0, Message: "OK", Data: roleToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateRoleResponse{Data: roleToAPI(created)}), nil
 }
 
 func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleRequest) (*v1.UpdateRoleResponse, error) {
@@ -362,7 +361,7 @@ func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateRoleResponse{Success: true, Code: 0, Message: "OK", Data: roleToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateRoleResponse{Data: roleToAPI(updated)}), nil
 }
 
 func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermissionsRequest) (*v1.ListPermissionsResponse, error) {
@@ -374,7 +373,7 @@ func (s *AdminService) ListPermissions(ctx context.Context, _ *v1.ListPermission
 	for _, item := range items {
 		data = append(data, &v1.AdminPermission{Key: item.Key, Name: item.Name, Group: item.Group, Description: item.Description, Requires: item.Requires})
 	}
-	return &v1.ListPermissionsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPermissionsResponse{Data: data}), nil
 }
 
 func (s *AdminService) ListAuditLogs(ctx context.Context, request *v1.ListAuditLogsRequest) (*v1.ListAuditLogsResponse, error) {
@@ -413,7 +412,7 @@ func (s *AdminService) ListAuditLogs(ctx context.Context, request *v1.ListAuditL
 	for _, item := range list.Items {
 		data = append(data, auditLogToAPI(item))
 	}
-	return &v1.ListAuditLogsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListAuditLogsResponse{Data: data, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
 
 func requirePrincipal(ctx context.Context) (*biz.Principal, error) {

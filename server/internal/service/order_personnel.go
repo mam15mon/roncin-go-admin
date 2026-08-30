@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 type OrderPersonnelService struct {
@@ -36,13 +35,9 @@ func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.L
 	for _, item := range items {
 		data = append(data, orderPersonnelToAPI(item))
 	}
-	return &v1.ListPersonnelResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    data,
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListPersonnelResponse{
+		Data: data,
+	}), nil
 }
 
 func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1.AssignPersonnelRequest) (*v1.AssignPersonnelResponse, error) {
@@ -89,22 +84,14 @@ func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1
 	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
 		return nil, err
 	}
-	return &v1.RemovePersonnelResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.RemovePersonnelResponse{}), nil
 }
 
 func orderPersonnelResponse(ctx context.Context, value *biz.OrderPersonnel) *v1.AssignPersonnelResponse {
-	return &v1.AssignPersonnelResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    orderPersonnelToAPI(value),
-		TraceId: requestmeta.TraceID(ctx),
-	}
+	return ok(ctx, &v1.AssignPersonnelResponse{
+		Data: orderPersonnelToAPI(value),
+	})
+
 }
 
 func orderPersonnelToAPI(value *biz.OrderPersonnel) *v1.OrderPersonnel {

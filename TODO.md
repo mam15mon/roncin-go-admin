@@ -172,8 +172,12 @@ ent 查询日志（Debug 级），但被 Info 级别整体过滤，该开关实�
 ### B1. service 层响应封套（高，215 处 / 31 文件）
 `&v1.XxxResponse{Success: true, Code: 0, Message: "OK", ..., TraceId:
 requestmeta.TraceID(ctx)}` 同构重复，封套字段调整需改 200+ 站点。
-- [ ] 提供泛型 `ok[T](ctx, data)` / `okList[T](ctx, items, total, page,
-      pageSize)` helper 并全量替换
+- [x] 提供泛型 `ok(ctx, response)` / `okList(ctx, response)` helper，并全量
+      替换 31 个文件中的 218 个固定成功响应；helper 统一写入 `success`、
+      `message`、`trace_id`，`code` 使用 proto 默认零值
+- [x] 复核后保留各具体响应对 `data/total/page/page_size` 的静态赋值：不同
+      proto 响应的字段是否存在、整数宽度和数据类型并不一致，若按原草案只传
+      data/items 将被迫依赖运行时反射构造整个响应，反而失去编译期类型校验
 
 ### B2. ent 错误映射统一（高，213 处）
 NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 helper

@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -44,7 +43,7 @@ func (s *MasterDataService) ListCurrencies(ctx context.Context, _ *v1.ListCurren
 			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
 		})
 	}
-	return &v1.ListCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(len(data)), Page: 1, PageSize: int32(biz.MaxListPageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListCurrenciesResponse{Data: data, Total: int32(len(data)), Page: 1, PageSize: int32(biz.MaxListPageSize)}), nil
 }
 
 func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.SearchCurrenciesRequest) (*v1.SearchCurrenciesResponse, error) {
@@ -63,7 +62,7 @@ func (s *MasterDataService) SearchCurrencies(ctx context.Context, request *v1.Se
 	for _, item := range result.Items {
 		data = append(data, &v1.Currency{Id: item.ID.String(), Code: item.Code, Name: item.Name, Symbol: item.Symbol, MinorUnit: int32(item.MinorUnit), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano)})
 	}
-	return &v1.SearchCurrenciesResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.SearchCurrenciesResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, request *v1.ListAdministrativeRegionsRequest) (*v1.ListAdministrativeRegionsResponse, error) {
@@ -86,7 +85,7 @@ func (s *MasterDataService) ListAdministrativeRegions(ctx context.Context, reque
 			CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
 		})
 	}
-	return &v1.ListAdministrativeRegionsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListAdministrativeRegionsResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListItemsRequest) (*v1.ListItemsResponse, error) {
@@ -107,7 +106,7 @@ func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListItems
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListItemsResponse{Success: true, Code: 0, Message: "OK", Data: masterDataItemsToAPI(list.Items), Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListItemsResponse{Data: masterDataItemsToAPI(list.Items), Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
 
 func (s *MasterDataService) CreateItem(ctx context.Context, request *v1.CreateItemRequest) (*v1.CreateItemResponse, error) {
@@ -119,7 +118,7 @@ func (s *MasterDataService) CreateItem(ctx context.Context, request *v1.CreateIt
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateItemResponse{Success: true, Code: 0, Message: "OK", Data: masterDataItemToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateItemResponse{Data: masterDataItemToAPI(created)}), nil
 }
 
 func (s *MasterDataService) UpdateItem(ctx context.Context, request *v1.UpdateItemRequest) (*v1.UpdateItemResponse, error) {
@@ -135,7 +134,7 @@ func (s *MasterDataService) UpdateItem(ctx context.Context, request *v1.UpdateIt
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateItemResponse{Success: true, Code: 0, Message: "OK", Data: masterDataItemToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateItemResponse{Data: masterDataItemToAPI(updated)}), nil
 }
 
 func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListOptionsRequest) (*v1.ListOptionsResponse, error) {
@@ -147,7 +146,7 @@ func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListOptionsRe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListOptionsResponse{Success: true, Code: 0, Message: "OK", Data: masterDataItemsToAPI(items), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListOptionsResponse{Data: masterDataItemsToAPI(items)}), nil
 }
 
 func (s *MasterDataService) ListPorts(ctx context.Context, request *v1.ListPortsRequest) (*v1.ListPortsResponse, error) {
@@ -160,7 +159,7 @@ func (s *MasterDataService) ListPorts(ctx context.Context, request *v1.ListPorts
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListPortsResponse{Success: true, Code: 0, Message: "OK", Data: portsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPortsResponse{Data: portsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) CreatePort(ctx context.Context, request *v1.CreatePortRequest) (*v1.CreatePortResponse, error) {
@@ -172,7 +171,7 @@ func (s *MasterDataService) CreatePort(ctx context.Context, request *v1.CreatePo
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePortResponse{Success: true, Code: 0, Message: "OK", Data: portToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePortResponse{Data: portToAPI(created)}), nil
 }
 
 func (s *MasterDataService) UpdatePort(ctx context.Context, request *v1.UpdatePortRequest) (*v1.UpdatePortResponse, error) {
@@ -184,7 +183,7 @@ func (s *MasterDataService) UpdatePort(ctx context.Context, request *v1.UpdatePo
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePortResponse{Success: true, Code: 0, Message: "OK", Data: portToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePortResponse{Data: portToAPI(updated)}), nil
 }
 
 func (s *MasterDataService) ListAirports(ctx context.Context, request *v1.ListAirportsRequest) (*v1.ListAirportsResponse, error) {
@@ -196,7 +195,7 @@ func (s *MasterDataService) ListAirports(ctx context.Context, request *v1.ListAi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListAirportsResponse{Success: true, Code: 0, Message: "OK", Data: airportsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListAirportsResponse{Data: airportsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) CreateAirport(ctx context.Context, request *v1.CreateAirportRequest) (*v1.CreateAirportResponse, error) {
@@ -208,7 +207,7 @@ func (s *MasterDataService) CreateAirport(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateAirportResponse{Success: true, Code: 0, Message: "OK", Data: airportToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateAirportResponse{Data: airportToAPI(created)}), nil
 }
 
 func (s *MasterDataService) UpdateAirport(ctx context.Context, request *v1.UpdateAirportRequest) (*v1.UpdateAirportResponse, error) {
@@ -220,7 +219,7 @@ func (s *MasterDataService) UpdateAirport(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateAirportResponse{Success: true, Code: 0, Message: "OK", Data: airportToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateAirportResponse{Data: airportToAPI(updated)}), nil
 }
 
 func (s *MasterDataService) ListAirlines(ctx context.Context, request *v1.ListAirlinesRequest) (*v1.ListAirlinesResponse, error) {
@@ -232,7 +231,7 @@ func (s *MasterDataService) ListAirlines(ctx context.Context, request *v1.ListAi
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListAirlinesResponse{Success: true, Code: 0, Message: "OK", Data: airlinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListAirlinesResponse{Data: airlinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) CreateAirline(ctx context.Context, request *v1.CreateAirlineRequest) (*v1.CreateAirlineResponse, error) {
@@ -244,7 +243,7 @@ func (s *MasterDataService) CreateAirline(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateAirlineResponse{Success: true, Code: 0, Message: "OK", Data: airlineToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateAirlineResponse{Data: airlineToAPI(created)}), nil
 }
 
 func (s *MasterDataService) UpdateAirline(ctx context.Context, request *v1.UpdateAirlineRequest) (*v1.UpdateAirlineResponse, error) {
@@ -256,7 +255,7 @@ func (s *MasterDataService) UpdateAirline(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateAirlineResponse{Success: true, Code: 0, Message: "OK", Data: airlineToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateAirlineResponse{Data: airlineToAPI(updated)}), nil
 }
 
 func (s *MasterDataService) ListShippingLines(ctx context.Context, request *v1.ListShippingLinesRequest) (*v1.ListShippingLinesResponse, error) {
@@ -268,7 +267,7 @@ func (s *MasterDataService) ListShippingLines(ctx context.Context, request *v1.L
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListShippingLinesResponse{Success: true, Code: 0, Message: "OK", Data: shippingLinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize), TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListShippingLinesResponse{Data: shippingLinesToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
 func (s *MasterDataService) CreateShippingLine(ctx context.Context, request *v1.CreateShippingLineRequest) (*v1.CreateShippingLineResponse, error) {
@@ -280,7 +279,7 @@ func (s *MasterDataService) CreateShippingLine(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateShippingLineResponse{Success: true, Code: 0, Message: "OK", Data: shippingLineToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreateShippingLineResponse{Data: shippingLineToAPI(created)}), nil
 }
 
 func (s *MasterDataService) UpdateShippingLine(ctx context.Context, request *v1.UpdateShippingLineRequest) (*v1.UpdateShippingLineResponse, error) {
@@ -292,7 +291,7 @@ func (s *MasterDataService) UpdateShippingLine(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateShippingLineResponse{Success: true, Code: 0, Message: "OK", Data: shippingLineToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdateShippingLineResponse{Data: shippingLineToAPI(updated)}), nil
 }
 
 func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportItemsRequest) (*v1.ImportItemsResponse, error) {
@@ -325,15 +324,11 @@ func (s *MasterDataService) ImportItems(ctx context.Context, request *v1.ImportI
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ImportItemsResponse{
-		Success:      true,
-		Code:         0,
-		Message:      "OK",
+	return ok(ctx, &v1.ImportItemsResponse{
 		Data:         masterDataItemsToAPI(result.Items),
 		CreatedCount: int32(result.Created),
 		UpdatedCount: int32(result.Updated),
-		TraceId:      requestmeta.TraceID(ctx),
-	}, nil
+	}), nil
 }
 
 func (s *MasterDataService) ListNumberRules(ctx context.Context, _ *v1.ListNumberRulesRequest) (*v1.ListNumberRulesResponse, error) {
@@ -345,13 +340,9 @@ func (s *MasterDataService) ListNumberRules(ctx context.Context, _ *v1.ListNumbe
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListNumberRulesResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    numberRulesToAPI(rules),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return okList(ctx, &v1.ListNumberRulesResponse{
+		Data: numberRulesToAPI(rules),
+	}), nil
 }
 
 func (s *MasterDataService) CreateNumberRule(ctx context.Context, request *v1.CreateNumberRuleRequest) (*v1.CreateNumberRuleResponse, error) {
@@ -369,13 +360,9 @@ func (s *MasterDataService) CreateNumberRule(ctx context.Context, request *v1.Cr
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateNumberRuleResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    numberRuleToAPI(created),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.CreateNumberRuleResponse{
+		Data: numberRuleToAPI(created),
+	}), nil
 }
 
 func (s *MasterDataService) UpdateNumberRule(ctx context.Context, request *v1.UpdateNumberRuleRequest) (*v1.UpdateNumberRuleResponse, error) {
@@ -397,13 +384,9 @@ func (s *MasterDataService) UpdateNumberRule(ctx context.Context, request *v1.Up
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdateNumberRuleResponse{
-		Success: true,
-		Code:    0,
-		Message: "OK",
-		Data:    numberRuleToAPI(updated),
-		TraceId: requestmeta.TraceID(ctx),
-	}, nil
+	return ok(ctx, &v1.UpdateNumberRuleResponse{
+		Data: numberRuleToAPI(updated),
+	}), nil
 }
 
 func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {

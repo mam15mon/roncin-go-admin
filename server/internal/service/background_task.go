@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	taskv1 "github.com/roncin/roncin-go-admin/server/api/task/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
 
 // BackgroundTaskService 后台任务追踪服务，只做 DTO 转换、边界校验和用例调用。
@@ -73,16 +72,12 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 	for _, item := range result.Items {
 		data = append(data, backgroundTaskToAPI(item))
 	}
-	return &taskv1.ListBackgroundTasksResponse{
-		Success:  true,
-		Code:     0,
-		Message:  "OK",
+	return okList(ctx, &taskv1.ListBackgroundTasksResponse{
 		Data:     data,
 		Total:    int32(result.Total),
 		Page:     int32(result.Page),
 		PageSize: int32(result.PageSize),
-		TraceId:  requestmeta.TraceID(ctx),
-	}, nil
+	}), nil
 }
 
 func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *taskv1.GetBackgroundTaskRequest) (*taskv1.GetBackgroundTaskResponse, error) {
@@ -98,7 +93,7 @@ func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *
 	if err != nil {
 		return nil, err
 	}
-	return &taskv1.GetBackgroundTaskResponse{Success: true, Code: 0, Message: "OK", Data: backgroundTaskToAPI(task), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &taskv1.GetBackgroundTaskResponse{Data: backgroundTaskToAPI(task)}), nil
 }
 
 func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, request *taskv1.RequeueBackgroundTaskRequest) (*taskv1.RequeueBackgroundTaskResponse, error) {
@@ -114,7 +109,7 @@ func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, reque
 	if err != nil {
 		return nil, err
 	}
-	return &taskv1.RequeueBackgroundTaskResponse{Success: true, Code: 0, Message: "OK", Data: backgroundTaskToAPI(task), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &taskv1.RequeueBackgroundTaskResponse{Data: backgroundTaskToAPI(task)}), nil
 }
 
 // backgroundTaskToAPI 刻意不暴露租约令牌与租约到期时间，它们是内部执行凭据。

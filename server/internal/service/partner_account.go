@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
 	"github.com/google/uuid"
 )
@@ -33,7 +32,7 @@ func (s *PartnerService) ListPartnerAccounts(ctx context.Context, request *v1.Li
 	for _, item := range items {
 		data = append(data, partnerAccountToAPI(item))
 	}
-	return &v1.ListPartnerAccountsResponse{Success: true, Code: 0, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
+	return okList(ctx, &v1.ListPartnerAccountsResponse{Data: data}), nil
 }
 
 func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.CreatePartnerAccountRequest) (*v1.CreatePartnerAccountResponse, error) {
@@ -49,7 +48,7 @@ func (s *PartnerService) CreatePartnerAccount(ctx context.Context, request *v1.C
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreatePartnerAccountResponse{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(created), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.CreatePartnerAccountResponse{Data: partnerAccountToAPI(created)}), nil
 }
 
 func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.UpdatePartnerAccountRequest) (*v1.UpdatePartnerAccountResponse, error) {
@@ -66,7 +65,7 @@ func (s *PartnerService) UpdatePartnerAccount(ctx context.Context, request *v1.U
 	if err != nil {
 		return nil, err
 	}
-	return &v1.UpdatePartnerAccountResponse{Success: true, Code: 0, Message: "OK", Data: partnerAccountToAPI(updated), TraceId: requestmeta.TraceID(ctx)}, nil
+	return ok(ctx, &v1.UpdatePartnerAccountResponse{Data: partnerAccountToAPI(updated)}), nil
 }
 
 func partnerAccountFromAPI(value *v1.PartnerAccountInput) *biz.PartnerAccount {
