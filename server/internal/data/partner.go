@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -208,7 +207,11 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 		var createErr error
 		created, createErr = create.Save(ctx)
 		if createErr != nil {
-			return mapPartnerConstraint(createErr)
+			return mapEntConstraints(createErr,
+				entConstraintMapping{name: "partner_org_code_key", domainErr: biz.ErrPartnerCodeExists},
+				entConstraintMapping{name: "partner_org_name_key", domainErr: biz.ErrPartnerNameExists},
+				entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
+			)
 		}
 		if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
 			return childErr
@@ -249,7 +252,10 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 			update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 		}
 		if _, updateErr := update.Save(ctx); updateErr != nil {
-			return mapPartnerConstraint(updateErr)
+			return mapEntConstraints(updateErr,
+				entConstraintMapping{name: "partner_org_name_key", domainErr: biz.ErrPartnerNameExists},
+				entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
+			)
 		}
 		if replaceErr := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, input.Roles); replaceErr != nil {
 			return replaceErr
@@ -360,7 +366,11 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 				}
 				created, saveErr := create.Save(ctx)
 				if saveErr != nil {
-					return mapPartnerConstraint(saveErr)
+					return mapEntConstraints(saveErr,
+						entConstraintMapping{name: "partner_org_code_key", domainErr: biz.ErrPartnerCodeExists},
+						entConstraintMapping{name: "partner_org_name_key", domainErr: biz.ErrPartnerNameExists},
+						entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
+					)
 				}
 				if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
 					return childErr
@@ -398,7 +408,10 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 		update.SetUnifiedSocialCreditCode(input.UnifiedSocialCreditCode)
 	}
 	if _, err := update.Save(ctx); err != nil {
-		return mapPartnerConstraint(err)
+		return mapEntConstraints(err,
+			entConstraintMapping{name: "partner_org_name_key", domainErr: biz.ErrPartnerNameExists},
+			entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
+		)
 	}
 	if err := replacePartnerRoles(ctx, tx, existing.ID, existing.Edges.Roles, input.Roles); err != nil {
 		return err
@@ -460,7 +473,7 @@ func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, part
 			SetRoleType(partnerroleent.RoleType(role.Type)).
 			SetEnabled(role.Enabled).
 			Save(ctx); err != nil {
-			return mapPartnerConstraint(err)
+			return mapEntConstraint(err, "partner_role_type_key", biz.ErrPartnerInvalidRole)
 		}
 	}
 	if err := savePartnerRoleSettlementRules(ctx, tx, partnerID, input.Roles); err != nil {
@@ -589,7 +602,7 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 		if _, err := tx.PartnerAssignment.Create().SetPartnerID(partnerID).SetUserID(assignment.UserID).
 			SetOrganizationID(assignment.OrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).
 			SetSortOrder(assignment.SortOrder).Save(ctx); err != nil {
-			return mapPartnerConstraint(err)
+			return mapEntConstraint(err, "partnerassignment_partner_id_role_sort_order", biz.ErrPartnerInvalidArgument)
 		}
 	}
 	return nil
@@ -619,7 +632,7 @@ func createPartnerContacts(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID,
 			SetNote(contact.Note).
 			SetIsPrimary(contact.IsPrimary).
 			Save(ctx); err != nil {
-			return mapPartnerConstraint(err)
+			return mapEntConstraint(err, "partner_primary_contact_key", biz.ErrPartnerPrimaryContactConflict)
 		}
 	}
 	return nil
@@ -633,7 +646,7 @@ func createPartnerAliases(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, 
 			SetNormalizedAliasName(alias.NormalizedAliasName).
 			SetSortOrder(alias.SortOrder).
 			Save(ctx); err != nil {
-			return mapPartnerConstraint(err)
+			return mapEntConstraint(err, "partner_alias_name_key", biz.ErrPartnerAliasExists)
 		}
 	}
 	return nil
@@ -666,7 +679,7 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 			SetRoleType(partnerroleent.RoleType(role.Type)).
 			SetEnabled(role.Enabled).
 			Save(ctx); err != nil {
-			return mapPartnerConstraint(err)
+			return mapEntConstraint(err, "partner_role_type_key", biz.ErrPartnerInvalidRole)
 		}
 	}
 	return nil
@@ -707,31 +720,6 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID u
 		}
 	}
 	return nil
-}
-
-func mapPartnerConstraint(err error) error {
-	if !ent.IsConstraintError(err) {
-		return err
-	}
-	message := err.Error()
-	switch {
-	case strings.Contains(message, "partner_org_code_key"):
-		return biz.ErrPartnerCodeExists
-	case strings.Contains(message, "partner_org_name_key"):
-		return biz.ErrPartnerNameExists
-	case strings.Contains(message, "partner_org_uscc_key"):
-		return biz.ErrPartnerUSCCExists
-	case strings.Contains(message, "partner_primary_contact_key"):
-		return biz.ErrPartnerPrimaryContactConflict
-	case strings.Contains(message, "partner_alias_name_key"):
-		return biz.ErrPartnerAliasExists
-	case strings.Contains(message, "partner_role_type_key"):
-		return biz.ErrPartnerInvalidRole
-	case strings.Contains(message, "partnerassignment_partner_id_role_sort_order"):
-		return biz.ErrPartnerInvalidArgument
-	default:
-		return err
-	}
 }
 
 func partnerToBiz(item *ent.Partner) *biz.Partner {

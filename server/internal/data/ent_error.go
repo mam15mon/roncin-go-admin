@@ -6,6 +6,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
 
+type entConstraintMapping struct {
+	name      string
+	domainErr error
+}
+
 // mapEntError 将 Ent 标准查询和约束错误映射为调用方指定的领域错误。
 func mapEntError(err, notFoundErr, constraintErr error) error {
 	if err == nil {
@@ -24,6 +29,14 @@ func mapEntError(err, notFoundErr, constraintErr error) error {
 func mapEntConstraint(err error, constraintName string, constraintErr error) error {
 	if ent.IsConstraintError(err) && strings.Contains(err.Error(), constraintName) {
 		return constraintErr
+	}
+	return err
+}
+
+// mapEntConstraints 按顺序尝试多个命名约束映射，未命中时保留原错误。
+func mapEntConstraints(err error, mappings ...entConstraintMapping) error {
+	for _, mapping := range mappings {
+		err = mapEntConstraint(err, mapping.name, mapping.domainErr)
 	}
 	return err
 }

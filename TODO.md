@@ -184,6 +184,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       公共 `mapEntConstraint`，移除私有映射器
 - [x] 第三批：`finance_verification.go` 核销幂等与分配对约束按写入场景改用
       公共 `mapEntConstraint`，移除私有映射器
+- [x] 第四批：新增公共有序多约束映射，`partner.go` 主档与子资源按精确
+      约束名映射领域错误，移除私有映射器
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

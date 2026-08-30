@@ -56,3 +56,23 @@ func TestMapEntConstraint(t *testing.T) {
 		t.Fatalf("非约束错误不应改写: %v", got)
 	}
 }
+
+func TestMapEntConstraints(t *testing.T) {
+	constraintErr := &ent.ConstraintError{}
+	domainErr := errors.New("领域约束冲突")
+	got := mapEntConstraints(constraintErr,
+		entConstraintMapping{name: "未命中的约束", domainErr: errors.New("错误映射")},
+		entConstraintMapping{name: "", domainErr: domainErr},
+	)
+	if got != domainErr {
+		t.Fatalf("多约束映射结果 = %v，期望 %v", got, domainErr)
+	}
+
+	rawErr := errors.New("数据库连接失败")
+	if got := mapEntConstraints(rawErr, entConstraintMapping{name: "", domainErr: domainErr}); got != rawErr {
+		t.Fatalf("非约束错误不应改写: %v", got)
+	}
+	if got := mapEntConstraints(constraintErr); got != constraintErr {
+		t.Fatalf("无映射配置时不应改写错误: %v", got)
+	}
+}
