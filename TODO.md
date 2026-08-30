@@ -214,6 +214,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       `mapEntError`，保留不存在里程碑时创建的分流语义
 - [x] 第十八批：`order_abnormal_case.go` 标准 NotFound 与异常类型命名约束
       改用公共错误映射，保留首次标记时创建的分流语义
+- [x] 第十九批：`order_release_pod.go` 订单与放单标准 NotFound 分支
+      改用公共 `mapEntError`
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

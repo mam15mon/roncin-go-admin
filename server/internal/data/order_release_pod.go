@@ -22,10 +22,7 @@ func NewOrderReleasePodRepo(data *Data) biz.OrderReleasePodRepo {
 
 func (r *orderReleasePodRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrOrderReleasePodNotFound
-		}
-		return err
+		return mapEntError(err, biz.ErrOrderReleasePodNotFound, nil)
 	}
 	return nil
 }
@@ -122,10 +119,7 @@ func (r *orderReleasePodRepo) Update(ctx context.Context, organizationID, orderI
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderReleasePodNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
 		}
 		if item.Status == orderreleasepodent.StatusRETURNED {
 			return biz.ErrOrderReleasePodInvalidStatus
@@ -178,10 +172,7 @@ func (r *orderReleasePodRepo) Transition(ctx context.Context, organizationID, or
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderReleasePodNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
 		}
 		if item.Status != orderreleasepodent.Status(from) {
 			return biz.ErrOrderReleasePodStatusConflict
@@ -222,10 +213,7 @@ func (r *orderReleasePodRepo) Remove(ctx context.Context, organizationID, orderI
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderReleasePodNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderReleasePodNotFound, nil)
 		}
 		if item.Status == orderreleasepodent.StatusRETURNED {
 			return biz.ErrOrderReleasePodInvalidStatus
