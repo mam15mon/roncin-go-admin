@@ -17,17 +17,15 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
 	filter := biz.FinanceBillFilter{
-		Page: int(request.GetPage()), PageSize: int(request.GetPageSize()), Keyword: financeOptionalString(request.Keyword),
+		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
 		Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))),
 		Status:    biz.FinanceBillStatus(strings.ToUpper(financeOptionalString(request.Status))),
 		Currency:  strings.ToUpper(financeOptionalString(request.Currency)), BillDateFrom: financeOptionalString(request.BillDateFrom), BillDateTo: financeOptionalString(request.BillDateTo),
-	}
-	if filter.Page == 0 {
-		filter.Page = 1
-	}
-	if filter.PageSize == 0 {
-		filter.PageSize = 20
 	}
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))

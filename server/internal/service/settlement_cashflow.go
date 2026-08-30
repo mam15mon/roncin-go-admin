@@ -19,13 +19,11 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	f := biz.FinanceCashflowFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(r.Direction))), Status: biz.FinanceCashflowStatus(strings.ToUpper(financeOptionalString(r.Status))), Currency: strings.ToUpper(financeOptionalString(r.Currency))}
-	if f.Page == 0 {
-		f.Page = 1
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrFinanceCashflowInvalidArgument)
+	if err != nil {
+		return nil, err
 	}
-	if f.PageSize == 0 {
-		f.PageSize = 20
-	}
+	f := biz.FinanceCashflowFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(r.Direction))), Status: biz.FinanceCashflowStatus(strings.ToUpper(financeOptionalString(r.Status))), Currency: strings.ToUpper(financeOptionalString(r.Currency))}
 	if r.SettlementPartyId != nil && strings.TrimSpace(*r.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*r.SettlementPartyId))
 		if err != nil {

@@ -18,13 +18,11 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	f := biz.CommissionFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Status: biz.CommissionStatus(strings.ToUpper(financeOptionalString(r.Status)))}
-	if f.Page == 0 {
-		f.Page = 1
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionInvalid)
+	if err != nil {
+		return nil, err
 	}
-	if f.PageSize == 0 {
-		f.PageSize = 20
-	}
+	f := biz.CommissionFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: biz.CommissionStatus(strings.ToUpper(financeOptionalString(r.Status)))}
 	result, err := s.commissionUsecase.List(ctx, p.Organization.ID, f)
 	if err != nil {
 		return nil, err
@@ -51,7 +49,10 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrCommissionInvalid)
+	if err != nil {
+		return nil, err
+	}
 	result, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID, biz.SelectorListOptions{
 		Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword),
 	})
@@ -80,13 +81,11 @@ func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.
 	if err != nil {
 		return nil, biz.ErrCommissionInvalid
 	}
-	f := biz.CommissionCandidateFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), VerificationID: verificationID, RuleID: ruleID}
-	if f.Page == 0 {
-		f.Page = 1
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionInvalid)
+	if err != nil {
+		return nil, err
 	}
-	if f.PageSize == 0 {
-		f.PageSize = 20
-	}
+	f := biz.CommissionCandidateFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), VerificationID: verificationID, RuleID: ruleID}
 	result, err := s.commissionUsecase.ListCandidates(ctx, p.Organization.ID, f)
 	if err != nil {
 		return nil, err
@@ -105,13 +104,11 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	f := biz.CommissionRuleFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
-	if f.Page == 0 {
-		f.Page = 1
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrCommissionInvalid)
+	if err != nil {
+		return nil, err
 	}
-	if f.PageSize == 0 {
-		f.PageSize = 20
-	}
+	f := biz.CommissionRuleFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
 	result, err := s.commissionUsecase.ListRules(ctx, p.Organization.ID, f)
 	if err != nil {
 		return nil, err

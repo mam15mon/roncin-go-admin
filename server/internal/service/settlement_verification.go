@@ -18,13 +18,11 @@ func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVer
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	f := biz.VerificationFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Status: biz.VerificationStatus(strings.ToUpper(financeOptionalString(r.Status)))}
-	if f.Page == 0 {
-		f.Page = 1
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrVerificationInvalid)
+	if err != nil {
+		return nil, err
 	}
-	if f.PageSize == 0 {
-		f.PageSize = 20
-	}
+	f := biz.VerificationFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(r.Keyword), Status: biz.VerificationStatus(strings.ToUpper(financeOptionalString(r.Status)))}
 	result, e := s.verificationUsecase.List(ctx, p.Organization.ID, f)
 	if e != nil {
 		return nil, e

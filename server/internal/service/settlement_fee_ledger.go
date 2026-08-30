@@ -17,13 +17,11 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	filter := biz.FeeLedgerFilter{Page: int(request.GetPage()), PageSize: int(request.GetPageSize())}
-	if filter.Page == 0 {
-		filter.Page = 1
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceLedgerInvalidArgument)
+	if err != nil {
+		return nil, err
 	}
-	if filter.PageSize == 0 {
-		filter.PageSize = 20
-	}
+	filter := biz.FeeLedgerFilter{Page: page, PageSize: pageSize}
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))

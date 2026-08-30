@@ -17,13 +17,11 @@ func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListIn
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	filter := biz.FinanceInvoiceFilter{Page: int(request.GetPage()), PageSize: int(request.GetPageSize()), Keyword: financeOptionalString(request.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))), Status: biz.FinanceInvoiceStatus(strings.ToUpper(financeOptionalString(request.Status)))}
-	if filter.Page == 0 {
-		filter.Page = 1
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceInvoiceInvalidArgument)
+	if err != nil {
+		return nil, err
 	}
-	if filter.PageSize == 0 {
-		filter.PageSize = 20
-	}
+	filter := biz.FinanceInvoiceFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))), Status: biz.FinanceInvoiceStatus(strings.ToUpper(financeOptionalString(request.Status)))}
 	result, err := s.invoiceUsecase.List(ctx, principal.Organization.ID, filter)
 	if err != nil {
 		return nil, err
