@@ -11,6 +11,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/shopspring/decimal"
@@ -29,6 +30,36 @@ func setupFinanceSummaryData(t *testing.T) (*Data, sqlmock.Sqlmock) {
 		_ = db.Close()
 	})
 	return &Data{db: client, sqlDB: db}, mock
+}
+
+func TestFinanceCashflowListUsesFilteredDatabaseSummary(t *testing.T) {
+	data, mock := setupFinanceSummaryData(t)
+	repo := &financeCashflowRepo{data: data}
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows"`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5))
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_cashflows".*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
+			AddRow("RECEIVABLE", "CNY", "200.5").
+			AddRow("PAYABLE", "CNY", "70"))
+	mock.ExpectQuery(`SELECT .*"verified_base_amount".*FROM "finance_verification_allocations".*finance_cashflows.*GROUP BY`).
+		WillReturnRows(sqlmock.NewRows([]string{"active", "verified_base_amount"}).AddRow(true, "80.5"))
+	mock.ExpectQuery(`SELECT "finance_cashflows"\..*FROM "finance_cashflows".*ORDER BY.*LIMIT 20 OFFSET 20`).
+		WillReturnRows(sqlmock.NewRows(financecashflowent.Columns))
+
+	result, err := repo.List(context.Background(), uuid.New(), biz.FinanceCashflowFilter{Page: 2, PageSize: 20})
+	if err != nil {
+		t.Fatalf("查询资金流水列表失败: %v", err)
+	}
+	if result.Total != 5 || len(result.Items) != 0 {
+		t.Fatalf("资金流水分页结果不符合预期: total=%d items=%d", result.Total, len(result.Items))
+	}
+	if result.Summary.BaseCurrency != "CNY" || !result.Summary.ReceivableBaseAmount.Equal(decimal.RequireFromString("200.5")) || !result.Summary.PayableBaseAmount.Equal(decimal.NewFromInt(70)) || !result.Summary.UnverifiedBaseAmount.Equal(decimal.NewFromInt(190)) {
+		t.Fatalf("资金流水汇总不符合预期: %+v", result.Summary)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("资金流水列表未使用数据库分页或汇总: %v", err)
+	}
 }
 
 func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {

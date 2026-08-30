@@ -39,7 +39,19 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 	for _, x := range result.Items {
 		data = append(data, cashflowToAPI(x))
 	}
-	return &v1.ListCashflowsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListCashflowsResponse{
+		Success: true,
+		Message: "OK",
+		Data:    data,
+		Total:   result.Total,
+		TraceId: requestmeta.TraceID(ctx),
+		Summary: &v1.FinanceCashflowSummary{
+			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
+			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
+			UnverifiedBaseAmount: result.Summary.UnverifiedBaseAmount.StringFixed(8),
+			BaseCurrency:         result.Summary.BaseCurrency,
+		},
+	}, nil
 }
 func (s *SettlementService) CreateCashflow(ctx context.Context, r *v1.CreateCashflowRequest) (*v1.CreateCashflowResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)

@@ -8856,6 +8856,17 @@ components:
                     type: string
                 exchangeRateSettingId:
                     type: string
+        finance.v1.FinanceCashflowSummary:
+            type: object
+            properties:
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                unverifiedBaseAmount:
+                    type: string
+                baseCurrency:
+                    type: string
         finance.v1.FinanceCommission:
             type: object
             properties:
@@ -9485,6 +9496,8 @@ components:
                     type: string
                 traceId:
                     type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FinanceCashflowSummary'
         finance.v1.ListCommissionCandidatesResponse:
             type: object
             properties:

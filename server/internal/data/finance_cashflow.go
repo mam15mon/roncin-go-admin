@@ -17,6 +17,17 @@ import (
 
 type financeCashflowRepo struct{ data *Data }
 
+type financeCashflowSummaryRow struct {
+	Direction    string `json:"direction"`
+	BaseCurrency string `json:"base_currency"`
+	BaseAmount   string `json:"base_amount"`
+}
+
+type financeCashflowVerifiedSummaryRow struct {
+	Active             bool   `json:"active"`
+	VerifiedBaseAmount string `json:"verified_base_amount"`
+}
+
 func NewFinanceCashflowRepo(d *Data) biz.FinanceCashflowRepo { return &financeCashflowRepo{d} }
 func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
 	p := []predicate.FinanceCashflow{cash.OrganizationIDEQ(org)}
@@ -40,11 +51,51 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 	if e != nil {
 		return nil, e
 	}
+	summaryRows := make([]financeCashflowSummaryRow, 0)
+	if e := q.Clone().
+		GroupBy(cash.FieldDirection, cash.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(cash.FieldBaseAmount), "base_amount")).
+		Scan(ctx, &summaryRows); e != nil {
+		return nil, e
+	}
+	summary := biz.FinanceCashflowSummary{
+		ReceivableBaseAmount: decimal.Zero,
+		PayableBaseAmount:    decimal.Zero,
+		UnverifiedBaseAmount: decimal.Zero,
+	}
+	for _, row := range summaryRows {
+		amount, parseErr := decimalOf(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.BaseCurrency = row.BaseCurrency
+		if row.Direction == string(cash.DirectionRECEIVABLE) {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
+	verifiedRows := make([]financeCashflowVerifiedSummaryRow, 0, 1)
+	if e := r.data.db.FinanceVerificationAllocation.Query().
+		Where(allocation.ActiveEQ(true), allocation.HasCashflowWith(p...)).
+		GroupBy(allocation.FieldActive).
+		Aggregate(ent.As(ent.Sum(allocation.FieldCashflowBaseAmount), "verified_base_amount")).
+		Scan(ctx, &verifiedRows); e != nil {
+		return nil, e
+	}
+	verifiedBaseAmount := decimal.Zero
+	if len(verifiedRows) > 0 {
+		verifiedBaseAmount, e = decimalOf(verifiedRows[0].VerifiedBaseAmount)
+		if e != nil {
+			return nil, e
+		}
+	}
+	summary.UnverifiedBaseAmount = summary.ReceivableBaseAmount.Add(summary.PayableBaseAmount).Sub(verifiedBaseAmount)
 	xs, e := q.Order(cash.ByTransactionDate(entsql.OrderDesc()), cash.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.FinanceCashflowListResult{Items: make([]*biz.FinanceCashflow, 0, len(xs)), Total: int64(n)}
+	out := &biz.FinanceCashflowListResult{Items: make([]*biz.FinanceCashflow, 0, len(xs)), Total: int64(n), Summary: summary}
 	for _, x := range xs {
 		v, e := cashflowToBiz(x)
 		if e != nil {

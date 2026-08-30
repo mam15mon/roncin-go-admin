@@ -2047,6 +2047,13 @@ declare namespace API {
     exchangeRateSettingId?: string;
   };
 
+  type FinanceCashflowSummary = {
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    unverifiedBaseAmount?: string;
+    baseCurrency?: string;
+  };
+
   type FinanceCommission = {
     id?: string;
     commissionNo?: string;
@@ -2551,6 +2558,7 @@ declare namespace API {
     data?: FinanceCashflow[];
     total?: string;
     traceId?: string;
+    summary?: FinanceCashflowSummary;
   };
 
   type ListCommissionCandidatesResponse = {

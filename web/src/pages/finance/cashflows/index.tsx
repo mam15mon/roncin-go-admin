@@ -26,7 +26,7 @@ import {
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList, unwrapPage } from '@/utils/api';
+import { toTableRequest, unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 
 type Values = {
@@ -63,6 +63,7 @@ export default function FinanceCashflowsPage() {
     incomeBase: 0,
     payoutBase: 0,
     unverifiedBase: 0,
+    baseCurrency: '',
   });
 
   const reload = () => actionRef.current?.reload();
@@ -114,7 +115,7 @@ export default function FinanceCashflowsPage() {
       title: '收款流水折本币',
       value: metricStats.incomeBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#1677ff',
     },
     {
@@ -122,7 +123,7 @@ export default function FinanceCashflowsPage() {
       title: '付款流水折本币',
       value: metricStats.payoutBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#fa8c16',
     },
     {
@@ -130,7 +131,7 @@ export default function FinanceCashflowsPage() {
       title: '未核销可用资金',
       value: metricStats.unverifiedBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#52c41a',
     },
   ];
@@ -341,28 +342,14 @@ export default function FinanceCashflowsPage() {
             direction: p.direction,
             status: p.status,
           });
-          const page = unwrapPage(r);
-          const list = page.data;
-          let incBase = 0;
-          let payBase = 0;
-          let unvBase = 0;
-          for (const item of list) {
-            const baseAmount = Number(item.baseAmount || 0);
-            const unverified = Number(item.unverifiedAmount || 0);
-            if (item.direction === 'RECEIVABLE') {
-              incBase += baseAmount;
-            } else if (item.direction === 'PAYABLE') {
-              payBase += baseAmount;
-            }
-            unvBase += unverified;
-          }
           setMetricStats({
-            totalCount: page.total,
-            incomeBase: incBase,
-            payoutBase: payBase,
-            unverifiedBase: unvBase,
+            totalCount: Number(r.total ?? 0),
+            incomeBase: Number(r.summary?.receivableBaseAmount ?? 0),
+            payoutBase: Number(r.summary?.payableBaseAmount ?? 0),
+            unverifiedBase: Number(r.summary?.unverifiedBaseAmount ?? 0),
+            baseCurrency: r.summary?.baseCurrency ?? '',
           });
-          return { ...toTableRequest(r), total: page.total };
+          return { ...toTableRequest(r), total: Number(r.total ?? 0) };
         }}
       />
       <ModalForm<Values>

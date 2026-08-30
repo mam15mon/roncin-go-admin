@@ -54,8 +54,15 @@ type FinanceCashflowFilter struct {
 	Currency          string
 }
 type FinanceCashflowListResult struct {
-	Items []*FinanceCashflow
-	Total int64
+	Items   []*FinanceCashflow
+	Total   int64
+	Summary FinanceCashflowSummary
+}
+type FinanceCashflowSummary struct {
+	ReceivableBaseAmount decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	UnverifiedBaseAmount decimal.Decimal
+	BaseCurrency         string
 }
 type CreateFinanceCashflowInput struct {
 	Direction                                                OrderFeeDirection
