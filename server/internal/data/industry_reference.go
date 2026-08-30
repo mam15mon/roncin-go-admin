@@ -234,79 +234,61 @@ func (r *industryReferenceRepo) ListShippingLines(ctx context.Context, organizat
 }
 
 func (r *industryReferenceRepo) CreateShippingLine(ctx context.Context, organizationID uuid.UUID, input *biz.ShippingLine, audit *biz.AuditEvent) (*biz.ShippingLine, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := tx.ShippingLine.Create().SetOrganizationID(organizationID).SetScacCode(input.SCACCode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetNillableTrackingURL(input.TrackingURL).SetNillableAlliance(input.Alliance).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
-	}
-	if err := replaceShippingLinePrefixes(ctx, tx, organizationID, created.ID, input.ContainerPrefixes); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	item, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(created.ID), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["industry_reference.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var item *ent.ShippingLine
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		created, err := tx.ShippingLine.Create().SetOrganizationID(organizationID).SetScacCode(input.SCACCode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetNillableTrackingURL(input.TrackingURL).SetNillableAlliance(input.Alliance).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+		if err != nil {
+			return mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
+		}
+		if err := replaceShippingLinePrefixes(ctx, tx, organizationID, created.ID, input.ContainerPrefixes); err != nil {
+			return err
+		}
+		item, err = tx.ShippingLine.Query().Where(shippingline.IDEQ(created.ID), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
+		if err != nil {
+			return err
+		}
+		audit.Details["industry_reference.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return shippingLineToBiz(item), nil
 }
 
 func (r *industryReferenceRepo) UpdateShippingLine(ctx context.Context, organizationID, id uuid.UUID, input *biz.ShippingLine, audit *biz.AuditEvent) (*biz.ShippingLine, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
-	}
-	update := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
-	if input.TrackingURL == nil {
-		update.ClearTrackingURL()
-	} else {
-		update.SetTrackingURL(*input.TrackingURL)
-	}
-	if input.Alliance == nil {
-		update.ClearAlliance()
-	} else {
-		update.SetAlliance(*input.Alliance)
-	}
-	if _, err := update.Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
-	}
-	if _, err := tx.ShippingLineContainerPrefix.Delete().Where(shippinglinecontainerprefix.ShippingLineIDEQ(id)).Exec(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := replaceShippingLinePrefixes(ctx, tx, organizationID, id, input.ContainerPrefixes); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	item, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["standard_code"] = item.ScacCode
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var item *ent.ShippingLine
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
+		}
+		update := existing.Update().SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled)
+		if input.TrackingURL == nil {
+			update.ClearTrackingURL()
+		} else {
+			update.SetTrackingURL(*input.TrackingURL)
+		}
+		if input.Alliance == nil {
+			update.ClearAlliance()
+		} else {
+			update.SetAlliance(*input.Alliance)
+		}
+		if _, err := update.Save(ctx); err != nil {
+			return mapEntError(err, nil, biz.ErrIndustryReferenceCodeExist)
+		}
+		if _, err := tx.ShippingLineContainerPrefix.Delete().Where(shippinglinecontainerprefix.ShippingLineIDEQ(id)).Exec(ctx); err != nil {
+			return err
+		}
+		if err := replaceShippingLinePrefixes(ctx, tx, organizationID, id, input.ContainerPrefixes); err != nil {
+			return err
+		}
+		item, err = tx.ShippingLine.Query().Where(shippingline.IDEQ(id), shippingline.OrganizationIDEQ(organizationID)).WithContainerPrefixes(func(query *ent.ShippingLineContainerPrefixQuery) { query.Order(shippinglinecontainerprefix.ByPrefix()) }).Only(ctx)
+		if err != nil {
+			return err
+		}
+		audit.Details["standard_code"] = item.ScacCode
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return shippingLineToBiz(item), nil
