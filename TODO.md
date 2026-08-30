@@ -155,7 +155,9 @@ status_template_items，含 label + color_token，本就按组织可配）与前
 `biz/partner_contract.go:120`。后端改一条流转，前端静默不同步。
 **方案**：仿订单详情 `allowedActions`（`detail.tsx:236`）先例，响应中
 下发 `allowedTargetStatuses`，前端下拉只做展示。
-- [ ] 订单流转、放货凭证、伙伴合同三处改造完成
+- [x] 订单、放货凭证、伙伴合同响应分别下发 `allowedTargetFlowStatuses`、
+      `allowedTargetStatuses`、`allowedStatuses`；前端仅将服务端允许值映射为
+      展示选项，三处领域允许流转规则均有测试覆盖
 
 ### A5. reason 错误码收口
 **问题**：前端 11+ 处硬编码 reason 字符串做控制流（如
