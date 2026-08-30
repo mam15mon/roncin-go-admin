@@ -98,75 +98,65 @@ func (r *exchangeRateRepo) save(ctx context.Context, input *biz.ExchangeRateSett
 		effectiveTo = &parsed
 	}
 
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if updating {
-		current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			_ = tx.Rollback()
-			if ent.IsNotFound(queryErr) {
-				return nil, biz.ErrExchangeRateNotFound
-			}
-			return nil, queryErr
-		}
-		if !current.IsActive {
-			_ = tx.Rollback()
-			return nil, biz.ErrExchangeRateNotFound
-		}
-	}
-	conflict := tx.ExchangeRateSetting.Query().Where(
-		exchangerateent.OrganizationIDEQ(input.OrganizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(input.RateType)),
-		exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
-		exchangerateent.IsActiveEQ(true),
-		exchangerateent.IDNEQ(input.ID),
-		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
-	)
-	if effectiveTo != nil {
-		conflict.Where(exchangerateent.EffectiveFromLT(*effectiveTo))
-	}
-	hasConflict, err := conflict.Exist(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if hasConflict {
-		_ = tx.Rollback()
-		return nil, biz.ErrExchangeRateOverlap
-	}
-
 	var saved *ent.ExchangeRateSetting
-	if updating {
-		builder := tx.ExchangeRateSetting.UpdateOneID(input.ID).
-			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetEffectiveFrom(effectiveFrom).
-			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8))
-		if input.EffectiveTo == nil {
-			builder.ClearEffectiveTo()
-		} else {
-			builder.SetEffectiveTo(*effectiveTo)
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if updating {
+			current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+			if queryErr != nil {
+				if ent.IsNotFound(queryErr) {
+					return biz.ErrExchangeRateNotFound
+				}
+				return queryErr
+			}
+			if !current.IsActive {
+				return biz.ErrExchangeRateNotFound
+			}
 		}
-		saved, err = builder.Save(ctx)
-	} else {
-		builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
-			SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
-			SetEffectiveFrom(effectiveFrom).
-			SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8)).SetIsActive(true)
+		conflict := tx.ExchangeRateSetting.Query().Where(
+			exchangerateent.OrganizationIDEQ(input.OrganizationID), exchangerateent.RateTypeEQ(exchangerateent.RateType(input.RateType)),
+			exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
+			exchangerateent.IsActiveEQ(true),
+			exchangerateent.IDNEQ(input.ID),
+			exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGT(effectiveFrom)),
+		)
 		if effectiveTo != nil {
-			builder.SetEffectiveTo(*effectiveTo)
+			conflict.Where(exchangerateent.EffectiveFromLT(*effectiveTo))
 		}
-		saved, err = builder.Save(ctx)
-	}
+		hasConflict, queryErr := conflict.Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if hasConflict {
+			return biz.ErrExchangeRateOverlap
+		}
+		var saveErr error
+		if updating {
+			builder := tx.ExchangeRateSetting.UpdateOneID(input.ID).
+				SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
+				SetEffectiveFrom(effectiveFrom).
+				SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8))
+			if input.EffectiveTo == nil {
+				builder.ClearEffectiveTo()
+			} else {
+				builder.SetEffectiveTo(*effectiveTo)
+			}
+			saved, saveErr = builder.Save(ctx)
+		} else {
+			builder := tx.ExchangeRateSetting.Create().SetID(input.ID).SetOrganizationID(input.OrganizationID).
+				SetRateType(exchangerateent.RateType(input.RateType)).SetFromCurrency(input.FromCurrency).SetToCurrency(input.ToCurrency).
+				SetEffectiveFrom(effectiveFrom).
+				SetReceivableRate(input.ReceivableRate.StringFixed(8)).SetPayableRate(input.PayableRate.StringFixed(8)).SetIsActive(true)
+			if effectiveTo != nil {
+				builder.SetEffectiveTo(*effectiveTo)
+			}
+			saved, saveErr = builder.Save(ctx)
+		}
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return exchangeRateToBiz(saved)
