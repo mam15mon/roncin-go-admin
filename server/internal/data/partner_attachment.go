@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -19,10 +18,7 @@ func NewPartnerAttachmentRepo(data *Data) biz.PartnerAttachmentRepo {
 
 func (r *partnerAttachmentRepo) partner(ctx context.Context, organizationID, partnerID uuid.UUID) error {
 	if _, err := r.data.db.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrPartnerAttachmentInvalidArgument
-		}
-		return err
+		return mapEntError(err, biz.ErrPartnerAttachmentInvalidArgument, nil)
 	}
 	return nil
 }
@@ -62,10 +58,7 @@ func (r *partnerAttachmentRepo) Create(ctx context.Context, organizationID, acto
 		var saveErr error
 		created, saveErr = create.Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) && strings.Contains(saveErr.Error(), "partner_attachment_idempotency_key") {
-				return biz.ErrPartnerAttachmentExists
-			}
-			return saveErr
+			return mapEntConstraint(saveErr, "partner_attachment_idempotency_key", biz.ErrPartnerAttachmentExists)
 		}
 		audit.Details["attachment.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)

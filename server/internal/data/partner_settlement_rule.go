@@ -25,10 +25,7 @@ func (r *partnerSettlementRuleRepo) role(ctx context.Context, organizationID, pa
 		partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID)),
 	).Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrPartnerSettlementRuleInvalidArgument
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerSettlementRuleInvalidArgument, nil)
 	}
 	return role, nil
 }
@@ -89,10 +86,11 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 		var saveErr error
 		updated, saveErr = updatePartnerSettlementRule(ctx, update, input)
 		if saveErr != nil {
-			if ent.IsNotFound(saveErr) {
-				return biz.ErrPartnerSettlementRuleNotFound
-			}
-			return mapEntConstraint(saveErr, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
+			return mapEntConstraint(
+				mapEntError(saveErr, biz.ErrPartnerSettlementRuleNotFound, nil),
+				"partner_settlement_rule_key",
+				biz.ErrPartnerSettlementRuleExists,
+			)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})

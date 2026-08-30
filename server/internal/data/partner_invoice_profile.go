@@ -82,11 +82,8 @@ func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID u
 			return lockErr
 		}
 		current, queryErr := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profile.ID), profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrPartnerInvoiceProfileNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerInvoiceProfileNotFound, nil)
 		}
 		if current.Version != expectedVersion {
 			return biz.ErrPartnerInvoiceProfileVersionConflict
@@ -131,10 +128,7 @@ func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID u
 
 func lockInvoiceProfilePartner(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID) error {
 	_, err := tx.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return biz.ErrPartnerNotFound
-	}
-	return err
+	return mapEntError(err, biz.ErrPartnerNotFound, nil)
 }
 
 func partnerInvoiceProfileToBiz(item *ent.PartnerInvoiceProfile) *biz.PartnerInvoiceProfile {

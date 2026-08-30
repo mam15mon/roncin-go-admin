@@ -85,11 +85,8 @@ func (r *partnerShippingPresetRepo) Create(ctx context.Context, organizationID, 
 func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, partnerID, id uuid.UUID, input *biz.PartnerShippingPreset, audit *biz.AuditEvent) (*biz.PartnerShippingPreset, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).ForUpdate().Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			return biz.ErrPartnerShippingPresetNotFound
-		}
 		if queryErr != nil {
-			return queryErr
+			return mapEntError(queryErr, biz.ErrPartnerShippingPresetNotFound, nil)
 		}
 		if biz.PartnerShippingPresetType(existing.ResourceType) != input.PresetType {
 			return biz.ErrPartnerShippingPresetInvalidArgument
@@ -122,11 +119,8 @@ func (r *partnerShippingPresetRepo) Update(ctx context.Context, organizationID, 
 
 func (r *partnerShippingPresetRepo) getShippingPreset(ctx context.Context, organizationID, partnerID, id uuid.UUID) (*biz.PartnerShippingPreset, error) {
 	item, err := r.data.db.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.HasPartnerLinksWith(linkent.PartnerIDEQ(partnerID))).WithParty().WithShippingText().WithPartnerLinks(func(query *ent.EnterpriseResourcePartnerQuery) { query.Where(linkent.PartnerIDEQ(partnerID)) }).Only(ctx)
-	if ent.IsNotFound(err) {
-		return nil, biz.ErrPartnerShippingPresetNotFound
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrPartnerShippingPresetNotFound, nil)
 	}
 	return enterpriseResourceToShippingPreset(item, partnerID), nil
 }
