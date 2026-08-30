@@ -180,11 +180,8 @@ func (r *commissionRepo) CreateRule(ctx context.Context, org uuid.UUID, item *bi
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var err error
 		x, err = tx.FinanceCommissionRule.Create().SetID(item.ID).SetOrganizationID(org).SetName(item.Name).SetPersonnelRole(rule.PersonnelRole(item.PersonnelRole)).SetCalculationBasis(rule.CalculationBasis(item.CalculationBasis)).SetRatePercent(item.RatePercent.StringFixed(4)).SetNillableEffectiveFrom(item.EffectiveFrom).SetNillableEffectiveTo(item.EffectiveTo).SetEnabled(item.Enabled).SetNillableNote(item.Note).SetVersion(1).Save(ctx)
-		if ent.IsConstraintError(err) {
-			return biz.ErrCommissionRuleConflict
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, nil, biz.ErrCommissionRuleConflict)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
@@ -219,11 +216,8 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 			u.SetNote(*in.Note)
 		}
 		updated, err = u.Save(ctx)
-		if ent.IsConstraintError(err) {
-			return biz.ErrCommissionRuleConflict
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, nil, biz.ErrCommissionRuleConflict)
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
@@ -349,11 +343,11 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		vq.ForUpdate()
 	}
 	v, err := vq.Only(ctx)
-	if ent.IsNotFound(err) || (err == nil && (v.Status != verification.StatusACTIVE || v.Direction != verification.DirectionRECEIVABLE)) {
-		return nil, biz.ErrCommissionSource
-	}
 	if err != nil {
-		return nil, err
+		return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+	}
+	if v.Status != verification.StatusACTIVE || v.Direction != verification.DirectionRECEIVABLE {
+		return nil, biz.ErrCommissionSource
 	}
 	rq := store.rules.Query().Where(rule.IDEQ(ruleID), rule.OrganizationIDEQ(org))
 	if lock {
@@ -614,11 +608,8 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 		c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit
 		c.CommissionBaseAmount, c.CommissionAmount = calculation.CommissionBaseAmount, calculation.CommissionAmount
 		_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
-		if ent.IsConstraintError(err) {
-			return biz.ErrCommissionDuplicate
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, nil, biz.ErrCommissionDuplicate)
 		}
 		lineBuilders := make([]*ent.FinanceCommissionLineCreate, 0, len(calculation.Lines))
 		for _, line := range calculation.Lines {
@@ -875,11 +866,8 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 			SetSourceType(adjustment.SourceType(item.SourceType)).SetDirection(adjustment.Direction(item.Direction)).SetStatus(adjustment.StatusDRAFT).
 			SetBaseCurrency(parent.BaseCurrency).SetAmount(item.Amount.StringFixed(8)).SetReason(item.Reason).
 			SetNillableNote(item.Note).SetVersion(1).Save(ctx)
-		if ent.IsConstraintError(err) {
-			return biz.ErrCommissionAdjustmentInvalid
-		}
 		if err != nil {
-			return err
+			return mapEntError(err, nil, biz.ErrCommissionAdjustmentInvalid)
 		}
 		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).Save(ctx); err != nil {
 			return err
