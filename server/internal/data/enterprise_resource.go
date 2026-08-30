@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"strings"
 
@@ -579,87 +580,85 @@ func (r *enterpriseResourceRepo) FindImportConflicts(ctx context.Context, organi
 }
 
 func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, actorID uuid.UUID, inputs []*biz.EnterpriseResource, overwriteConflicts bool, audit *biz.AuditEvent) ([]*biz.EnterpriseResource, int, int, []*biz.EnterpriseResourceImportConflict, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, 0, 0, nil, err
-	}
-	conflicts, err := findEnterpriseResourceImportConflicts(ctx, tx.EnterpriseResourceParty, organizationID, inputs)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, 0, 0, nil, err
-	}
-	if len(conflicts) > 0 && !overwriteConflicts {
-		_ = tx.Rollback()
+	var (
+		conflicts              []*biz.EnterpriseResourceImportConflict
+		createdCount           int
+		updatedCount           int
+		returnConflictsOnError bool
+	)
+	conflictsFound := errors.New("发现企业资源导入冲突")
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		conflicts, err = findEnterpriseResourceImportConflicts(ctx, tx.EnterpriseResourceParty, organizationID, inputs)
+		if err != nil {
+			return err
+		}
+		if len(conflicts) > 0 && !overwriteConflicts {
+			return conflictsFound
+		}
+		conflictsByRow := make(map[int][]*biz.EnterpriseResourceImportConflict)
+		for _, conflict := range conflicts {
+			conflictsByRow[conflict.RowNumber] = append(conflictsByRow[conflict.RowNumber], conflict)
+		}
+		for _, rowConflicts := range conflictsByRow {
+			if len(rowConflicts) > 1 {
+				returnConflictsOnError = true
+				return biz.ErrEnterpriseResourceImportAmbiguous
+			}
+		}
+		resourceIDsToLock := make([]uuid.UUID, 0, len(conflictsByRow))
+		resourceRows := make(map[uuid.UUID]int, len(conflictsByRow))
+		for rowNumber, rowConflicts := range conflictsByRow {
+			resourceID := rowConflicts[0].ExistingResourceID
+			if existingRow, exists := resourceRows[resourceID]; exists && existingRow != rowNumber {
+				returnConflictsOnError = true
+				return biz.ErrEnterpriseResourceImportAmbiguous
+			}
+			resourceRows[resourceID] = rowNumber
+			resourceIDsToLock = append(resourceIDsToLock, resourceID)
+		}
+		sort.Slice(resourceIDsToLock, func(i, j int) bool { return resourceIDsToLock[i].String() < resourceIDsToLock[j].String() })
+		if len(resourceIDsToLock) > 0 {
+			locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDIn(resourceIDsToLock...), resourceent.OrganizationIDEQ(organizationID)).Order(resourceent.ByID()).ForUpdate().All(ctx)
+			if err != nil {
+				return err
+			}
+			if len(locked) != len(resourceIDsToLock) {
+				return biz.ErrEnterpriseResourceInvalidArgument
+			}
+		}
+		for index, input := range inputs {
+			rowConflicts := conflictsByRow[index+1]
+			if len(rowConflicts) == 0 {
+				if _, err := createEnterpriseResource(ctx, tx, organizationID, actorID, input); err != nil {
+					return err
+				}
+				createdCount++
+				continue
+			}
+			id := rowConflicts[0].ExistingResourceID
+			if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
+				return err
+			}
+			if _, err := tx.EnterpriseResource.Update().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceType(input.ResourceType))).SetShortName(input.ShortName).SetUpdatedBy(actorID).Save(ctx); err != nil {
+				return err
+			}
+			if err := updateImportedEnterpriseResourceParty(ctx, tx, id, input.Party); err != nil {
+				return err
+			}
+			updatedCount++
+		}
+		audit.Details["created_count"] = stringInt(createdCount)
+		audit.Details["updated_count"] = stringInt(updatedCount)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if errors.Is(err, conflictsFound) {
 		return inputs, 0, 0, conflicts, nil
 	}
-	conflictsByRow := make(map[int][]*biz.EnterpriseResourceImportConflict)
-	for _, conflict := range conflicts {
-		conflictsByRow[conflict.RowNumber] = append(conflictsByRow[conflict.RowNumber], conflict)
-	}
-	for _, rowConflicts := range conflictsByRow {
-		if len(rowConflicts) > 1 {
-			_ = tx.Rollback()
-			return nil, 0, 0, conflicts, biz.ErrEnterpriseResourceImportAmbiguous
+	if err != nil {
+		if returnConflictsOnError {
+			return nil, 0, 0, conflicts, err
 		}
-	}
-	resourceIDsToLock := make([]uuid.UUID, 0, len(conflictsByRow))
-	resourceRows := make(map[uuid.UUID]int, len(conflictsByRow))
-	for rowNumber, rowConflicts := range conflictsByRow {
-		resourceID := rowConflicts[0].ExistingResourceID
-		if existingRow, exists := resourceRows[resourceID]; exists && existingRow != rowNumber {
-			_ = tx.Rollback()
-			return nil, 0, 0, conflicts, biz.ErrEnterpriseResourceImportAmbiguous
-		}
-		resourceRows[resourceID] = rowNumber
-		resourceIDsToLock = append(resourceIDsToLock, resourceID)
-	}
-	sort.Slice(resourceIDsToLock, func(i, j int) bool { return resourceIDsToLock[i].String() < resourceIDsToLock[j].String() })
-	if len(resourceIDsToLock) > 0 {
-		locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDIn(resourceIDsToLock...), resourceent.OrganizationIDEQ(organizationID)).Order(resourceent.ByID()).ForUpdate().All(ctx)
-		if err != nil {
-			_ = tx.Rollback()
-			return nil, 0, 0, nil, err
-		}
-		if len(locked) != len(resourceIDsToLock) {
-			_ = tx.Rollback()
-			return nil, 0, 0, nil, biz.ErrEnterpriseResourceInvalidArgument
-		}
-	}
-	createdCount := 0
-	updatedCount := 0
-	for index, input := range inputs {
-		rowConflicts := conflictsByRow[index+1]
-		if len(rowConflicts) == 0 {
-			_, err := createEnterpriseResource(ctx, tx, organizationID, actorID, input)
-			if err != nil {
-				_ = tx.Rollback()
-				return nil, 0, 0, nil, err
-			}
-			createdCount++
-			continue
-		}
-		id := rowConflicts[0].ExistingResourceID
-		if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
-			_ = tx.Rollback()
-			return nil, 0, 0, nil, err
-		}
-		if _, err := tx.EnterpriseResource.Update().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceType(input.ResourceType))).SetShortName(input.ShortName).SetUpdatedBy(actorID).Save(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, 0, 0, nil, err
-		}
-		if err := updateImportedEnterpriseResourceParty(ctx, tx, id, input.Party); err != nil {
-			_ = tx.Rollback()
-			return nil, 0, 0, nil, err
-		}
-		updatedCount++
-	}
-	audit.Details["created_count"] = stringInt(createdCount)
-	audit.Details["updated_count"] = stringInt(updatedCount)
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, 0, 0, nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, 0, 0, nil, err
 	}
 	return inputs, createdCount, updatedCount, conflicts, nil
