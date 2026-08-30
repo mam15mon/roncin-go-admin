@@ -201,22 +201,17 @@ func (r *enterpriseResourceRepo) Get(ctx context.Context, organizationID, id uui
 }
 
 func (r *enterpriseResourceRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.EnterpriseResource, audit *biz.AuditEvent) (*biz.EnterpriseResource, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	created, err := createEnterpriseResource(ctx, tx, organizationID, actorID, input)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.ResourceID = created.ID.String()
-	audit.Details["resource.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var created *ent.EnterpriseResource
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var err error
+		created, err = createEnterpriseResource(ctx, tx, organizationID, actorID, input)
+		if err != nil {
+			return err
+		}
+		audit.ResourceID = created.ID.String()
+		audit.Details["resource.id"] = created.ID.String()
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, created.ID)
@@ -240,52 +235,38 @@ func createEnterpriseResource(ctx context.Context, tx *ent.Tx, organizationID, a
 }
 
 func (r *enterpriseResourceRepo) Update(ctx context.Context, organizationID, actorID, id uuid.UUID, input *biz.EnterpriseResource, audit *biz.AuditEvent) (*biz.EnterpriseResource, error) {
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	existing, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		_ = tx.Rollback()
-		return nil, biz.ErrEnterpriseResourceNotFound
-	}
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if biz.EnterpriseResourceType(existing.ResourceType) != input.ResourceType {
-		_ = tx.Rollback()
-		return nil, biz.ErrEnterpriseResourceInvalidArgument
-	}
-	if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := existing.Update().SetShortName(input.ShortName).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetUpdatedBy(actorID).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := updateEnterpriseResourceDetail(ctx, tx, id, organizationID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if input.PartnerIDs != nil || input.AssigneeIDs != nil || input.AddressTypes != nil {
-		if err := replaceEnterpriseResourceRelations(ctx, tx, id, input.ResourceType, input.PartnerIDs, input.AssigneeIDs, input.AddressTypes); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			return biz.ErrEnterpriseResourceNotFound
 		}
-	}
-	if !input.Enabled {
-		if _, err := tx.EnterpriseResourcePartner.Update().Where(partnerlinkent.ResourceIDEQ(id)).SetIsDefault(false).Save(ctx); err != nil {
-			_ = tx.Rollback()
-			return nil, err
+		if err != nil {
+			return err
 		}
-	}
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+		if biz.EnterpriseResourceType(existing.ResourceType) != input.ResourceType {
+			return biz.ErrEnterpriseResourceInvalidArgument
+		}
+		if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
+			return err
+		}
+		if _, err := existing.Update().SetShortName(input.ShortName).SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetUpdatedBy(actorID).Save(ctx); err != nil {
+			return err
+		}
+		if err := updateEnterpriseResourceDetail(ctx, tx, id, organizationID, input); err != nil {
+			return err
+		}
+		if input.PartnerIDs != nil || input.AssigneeIDs != nil || input.AddressTypes != nil {
+			if err := replaceEnterpriseResourceRelations(ctx, tx, id, input.ResourceType, input.PartnerIDs, input.AssigneeIDs, input.AddressTypes); err != nil {
+				return err
+			}
+		}
+		if !input.Enabled {
+			if _, err := tx.EnterpriseResourcePartner.Update().Where(partnerlinkent.ResourceIDEQ(id)).SetIsDefault(false).Save(ctx); err != nil {
+				return err
+			}
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	}); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, organizationID, id)

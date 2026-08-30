@@ -76,7 +76,8 @@
 - [x] 第四十一批：`finance_commission.go` 提成单创建事务入口。
 - [x] 第四十二批：`finance_commission.go` 提成单状态流转事务入口。
 - [x] 第四十三批：`finance_commission.go` 提成调整单新增、状态流转事务入口。
-- [ ] 剩余生产仓储手写事务：10 处 / 1 个文件。
+- [x] 第四十四批：`enterprise_resource.go` 企业资源新增、更新事务入口。
+- [ ] 剩余生产仓储手写事务：8 处 / 1 个文件。
 
 ## 待办二：日志级别可配置（高 · server/platform）
 
