@@ -65,7 +65,8 @@ func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, u
 	return nil, nil
 }
 
-func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, number string, input *Order, audit *AuditEvent) (*Order, error) {
+func (s *orderRepoStub) Create(_ context.Context, organizationID, _ uuid.UUID, input *Order, audit *AuditEvent) (*Order, error) {
+	number := "SE0007"
 	s.created = input
 	s.createdNumber = number
 	s.createdAudit = audit
@@ -119,10 +120,9 @@ func (s *orderRepoStub) TransitionClosure(_ context.Context, organizationID, id 
 	return &Order{ID: id, OrganizationID: organizationID, ClosureStatus: target, Version: expectedVersion + 1}, nil
 }
 
-func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
+func TestOrderCreateAudits(t *testing.T) {
 	repo := &orderRepoStub{}
-	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 7}
-	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(configRepo), nil)
+	usecase := NewOrderUsecase(repo, nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	customerID := uuid.New()
@@ -136,10 +136,10 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
-	if created.OrderNo != "SE0007" || repo.createdNumber != "SE0007" || configRepo.lastAllocDocType != DocumentTypeOrder {
-		t.Fatalf("created order = %#v, allocated document type = %s", created, configRepo.lastAllocDocType)
+	if created.OrderNo != "SE0007" || repo.createdNumber != "SE0007" {
+		t.Fatalf("created order = %#v", created)
 	}
-	if repo.createdAudit == nil || repo.createdAudit.Action != "order.create" || repo.createdAudit.Details["order.no"] != "SE0007" {
+	if repo.createdAudit == nil || repo.createdAudit.Action != "order.create" {
 		t.Fatalf("create audit = %#v", repo.createdAudit)
 	}
 	if len(repo.created.PersonnelAssignments) != 1 || repo.created.PersonnelAssignments[0].Notification == nil || repo.created.PersonnelAssignments[0].Notification.RecipientUserID != personnelUserID {
@@ -148,8 +148,7 @@ func TestOrderCreateUsesNumberRuleAndAudits(t *testing.T) {
 }
 
 func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
-	configRepo := &orderConfigRepoStub{allocatedRule: &NumberRule{Prefix: "ORD", DateFormat: DateFormatNone, SequenceLength: 4, ResetPolicy: ResetPolicyNever}, allocatedSequence: 1}
-	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, NewOrderConfigUsecase(configRepo), nil)
+	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	duplicateID := uuid.New()
@@ -317,7 +316,7 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 
 func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 	repo := &orderRepoStub{hasContainers: true}
-	usecase := NewOrderUsecase(repo, nil, nil)
+	usecase := NewOrderUsecase(repo, nil)
 	breakBulk := OrderShipmentBreakBulk
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
@@ -336,7 +335,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 	customerID := uuid.New()
 	match := &OrderReferenceMatch{OrderID: uuid.New(), OrderNo: "SE0001"}
 	repo := &orderRepoStub{referenceMatch: match}
-	usecase := NewOrderUsecase(repo, nil, nil)
+	usecase := NewOrderUsecase(repo, nil)
 
 	result, err := usecase.CheckReference(context.Background(), organizationID, OrderReferenceCheck{
 		ReferenceType: OrderReferenceCustomer,
@@ -361,7 +360,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 
 func TestOrderTransitionValidatesEdgeAndAudits(t *testing.T) {
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}
-	usecase := NewOrderUsecase(repo, NewOrderConfigUsecase(&orderConfigRepoStub{}), nil)
+	usecase := NewOrderUsecase(repo, nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -399,7 +398,7 @@ func TestOrderAllowedTargetFlowStatusesFollowDomainState(t *testing.T) {
 func TestOrderTerminationTransitionRequiresReasonAndValidEdge(t *testing.T) {
 	terminationType := OrderTerminationCustomsReturn
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 4}}
-	usecase := NewOrderUsecase(repo, nil, nil)
+	usecase := NewOrderUsecase(repo, nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -440,7 +439,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 	for _, testCase := range blockedCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			usecase := NewOrderUsecase(&orderRepoStub{closureReadiness: testCase.readiness}, nil, nil)
+			usecase := NewOrderUsecase(&orderRepoStub{closureReadiness: testCase.readiness}, nil)
 			_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
 			if err != ErrOrderClosureBlocked {
 				t.Fatalf("TransitionClosure() error = %v, want ErrOrderClosureBlocked", err)
@@ -449,7 +448,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 
 	repo := &orderRepoStub{closureReadiness: &OrderClosureReadiness{FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationTerminated, ClosureStatus: OrderClosureOpen}}
-	usecase := NewOrderUsecase(repo, nil, nil)
+	usecase := NewOrderUsecase(repo, nil)
 	updated, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "  退关费用已处理  ")
 	if err != nil {
 		t.Fatalf("terminated order closure error = %v", err)

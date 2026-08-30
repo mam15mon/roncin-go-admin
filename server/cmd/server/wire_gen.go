@@ -88,7 +88,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	masterDataService := service.NewMasterDataService(masterDataUsecase, industryReferenceUsecase, referenceDataUsecase, orderConfigUsecase)
 	orderRepo := data.NewOrderRepo(dataData)
 	businessTagRepo := data.NewBusinessTagRepo(dataData)
-	orderUsecase := biz.NewOrderUsecase(orderRepo, orderConfigUsecase, businessTagRepo)
+	orderUsecase := biz.NewOrderUsecase(orderRepo, businessTagRepo)
 	orderService := service.NewOrderService(orderUsecase)
 	orderMilestoneRepo := data.NewOrderMilestoneRepo(dataData)
 	orderMilestoneUsecase := biz.NewOrderMilestoneUsecase(orderMilestoneRepo)

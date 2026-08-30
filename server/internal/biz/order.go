@@ -32,7 +32,7 @@ type OrderRepo interface {
 	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
 	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, string, *Order, *AuditEvent) (*Order, error)
+	Create(context.Context, uuid.UUID, uuid.UUID, *Order, *AuditEvent) (*Order, error)
 	UpdateDraft(context.Context, uuid.UUID, uuid.UUID, uint64, *Order, *AuditEvent) (*Order, error)
 	TransitionStatus(context.Context, uuid.UUID, uuid.UUID, uint64, OrderFlowStatus, string, uuid.UUID, *OrderStatusChangedEvent) (*Order, error)
 	TransitionTermination(context.Context, uuid.UUID, uuid.UUID, uint64, OrderTerminationStatus, *OrderTerminationType, string, uuid.UUID, *OrderLifecycleChangedEvent) (*Order, error)
@@ -42,10 +42,9 @@ type OrderRepo interface {
 
 type OrderUsecase struct {
 	repo    OrderRepo
-	config  *OrderConfigUsecase
 	tagRepo BusinessTagRepo
 }
 
-func NewOrderUsecase(repo OrderRepo, config *OrderConfigUsecase, tagRepo BusinessTagRepo) *OrderUsecase {
-	return &OrderUsecase{repo: repo, config: config, tagRepo: tagRepo}
+func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo) *OrderUsecase {
+	return &OrderUsecase{repo: repo, tagRepo: tagRepo}
 }

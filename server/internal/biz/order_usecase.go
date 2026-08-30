@@ -120,22 +120,17 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	if err != nil {
 		return nil, err
 	}
-	number, err := uc.config.NextOrderNumber(ctx, organizationID, normalized.BusinessType)
-	if err != nil {
-		return nil, err
-	}
 	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
 		Action:         "order.create",
 		Result:         "success",
 		Details: map[string]string{
-			"order.no":      number,
 			"customer.id":   normalized.CustomerID.String(),
 			"business_type": string(normalized.BusinessType),
 		},
 	}
-	created, err := uc.repo.Create(ctx, organizationID, actorID, number, normalized, audit)
+	created, err := uc.repo.Create(ctx, organizationID, actorID, normalized, audit)
 	if err != nil {
 		return nil, err
 	}

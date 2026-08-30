@@ -16,113 +16,112 @@ import (
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 )
 
-func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, number string, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
-	tx, err := r.data.db.Tx(ctx)
+func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
+	var createdID uuid.UUID
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		allocatedAt := time.Now().UTC()
+		rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, biz.DocumentTypeOrder, allocatedAt)
+		if err != nil {
+			return err
+		}
+		number, err := biz.FormatAllocatedNumber(allocatedAt, rule, sequence, string(input.BusinessType))
+		if err != nil {
+			return err
+		}
+		if err := validateOrderReferences(ctx, tx, organizationID, input); err != nil {
+			return err
+		}
+		create := tx.Order.Create().
+			SetOrganizationID(organizationID).
+			SetOrderNo(number).
+			SetCustomerID(input.CustomerID).
+			SetCustomerReferenceNo(input.CustomerReferenceNo).
+			SetInternalReferenceNo(input.InternalReferenceNo).
+			SetShipperShortName(input.ShipperShortName).
+			SetConsigneeShortName(input.ConsigneeShortName).
+			SetNillableCarrierID(input.CarrierID).
+			SetNillableBookingAgentID(input.BookingAgentID).
+			SetNillableForeignAgentID(input.ForeignAgentID).
+			SetNillableShippingAgentID(input.ShippingAgentID).
+			SetContractNo(input.ContractNo).
+			SetCargoValue(input.CargoValue).
+			SetInsurancePremium(input.InsurancePremium).
+			SetUnNumber(input.UNNumber).
+			SetHazardClass(input.HazardClass).
+			SetFactoryName(input.FactoryName).
+			SetCargoReadyAt(input.CargoReadyAt).
+			SetLoadingTerms(input.LoadingTerms).
+			SetDeclarationCutoffAt(input.DeclarationCutoffAt).
+			SetReceivedAt(input.ReceivedAt).
+			SetBusinessType(orderent.BusinessType(input.BusinessType)).
+			SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
+			SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
+			SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
+			SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
+			SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
+			SetNillableShipmentMode(orderShipmentModeToEnt(input.ShipmentMode)).
+			SetFlowStatus(orderent.FlowStatusDRAFT).
+			SetTerminationStatus(orderent.TerminationStatusACTIVE).
+			SetClosureStatus(orderent.ClosureStatusOPEN).
+			SetVersion(1).
+			SetNillableOriginLocationID(input.OriginLocationID).
+			SetNillableDestinationLocationID(input.DestinationLocationID).
+			SetNillableDischargeLocationID(input.DischargeLocationID).
+			SetNillableTransitLocationID(input.TransitLocationID).
+			SetVesselVoyage(input.VesselVoyage).
+			SetEtd(input.ETD).
+			SetEta(input.ETA).
+			SetSiCutoff(input.SICutoff).
+			SetDocCutoff(input.DocCutoff).
+			SetCustomsCutoff(input.CustomsCutoff).
+			SetVgmCutoff(input.VGMCutoff).
+			SetGoodsDescription(input.GoodsDescription).
+			SetNillableTotalPackages(input.TotalPackages).
+			SetNillableTotalGrossWeightKg(input.TotalGrossWeightKg).
+			SetNillableTotalVolumeCbm(input.TotalVolumeCbm).
+			SetTotalPackageUnit(input.TotalPackageUnit).
+			SetSpecialRequirements(input.SpecialRequirements).
+			SetOrderDate(input.OrderDate).
+			SetNotes(input.Notes).
+			SetBookingNotes(input.BookingNotes).
+			SetAllocationNotes(input.AllocationNotes).
+			SetOperationNotes(input.OperationNotes)
+		create.SetNillableCargoCurrency(nonEmptyStringPointer(input.CargoCurrency))
+		create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
+		created, err := create.Save(ctx)
+		if err != nil {
+			return mapOrderConstraint(err)
+		}
+		createdID = created.ID
+		if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
+			return err
+		}
+		if err := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, created.ID, input.ShippingDocuments); err != nil {
+			return err
+		}
+		if err := syncOrderContainerRequests(ctx, tx, organizationID, created.ID, input.ContainerRequests); err != nil {
+			return err
+		}
+		if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
+			return err
+		}
+		personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)
+		personnel = append(personnel, &biz.OrderPersonnel{UserID: actorID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCreator})
+		personnel = append(personnel, input.PersonnelAssignments...)
+		if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, created.OrderNo, personnel); err != nil {
+			return err
+		}
+		if err := snapshotOrderCommissionAttributions(ctx, tx, organizationID, created.ID, input.CustomerID, created.CreatedAt); err != nil {
+			return err
+		}
+		audit.Details["order.id"] = created.ID.String()
+		audit.Details["order.no"] = number
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
 		return nil, err
 	}
-	if err := validateOrderReferences(ctx, tx, organizationID, input); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	create := tx.Order.Create().
-		SetOrganizationID(organizationID).
-		SetOrderNo(number).
-		SetCustomerID(input.CustomerID).
-		SetCustomerReferenceNo(input.CustomerReferenceNo).
-		SetInternalReferenceNo(input.InternalReferenceNo).
-		SetShipperShortName(input.ShipperShortName).
-		SetConsigneeShortName(input.ConsigneeShortName).
-		SetNillableCarrierID(input.CarrierID).
-		SetNillableBookingAgentID(input.BookingAgentID).
-		SetNillableForeignAgentID(input.ForeignAgentID).
-		SetNillableShippingAgentID(input.ShippingAgentID).
-		SetContractNo(input.ContractNo).
-		SetCargoValue(input.CargoValue).
-		SetInsurancePremium(input.InsurancePremium).
-		SetUnNumber(input.UNNumber).
-		SetHazardClass(input.HazardClass).
-		SetFactoryName(input.FactoryName).
-		SetCargoReadyAt(input.CargoReadyAt).
-		SetLoadingTerms(input.LoadingTerms).
-		SetDeclarationCutoffAt(input.DeclarationCutoffAt).
-		SetReceivedAt(input.ReceivedAt).
-		SetBusinessType(orderent.BusinessType(input.BusinessType)).
-		SetTradeDirection(orderent.TradeDirection(input.TradeDirection)).
-		SetTradeTerm(orderent.TradeTerm(input.TradeTerm)).
-		SetPaymentTerm(orderent.PaymentTerm(input.PaymentTerm)).
-		SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
-		SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
-		SetNillableShipmentMode(orderShipmentModeToEnt(input.ShipmentMode)).
-		SetFlowStatus(orderent.FlowStatusDRAFT).
-		SetTerminationStatus(orderent.TerminationStatusACTIVE).
-		SetClosureStatus(orderent.ClosureStatusOPEN).
-		SetVersion(1).
-		SetNillableOriginLocationID(input.OriginLocationID).
-		SetNillableDestinationLocationID(input.DestinationLocationID).
-		SetNillableDischargeLocationID(input.DischargeLocationID).
-		SetNillableTransitLocationID(input.TransitLocationID).
-		SetVesselVoyage(input.VesselVoyage).
-		SetEtd(input.ETD).
-		SetEta(input.ETA).
-		SetSiCutoff(input.SICutoff).
-		SetDocCutoff(input.DocCutoff).
-		SetCustomsCutoff(input.CustomsCutoff).
-		SetVgmCutoff(input.VGMCutoff).
-		SetGoodsDescription(input.GoodsDescription).
-		SetNillableTotalPackages(input.TotalPackages).
-		SetNillableTotalGrossWeightKg(input.TotalGrossWeightKg).
-		SetNillableTotalVolumeCbm(input.TotalVolumeCbm).
-		SetTotalPackageUnit(input.TotalPackageUnit).
-		SetSpecialRequirements(input.SpecialRequirements).
-		SetOrderDate(input.OrderDate).
-		SetNotes(input.Notes).
-		SetBookingNotes(input.BookingNotes).
-		SetAllocationNotes(input.AllocationNotes).
-		SetOperationNotes(input.OperationNotes)
-	create.SetNillableCargoCurrency(nonEmptyStringPointer(input.CargoCurrency))
-	create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
-	created, err := create.Save(ctx)
-	if err != nil {
-		_ = tx.Rollback()
-		return nil, mapOrderConstraint(err)
-	}
-	if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, created.ID, input.ShippingDocuments); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := syncOrderContainerRequests(ctx, tx, organizationID, created.ID, input.ContainerRequests); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)
-	personnel = append(personnel, &biz.OrderPersonnel{UserID: actorID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCreator})
-	personnel = append(personnel, input.PersonnelAssignments...)
-	if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, created.OrderNo, personnel); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := snapshotOrderCommissionAttributions(ctx, tx, organizationID, created.ID, input.CustomerID, created.CreatedAt); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	audit.Details["order.id"] = created.ID.String()
-	if err := writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		_ = tx.Rollback()
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, organizationID, created.ID)
+	return r.Get(ctx, organizationID, createdID)
 }
 
 func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID, attributedAt time.Time) error {
