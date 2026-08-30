@@ -208,6 +208,8 @@ NotFound/Constraint 映射样板 168+45 处；10 个仓储已各自私写同构 
       公共错误映射
 - [x] 第十五批：`order_attachment.go` 标准 NotFound 与附件幂等命名约束
       改用公共错误映射
+- [x] 第十六批：`order_cargo_item.go` 订单与货物明细标准 NotFound 分支
+      改用公共 `mapEntError`
 
 ### B3. 分页解析与类型收敛（中高）
 5 份逐行相同的 `xxxPageValues`（admin/background_task/enterprise_resource/

@@ -20,10 +20,7 @@ func NewOrderCargoItemRepo(data *Data) biz.OrderCargoItemRepo {
 
 func (r *orderCargoItemRepo) order(ctx context.Context, organizationID, orderID uuid.UUID) error {
 	if _, err := r.data.db.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx); err != nil {
-		if ent.IsNotFound(err) {
-			return biz.ErrOrderCargoItemNotFound
-		}
-		return err
+		return mapEntError(err, biz.ErrOrderCargoItemNotFound, nil)
 	}
 	return nil
 }
@@ -92,10 +89,7 @@ func (r *orderCargoItemRepo) Update(ctx context.Context, organizationID, orderID
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
-			if ent.IsNotFound(queryErr) {
-				return biz.ErrOrderCargoItemNotFound
-			}
-			return queryErr
+			return mapEntError(queryErr, biz.ErrOrderCargoItemNotFound, nil)
 		}
 		builder := tx.OrderCargoItem.UpdateOne(item).
 			SetCargoName(input.CargoName).
