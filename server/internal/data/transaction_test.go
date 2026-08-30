@@ -139,3 +139,52 @@ func TestWithinTransactionRejectsExpiredContext(t *testing.T) {
 		t.Fatalf("共享事务提交不符合预期: %v", err)
 	}
 }
+
+func TestWithinTransactionReturnsCommitFailure(t *testing.T) {
+	data, mock := setupTransactionData(t)
+	wantErr := errors.New("提交失败")
+	mock.ExpectBegin()
+	mock.ExpectCommit().WillReturnError(wantErr)
+
+	err := data.WithinTransaction(context.Background(), func(context.Context) error { return nil })
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("提交错误 = %v，期望 %v", err, wantErr)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("提交失败场景不符合预期: %v", err)
+	}
+}
+
+func TestWithinTransactionKeepsOperationAndRollbackFailures(t *testing.T) {
+	data, mock := setupTransactionData(t)
+	operationErr := errors.New("业务失败")
+	rollbackErr := errors.New("回滚失败")
+	mock.ExpectBegin()
+	mock.ExpectRollback().WillReturnError(rollbackErr)
+
+	err := data.WithinTransaction(context.Background(), func(context.Context) error { return operationErr })
+	if !errors.Is(err, operationErr) || !errors.Is(err, rollbackErr) {
+		t.Fatalf("事务错误 = %v，应同时包含业务错误和回滚错误", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("回滚失败场景不符合预期: %v", err)
+	}
+}
+
+func TestWithinTransactionRollsBackPanicAndRethrows(t *testing.T) {
+	data, mock := setupTransactionData(t)
+	mock.ExpectBegin()
+	mock.ExpectRollback()
+
+	defer func() {
+		if recovered := recover(); recovered != "共享事务测试 panic" {
+			t.Fatalf("恢复的 panic = %v", recovered)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("共享事务 panic 后未回滚: %v", err)
+		}
+	}()
+	_ = data.WithinTransaction(context.Background(), func(context.Context) error {
+		panic("共享事务测试 panic")
+	})
+}
