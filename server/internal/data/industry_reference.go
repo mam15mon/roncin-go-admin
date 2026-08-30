@@ -27,19 +27,9 @@ func (r *industryReferenceRepo) ListPorts(ctx context.Context, organizationID uu
 	if options.Enabled != nil {
 		query.Where(port.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.Order(port.BySortOrder(), port.ByUnLocode()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.Port, 0, len(items))
-	for _, item := range items {
-		result = append(result, portToBiz(item))
-	}
-	return &biz.PortList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Port, error) {
+		return query.Order(port.BySortOrder(), port.ByUnLocode()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(portToBiz))
 }
 
 func (r *industryReferenceRepo) CreatePort(ctx context.Context, organizationID uuid.UUID, input *biz.Port, audit *biz.AuditEvent) (*biz.Port, error) {
@@ -85,19 +75,9 @@ func (r *industryReferenceRepo) ListAirports(ctx context.Context, organizationID
 	if options.Enabled != nil {
 		query.Where(airport.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.Order(airport.BySortOrder(), airport.ByIataCode()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.Airport, 0, len(items))
-	for _, item := range items {
-		result = append(result, airportToBiz(item))
-	}
-	return &biz.AirportList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Airport, error) {
+		return query.Order(airport.BySortOrder(), airport.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(airportToBiz))
 }
 
 func (r *industryReferenceRepo) CreateAirport(ctx context.Context, organizationID uuid.UUID, input *biz.Airport, audit *biz.AuditEvent) (*biz.Airport, error) {
@@ -154,19 +134,9 @@ func (r *industryReferenceRepo) ListAirlines(ctx context.Context, organizationID
 	if options.Enabled != nil {
 		query.Where(airline.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.Order(airline.BySortOrder(), airline.ByIataCode()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.Airline, 0, len(items))
-	for _, item := range items {
-		result = append(result, airlineToBiz(item))
-	}
-	return &biz.AirlineList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Airline, error) {
+		return query.Order(airline.BySortOrder(), airline.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(airlineToBiz))
 }
 
 func (r *industryReferenceRepo) CreateAirline(ctx context.Context, organizationID uuid.UUID, input *biz.Airline, audit *biz.AuditEvent) (*biz.Airline, error) {
@@ -218,19 +188,9 @@ func (r *industryReferenceRepo) ListShippingLines(ctx context.Context, organizat
 	if options.Enabled != nil {
 		query.Where(shippingline.EnabledEQ(*options.Enabled))
 	}
-	total, err := query.Count(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := query.Order(shippingline.BySortOrder(), shippingline.ByScacCode()).Offset((options.Page - 1) * options.PageSize).Limit(options.PageSize).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.ShippingLine, 0, len(items))
-	for _, item := range items {
-		result = append(result, shippingLineToBiz(item))
-	}
-	return &biz.ShippingLineList{Items: result, Total: total, Page: options.Page, PageSize: options.PageSize}, nil
+	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.ShippingLine, error) {
+		return query.Order(shippingline.BySortOrder(), shippingline.ByScacCode()).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(shippingLineToBiz))
 }
 
 func (r *industryReferenceRepo) CreateShippingLine(ctx context.Context, organizationID uuid.UUID, input *biz.ShippingLine, audit *biz.AuditEvent) (*biz.ShippingLine, error) {
