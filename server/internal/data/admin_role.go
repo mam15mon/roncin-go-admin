@@ -38,10 +38,7 @@ func (r *adminRepo) GetRole(ctx context.Context, organizationID, id uuid.UUID) (
 		WithOrderOrganizationAccesses().
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminRoleNotFound
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrAdminRoleNotFound, nil)
 	}
 	return roleToBiz(item), nil
 }
@@ -62,10 +59,7 @@ func (r *adminRepo) GetActorRolesPrivilegeProfiles(ctx context.Context, organiza
 		}).
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, biz.ErrAdminPrivilegeEscalation
-		}
-		return nil, err
+		return nil, mapEntError(err, biz.ErrAdminPrivilegeEscalation, nil)
 	}
 
 	profiles := make([]*biz.AdminRoleProfile, 0, len(actorMembership.Edges.RoleAssignments))
@@ -111,10 +105,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 		var saveErr error
 		created, saveErr = tx.Role.Create().SetOrganizationID(organizationID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
-			if ent.IsConstraintError(saveErr) {
-				return biz.ErrAdminRoleCodeExists
-			}
-			return saveErr
+			return mapEntError(saveErr, nil, biz.ErrAdminRoleCodeExists)
 		}
 		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, created.ID, input.OrderOrganizationAccesses); replaceErr != nil {
 			return replaceErr
@@ -142,10 +133,7 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 		var saveErr error
 		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(organizationID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
-			if ent.IsNotFound(saveErr) {
-				return biz.ErrAdminRoleNotFound
-			}
-			return saveErr
+			return mapEntError(saveErr, biz.ErrAdminRoleNotFound, nil)
 		}
 		if replaceErr := replaceRoleOrderOrganizationAccesses(ctx, tx, updated.ID, input.OrderOrganizationAccesses); replaceErr != nil {
 			return replaceErr
