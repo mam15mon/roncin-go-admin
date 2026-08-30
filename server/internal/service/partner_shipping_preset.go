@@ -12,9 +12,9 @@ import (
 )
 
 func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request *v1.ListPartnerShippingPresetsRequest) (*v1.ListPartnerShippingPresetsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
@@ -40,9 +40,9 @@ func (s *PartnerService) ListPartnerShippingPresets(ctx context.Context, request
 }
 
 func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, request *v1.CreatePartnerShippingPresetRequest) (*v1.CreatePartnerShippingPresetResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
@@ -56,9 +56,9 @@ func (s *PartnerService) CreatePartnerShippingPreset(ctx context.Context, reques
 }
 
 func (s *PartnerService) UpdatePartnerShippingPreset(ctx context.Context, request *v1.UpdatePartnerShippingPresetRequest) (*v1.UpdatePartnerShippingPresetResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, partnerErr := uuid.Parse(request.GetPartnerId())
 	id, idErr := uuid.Parse(request.GetId())

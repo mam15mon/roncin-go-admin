@@ -280,6 +280,15 @@ func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
 	return principal, ok && principal != nil
 }
 
+// RequirePrincipal 返回当前登录主体；上下文未携带有效主体时返回统一会话错误。
+func RequirePrincipal(ctx context.Context) (*Principal, error) {
+	principal, ok := PrincipalFromContext(ctx)
+	if !ok {
+		return nil, ErrSessionRequired
+	}
+	return principal, nil
+}
+
 type AuthUsecase struct {
 	repo                       AuthRepo
 	policy                     *SessionPolicy

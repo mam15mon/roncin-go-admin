@@ -14,9 +14,9 @@ import (
 )
 
 func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest) (*v1.GetOrderResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -30,9 +30,9 @@ func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest
 }
 
 func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersRequest) (*v1.ListOrdersResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -210,9 +210,9 @@ func readableOrderBusinessTypes(principal *biz.Principal) []biz.OrderBusinessTyp
 }
 
 func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.CheckOrderReferenceRequest) (*v1.CheckOrderReferenceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	check := biz.OrderReferenceCheck{ReferenceNo: request.GetReferenceNo()}
 	switch request.GetReferenceType() {
@@ -249,9 +249,9 @@ func (s *OrderService) CheckOrderReference(ctx context.Context, request *v1.Chec
 }
 
 func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.ListPersonnelOptionsRequest) (*v1.ListPersonnelOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
 	result, err := s.usecase.ListPersonnelOptions(ctx, principal.Organization.ID, biz.SelectorListOptions{Keyword: request.GetKeyword(), Page: page, PageSize: pageSize})
@@ -269,9 +269,9 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 }
 
 func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.ListOrderConsolidationsRequest) (*v1.ListOrderConsolidationsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetId())
 	if err != nil {

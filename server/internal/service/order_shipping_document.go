@@ -21,9 +21,9 @@ func NewOrderShippingDocumentService(usecase *biz.OrderShippingDocumentUsecase) 
 }
 
 func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context, request *v1.ListShippingDocumentsRequest) (*v1.ListShippingDocumentsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -47,9 +47,9 @@ func (s *OrderShippingDocumentService) ListShippingDocuments(ctx context.Context
 }
 
 func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, request *v1.AddShippingDocumentRequest) (*v1.AddShippingDocumentResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, input, err := orderShippingDocumentInputFromAPI(request.GetOrderId(), request.GetMasterNo(), request.GetHouseNo(), request.ReleaseType, request.Note, request.MasterDocumentType, request.MasterReleaseMethod)
 	if err != nil {
@@ -63,9 +63,9 @@ func (s *OrderShippingDocumentService) AddShippingDocument(ctx context.Context, 
 }
 
 func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Context, request *v1.UpdateShippingDocumentRequest) (*v1.UpdateShippingDocumentResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -83,9 +83,9 @@ func (s *OrderShippingDocumentService) UpdateShippingDocument(ctx context.Contex
 }
 
 func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx context.Context, request *v1.TransitionShippingDocumentStatusRequest) (*v1.TransitionShippingDocumentStatusResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -111,9 +111,9 @@ func (s *OrderShippingDocumentService) TransitionShippingDocumentStatus(ctx cont
 }
 
 func (s *OrderShippingDocumentService) RemoveShippingDocument(ctx context.Context, request *v1.RemoveShippingDocumentRequest) (*v1.RemoveShippingDocumentResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

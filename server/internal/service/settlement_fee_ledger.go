@@ -13,9 +13,9 @@ import (
 )
 
 func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListFeeLedgerRequest) (*v1.ListFeeLedgerResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	filter := biz.FeeLedgerFilter{Page: int(request.GetPage()), PageSize: int(request.GetPageSize())}
 	if filter.Page == 0 {
@@ -113,9 +113,9 @@ func feeLedgerStatusFilters(statusValue, progressValue string) (biz.OrderFeeStat
 }
 
 func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	preference, err := s.preferenceUsecase.Get(ctx, principal.Organization.ID, principal.UserID)
 	if err != nil {
@@ -131,9 +131,9 @@ func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, _ *v1.Ge
 }
 
 func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, request *v1.UpdateFeeLedgerPreferenceRequest) (*v1.UpdateFeeLedgerPreferenceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	columns := make([]biz.FeeLedgerColumnPreference, 0, len(request.GetColumns()))
 	for _, column := range request.GetColumns() {
@@ -175,9 +175,9 @@ func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, reque
 }
 
 func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, request *v1.ResetFeeLedgerPreferenceRequest) (*v1.ResetFeeLedgerPreferenceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	preference, err := s.preferenceUsecase.Reset(ctx, principal.Organization.ID, principal.UserID, request.GetVersion())
 	if err != nil {
@@ -193,9 +193,9 @@ func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, reques
 }
 
 func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.GetBilledFeeEditPolicyRequest) (*v1.GetBilledFeeEditPolicyResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	policy, err := s.customSettingUsecase.GetBilledFeeEditPolicy(ctx, principal.Organization.ID)
 	if err != nil {
@@ -205,9 +205,9 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 }
 
 func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, request *v1.UpdateBilledFeeEditPolicyRequest) (*v1.UpdateBilledFeeEditPolicyResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	if request == nil || request.ExpectedVersion == nil {
 		return nil, biz.ErrFinanceCustomSettingInvalidArgument

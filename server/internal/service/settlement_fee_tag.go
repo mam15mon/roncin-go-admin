@@ -21,9 +21,9 @@ func businessTagSummariesToFinanceAPI(items []*biz.BusinessTagSummary) []*v1.Bus
 }
 
 func (s *SettlementService) ListFinanceFeeTagOptions(ctx context.Context, request *v1.ListFinanceFeeTagOptionsRequest) (*v1.ListFinanceFeeTagOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -64,9 +64,9 @@ func financeFeeTagRequest[Req interface {
 	GetFeeIds() []string
 	GetTagIds() []string
 }](ctx context.Context, request Req) (*biz.Principal, []uuid.UUID, []uuid.UUID, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, nil, nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, nil, nil, principalErr
 	}
 	feeIDs, tagIDs, err := orderTagBatchIDs(request.GetFeeIds(), request.GetTagIds())
 	if err != nil {

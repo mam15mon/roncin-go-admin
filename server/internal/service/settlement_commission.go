@@ -14,9 +14,9 @@ import (
 )
 
 func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommissionsRequest) (*v1.ListCommissionsResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	f := biz.CommissionFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Status: biz.CommissionStatus(strings.ToUpper(financeOptionalString(r.Status)))}
 	if f.Page == 0 {
@@ -47,9 +47,9 @@ func (s *SettlementService) GetCommission(ctx context.Context, r *v1.GetCommissi
 	return &v1.GetCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request *v1.ListCommissionEmployeesRequest) (*v1.ListCommissionEmployeesResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize := biz.ListPagination(int(request.GetPage()), int(request.GetPageSize()), 20)
 	result, err := s.commissionUsecase.ListEmployees(ctx, p.Organization.ID, biz.SelectorListOptions{
@@ -68,9 +68,9 @@ func (s *SettlementService) ListCommissionEmployees(ctx context.Context, request
 	}, nil
 }
 func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.ListCommissionCandidatesRequest) (*v1.ListCommissionCandidatesResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	ruleID, err := uuid.Parse(strings.TrimSpace(r.GetRuleId()))
 	if err != nil {
@@ -101,9 +101,9 @@ func (s *SettlementService) ListCommissionCandidates(ctx context.Context, r *v1.
 	}, nil
 }
 func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListCommissionRulesRequest) (*v1.ListCommissionRulesResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	f := biz.CommissionRuleFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), PersonnelRole: biz.CommissionPersonnelRole(strings.ToUpper(financeOptionalString(r.PersonnelRole))), Enabled: r.Enabled}
 	if f.Page == 0 {
@@ -123,9 +123,9 @@ func (s *SettlementService) ListCommissionRules(ctx context.Context, r *v1.ListC
 	return &v1.ListCommissionRulesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.CreateCommissionRuleRequest) (*v1.CreateCommissionRuleResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	in, err := commissionRuleInputFromAPI(r.GetRule())
 	if err != nil {
@@ -169,9 +169,9 @@ func commissionRuleToAPI(x *biz.FinanceCommissionRule) *v1.FinanceCommissionRule
 	return &v1.FinanceCommissionRule{Id: x.ID.String(), Name: x.Name, PersonnelRole: string(x.PersonnelRole), CalculationBasis: string(x.CalculationBasis), RatePercent: x.RatePercent.StringFixed(4), EffectiveFrom: x.EffectiveFrom, EffectiveTo: x.EffectiveTo, Enabled: x.Enabled, Note: x.Note, Version: x.Version, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.PreviewCommissionRequest) (*v1.PreviewCommissionResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
 	if err != nil {
@@ -192,9 +192,9 @@ func (s *SettlementService) PreviewCommission(ctx context.Context, r *v1.Preview
 	return &v1.PreviewCommissionResponse{Success: true, Message: "OK", Data: commissionCalculationToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) CreateCommission(ctx context.Context, r *v1.CreateCommissionRequest) (*v1.CreateCommissionResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	verificationID, err := uuid.Parse(strings.TrimSpace(r.GetVerificationId()))
 	if err != nil {
@@ -248,9 +248,9 @@ func (s *SettlementService) CancelCommission(ctx context.Context, r *v1.CancelCo
 	return &v1.CancelCommissionResponse{Success: true, Message: "OK", Data: commissionToAPI(item), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) CreateCommissionAdjustment(ctx context.Context, r *v1.CreateCommissionAdjustmentRequest) (*v1.CreateCommissionAdjustmentResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	commissionID, err := uuid.Parse(strings.TrimSpace(r.GetCommissionId()))
 	if err != nil {

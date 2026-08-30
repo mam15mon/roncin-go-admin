@@ -11,9 +11,9 @@ import (
 )
 
 func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request *v1.ListPartnerSettlementRulesRequest) (*v1.ListPartnerSettlementRulesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	roleType := partnerRoleTypeFromAPI(request.GetRoleType())
@@ -32,9 +32,9 @@ func (s *PartnerService) ListPartnerSettlementRules(ctx context.Context, request
 }
 
 func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, request *v1.CreatePartnerSettlementRuleRequest) (*v1.CreatePartnerSettlementRuleResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	roleType := partnerRoleTypeFromAPI(request.GetRoleType())
@@ -49,9 +49,9 @@ func (s *PartnerService) CreatePartnerSettlementRule(ctx context.Context, reques
 }
 
 func (s *PartnerService) UpdatePartnerSettlementRule(ctx context.Context, request *v1.UpdatePartnerSettlementRuleRequest) (*v1.UpdatePartnerSettlementRuleResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, partnerErr := uuid.Parse(request.GetPartnerId())
 	id, idErr := uuid.Parse(request.GetId())

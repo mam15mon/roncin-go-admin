@@ -20,9 +20,9 @@ func NewExchangeRateService(usecase *biz.ExchangeRateUsecase) *ExchangeRateServi
 }
 
 func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v1.ListExchangeRateSettingsRequest) (*v1.ListExchangeRateSettingsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	items, baseCurrency, err := s.usecase.List(ctx, principal.Organization.ID)
 	if err != nil {
@@ -36,9 +36,9 @@ func (s *ExchangeRateService) ListExchangeRateSettings(ctx context.Context, _ *v
 }
 
 func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, request *v1.CreateExchangeRateSettingRequest) (*v1.CreateExchangeRateSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input, err := exchangeRateInputFromAPI(request.GetRateType(), request.GetFromCurrency(), request.GetToCurrency(), request.GetEffectiveFrom(), request.EffectiveTo, request.GetReceivableRate(), request.GetPayableRate())
 	if err != nil {
@@ -52,9 +52,9 @@ func (s *ExchangeRateService) CreateExchangeRateSetting(ctx context.Context, req
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateSetting(ctx context.Context, request *v1.UpdateExchangeRateSettingRequest) (*v1.UpdateExchangeRateSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -72,9 +72,9 @@ func (s *ExchangeRateService) UpdateExchangeRateSetting(ctx context.Context, req
 }
 
 func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, request *v1.DisableExchangeRateSettingRequest) (*v1.DisableExchangeRateSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -87,9 +87,9 @@ func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, re
 }
 
 func (s *ExchangeRateService) ListExchangeRateTimeStandards(ctx context.Context, _ *v1.ListExchangeRateTimeStandardsRequest) (*v1.ListExchangeRateTimeStandardsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	settings, err := s.usecase.ListTimeStandards(ctx, principal.Organization.ID)
 	if err != nil {
@@ -99,9 +99,9 @@ func (s *ExchangeRateService) ListExchangeRateTimeStandards(ctx context.Context,
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Context, request *v1.UpdateExchangeRateTimeStandardsRequest) (*v1.UpdateExchangeRateTimeStandardsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	settings := make([]*biz.ExchangeRateTimeStandardSetting, 0, len(request.GetData()))
 	for _, item := range request.GetData() {
@@ -115,9 +115,9 @@ func (s *ExchangeRateService) UpdateExchangeRateTimeStandards(ctx context.Contex
 }
 
 func (s *ExchangeRateService) GetExchangeRateCustomSetting(ctx context.Context, _ *v1.GetExchangeRateCustomSettingRequest) (*v1.GetExchangeRateCustomSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	setting, err := s.usecase.GetCustomSetting(ctx, principal.Organization.ID)
 	if err != nil {
@@ -127,9 +127,9 @@ func (s *ExchangeRateService) GetExchangeRateCustomSetting(ctx context.Context, 
 }
 
 func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Context, request *v1.UpdateExchangeRateCustomSettingRequest) (*v1.UpdateExchangeRateCustomSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	if request == nil || request.ExpectedVersion == nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
@@ -142,8 +142,8 @@ func (s *ExchangeRateService) UpdateExchangeRateCustomSetting(ctx context.Contex
 }
 
 func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Context, _ *v1.DownloadExchangeRateImportTemplateRequest) (*v1.DownloadExchangeRateImportTemplateResponse, error) {
-	if _, ok := biz.PrincipalFromContext(ctx); !ok {
-		return nil, biz.ErrSessionRequired
+	if _, principalErr := biz.RequirePrincipal(ctx); principalErr != nil {
+		return nil, principalErr
 	}
 	content, err := buildExchangeRateImportTemplate()
 	if err != nil {
@@ -153,9 +153,9 @@ func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Con
 }
 
 func (s *ExchangeRateService) PreviewExchangeRateImport(ctx context.Context, request *v1.PreviewExchangeRateImportRequest) (*v1.PreviewExchangeRateImportResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input, err := parseExchangeRateImportWorkbook(request.GetFileName(), request.GetFileContent())
 	if err != nil {
@@ -169,9 +169,9 @@ func (s *ExchangeRateService) PreviewExchangeRateImport(ctx context.Context, req
 }
 
 func (s *ExchangeRateService) ConfirmExchangeRateImport(ctx context.Context, request *v1.ConfirmExchangeRateImportRequest) (*v1.ConfirmExchangeRateImportResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	batch, err := s.usecase.ConfirmImport(ctx, principal.Organization.ID, principal.UserID, request.GetPreviewToken(), request.GetIdempotencyKey())
 	if err != nil {
@@ -181,9 +181,9 @@ func (s *ExchangeRateService) ConfirmExchangeRateImport(ctx context.Context, req
 }
 
 func (s *ExchangeRateService) GetExchangeRateImport(ctx context.Context, request *v1.GetExchangeRateImportRequest) (*v1.GetExchangeRateImportResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {

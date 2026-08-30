@@ -21,9 +21,9 @@ func NewBackgroundTaskService(usecase *biz.BackgroundTaskUsecase) *BackgroundTas
 }
 
 func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request *taskv1.ListBackgroundTasksRequest) (*taskv1.ListBackgroundTasksResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := backgroundTaskPageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -86,9 +86,9 @@ func (s *BackgroundTaskService) ListBackgroundTasks(ctx context.Context, request
 }
 
 func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *taskv1.GetBackgroundTaskRequest) (*taskv1.GetBackgroundTaskResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -102,9 +102,9 @@ func (s *BackgroundTaskService) GetBackgroundTask(ctx context.Context, request *
 }
 
 func (s *BackgroundTaskService) RequeueBackgroundTask(ctx context.Context, request *taskv1.RequeueBackgroundTaskRequest) (*taskv1.RequeueBackgroundTaskResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {

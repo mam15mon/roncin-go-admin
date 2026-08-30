@@ -22,9 +22,9 @@ func NewEnterpriseResourceService(usecase *biz.EnterpriseResourceUsecase) *Enter
 }
 
 func (s *EnterpriseResourceService) SearchEnterpriseResourcePartnerOptions(ctx context.Context, request *v1.SearchEnterpriseResourcePartnerOptionsRequest) (*v1.SearchEnterpriseResourcePartnerOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -42,9 +42,9 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourcePartnerOptions(ctx c
 }
 
 func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx context.Context, request *v1.SearchEnterpriseResourceAssigneeOptionsRequest) (*v1.SearchEnterpriseResourceAssigneeOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -62,8 +62,8 @@ func (s *EnterpriseResourceService) SearchEnterpriseResourceAssigneeOptions(ctx 
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx context.Context, request *v1.ListEnterpriseResourceRegionOptionsRequest) (*v1.ListEnterpriseResourceRegionOptionsResponse, error) {
-	if _, ok := biz.PrincipalFromContext(ctx); !ok {
-		return nil, biz.ErrSessionRequired
+	if _, principalErr := biz.RequirePrincipal(ctx); principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -81,9 +81,9 @@ func (s *EnterpriseResourceService) ListEnterpriseResourceRegionOptions(ctx cont
 }
 
 func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx context.Context, _ *v1.GetEnterpriseResourceCapabilitiesRequest) (*v1.GetEnterpriseResourceCapabilitiesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	usedStorage, err := s.usecase.ImageUsage(ctx, principal.Organization.ID)
 	if err != nil {
@@ -101,9 +101,9 @@ func (s *EnterpriseResourceService) GetEnterpriseResourceCapabilities(ctx contex
 }
 
 func (s *EnterpriseResourceService) PrepareEnterpriseResourceImageUpload(ctx context.Context, request *v1.PrepareEnterpriseResourceImageUploadRequest) (*v1.PrepareEnterpriseResourceImageUploadResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	result, err := s.usecase.PrepareImageUpload(ctx, principal.Organization.ID, request.GetFileName(), request.GetMimeType(), request.GetFileSize(), request.GetChecksum())
 	if err != nil {
@@ -125,9 +125,9 @@ func (s *EnterpriseResourceService) GetEnterpriseResourceImageAccess(ctx context
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseResources(ctx context.Context, request *v1.ListEnterpriseResourcesRequest) (*v1.ListEnterpriseResourcesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := enterpriseResourcePageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -180,9 +180,9 @@ func (s *EnterpriseResourceService) GetEnterpriseResource(ctx context.Context, r
 }
 
 func (s *EnterpriseResourceService) CreateEnterpriseResource(ctx context.Context, request *v1.CreateEnterpriseResourceRequest) (*v1.CreateEnterpriseResourceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input, err := enterpriseResourceFromAPI(request.GetResource())
 	if err != nil {
@@ -237,9 +237,9 @@ func (s *EnterpriseResourceService) BatchDeleteAssociations(ctx context.Context,
 	return &v1.BatchDeleteAssociationsResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *EnterpriseResourceService) batchAssociations(ctx context.Context, resourceIDValues, partnerIDValues []string, create bool) (int, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return 0, principalErr
 	}
 	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
 	if err != nil {
@@ -270,9 +270,9 @@ func (s *EnterpriseResourceService) BatchRemoveAddressTypes(ctx context.Context,
 	return &v1.BatchRemoveAddressTypesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *EnterpriseResourceService) batchAddressTypes(ctx context.Context, resourceIDValues []string, addressTypeValues []v1.EnterpriseAddressType, assign bool) (int, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return 0, principalErr
 	}
 	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
 	if err != nil {
@@ -303,9 +303,9 @@ func (s *EnterpriseResourceService) BatchRemoveAssignees(ctx context.Context, re
 	return &v1.BatchRemoveAssigneesResponse{Success: true, Message: "OK", AffectedCount: int32(count), TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resourceIDValues, assigneeIDValues []string, assign bool) (int, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return 0, principalErr
 	}
 	resourceIDs, err := enterpriseParseUUIDs(resourceIDValues)
 	if err != nil {
@@ -323,9 +323,9 @@ func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resource
 }
 
 func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context, _ *v1.ListEnterpriseTagGroupsRequest) (*v1.ListEnterpriseTagGroupsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	items, err := s.usecase.ListTagGroups(ctx, principal.Organization.ID)
 	if err != nil {
@@ -338,9 +338,9 @@ func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context,
 	return &v1.ListEnterpriseTagGroupsResponse{Success: true, Message: "OK", Data: data, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context, request *v1.CreateEnterpriseTagGroupRequest) (*v1.CreateEnterpriseTagGroupResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input := enterpriseTagGroupFromAPI(request.GetGroup())
 	item, err := s.usecase.CreateTagGroup(ctx, principal.Organization.ID, principal.UserID, input)
@@ -372,9 +372,9 @@ func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context
 }
 
 func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.PreviewEnterpriseResourceImportResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	inputs, err := enterpriseResourceInputsFromAPI(request.GetRows())
 	if err != nil {
@@ -388,9 +388,9 @@ func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.
 	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.invalidCount == 0, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: 0, TraceId: requestmeta.TraceID(ctx), ConflictCount: result.conflictCount, OverwriteAllowed: result.overwriteAllowed}, nil
 }
 func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.Context, request *v1.CommitEnterpriseResourceImportRequest) (*v1.CommitEnterpriseResourceImportResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	inputs, err := enterpriseResourceInputsFromAPI(request.GetRows())
 	if err != nil {
@@ -508,9 +508,9 @@ func enterpriseRemarkTypeToAPI(value biz.EnterpriseRemarkType) v1.EnterpriseRema
 	return v1.EnterpriseRemarkType(v1.EnterpriseRemarkType_value["ENTERPRISE_REMARK_TYPE_"+string(value)])
 }
 func enterpriseResourcePrincipalAndID(ctx context.Context, idText string) (*biz.Principal, uuid.UUID, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, uuid.Nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, uuid.Nil, principalErr
 	}
 	id, err := uuid.Parse(idText)
 	if err != nil {

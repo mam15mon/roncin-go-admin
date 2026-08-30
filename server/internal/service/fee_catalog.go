@@ -37,9 +37,9 @@ func (s *FeeCatalogService) SearchFeeSettings(ctx context.Context, request *v1.S
 }
 
 func (s *FeeCatalogService) listFeeSettings(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.FeeSetting, int32, int32, int32, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, 0, 0, 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, 0, 0, 0, principalErr
 	}
 	result, err := s.usecase.ListFeeSettings(ctx, principal.Organization.ID, options)
 	if err != nil {
@@ -53,9 +53,9 @@ func (s *FeeCatalogService) listFeeSettings(ctx context.Context, options biz.Fee
 }
 
 func (s *FeeCatalogService) CreateFeeSetting(ctx context.Context, request *v1.CreateFeeSettingRequest) (*v1.CreateFeeSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input, err := feeSettingInputFromAPI(request.GetFeeCode(), request.GetNameZh(), request.NameEn, request.AliasName, request.ServiceTypeId, request.GetDefaultCurrency(), request.GetBillingUnitId(), request.AbnormalCaseId, request.GetTaxRate(), request.GetTaxableServiceId(), int(request.GetSortOrder()), true)
 	if err != nil {
@@ -69,9 +69,9 @@ func (s *FeeCatalogService) CreateFeeSetting(ctx context.Context, request *v1.Cr
 }
 
 func (s *FeeCatalogService) UpdateFeeSetting(ctx context.Context, request *v1.UpdateFeeSettingRequest) (*v1.UpdateFeeSettingResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -106,9 +106,9 @@ func (s *FeeCatalogService) SearchBillingUnits(ctx context.Context, request *v1.
 }
 
 func (s *FeeCatalogService) listBillingUnits(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.BillingUnit, int32, int32, int32, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, 0, 0, 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, 0, 0, 0, principalErr
 	}
 	result, err := s.usecase.ListBillingUnits(ctx, principal.Organization.ID, options)
 	if err != nil {
@@ -122,9 +122,9 @@ func (s *FeeCatalogService) listBillingUnits(ctx context.Context, options biz.Fe
 }
 
 func (s *FeeCatalogService) CreateBillingUnit(ctx context.Context, request *v1.CreateBillingUnitRequest) (*v1.CreateBillingUnitResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	created, err := s.usecase.CreateBillingUnit(ctx, principal.Organization.ID, principal.UserID, &biz.BillingUnit{Code: request.GetCode(), Name: request.GetName(), IsContainerUnit: request.GetIsContainerUnit(), SortOrder: int(request.GetSortOrder())})
 	if err != nil {
@@ -134,9 +134,9 @@ func (s *FeeCatalogService) CreateBillingUnit(ctx context.Context, request *v1.C
 }
 
 func (s *FeeCatalogService) UpdateBillingUnit(ctx context.Context, request *v1.UpdateBillingUnitRequest) (*v1.UpdateBillingUnitResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -167,9 +167,9 @@ func (s *FeeCatalogService) SearchTaxableServices(ctx context.Context, request *
 }
 
 func (s *FeeCatalogService) listTaxableServices(ctx context.Context, options biz.FeeCatalogListOptions) ([]*v1.TaxableService, int32, int32, int32, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, 0, 0, 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, 0, 0, 0, principalErr
 	}
 	result, err := s.usecase.ListTaxableServices(ctx, principal.Organization.ID, options)
 	if err != nil {
@@ -183,9 +183,9 @@ func (s *FeeCatalogService) listTaxableServices(ctx context.Context, options biz
 }
 
 func (s *FeeCatalogService) CreateTaxableService(ctx context.Context, request *v1.CreateTaxableServiceRequest) (*v1.CreateTaxableServiceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	taxRate, err := parsePlainDecimal(request.GetDefaultTaxRate())
 	if err != nil {
@@ -199,9 +199,9 @@ func (s *FeeCatalogService) CreateTaxableService(ctx context.Context, request *v
 }
 
 func (s *FeeCatalogService) UpdateTaxableService(ctx context.Context, request *v1.UpdateTaxableServiceRequest) (*v1.UpdateTaxableServiceResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {

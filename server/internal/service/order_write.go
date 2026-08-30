@@ -11,9 +11,9 @@ import (
 )
 
 func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderRequest) (*v1.CreateOrderResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	input, err := orderFromCreateRequest(request)
 	if err != nil {
@@ -27,9 +27,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 }
 
 func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderRequest) (*v1.UpdateOrderResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -51,9 +51,9 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request *v1.UpdateOrderR
 }
 
 func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.TransitionOrderStatusRequest) (*v1.TransitionOrderStatusResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -67,9 +67,9 @@ func (s *OrderService) TransitionOrderStatus(ctx context.Context, request *v1.Tr
 }
 
 func (s *OrderService) TransitionOrderTermination(ctx context.Context, request *v1.TransitionOrderTerminationRequest) (*v1.TransitionOrderTerminationResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -84,9 +84,9 @@ func (s *OrderService) TransitionOrderTermination(ctx context.Context, request *
 }
 
 func (s *OrderService) TransitionOrderClosure(ctx context.Context, request *v1.TransitionOrderClosureRequest) (*v1.TransitionOrderClosureResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {

@@ -21,9 +21,9 @@ func NewOrderCargoItemService(usecase *biz.OrderCargoItemUsecase) *OrderCargoIte
 }
 
 func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.ListCargoItemsRequest) (*v1.ListCargoItemsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -47,9 +47,9 @@ func (s *OrderCargoItemService) ListCargoItems(ctx context.Context, request *v1.
 }
 
 func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.AddCargoItemRequest) (*v1.AddCargoItemResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, input, err := orderCargoItemInputFromAPI(request.GetOrderId(), request.GetCargoName(), request.GetPackageCount(), request.GetGrossWeightKg(), request.GetVolumeCbm(), request.GetNetWeightKg(), request.GetNote())
 	if err != nil {
@@ -63,9 +63,9 @@ func (s *OrderCargoItemService) AddCargoItem(ctx context.Context, request *v1.Ad
 }
 
 func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1.UpdateCargoItemRequest) (*v1.UpdateCargoItemResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -83,9 +83,9 @@ func (s *OrderCargoItemService) UpdateCargoItem(ctx context.Context, request *v1
 }
 
 func (s *OrderCargoItemService) RemoveCargoItem(ctx context.Context, request *v1.RemoveCargoItemRequest) (*v1.RemoveCargoItemResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

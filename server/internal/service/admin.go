@@ -417,9 +417,9 @@ func (s *AdminService) ListAuditLogs(ctx context.Context, request *v1.ListAuditL
 }
 
 func requirePrincipal(ctx context.Context) (*biz.Principal, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	return principal, nil
 }

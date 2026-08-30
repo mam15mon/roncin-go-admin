@@ -10,9 +10,9 @@ import (
 )
 
 func (s *SettlementService) ListFinanceBillTagOptions(ctx context.Context, request *v1.ListFinanceBillTagOptionsRequest) (*v1.ListFinanceBillTagOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -53,9 +53,9 @@ func financeBillTagRequest[Req interface {
 	GetBillIds() []string
 	GetTagIds() []string
 }](ctx context.Context, request Req) (*biz.Principal, []uuid.UUID, []uuid.UUID, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, nil, nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, nil, nil, principalErr
 	}
 	billIDs, tagIDs, err := orderTagBatchIDs(request.GetBillIds(), request.GetTagIds())
 	if err != nil {

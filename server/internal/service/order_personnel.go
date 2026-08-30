@@ -20,9 +20,9 @@ func NewOrderPersonnelService(usecase *biz.OrderPersonnelUsecase) *OrderPersonne
 }
 
 func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.ListPersonnelRequest) (*v1.ListPersonnelResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -46,9 +46,9 @@ func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.L
 }
 
 func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1.AssignPersonnelRequest) (*v1.AssignPersonnelResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -74,9 +74,9 @@ func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1
 }
 
 func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1.RemovePersonnelRequest) (*v1.RemovePersonnelResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

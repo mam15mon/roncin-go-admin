@@ -20,9 +20,9 @@ func NewOrderTagService(usecase *biz.BusinessTagUsecase) *OrderTagService {
 }
 
 func (s *OrderTagService) ListOrderTagOptions(ctx context.Context, request *v1.ListOrderTagOptionsRequest) (*v1.ListOrderTagOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -40,9 +40,9 @@ func (s *OrderTagService) ListOrderTagOptions(ctx context.Context, request *v1.L
 }
 
 func (s *OrderTagService) BatchAssignOrderTags(ctx context.Context, request *v1.BatchAssignOrderTagsRequest) (*v1.BatchAssignOrderTagsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderIDs, tagIDs, err := orderTagBatchIDs(request.GetOrderIds(), request.GetTagIds())
 	if err != nil {
@@ -56,9 +56,9 @@ func (s *OrderTagService) BatchAssignOrderTags(ctx context.Context, request *v1.
 }
 
 func (s *OrderTagService) BatchRemoveOrderTags(ctx context.Context, request *v1.BatchRemoveOrderTagsRequest) (*v1.BatchRemoveOrderTagsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderIDs, tagIDs, err := orderTagBatchIDs(request.GetOrderIds(), request.GetTagIds())
 	if err != nil {

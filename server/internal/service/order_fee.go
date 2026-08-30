@@ -27,9 +27,9 @@ func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTa
 }
 
 func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFeeOptionsRequest) (*v1.ListFeeOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -67,9 +67,9 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 }
 
 func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequest) (*v1.ListFeesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -97,9 +97,9 @@ func (s *OrderFeeService) ListFees(ctx context.Context, request *v1.ListFeesRequ
 }
 
 func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v1.ResolveFeeExchangeRateRequest) (*v1.ResolveFeeExchangeRateResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -122,9 +122,9 @@ func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v
 }
 
 func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest) (*v1.AddFeeResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride, request.GetIdempotencyKey(), request.TaxInclusive)
 	if err != nil {
@@ -138,9 +138,9 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 }
 
 func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRequest) (*v1.UpdateFeeResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -169,9 +169,9 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 }
 
 func (s *OrderFeeService) ConfirmFee(ctx context.Context, request *v1.ConfirmFeeRequest) (*v1.ConfirmFeeResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, id, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
 	if err != nil || request.GetExpectedVersion() == 0 {
@@ -185,9 +185,9 @@ func (s *OrderFeeService) ConfirmFee(ctx context.Context, request *v1.ConfirmFee
 }
 
 func (s *OrderFeeService) ReopenFee(ctx context.Context, request *v1.ReopenFeeRequest) (*v1.ReopenFeeResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, id, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
 	if err != nil || request.GetExpectedVersion() == 0 {
@@ -201,9 +201,9 @@ func (s *OrderFeeService) ReopenFee(ctx context.Context, request *v1.ReopenFeeRe
 }
 
 func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRequest) (*v1.RemoveFeeResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, id, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
 	if err != nil {
@@ -405,9 +405,9 @@ func businessTagSummariesToOrderAPI(items []*biz.BusinessTagSummary) []*v1.Busin
 }
 
 func (s *OrderFeeService) ListOrderFeeTagOptions(ctx context.Context, request *v1.ListOrderFeeTagOptionsRequest) (*v1.ListOrderFeeTagOptionsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := orderTagPageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -449,9 +449,9 @@ func orderFeeTagRequest[Req interface {
 	GetFeeIds() []string
 	GetTagIds() []string
 }](ctx context.Context, request Req) (*biz.Principal, uuid.UUID, []uuid.UUID, []uuid.UUID, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, uuid.Nil, nil, nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, uuid.Nil, nil, nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

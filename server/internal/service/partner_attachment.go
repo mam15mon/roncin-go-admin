@@ -12,9 +12,9 @@ import (
 )
 
 func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1.ListPartnerAttachmentsRequest) (*v1.ListPartnerAttachmentsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
@@ -32,9 +32,9 @@ func (s *PartnerService) ListPartnerAttachments(ctx context.Context, request *v1
 }
 
 func (s *PartnerService) RegisterPartnerAttachment(ctx context.Context, request *v1.RegisterPartnerAttachmentRequest) (*v1.RegisterPartnerAttachmentResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {

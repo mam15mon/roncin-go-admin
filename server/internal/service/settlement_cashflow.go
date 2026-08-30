@@ -15,9 +15,9 @@ import (
 )
 
 func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflowsRequest) (*v1.ListCashflowsResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	f := biz.FinanceCashflowFilter{Page: int(r.GetPage()), PageSize: int(r.GetPageSize()), Keyword: financeOptionalString(r.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(r.Direction))), Status: biz.FinanceCashflowStatus(strings.ToUpper(financeOptionalString(r.Status))), Currency: strings.ToUpper(financeOptionalString(r.Currency))}
 	if f.Page == 0 {
@@ -44,9 +44,9 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 	return &v1.ListCashflowsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
 }
 func (s *SettlementService) CreateCashflow(ctx context.Context, r *v1.CreateCashflowRequest) (*v1.CreateCashflowResponse, error) {
-	p, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	party, e := uuid.Parse(strings.TrimSpace(r.GetSettlementPartyId()))
 	if e != nil {

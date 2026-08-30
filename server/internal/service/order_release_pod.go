@@ -21,9 +21,9 @@ func NewOrderReleasePodService(usecase *biz.OrderReleasePodUsecase) *OrderReleas
 }
 
 func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v1.ListReleasePodsRequest) (*v1.ListReleasePodsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -47,9 +47,9 @@ func (s *OrderReleasePodService) ListReleasePods(ctx context.Context, request *v
 }
 
 func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.AddReleasePodRequest) (*v1.AddReleasePodResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, input, err := orderReleasePodInputFromAPI(request.GetOrderId(), request.GetShippingDocumentId(), request.GetReleaseNo(), request.GetPodNo(), request.GetNote())
 	if err != nil {
@@ -63,9 +63,9 @@ func (s *OrderReleasePodService) AddReleasePod(ctx context.Context, request *v1.
 }
 
 func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *v1.UpdateReleasePodRequest) (*v1.UpdateReleasePodResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	id, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -83,9 +83,9 @@ func (s *OrderReleasePodService) UpdateReleasePod(ctx context.Context, request *
 }
 
 func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context, request *v1.TransitionReleasePodStatusRequest) (*v1.TransitionReleasePodStatusResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -111,9 +111,9 @@ func (s *OrderReleasePodService) TransitionReleasePodStatus(ctx context.Context,
 }
 
 func (s *OrderReleasePodService) RemoveReleasePod(ctx context.Context, request *v1.RemoveReleasePodRequest) (*v1.RemoveReleasePodResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

@@ -20,9 +20,9 @@ func NewOrderAttachmentService(usecase *biz.OrderAttachmentUsecase) *OrderAttach
 }
 
 func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v1.ListAttachmentsRequest) (*v1.ListAttachmentsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -46,9 +46,9 @@ func (s *OrderAttachmentService) ListAttachments(ctx context.Context, request *v
 }
 
 func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request *v1.RegisterAttachmentRequest) (*v1.RegisterAttachmentResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

@@ -20,9 +20,9 @@ func NewOrderMilestoneService(usecase *biz.OrderMilestoneUsecase) *OrderMileston
 }
 
 func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.ListMilestonesRequest) (*v1.ListMilestonesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -40,9 +40,9 @@ func (s *OrderMilestoneService) ListMilestones(ctx context.Context, request *v1.
 }
 
 func (s *OrderMilestoneService) SetMilestone(ctx context.Context, request *v1.SetMilestoneRequest) (*v1.SetMilestoneResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

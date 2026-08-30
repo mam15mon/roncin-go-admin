@@ -12,9 +12,9 @@ import (
 )
 
 func (s *PartnerService) ListPartnerInvoiceProfiles(ctx context.Context, request *v1.ListPartnerInvoiceProfilesRequest) (*v1.ListPartnerInvoiceProfilesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
@@ -32,9 +32,9 @@ func (s *PartnerService) ListPartnerInvoiceProfiles(ctx context.Context, request
 }
 
 func (s *PartnerService) CreatePartnerInvoiceProfile(ctx context.Context, request *v1.CreatePartnerInvoiceProfileRequest) (*v1.CreatePartnerInvoiceProfileResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
@@ -48,9 +48,9 @@ func (s *PartnerService) CreatePartnerInvoiceProfile(ctx context.Context, reques
 }
 
 func (s *PartnerService) UpdatePartnerInvoiceProfile(ctx context.Context, request *v1.UpdatePartnerInvoiceProfileRequest) (*v1.UpdatePartnerInvoiceProfileResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, partnerErr := uuid.Parse(request.GetPartnerId())
 	profileID, profileErr := uuid.Parse(request.GetId())

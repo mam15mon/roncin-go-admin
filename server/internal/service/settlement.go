@@ -34,9 +34,9 @@ func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.Finan
 }
 
 func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, uuid.Nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, uuid.Nil, principalErr
 	}
 	id, err := uuid.Parse(strings.TrimSpace(rawID))
 	if err != nil {

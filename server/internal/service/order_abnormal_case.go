@@ -21,9 +21,9 @@ func NewOrderAbnormalCaseService(usecase *biz.OrderAbnormalCaseUsecase) *OrderAb
 }
 
 func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, request *v1.ListAbnormalCasesRequest) (*v1.ListAbnormalCasesResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -47,9 +47,9 @@ func (s *OrderAbnormalCaseService) ListAbnormalCases(ctx context.Context, reques
 }
 
 func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request *v1.MarkAbnormalCaseRequest) (*v1.MarkAbnormalCaseResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -67,9 +67,9 @@ func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request
 }
 
 func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, request *v1.ResolveAbnormalCaseRequest) (*v1.ResolveAbnormalCaseResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {
@@ -87,9 +87,9 @@ func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, requ
 }
 
 func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, request *v1.RemoveAbnormalCaseRequest) (*v1.RemoveAbnormalCaseResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	orderID, err := uuid.Parse(request.GetOrderId())
 	if err != nil {

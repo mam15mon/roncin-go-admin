@@ -11,9 +11,9 @@ import (
 )
 
 func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerRequest) (*v1.GetPartnerResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -27,9 +27,9 @@ func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerR
 }
 
 func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.ListPartnersResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	page, pageSize, err := pageValues(request.GetPage(), request.GetPageSize())
 	if err != nil {
@@ -77,9 +77,9 @@ func (s *PartnerService) SearchPartnerAssignmentOptions(ctx context.Context, req
 }
 
 func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, options biz.SelectorListOptions) ([]*v1.PartnerAssignmentOption, int32, int32, int32, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, 0, 0, 0, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, 0, 0, 0, principalErr
 	}
 	result, err := s.usecase.ListAssignmentOptions(ctx, principal.Organization.ID, options)
 	if err != nil {
@@ -97,9 +97,9 @@ func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, optio
 }
 
 func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePartnerRequest) (*v1.CreatePartnerResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	created, err := s.usecase.Create(ctx, principal.Organization.ID, principal.UserID, &biz.Partner{
 		Code: request.GetCode(), LegalName: request.GetLegalName(),
@@ -114,9 +114,9 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 }
 
 func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePartnerRequest) (*v1.UpdatePartnerResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -135,9 +135,9 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 }
 
 func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.SetSupplierBlacklistRequest) (*v1.SetSupplierBlacklistResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -151,9 +151,9 @@ func (s *PartnerService) SetSupplierBlacklist(ctx context.Context, request *v1.S
 }
 
 func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.ImportPartnersResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	items := make([]*biz.Partner, 0, len(request.GetItems()))
 	for _, item := range request.GetItems() {
@@ -177,9 +177,9 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 }
 
 func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportPartnersRequest) (*v1.ExportPartnersResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	options := biz.PartnerListOptions{Page: 1, PageSize: biz.MaxListPageSize, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole())}
 	if request.Enabled != nil {
@@ -210,9 +210,9 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 }
 
 func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.ListPartnerAuditLogsRequest) (*v1.ListPartnerAuditLogsResponse, error) {
-	principal, ok := biz.PrincipalFromContext(ctx)
-	if !ok {
-		return nil, biz.ErrSessionRequired
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
 	}
 	partnerID, err := uuid.Parse(request.GetPartnerId())
 	if err != nil {
