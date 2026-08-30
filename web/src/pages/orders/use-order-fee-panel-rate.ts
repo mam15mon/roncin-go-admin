@@ -2,7 +2,7 @@ import { App } from 'antd';
 import { useRef, useState } from 'react';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
-import { trimExactDecimal } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -29,9 +29,9 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
-    setTotalPreview(trimExactDecimal(fee.totalAmount));
+    setTotalPreview(trimDecimal(fee.totalAmount));
     setExchangeRatePreview(
-      fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
+      fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
     );
     setExchangeRateStatus(fee.exchangeRate ? 'resolved' : 'missing');
     setManualExchangeRate(fee.exchangeRateSource === 'MANUAL');
@@ -55,7 +55,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
         if (currentRequestId !== exchangeRateRequestRef.current) return;
         if (response.success && response.exchangeRate) {
           setExchangeRateStatus('resolved');
-          setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
+          setExchangeRatePreview(trimDecimal(response.exchangeRate));
           if (!editingFee) {
             setManualExchangeRate(false);
           }

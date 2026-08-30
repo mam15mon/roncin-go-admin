@@ -7,8 +7,8 @@ import type { FeeFormValues } from './components/fees/FeeFormModal';
 import {
   calculateExactFeeTotal,
   quantityOrPricePattern,
-  trimExactDecimal,
 } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -40,7 +40,7 @@ export function useFeeExchangePreview(
   const seedFromFee = (fee: API.OrderFee) => {
     setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
     setExchangeRatePreview(
-      fee.exchangeRate ? trimExactDecimal(fee.exchangeRate) : undefined,
+      fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
     );
     setExchangeRateStatus('resolved');
   };
@@ -67,7 +67,7 @@ export function useFeeExchangePreview(
           message.error('汇率解析结果不完整');
           return;
         }
-        setExchangeRatePreview(trimExactDecimal(response.exchangeRate));
+        setExchangeRatePreview(trimDecimal(response.exchangeRate));
         setExchangeRateStatus('resolved');
       })
       .catch((error: FeeRequestError) => {

@@ -3,7 +3,6 @@ import {
   calculateExactFeeTotal,
   exchangeRatePattern,
   isPositiveExactDecimal,
-  trimExactDecimal,
 } from './decimal';
 
 describe('订单费用十进制计算', () => {
@@ -17,10 +16,6 @@ describe('订单费用十进制计算', () => {
 
   it('不对超出录入精度的值做静默舍入', () => {
     expect(calculateExactFeeTotal('1', '1.00001')).toBeUndefined();
-  });
-
-  it('仅移除展示用的末尾零', () => {
-    expect(trimExactDecimal('120.34000000')).toBe('120.34');
   });
 
   it('接受八位小数汇率且拒绝第九位', () => {

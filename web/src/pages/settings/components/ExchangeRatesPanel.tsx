@@ -47,7 +47,8 @@ import {
 } from '@/services/roncin/exchangeRateService';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import { toTableRequest, unwrapList } from '@/utils/api';
-import { isPositiveExactDecimal, trimExactDecimal } from '@/utils/decimal';
+import { isPositiveExactDecimal } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
@@ -202,8 +203,8 @@ export function ExchangeRatesPanel() {
       toCurrency: record.toCurrency,
       effectiveFrom: record.effectiveFrom ? dayjs(record.effectiveFrom) : undefined,
       effectiveTo: record.effectiveTo ? dayjs(record.effectiveTo) : undefined,
-      receivableRate: trimExactDecimal(record.receivableRate),
-      payableRate: trimExactDecimal(record.payableRate),
+      receivableRate: trimDecimal(record.receivableRate),
+      payableRate: trimDecimal(record.payableRate),
     });
     setModalOpen(true);
   };
@@ -312,7 +313,7 @@ export function ExchangeRatesPanel() {
       width: 110,
       render: (_, record) => (
         <span style={{ fontWeight: 600, color: '#1677ff' }}>
-          {trimExactDecimal(record.receivableRate)}
+          {trimDecimal(record.receivableRate)}
         </span>
       ),
     },
@@ -323,7 +324,7 @@ export function ExchangeRatesPanel() {
       width: 110,
       render: (_, record) => (
         <span style={{ fontWeight: 600, color: '#52c41a' }}>
-          {trimExactDecimal(record.payableRate)}
+          {trimDecimal(record.payableRate)}
         </span>
       ),
     },
@@ -405,8 +406,8 @@ export function ExchangeRatesPanel() {
         toCurrency: editing.toCurrency,
         effectiveFrom: editing.effectiveFrom ? dayjs(editing.effectiveFrom) : undefined,
         effectiveTo: editing.effectiveTo ? dayjs(editing.effectiveTo) : undefined,
-        receivableRate: trimExactDecimal(editing.receivableRate),
-        payableRate: trimExactDecimal(editing.payableRate),
+        receivableRate: trimDecimal(editing.receivableRate),
+        payableRate: trimDecimal(editing.payableRate),
       }
     : { rateType: 'BASE_CURRENCY', toCurrency: baseCurrency, effectiveFrom: dayjs() };
 

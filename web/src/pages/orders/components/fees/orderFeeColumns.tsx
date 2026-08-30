@@ -10,7 +10,7 @@ import {
   RECEIVABLE,
   feeStatusCode,
 } from './feeConstants';
-import { trimExactDecimal } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 
 type OrderFeeColumnProps = {
   direction: number;
@@ -71,14 +71,14 @@ export function getOrderFeeTableColumns({
       dataIndex: 'unitPrice',
       width: 100,
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.unitPrice),
+      render: (_, record) => trimDecimal(record.unitPrice),
     },
     {
       title: '数量',
       dataIndex: 'quantity',
       width: 80,
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.quantity),
+      render: (_, record) => trimDecimal(record.quantity),
     },
     {
       title: '计费单位',
@@ -98,7 +98,7 @@ export function getOrderFeeTableColumns({
             color: direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
           }}
         >
-          {trimExactDecimal(record.totalAmount)} {record.currency}
+          {trimDecimal(record.totalAmount)} {record.currency}
         </span>
       ),
     },
@@ -109,7 +109,7 @@ export function getOrderFeeTableColumns({
       align: 'right',
       render: (_, record) => (
         <Space size={4}>
-          <span>{trimExactDecimal(record.exchangeRate)}</span>
+          <span>{trimDecimal(record.exchangeRate)}</span>
           {record.exchangeRateSource === 'MANUAL' && (
             <Tag color="gold">手工</Tag>
           )}

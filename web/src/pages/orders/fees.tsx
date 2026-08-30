@@ -40,7 +40,7 @@ import {
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { parseOrderKind } from './common';
-import { trimExactDecimal } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 import {
   FEE_BILLED,
   RECEIVABLE,
@@ -182,8 +182,8 @@ export default function OrderFeesPage() {
           feeSettingId: fee.feeSettingId ?? '',
           settlementPartyId: fee.settlementPartyId ?? '',
           billingUnitId: fee.billingUnitId ?? '',
-          quantity: fee.quantity ? trimExactDecimal(fee.quantity) : '',
-          unitPrice: fee.unitPrice ? trimExactDecimal(fee.unitPrice) : '',
+          quantity: fee.quantity ? trimDecimal(fee.quantity) : '',
+          unitPrice: fee.unitPrice ? trimDecimal(fee.unitPrice) : '',
           currency: fee.currency ?? '',
           expenseDate: fee.expenseDate ? dayjs(fee.expenseDate) : dayjs(),
           note: fee.note ?? '',

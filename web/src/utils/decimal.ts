@@ -25,8 +25,3 @@ export function isPositiveExactDecimal(
 ): boolean {
   return pattern.test(value) && new Decimal(value).isPositive();
 }
-
-export function trimExactDecimal(value?: string): string {
-  if (!value) return '-';
-  return value.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
-}

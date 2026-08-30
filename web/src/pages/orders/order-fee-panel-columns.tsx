@@ -10,7 +10,7 @@ import {
   feeStatusCode,
 } from './components/fees/feeConstants';
 import { normalizeOrderFeeStatus, orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
-import { trimExactDecimal } from '@/utils/decimal';
+import { trimDecimal } from '@/utils/format';
 
 interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;
@@ -106,14 +106,14 @@ export function buildOrderFeePanelColumns({
       dataIndex: 'quantity',
       width: 110,
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.quantity),
+      render: (_, record) => trimDecimal(record.quantity),
     },
     {
       title: '单价',
       dataIndex: 'unitPrice',
       width: 130,
       align: 'right',
-      render: (_, record) => trimExactDecimal(record.unitPrice),
+      render: (_, record) => trimDecimal(record.unitPrice),
     },
     {
       title: '总金额',
@@ -122,7 +122,7 @@ export function buildOrderFeePanelColumns({
       align: 'right',
       render: (_, record) => (
         <strong>
-          {trimExactDecimal(record.totalAmount)} {record.currency}
+          {trimDecimal(record.totalAmount)} {record.currency}
         </strong>
       ),
     },
@@ -133,7 +133,7 @@ export function buildOrderFeePanelColumns({
       align: 'right',
       render: (_, record) => (
         <Space size={4}>
-          {trimExactDecimal(record.exchangeRate)}
+          {trimDecimal(record.exchangeRate)}
           {record.exchangeRateSource === 'MANUAL' && (
             <Tag color="gold">手工</Tag>
           )}
