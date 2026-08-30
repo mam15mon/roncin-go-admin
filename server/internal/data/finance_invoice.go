@@ -206,81 +206,71 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 }
 
 func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID, version uint64, issue biz.FinanceInvoiceIssueInput, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	tx, err := r.data.db.Tx(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrFinanceInvoiceNotFound
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if item.Version != version {
+			return biz.ErrFinanceInvoiceVersionConflict
+		}
+		if item.Status != financeinvoiceent.StatusDRAFT {
+			return biz.ErrFinanceInvoiceInvalidTransition
+		}
+		duplicate, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(issue.TaxInvoiceNo)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if duplicate {
+			return biz.ErrFinanceInvoiceTaxNoExists
+		}
+		now := time.Now()
+		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(issue.TaxInvoiceNo).SetInvoiceDate(issue.InvoiceDate).SetExchangeRate(issue.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financeinvoiceent.ExchangeRateSource(issue.ExchangeRateSource)).SetExchangeRateDate(issue.ExchangeRateDate).SetNillableExchangeRateSettingID(issue.ExchangeRateSettingID).SetBaseCurrencyAmount(issue.BaseCurrencyAmount.StringFixed(8)).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
+			return mapFinanceInvoiceNumberConstraint(updateErr)
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	rollback := func(e error) (*biz.FinanceInvoice, error) { _ = tx.Rollback(); return nil, e }
-	item, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceInvoiceNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != version {
-		return rollback(biz.ErrFinanceInvoiceVersionConflict)
-	}
-	if item.Status != financeinvoiceent.StatusDRAFT {
-		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
-	}
-	duplicate, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(issue.TaxInvoiceNo)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if duplicate {
-		return rollback(biz.ErrFinanceInvoiceTaxNoExists)
-	}
-	now := time.Now()
-	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(issue.TaxInvoiceNo).SetInvoiceDate(issue.InvoiceDate).SetExchangeRate(issue.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financeinvoiceent.ExchangeRateSource(issue.ExchangeRateSource)).SetExchangeRateDate(issue.ExchangeRateDate).SetNillableExchangeRateSettingID(issue.ExchangeRateSettingID).SetBaseCurrencyAmount(issue.BaseCurrencyAmount.StringFixed(8)).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(mapFinanceInvoiceNumberConstraint(err))
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
 }
 
 func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	tx, err := r.data.db.Tx(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(queryErr) {
+			return biz.ErrFinanceInvoiceNotFound
+		}
+		if queryErr != nil {
+			return queryErr
+		}
+		if item.Version != version {
+			return biz.ErrFinanceInvoiceVersionConflict
+		}
+		if item.Status == financeinvoiceent.StatusCANCELLED {
+			return biz.ErrFinanceInvoiceInvalidTransition
+		}
+		links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(links) == 0 {
+			return biz.ErrFinanceInvoiceInvalidTransition
+		}
+		if _, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		now := time.Now()
+		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	rollback := func(e error) (*biz.FinanceInvoice, error) { _ = tx.Rollback(); return nil, e }
-	item, err := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-	if ent.IsNotFound(err) {
-		return rollback(biz.ErrFinanceInvoiceNotFound)
-	}
-	if err != nil {
-		return rollback(err)
-	}
-	if item.Version != version {
-		return rollback(biz.ErrFinanceInvoiceVersionConflict)
-	}
-	if item.Status == financeinvoiceent.StatusCANCELLED {
-		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
-	}
-	links, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).ForUpdate().All(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(links) == 0 {
-		return rollback(biz.ErrFinanceInvoiceInvalidTransition)
-	}
-	if _, err = tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	now := time.Now()
-	if _, err = tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return r.Get(ctx, org, id)
