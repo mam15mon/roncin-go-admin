@@ -46,34 +46,31 @@ func (r *exchangeRateRepo) CreateImportPreview(ctx context.Context, batch *biz.E
 	if err != nil {
 		return nil, err
 	}
-	tx, err := r.data.db.Tx(ctx)
+	var item *ent.ExchangeRateImportBatch
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var saveErr error
+		item, saveErr = tx.ExchangeRateImportBatch.Create().
+			SetID(batch.ID).
+			SetOrganizationID(batch.OrganizationID).
+			SetOwnerOrganizationID(batch.OwnerOrganizationID).
+			SetCreatedBy(batch.CreatedBy).
+			SetFileName(batch.FileName).
+			SetFileChecksum(batch.FileChecksum).
+			SetTemplateVersion(batch.TemplateVersion).
+			SetStatus(importent.Status(batch.Status)).
+			SetPreviewTokenHash(batch.PreviewTokenHash).
+			SetExpiresAt(batch.ExpiresAt).
+			SetTotalCount(batch.TotalCount).
+			SetValidCount(batch.ValidCount).
+			SetInvalidCount(batch.InvalidCount).
+			SetRows(rows).
+			Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.ExchangeRateImportBatch, error) { _ = tx.Rollback(); return nil, value }
-	item, err := tx.ExchangeRateImportBatch.Create().
-		SetID(batch.ID).
-		SetOrganizationID(batch.OrganizationID).
-		SetOwnerOrganizationID(batch.OwnerOrganizationID).
-		SetCreatedBy(batch.CreatedBy).
-		SetFileName(batch.FileName).
-		SetFileChecksum(batch.FileChecksum).
-		SetTemplateVersion(batch.TemplateVersion).
-		SetStatus(importent.Status(batch.Status)).
-		SetPreviewTokenHash(batch.PreviewTokenHash).
-		SetExpiresAt(batch.ExpiresAt).
-		SetTotalCount(batch.TotalCount).
-		SetValidCount(batch.ValidCount).
-		SetInvalidCount(batch.InvalidCount).
-		SetRows(rows).
-		Save(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return exchangeRateImportBatchToBiz(item)
@@ -133,85 +130,82 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 	}
 	defer unlockExchangeRateImportKeys(connection, locked)
 
-	tx, err := r.data.db.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rollback := func(value error) (*biz.ExchangeRateImportBatch, error) { _ = tx.Rollback(); return nil, value }
-	current, err := tx.ExchangeRateImportBatch.Query().Where(importent.IDEQ(preview.ID), importent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if current.Status == importent.StatusIMPORTED {
-		if current.IdempotencyKey != nil && *current.IdempotencyKey == idempotencyKey {
-			_ = tx.Rollback()
-			return exchangeRateImportBatchToBiz(current)
+	var updated *ent.ExchangeRateImportBatch
+	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.ExchangeRateImportBatch.Query().Where(importent.IDEQ(preview.ID), importent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return queryErr
 		}
-		return rollback(biz.ErrExchangeRateImportIdempotencyConflict)
-	}
-	if current.Status != importent.StatusPREVIEW_READY || current.InvalidCount != 0 {
-		return rollback(biz.ErrExchangeRateImportInvalid)
-	}
-	if !current.ExpiresAt.After(now) {
-		return rollback(biz.ErrExchangeRateImportExpired)
-	}
-	idempotencyUsed, err := tx.ExchangeRateImportBatch.Query().Where(importent.OrganizationIDEQ(organizationID), importent.IDNEQ(current.ID), importent.IdempotencyKeyEQ(idempotencyKey)).Exist(ctx)
-	if err != nil {
-		return rollback(err)
-	}
-	if idempotencyUsed {
-		return rollback(biz.ErrExchangeRateImportIdempotencyConflict)
-	}
-	rows, err = exchangeRateImportRowsFromJSON(current.Rows)
-	if err != nil {
-		return rollback(err)
-	}
-	if len(rows) != current.TotalCount || current.ValidCount != current.TotalCount {
-		return rollback(biz.ErrExchangeRateImportStale)
-	}
-	if err = validateExchangeRateImportRowsInTx(ctx, tx, ownerOrganizationID, rows); err != nil {
-		return rollback(err)
-	}
-	builders := make([]*ent.ExchangeRateSettingCreate, 0, len(rows))
-	for _, row := range rows {
-		effectiveFrom, parseErr := parseExchangeRateStorageTime(row.EffectiveFrom)
-		if parseErr != nil {
-			return rollback(biz.ErrExchangeRateImportStale)
-		}
-		builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).SetOrganizationID(ownerOrganizationID).
-			SetRateType(exchangerateent.RateType(row.RateType)).SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
-			SetEffectiveFrom(effectiveFrom).SetReceivableRate(row.ReceivableRate).SetPayableRate(row.PayableRate).SetIsActive(true)
-		if row.EffectiveTo != nil {
-			effectiveTo, parseErr := parseExchangeRateStorageTime(*row.EffectiveTo)
-			if parseErr != nil {
-				return rollback(biz.ErrExchangeRateImportStale)
+		if current.Status == importent.StatusIMPORTED {
+			if current.IdempotencyKey != nil && *current.IdempotencyKey == idempotencyKey {
+				updated = current
+				return nil
 			}
-			builder.SetEffectiveTo(effectiveTo)
+			return biz.ErrExchangeRateImportIdempotencyConflict
 		}
-		builders = append(builders, builder)
-	}
-	if _, err = tx.ExchangeRateSetting.CreateBulk(builders...).Save(ctx); err != nil {
-		return rollback(biz.ErrExchangeRateImportStale)
-	}
-	updated, err := tx.ExchangeRateImportBatch.UpdateOneID(current.ID).
-		SetStatus(importent.StatusIMPORTED).
-		SetIdempotencyKey(idempotencyKey).
-		SetImportedCount(len(rows)).
-		SetImportedAt(now).
-		SetImportedBy(actorID).
-		Save(ctx)
+		if current.Status != importent.StatusPREVIEW_READY || current.InvalidCount != 0 {
+			return biz.ErrExchangeRateImportInvalid
+		}
+		if !current.ExpiresAt.After(now) {
+			return biz.ErrExchangeRateImportExpired
+		}
+		idempotencyUsed, queryErr := tx.ExchangeRateImportBatch.Query().Where(importent.OrganizationIDEQ(organizationID), importent.IDNEQ(current.ID), importent.IdempotencyKeyEQ(idempotencyKey)).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if idempotencyUsed {
+			return biz.ErrExchangeRateImportIdempotencyConflict
+		}
+		rows, queryErr = exchangeRateImportRowsFromJSON(current.Rows)
+		if queryErr != nil {
+			return queryErr
+		}
+		if len(rows) != current.TotalCount || current.ValidCount != current.TotalCount {
+			return biz.ErrExchangeRateImportStale
+		}
+		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, ownerOrganizationID, rows); validateErr != nil {
+			return validateErr
+		}
+		builders := make([]*ent.ExchangeRateSettingCreate, 0, len(rows))
+		for _, row := range rows {
+			effectiveFrom, parseErr := parseExchangeRateStorageTime(row.EffectiveFrom)
+			if parseErr != nil {
+				return biz.ErrExchangeRateImportStale
+			}
+			builder := tx.ExchangeRateSetting.Create().SetID(row.SettingID).SetOrganizationID(ownerOrganizationID).
+				SetRateType(exchangerateent.RateType(row.RateType)).SetFromCurrency(row.FromCurrency).SetToCurrency(row.ToCurrency).
+				SetEffectiveFrom(effectiveFrom).SetReceivableRate(row.ReceivableRate).SetPayableRate(row.PayableRate).SetIsActive(true)
+			if row.EffectiveTo != nil {
+				effectiveTo, parseErr := parseExchangeRateStorageTime(*row.EffectiveTo)
+				if parseErr != nil {
+					return biz.ErrExchangeRateImportStale
+				}
+				builder.SetEffectiveTo(effectiveTo)
+			}
+			builders = append(builders, builder)
+		}
+		if _, saveErr := tx.ExchangeRateSetting.CreateBulk(builders...).Save(ctx); saveErr != nil {
+			return biz.ErrExchangeRateImportStale
+		}
+		var saveErr error
+		updated, saveErr = tx.ExchangeRateImportBatch.UpdateOneID(current.ID).
+			SetStatus(importent.StatusIMPORTED).
+			SetIdempotencyKey(idempotencyKey).
+			SetImportedCount(len(rows)).
+			SetImportedAt(now).
+			SetImportedBy(actorID).
+			Save(ctx)
+		if saveErr != nil {
+			if ent.IsConstraintError(saveErr) {
+				return biz.ErrExchangeRateImportIdempotencyConflict
+			}
+			return saveErr
+		}
+		audit.ResourceID = current.ID.String()
+		audit.Details = map[string]string{"exchange_rate_import.file_checksum": current.FileChecksum, "exchange_rate_import.imported_count": fmt.Sprintf("%d", len(rows))}
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			return rollback(biz.ErrExchangeRateImportIdempotencyConflict)
-		}
-		return rollback(err)
-	}
-	audit.ResourceID = current.ID.String()
-	audit.Details = map[string]string{"exchange_rate_import.file_checksum": current.FileChecksum, "exchange_rate_import.imported_count": fmt.Sprintf("%d", len(rows))}
-	if err = writeAudit(ctx, tx.AuditLog, audit); err != nil {
-		return rollback(err)
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return exchangeRateImportBatchToBiz(updated)
