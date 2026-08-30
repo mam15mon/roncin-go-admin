@@ -17,13 +17,13 @@ import {
   Upload,
 } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import {
   exchangeRateServiceConfirmExchangeRateImport,
   exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServicePreviewExchangeRateImport,
 } from '@/services/roncin/exchangeRateService';
+import { formatDate } from '@/utils/format';
 
 const rateTypeLabels: Record<string, string> = {
   BASE_CURRENCY: '折本币',
@@ -311,7 +311,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 title: '生效开始时间',
                 dataIndex: 'effectiveFrom',
                 width: 160,
-                render: (val) => (val ? dayjs(val).format('YYYY-MM-DD HH:mm:ss') : '-'),
+                render: (val) => formatDate(val),
               },
               {
                 title: '生效结束时间',
@@ -319,7 +319,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
                 width: 160,
                 render: (val) =>
                   val ? (
-                    dayjs(val).format('YYYY-MM-DD HH:mm:ss')
+                    formatDate(val)
                   ) : (
                     <Tag color="cyan">长期有效</Tag>
                   ),

@@ -9,7 +9,6 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import React from 'react';
 import {
   calculationBasisText,
@@ -18,6 +17,7 @@ import {
   getAdjustmentStatusInfo,
   personnelRoleText,
 } from '../types';
+import { formatDate } from '@/utils/format';
 import { previewColumns, renderExpandedFees } from './CommissionLineTable';
 
 type CommissionDetailDrawerProps = {
@@ -257,23 +257,17 @@ export default function CommissionDetailDrawer({
               {
                 key: 'createdAt',
                 label: '生成时间',
-                children: detail.createdAt
-                  ? dayjs(detail.createdAt).format('YYYY-MM-DD HH:mm:ss')
-                  : '-',
+                children: formatDate(detail.createdAt),
               },
               {
                 key: 'confirmedAt',
                 label: '确认时间',
-                children: detail.confirmedAt
-                  ? dayjs(detail.confirmedAt).format('YYYY-MM-DD HH:mm:ss')
-                  : '-',
+                children: formatDate(detail.confirmedAt),
               },
               {
                 key: 'paidAt',
                 label: '发放时间',
-                children: detail.paidAt
-                  ? dayjs(detail.paidAt).format('YYYY-MM-DD HH:mm:ss')
-                  : '-',
+                children: formatDate(detail.paidAt),
               },
             ]}
           />

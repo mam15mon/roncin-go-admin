@@ -48,7 +48,7 @@ import {
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import { toTableRequest, unwrapList } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
-import { trimDecimal } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
@@ -332,8 +332,7 @@ export function ExchangeRatesPanel() {
       title: '开始时间',
       dataIndex: 'effectiveFrom',
       width: 165,
-      render: (_, record) =>
-        record.effectiveFrom ? dayjs(record.effectiveFrom).format('YYYY-MM-DD HH:mm:ss') : '-',
+      render: (_, record) => formatDate(record.effectiveFrom),
     },
     {
       title: '结束时间',
@@ -343,7 +342,7 @@ export function ExchangeRatesPanel() {
         if (!record.effectiveTo) {
           return <Tag color="cyan" style={{ margin: 0, fontSize: 11 }}>长期有效</Tag>;
         }
-        return dayjs(record.effectiveTo).format('YYYY-MM-DD HH:mm:ss');
+        return formatDate(record.effectiveTo);
       },
     },
     {

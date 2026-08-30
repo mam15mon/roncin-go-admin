@@ -16,6 +16,7 @@ import {
   orderMilestoneServiceListMilestones,
   orderMilestoneServiceSetMilestone,
 } from '@/services/roncin/orderMilestoneService';
+import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -69,7 +70,7 @@ const columns: ProColumns<API.OrderMilestone>[] = [
     width: 180,
     render: (_, record) =>
       record.occurredAt ? (
-        dayjs(record.occurredAt).format('YYYY-MM-DD HH:mm:ss')
+        formatDate(record.occurredAt)
       ) : (
         <Text type="secondary">未完成</Text>
       ),

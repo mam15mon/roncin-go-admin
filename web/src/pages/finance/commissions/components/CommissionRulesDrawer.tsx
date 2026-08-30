@@ -20,6 +20,7 @@ import {
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import {
   calculationBasisMeta,
   calculationBasisText,
@@ -111,8 +112,7 @@ export default function CommissionRulesDrawer({
       title: '更新时间',
       dataIndex: 'updatedAt',
       search: false,
-      renderText: (value) =>
-        value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
+      renderText: (value) => formatDate(value),
     },
     {
       title: '操作',

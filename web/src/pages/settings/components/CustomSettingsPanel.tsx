@@ -17,7 +17,6 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SectionCard } from '@/components/ui';
 import {
@@ -28,6 +27,7 @@ import {
   settlementServiceGetBilledFeeEditPolicy,
   settlementServiceUpdateBilledFeeEditPolicy,
 } from '@/services/roncin/settlementService';
+import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
@@ -209,7 +209,7 @@ export function CustomSettingsPanel() {
                   </Paragraph>
                   {rateSetting?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      最近修改时间：{dayjs(rateSetting.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      最近修改时间：{formatDate(rateSetting.updatedAt)}
                       {rateSetting.updatedBy ? `（操作人：${rateSetting.updatedBy}）` : ''}
                     </Text>
                   )}
@@ -262,7 +262,7 @@ export function CustomSettingsPanel() {
                   </Paragraph>
                   {billedFeePolicy?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      最近修改时间：{dayjs(billedFeePolicy.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      最近修改时间：{formatDate(billedFeePolicy.updatedAt)}
                       {billedFeePolicy.updatedBy ? `（操作人：${billedFeePolicy.updatedBy}）` : ''}
                     </Text>
                   )}
