@@ -20,14 +20,18 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
-import { useEffect, useMemo, useState } from 'react';
-import { partnerServiceListPartners } from '@/services/roncin/partnerService';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   settlementServiceCreateVerification,
   settlementServiceListBills,
   settlementServiceListCashflows,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import {
+  getCurrencyOptions,
+  searchPartnerOptions,
+  type SelectOption,
+} from '@/utils/options';
 import {
   buildVerificationAllocations,
   isPositiveVerificationAmount,
@@ -68,7 +72,8 @@ export default function VerificationWorkbench({
     currency: 'CNY',
     verificationDate: dayjs(),
   });
-  const [partners, setPartners] = useState<API.Partner[]>([]);
+  const [partnerOptions, setPartnerOptions] = useState<SelectOption[]>([]);
+  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
   const [cashflows, setCashflows] = useState<API.FinanceCashflow[]>([]);
   const [bills, setBills] = useState<API.FinanceBill[]>([]);
   const [selectedCashflowIds, setSelectedCashflowIds] = useState<React.Key[]>([]);
@@ -76,6 +81,7 @@ export default function VerificationWorkbench({
   const [allocations, setAllocations] = useState<VerificationAllocationDraft[]>([]);
   const [candidateLoading, setCandidateLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const partnerSearchSequence = useRef(0);
 
   const resetSelections = () => {
     setSelectedCashflowIds([]);
@@ -83,12 +89,34 @@ export default function VerificationWorkbench({
     setAllocations([]);
   };
 
+  const loadPartnerOptions = useCallback(
+    async (keyword?: string, selectedId?: string) => {
+      const sequence = ++partnerSearchSequence.current;
+      try {
+        const options = await searchPartnerOptions(keyword, { enabled: true });
+        if (sequence !== partnerSearchSequence.current) return;
+        setPartnerOptions((current) => {
+          const selected = current.find((option) => option.value === selectedId);
+          return selected
+            ? [selected, ...options.filter((option) => option.value !== selected.value)]
+            : options;
+        });
+      } catch {
+        if (sequence === partnerSearchSequence.current) {
+          message.error('加载结算单位失败');
+        }
+      }
+    },
+    [message],
+  );
+
   useEffect(() => {
     if (!open) return;
-    void partnerServiceListPartners({ page: 1, pageSize: 200, enabled: true })
-      .then((response) => setPartners(unwrapList(response)))
-      .catch(() => message.error('加载结算单位失败'));
-  }, [message, open]);
+    void loadPartnerOptions(undefined, scope.settlementPartyId);
+    void getCurrencyOptions()
+      .then(setCurrencyOptions)
+      .catch(() => message.error('加载币种失败'));
+  }, [loadPartnerOptions, message, open, scope.settlementPartyId]);
 
   useEffect(() => {
     if (!open || !scope.settlementPartyId || !scope.currency) {
@@ -341,15 +369,16 @@ export default function VerificationWorkbench({
           <Col span={7}>
             <Typography.Text>结算单位</Typography.Text>
             <Select
-              showSearch={{ optionFilterProp: 'label' }}
+              showSearch={{
+                filterOption: false,
+                onSearch: (keyword) =>
+                  void loadPartnerOptions(keyword, scope.settlementPartyId),
+              }}
               aria-label="结算单位"
               value={scope.settlementPartyId}
               style={{ width: '100%', marginTop: 6 }}
               placeholder="请选择结算单位"
-              options={partners.map((partner) => ({
-                value: partner.id,
-                label: `${partner.code || ''} ${partner.legalName || ''}`.trim(),
-              }))}
+              options={partnerOptions}
               onChange={(settlementPartyId) =>
                 setScope((value) => ({ ...value, settlementPartyId }))
               }
@@ -357,16 +386,14 @@ export default function VerificationWorkbench({
           </Col>
           <Col span={4}>
             <Typography.Text>币种</Typography.Text>
-            <Input
+            <Select
+              showSearch={{ optionFilterProp: ['label', 'value'] }}
               aria-label="核销币种"
               value={scope.currency}
-              maxLength={3}
-              style={{ marginTop: 6 }}
-              onChange={(event) =>
-                setScope((value) => ({
-                  ...value,
-                  currency: event.target.value.toUpperCase().trim(),
-                }))
+              options={currencyOptions}
+              style={{ width: '100%', marginTop: 6 }}
+              onChange={(currency) =>
+                setScope((value) => ({ ...value, currency }))
               }
             />
           </Col>
