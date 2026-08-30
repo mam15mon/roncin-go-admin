@@ -2,6 +2,7 @@ import { DingdingOutlined } from '@ant-design/icons';
 import { Helmet, useModel } from '@umijs/max';
 import { App, Button, Result, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
+import { DingTalkLoginStatus } from '@/enums.generated';
 import {
   authServiceDingTalkLogin,
   authServiceRegisterDingTalkUser,
@@ -25,9 +26,6 @@ function loginFailure(error: unknown): LoginFailure {
     message: data?.message ?? requestError.message ?? '钉钉登录失败',
   };
 }
-
-const dingTalkLoginStatusAuthenticated = 1;
-const dingTalkLoginStatusRegistrationRequired = 2;
 
 function storedRedirect(): string {
   const value = sessionStorage.getItem('dingtalk_login_redirect');
@@ -58,14 +56,16 @@ export default function DingTalkCallback() {
     authServiceDingTalkLogin({ authCode, state }, { skipErrorHandler: true })
       .then((response) => {
         if (
-          response.data?.status === dingTalkLoginStatusRegistrationRequired &&
+          response.data?.status ===
+            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED &&
           response.data.displayName
         ) {
           setRegistrationName(response.data.displayName);
           return;
         }
         if (
-          response.data?.status !== dingTalkLoginStatusAuthenticated ||
+          response.data?.status !==
+            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED ||
           !response.data.currentUser
         ) {
           setFailure({ message: '钉钉认证未返回有效结果' });

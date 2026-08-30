@@ -27,7 +27,11 @@ import {
   makeValueEnum,
   statusTag,
 } from '@/constants/statusMeta';
-import { BackgroundTaskStatus } from '@/enums.generated';
+import {
+  BackgroundTaskKind,
+  BackgroundTaskPhase,
+  BackgroundTaskStatus,
+} from '@/enums.generated';
 import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
@@ -41,8 +45,6 @@ import {
 } from './background-task-presentation';
 
 const { Text } = Typography;
-
-type BackgroundTaskPhase = 1 | 2;
 
 const activeStatusValueEnum = makeValueEnum({
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING]:
@@ -63,7 +65,9 @@ const historyStatusValueEnum = makeValueEnum({
 export default function BackgroundTasksPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
-  const [taskPhase, setTaskPhase] = useState<BackgroundTaskPhase>(1);
+  const [taskPhase, setTaskPhase] = useState<BackgroundTaskPhase>(
+    BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE,
+  );
   const access = useAccess();
   const { message } = App.useApp();
 
@@ -89,11 +93,21 @@ export default function BackgroundTasksPanel() {
       dataIndex: 'kind',
       width: 220,
       valueEnum: {
-        1: { text: '主数据导入' },
-        2: { text: 'UNLOCODE 导入' },
-        3: { text: '订单提醒' },
-        4: { text: '外部系统集成' },
-        5: { text: '钉钉通知' },
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT]: {
+          text: '主数据导入',
+        },
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_UNLOCODE_IMPORT]: {
+          text: 'UNLOCODE 导入',
+        },
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_ORDER_REMINDER]: {
+          text: '订单提醒',
+        },
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_INTEGRATION]: {
+          text: '外部系统集成',
+        },
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION]: {
+          text: '钉钉通知',
+        },
       },
       render: (_, record) => {
         const presentation = backgroundTaskPresentation(record);
@@ -140,7 +154,9 @@ export default function BackgroundTasksPanel() {
       dataIndex: 'status',
       width: 110,
       valueEnum:
-        taskPhase === 1 ? activeStatusValueEnum : historyStatusValueEnum,
+        taskPhase === BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE
+          ? activeStatusValueEnum
+          : historyStatusValueEnum,
       render: (_, record) =>
         statusTag(backgroundTaskStatusMeta, record.status ?? 0),
     },
@@ -151,9 +167,13 @@ export default function BackgroundTasksPanel() {
       search: false,
       render: (_, record) => {
         const type: React.ComponentProps<typeof Text>['type'] =
-          record.status === 3
+          record.status ===
+          BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED
             ? 'success'
-            : record.status === 4 || record.status === 5
+            : record.status ===
+                  BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED ||
+                record.status ===
+                  BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER
               ? 'warning'
               : 'secondary';
         return (
@@ -194,7 +214,12 @@ export default function BackgroundTasksPanel() {
       search: false,
       render: (_, record) => {
         if (!access.canRequeueTasks) return null;
-        if (record.status !== 4 && record.status !== 5) return null;
+        if (
+          record.status !== BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED &&
+          record.status !==
+            BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER
+        )
+          return null;
         return (
           <Popconfirm
             title="确定重新执行此任务？"
@@ -234,8 +259,18 @@ export default function BackgroundTasksPanel() {
           <Tabs
             activeKey={String(taskPhase)}
             items={[
-              { key: '1', label: '正在进行' },
-              { key: '2', label: '历史记录' },
+              {
+                key: String(
+                  BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE,
+                ),
+                label: '正在进行',
+              },
+              {
+                key: String(
+                  BackgroundTaskPhase.BACKGROUND_TASK_PHASE_HISTORY,
+                ),
+                label: '历史记录',
+              },
             ]}
             onChange={(key) => {
               formRef.current?.setFieldValue('status', undefined);
