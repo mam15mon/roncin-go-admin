@@ -92,8 +92,16 @@ type FinanceInvoiceFilter struct {
 }
 
 type FinanceInvoiceListResult struct {
-	Items []*FinanceInvoice
-	Total int64
+	Items   []*FinanceInvoice
+	Total   int64
+	Summary FinanceInvoiceSummary
+}
+
+type FinanceInvoiceSummary struct {
+	ReceivableBaseAmount decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	IssuedCount          int64
+	BaseCurrency         string
 }
 
 type CreateFinanceInvoiceInput struct {

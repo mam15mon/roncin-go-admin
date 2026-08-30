@@ -20,6 +20,12 @@ import (
 
 type financeInvoiceRepo struct{ data *Data }
 
+type financeInvoiceSummaryRow struct {
+	Direction    string `json:"direction"`
+	BaseCurrency string `json:"base_currency"`
+	BaseAmount   string `json:"base_amount"`
+}
+
 func NewFinanceInvoiceRepo(data *Data) biz.FinanceInvoiceRepo { return &financeInvoiceRepo{data: data} }
 
 func (r *financeInvoiceRepo) List(ctx context.Context, org uuid.UUID, filter biz.FinanceInvoiceFilter) (*biz.FinanceInvoiceListResult, error) {
@@ -38,11 +44,36 @@ func (r *financeInvoiceRepo) List(ctx context.Context, org uuid.UUID, filter biz
 	if err != nil {
 		return nil, err
 	}
+	summaryRows := make([]financeInvoiceSummaryRow, 0)
+	if err := q.Clone().Where(financeinvoiceent.BaseCurrencyAmountNotNil()).
+		GroupBy(financeinvoiceent.FieldDirection, financeinvoiceent.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(financeinvoiceent.FieldBaseCurrencyAmount), "base_amount")).
+		Scan(ctx, &summaryRows); err != nil {
+		return nil, err
+	}
+	summary := biz.FinanceInvoiceSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
+	for _, row := range summaryRows {
+		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.BaseCurrency = row.BaseCurrency
+		if row.Direction == string(financeinvoiceent.DirectionRECEIVABLE) {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
+	issuedCount, err := q.Clone().Where(financeinvoiceent.StatusEQ(financeinvoiceent.StatusISSUED)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	summary.IssuedCount = int64(issuedCount)
 	items, err := q.Order(financeinvoiceent.ByCreatedAt(entsql.OrderDesc()), financeinvoiceent.ByID(entsql.OrderDesc())).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceInvoiceListResult{Items: make([]*biz.FinanceInvoice, 0, len(items)), Total: int64(total)}
+	result := &biz.FinanceInvoiceListResult{Items: make([]*biz.FinanceInvoice, 0, len(items)), Total: int64(total), Summary: summary}
 	for _, item := range items {
 		converted, e := financeInvoiceToBiz(item)
 		if e != nil {

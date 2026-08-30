@@ -76,6 +76,7 @@ export default function FinanceInvoicesPage() {
     receivableTotal: 0,
     payableTotal: 0,
     issuedCount: 0,
+    baseCurrency: '',
   });
   const reload = () => actionRef.current?.reload();
 
@@ -428,7 +429,7 @@ export default function FinanceInvoicesPage() {
       title: '销项发票金额',
       value: metricStats.receivableTotal,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#1677ff',
     },
     {
@@ -436,7 +437,7 @@ export default function FinanceInvoicesPage() {
       title: '进项发票金额',
       value: metricStats.payableTotal,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#fa8c16',
     },
     {
@@ -477,18 +478,12 @@ export default function FinanceInvoicesPage() {
             status: p.status,
           });
           const list = r.data || [];
-          const recTotal = list
-            .filter((x) => x.direction === 'RECEIVABLE')
-            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
-          const payTotal = list
-            .filter((x) => x.direction === 'PAYABLE')
-            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
-          const issued = list.filter((x) => x.status === 'ISSUED').length;
           setMetricStats({
             totalCount: Number(r.total || list.length),
-            receivableTotal: recTotal,
-            payableTotal: payTotal,
-            issuedCount: issued,
+            receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
+            payableTotal: Number(r.summary?.payableBaseAmount || 0),
+            issuedCount: Number(r.summary?.issuedCount || 0),
+            baseCurrency: r.summary?.baseCurrency || '',
           });
           return {
             data: list,

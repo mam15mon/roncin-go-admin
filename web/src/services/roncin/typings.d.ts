@@ -2009,6 +2009,13 @@ declare namespace API {
     unitPrice?: string;
   };
 
+  type FinanceBillSummary = {
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    unverifiedBaseAmount?: string;
+    baseCurrency?: string;
+  };
+
   type FinanceCashflow = {
     id?: string;
     flowNo?: string;
@@ -2212,6 +2219,13 @@ declare namespace API {
     sourceLineCount?: number;
   };
 
+  type FinanceInvoiceSummary = {
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    issuedCount?: string;
+    baseCurrency?: string;
+  };
+
   type FinanceVerification = {
     id?: string;
     verificationNo?: string;
@@ -2251,6 +2265,12 @@ declare namespace API {
     cashflowBaseAmount?: string;
     writeOffBaseAmount?: string;
     exchangeGainLoss?: string;
+  };
+
+  type FinanceVerificationSummary = {
+    receivableBaseAmount?: string;
+    payableBaseAmount?: string;
+    baseCurrency?: string;
   };
 
   type GetBackgroundTaskResponse = {
@@ -2513,6 +2533,7 @@ declare namespace API {
     data?: FinanceBill[];
     total?: string;
     traceId?: string;
+    summary?: FinanceBillSummary;
   };
 
   type ListCargoItemsResponse = {
@@ -2703,6 +2724,7 @@ declare namespace API {
     data?: FinanceInvoice[];
     total?: string;
     traceId?: string;
+    summary?: FinanceInvoiceSummary;
   };
 
   type ListItemsResponse = {
@@ -2978,6 +3000,7 @@ declare namespace API {
     data?: FinanceVerification[];
     total?: string;
     traceId?: string;
+    summary?: FinanceVerificationSummary;
   };
 
   type LoginRequest = {

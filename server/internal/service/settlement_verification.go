@@ -33,7 +33,14 @@ func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVer
 	for _, x := range result.Items {
 		data = append(data, verificationToAPI(x))
 	}
-	return &v1.ListVerificationsResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListVerificationsResponse{
+		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+		Summary: &v1.FinanceVerificationSummary{
+			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
+			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
+			BaseCurrency:         result.Summary.BaseCurrency,
+		},
+	}, nil
 }
 func (s *SettlementService) CreateVerification(ctx context.Context, r *v1.CreateVerificationRequest) (*v1.CreateVerificationResponse, error) {
 	p, ok := biz.PrincipalFromContext(ctx)

@@ -69,8 +69,14 @@ type VerificationFilter struct {
 	Status         VerificationStatus
 }
 type VerificationListResult struct {
-	Items []*FinanceVerification
-	Total int64
+	Items   []*FinanceVerification
+	Total   int64
+	Summary VerificationSummary
+}
+type VerificationSummary struct {
+	ReceivableBaseAmount decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	BaseCurrency         string
 }
 type VerificationRepo interface {
 	List(context.Context, uuid.UUID, VerificationFilter) (*VerificationListResult, error)

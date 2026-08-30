@@ -123,8 +123,16 @@ type FinanceBillFilter struct {
 }
 
 type FinanceBillListResult struct {
-	Items []*FinanceBill
-	Total int64
+	Items   []*FinanceBill
+	Total   int64
+	Summary FinanceBillSummary
+}
+
+type FinanceBillSummary struct {
+	ReceivableBaseAmount decimal.Decimal
+	PayableBaseAmount    decimal.Decimal
+	UnverifiedBaseAmount decimal.Decimal
+	BaseCurrency         string
 }
 
 type CreateFinanceBillInput struct {

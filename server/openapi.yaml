@@ -8786,6 +8786,17 @@ components:
                     type: string
                 unitPrice:
                     type: string
+        finance.v1.FinanceBillSummary:
+            type: object
+            properties:
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                unverifiedBaseAmount:
+                    type: string
+                baseCurrency:
+                    type: string
         finance.v1.FinanceCashflow:
             type: object
             properties:
@@ -9185,6 +9196,17 @@ components:
                 sourceLineCount:
                     type: integer
                     format: int32
+        finance.v1.FinanceInvoiceSummary:
+            type: object
+            properties:
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                issuedCount:
+                    type: string
+                baseCurrency:
+                    type: string
         finance.v1.FinanceVerification:
             type: object
             properties:
@@ -9262,6 +9284,15 @@ components:
                 writeOffBaseAmount:
                     type: string
                 exchangeGainLoss:
+                    type: string
+        finance.v1.FinanceVerificationSummary:
+            type: object
+            properties:
+                receivableBaseAmount:
+                    type: string
+                payableBaseAmount:
+                    type: string
+                baseCurrency:
                     type: string
         finance.v1.GetBillResponse:
             type: object
@@ -9434,6 +9465,8 @@ components:
                     type: string
                 traceId:
                     type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FinanceBillSummary'
         finance.v1.ListCashflowsResponse:
             type: object
             properties:
@@ -9655,6 +9688,8 @@ components:
                     type: string
                 traceId:
                     type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FinanceInvoiceSummary'
         finance.v1.ListTaxableServicesResponse:
             type: object
             properties:
@@ -9698,6 +9733,8 @@ components:
                     type: string
                 traceId:
                     type: string
+                summary:
+                    $ref: '#/components/schemas/finance.v1.FinanceVerificationSummary'
         finance.v1.MarkCommissionAdjustmentPaidRequest:
             required:
                 - id

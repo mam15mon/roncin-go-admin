@@ -95,6 +95,7 @@ export default function FinanceBillsPage() {
     receivableBase: 0,
     payableBase: 0,
     unverifiedBase: 0,
+    baseCurrency: '',
   });
 
   const [searchParams, setSearchParams] = useState<{
@@ -284,7 +285,7 @@ export default function FinanceBillsPage() {
       title: '应收账单折本币',
       value: metricStats.receivableBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#1677ff',
     },
     {
@@ -292,7 +293,7 @@ export default function FinanceBillsPage() {
       title: '应付账单折本币',
       value: metricStats.payableBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#fa8c16',
     },
     {
@@ -300,7 +301,7 @@ export default function FinanceBillsPage() {
       title: '未核销总额折本币',
       value: metricStats.unverifiedBase,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: metricStats.unverifiedBase > 0 ? '#cf1322' : '#52c41a',
     },
   ];
@@ -412,22 +413,12 @@ export default function FinanceBillsPage() {
           });
 
           const list = response.data || [];
-          const recBase = list
-            .filter((x) => x.direction === 'RECEIVABLE')
-            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
-          const payBase = list
-            .filter((x) => x.direction === 'PAYABLE')
-            .reduce((s, x) => s + Number(x.baseCurrencyAmount || 0), 0);
-          const unvBase = list.reduce(
-            (s, x) => s + Number(x.unverifiedAmount || 0),
-            0,
-          );
-
           setMetricStats({
             totalCount: Number(response.total || list.length),
-            receivableBase: recBase,
-            payableBase: payBase,
-            unverifiedBase: unvBase,
+            receivableBase: Number(response.summary?.receivableBaseAmount || 0),
+            payableBase: Number(response.summary?.payableBaseAmount || 0),
+            unverifiedBase: Number(response.summary?.unverifiedBaseAmount || 0),
+            baseCurrency: response.summary?.baseCurrency || '',
           });
 
           return {

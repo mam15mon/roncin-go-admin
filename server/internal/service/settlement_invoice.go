@@ -32,7 +32,15 @@ func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListIn
 	for _, item := range result.Items {
 		data = append(data, financeInvoiceToAPI(item))
 	}
-	return &v1.ListInvoicesResponse{Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListInvoicesResponse{
+		Success: true, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+		Summary: &v1.FinanceInvoiceSummary{
+			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
+			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
+			IssuedCount:          result.Summary.IssuedCount,
+			BaseCurrency:         result.Summary.BaseCurrency,
+		},
+	}, nil
 }
 func (s *SettlementService) GetInvoice(ctx context.Context, request *v1.GetInvoiceRequest) (*v1.GetInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())

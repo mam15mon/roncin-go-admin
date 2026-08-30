@@ -59,7 +59,15 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		converted.Tags = businessTagSummariesToFinanceAPI(billTags[item.ID])
 		data = append(data, converted)
 	}
-	return &v1.ListBillsResponse{Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx)}, nil
+	return &v1.ListBillsResponse{
+		Success: true, Code: 0, Message: "OK", Data: data, Total: result.Total, TraceId: requestmeta.TraceID(ctx),
+		Summary: &v1.FinanceBillSummary{
+			ReceivableBaseAmount: result.Summary.ReceivableBaseAmount.StringFixed(8),
+			PayableBaseAmount:    result.Summary.PayableBaseAmount.StringFixed(8),
+			UnverifiedBaseAmount: result.Summary.UnverifiedBaseAmount.StringFixed(8),
+			BaseCurrency:         result.Summary.BaseCurrency,
+		},
+	}, nil
 }
 
 func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequest) (*v1.GetBillResponse, error) {

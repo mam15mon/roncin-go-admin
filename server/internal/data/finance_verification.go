@@ -25,6 +25,12 @@ import (
 
 type verificationRepo struct{ data *Data }
 
+type verificationSummaryRow struct {
+	Direction    string `json:"direction"`
+	BaseCurrency string `json:"base_currency"`
+	BaseAmount   string `json:"base_amount"`
+}
+
 func NewVerificationRepo(d *Data) biz.VerificationRepo { return &verificationRepo{d} }
 func (r *verificationRepo) withAll(q *ent.FinanceVerificationQuery) *ent.FinanceVerificationQuery {
 	return q.WithAllocations(func(x *ent.FinanceVerificationAllocationQuery) { x.Order(alloc.ByCreatedAt()) })
@@ -42,11 +48,31 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 	if e != nil {
 		return nil, e
 	}
+	summaryRows := make([]verificationSummaryRow, 0)
+	if e := q.Clone().
+		GroupBy(ver.FieldDirection, ver.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(ver.FieldBaseAmount), "base_amount")).
+		Scan(ctx, &summaryRows); e != nil {
+		return nil, e
+	}
+	summary := biz.VerificationSummary{ReceivableBaseAmount: decimal.Zero, PayableBaseAmount: decimal.Zero}
+	for _, row := range summaryRows {
+		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.BaseCurrency = row.BaseCurrency
+		if row.Direction == string(ver.DirectionRECEIVABLE) {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
 	xs, e := r.withAll(q).Order(ver.ByVerificationDate(entsql.OrderDesc()), ver.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.VerificationListResult{Items: make([]*biz.FinanceVerification, 0, len(xs)), Total: int64(n)}
+	out := &biz.VerificationListResult{Items: make([]*biz.FinanceVerification, 0, len(xs)), Total: int64(n), Summary: summary}
 	for _, x := range xs {
 		v, e := verificationToBiz(x)
 		if e != nil {

@@ -24,6 +24,17 @@ import (
 
 type financeBillRepo struct{ data *Data }
 
+type financeBillSummaryRow struct {
+	Direction    string `json:"direction"`
+	BaseCurrency string `json:"base_currency"`
+	BaseAmount   string `json:"base_amount"`
+}
+
+type financeBillVerifiedSummaryRow struct {
+	Active             bool   `json:"active"`
+	VerifiedBaseAmount string `json:"verified_base_amount"`
+}
+
 func NewFinanceBillRepo(data *Data) biz.FinanceBillRepo { return &financeBillRepo{data: data} }
 
 func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceBillFilter) (*biz.FinanceBillListResult, error) {
@@ -56,17 +67,58 @@ func (r *financeBillRepo) List(ctx context.Context, organizationID uuid.UUID, fi
 	if len(filter.TagIDs) > 0 {
 		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
-	query := r.data.db.FinanceBill.Query().Where(predicates...).WithBatch()
+	query := r.data.db.FinanceBill.Query().Where(predicates...)
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	items, err := query.Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
+	summaryRows := make([]financeBillSummaryRow, 0)
+	if err := query.Clone().
+		GroupBy(financebillent.FieldDirection, financebillent.FieldBaseCurrency).
+		Aggregate(ent.As(ent.Sum(financebillent.FieldBaseCurrencyAmount), "base_amount")).
+		Scan(ctx, &summaryRows); err != nil {
+		return nil, err
+	}
+	summary := biz.FinanceBillSummary{
+		ReceivableBaseAmount: decimal.Zero,
+		PayableBaseAmount:    decimal.Zero,
+		UnverifiedBaseAmount: decimal.Zero,
+	}
+	for _, row := range summaryRows {
+		amount, parseErr := decimal.NewFromString(row.BaseAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		summary.BaseCurrency = row.BaseCurrency
+		if row.Direction == string(financebillent.DirectionRECEIVABLE) {
+			summary.ReceivableBaseAmount = summary.ReceivableBaseAmount.Add(amount)
+		} else {
+			summary.PayableBaseAmount = summary.PayableBaseAmount.Add(amount)
+		}
+	}
+	verifiedRows := make([]financeBillVerifiedSummaryRow, 0, 1)
+	if err := r.data.db.FinanceVerificationAllocation.Query().
+		Where(verificationallocationent.ActiveEQ(true), verificationallocationent.HasBillWith(predicates...)).
+		GroupBy(verificationallocationent.FieldActive).
+		Aggregate(ent.As(ent.Sum(verificationallocationent.FieldBillBaseAmount), "verified_base_amount")).
+		Scan(ctx, &verifiedRows); err != nil {
+		return nil, err
+	}
+	verifiedBaseAmount := decimal.Zero
+	if len(verifiedRows) > 0 {
+		verifiedBaseAmount, err = decimal.NewFromString(verifiedRows[0].VerifiedBaseAmount)
+		if err != nil {
+			return nil, err
+		}
+	}
+	summary.UnverifiedBaseAmount = summary.ReceivableBaseAmount.Add(summary.PayableBaseAmount).Sub(verifiedBaseAmount)
+
+	items, err := query.WithBatch().Order(financebillent.ByBillDate(entsql.OrderDesc()), financebillent.ByCreatedAt(entsql.OrderDesc()), financebillent.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceBillListResult{Items: make([]*biz.FinanceBill, 0, len(items)), Total: int64(total)}
+	result := &biz.FinanceBillListResult{Items: make([]*biz.FinanceBill, 0, len(items)), Total: int64(total), Summary: summary}
 	for _, item := range items {
 		converted, convertErr := financeBillToBiz(item)
 		if convertErr != nil {

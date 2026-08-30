@@ -13991,6 +13991,23 @@
           }
         }
       },
+      "finance.v1.FinanceBillSummary": {
+        "type": "object",
+        "properties": {
+          "receivableBaseAmount": {
+            "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "unverifiedBaseAmount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.FinanceCashflow": {
         "type": "object",
         "properties": {
@@ -14590,6 +14607,23 @@
           }
         }
       },
+      "finance.v1.FinanceInvoiceSummary": {
+        "type": "object",
+        "properties": {
+          "receivableBaseAmount": {
+            "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "issuedCount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.FinanceVerification": {
         "type": "object",
         "properties": {
@@ -14704,6 +14738,20 @@
             "type": "string"
           },
           "exchangeGainLoss": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceVerificationSummary": {
+        "type": "object",
+        "properties": {
+          "receivableBaseAmount": {
+            "type": "string"
+          },
+          "payableBaseAmount": {
+            "type": "string"
+          },
+          "baseCurrency": {
             "type": "string"
           }
         }
@@ -14959,6 +15007,9 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceBillSummary"
           }
         }
       },
@@ -15288,6 +15339,9 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoiceSummary"
           }
         }
       },
@@ -15351,6 +15405,9 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceVerificationSummary"
           }
         }
       },

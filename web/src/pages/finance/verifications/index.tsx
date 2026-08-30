@@ -23,6 +23,7 @@ export default function FinanceVerificationsPage() {
     totalCount: 0,
     receivableTotal: 0,
     payableTotal: 0,
+    baseCurrency: '',
   });
 
   const reload = () => actionRef.current?.reload();
@@ -68,7 +69,7 @@ export default function FinanceVerificationsPage() {
       title: '应收核销总金额',
       value: metricStats.receivableTotal,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#1677ff',
     },
     {
@@ -76,7 +77,7 @@ export default function FinanceVerificationsPage() {
       title: '应付核销总金额',
       value: metricStats.payableTotal,
       precision: 2,
-      suffix: 'CNY',
+      suffix: metricStats.baseCurrency || '-',
       valueColor: '#fa8c16',
     },
   ];
@@ -254,20 +255,11 @@ export default function FinanceVerificationsPage() {
             status: p.status,
           });
           const list = r.data || [];
-          let recTotal = 0;
-          let payTotal = 0;
-          for (const item of list) {
-            const amount = Number(item.amount || 0);
-            if (item.direction === 'RECEIVABLE') {
-              recTotal += amount;
-            } else if (item.direction === 'PAYABLE') {
-              payTotal += amount;
-            }
-          }
           setMetricStats({
             totalCount: Number(r.total || 0),
-            receivableTotal: recTotal,
-            payableTotal: payTotal,
+            receivableTotal: Number(r.summary?.receivableBaseAmount || 0),
+            payableTotal: Number(r.summary?.payableBaseAmount || 0),
+            baseCurrency: r.summary?.baseCurrency || '',
           });
           return {
             data: list,
