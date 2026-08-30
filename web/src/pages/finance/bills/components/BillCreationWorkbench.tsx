@@ -41,6 +41,7 @@ import {
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { longRequestOptions } from '@/utils/requestTimeout';
 import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupCard from './BillGroupCard';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
@@ -191,7 +192,7 @@ export default function BillCreationWorkbench({
             feeIds: ids,
             groupingPolicy: policy,
           },
-          { skipErrorHandler: true },
+          { ...longRequestOptions, skipErrorHandler: true },
         );
         const groups = unwrapList(response);
         if (!response.previewToken || groups.length === 0) {
@@ -450,7 +451,7 @@ export default function BillCreationWorkbench({
             };
           }),
         },
-        { skipErrorHandler: true },
+        { ...longRequestOptions, skipErrorHandler: true },
       );
       if (!response.data) throw new Error('服务端未返回建单结果');
       setResult(response.data);
@@ -486,6 +487,7 @@ export default function BillCreationWorkbench({
             expectedVersion: bill.version || '0',
           })),
         },
+        longRequestOptions,
       );
       if (response.data) setResult(response.data);
       message.success('本批账单已全部确认，可以进入开票、收付款和核销流程');
