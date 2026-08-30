@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
+	"github.com/roncin/roncin-go-admin/server/cmd/internal/syncrunner"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 )
 
@@ -34,13 +33,6 @@ var (
 	countryPattern = regexp.MustCompile(`^[A-Z]{2}$`)
 )
 
-type options struct {
-	apply            bool
-	source           string
-	release          string
-	organizationCode string
-}
-
 type airportParseSummary struct {
 	RawRows       int
 	ValidRows     int
@@ -52,52 +44,56 @@ type airportParseSummary struct {
 }
 
 func main() {
-	ctx := context.Background()
+	syncrunner.Run(run)
+}
+
+func run(ctx context.Context) error {
 	options := parseOptions()
-	raw, sourceLabel, err := loadSource(ctx, options.source)
+	raw, sourceLabel, err := loadSource(ctx, options.Source)
 	if err != nil {
-		fail("读取 OurAirports 数据失败", err)
+		return fmt.Errorf("读取 OurAirports 数据失败: %w", err)
 	}
 	rows, summary, err := parseAirports(raw)
 	if err != nil {
-		fail("解析 OurAirports 数据失败", err)
+		return fmt.Errorf("解析 OurAirports 数据失败: %w", err)
 	}
-	if options.release == "" {
-		options.release = time.Now().Format(time.DateOnly)
+	if options.Release == "" {
+		options.Release = time.Now().Format(time.DateOnly)
 	}
-	if options.source == "" {
-		cached, cacheErr := cacheDownload(raw, options.release, summary.SourceHash)
+	if options.Source == "" {
+		cached, cacheErr := cacheDownload(raw, options.Release, summary.SourceHash)
 		if cacheErr != nil {
-			fail("缓存 OurAirports 数据失败", cacheErr)
+			return fmt.Errorf("缓存 OurAirports 数据失败: %w", cacheErr)
 		}
 		sourceLabel = cached
 	}
 
-	store, cleanup, err := openStore()
+	store, cleanup, err := syncrunner.OpenStore()
 	if err != nil {
-		fail("初始化机场同步存储失败", err)
+		return fmt.Errorf("初始化机场同步存储失败: %w", err)
 	}
 	defer cleanup()
-	conflicts, err := store.CheckAirports(ctx, options.organizationCode, ourAirportsSource, rows)
+	conflicts, err := store.CheckAirports(ctx, options.OrganizationCode, ourAirportsSource, rows)
 	if err != nil {
-		fail("检查机场同步冲突失败", err)
+		return fmt.Errorf("检查机场同步冲突失败: %w", err)
 	}
 	printSummary(sourceLabel, options, summary, conflicts)
 	if len(summary.FatalProblems) > 0 || len(conflicts) > 0 {
-		fail("机场数据存在致命冲突", fmt.Errorf("源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts)))
+		return fmt.Errorf("机场数据存在致命冲突: 源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts))
 	}
-	if !options.apply {
+	if !options.Apply {
 		fmt.Println("当前为预览模式；确认统计后使用 -apply 写入数据库")
-		return
+		return nil
 	}
-	result, err := store.ApplyAirports(ctx, options.organizationCode, ourAirportsSource, options.release, summary.SourceHash, rows)
+	result, err := store.ApplyAirports(ctx, options.OrganizationCode, ourAirportsSource, options.Release, summary.SourceHash, rows)
 	if err != nil {
-		fail("写入机场数据失败", err)
+		return fmt.Errorf("写入机场数据失败: %w", err)
 	}
 	fmt.Printf("机场同步完成：新增 %d，更新 %d，停用 %d\n", result.Created, result.Updated, result.Disabled)
+	return nil
 }
 
-func parseOptions() options {
+func parseOptions() syncrunner.Options {
 	apply := flag.Bool("apply", false, "将机场数据写入数据库")
 	source := flag.String("source", "", "本地 airports.csv 路径；为空时从 OurAirports 下载")
 	release := flag.String("release", "", "数据版本；默认使用同步日期")
@@ -108,7 +104,7 @@ func parseOptions() options {
 		fmt.Fprintln(os.Stderr, "org-code 不能为空，也未配置 BOOTSTRAP_ORGANIZATION_CODE")
 		os.Exit(2)
 	}
-	return options{apply: *apply, source: strings.TrimSpace(*source), release: strings.TrimSpace(*release), organizationCode: code}
+	return syncrunner.Options{Apply: *apply, Source: strings.TrimSpace(*source), Release: strings.TrimSpace(*release), OrganizationCode: code}
 }
 
 func loadSource(ctx context.Context, source string) ([]byte, string, error) {
@@ -246,21 +242,9 @@ func cacheDownload(raw []byte, release, hash string) (string, error) {
 	return filepath.Clean(path), nil
 }
 
-func openStore() (*data.IndustryReferenceSyncStore, func(), error) {
-	databaseSource := strings.TrimSpace(os.Getenv("DATABASE_SOURCE"))
-	if databaseSource == "" {
-		return nil, nil, errors.New("DATABASE_SOURCE 不能为空")
-	}
-	storage, cleanup, err := data.NewData(&conf.Data{Database: &conf.Data_Database{Driver: "postgres", Source: databaseSource}}, slog.Default())
-	if err != nil {
-		return nil, nil, err
-	}
-	return data.NewIndustryReferenceSyncStore(storage), cleanup, nil
-}
-
-func printSummary(sourceLabel string, options options, summary airportParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
+func printSummary(sourceLabel string, options syncrunner.Options, summary airportParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("机场数据源：%s\n", sourceLabel)
-	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.organizationCode, options.release, summary.SourceHash)
+	fmt.Printf("组织：%s，版本：%s，SHA-256：%s\n", options.OrganizationCode, options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效机场 %d，无有效 IATA 跳过 %d，非法 ICAO %d，关闭机场 %d\n", summary.RawRows, summary.ValidRows, summary.SkippedIATA, summary.InvalidICAO, summary.Closed)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {
@@ -276,9 +260,4 @@ func printSummary(sourceLabel string, options options, summary airportParseSumma
 		}
 		fmt.Printf("数据库冲突：%s %s\n", conflict.Code, conflict.Message)
 	}
-}
-
-func fail(message string, err error) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", message, err)
-	os.Exit(1)
 }
