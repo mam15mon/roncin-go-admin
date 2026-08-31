@@ -75,3 +75,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 4: 修复提成静态路由遮蔽
+<!-- trellis-session: v=2 fp=fdc98b4cf7088a99 -->
+
+**Date**: 2026-08-31
+**Task**: 修复提成静态路由遮蔽
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+调整提成静态 RPC 在参数路由前注册，增加真实 Kratos Router 分发回归测试，并沉淀静态路由优先规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `38bd2d3` | fix: 修复提成静态路由遮蔽 |
+
+### Status
+
+[OK] **Completed**
