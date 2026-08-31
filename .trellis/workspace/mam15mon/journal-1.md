@@ -121,3 +121,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: 修复提成账单多行加锁顺序
+<!-- trellis-session: v=2 fp=f5c551359864763b -->
+
+**Date**: 2026-08-31
+**Task**: 修复提成账单多行加锁顺序
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+使用 Agy gemini-3.7-flash-high 实施账单主键顺序加锁，独立 trellis-check 修复集成测试清理与并发栅栏；SQL 门禁、真实 PostgreSQL 并发测试、Go 全量测试和 vet 全部通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a16e289` | fix: 固定提成账单多行加锁顺序 |
+
+### Status
+
+[OK] **Completed**

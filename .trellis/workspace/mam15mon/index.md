@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-08-31
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~123 | Active |
+| `journal-1.md` | ~146 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-08-31 | 修复提成账单多行加锁顺序 | `a16e289` | `main` |
 | 5 | 2026-08-31 | 完成提成 CNY 前端展示与导出 | `f255bfd` | `main` |
 | 4 | 2026-08-31 | 修复提成静态路由遮蔽 | `38bd2d3` | `main` |
 | 3 | 2026-08-31 | 验收提成导出阶段 2 | `9411620` | `main` |
