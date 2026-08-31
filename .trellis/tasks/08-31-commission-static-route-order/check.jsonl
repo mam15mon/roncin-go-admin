@@ -1,0 +1,3 @@
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端测试、vet 与生成幂等质量门"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Proto 到真实 HTTP Router 的跨层分发检查"}
+{"file":"docs/plans/提成管理增强计划.md","reason":"确认修复不改变阶段 2/3 业务范围"}
