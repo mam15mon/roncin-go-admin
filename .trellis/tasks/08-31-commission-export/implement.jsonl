@@ -1,0 +1,7 @@
+{"file": "docs/plans/提成管理增强计划.md", "reason": "导出上限、字段与审计口径"}
+{"file": ".trellis/spec/server/backend/logging-guidelines.md", "reason": "成功导出业务审计规范"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "权限和生成物规范"}
+{"file": "server/api/finance/v1/settlement.proto", "reason": "导出 RPC 契约源文件"}
+{"file": "server/internal/access/manifest.go", "reason": "后端权限清单真相源"}
+{"file": "server/internal/data/finance_commission.go", "reason": "列表谓词、排序与动态金额"}
+{"file": "server/internal/service/partner_profile.go", "reason": "同步 JSON 导出服务端先例"}

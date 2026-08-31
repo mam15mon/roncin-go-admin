@@ -1,0 +1,13 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端规范入口与开发前检查清单"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "分层职责与契约变更流程，本任务横跨 proto/service/biz/data"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务统一封装、client(ctx)、乐观锁范本与分页约定，生成事务必须遵循"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "汇率缺失/冲突需映射为业务错误，驱动错误映射归 data 层"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "生成物禁手改与 proto 先行流程，验证命令清单"}
+{"file": "docs/plans/提成管理增强计划.md", "reason": "CNY 快照与归属日期冻结口径"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Schema 到前端契约的数据流"}
+{"file": "server/internal/biz/finance_commission.go", "reason": "提成领域对象与用例"}
+{"file": "server/internal/biz/exchange_rate.go", "reason": "汇率解析契约与 decimal 规则"}
+{"file": "server/internal/data/transaction.go", "reason": "共享事务实现"}
+{"file": "server/internal/data/finance_commission.go", "reason": "提成持久化与筛选实现"}
+{"file": "server/internal/data/ent/schema/finance_commission.go", "reason": "提成 Ent Schema"}
+{"file": "server/api/finance/v1/settlement.proto", "reason": "提成 API 契约源文件"}

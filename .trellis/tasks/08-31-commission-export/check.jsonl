@@ -1,0 +1,5 @@
+{"file": "docs/plans/提成管理增强计划.md", "reason": "导出验收口径"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "服务端和生成物检查"}
+{"file": ".trellis/spec/server/backend/logging-guidelines.md", "reason": "审计边界检查"}
+{"file": "server/internal/biz/finance_commission_test.go", "reason": "导出用例可复用测试基础"}
+{"file": "server/internal/data/finance_commission_test.go", "reason": "筛选排序与批量查询测试基础"}

@@ -1,0 +1,4 @@
+{"file": "docs/plans/提成管理增强计划.md", "reason": "业务口径唯一真相源"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨服务端与前端的数据流检查"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "服务端规范入口"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口"}
