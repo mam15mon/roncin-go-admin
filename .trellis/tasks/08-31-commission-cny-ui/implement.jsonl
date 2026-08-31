@@ -2,8 +2,3 @@
 {"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "页面与组件规范"}
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "列表和导出筛选状态规范"}
 {"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "生成客户端和权限键规范"}
-{"file": "web/src/pages/finance/commissions/index.tsx", "reason": "现有提成列表落点"}
-{"file": "web/src/pages/finance/commissions/components/CommissionCreateModal.tsx", "reason": "现有生成预览落点"}
-{"file": "web/src/pages/finance/commissions/components/CommissionDetailDrawer.tsx", "reason": "现有详情展示落点"}
-{"file": "web/src/access.ts", "reason": "前端权限消费入口"}
-{"file": "web/src/pages/partners/index.tsx", "reason": "同步 JSON 转 CSV 交互先例"}

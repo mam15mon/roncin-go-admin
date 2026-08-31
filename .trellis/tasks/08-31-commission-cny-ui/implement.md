@@ -36,4 +36,3 @@ pnpm run build
 - 使用 Ant Design 组件前查询本地组件 API，不猜测属性。
 - 不修改 `web/src/services/roncin/`、`web/types/` 或权限生成物。
 - 页面代码和测试保持一个提交，可独立回滚，不影响服务端快照数据。
-

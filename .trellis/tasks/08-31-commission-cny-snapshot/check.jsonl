@@ -3,7 +3,3 @@
 {"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "核查事务封装、锁模式与分页上限是否合规"}
 {"file": ".trellis/spec/server/backend/error-handling.md", "reason": "核查错误映射与 409 语义"}
 {"file": "docs/plans/提成管理增强计划.md", "reason": "核对验收口径"}
-{"file": "server/internal/biz/finance_commission_test.go", "reason": "提成领域回归测试"}
-{"file": "server/internal/biz/exchange_rate_test.go", "reason": "汇率精度与错误测试"}
-{"file": "server/internal/data/transaction_test.go", "reason": "共享事务回归测试"}
-{"file": "server/internal/data/finance_commission_test.go", "reason": "提成仓储回归测试"}
