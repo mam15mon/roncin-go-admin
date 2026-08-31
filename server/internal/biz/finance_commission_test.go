@@ -354,6 +354,27 @@ func TestResolveCommissionCNYRate(t *testing.T) {
 		}
 	})
 
+	t.Run("解析结果汇率日期非法或与请求不一致时拒绝", func(t *testing.T) {
+		for _, tt := range []struct {
+			name     string
+			rateDate string
+		}{
+			{name: "非法格式", rateDate: "2026/08/14"},
+			{name: "不存在日期", rateDate: "2026-02-30"},
+			{name: "空日期", rateDate: ""},
+			{name: "与请求日期不一致", rateDate: "2026-08-13"},
+		} {
+			resolved := &ResolvedExchangeRate{Rate: decimal.RequireFromString("2"), RateDate: tt.rateDate, SettingID: &settingID}
+			snapshot, err := ResolveCommissionCNYRate("USD", "2026-08-15", "2026-08-14", resolved)
+			if err != ErrExchangeRateInvalidArgument {
+				t.Fatalf("%s: error = %v, want %v", tt.name, err, ErrExchangeRateInvalidArgument)
+			}
+			if snapshot != nil {
+				t.Fatalf("%s: 不应产生快照", tt.name)
+			}
+		}
+	})
+
 	for _, tt := range []struct {
 		name          string
 		baseCurrency  string

@@ -51,7 +51,10 @@ CommissionUsecase.Create
   ├─ 事务外：参数校验、幂等预查、编号生成
   ├─ Transactor.WithinTransaction(ctx)
   │    ├─ CommissionRepo.GetGenerationContext(txCtx)
-  │    │    └─ 读取核销日期、汇率日期和本位币上下文
+  │    │    └─ 读取核销日期、汇率日期和本位币上下文；
+  │    │       事务内首次读取核销单即 FOR UPDATE（同一核销单的生成从入口串行化，
+  │    │       后续 lock=true 重读同一行不再形成共享锁→排他锁升级死锁）；
+  │    │       普通（预览）读取不加锁
   │    ├─ ExchangeRateUsecase.Resolve(txCtx)
   │    │    └─ 汇率设置查询自动 ForShare
   │    ├─ biz 构造 CommissionCNYSnapshot

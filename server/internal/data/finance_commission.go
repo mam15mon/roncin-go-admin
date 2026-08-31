@@ -35,6 +35,10 @@ type commissionRepo struct{ data *Data }
 func NewCommissionRepo(data *Data) biz.CommissionRepo { return &commissionRepo{data: data} }
 
 func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, options biz.SelectorListOptions) (*biz.PagedList[*biz.CommissionEmployeeOption], error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	predicates := []predicate.User{
 		user.EnabledEQ(true),
 		user.HasMembershipsWith(membership.OrganizationIDEQ(org), membership.EnabledEQ(true)),
@@ -46,7 +50,7 @@ func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, optio
 			user.SearchKeywordsContainsFold(options.Keyword),
 		))
 	}
-	query := r.data.db.User.Query().Where(predicates...)
+	query := client.User.Query().Where(predicates...)
 	return paginate(ctx, func(ctx context.Context) (int, error) {
 		return query.Clone().Count(ctx)
 	}, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
@@ -57,13 +61,17 @@ func (r *commissionRepo) ListEmployees(ctx context.Context, org uuid.UUID, optio
 }
 
 func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f biz.CommissionCandidateFilter) (*biz.CommissionCandidateListResult, error) {
-	store := commissionStoreFromClient(r.data.db)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	store := commissionStoreFromClient(client)
 	source, err := loadCommissionCalculationSource(ctx, store, org, f.VerificationID, f.RuleID, false)
 	if err != nil {
 		return nil, err
 	}
 	employeePredicates := commissionCandidateEmployeePredicates(org, source, f.Keyword)
-	employeeQuery := r.data.db.User.Query().Where(employeePredicates...)
+	employeeQuery := client.User.Query().Where(employeePredicates...)
 	total, err := employeeQuery.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -86,7 +94,7 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f bi
 	for _, employee := range employees {
 		employeeIDs = append(employeeIDs, employee.ID)
 	}
-	attributions, err := r.data.db.OrderCommissionAttribution.Query().Where(
+	attributions, err := client.OrderCommissionAttribution.Query().Where(
 		attribution.OrganizationIDEQ(org),
 		attribution.OrderIDIn(source.orderIDs...),
 		attribution.EmployeeIDIn(employeeIDs...),
@@ -136,6 +144,10 @@ func commissionCandidateEmployeePredicates(org uuid.UUID, source *commissionCalc
 }
 
 func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	p := []predicate.FinanceCommissionRule{rule.OrganizationIDEQ(org)}
 	if f.Keyword != "" {
 		p = append(p, rule.NameContainsFold(f.Keyword))
@@ -146,7 +158,7 @@ func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.Com
 	if f.Enabled != nil {
 		p = append(p, rule.EnabledEQ(*f.Enabled))
 	}
-	q := r.data.db.FinanceCommissionRule.Query().Where(p...)
+	q := client.FinanceCommissionRule.Query().Where(p...)
 	total, err := q.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
@@ -307,7 +319,9 @@ func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, emplo
 }
 
 // GetGenerationContext 读取生成提成所需的核销上下文：归属日期、汇率日期和本位币。
-// 事务内参与共享事务读取并加 ForShare，普通上下文直接读取。
+// 事务内首次读取即加 ForUpdate：同一事务内的写入阶段还会对同一核销行 ForUpdate，
+// 若先 ForShare 再升级，两个并发创建事务可同持共享锁互等升级形成死锁，因此从入口
+// 串行化；普通上下文保持无锁读取。
 func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID uuid.UUID) (*biz.CommissionGenerationContext, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -315,7 +329,7 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 	}
 	query := client.FinanceVerification.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org))
 	if _, transactional := transactionFromContext(ctx); transactional {
-		query.ForShare()
+		query.ForUpdate()
 	}
 	v, err := query.Only(ctx)
 	if err != nil {
@@ -876,7 +890,11 @@ func commissionLineToBiz(x *ent.FinanceCommissionLine) (*biz.FinanceCommissionLi
 }
 
 func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCommissionAdjustment, error) {
-	x, err := r.data.db.FinanceCommissionAdjustment.Query().Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommissionAdjustment.Query().Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	}

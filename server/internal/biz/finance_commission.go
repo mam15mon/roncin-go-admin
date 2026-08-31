@@ -132,7 +132,11 @@ func ResolveCommissionCNYRate(baseCurrency, commissionDate, exchangeRateDate str
 		snapshot.ExchangeRateSource = CommissionCNYRateSourceBaseCurrency
 		return snapshot, nil
 	}
-	if resolved == nil || !resolved.Rate.IsPositive() || resolved.RateDate == "" || resolved.SettingID == nil {
+	if resolved == nil || !resolved.Rate.IsPositive() || resolved.SettingID == nil {
+		return nil, ErrExchangeRateInvalidArgument
+	}
+	// 解析结果回填的汇率日期必须合法且与请求的汇率日期一致，防止下游快照写入口径不一致。
+	if !validFinanceDate(resolved.RateDate) || resolved.RateDate != exchangeRateDate {
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	rate := decimal.NewFromInt(1).Div(resolved.Rate).Round(8)

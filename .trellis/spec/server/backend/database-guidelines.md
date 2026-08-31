@@ -66,6 +66,9 @@ err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 新增实体判定不清时，先向用户确认。
 
 - 多行加锁必须先按主键排序再 `ForUpdate()`，固定加锁顺序防死锁。
+- 同一事务内后续需要对某行 `FOR UPDATE` 时，首次读取禁止先 `FOR SHARE` 再升级：
+  两个并发事务可同持共享锁互等升级形成死锁；应从入口即 `FOR UPDATE` 串行化
+  （范本：`GetGenerationContext` 在事务上下文对核销单直接 `ForUpdate`）。
 - 驱动错误用 `ent.IsConstraintError` 统一判断并映射为业务错误。
 
 ## 列表分页约定

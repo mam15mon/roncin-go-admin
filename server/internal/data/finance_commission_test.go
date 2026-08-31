@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -197,4 +199,41 @@ func TestCommissionRepoListUsesCommissionDateFilterAndStableOrdering(t *testing.
 	if err = mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("列表未使用归属日期筛选与稳定排序: %v", err)
 	}
+}
+
+func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
+	org := uuid.New()
+
+	t.Run("事务内首次读取核销单即FOR UPDATE", func(t *testing.T) {
+		repo, mock := setupTestCommissionRepo(t)
+		mock.ExpectBegin()
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*FOR UPDATE$`).
+			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
+		mock.ExpectRollback()
+
+		err := repo.data.WithinTransaction(context.Background(), func(ctx context.Context) error {
+			_, queryErr := repo.GetGenerationContext(ctx, org, uuid.New())
+			return queryErr
+		})
+		if !errors.Is(err, biz.ErrCommissionSource) {
+			t.Fatalf("GetGenerationContext() error = %v, want %v", err, biz.ErrCommissionSource)
+		}
+		if err = mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("事务内生成上下文读取未对核销单加 FOR UPDATE: %v", err)
+		}
+	})
+
+	t.Run("普通上下文读取不加锁", func(t *testing.T) {
+		repo, mock := setupTestCommissionRepo(t)
+		// 结尾锚定 LIMIT 2：若实际 SQL 追加 FOR UPDATE 将无法匹配，验证普通读取无锁。
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*LIMIT 2$`).
+			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
+
+		if _, err := repo.GetGenerationContext(context.Background(), org, uuid.New()); !errors.Is(err, biz.ErrCommissionSource) {
+			t.Fatalf("GetGenerationContext() error = %v, want %v", err, biz.ErrCommissionSource)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("普通上下文生成上下文读取不应加锁: %v", err)
+		}
+	})
 }
