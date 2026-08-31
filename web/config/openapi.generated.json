@@ -3172,6 +3172,57 @@
         }
       }
     },
+    "/api/v1/finance/commissions/export": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ExportCommissions",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "enum"
+            }
+          },
+          {
+            "name": "commissionDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commissionDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ExportCommissionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/commissions/preview": {
       "post": {
         "tags": [
@@ -12350,6 +12401,64 @@
           }
         }
       },
+      "finance.v1.CommissionExportItem": {
+        "type": "object",
+        "properties": {
+          "commissionNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "verificationNo": {
+            "type": "string"
+          },
+          "commissionDate": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "personnelRole": {
+            "type": "string"
+          },
+          "ruleName": {
+            "type": "string"
+          },
+          "calculationBasis": {
+            "type": "string"
+          },
+          "ratePercent": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "commissionAmount": {
+            "type": "string"
+          },
+          "cnyCommissionAmount": {
+            "type": "string"
+          },
+          "adjustmentAmount": {
+            "type": "string"
+          },
+          "cnyAdjustmentAmount": {
+            "type": "string"
+          },
+          "effectiveCommissionAmount": {
+            "type": "string"
+          },
+          "cnyEffectiveCommissionAmount": {
+            "type": "string"
+          }
+        },
+        "description": "CommissionExportItem 是提成导出的扁平 DTO，金额为本位币与 CNY 双口径，\n CNY 调整与有效金额为与列表一致的动态汇总。"
+      },
       "finance.v1.CommissionFeeDetail": {
         "type": "object",
         "properties": {
@@ -13533,6 +13642,30 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "finance.v1.ExportCommissionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CommissionExportItem"
+            }
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },

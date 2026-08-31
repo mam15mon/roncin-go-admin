@@ -57,6 +57,7 @@ const (
 	FinanceVerificationReverse  = "system.finance.verification.reverse"
 	FinanceCommissionRead       = "system.finance.commission.read"
 	FinanceCommissionManage     = "system.finance.commission.manage"
+	FinanceCommissionExport     = "system.finance.commission.export"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -207,6 +208,7 @@ var manifest = append([]Permission{
 	{Key: FinanceVerificationReverse, Name: "反核销", Group: "费用管理 · 核销", Description: "按原因撤销有效核销分配", Requires: []string{FinanceVerificationRead}},
 	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
 	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成", Requires: []string{FinanceCommissionRead}},
+	{Key: FinanceCommissionExport, Name: "导出提成", Group: "费用管理 · 提成", Description: "按当前筛选条件导出提成双口径数据", Requires: []string{FinanceCommissionRead}},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "新建客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
 	{Key: PartnerUpdate, Name: "编辑往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "修改客户、供应商或国外代理档案", Requires: []string{PartnerRead}},

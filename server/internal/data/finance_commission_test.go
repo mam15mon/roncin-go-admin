@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"testing"
 	"time"
@@ -286,6 +287,26 @@ func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
 				return err
 			},
 		},
+		{
+			name: "导出计数",
+			call: func() error {
+				_, err := repo.Count(transactionCtx, org, biz.CommissionFilter{})
+				return err
+			},
+		},
+		{
+			name: "导出批量读取",
+			call: func() error {
+				_, err := repo.ExportBatch(transactionCtx, org, biz.CommissionFilter{Page: 1, PageSize: 200})
+				return err
+			},
+		},
+		{
+			name: "导出审计",
+			call: func() error {
+				return repo.SaveExportAudit(transactionCtx, &biz.AuditEvent{Action: "finance.commission.export", Result: "success"})
+			},
+		},
 	}
 	for _, check := range checks {
 		t.Run(check.name, func(t *testing.T) {
@@ -296,5 +317,82 @@ func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("已结束事务上下文不应发起查询: %v", err)
+	}
+}
+
+func TestCommissionRepoCountUsesListPredicates(t *testing.T) {
+	repo, mock := setupTestCommissionRepo(t)
+	mock.ExpectQuery(`SELECT COUNT\("finance_commissions"\."id"\) FROM "finance_commissions" WHERE .*"commission_no".*"employee_name".*"rule_name".*"status".*"commission_date" >= .*"commission_date" <=`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(10001))
+
+	total, err := repo.Count(context.Background(), uuid.New(), biz.CommissionFilter{
+		Keyword: "TC2026", Status: biz.CommissionPaid, CommissionDateFrom: "2026-07-01", CommissionDateTo: "2026-08-31",
+	})
+	if err != nil {
+		t.Fatalf("Count() error = %v", err)
+	}
+	if total != 10001 {
+		t.Fatalf("计数结果不符: %d", total)
+	}
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("导出计数未复用列表谓词: %v", err)
+	}
+}
+
+// commissionExportScanRow 按列顺序构造一行可扫描的提成记录。
+func commissionExportScanRow(t *testing.T, org uuid.UUID) []driver.Value {
+	t.Helper()
+	now := time.Now()
+	return []driver.Value{
+		uuid.New(), now, now, org, "TC20260815000001", "idempotency-export", uuid.New(), "VR20260815000001",
+		uuid.New(), "张三", 1, 2, 5, nil, "销售提成", "SALES", "REALIZED_PROFIT", 1, biz.CommissionCalculationVersion,
+		"fingerprint", "CONFIRMED", "USD", "500.00000000", "200.00000000", "300.00000000", "300.00000000",
+		"10.0000", "30.00000000", "2026-08-15", "0.50000000", "DERIVED", "2026-08-14", nil, "15.00000000",
+		0, nil, 1, nil, nil, nil, nil, nil, nil, nil,
+	}
+}
+
+func TestCommissionRepoExportBatchUsesStableOrderingAndDynamicCNY(t *testing.T) {
+	repo, mock := setupTestCommissionRepo(t)
+	org := uuid.New()
+	// 第二批读取：固定排序 + LIMIT 200 OFFSET 200，末尾锚定防止误加锁。
+	mock.ExpectQuery(`SELECT "finance_commissions".*ORDER BY "finance_commissions"\."commission_date" DESC, "finance_commissions"\."created_at" DESC, "finance_commissions"\."id" DESC LIMIT 200 OFFSET 200$`).
+		WillReturnRows(sqlmock.NewRows(commission.Columns).AddRow(commissionExportScanRow(t, org)...))
+	mock.ExpectQuery(`SELECT "finance_commission_adjustments".*FROM "finance_commission_adjustments".*ORDER BY "finance_commission_adjustments"\."created_at"`).
+		WillReturnRows(sqlmock.NewRows(adjustment.Columns))
+
+	items, err := repo.ExportBatch(context.Background(), org, biz.CommissionFilter{Page: 2, PageSize: biz.MaxListPageSize})
+	if err != nil {
+		t.Fatalf("ExportBatch() error = %v", err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("批量读取结果不符: %d", len(items))
+	}
+	item := items[0]
+	if item.CommissionNo != "TC20260815000001" || item.Status != biz.CommissionConfirmed || item.CommissionDate != "2026-08-15" {
+		t.Fatalf("批量读取字段转换不符: %#v", item)
+	}
+	// 无确认调整时 CNY 有效提成等于原始 CNY 快照，动态口径与列表一致。
+	if item.CNYCommissionAmount.StringFixed(8) != "15.00000000" || item.CNYAdjustmentAmount.StringFixed(8) != "0.00000000" ||
+		item.CNYEffectiveCommissionAmount.StringFixed(8) != "15.00000000" {
+		t.Fatalf("动态 CNY 金额不符: %#v", item)
+	}
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("导出批量读取未复用列表排序、分页或未加载调整单: %v", err)
+	}
+}
+
+func TestCommissionRepoSaveExportAuditWritesOutsideTransaction(t *testing.T) {
+	repo, mock := setupTestCommissionRepo(t)
+	org, actor := uuid.New(), uuid.New()
+	mock.ExpectExec(`INSERT INTO "audit_logs"`).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	event := biz.AuditEvent{OrganizationID: &org, UserID: &actor, Action: "finance.commission.export", Result: "success", ResourceType: "finance_commission", Details: map[string]string{"row_count": "3"}}
+	if err := repo.SaveExportAudit(context.Background(), &event); err != nil {
+		t.Fatalf("SaveExportAudit() error = %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("导出审计应在无事务上下文中直接写入: %v", err)
 	}
 }

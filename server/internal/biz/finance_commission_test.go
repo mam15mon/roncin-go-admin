@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -21,11 +23,37 @@ type commissionRepoStub struct {
 	createErr       error
 	listed          *CommissionFilter
 	getResult       *FinanceCommission
+	count           int64
+	countErr        error
+	countFilter     *CommissionFilter
+	exportBatches   [][]*FinanceCommission
+	exportCalls     []CommissionFilter
+	exportAudit     *AuditEvent
+	exportAuditErr  error
 }
 
 func (s *commissionRepoStub) List(_ context.Context, _ uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
 	s.listed = &f
 	return &CommissionListResult{}, nil
+}
+
+func (s *commissionRepoStub) Count(_ context.Context, _ uuid.UUID, f CommissionFilter) (int64, error) {
+	s.countFilter = &f
+	return s.count, s.countErr
+}
+
+func (s *commissionRepoStub) ExportBatch(_ context.Context, _ uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
+	index := len(s.exportCalls)
+	s.exportCalls = append(s.exportCalls, f)
+	if index >= len(s.exportBatches) {
+		return nil, nil
+	}
+	return s.exportBatches[index], nil
+}
+
+func (s *commissionRepoStub) SaveExportAudit(_ context.Context, event *AuditEvent) error {
+	s.exportAudit = event
+	return s.exportAuditErr
 }
 
 func (s *commissionRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error) {
@@ -579,4 +607,177 @@ func TestCommissionUsecaseListValidatesCommissionDateFilter(t *testing.T) {
 			repo.listed = nil
 		})
 	}
+}
+
+// commissionExportBatch 按序号构造一批带编号的提成，用于断言导出顺序。
+func commissionExportBatch(size, offset int) []*FinanceCommission {
+	batch := make([]*FinanceCommission, 0, size)
+	for i := 0; i < size; i++ {
+		batch = append(batch, &FinanceCommission{CommissionNo: fmt.Sprintf("TC%06d", offset+i)})
+	}
+	return batch
+}
+
+func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
+	org, actor := uuid.New(), uuid.New()
+
+	t.Run("超上限拒绝且不查询数据不写审计", func(t *testing.T) {
+		repo := &commissionRepoStub{count: CommissionExportLimit + 1}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{Status: CommissionPaid})
+		if err != ErrCommissionExportLimit {
+			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionExportLimit)
+		}
+		if items != nil {
+			t.Fatalf("超限时应拒绝导出且不返回数据")
+		}
+		if len(repo.exportCalls) != 0 || repo.exportAudit != nil {
+			t.Fatalf("超限时不应执行数据查询或写审计: calls=%d audit=%#v", len(repo.exportCalls), repo.exportAudit)
+		}
+	})
+
+	t.Run("零行导出仍写审计且不发起分批查询", func(t *testing.T) {
+		repo := &commissionRepoStub{}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
+		if err != nil {
+			t.Fatalf("Export() error = %v", err)
+		}
+		if len(items) != 0 || len(repo.exportCalls) != 0 {
+			t.Fatalf("零行导出不应发起分批查询: items=%d calls=%d", len(items), len(repo.exportCalls))
+		}
+		if repo.exportAudit == nil || repo.exportAudit.Details["row_count"] != "0" {
+			t.Fatalf("零行导出缺少成功审计: %#v", repo.exportAudit)
+		}
+	})
+
+	t.Run("非整批数据按页合并且顺序稳定", func(t *testing.T) {
+		repo := &commissionRepoStub{count: 450, exportBatches: [][]*FinanceCommission{
+			commissionExportBatch(200, 0), commissionExportBatch(200, 200), commissionExportBatch(50, 400),
+		}}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
+		if err != nil {
+			t.Fatalf("Export() error = %v", err)
+		}
+		if len(repo.exportCalls) != 3 || len(items) != 450 {
+			t.Fatalf("分批读取不符: calls=%d items=%d", len(repo.exportCalls), len(items))
+		}
+		for index, filter := range repo.exportCalls {
+			if filter.Page != index+1 || filter.PageSize != commissionExportBatchSize {
+				t.Fatalf("第 %d 批分页参数不符: %#v", index+1, filter)
+			}
+		}
+		for index, item := range items {
+			if item.CommissionNo != fmt.Sprintf("TC%06d", index) {
+				t.Fatalf("导出顺序不符: items[%d]=%s", index, item.CommissionNo)
+			}
+		}
+	})
+
+	for _, tt := range []struct {
+		name      string
+		total     int
+		wantCalls int
+		wantLast  int
+	}{
+		{name: "单行一批", total: 1, wantCalls: 1, wantLast: 1},
+		{name: "恰好一批", total: commissionExportBatchSize, wantCalls: 1, wantLast: commissionExportBatchSize},
+		{name: "超一批一行", total: commissionExportBatchSize + 1, wantCalls: 2, wantLast: 1},
+		{name: "恰好达到导出上限", total: CommissionExportLimit, wantCalls: 50, wantLast: commissionExportBatchSize},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := &commissionRepoStub{count: int64(tt.total)}
+			batches := make([][]*FinanceCommission, 0, tt.wantCalls)
+			for offset := 0; offset < tt.total; offset += commissionExportBatchSize {
+				size := commissionExportBatchSize
+				if remaining := tt.total - offset; remaining < size {
+					size = remaining
+				}
+				batches = append(batches, commissionExportBatch(size, offset))
+			}
+			repo.exportBatches = batches
+			usecase := NewCommissionUsecase(repo, nil, nil, nil)
+			items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
+			if err != nil {
+				t.Fatalf("Export() error = %v", err)
+			}
+			if len(repo.exportCalls) != tt.wantCalls || len(items) != tt.total {
+				t.Fatalf("批次数或行数不符: calls=%d items=%d", len(repo.exportCalls), len(items))
+			}
+			last := repo.exportCalls[len(repo.exportCalls)-1]
+			if last.PageSize != commissionExportBatchSize {
+				t.Fatalf("每批固定 200 行: %#v", last)
+			}
+			if repo.exportAudit == nil || repo.exportAudit.Details["row_count"] != strconv.Itoa(tt.total) {
+				t.Fatalf("审计行数不符: %#v", repo.exportAudit)
+			}
+		})
+	}
+
+	t.Run("审计记录操作人组织筛选与行数", func(t *testing.T) {
+		repo := &commissionRepoStub{count: 1, exportBatches: [][]*FinanceCommission{commissionExportBatch(1, 0)}}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{Keyword: "张三", Status: CommissionConfirmed, CommissionDateFrom: "2026-07-01", CommissionDateTo: "2026-08-31"}); err != nil {
+			t.Fatalf("Export() error = %v", err)
+		}
+		event := repo.exportAudit
+		if event == nil || event.Action != "finance.commission.export" || event.Result != "success" ||
+			event.OrganizationID == nil || *event.OrganizationID != org || event.UserID == nil || *event.UserID != actor ||
+			event.ResourceType != "finance_commission" || event.ResourceID != "" {
+			t.Fatalf("导出审计主体不符: %#v", event)
+		}
+		if event.Details["keyword"] != "张三" || event.Details["status"] != string(CommissionConfirmed) ||
+			event.Details["commission_date_from"] != "2026-07-01" || event.Details["commission_date_to"] != "2026-08-31" ||
+			event.Details["row_count"] != "1" {
+			t.Fatalf("导出审计详情不符: %#v", event.Details)
+		}
+	})
+
+	t.Run("审计失败时整体失败不返回数据", func(t *testing.T) {
+		repo := &commissionRepoStub{count: 1, exportBatches: [][]*FinanceCommission{commissionExportBatch(1, 0)}, exportAuditErr: ErrCommissionInvalid}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
+		if err != ErrCommissionInvalid {
+			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
+		}
+		if items != nil {
+			t.Fatalf("审计失败时不应返回导出数据")
+		}
+	})
+
+	t.Run("非法筛选拒绝且不下发查询", func(t *testing.T) {
+		for _, tt := range []struct {
+			name   string
+			org    uuid.UUID
+			actor  uuid.UUID
+			filter CommissionFilter
+		}{
+			{name: "空组织", org: uuid.Nil, actor: actor, filter: CommissionFilter{}},
+			{name: "空操作人", org: org, actor: uuid.Nil, filter: CommissionFilter{}},
+			{name: "未知状态", org: org, actor: actor, filter: CommissionFilter{Status: CommissionStatus("UNKNOWN")}},
+			{name: "非法日期", org: org, actor: actor, filter: CommissionFilter{CommissionDateFrom: "2026/07/01"}},
+			{name: "起始晚于结束", org: org, actor: actor, filter: CommissionFilter{CommissionDateFrom: "2026-08-01", CommissionDateTo: "2026-07-01"}},
+		} {
+			repo := &commissionRepoStub{}
+			usecase := NewCommissionUsecase(repo, nil, nil, nil)
+			if _, err := usecase.Export(context.Background(), tt.org, tt.actor, tt.filter); err != ErrCommissionInvalid {
+				t.Fatalf("%s: error = %v, want %v", tt.name, err, ErrCommissionInvalid)
+			}
+			if repo.countFilter != nil {
+				t.Fatalf("%s: 校验失败时不应下发计数查询", tt.name)
+			}
+		}
+	})
+
+	t.Run("计数失败原样外传", func(t *testing.T) {
+		repo := &commissionRepoStub{countErr: ErrCommissionInvalid}
+		usecase := NewCommissionUsecase(repo, nil, nil, nil)
+		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{}); err != ErrCommissionInvalid {
+			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
+		}
+		if len(repo.exportCalls) != 0 || repo.exportAudit != nil {
+			t.Fatalf("计数失败时不应继续读取或写审计")
+		}
+	})
 }

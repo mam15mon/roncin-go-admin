@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -28,6 +29,7 @@ var (
 	ErrCommissionAdjustmentInvalid    = errors.BadRequest("FINANCE_COMMISSION_ADJUSTMENT_INVALID", "提成调整参数不合法")
 	ErrCommissionAdjustmentTransition = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_TRANSITION), "当前提成调整状态不允许该操作")
 	ErrCommissionAdjustmentExceeds    = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS), "冲减后的有效提成金额不能小于零")
+	ErrCommissionExportLimit          = errors.BadRequest("FINANCE_COMMISSION_EXPORT_LIMIT", "提成导出行数超过单次上限，请缩小筛选范围后重试")
 )
 
 type CommissionStatus string
@@ -204,6 +206,14 @@ type CommissionFilter struct {
 	CommissionDateFrom string
 	CommissionDateTo   string
 }
+
+// CommissionExportLimit 是单次同步提成导出的最大行数；超过时拒绝导出并提示
+// 缩小筛选范围，不截断结果，也不只导出前 N 行。
+const CommissionExportLimit = 10000
+
+// commissionExportBatchSize 是导出分批读取的每批行数，与列表分页上限一致。
+const commissionExportBatchSize = MaxListPageSize
+
 type CommissionListResult struct {
 	Items []*FinanceCommission
 	Total int64
@@ -356,6 +366,9 @@ type CommissionGenerationContext struct {
 
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
+	Count(context.Context, uuid.UUID, CommissionFilter) (int64, error)
+	ExportBatch(context.Context, uuid.UUID, CommissionFilter) ([]*FinanceCommission, error)
+	SaveExportAudit(context.Context, *AuditEvent) error
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
 	ListEmployees(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
@@ -406,6 +419,58 @@ func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f Commissio
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.List(ctx, org, f)
+}
+
+// Export 按与列表一致的筛选、排序和 CNY 口径同步导出提成：先按同一谓词计数，
+// 超过单次上限时直接拒绝且不执行数据查询；未超限时按每批最多 200 行分批读取。
+// 全部数据读取后、返回响应前写入成功导出审计，审计失败时整体失败，避免
+// 数据成功返回却没有审计。
+func (u *CommissionUsecase) Export(ctx context.Context, org, actor uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
+	f.Keyword = strings.TrimSpace(f.Keyword)
+	f.CommissionDateFrom = strings.TrimSpace(f.CommissionDateFrom)
+	f.CommissionDateTo = strings.TrimSpace(f.CommissionDateTo)
+	if org == uuid.Nil || actor == uuid.Nil || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
+		return nil, ErrCommissionInvalid
+	}
+	total, err := u.repo.Count(ctx, org, f)
+	if err != nil {
+		return nil, err
+	}
+	if total > CommissionExportLimit {
+		return nil, ErrCommissionExportLimit
+	}
+	items := make([]*FinanceCommission, 0, total)
+	for offset := 0; offset < int(total); offset += commissionExportBatchSize {
+		f.Page, f.PageSize = offset/commissionExportBatchSize+1, commissionExportBatchSize
+		batch, batchErr := u.repo.ExportBatch(ctx, org, f)
+		if batchErr != nil {
+			return nil, batchErr
+		}
+		items = append(items, batch...)
+	}
+	if err := u.repo.SaveExportAudit(ctx, commissionExportAudit(org, actor, f, len(items))); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+// commissionExportAudit 构造成功导出审计：记录操作人、组织、规范化筛选摘要与
+// 最终行数，不保存导出内容。
+func commissionExportAudit(org, actor uuid.UUID, f CommissionFilter, rowCount int) *AuditEvent {
+	details := map[string]string{"row_count": strconv.Itoa(rowCount)}
+	if f.Keyword != "" {
+		details["keyword"] = f.Keyword
+	}
+	if f.Status != "" {
+		details["status"] = string(f.Status)
+	}
+	if f.CommissionDateFrom != "" {
+		details["commission_date_from"] = f.CommissionDateFrom
+	}
+	if f.CommissionDateTo != "" {
+		details["commission_date_to"] = f.CommissionDateTo
+	}
+	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: "finance.commission.export", Result: "success", ResourceType: "finance_commission", Details: details}
 }
 
 func (u *CommissionUsecase) Get(ctx context.Context, org, id uuid.UUID) (*FinanceCommission, error) {

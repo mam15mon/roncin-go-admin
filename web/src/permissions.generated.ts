@@ -48,6 +48,7 @@ export const manifestPermissionKeys = [
   'system.finance.verification.reverse',
   'system.finance.commission.read',
   'system.finance.commission.manage',
+  'system.finance.commission.export',
   'business.partner.read',
   'business.partner.create',
   'business.partner.update',

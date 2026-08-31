@@ -106,6 +106,7 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.SettlementService/CreateCommissionRule":                                        {mode: accessModePermission, permission: "system.finance.commission.manage", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/CreateInvoice":                                               {mode: accessModePermission, permission: "system.finance.invoice.create", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/CreateVerification":                                          {mode: accessModePermission, permission: "system.finance.verification.create", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/ExportCommissions":                                           {mode: accessModePermission, permission: "system.finance.commission.export", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/GetBill":                                                     {mode: accessModePermission, permission: "system.finance.bill.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/GetBilledFeeEditPolicy":                                      {mode: accessModePermission, permission: "system.finance.bill.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/GetCommission":                                               {mode: accessModePermission, permission: "system.finance.commission.read", scope: biz.DataScopeOrganization},

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -14,17 +15,36 @@ import (
 // commissionRepoStub 捕获列表筛选并返回固定的提成与预览结果，不触发数据库。
 type commissionRepoStub struct {
 	biz.CommissionRepo
-	filter      biz.CommissionFilter
-	listResult  *biz.CommissionListResult
-	preview     *biz.CommissionCalculation
-	generation  *biz.CommissionGenerationContext
-	rateContext *biz.ExchangeRateContext
-	rateStub    *exchangeRateStub
+	filter         biz.CommissionFilter
+	listResult     *biz.CommissionListResult
+	preview        *biz.CommissionCalculation
+	generation     *biz.CommissionGenerationContext
+	rateContext    *biz.ExchangeRateContext
+	rateStub       *exchangeRateStub
+	exportTotal    int64
+	exportBatch    []*biz.FinanceCommission
+	exportFilter   biz.CommissionFilter
+	exportAuditLog *biz.AuditEvent
 }
 
 func (s *commissionRepoStub) List(_ context.Context, _ uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
 	s.filter = f
 	return s.listResult, nil
+}
+
+func (s *commissionRepoStub) Count(_ context.Context, _ uuid.UUID, f biz.CommissionFilter) (int64, error) {
+	s.exportFilter = f
+	return s.exportTotal, nil
+}
+
+func (s *commissionRepoStub) ExportBatch(_ context.Context, _ uuid.UUID, f biz.CommissionFilter) ([]*biz.FinanceCommission, error) {
+	s.exportFilter = f
+	return s.exportBatch, nil
+}
+
+func (s *commissionRepoStub) SaveExportAudit(_ context.Context, event *biz.AuditEvent) error {
+	s.exportAuditLog = event
+	return nil
 }
 
 func (s *commissionRepoStub) Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*biz.CommissionCalculation, error) {
@@ -119,6 +139,67 @@ func TestListCommissionsMapsCommissionDateFilterAndCNYFields(t *testing.T) {
 		item.CnyExchangeRateSettingId == nil || item.CnyCommissionAmount != "200.00000000" ||
 		item.CnyAdjustmentAmount != "20.00000000" || item.CnyEffectiveCommissionAmount != "220.00000000" {
 		t.Fatalf("提成 CNY 字段未返回: %#v", item)
+	}
+}
+
+func TestExportCommissionsMapsFilterAndDualCurrencyExportFields(t *testing.T) {
+	org := uuid.New()
+	service, repo := newCommissionService(org)
+	actor := uuid.New()
+	repo.exportTotal = 1
+	repo.exportBatch = []*biz.FinanceCommission{{
+		ID:                           uuid.New(),
+		CommissionNo:                 "TC20260815000001",
+		VerificationNo:               "VR20260815000001",
+		Status:                       biz.CommissionPaid,
+		BaseCurrency:                 "USD",
+		RatePercent:                  decimal.RequireFromString("2.5"),
+		CommissionAmount:             decimal.RequireFromString("100"),
+		AdjustmentAmount:             decimal.RequireFromString("10"),
+		EffectiveCommissionAmount:    decimal.RequireFromString("110"),
+		CommissionDate:               "2026-08-15",
+		EmployeeName:                 "张三",
+		RuleName:                     "销售提成",
+		PersonnelRole:                biz.CommissionRoleSales,
+		CalculationBasis:             biz.CommissionBasisRealizedProfit,
+		CreatedAt:                    time.Date(2026, 8, 15, 8, 0, 0, 0, time.UTC),
+		CNYCommissionAmount:          decimal.RequireFromString("200"),
+		CNYAdjustmentAmount:          decimal.RequireFromString("20"),
+		CNYEffectiveCommissionAmount: decimal.RequireFromString("220"),
+	}}
+
+	response, err := service.ExportCommissions(biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actor, Organization: biz.Organization{ID: org}}), &v1.ExportCommissionsRequest{
+		Keyword:            ptrString("TC2026"),
+		Status:             v1.FinanceCommissionStatus(v1.FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID).Enum(),
+		CommissionDateFrom: ptrString("2026-07-01"),
+		CommissionDateTo:   ptrString("2026-08-31"),
+	})
+	if err != nil {
+		t.Fatalf("ExportCommissions() error = %v", err)
+	}
+	if repo.exportFilter.Keyword != "TC2026" || repo.exportFilter.Status != biz.CommissionPaid ||
+		repo.exportFilter.CommissionDateFrom != "2026-07-01" || repo.exportFilter.CommissionDateTo != "2026-08-31" {
+		t.Fatalf("导出筛选未透传: %#v", repo.exportFilter)
+	}
+	if len(response.Data) != 1 {
+		t.Fatalf("导出行数不符: %d", len(response.Data))
+	}
+	item := response.Data[0]
+	if item.CommissionNo != "TC20260815000001" || item.VerificationNo != "VR20260815000001" ||
+		item.Status != v1.FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID || item.CommissionDate != "2026-08-15" ||
+		item.EmployeeName != "张三" || item.PersonnelRole != string(biz.CommissionRoleSales) ||
+		item.RuleName != "销售提成" || item.CalculationBasis != string(biz.CommissionBasisRealizedProfit) ||
+		item.RatePercent != "2.5000" || item.BaseCurrency != "USD" || item.CreatedAt != "2026-08-15T08:00:00Z" {
+		t.Fatalf("导出基础字段不符: %#v", item)
+	}
+	if item.CommissionAmount != "100.00000000" || item.AdjustmentAmount != "10.00000000" || item.EffectiveCommissionAmount != "110.00000000" ||
+		item.CnyCommissionAmount != "200.00000000" || item.CnyAdjustmentAmount != "20.00000000" || item.CnyEffectiveCommissionAmount != "220.00000000" {
+		t.Fatalf("导出双口径金额不符: %#v", item)
+	}
+	if repo.exportAuditLog == nil || repo.exportAuditLog.Action != "finance.commission.export" ||
+		repo.exportAuditLog.UserID == nil || *repo.exportAuditLog.UserID != actor ||
+		repo.exportAuditLog.Details["row_count"] != "1" {
+		t.Fatalf("成功导出缺少审计: %#v", repo.exportAuditLog)
 	}
 }
 

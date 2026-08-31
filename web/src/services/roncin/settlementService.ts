@@ -587,6 +587,24 @@ export async function settlementServiceListCommissionEmployees(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/commissions/export */
+export async function settlementServiceExportCommissions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceExportCommissionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ExportCommissionsResponse>(
+    "/api/v1/finance/commissions/export",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/finance/commissions/preview */
 export async function settlementServicePreviewCommission(
   body: API.PreviewCommissionRequest,

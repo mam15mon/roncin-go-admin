@@ -736,6 +736,26 @@ declare namespace API {
     displayName?: string;
   };
 
+  type CommissionExportItem = {
+    commissionNo?: string;
+    status?: number;
+    verificationNo?: string;
+    commissionDate?: string;
+    employeeName?: string;
+    personnelRole?: string;
+    ruleName?: string;
+    calculationBasis?: string;
+    ratePercent?: string;
+    baseCurrency?: string;
+    createdAt?: string;
+    commissionAmount?: string;
+    cnyCommissionAmount?: string;
+    adjustmentAmount?: string;
+    cnyAdjustmentAmount?: string;
+    effectiveCommissionAmount?: string;
+    cnyEffectiveCommissionAmount?: string;
+  };
+
   type CommissionFeeDetail = {
     feeId?: string;
     direction?: string;
@@ -1809,6 +1829,14 @@ declare namespace API {
   type ExchangeRateTimeStandardSetting = {
     rateType?: string;
     timeStandards?: string[];
+  };
+
+  type ExportCommissionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CommissionExportItem[];
+    traceId?: string;
   };
 
   type ExportPartnersResponse = {
@@ -4675,6 +4703,13 @@ declare namespace API {
 
   type SettlementServiceCreateCommissionAdjustmentParams = {
     commissionId: string;
+  };
+
+  type SettlementServiceExportCommissionsParams = {
+    keyword?: string;
+    status?: number;
+    commissionDateFrom?: string;
+    commissionDateTo?: string;
   };
 
   type SettlementServiceGetBillParams = {
