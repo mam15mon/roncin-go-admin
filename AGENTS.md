@@ -22,6 +22,27 @@
   Conventional Commits 前缀（如 `feat:`、`fix:`、`refactor:`、`docs:`、
   `test:`、`chore:`）。
 
+## Agy 实施代理约定
+
+- 仅当用户明确授权“开始用 agy 实施”时，才允许把当前 Trellis 任务的
+  Execute / Implement 与实现后的第一轮测试委派给 agy；询问能力、比较模型或
+  讨论执行方案均不构成启动授权。
+- 如果当前任务已由 ZCode、GLM、其他客户端或其他代理实施，禁止并发启动 agy；
+  启动前必须检查 `git status`、当前 Trellis 任务和已有实现进度，发现来源不明
+  或重叠的未提交改动时立即停止并报告。
+- agy 默认固定使用 `gemini-3.7-flash-medium`。遇到事务、锁、并发、生产数据迁移、
+  财务新口径、权限安全、复杂跨领域变更，或 Medium 实施后独立检查出现 P1、连续
+  两轮未通过时，升级为 `gemini-3.7-flash-high`；High 不作为全局默认。
+- agy 的委派提示必须从当前 Trellis 任务路径开始，并要求依次完整读取
+  `implement.jsonl` 及其引用、`prd.md`、`design.md`、`implement.md` 和本文件；
+  只实现当前阶段，不扩展到后续阶段或未批准功能。
+- agy 可以修改代码、运行生成命令和测试，但禁止执行 `git commit`、`git push`、
+  `git merge`、`git rebase`、`git reset` 或覆盖工作区文件的操作。新任务使用独立
+  会话，同一任务的后续修正复用原会话，避免重复加载上下文。
+- agy 完成后，Codex 主会话必须检查真实 Git 差异和跨层数据流，调用独立
+  `trellis-check`，并按风险重跑关键测试、类型检查、静态检查与生成幂等验证；
+  全部通过后才能由 Codex 提交并执行 Trellis finish / archive。
+
 ## 仓库结构与职责
 
 ```text
