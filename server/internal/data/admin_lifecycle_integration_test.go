@@ -98,10 +98,10 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	adminRepo := &adminRepo{data: data}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit("admin.user.membership.delete")); err != biz.ErrAdminUserLastMembership {
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != biz.ErrAdminUserLastMembership {
 		t.Fatalf("移出最后组织 error = %v, want ErrAdminUserLastMembership", err)
 	}
-	if err := adminRepo.TerminateUser(ctx, headquarters.ID, account.ID, adminLifecycleAudit("admin.user.terminate")); err != nil {
+	if err := adminRepo.TerminateUser(ctx, headquarters.ID, account.ID, adminLifecycleAudit(headquarters.ID, "admin.user.terminate")); err != nil {
 		t.Fatalf("办理离职: %v", err)
 	}
 	terminated, err := data.db.User.Get(ctx, account.ID)
@@ -142,14 +142,14 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
 	}
 	pendingUsername := "pending." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit("admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("待审批账号设置密码 error = %v, want ErrAdminUserNotFound", err)
 	}
 	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, account.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 		Enabled:     true,
-	}, []uuid.UUID{role.ID}, adminLifecycleAudit("admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
+	}, []uuid.UUID{role.ID}, adminLifecycleAudit(headquarters.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
@@ -157,7 +157,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit("admin.user.dingtalk.authorize"))
+	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit(headquarters.ID, "admin.user.dingtalk.authorize"))
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}
@@ -177,7 +177,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	backupUsername := "backup." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername, adminLifecycleAudit("admin.user.password.reset")); err != nil {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != nil {
 		t.Fatalf("为在职账号设置备用账密: %v", err)
 	}
 	activeAccount, err := data.db.User.Get(ctx, account.ID)
@@ -206,11 +206,11 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("加入分公司: %v", err)
 	}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit("admin.user.membership.delete")); err != nil {
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != nil {
 		t.Fatalf("移出总部: %v", err)
 	}
 	replacementUsername := "replacement." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit("admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
+	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("历史组织重置全局密码 error = %v, want ErrAdminUserNotFound", err)
 	}
 	retainedAccount, err := data.db.User.Get(ctx, account.ID)
@@ -222,8 +222,10 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 }
 
-func adminLifecycleAudit(action string) *biz.AuditEvent {
-	return &biz.AuditEvent{Action: action, Result: "success", Details: map[string]string{}}
+// adminLifecycleAudit 携带组织上下文构造审计事件；组织 ID 缺失时审计会落成
+// organization_id 为空的行，按组织清理永远匹配不到。
+func adminLifecycleAudit(organizationID uuid.UUID, action string) *biz.AuditEvent {
+	return &biz.AuditEvent{OrganizationID: &organizationID, Action: action, Result: "success", Details: map[string]string{}}
 }
 
 // cleanupAdminLifecycleFixture 按外键依赖顺序清理生命周期测试写入的全部数据；
