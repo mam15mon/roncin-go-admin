@@ -14182,10 +14182,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x12CreateVerification\x12%.finance.v1.CreateVerificationRequest\x1a&.finance.v1.CreateVerificationResponse\"T\x82\xb5\x18(\b\x03\x12\"system.finance.verification.create \x02\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/finance/verifications\x12\xca\x01\n" +
 	"\x13ReverseVerification\x12&.finance.v1.ReverseVerificationRequest\x1a'.finance.v1.ReverseVerificationResponse\"b\x82\xb5\x18)\b\x03\x12#system.finance.verification.reverse \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/finance/verifications/{id}/reverse\x12\xa7\x01\n" +
 	"\x0fListCommissions\x12\".finance.v1.ListCommissionsRequest\x1a#.finance.v1.ListCommissionsResponse\"K\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/finance/commissions\x12\xb6\x01\n" +
-	"\x11ExportCommissions\x12$.finance.v1.ExportCommissionsRequest\x1a%.finance.v1.ExportCommissionsResponse\"T\x82\xb5\x18&\b\x03\x12 system.finance.commission.export \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/finance/commissions/export\x12\xa6\x01\n" +
-	"\rGetCommission\x12 .finance.v1.GetCommissionRequest\x1a!.finance.v1.GetCommissionResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commissions/{id}\x12\xc9\x01\n" +
+	"\x11ExportCommissions\x12$.finance.v1.ExportCommissionsRequest\x1a%.finance.v1.ExportCommissionsResponse\"T\x82\xb5\x18&\b\x03\x12 system.finance.commission.export \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/finance/commissions/export\x12\xc9\x01\n" +
 	"\x17ListCommissionEmployees\x12*.finance.v1.ListCommissionEmployeesRequest\x1a+.finance.v1.ListCommissionEmployeesResponse\"U\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/finance/commissions/employees\x12\xcd\x01\n" +
-	"\x18ListCommissionCandidates\x12+.finance.v1.ListCommissionCandidatesRequest\x1a,.finance.v1.ListCommissionCandidatesResponse\"V\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/finance/commissions/candidates\x12\xb8\x01\n" +
+	"\x18ListCommissionCandidates\x12+.finance.v1.ListCommissionCandidatesRequest\x1a,.finance.v1.ListCommissionCandidatesResponse\"V\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/finance/commissions/candidates\x12\xa6\x01\n" +
+	"\rGetCommission\x12 .finance.v1.GetCommissionRequest\x1a!.finance.v1.GetCommissionResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commissions/{id}\x12\xb8\x01\n" +
 	"\x13ListCommissionRules\x12&.finance.v1.ListCommissionRulesRequest\x1a'.finance.v1.ListCommissionRulesResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commission-rules\x12\xc0\x01\n" +
 	"\x14CreateCommissionRule\x12'.finance.v1.CreateCommissionRuleRequest\x1a(.finance.v1.CreateCommissionRuleResponse\"U\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/finance/commission-rules\x12\xc5\x01\n" +
 	"\x14UpdateCommissionRule\x12'.finance.v1.UpdateCommissionRuleRequest\x1a(.finance.v1.UpdateCommissionRuleResponse\"Z\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/finance/commission-rules/{id}\x12\xba\x01\n" +
@@ -14494,9 +14494,9 @@ var file_finance_v1_settlement_proto_depIdxs = []int32{
 	80,  // 129: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
 	87,  // 130: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
 	117, // 131: finance.v1.SettlementService.ExportCommissions:input_type -> finance.v1.ExportCommissionsRequest
-	88,  // 132: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
-	89,  // 133: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
-	90,  // 134: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
+	89,  // 132: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
+	90,  // 133: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
+	88,  // 134: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
 	93,  // 135: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
 	95,  // 136: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
 	96,  // 137: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
@@ -14545,9 +14545,9 @@ var file_finance_v1_settlement_proto_depIdxs = []int32{
 	86,  // 180: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
 	120, // 181: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
 	119, // 182: finance.v1.SettlementService.ExportCommissions:output_type -> finance.v1.ExportCommissionsResponse
-	123, // 183: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
-	92,  // 184: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
-	114, // 185: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
+	92,  // 183: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
+	114, // 184: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
+	123, // 185: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
 	98,  // 186: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
 	99,  // 187: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
 	100, // 188: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse

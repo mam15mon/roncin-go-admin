@@ -167,9 +167,9 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/verifications/{id}/reverse", _SettlementService_ReverseVerification0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions", _SettlementService_ListCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/export", _SettlementService_ExportCommissions0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/commissions/{id}", _SettlementService_GetCommission0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/employees", _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/candidates", _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commissions/{id}", _SettlementService_GetCommission0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-rules", _SettlementService_ListCommissionRules0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-rules", _SettlementService_CreateCommissionRule0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/commission-rules/{id}", _SettlementService_UpdateCommissionRule0_HTTP_Handler(srv))
@@ -904,28 +904,6 @@ func _SettlementService_ExportCommissions0_HTTP_Handler(srv SettlementServiceHTT
 	}
 }
 
-func _SettlementService_GetCommission0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetCommissionRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceGetCommission)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetCommission(ctx, req.(*GetCommissionRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetCommissionResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _SettlementService_ListCommissionEmployees0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListCommissionEmployeesRequest
@@ -960,6 +938,28 @@ func _SettlementService_ListCommissionCandidates0_HTTP_Handler(srv SettlementSer
 			return err
 		}
 		reply := out.(*ListCommissionCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetCommission0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetCommissionRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetCommission)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetCommission(ctx, req.(*GetCommissionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetCommissionResponse)
 		return ctx.Result(200, reply)
 	}
 }

@@ -55,9 +55,9 @@ const (
 	SettlementService_ReverseVerification_FullMethodName          = "/finance.v1.SettlementService/ReverseVerification"
 	SettlementService_ListCommissions_FullMethodName              = "/finance.v1.SettlementService/ListCommissions"
 	SettlementService_ExportCommissions_FullMethodName            = "/finance.v1.SettlementService/ExportCommissions"
-	SettlementService_GetCommission_FullMethodName                = "/finance.v1.SettlementService/GetCommission"
 	SettlementService_ListCommissionEmployees_FullMethodName      = "/finance.v1.SettlementService/ListCommissionEmployees"
 	SettlementService_ListCommissionCandidates_FullMethodName     = "/finance.v1.SettlementService/ListCommissionCandidates"
+	SettlementService_GetCommission_FullMethodName                = "/finance.v1.SettlementService/GetCommission"
 	SettlementService_ListCommissionRules_FullMethodName          = "/finance.v1.SettlementService/ListCommissionRules"
 	SettlementService_CreateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/CreateCommissionRule"
 	SettlementService_UpdateCommissionRule_FullMethodName         = "/finance.v1.SettlementService/UpdateCommissionRule"
@@ -120,9 +120,9 @@ type SettlementServiceClient interface {
 	ReverseVerification(ctx context.Context, in *ReverseVerificationRequest, opts ...grpc.CallOption) (*ReverseVerificationResponse, error)
 	ListCommissions(ctx context.Context, in *ListCommissionsRequest, opts ...grpc.CallOption) (*ListCommissionsResponse, error)
 	ExportCommissions(ctx context.Context, in *ExportCommissionsRequest, opts ...grpc.CallOption) (*ExportCommissionsResponse, error)
-	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error)
 	ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error)
 	ListCommissionCandidates(ctx context.Context, in *ListCommissionCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionCandidatesResponse, error)
+	GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error)
 	ListCommissionRules(ctx context.Context, in *ListCommissionRulesRequest, opts ...grpc.CallOption) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(ctx context.Context, in *CreateCommissionRuleRequest, opts ...grpc.CallOption) (*CreateCommissionRuleResponse, error)
 	UpdateCommissionRule(ctx context.Context, in *UpdateCommissionRuleRequest, opts ...grpc.CallOption) (*UpdateCommissionRuleResponse, error)
@@ -505,16 +505,6 @@ func (c *settlementServiceClient) ExportCommissions(ctx context.Context, in *Exp
 	return out, nil
 }
 
-func (c *settlementServiceClient) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCommissionResponse)
-	err := c.cc.Invoke(ctx, SettlementService_GetCommission_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *settlementServiceClient) ListCommissionEmployees(ctx context.Context, in *ListCommissionEmployeesRequest, opts ...grpc.CallOption) (*ListCommissionEmployeesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCommissionEmployeesResponse)
@@ -529,6 +519,16 @@ func (c *settlementServiceClient) ListCommissionCandidates(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCommissionCandidatesResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListCommissionCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetCommission(ctx context.Context, in *GetCommissionRequest, opts ...grpc.CallOption) (*GetCommissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCommissionResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetCommission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -703,9 +703,9 @@ type SettlementServiceServer interface {
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error)
-	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
 	ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error)
 	ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error)
+	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
 	ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error)
 	CreateCommissionRule(context.Context, *CreateCommissionRuleRequest) (*CreateCommissionRuleResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
@@ -836,14 +836,14 @@ func (UnimplementedSettlementServiceServer) ListCommissions(context.Context, *Li
 func (UnimplementedSettlementServiceServer) ExportCommissions(context.Context, *ExportCommissionsRequest) (*ExportCommissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportCommissions not implemented")
 }
-func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetCommission not implemented")
-}
 func (UnimplementedSettlementServiceServer) ListCommissionEmployees(context.Context, *ListCommissionEmployeesRequest) (*ListCommissionEmployeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionEmployees not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissionCandidates(context.Context, *ListCommissionCandidatesRequest) (*ListCommissionCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCommission not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListCommissionRules(context.Context, *ListCommissionRulesRequest) (*ListCommissionRulesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionRules not implemented")
@@ -1550,24 +1550,6 @@ func _SettlementService_ExportCommissions_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SettlementService_GetCommission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCommissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).GetCommission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_GetCommission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).GetCommission(ctx, req.(*GetCommissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _SettlementService_ListCommissionEmployees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCommissionEmployeesRequest)
 	if err := dec(in); err != nil {
@@ -1600,6 +1582,24 @@ func _SettlementService_ListCommissionCandidates_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListCommissionCandidates(ctx, req.(*ListCommissionCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetCommission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetCommission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetCommission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetCommission(ctx, req.(*GetCommissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1972,16 +1972,16 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_ExportCommissions_Handler,
 		},
 		{
-			MethodName: "GetCommission",
-			Handler:    _SettlementService_GetCommission_Handler,
-		},
-		{
 			MethodName: "ListCommissionEmployees",
 			Handler:    _SettlementService_ListCommissionEmployees_Handler,
 		},
 		{
 			MethodName: "ListCommissionCandidates",
 			Handler:    _SettlementService_ListCommissionCandidates_Handler,
+		},
+		{
+			MethodName: "GetCommission",
+			Handler:    _SettlementService_GetCommission_Handler,
 		},
 		{
 			MethodName: "ListCommissionRules",
