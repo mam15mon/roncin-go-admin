@@ -5,7 +5,7 @@
   "description": "阶段2：导出接口（先计数后分批、上限拒绝、稳定排序）+ 导出权限 + 导出审计",
   "status": "planning",
   "dev_type": null,
-  "scope": null,
+  "scope": "server/finance-commission-export",
   "package": "server",
   "priority": "P2",
   "creator": "mam15mon",
