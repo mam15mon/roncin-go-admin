@@ -1,0 +1,4 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"确认 server 分层边界与提交前质量门"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"遵循多行按主键排序后 ForUpdate、统一事务与无兜底约束"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循 data 层测试、生成物与验证规范"}
+{"file":".trellis/spec/guides/index.md","reason":"执行修改前搜索和审查误报校验要求"}

@@ -1,0 +1,4 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"按 server 质量门进行最终范围检查"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核固定多行锁顺序与事务语义"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核测试强度、差异卫生和生成物边界"}
+{"file":".trellis/spec/guides/index.md","reason":"验证并发审查发现是否能由真实代码证据支撑"}
