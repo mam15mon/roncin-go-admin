@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"按 server 最终质量门检查范围"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核真实共享事务、清理顺序与失败回滚语义"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核测试有效性、生成物和差异卫生"}
+{"file":".trellis/spec/guides/index.md","reason":"识别测试空洞、误报和未追踪跨层行为"}
+{"file":".trellis/tasks/08-31-commission-postgres-transaction-test/research/transaction-evidence.md","reason":"对照既有测试缺口与批准事务边界检查实现"}

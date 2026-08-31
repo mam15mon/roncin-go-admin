@@ -1,0 +1,5 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"确认 server 分层边界与质量门"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"遵循共享事务、锁顺序、真实 PostgreSQL 与无兜底约束"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"遵循测试、生成物和差异卫生规范"}
+{"file":".trellis/spec/guides/index.md","reason":"执行修改前搜索和跨层证据检查"}
+{"file":".trellis/tasks/08-31-commission-postgres-transaction-test/research/transaction-evidence.md","reason":"提供现有测试缺口、可复用夹具与事务边界证据"}
