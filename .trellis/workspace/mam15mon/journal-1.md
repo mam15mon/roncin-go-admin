@@ -52,3 +52,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 验收提成导出阶段 2
+<!-- trellis-session: v=2 fp=9f11733c5b37fe30 -->
+
+**Date**: 2026-08-31
+**Task**: 验收提成导出阶段 2
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成提成 JSON 导出、独立权限、10000 行上限、稳定分批与成功导出审计；经独立复核与全量质量门验收通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9411620` | feat: 增加提成导出 |
+
+### Status
+
+[OK] **Completed**
