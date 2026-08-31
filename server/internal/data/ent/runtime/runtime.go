@@ -2536,20 +2536,58 @@ func init() {
 			return nil
 		}
 	}()
+	// financecommissionDescCommissionDate is the schema descriptor for commission_date field.
+	financecommissionDescCommissionDate := financecommissionFields[25].Descriptor()
+	// financecommission.CommissionDateValidator is a validator for the "commission_date" field. It is called by the builders before save.
+	financecommission.CommissionDateValidator = func() func(string) error {
+		validators := financecommissionDescCommissionDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(commission_date string) error {
+			for _, fn := range fns {
+				if err := fn(commission_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financecommissionDescCnyExchangeRateDate is the schema descriptor for cny_exchange_rate_date field.
+	financecommissionDescCnyExchangeRateDate := financecommissionFields[28].Descriptor()
+	// financecommission.CnyExchangeRateDateValidator is a validator for the "cny_exchange_rate_date" field. It is called by the builders before save.
+	financecommission.CnyExchangeRateDateValidator = func() func(string) error {
+		validators := financecommissionDescCnyExchangeRateDate.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(cny_exchange_rate_date string) error {
+			for _, fn := range fns {
+				if err := fn(cny_exchange_rate_date); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// financecommissionDescAdjustmentSequence is the schema descriptor for adjustment_sequence field.
-	financecommissionDescAdjustmentSequence := financecommissionFields[25].Descriptor()
+	financecommissionDescAdjustmentSequence := financecommissionFields[31].Descriptor()
 	// financecommission.DefaultAdjustmentSequence holds the default value on creation for the adjustment_sequence field.
 	financecommission.DefaultAdjustmentSequence = financecommissionDescAdjustmentSequence.Default.(uint64)
 	// financecommissionDescNote is the schema descriptor for note field.
-	financecommissionDescNote := financecommissionFields[26].Descriptor()
+	financecommissionDescNote := financecommissionFields[32].Descriptor()
 	// financecommission.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	financecommission.NoteValidator = financecommissionDescNote.Validators[0].(func(string) error)
 	// financecommissionDescVersion is the schema descriptor for version field.
-	financecommissionDescVersion := financecommissionFields[27].Descriptor()
+	financecommissionDescVersion := financecommissionFields[33].Descriptor()
 	// financecommission.DefaultVersion holds the default value on creation for the version field.
 	financecommission.DefaultVersion = financecommissionDescVersion.Default.(uint64)
 	// financecommissionDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionDescCancellationReason := financecommissionFields[34].Descriptor()
+	financecommissionDescCancellationReason := financecommissionFields[40].Descriptor()
 	// financecommission.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommission.CancellationReasonValidator = financecommissionDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionDescID is the schema descriptor for id field.

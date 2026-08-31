@@ -32333,69 +32333,75 @@ func (m *FinanceCashflowMutation) ResetEdge(name string) error {
 // FinanceCommissionMutation represents an operation that mutates the FinanceCommission nodes in the graph.
 type FinanceCommissionMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	commission_no            *string
-	idempotency_key          *string
-	verification_no          *string
-	employee_name            *string
-	customer_count           *int
-	addcustomer_count        *int
-	order_count              *int
-	addorder_count           *int
-	fee_count                *int
-	addfee_count             *int
-	rule_name                *string
-	personnel_role           *string
-	calculation_basis        *string
-	rule_version             *uint64
-	addrule_version          *int64
-	calculation_version      *string
-	source_fingerprint       *string
-	status                   *financecommission.Status
-	base_currency            *string
-	realized_revenue         *string
-	allocated_cost           *string
-	realized_profit          *string
-	commission_base_amount   *string
-	rate_percent             *string
-	commission_amount        *string
-	adjustment_sequence      *uint64
-	addadjustment_sequence   *int64
-	note                     *string
-	version                  *uint64
-	addversion               *int64
-	confirmed_at             *time.Time
-	paid_at                  *time.Time
-	cancelled_at             *time.Time
-	cancellation_reason      *string
-	clearedFields            map[string]struct{}
-	organization             *uuid.UUID
-	clearedorganization      bool
-	verification             *uuid.UUID
-	clearedverification      bool
-	employee                 *uuid.UUID
-	clearedemployee          bool
-	rule                     *uuid.UUID
-	clearedrule              bool
-	confirmed_by_user        *uuid.UUID
-	clearedconfirmed_by_user bool
-	paid_by_user             *uuid.UUID
-	clearedpaid_by_user      bool
-	cancelled_by_user        *uuid.UUID
-	clearedcancelled_by_user bool
-	lines                    map[uuid.UUID]struct{}
-	removedlines             map[uuid.UUID]struct{}
-	clearedlines             bool
-	adjustments              map[uuid.UUID]struct{}
-	removedadjustments       map[uuid.UUID]struct{}
-	clearedadjustments       bool
-	done                     bool
-	oldValue                 func(context.Context) (*FinanceCommission, error)
-	predicates               []predicate.FinanceCommission
+	op                           Op
+	typ                          string
+	id                           *uuid.UUID
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	commission_no                *string
+	idempotency_key              *string
+	verification_no              *string
+	employee_name                *string
+	customer_count               *int
+	addcustomer_count            *int
+	order_count                  *int
+	addorder_count               *int
+	fee_count                    *int
+	addfee_count                 *int
+	rule_name                    *string
+	personnel_role               *string
+	calculation_basis            *string
+	rule_version                 *uint64
+	addrule_version              *int64
+	calculation_version          *string
+	source_fingerprint           *string
+	status                       *financecommission.Status
+	base_currency                *string
+	realized_revenue             *string
+	allocated_cost               *string
+	realized_profit              *string
+	commission_base_amount       *string
+	rate_percent                 *string
+	commission_amount            *string
+	commission_date              *string
+	cny_exchange_rate            *string
+	cny_exchange_rate_source     *financecommission.CnyExchangeRateSource
+	cny_exchange_rate_date       *string
+	cny_exchange_rate_setting_id *uuid.UUID
+	cny_commission_amount        *string
+	adjustment_sequence          *uint64
+	addadjustment_sequence       *int64
+	note                         *string
+	version                      *uint64
+	addversion                   *int64
+	confirmed_at                 *time.Time
+	paid_at                      *time.Time
+	cancelled_at                 *time.Time
+	cancellation_reason          *string
+	clearedFields                map[string]struct{}
+	organization                 *uuid.UUID
+	clearedorganization          bool
+	verification                 *uuid.UUID
+	clearedverification          bool
+	employee                     *uuid.UUID
+	clearedemployee              bool
+	rule                         *uuid.UUID
+	clearedrule                  bool
+	confirmed_by_user            *uuid.UUID
+	clearedconfirmed_by_user     bool
+	paid_by_user                 *uuid.UUID
+	clearedpaid_by_user          bool
+	cancelled_by_user            *uuid.UUID
+	clearedcancelled_by_user     bool
+	lines                        map[uuid.UUID]struct{}
+	removedlines                 map[uuid.UUID]struct{}
+	clearedlines                 bool
+	adjustments                  map[uuid.UUID]struct{}
+	removedadjustments           map[uuid.UUID]struct{}
+	clearedadjustments           bool
+	done                         bool
+	oldValue                     func(context.Context) (*FinanceCommission, error)
+	predicates                   []predicate.FinanceCommission
 }
 
 var _ ent.Mutation = (*FinanceCommissionMutation)(nil)
@@ -33606,6 +33612,235 @@ func (m *FinanceCommissionMutation) ResetCommissionAmount() {
 	m.commission_amount = nil
 }
 
+// SetCommissionDate sets the "commission_date" field.
+func (m *FinanceCommissionMutation) SetCommissionDate(s string) {
+	m.commission_date = &s
+}
+
+// CommissionDate returns the value of the "commission_date" field in the mutation.
+func (m *FinanceCommissionMutation) CommissionDate() (r string, exists bool) {
+	v := m.commission_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommissionDate returns the old "commission_date" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCommissionDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommissionDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommissionDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommissionDate: %w", err)
+	}
+	return oldValue.CommissionDate, nil
+}
+
+// ResetCommissionDate resets all changes to the "commission_date" field.
+func (m *FinanceCommissionMutation) ResetCommissionDate() {
+	m.commission_date = nil
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (m *FinanceCommissionMutation) SetCnyExchangeRate(s string) {
+	m.cny_exchange_rate = &s
+}
+
+// CnyExchangeRate returns the value of the "cny_exchange_rate" field in the mutation.
+func (m *FinanceCommissionMutation) CnyExchangeRate() (r string, exists bool) {
+	v := m.cny_exchange_rate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCnyExchangeRate returns the old "cny_exchange_rate" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCnyExchangeRate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCnyExchangeRate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCnyExchangeRate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCnyExchangeRate: %w", err)
+	}
+	return oldValue.CnyExchangeRate, nil
+}
+
+// ResetCnyExchangeRate resets all changes to the "cny_exchange_rate" field.
+func (m *FinanceCommissionMutation) ResetCnyExchangeRate() {
+	m.cny_exchange_rate = nil
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (m *FinanceCommissionMutation) SetCnyExchangeRateSource(fers financecommission.CnyExchangeRateSource) {
+	m.cny_exchange_rate_source = &fers
+}
+
+// CnyExchangeRateSource returns the value of the "cny_exchange_rate_source" field in the mutation.
+func (m *FinanceCommissionMutation) CnyExchangeRateSource() (r financecommission.CnyExchangeRateSource, exists bool) {
+	v := m.cny_exchange_rate_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCnyExchangeRateSource returns the old "cny_exchange_rate_source" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCnyExchangeRateSource(ctx context.Context) (v financecommission.CnyExchangeRateSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCnyExchangeRateSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCnyExchangeRateSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCnyExchangeRateSource: %w", err)
+	}
+	return oldValue.CnyExchangeRateSource, nil
+}
+
+// ResetCnyExchangeRateSource resets all changes to the "cny_exchange_rate_source" field.
+func (m *FinanceCommissionMutation) ResetCnyExchangeRateSource() {
+	m.cny_exchange_rate_source = nil
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (m *FinanceCommissionMutation) SetCnyExchangeRateDate(s string) {
+	m.cny_exchange_rate_date = &s
+}
+
+// CnyExchangeRateDate returns the value of the "cny_exchange_rate_date" field in the mutation.
+func (m *FinanceCommissionMutation) CnyExchangeRateDate() (r string, exists bool) {
+	v := m.cny_exchange_rate_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCnyExchangeRateDate returns the old "cny_exchange_rate_date" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCnyExchangeRateDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCnyExchangeRateDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCnyExchangeRateDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCnyExchangeRateDate: %w", err)
+	}
+	return oldValue.CnyExchangeRateDate, nil
+}
+
+// ResetCnyExchangeRateDate resets all changes to the "cny_exchange_rate_date" field.
+func (m *FinanceCommissionMutation) ResetCnyExchangeRateDate() {
+	m.cny_exchange_rate_date = nil
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (m *FinanceCommissionMutation) SetCnyExchangeRateSettingID(u uuid.UUID) {
+	m.cny_exchange_rate_setting_id = &u
+}
+
+// CnyExchangeRateSettingID returns the value of the "cny_exchange_rate_setting_id" field in the mutation.
+func (m *FinanceCommissionMutation) CnyExchangeRateSettingID() (r uuid.UUID, exists bool) {
+	v := m.cny_exchange_rate_setting_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCnyExchangeRateSettingID returns the old "cny_exchange_rate_setting_id" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCnyExchangeRateSettingID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCnyExchangeRateSettingID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCnyExchangeRateSettingID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCnyExchangeRateSettingID: %w", err)
+	}
+	return oldValue.CnyExchangeRateSettingID, nil
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (m *FinanceCommissionMutation) ClearCnyExchangeRateSettingID() {
+	m.cny_exchange_rate_setting_id = nil
+	m.clearedFields[financecommission.FieldCnyExchangeRateSettingID] = struct{}{}
+}
+
+// CnyExchangeRateSettingIDCleared returns if the "cny_exchange_rate_setting_id" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) CnyExchangeRateSettingIDCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldCnyExchangeRateSettingID]
+	return ok
+}
+
+// ResetCnyExchangeRateSettingID resets all changes to the "cny_exchange_rate_setting_id" field.
+func (m *FinanceCommissionMutation) ResetCnyExchangeRateSettingID() {
+	m.cny_exchange_rate_setting_id = nil
+	delete(m.clearedFields, financecommission.FieldCnyExchangeRateSettingID)
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (m *FinanceCommissionMutation) SetCnyCommissionAmount(s string) {
+	m.cny_commission_amount = &s
+}
+
+// CnyCommissionAmount returns the value of the "cny_commission_amount" field in the mutation.
+func (m *FinanceCommissionMutation) CnyCommissionAmount() (r string, exists bool) {
+	v := m.cny_commission_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCnyCommissionAmount returns the old "cny_commission_amount" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldCnyCommissionAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCnyCommissionAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCnyCommissionAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCnyCommissionAmount: %w", err)
+	}
+	return oldValue.CnyCommissionAmount, nil
+}
+
+// ResetCnyCommissionAmount resets all changes to the "cny_commission_amount" field.
+func (m *FinanceCommissionMutation) ResetCnyCommissionAmount() {
+	m.cny_commission_amount = nil
+}
+
 // SetAdjustmentSequence sets the "adjustment_sequence" field.
 func (m *FinanceCommissionMutation) SetAdjustmentSequence(u uint64) {
 	m.adjustment_sequence = &u
@@ -34480,7 +34715,7 @@ func (m *FinanceCommissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionMutation) Fields() []string {
-	fields := make([]string, 0, 37)
+	fields := make([]string, 0, 43)
 	if m.created_at != nil {
 		fields = append(fields, financecommission.FieldCreatedAt)
 	}
@@ -34561,6 +34796,24 @@ func (m *FinanceCommissionMutation) Fields() []string {
 	}
 	if m.commission_amount != nil {
 		fields = append(fields, financecommission.FieldCommissionAmount)
+	}
+	if m.commission_date != nil {
+		fields = append(fields, financecommission.FieldCommissionDate)
+	}
+	if m.cny_exchange_rate != nil {
+		fields = append(fields, financecommission.FieldCnyExchangeRate)
+	}
+	if m.cny_exchange_rate_source != nil {
+		fields = append(fields, financecommission.FieldCnyExchangeRateSource)
+	}
+	if m.cny_exchange_rate_date != nil {
+		fields = append(fields, financecommission.FieldCnyExchangeRateDate)
+	}
+	if m.cny_exchange_rate_setting_id != nil {
+		fields = append(fields, financecommission.FieldCnyExchangeRateSettingID)
+	}
+	if m.cny_commission_amount != nil {
+		fields = append(fields, financecommission.FieldCnyCommissionAmount)
 	}
 	if m.adjustment_sequence != nil {
 		fields = append(fields, financecommission.FieldAdjustmentSequence)
@@ -34654,6 +34907,18 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.RatePercent()
 	case financecommission.FieldCommissionAmount:
 		return m.CommissionAmount()
+	case financecommission.FieldCommissionDate:
+		return m.CommissionDate()
+	case financecommission.FieldCnyExchangeRate:
+		return m.CnyExchangeRate()
+	case financecommission.FieldCnyExchangeRateSource:
+		return m.CnyExchangeRateSource()
+	case financecommission.FieldCnyExchangeRateDate:
+		return m.CnyExchangeRateDate()
+	case financecommission.FieldCnyExchangeRateSettingID:
+		return m.CnyExchangeRateSettingID()
+	case financecommission.FieldCnyCommissionAmount:
+		return m.CnyCommissionAmount()
 	case financecommission.FieldAdjustmentSequence:
 		return m.AdjustmentSequence()
 	case financecommission.FieldNote:
@@ -34737,6 +35002,18 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldRatePercent(ctx)
 	case financecommission.FieldCommissionAmount:
 		return m.OldCommissionAmount(ctx)
+	case financecommission.FieldCommissionDate:
+		return m.OldCommissionDate(ctx)
+	case financecommission.FieldCnyExchangeRate:
+		return m.OldCnyExchangeRate(ctx)
+	case financecommission.FieldCnyExchangeRateSource:
+		return m.OldCnyExchangeRateSource(ctx)
+	case financecommission.FieldCnyExchangeRateDate:
+		return m.OldCnyExchangeRateDate(ctx)
+	case financecommission.FieldCnyExchangeRateSettingID:
+		return m.OldCnyExchangeRateSettingID(ctx)
+	case financecommission.FieldCnyCommissionAmount:
+		return m.OldCnyCommissionAmount(ctx)
 	case financecommission.FieldAdjustmentSequence:
 		return m.OldAdjustmentSequence(ctx)
 	case financecommission.FieldNote:
@@ -34955,6 +35232,48 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetCommissionAmount(v)
 		return nil
+	case financecommission.FieldCommissionDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommissionDate(v)
+		return nil
+	case financecommission.FieldCnyExchangeRate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCnyExchangeRate(v)
+		return nil
+	case financecommission.FieldCnyExchangeRateSource:
+		v, ok := value.(financecommission.CnyExchangeRateSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCnyExchangeRateSource(v)
+		return nil
+	case financecommission.FieldCnyExchangeRateDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCnyExchangeRateDate(v)
+		return nil
+	case financecommission.FieldCnyExchangeRateSettingID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCnyExchangeRateSettingID(v)
+		return nil
+	case financecommission.FieldCnyCommissionAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCnyCommissionAmount(v)
+		return nil
 	case financecommission.FieldAdjustmentSequence:
 		v, ok := value.(uint64)
 		if !ok {
@@ -35142,6 +35461,9 @@ func (m *FinanceCommissionMutation) ClearedFields() []string {
 	if m.FieldCleared(financecommission.FieldCalculationBasis) {
 		fields = append(fields, financecommission.FieldCalculationBasis)
 	}
+	if m.FieldCleared(financecommission.FieldCnyExchangeRateSettingID) {
+		fields = append(fields, financecommission.FieldCnyExchangeRateSettingID)
+	}
 	if m.FieldCleared(financecommission.FieldNote) {
 		fields = append(fields, financecommission.FieldNote)
 	}
@@ -35191,6 +35513,9 @@ func (m *FinanceCommissionMutation) ClearField(name string) error {
 		return nil
 	case financecommission.FieldCalculationBasis:
 		m.ClearCalculationBasis()
+		return nil
+	case financecommission.FieldCnyExchangeRateSettingID:
+		m.ClearCnyExchangeRateSettingID()
 		return nil
 	case financecommission.FieldNote:
 		m.ClearNote()
@@ -35304,6 +35629,24 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 		return nil
 	case financecommission.FieldCommissionAmount:
 		m.ResetCommissionAmount()
+		return nil
+	case financecommission.FieldCommissionDate:
+		m.ResetCommissionDate()
+		return nil
+	case financecommission.FieldCnyExchangeRate:
+		m.ResetCnyExchangeRate()
+		return nil
+	case financecommission.FieldCnyExchangeRateSource:
+		m.ResetCnyExchangeRateSource()
+		return nil
+	case financecommission.FieldCnyExchangeRateDate:
+		m.ResetCnyExchangeRateDate()
+		return nil
+	case financecommission.FieldCnyExchangeRateSettingID:
+		m.ResetCnyExchangeRateSettingID()
+		return nil
+	case financecommission.FieldCnyCommissionAmount:
+		m.ResetCnyCommissionAmount()
 		return nil
 	case financecommission.FieldAdjustmentSequence:
 		m.ResetAdjustmentSequence()

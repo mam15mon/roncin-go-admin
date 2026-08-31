@@ -41,6 +41,12 @@ func (FinanceCommission) Fields() []ent.Field {
 		field.String("commission_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("rate_percent").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("commission_date").NotEmpty().MinLen(10).MaxLen(10).Immutable(),
+		field.String("cny_exchange_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(18,8)"}).Immutable(),
+		field.Enum("cny_exchange_rate_source").Values("BASE_CURRENCY", "DERIVED").Immutable(),
+		field.String("cny_exchange_rate_date").NotEmpty().MinLen(10).MaxLen(10).Immutable(),
+		field.UUID("cny_exchange_rate_setting_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.String("cny_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.Uint64("adjustment_sequence").Default(0),
 		field.String("note").Optional().Nillable().MaxLen(500),
 		field.Uint64("version").Default(1),
@@ -73,6 +79,7 @@ func (FinanceCommission) Indexes() []ent.Index {
 		index.Fields("organization_id", "commission_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("verification_id", "employee_id", "status"),
+		index.Fields("organization_id", "commission_date"),
 		index.Fields("organization_id", "status", "created_at"),
 	}
 }

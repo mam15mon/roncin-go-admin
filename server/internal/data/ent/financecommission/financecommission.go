@@ -70,6 +70,18 @@ const (
 	FieldRatePercent = "rate_percent"
 	// FieldCommissionAmount holds the string denoting the commission_amount field in the database.
 	FieldCommissionAmount = "commission_amount"
+	// FieldCommissionDate holds the string denoting the commission_date field in the database.
+	FieldCommissionDate = "commission_date"
+	// FieldCnyExchangeRate holds the string denoting the cny_exchange_rate field in the database.
+	FieldCnyExchangeRate = "cny_exchange_rate"
+	// FieldCnyExchangeRateSource holds the string denoting the cny_exchange_rate_source field in the database.
+	FieldCnyExchangeRateSource = "cny_exchange_rate_source"
+	// FieldCnyExchangeRateDate holds the string denoting the cny_exchange_rate_date field in the database.
+	FieldCnyExchangeRateDate = "cny_exchange_rate_date"
+	// FieldCnyExchangeRateSettingID holds the string denoting the cny_exchange_rate_setting_id field in the database.
+	FieldCnyExchangeRateSettingID = "cny_exchange_rate_setting_id"
+	// FieldCnyCommissionAmount holds the string denoting the cny_commission_amount field in the database.
+	FieldCnyCommissionAmount = "cny_commission_amount"
 	// FieldAdjustmentSequence holds the string denoting the adjustment_sequence field in the database.
 	FieldAdjustmentSequence = "adjustment_sequence"
 	// FieldNote holds the string denoting the note field in the database.
@@ -205,6 +217,12 @@ var Columns = []string{
 	FieldCommissionBaseAmount,
 	FieldRatePercent,
 	FieldCommissionAmount,
+	FieldCommissionDate,
+	FieldCnyExchangeRate,
+	FieldCnyExchangeRateSource,
+	FieldCnyExchangeRateDate,
+	FieldCnyExchangeRateSettingID,
+	FieldCnyCommissionAmount,
 	FieldAdjustmentSequence,
 	FieldNote,
 	FieldVersion,
@@ -266,6 +284,10 @@ var (
 	SourceFingerprintValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
+	// CommissionDateValidator is a validator for the "commission_date" field. It is called by the builders before save.
+	CommissionDateValidator func(string) error
+	// CnyExchangeRateDateValidator is a validator for the "cny_exchange_rate_date" field. It is called by the builders before save.
+	CnyExchangeRateDateValidator func(string) error
 	// DefaultAdjustmentSequence holds the default value on creation for the "adjustment_sequence" field.
 	DefaultAdjustmentSequence uint64
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
@@ -303,6 +325,29 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("financecommission: invalid enum value for status field: %q", s)
+	}
+}
+
+// CnyExchangeRateSource defines the type for the "cny_exchange_rate_source" enum field.
+type CnyExchangeRateSource string
+
+// CnyExchangeRateSource values.
+const (
+	CnyExchangeRateSourceBASE_CURRENCY CnyExchangeRateSource = "BASE_CURRENCY"
+	CnyExchangeRateSourceDERIVED       CnyExchangeRateSource = "DERIVED"
+)
+
+func (cers CnyExchangeRateSource) String() string {
+	return string(cers)
+}
+
+// CnyExchangeRateSourceValidator is a validator for the "cny_exchange_rate_source" field enum values. It is called by the builders before save.
+func CnyExchangeRateSourceValidator(cers CnyExchangeRateSource) error {
+	switch cers {
+	case CnyExchangeRateSourceBASE_CURRENCY, CnyExchangeRateSourceDERIVED:
+		return nil
+	default:
+		return fmt.Errorf("financecommission: invalid enum value for cny_exchange_rate_source field: %q", cers)
 	}
 }
 
@@ -447,6 +492,36 @@ func ByRatePercent(opts ...sql.OrderTermOption) OrderOption {
 // ByCommissionAmount orders the results by the commission_amount field.
 func ByCommissionAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCommissionAmount, opts...).ToFunc()
+}
+
+// ByCommissionDate orders the results by the commission_date field.
+func ByCommissionDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCommissionDate, opts...).ToFunc()
+}
+
+// ByCnyExchangeRate orders the results by the cny_exchange_rate field.
+func ByCnyExchangeRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCnyExchangeRate, opts...).ToFunc()
+}
+
+// ByCnyExchangeRateSource orders the results by the cny_exchange_rate_source field.
+func ByCnyExchangeRateSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCnyExchangeRateSource, opts...).ToFunc()
+}
+
+// ByCnyExchangeRateDate orders the results by the cny_exchange_rate_date field.
+func ByCnyExchangeRateDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCnyExchangeRateDate, opts...).ToFunc()
+}
+
+// ByCnyExchangeRateSettingID orders the results by the cny_exchange_rate_setting_id field.
+func ByCnyExchangeRateSettingID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCnyExchangeRateSettingID, opts...).ToFunc()
+}
+
+// ByCnyCommissionAmount orders the results by the cny_commission_amount field.
+func ByCnyCommissionAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCnyCommissionAmount, opts...).ToFunc()
 }
 
 // ByAdjustmentSequence orders the results by the adjustment_sequence field.

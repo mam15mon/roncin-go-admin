@@ -216,7 +216,8 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 	return commissionRuleToBiz(updated)
 }
 
-func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
+// commissionListPredicates 构造提成列表筛选谓词，列表与导出复用同一实现。
+func commissionListPredicates(org uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
 	p := []predicate.FinanceCommission{commission.OrganizationIDEQ(org)}
 	if f.Keyword != "" {
 		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword), commission.RuleNameContainsFold(f.Keyword)))
@@ -224,14 +225,28 @@ func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.Commissi
 	if f.Status != "" {
 		p = append(p, commission.StatusEQ(commission.Status(f.Status)))
 	}
-	q := r.data.db.FinanceCommission.Query().Where(p...)
+	if f.CommissionDateFrom != "" {
+		p = append(p, commission.CommissionDateGTE(f.CommissionDateFrom))
+	}
+	if f.CommissionDateTo != "" {
+		p = append(p, commission.CommissionDateLTE(f.CommissionDateTo))
+	}
+	return p
+}
+
+func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.CommissionFilter) (*biz.CommissionListResult, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	q := client.FinanceCommission.Query().Where(commissionListPredicates(org, f)...)
 	total, err := q.Clone().Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 	xs, err := q.WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
-	}).Order(commission.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
+	}).Order(commission.ByCommissionDate(entsql.OrderDesc()), commission.ByCreatedAt(entsql.OrderDesc()), commission.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +262,11 @@ func (r *commissionRepo) List(ctx context.Context, org uuid.UUID, f biz.Commissi
 }
 
 func (r *commissionRepo) GetByKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceCommission, error) {
-	x, err := r.data.db.FinanceCommission.Query().Where(commission.OrganizationIDEQ(org), commission.IdempotencyKeyEQ(key)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommission.Query().Where(commission.OrganizationIDEQ(org), commission.IdempotencyKeyEQ(key)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
 		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
@@ -280,7 +299,29 @@ func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
 }
 
 func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
-	return calculateCommission(ctx, commissionStoreFromClient(r.data.db), org, verificationID, employeeID, ruleID, false)
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return calculateCommission(ctx, commissionStoreFromClient(client), org, verificationID, employeeID, ruleID, false)
+}
+
+// GetGenerationContext 读取生成提成所需的核销上下文：归属日期、汇率日期和本位币。
+// 事务内参与共享事务读取并加 ForShare，普通上下文直接读取。
+func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID uuid.UUID) (*biz.CommissionGenerationContext, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.FinanceVerification.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org))
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	v, err := query.Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+	}
+	return &biz.CommissionGenerationContext{CommissionDate: v.VerificationDate, ExchangeRateDate: v.ExchangeRateDate, BaseCurrency: v.BaseCurrency}, nil
 }
 
 type commissionCalculationSource struct {
@@ -577,12 +618,16 @@ func optionalStringValue(value *string) string {
 	return *value
 }
 
-func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *biz.FinanceCommission, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+// Create 在事务内锁定来源并写入提成草稿与 CNY 快照，只负责写入并返回错误；
+// 完整业务响应由用例在共享事务提交后通过普通上下文重读。
+func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.FinanceCommission, snapshot *biz.CommissionCNYSnapshot, audit *biz.AuditEvent) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		calculation, err := calculateCommission(ctx, commissionStoreFromTx(tx), org, c.VerificationID, c.EmployeeID, c.RuleID, true)
 		if err != nil {
 			return err
 		}
+		// 原始 CNY 提成金额依赖锁内计算出的提成金额，按 biz 纯函数固化到快照。
+		snapshot.ApplyCommissionAmount(calculation.CommissionAmount)
 		hasActive, err := tx.FinanceCommission.Query().Where(commission.VerificationIDEQ(c.VerificationID), commission.EmployeeIDEQ(c.EmployeeID), commission.RuleIDEQ(c.RuleID), commission.StatusNEQ(commission.StatusCANCELLED)).Exist(ctx)
 		if err != nil {
 			return err
@@ -597,7 +642,7 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 		c.CustomerCount, c.OrderCount, c.FeeCount = calculation.CustomerCount, calculation.OrderCount, calculation.FeeCount
 		c.RealizedRevenue, c.AllocatedCost, c.RealizedProfit = calculation.RealizedRevenue, calculation.AllocatedCost, calculation.RealizedProfit
 		c.CommissionBaseAmount, c.CommissionAmount = calculation.CommissionBaseAmount, calculation.CommissionAmount
-		_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
+		_, err = tx.FinanceCommission.Create().SetID(c.ID).SetOrganizationID(org).SetCommissionNo(c.CommissionNo).SetIdempotencyKey(c.IdempotencyKey).SetVerificationID(c.VerificationID).SetVerificationNo(c.VerificationNo).SetEmployeeID(c.EmployeeID).SetEmployeeName(c.EmployeeName).SetCustomerCount(c.CustomerCount).SetOrderCount(c.OrderCount).SetFeeCount(c.FeeCount).SetRuleID(c.RuleID).SetRuleName(c.RuleName).SetPersonnelRole(string(c.PersonnelRole)).SetCalculationBasis(string(c.CalculationBasis)).SetRuleVersion(c.RuleVersion).SetCalculationVersion(c.CalculationVersion).SetSourceFingerprint(c.SourceFingerprint).SetStatus(commission.StatusDRAFT).SetBaseCurrency(c.BaseCurrency).SetRealizedRevenue(c.RealizedRevenue.StringFixed(8)).SetAllocatedCost(c.AllocatedCost.StringFixed(8)).SetRealizedProfit(c.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(c.CommissionBaseAmount.StringFixed(8)).SetRatePercent(c.RatePercent.StringFixed(4)).SetCommissionAmount(c.CommissionAmount.StringFixed(8)).SetCommissionDate(snapshot.CommissionDate).SetCnyExchangeRate(snapshot.ExchangeRate.StringFixed(8)).SetCnyExchangeRateSource(commission.CnyExchangeRateSource(snapshot.ExchangeRateSource)).SetCnyExchangeRateDate(snapshot.ExchangeRateDate).SetNillableCnyExchangeRateSettingID(snapshot.ExchangeRateSettingID).SetCnyCommissionAmount(snapshot.CommissionAmount.StringFixed(8)).SetNillableNote(c.Note).SetVersion(1).Save(ctx)
 		if err != nil {
 			return mapEntError(err, nil, biz.ErrCommissionDuplicate)
 		}
@@ -616,10 +661,7 @@ func (r *commissionRepo) Create(ctx context.Context, org, actor uuid.UUID, c *bi
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, org, c.ID)
+	})
 }
 
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
@@ -701,7 +743,11 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 }
 
 func (r *commissionRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceCommission, error) {
-	x, err := r.data.db.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x, err := client.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).WithLines(func(q *ent.FinanceCommissionLineQuery) {
 		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
@@ -742,6 +788,9 @@ func commissionWithLinesToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission,
 	}
 	result.AdjustmentAmount = result.AdjustmentAmount.Round(8)
 	result.EffectiveCommissionAmount = result.CommissionAmount.Add(result.AdjustmentAmount).Round(8)
+	// CNY 调整金额动态继承主单汇率快照折算，草稿与已取消调整不计入。
+	result.CNYAdjustmentAmount = result.AdjustmentAmount.Mul(result.CNYExchangeRate).Round(8)
+	result.CNYEffectiveCommissionAmount = result.CNYCommissionAmount.Add(result.CNYAdjustmentAmount).Round(8)
 	return result, nil
 }
 
@@ -770,7 +819,15 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	cnyRate, err := decimalOf(x.CnyExchangeRate)
+	if err != nil {
+		return nil, err
+	}
+	cnyAmount, err := decimalOf(x.CnyCommissionAmount)
+	if err != nil {
+		return nil, err
+	}
+	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, VerificationID: x.VerificationID, VerificationNo: x.VerificationNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, PaidAt: x.PaidAt, CancelledAt: x.CancelledAt, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
 	if x.RuleID != nil {
 		result.RuleID = *x.RuleID
 	}

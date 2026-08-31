@@ -1814,6 +1814,14 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: commissionDateFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: commissionDateTo
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -7615,6 +7623,16 @@ components:
                     format: int32
                 commissionBaseAmount:
                     type: string
+                cnyExchangeRate:
+                    type: string
+                cnyExchangeRateSource:
+                    type: string
+                cnyExchangeRateDate:
+                    type: string
+                cnyExchangeRateSettingId:
+                    type: string
+                cnyCommissionAmount:
+                    type: string
         finance.v1.CommissionCandidateSummary:
             type: object
             properties:
@@ -8959,6 +8977,22 @@ components:
                     type: integer
                     format: int32
                 commissionBaseAmount:
+                    type: string
+                commissionDate:
+                    type: string
+                cnyExchangeRate:
+                    type: string
+                cnyExchangeRateSource:
+                    type: string
+                cnyExchangeRateDate:
+                    type: string
+                cnyExchangeRateSettingId:
+                    type: string
+                cnyCommissionAmount:
+                    type: string
+                cnyAdjustmentAmount:
+                    type: string
+                cnyEffectiveCommissionAmount:
                     type: string
         finance.v1.FinanceCommissionAdjustment:
             type: object

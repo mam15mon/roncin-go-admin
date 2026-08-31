@@ -7767,13 +7767,15 @@ func (x *ReverseVerificationResponse) GetTraceId() string {
 }
 
 type ListCommissionsRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Page          int32                    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                    `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       *string                  `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	Status        *FinanceCommissionStatus `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus,oneof" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState   `protogen:"open.v1"`
+	Page               int32                    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize           int32                    `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword            *string                  `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	Status             *FinanceCommissionStatus `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus,oneof" json:"status,omitempty"`
+	CommissionDateFrom *string                  `protobuf:"bytes,5,opt,name=commission_date_from,json=commissionDateFrom,proto3,oneof" json:"commission_date_from,omitempty"`
+	CommissionDateTo   *string                  `protobuf:"bytes,6,opt,name=commission_date_to,json=commissionDateTo,proto3,oneof" json:"commission_date_to,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ListCommissionsRequest) Reset() {
@@ -7832,6 +7834,20 @@ func (x *ListCommissionsRequest) GetStatus() FinanceCommissionStatus {
 		return *x.Status
 	}
 	return FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_UNSPECIFIED
+}
+
+func (x *ListCommissionsRequest) GetCommissionDateFrom() string {
+	if x != nil && x.CommissionDateFrom != nil {
+		return *x.CommissionDateFrom
+	}
+	return ""
+}
+
+func (x *ListCommissionsRequest) GetCommissionDateTo() string {
+	if x != nil && x.CommissionDateTo != nil {
+		return *x.CommissionDateTo
+	}
+	return ""
 }
 
 type GetCommissionRequest struct {
@@ -9747,30 +9763,35 @@ func (x *FinanceCommissionLine) GetFees() []*CommissionFeeDetail {
 }
 
 type CommissionCalculation struct {
-	state                protoimpl.MessageState   `protogen:"open.v1"`
-	VerificationId       string                   `protobuf:"bytes,1,opt,name=verification_id,json=verificationId,proto3" json:"verification_id,omitempty"`
-	VerificationNo       string                   `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
-	EmployeeId           string                   `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName         string                   `protobuf:"bytes,4,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	RuleId               string                   `protobuf:"bytes,5,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	RuleName             string                   `protobuf:"bytes,6,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
-	PersonnelRole        string                   `protobuf:"bytes,7,opt,name=personnel_role,json=personnelRole,proto3" json:"personnel_role,omitempty"`
-	CalculationBasis     string                   `protobuf:"bytes,8,opt,name=calculation_basis,json=calculationBasis,proto3" json:"calculation_basis,omitempty"`
-	RuleVersion          uint64                   `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
-	CalculationVersion   string                   `protobuf:"bytes,10,opt,name=calculation_version,json=calculationVersion,proto3" json:"calculation_version,omitempty"`
-	BaseCurrency         string                   `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	RealizedRevenue      string                   `protobuf:"bytes,12,opt,name=realized_revenue,json=realizedRevenue,proto3" json:"realized_revenue,omitempty"`
-	AllocatedCost        string                   `protobuf:"bytes,13,opt,name=allocated_cost,json=allocatedCost,proto3" json:"allocated_cost,omitempty"`
-	RealizedProfit       string                   `protobuf:"bytes,14,opt,name=realized_profit,json=realizedProfit,proto3" json:"realized_profit,omitempty"`
-	RatePercent          string                   `protobuf:"bytes,15,opt,name=rate_percent,json=ratePercent,proto3" json:"rate_percent,omitempty"`
-	CommissionAmount     string                   `protobuf:"bytes,16,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
-	Lines                []*FinanceCommissionLine `protobuf:"bytes,17,rep,name=lines,proto3" json:"lines,omitempty"`
-	CustomerCount        int32                    `protobuf:"varint,18,opt,name=customer_count,json=customerCount,proto3" json:"customer_count,omitempty"`
-	OrderCount           int32                    `protobuf:"varint,19,opt,name=order_count,json=orderCount,proto3" json:"order_count,omitempty"`
-	FeeCount             int32                    `protobuf:"varint,20,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
-	CommissionBaseAmount string                   `protobuf:"bytes,21,opt,name=commission_base_amount,json=commissionBaseAmount,proto3" json:"commission_base_amount,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                    protoimpl.MessageState   `protogen:"open.v1"`
+	VerificationId           string                   `protobuf:"bytes,1,opt,name=verification_id,json=verificationId,proto3" json:"verification_id,omitempty"`
+	VerificationNo           string                   `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
+	EmployeeId               string                   `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName             string                   `protobuf:"bytes,4,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	RuleId                   string                   `protobuf:"bytes,5,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	RuleName                 string                   `protobuf:"bytes,6,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
+	PersonnelRole            string                   `protobuf:"bytes,7,opt,name=personnel_role,json=personnelRole,proto3" json:"personnel_role,omitempty"`
+	CalculationBasis         string                   `protobuf:"bytes,8,opt,name=calculation_basis,json=calculationBasis,proto3" json:"calculation_basis,omitempty"`
+	RuleVersion              uint64                   `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
+	CalculationVersion       string                   `protobuf:"bytes,10,opt,name=calculation_version,json=calculationVersion,proto3" json:"calculation_version,omitempty"`
+	BaseCurrency             string                   `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	RealizedRevenue          string                   `protobuf:"bytes,12,opt,name=realized_revenue,json=realizedRevenue,proto3" json:"realized_revenue,omitempty"`
+	AllocatedCost            string                   `protobuf:"bytes,13,opt,name=allocated_cost,json=allocatedCost,proto3" json:"allocated_cost,omitempty"`
+	RealizedProfit           string                   `protobuf:"bytes,14,opt,name=realized_profit,json=realizedProfit,proto3" json:"realized_profit,omitempty"`
+	RatePercent              string                   `protobuf:"bytes,15,opt,name=rate_percent,json=ratePercent,proto3" json:"rate_percent,omitempty"`
+	CommissionAmount         string                   `protobuf:"bytes,16,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
+	Lines                    []*FinanceCommissionLine `protobuf:"bytes,17,rep,name=lines,proto3" json:"lines,omitempty"`
+	CustomerCount            int32                    `protobuf:"varint,18,opt,name=customer_count,json=customerCount,proto3" json:"customer_count,omitempty"`
+	OrderCount               int32                    `protobuf:"varint,19,opt,name=order_count,json=orderCount,proto3" json:"order_count,omitempty"`
+	FeeCount                 int32                    `protobuf:"varint,20,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
+	CommissionBaseAmount     string                   `protobuf:"bytes,21,opt,name=commission_base_amount,json=commissionBaseAmount,proto3" json:"commission_base_amount,omitempty"`
+	CnyExchangeRate          string                   `protobuf:"bytes,22,opt,name=cny_exchange_rate,json=cnyExchangeRate,proto3" json:"cny_exchange_rate,omitempty"`
+	CnyExchangeRateSource    string                   `protobuf:"bytes,23,opt,name=cny_exchange_rate_source,json=cnyExchangeRateSource,proto3" json:"cny_exchange_rate_source,omitempty"`
+	CnyExchangeRateDate      string                   `protobuf:"bytes,24,opt,name=cny_exchange_rate_date,json=cnyExchangeRateDate,proto3" json:"cny_exchange_rate_date,omitempty"`
+	CnyExchangeRateSettingId *string                  `protobuf:"bytes,25,opt,name=cny_exchange_rate_setting_id,json=cnyExchangeRateSettingId,proto3,oneof" json:"cny_exchange_rate_setting_id,omitempty"`
+	CnyCommissionAmount      string                   `protobuf:"bytes,26,opt,name=cny_commission_amount,json=cnyCommissionAmount,proto3" json:"cny_commission_amount,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *CommissionCalculation) Reset() {
@@ -9946,6 +9967,41 @@ func (x *CommissionCalculation) GetFeeCount() int32 {
 func (x *CommissionCalculation) GetCommissionBaseAmount() string {
 	if x != nil {
 		return x.CommissionBaseAmount
+	}
+	return ""
+}
+
+func (x *CommissionCalculation) GetCnyExchangeRate() string {
+	if x != nil {
+		return x.CnyExchangeRate
+	}
+	return ""
+}
+
+func (x *CommissionCalculation) GetCnyExchangeRateSource() string {
+	if x != nil {
+		return x.CnyExchangeRateSource
+	}
+	return ""
+}
+
+func (x *CommissionCalculation) GetCnyExchangeRateDate() string {
+	if x != nil {
+		return x.CnyExchangeRateDate
+	}
+	return ""
+}
+
+func (x *CommissionCalculation) GetCnyExchangeRateSettingId() string {
+	if x != nil && x.CnyExchangeRateSettingId != nil {
+		return *x.CnyExchangeRateSettingId
+	}
+	return ""
+}
+
+func (x *CommissionCalculation) GetCnyCommissionAmount() string {
+	if x != nil {
+		return x.CnyCommissionAmount
 	}
 	return ""
 }
@@ -10431,44 +10487,52 @@ func (x *FinanceCommissionAdjustment) GetSourceVerificationId() string {
 }
 
 type FinanceCommission struct {
-	state                     protoimpl.MessageState         `protogen:"open.v1"`
-	Id                        string                         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CommissionNo              string                         `protobuf:"bytes,2,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
-	VerificationId            string                         `protobuf:"bytes,3,opt,name=verification_id,json=verificationId,proto3" json:"verification_id,omitempty"`
-	VerificationNo            string                         `protobuf:"bytes,4,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
-	EmployeeId                string                         `protobuf:"bytes,5,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName              string                         `protobuf:"bytes,6,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	Status                    FinanceCommissionStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
-	BaseCurrency              string                         `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	RealizedRevenue           string                         `protobuf:"bytes,9,opt,name=realized_revenue,json=realizedRevenue,proto3" json:"realized_revenue,omitempty"`
-	AllocatedCost             string                         `protobuf:"bytes,10,opt,name=allocated_cost,json=allocatedCost,proto3" json:"allocated_cost,omitempty"`
-	RealizedProfit            string                         `protobuf:"bytes,11,opt,name=realized_profit,json=realizedProfit,proto3" json:"realized_profit,omitempty"`
-	RatePercent               string                         `protobuf:"bytes,12,opt,name=rate_percent,json=ratePercent,proto3" json:"rate_percent,omitempty"`
-	CommissionAmount          string                         `protobuf:"bytes,13,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
-	Note                      *string                        `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version                   uint64                         `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
-	ConfirmedAt               *string                        `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	PaidAt                    *string                        `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
-	CancelledAt               *string                        `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
-	CancellationReason        *string                        `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
-	CreatedAt                 string                         `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt                 string                         `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	RuleId                    *string                        `protobuf:"bytes,22,opt,name=rule_id,json=ruleId,proto3,oneof" json:"rule_id,omitempty"`
-	RuleName                  *string                        `protobuf:"bytes,23,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
-	PersonnelRole             *string                        `protobuf:"bytes,24,opt,name=personnel_role,json=personnelRole,proto3,oneof" json:"personnel_role,omitempty"`
-	CalculationBasis          *string                        `protobuf:"bytes,25,opt,name=calculation_basis,json=calculationBasis,proto3,oneof" json:"calculation_basis,omitempty"`
-	RuleVersion               uint64                         `protobuf:"varint,26,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
-	CalculationVersion        string                         `protobuf:"bytes,27,opt,name=calculation_version,json=calculationVersion,proto3" json:"calculation_version,omitempty"`
-	Lines                     []*FinanceCommissionLine       `protobuf:"bytes,28,rep,name=lines,proto3" json:"lines,omitempty"`
-	Adjustments               []*FinanceCommissionAdjustment `protobuf:"bytes,29,rep,name=adjustments,proto3" json:"adjustments,omitempty"`
-	AdjustmentAmount          string                         `protobuf:"bytes,30,opt,name=adjustment_amount,json=adjustmentAmount,proto3" json:"adjustment_amount,omitempty"`
-	EffectiveCommissionAmount string                         `protobuf:"bytes,31,opt,name=effective_commission_amount,json=effectiveCommissionAmount,proto3" json:"effective_commission_amount,omitempty"`
-	CustomerCount             int32                          `protobuf:"varint,32,opt,name=customer_count,json=customerCount,proto3" json:"customer_count,omitempty"`
-	OrderCount                int32                          `protobuf:"varint,33,opt,name=order_count,json=orderCount,proto3" json:"order_count,omitempty"`
-	FeeCount                  int32                          `protobuf:"varint,34,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
-	CommissionBaseAmount      string                         `protobuf:"bytes,35,opt,name=commission_base_amount,json=commissionBaseAmount,proto3" json:"commission_base_amount,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                        protoimpl.MessageState         `protogen:"open.v1"`
+	Id                           string                         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CommissionNo                 string                         `protobuf:"bytes,2,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
+	VerificationId               string                         `protobuf:"bytes,3,opt,name=verification_id,json=verificationId,proto3" json:"verification_id,omitempty"`
+	VerificationNo               string                         `protobuf:"bytes,4,opt,name=verification_no,json=verificationNo,proto3" json:"verification_no,omitempty"`
+	EmployeeId                   string                         `protobuf:"bytes,5,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName                 string                         `protobuf:"bytes,6,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	Status                       FinanceCommissionStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
+	BaseCurrency                 string                         `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	RealizedRevenue              string                         `protobuf:"bytes,9,opt,name=realized_revenue,json=realizedRevenue,proto3" json:"realized_revenue,omitempty"`
+	AllocatedCost                string                         `protobuf:"bytes,10,opt,name=allocated_cost,json=allocatedCost,proto3" json:"allocated_cost,omitempty"`
+	RealizedProfit               string                         `protobuf:"bytes,11,opt,name=realized_profit,json=realizedProfit,proto3" json:"realized_profit,omitempty"`
+	RatePercent                  string                         `protobuf:"bytes,12,opt,name=rate_percent,json=ratePercent,proto3" json:"rate_percent,omitempty"`
+	CommissionAmount             string                         `protobuf:"bytes,13,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
+	Note                         *string                        `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version                      uint64                         `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
+	ConfirmedAt                  *string                        `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	PaidAt                       *string                        `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
+	CancelledAt                  *string                        `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
+	CancellationReason           *string                        `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
+	CreatedAt                    string                         `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                    string                         `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	RuleId                       *string                        `protobuf:"bytes,22,opt,name=rule_id,json=ruleId,proto3,oneof" json:"rule_id,omitempty"`
+	RuleName                     *string                        `protobuf:"bytes,23,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
+	PersonnelRole                *string                        `protobuf:"bytes,24,opt,name=personnel_role,json=personnelRole,proto3,oneof" json:"personnel_role,omitempty"`
+	CalculationBasis             *string                        `protobuf:"bytes,25,opt,name=calculation_basis,json=calculationBasis,proto3,oneof" json:"calculation_basis,omitempty"`
+	RuleVersion                  uint64                         `protobuf:"varint,26,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
+	CalculationVersion           string                         `protobuf:"bytes,27,opt,name=calculation_version,json=calculationVersion,proto3" json:"calculation_version,omitempty"`
+	Lines                        []*FinanceCommissionLine       `protobuf:"bytes,28,rep,name=lines,proto3" json:"lines,omitempty"`
+	Adjustments                  []*FinanceCommissionAdjustment `protobuf:"bytes,29,rep,name=adjustments,proto3" json:"adjustments,omitempty"`
+	AdjustmentAmount             string                         `protobuf:"bytes,30,opt,name=adjustment_amount,json=adjustmentAmount,proto3" json:"adjustment_amount,omitempty"`
+	EffectiveCommissionAmount    string                         `protobuf:"bytes,31,opt,name=effective_commission_amount,json=effectiveCommissionAmount,proto3" json:"effective_commission_amount,omitempty"`
+	CustomerCount                int32                          `protobuf:"varint,32,opt,name=customer_count,json=customerCount,proto3" json:"customer_count,omitempty"`
+	OrderCount                   int32                          `protobuf:"varint,33,opt,name=order_count,json=orderCount,proto3" json:"order_count,omitempty"`
+	FeeCount                     int32                          `protobuf:"varint,34,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
+	CommissionBaseAmount         string                         `protobuf:"bytes,35,opt,name=commission_base_amount,json=commissionBaseAmount,proto3" json:"commission_base_amount,omitempty"`
+	CommissionDate               string                         `protobuf:"bytes,36,opt,name=commission_date,json=commissionDate,proto3" json:"commission_date,omitempty"`
+	CnyExchangeRate              string                         `protobuf:"bytes,37,opt,name=cny_exchange_rate,json=cnyExchangeRate,proto3" json:"cny_exchange_rate,omitempty"`
+	CnyExchangeRateSource        string                         `protobuf:"bytes,38,opt,name=cny_exchange_rate_source,json=cnyExchangeRateSource,proto3" json:"cny_exchange_rate_source,omitempty"`
+	CnyExchangeRateDate          string                         `protobuf:"bytes,39,opt,name=cny_exchange_rate_date,json=cnyExchangeRateDate,proto3" json:"cny_exchange_rate_date,omitempty"`
+	CnyExchangeRateSettingId     *string                        `protobuf:"bytes,40,opt,name=cny_exchange_rate_setting_id,json=cnyExchangeRateSettingId,proto3,oneof" json:"cny_exchange_rate_setting_id,omitempty"`
+	CnyCommissionAmount          string                         `protobuf:"bytes,41,opt,name=cny_commission_amount,json=cnyCommissionAmount,proto3" json:"cny_commission_amount,omitempty"`
+	CnyAdjustmentAmount          string                         `protobuf:"bytes,42,opt,name=cny_adjustment_amount,json=cnyAdjustmentAmount,proto3" json:"cny_adjustment_amount,omitempty"`
+	CnyEffectiveCommissionAmount string                         `protobuf:"bytes,43,opt,name=cny_effective_commission_amount,json=cnyEffectiveCommissionAmount,proto3" json:"cny_effective_commission_amount,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *FinanceCommission) Reset() {
@@ -10742,6 +10806,62 @@ func (x *FinanceCommission) GetFeeCount() int32 {
 func (x *FinanceCommission) GetCommissionBaseAmount() string {
 	if x != nil {
 		return x.CommissionBaseAmount
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCommissionDate() string {
+	if x != nil {
+		return x.CommissionDate
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyExchangeRate() string {
+	if x != nil {
+		return x.CnyExchangeRate
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyExchangeRateSource() string {
+	if x != nil {
+		return x.CnyExchangeRateSource
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyExchangeRateDate() string {
+	if x != nil {
+		return x.CnyExchangeRateDate
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyExchangeRateSettingId() string {
+	if x != nil && x.CnyExchangeRateSettingId != nil {
+		return *x.CnyExchangeRateSettingId
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyCommissionAmount() string {
+	if x != nil {
+		return x.CnyCommissionAmount
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyAdjustmentAmount() string {
+	if x != nil {
+		return x.CnyAdjustmentAmount
+	}
+	return ""
+}
+
+func (x *FinanceCommission) GetCnyEffectiveCommissionAmount() string {
+	if x != nil {
+		return x.CnyEffectiveCommissionAmount
 	}
 	return ""
 }
@@ -13157,15 +13277,19 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc1\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xdb\x02\n" +
 	"\x16ListCommissionsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\akeyword\x18\x03 \x01(\tH\x00R\akeyword\x88\x01\x01\x12@\n" +
-	"\x06status\x18\x04 \x01(\x0e2#.finance.v1.FinanceCommissionStatusH\x01R\x06status\x88\x01\x01B\n" +
+	"\x06status\x18\x04 \x01(\x0e2#.finance.v1.FinanceCommissionStatusH\x01R\x06status\x88\x01\x01\x125\n" +
+	"\x14commission_date_from\x18\x05 \x01(\tH\x02R\x12commissionDateFrom\x88\x01\x01\x121\n" +
+	"\x12commission_date_to\x18\x06 \x01(\tH\x03R\x10commissionDateTo\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\t\n" +
-	"\a_status\"+\n" +
+	"\a_statusB\x17\n" +
+	"\x15_commission_date_fromB\x15\n" +
+	"\x13_commission_date_to\"+\n" +
 	"\x14GetCommissionRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"|\n" +
 	"\x1eListCommissionEmployeesRequest\x12\x12\n" +
@@ -13347,7 +13471,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"#customer_assignment_organization_id\x18\x16 \x01(\tR customerAssignmentOrganizationId\x120\n" +
 	"\x14customer_assigned_at\x18\x17 \x01(\tR\x12customerAssignedAt\x12\x1b\n" +
 	"\tfee_count\x18\x18 \x01(\x05R\bfeeCount\x123\n" +
-	"\x04fees\x18\x19 \x03(\v2\x1f.finance.v1.CommissionFeeDetailR\x04fees\"\xd1\x06\n" +
+	"\x04fees\x18\x19 \x03(\v2\x1f.finance.v1.CommissionFeeDetailR\x04fees\"\x85\t\n" +
 	"\x15CommissionCalculation\x12'\n" +
 	"\x0fverification_id\x18\x01 \x01(\tR\x0everificationId\x12'\n" +
 	"\x0fverification_no\x18\x02 \x01(\tR\x0everificationNo\x12\x1f\n" +
@@ -13372,7 +13496,13 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vorder_count\x18\x13 \x01(\x05R\n" +
 	"orderCount\x12\x1b\n" +
 	"\tfee_count\x18\x14 \x01(\x05R\bfeeCount\x124\n" +
-	"\x16commission_base_amount\x18\x15 \x01(\tR\x14commissionBaseAmount\"\xcf\x04\n" +
+	"\x16commission_base_amount\x18\x15 \x01(\tR\x14commissionBaseAmount\x12*\n" +
+	"\x11cny_exchange_rate\x18\x16 \x01(\tR\x0fcnyExchangeRate\x127\n" +
+	"\x18cny_exchange_rate_source\x18\x17 \x01(\tR\x15cnyExchangeRateSource\x123\n" +
+	"\x16cny_exchange_rate_date\x18\x18 \x01(\tR\x13cnyExchangeRateDate\x12C\n" +
+	"\x1ccny_exchange_rate_setting_id\x18\x19 \x01(\tH\x00R\x18cnyExchangeRateSettingId\x88\x01\x01\x122\n" +
+	"\x15cny_commission_amount\x18\x1a \x01(\tR\x13cnyCommissionAmountB\x1f\n" +
+	"\x1d_cny_exchange_rate_setting_id\"\xcf\x04\n" +
 	"\x1aCommissionCandidateSummary\x12\x1f\n" +
 	"\vemployee_id\x18\x01 \x01(\tR\n" +
 	"employeeId\x12#\n" +
@@ -13436,7 +13566,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\b_paid_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +
 	"\x14_cancellation_reasonB\x19\n" +
-	"\x17_source_verification_id\"\xb2\f\n" +
+	"\x17_source_verification_id\"\x8a\x10\n" +
 	"\x11FinanceCommission\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rcommission_no\x18\x02 \x01(\tR\fcommissionNo\x12'\n" +
@@ -13477,7 +13607,15 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vorder_count\x18! \x01(\x05R\n" +
 	"orderCount\x12\x1b\n" +
 	"\tfee_count\x18\" \x01(\x05R\bfeeCount\x124\n" +
-	"\x16commission_base_amount\x18# \x01(\tR\x14commissionBaseAmountB\a\n" +
+	"\x16commission_base_amount\x18# \x01(\tR\x14commissionBaseAmount\x12'\n" +
+	"\x0fcommission_date\x18$ \x01(\tR\x0ecommissionDate\x12*\n" +
+	"\x11cny_exchange_rate\x18% \x01(\tR\x0fcnyExchangeRate\x127\n" +
+	"\x18cny_exchange_rate_source\x18& \x01(\tR\x15cnyExchangeRateSource\x123\n" +
+	"\x16cny_exchange_rate_date\x18' \x01(\tR\x13cnyExchangeRateDate\x12C\n" +
+	"\x1ccny_exchange_rate_setting_id\x18( \x01(\tH\tR\x18cnyExchangeRateSettingId\x88\x01\x01\x122\n" +
+	"\x15cny_commission_amount\x18) \x01(\tR\x13cnyCommissionAmount\x122\n" +
+	"\x15cny_adjustment_amount\x18* \x01(\tR\x13cnyAdjustmentAmount\x12E\n" +
+	"\x1fcny_effective_commission_amount\x18+ \x01(\tR\x1ccnyEffectiveCommissionAmountB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\n" +
 	"\n" +
@@ -13489,7 +13627,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"_rule_nameB\x11\n" +
 	"\x0f_personnel_roleB\x14\n" +
-	"\x12_calculation_basis\"\xc5\x01\n" +
+	"\x12_calculation_basisB\x1f\n" +
+	"\x1d_cny_exchange_rate_setting_id\"\xc5\x01\n" +
 	"\x17ListCommissionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -14099,6 +14238,7 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[90].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[95].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[99].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[105].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[108].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[109].OneofWrappers = []any{}
 	type x struct{}

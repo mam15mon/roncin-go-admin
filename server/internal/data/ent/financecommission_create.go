@@ -269,6 +269,50 @@ func (_c *FinanceCommissionCreate) SetCommissionAmount(v string) *FinanceCommiss
 	return _c
 }
 
+// SetCommissionDate sets the "commission_date" field.
+func (_c *FinanceCommissionCreate) SetCommissionDate(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCommissionDate(v)
+	return _c
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (_c *FinanceCommissionCreate) SetCnyExchangeRate(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCnyExchangeRate(v)
+	return _c
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (_c *FinanceCommissionCreate) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionCreate {
+	_c.mutation.SetCnyExchangeRateSource(v)
+	return _c
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (_c *FinanceCommissionCreate) SetCnyExchangeRateDate(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCnyExchangeRateDate(v)
+	return _c
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (_c *FinanceCommissionCreate) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.SetCnyExchangeRateSettingID(v)
+	return _c
+}
+
+// SetNillableCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableCnyExchangeRateSettingID(v *uuid.UUID) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetCnyExchangeRateSettingID(*v)
+	}
+	return _c
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (_c *FinanceCommissionCreate) SetCnyCommissionAmount(v string) *FinanceCommissionCreate {
+	_c.mutation.SetCnyCommissionAmount(v)
+	return _c
+}
+
 // SetAdjustmentSequence sets the "adjustment_sequence" field.
 func (_c *FinanceCommissionCreate) SetAdjustmentSequence(v uint64) *FinanceCommissionCreate {
 	_c.mutation.SetAdjustmentSequence(v)
@@ -744,6 +788,36 @@ func (_c *FinanceCommissionCreate) check() error {
 	if _, ok := _c.mutation.CommissionAmount(); !ok {
 		return &ValidationError{Name: "commission_amount", err: errors.New(`ent: missing required field "FinanceCommission.commission_amount"`)}
 	}
+	if _, ok := _c.mutation.CommissionDate(); !ok {
+		return &ValidationError{Name: "commission_date", err: errors.New(`ent: missing required field "FinanceCommission.commission_date"`)}
+	}
+	if v, ok := _c.mutation.CommissionDate(); ok {
+		if err := financecommission.CommissionDateValidator(v); err != nil {
+			return &ValidationError{Name: "commission_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.commission_date": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CnyExchangeRate(); !ok {
+		return &ValidationError{Name: "cny_exchange_rate", err: errors.New(`ent: missing required field "FinanceCommission.cny_exchange_rate"`)}
+	}
+	if _, ok := _c.mutation.CnyExchangeRateSource(); !ok {
+		return &ValidationError{Name: "cny_exchange_rate_source", err: errors.New(`ent: missing required field "FinanceCommission.cny_exchange_rate_source"`)}
+	}
+	if v, ok := _c.mutation.CnyExchangeRateSource(); ok {
+		if err := financecommission.CnyExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_source": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CnyExchangeRateDate(); !ok {
+		return &ValidationError{Name: "cny_exchange_rate_date", err: errors.New(`ent: missing required field "FinanceCommission.cny_exchange_rate_date"`)}
+	}
+	if v, ok := _c.mutation.CnyExchangeRateDate(); ok {
+		if err := financecommission.CnyExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_date": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CnyCommissionAmount(); !ok {
+		return &ValidationError{Name: "cny_commission_amount", err: errors.New(`ent: missing required field "FinanceCommission.cny_commission_amount"`)}
+	}
 	if _, ok := _c.mutation.AdjustmentSequence(); !ok {
 		return &ValidationError{Name: "adjustment_sequence", err: errors.New(`ent: missing required field "FinanceCommission.adjustment_sequence"`)}
 	}
@@ -895,6 +969,30 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.CommissionAmount(); ok {
 		_spec.SetField(financecommission.FieldCommissionAmount, field.TypeString, value)
 		_node.CommissionAmount = value
+	}
+	if value, ok := _c.mutation.CommissionDate(); ok {
+		_spec.SetField(financecommission.FieldCommissionDate, field.TypeString, value)
+		_node.CommissionDate = value
+	}
+	if value, ok := _c.mutation.CnyExchangeRate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRate, field.TypeString, value)
+		_node.CnyExchangeRate = value
+	}
+	if value, ok := _c.mutation.CnyExchangeRateSource(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSource, field.TypeEnum, value)
+		_node.CnyExchangeRateSource = value
+	}
+	if value, ok := _c.mutation.CnyExchangeRateDate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateDate, field.TypeString, value)
+		_node.CnyExchangeRateDate = value
+	}
+	if value, ok := _c.mutation.CnyExchangeRateSettingID(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID, value)
+		_node.CnyExchangeRateSettingID = &value
+	}
+	if value, ok := _c.mutation.CnyCommissionAmount(); ok {
+		_spec.SetField(financecommission.FieldCnyCommissionAmount, field.TypeString, value)
+		_node.CnyCommissionAmount = value
 	}
 	if value, ok := _c.mutation.AdjustmentSequence(); ok {
 		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)

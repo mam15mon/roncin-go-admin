@@ -498,6 +498,9 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
 	}
+	if _u.mutation.CnyExchangeRateSettingIDCleared() {
+		_spec.ClearField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID)
+	}
 	if value, ok := _u.mutation.AdjustmentSequence(); ok {
 		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
 	}
@@ -1232,6 +1235,9 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
+	}
+	if _u.mutation.CnyExchangeRateSettingIDCleared() {
+		_spec.ClearField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.AdjustmentSequence(); ok {
 		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)

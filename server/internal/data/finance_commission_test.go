@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -131,5 +133,68 @@ func TestCommissionRepoListEmployeesUsesKeywordAndDatabasePagination(t *testing.
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("提成员工未使用数据库搜索和分页: %v", err)
+	}
+}
+
+func TestCommissionWithLinesToBizDerivesDynamicCNYAmounts(t *testing.T) {
+	commission := &ent.FinanceCommission{
+		CommissionAmount:      "100.00000000",
+		RealizedRevenue:       "500.00000000",
+		AllocatedCost:         "200.00000000",
+		RealizedProfit:        "300.00000000",
+		CommissionBaseAmount:  "300.00000000",
+		RatePercent:           "10.0000",
+		CommissionDate:        "2026-08-15",
+		CnyExchangeRate:       "0.50000000",
+		CnyExchangeRateSource: commission.CnyExchangeRateSourceDERIVED,
+		CnyExchangeRateDate:   "2026-08-14",
+		CnyCommissionAmount:   "50.00000000",
+		Edges: ent.FinanceCommissionEdges{Adjustments: []*ent.FinanceCommissionAdjustment{
+			{Status: adjustment.StatusCONFIRMED, Direction: adjustment.DirectionINCREASE, Amount: "10.00000000"},
+			{Status: adjustment.StatusPAID, Direction: adjustment.DirectionDECREASE, Amount: "4.00000000"},
+			{Status: adjustment.StatusDRAFT, Direction: adjustment.DirectionINCREASE, Amount: "999.00000000"},
+			{Status: adjustment.StatusCANCELLED, Direction: adjustment.DirectionINCREASE, Amount: "888.00000000"},
+		}},
+	}
+
+	result, err := commissionWithLinesToBiz(commission)
+	if err != nil {
+		t.Fatalf("commissionWithLinesToBiz() error = %v", err)
+	}
+	if result.CommissionDate != "2026-08-15" || result.CNYExchangeRate.StringFixed(8) != "0.50000000" ||
+		result.CNYExchangeRateSource != biz.CommissionCNYRateSourceDerived || result.CNYExchangeRateDate != "2026-08-14" ||
+		result.CNYCommissionAmount.StringFixed(8) != "50.00000000" {
+		t.Fatalf("持久化 CNY 快照字段转换不符: %#v", result)
+	}
+	// 有效调整 = 10 - 4 = 6；草稿与已取消不计入；CNY 调整继承主单汇率。
+	if result.AdjustmentAmount.StringFixed(8) != "6.00000000" {
+		t.Fatalf("本位币调整金额不符: %s", result.AdjustmentAmount.StringFixed(8))
+	}
+	if result.CNYAdjustmentAmount.StringFixed(8) != "3.00000000" {
+		t.Fatalf("动态 CNY 调整金额不符: %s", result.CNYAdjustmentAmount.StringFixed(8))
+	}
+	if result.CNYEffectiveCommissionAmount.StringFixed(8) != "53.00000000" {
+		t.Fatalf("有效 CNY 提成金额不符: %s", result.CNYEffectiveCommissionAmount.StringFixed(8))
+	}
+}
+
+func TestCommissionRepoListUsesCommissionDateFilterAndStableOrdering(t *testing.T) {
+	repo, mock := setupTestCommissionRepo(t)
+	mock.ExpectQuery(`SELECT COUNT\("finance_commissions"\."id"\) FROM "finance_commissions".*"commission_date" >= .*"commission_date" <=`).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT "finance_commissions".*ORDER BY "finance_commissions"\."commission_date" DESC, "finance_commissions"\."created_at" DESC, "finance_commissions"\."id" DESC LIMIT`).
+		WillReturnRows(sqlmock.NewRows(commission.Columns))
+
+	result, err := repo.List(context.Background(), uuid.New(), biz.CommissionFilter{
+		Page: 1, PageSize: 20, CommissionDateFrom: "2026-07-01", CommissionDateTo: "2026-08-31",
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if result.Total != 0 || len(result.Items) != 0 {
+		t.Fatalf("列表结果不符合预期: %#v", result)
+	}
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("列表未使用归属日期筛选与稳定排序: %v", err)
 	}
 }

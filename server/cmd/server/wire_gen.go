@@ -140,7 +140,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	verificationRepo := data.NewVerificationRepo(dataData)
 	verificationUsecase := biz.NewVerificationUsecase(verificationRepo, exchangeRateUsecase, dataData)
 	commissionRepo := data.NewCommissionRepo(dataData)
-	commissionUsecase := biz.NewCommissionUsecase(commissionRepo, orderConfigUsecase)
+	commissionUsecase := biz.NewCommissionUsecase(commissionRepo, orderConfigUsecase, exchangeRateUsecase, dataData)
 	feeLedgerPreferenceRepo := data.NewFeeLedgerPreferenceRepo(dataData)
 	feeLedgerPreferenceUsecase := biz.NewFeeLedgerPreferenceUsecase(feeLedgerPreferenceRepo)
 	settlementService := service.NewSettlementService(settlementUsecase, financeBillUsecase, financeInvoiceUsecase, financeCashflowUsecase, verificationUsecase, commissionUsecase, feeLedgerPreferenceUsecase, financeCustomSettingUsecase, businessTagUsecase)

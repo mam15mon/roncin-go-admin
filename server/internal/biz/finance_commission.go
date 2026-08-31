@@ -51,6 +51,7 @@ const (
 	CommissionAdjustmentDecrease                   CommissionAdjustmentDirection  = "DECREASE"
 	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"
 	CommissionAdjustmentSourceVerificationReversal CommissionAdjustmentSourceType = "VERIFICATION_REVERSAL"
+	cnyCurrency                                                                   = "CNY"
 )
 
 // FinanceCommissionAdjustment 以独立单据记录原始提成确认后的增提或冲减。
@@ -92,6 +93,59 @@ type FinanceCommissionLine struct {
 	Fees                                                                                                                      []*CommissionFeeDetail
 }
 
+// CommissionCNYRateSource 标识提成 CNY 折算率的来源口径。
+const (
+	CommissionCNYRateSourceBaseCurrency = "BASE_CURRENCY"
+	CommissionCNYRateSourceDerived      = "DERIVED"
+)
+
+// CommissionCNYSnapshot 是提成生成时固化的 CNY 折算快照与归属日期，写入后不可变。
+type CommissionCNYSnapshot struct {
+	CommissionDate        string          // 归属日期，等于核销单 verification_date
+	ExchangeRate          decimal.Decimal // 本位币折算到 CNY 的汇率
+	ExchangeRateSource    string          // BASE_CURRENCY 或 DERIVED
+	ExchangeRateDate      string          // 来源汇率日期
+	ExchangeRateSettingID *uuid.UUID      // 被反算的原始 CNY→本位币汇率配置
+	CommissionAmount      decimal.Decimal // 原始提成 CNY 快照
+}
+
+// ApplyCommissionAmount 按主单提成金额折算并固化原始 CNY 提成金额。
+// 提成金额允许为零（亏损订单按零计提），汇率已在构造时校验为正。
+func (s *CommissionCNYSnapshot) ApplyCommissionAmount(commissionAmount decimal.Decimal) {
+	if s == nil {
+		return
+	}
+	s.CommissionAmount = commissionAmount.Mul(s.ExchangeRate).Round(8)
+}
+
+// ResolveCommissionCNYRate 是预览与创建共用的 CNY 汇率快照纯计算函数：
+// 本位币为 CNY 时恒为 1、来源 BASE_CURRENCY；其余币种按解析到的
+// CNY→本位币汇率倒数派生（round 8 位），来源 DERIVED 并回填来源配置。
+// 禁止浮点数、补差与零值回退；汇率缺失或日期无效时返回业务错误。
+func ResolveCommissionCNYRate(baseCurrency, commissionDate, exchangeRateDate string, resolved *ResolvedExchangeRate) (*CommissionCNYSnapshot, error) {
+	if baseCurrency == "" || !validFinanceDate(commissionDate) || !validFinanceDate(exchangeRateDate) {
+		return nil, ErrCommissionInvalid
+	}
+	snapshot := &CommissionCNYSnapshot{CommissionDate: commissionDate, ExchangeRateDate: exchangeRateDate}
+	if baseCurrency == cnyCurrency {
+		snapshot.ExchangeRate = decimal.NewFromInt(1)
+		snapshot.ExchangeRateSource = CommissionCNYRateSourceBaseCurrency
+		return snapshot, nil
+	}
+	if resolved == nil || !resolved.Rate.IsPositive() || resolved.RateDate == "" || resolved.SettingID == nil {
+		return nil, ErrExchangeRateInvalidArgument
+	}
+	rate := decimal.NewFromInt(1).Div(resolved.Rate).Round(8)
+	if !rate.IsPositive() {
+		return nil, ErrExchangeRateInvalidArgument
+	}
+	snapshot.ExchangeRate = rate
+	snapshot.ExchangeRateSource = CommissionCNYRateSourceDerived
+	snapshot.ExchangeRateDate = resolved.RateDate
+	snapshot.ExchangeRateSettingID = resolved.SettingID
+	return snapshot, nil
+}
+
 // CommissionCalculation 是预览和创建提成共用的计算结果，不包含持久化状态。
 type CommissionCalculation struct {
 	VerificationID, EmployeeID, RuleID             uuid.UUID
@@ -106,6 +160,7 @@ type CommissionCalculation struct {
 	CommissionBaseAmount                           decimal.Decimal
 	RatePercent, CommissionAmount                  decimal.Decimal
 	Lines                                          []*FinanceCommissionLine
+	CNY                                            *CommissionCNYSnapshot
 }
 
 type FinanceCommission struct {
@@ -122,6 +177,11 @@ type FinanceCommission struct {
 	RealizedRevenue, AllocatedCost, RealizedProfit             decimal.Decimal
 	CommissionBaseAmount                                       decimal.Decimal
 	RatePercent, CommissionAmount                              decimal.Decimal
+	CommissionDate                                             string
+	CNYExchangeRate                                            decimal.Decimal
+	CNYExchangeRateSource, CNYExchangeRateDate                 string
+	CNYExchangeRateSettingID                                   *uuid.UUID
+	CNYCommissionAmount                                        decimal.Decimal
 	Note                                                       *string
 	Version                                                    uint64
 	ConfirmedAt, PaidAt, CancelledAt                           *time.Time
@@ -130,12 +190,15 @@ type FinanceCommission struct {
 	Lines                                                      []*FinanceCommissionLine
 	Adjustments                                                []*FinanceCommissionAdjustment
 	AdjustmentAmount, EffectiveCommissionAmount                decimal.Decimal
+	CNYAdjustmentAmount, CNYEffectiveCommissionAmount          decimal.Decimal
 }
 
 type CommissionFilter struct {
-	Page, PageSize int
-	Keyword        string
-	Status         CommissionStatus
+	Page, PageSize     int
+	Keyword            string
+	Status             CommissionStatus
+	CommissionDateFrom string
+	CommissionDateTo   string
 }
 type CommissionListResult struct {
 	Items []*FinanceCommission
@@ -280,17 +343,25 @@ type CreateCommissionAdjustmentInput struct {
 	IdempotencyKey        string
 }
 
+// CommissionGenerationContext 是生成提成前从核销单读取的 CNY 折算上下文。
+type CommissionGenerationContext struct {
+	CommissionDate   string // 归属日期，等于核销单 verification_date
+	ExchangeRateDate string // 核销单使用的汇率日期
+	BaseCurrency     string // 核销单本位币
+}
+
 type CommissionRepo interface {
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceCommission, error)
 	ListEmployees(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*CommissionEmployeeOption], error)
 	ListCandidates(context.Context, uuid.UUID, CommissionCandidateFilter) (*CommissionCandidateListResult, error)
 	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionCalculation, error)
+	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
 	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	CreateRule(context.Context, uuid.UUID, *FinanceCommissionRule, *AuditEvent) (*FinanceCommissionRule, error)
 	UpdateRule(context.Context, uuid.UUID, UpdateCommissionRuleInput, *AuditEvent) (*FinanceCommissionRule, error)
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceCommission, error)
-	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceCommission, *AuditEvent) (*FinanceCommission, error)
+	Create(context.Context, uuid.UUID, *FinanceCommission, *CommissionCNYSnapshot, *AuditEvent) error
 	Transition(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommission, error)
 	GetAdjustmentByKey(context.Context, uuid.UUID, string) (*FinanceCommissionAdjustment, error)
 	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
@@ -313,17 +384,21 @@ func (u *CommissionUsecase) ListCandidates(ctx context.Context, org uuid.UUID, f
 }
 
 type CommissionUsecase struct {
-	repo   CommissionRepo
-	config *OrderConfigUsecase
+	repo         CommissionRepo
+	config       *OrderConfigUsecase
+	exchangeRate *ExchangeRateUsecase
+	transactor   Transactor
 }
 
-func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase) *CommissionUsecase {
-	return &CommissionUsecase{repo: repo, config: config}
+func NewCommissionUsecase(repo CommissionRepo, config *OrderConfigUsecase, exchangeRate *ExchangeRateUsecase, transactor Transactor) *CommissionUsecase {
+	return &CommissionUsecase{repo: repo, config: config, exchangeRate: exchangeRate, transactor: transactor}
 }
 
 func (u *CommissionUsecase) List(ctx context.Context, org uuid.UUID, f CommissionFilter) (*CommissionListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) {
+	f.CommissionDateFrom = strings.TrimSpace(f.CommissionDateFrom)
+	f.CommissionDateTo = strings.TrimSpace(f.CommissionDateTo)
+	if org == uuid.Nil || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
 		return nil, ErrCommissionInvalid
 	}
 	return u.repo.List(ctx, org, f)
@@ -340,7 +415,28 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, em
 	if org == uuid.Nil || verificationID == uuid.Nil || employeeID == uuid.Nil || ruleID == uuid.Nil {
 		return nil, ErrCommissionInvalid
 	}
-	return u.repo.Preview(ctx, org, verificationID, employeeID, ruleID)
+	if u.exchangeRate == nil {
+		return nil, ErrCommissionInvalid
+	}
+	calculation, err := u.repo.Preview(ctx, org, verificationID, employeeID, ruleID)
+	if err != nil {
+		return nil, err
+	}
+	generation, err := u.repo.GetGenerationContext(ctx, org, verificationID)
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := u.exchangeRate.Resolve(ctx, org, WriteOffRateType, OrderFeeReceivable, cnyCurrency, map[string]string{WriteOffTimeStandard: generation.ExchangeRateDate})
+	if err != nil {
+		return nil, err
+	}
+	snapshot, err := ResolveCommissionCNYRate(calculation.BaseCurrency, generation.CommissionDate, generation.ExchangeRateDate, resolved)
+	if err != nil {
+		return nil, err
+	}
+	snapshot.ApplyCommissionAmount(calculation.CommissionAmount)
+	calculation.CNY = snapshot
+	return calculation, nil
 }
 
 func (u *CommissionUsecase) ListRules(ctx context.Context, org uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
@@ -415,6 +511,9 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	if org == uuid.Nil || actor == uuid.Nil || in.VerificationID == uuid.Nil || in.EmployeeID == uuid.Nil || in.RuleID == uuid.Nil || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return nil, ErrCommissionInvalid
 	}
+	if u.exchangeRate == nil || u.transactor == nil {
+		return nil, ErrCommissionInvalid
+	}
 	if old, err := u.repo.GetByKey(ctx, org, in.IdempotencyKey); err != nil {
 		return nil, err
 	} else if old != nil {
@@ -429,9 +528,25 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		return nil, err
 	}
 	c := &FinanceCommission{ID: id, OrganizationID: org, CommissionNo: commissionNo, IdempotencyKey: in.IdempotencyKey, VerificationID: in.VerificationID, EmployeeID: in.EmployeeID, RuleID: in.RuleID, Status: CommissionDraft, Note: in.Note, Version: 1}
-	created, err := u.repo.Create(ctx, org, actor, c, commissionAudit(org, actor, id, "finance.commission.create"))
+	// 生成上下文读取、汇率解析与提成写入在同一共享事务内完成；
+	// CNY 快照不依赖预览结果，按事务内解析结果固化。
+	err = u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		resolved, transactionErr := u.exchangeRate.Resolve(txCtx, org, WriteOffRateType, OrderFeeReceivable, cnyCurrency, map[string]string{WriteOffTimeStandard: generation.ExchangeRateDate})
+		if transactionErr != nil {
+			return transactionErr
+		}
+		snapshot, transactionErr := ResolveCommissionCNYRate(generation.BaseCurrency, generation.CommissionDate, generation.ExchangeRateDate, resolved)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		return u.repo.Create(txCtx, org, c, snapshot, commissionCreateAudit(org, actor, id, snapshot))
+	})
 	if err == nil {
-		return created, nil
+		return u.repo.Get(ctx, org, c.ID)
 	}
 	// 并发重试可能在预查后命中幂等唯一索引；仅在请求语义一致时重放原结果。
 	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
@@ -439,6 +554,21 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 		return old, nil
 	}
 	return nil, err
+}
+
+func commissionCreateAudit(org, actor, id uuid.UUID, snapshot *CommissionCNYSnapshot) *AuditEvent {
+	event := commissionAudit(org, actor, id, "finance.commission.create")
+	details := map[string]string{
+		"commission_date":   snapshot.CommissionDate,
+		"cny.exchange_rate": snapshot.ExchangeRate.StringFixed(8),
+		"cny.rate_date":     snapshot.ExchangeRateDate,
+		"cny.source":        snapshot.ExchangeRateSource,
+	}
+	if snapshot.ExchangeRateSettingID != nil {
+		details["cny.setting_id"] = snapshot.ExchangeRateSettingID.String()
+	}
+	event.Details = details
+	return event
 }
 
 func (u *CommissionUsecase) Confirm(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommission, error) {

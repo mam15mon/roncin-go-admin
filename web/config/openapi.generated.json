@@ -3010,6 +3010,20 @@
               "type": "integer",
               "format": "enum"
             }
+          },
+          {
+            "name": "commissionDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commissionDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -12254,6 +12268,21 @@
           },
           "commissionBaseAmount": {
             "type": "string"
+          },
+          "cnyExchangeRate": {
+            "type": "string"
+          },
+          "cnyExchangeRateSource": {
+            "type": "string"
+          },
+          "cnyExchangeRateDate": {
+            "type": "string"
+          },
+          "cnyExchangeRateSettingId": {
+            "type": "string"
+          },
+          "cnyCommissionAmount": {
+            "type": "string"
           }
         }
       },
@@ -14242,6 +14271,30 @@
             "format": "int32"
           },
           "commissionBaseAmount": {
+            "type": "string"
+          },
+          "commissionDate": {
+            "type": "string"
+          },
+          "cnyExchangeRate": {
+            "type": "string"
+          },
+          "cnyExchangeRateSource": {
+            "type": "string"
+          },
+          "cnyExchangeRateDate": {
+            "type": "string"
+          },
+          "cnyExchangeRateSettingId": {
+            "type": "string"
+          },
+          "cnyCommissionAmount": {
+            "type": "string"
+          },
+          "cnyAdjustmentAmount": {
+            "type": "string"
+          },
+          "cnyEffectiveCommissionAmount": {
             "type": "string"
           }
         }

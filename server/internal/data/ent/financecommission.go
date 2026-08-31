@@ -76,6 +76,18 @@ type FinanceCommission struct {
 	RatePercent string `json:"rate_percent,omitempty"`
 	// CommissionAmount holds the value of the "commission_amount" field.
 	CommissionAmount string `json:"commission_amount,omitempty"`
+	// CommissionDate holds the value of the "commission_date" field.
+	CommissionDate string `json:"commission_date,omitempty"`
+	// CnyExchangeRate holds the value of the "cny_exchange_rate" field.
+	CnyExchangeRate string `json:"cny_exchange_rate,omitempty"`
+	// CnyExchangeRateSource holds the value of the "cny_exchange_rate_source" field.
+	CnyExchangeRateSource financecommission.CnyExchangeRateSource `json:"cny_exchange_rate_source,omitempty"`
+	// CnyExchangeRateDate holds the value of the "cny_exchange_rate_date" field.
+	CnyExchangeRateDate string `json:"cny_exchange_rate_date,omitempty"`
+	// CnyExchangeRateSettingID holds the value of the "cny_exchange_rate_setting_id" field.
+	CnyExchangeRateSettingID *uuid.UUID `json:"cny_exchange_rate_setting_id,omitempty"`
+	// CnyCommissionAmount holds the value of the "cny_commission_amount" field.
+	CnyCommissionAmount string `json:"cny_commission_amount,omitempty"`
 	// AdjustmentSequence holds the value of the "adjustment_sequence" field.
 	AdjustmentSequence uint64 `json:"adjustment_sequence,omitempty"`
 	// Note holds the value of the "note" field.
@@ -227,11 +239,11 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommission.FieldRuleID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
+		case financecommission.FieldRuleID, financecommission.FieldCnyExchangeRateSettingID, financecommission.FieldConfirmedBy, financecommission.FieldPaidBy, financecommission.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommission.FieldCustomerCount, financecommission.FieldOrderCount, financecommission.FieldFeeCount, financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -423,6 +435,43 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field commission_amount", values[i])
 			} else if value.Valid {
 				_m.CommissionAmount = value.String
+			}
+		case financecommission.FieldCommissionDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field commission_date", values[i])
+			} else if value.Valid {
+				_m.CommissionDate = value.String
+			}
+		case financecommission.FieldCnyExchangeRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cny_exchange_rate", values[i])
+			} else if value.Valid {
+				_m.CnyExchangeRate = value.String
+			}
+		case financecommission.FieldCnyExchangeRateSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cny_exchange_rate_source", values[i])
+			} else if value.Valid {
+				_m.CnyExchangeRateSource = financecommission.CnyExchangeRateSource(value.String)
+			}
+		case financecommission.FieldCnyExchangeRateDate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cny_exchange_rate_date", values[i])
+			} else if value.Valid {
+				_m.CnyExchangeRateDate = value.String
+			}
+		case financecommission.FieldCnyExchangeRateSettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field cny_exchange_rate_setting_id", values[i])
+			} else if value.Valid {
+				_m.CnyExchangeRateSettingID = new(uuid.UUID)
+				*_m.CnyExchangeRateSettingID = *value.S.(*uuid.UUID)
+			}
+		case financecommission.FieldCnyCommissionAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cny_commission_amount", values[i])
+			} else if value.Valid {
+				_m.CnyCommissionAmount = value.String
 			}
 		case financecommission.FieldAdjustmentSequence:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -661,6 +710,26 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("commission_amount=")
 	builder.WriteString(_m.CommissionAmount)
+	builder.WriteString(", ")
+	builder.WriteString("commission_date=")
+	builder.WriteString(_m.CommissionDate)
+	builder.WriteString(", ")
+	builder.WriteString("cny_exchange_rate=")
+	builder.WriteString(_m.CnyExchangeRate)
+	builder.WriteString(", ")
+	builder.WriteString("cny_exchange_rate_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CnyExchangeRateSource))
+	builder.WriteString(", ")
+	builder.WriteString("cny_exchange_rate_date=")
+	builder.WriteString(_m.CnyExchangeRateDate)
+	builder.WriteString(", ")
+	if v := _m.CnyExchangeRateSettingID; v != nil {
+		builder.WriteString("cny_exchange_rate_setting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("cny_commission_amount=")
+	builder.WriteString(_m.CnyCommissionAmount)
 	builder.WriteString(", ")
 	builder.WriteString("adjustment_sequence=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AdjustmentSequence))

@@ -186,6 +186,31 @@ func CommissionAmount(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldCommissionAmount, v))
 }
 
+// CommissionDate applies equality check predicate on the "commission_date" field. It's identical to CommissionDateEQ.
+func CommissionDate(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCommissionDate, v))
+}
+
+// CnyExchangeRate applies equality check predicate on the "cny_exchange_rate" field. It's identical to CnyExchangeRateEQ.
+func CnyExchangeRate(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateDate applies equality check predicate on the "cny_exchange_rate_date" field. It's identical to CnyExchangeRateDateEQ.
+func CnyExchangeRateDate(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateSettingID applies equality check predicate on the "cny_exchange_rate_setting_id" field. It's identical to CnyExchangeRateSettingIDEQ.
+func CnyExchangeRateSettingID(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyCommissionAmount applies equality check predicate on the "cny_commission_amount" field. It's identical to CnyCommissionAmountEQ.
+func CnyCommissionAmount(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyCommissionAmount, v))
+}
+
 // AdjustmentSequence applies equality check predicate on the "adjustment_sequence" field. It's identical to AdjustmentSequenceEQ.
 func AdjustmentSequence(v uint64) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldAdjustmentSequence, v))
@@ -1654,6 +1679,336 @@ func CommissionAmountEqualFold(v string) predicate.FinanceCommission {
 // CommissionAmountContainsFold applies the ContainsFold predicate on the "commission_amount" field.
 func CommissionAmountContainsFold(v string) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCommissionAmount, v))
+}
+
+// CommissionDateEQ applies the EQ predicate on the "commission_date" field.
+func CommissionDateEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCommissionDate, v))
+}
+
+// CommissionDateNEQ applies the NEQ predicate on the "commission_date" field.
+func CommissionDateNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCommissionDate, v))
+}
+
+// CommissionDateIn applies the In predicate on the "commission_date" field.
+func CommissionDateIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCommissionDate, vs...))
+}
+
+// CommissionDateNotIn applies the NotIn predicate on the "commission_date" field.
+func CommissionDateNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCommissionDate, vs...))
+}
+
+// CommissionDateGT applies the GT predicate on the "commission_date" field.
+func CommissionDateGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCommissionDate, v))
+}
+
+// CommissionDateGTE applies the GTE predicate on the "commission_date" field.
+func CommissionDateGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCommissionDate, v))
+}
+
+// CommissionDateLT applies the LT predicate on the "commission_date" field.
+func CommissionDateLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCommissionDate, v))
+}
+
+// CommissionDateLTE applies the LTE predicate on the "commission_date" field.
+func CommissionDateLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCommissionDate, v))
+}
+
+// CommissionDateContains applies the Contains predicate on the "commission_date" field.
+func CommissionDateContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCommissionDate, v))
+}
+
+// CommissionDateHasPrefix applies the HasPrefix predicate on the "commission_date" field.
+func CommissionDateHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCommissionDate, v))
+}
+
+// CommissionDateHasSuffix applies the HasSuffix predicate on the "commission_date" field.
+func CommissionDateHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCommissionDate, v))
+}
+
+// CommissionDateEqualFold applies the EqualFold predicate on the "commission_date" field.
+func CommissionDateEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCommissionDate, v))
+}
+
+// CommissionDateContainsFold applies the ContainsFold predicate on the "commission_date" field.
+func CommissionDateContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCommissionDate, v))
+}
+
+// CnyExchangeRateEQ applies the EQ predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateNEQ applies the NEQ predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateIn applies the In predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCnyExchangeRate, vs...))
+}
+
+// CnyExchangeRateNotIn applies the NotIn predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCnyExchangeRate, vs...))
+}
+
+// CnyExchangeRateGT applies the GT predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateGTE applies the GTE predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateLT applies the LT predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateLTE applies the LTE predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateContains applies the Contains predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateHasPrefix applies the HasPrefix predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateHasSuffix applies the HasSuffix predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateEqualFold applies the EqualFold predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateContainsFold applies the ContainsFold predicate on the "cny_exchange_rate" field.
+func CnyExchangeRateContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCnyExchangeRate, v))
+}
+
+// CnyExchangeRateSourceEQ applies the EQ predicate on the "cny_exchange_rate_source" field.
+func CnyExchangeRateSourceEQ(v CnyExchangeRateSource) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRateSource, v))
+}
+
+// CnyExchangeRateSourceNEQ applies the NEQ predicate on the "cny_exchange_rate_source" field.
+func CnyExchangeRateSourceNEQ(v CnyExchangeRateSource) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCnyExchangeRateSource, v))
+}
+
+// CnyExchangeRateSourceIn applies the In predicate on the "cny_exchange_rate_source" field.
+func CnyExchangeRateSourceIn(vs ...CnyExchangeRateSource) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCnyExchangeRateSource, vs...))
+}
+
+// CnyExchangeRateSourceNotIn applies the NotIn predicate on the "cny_exchange_rate_source" field.
+func CnyExchangeRateSourceNotIn(vs ...CnyExchangeRateSource) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCnyExchangeRateSource, vs...))
+}
+
+// CnyExchangeRateDateEQ applies the EQ predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateNEQ applies the NEQ predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateIn applies the In predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCnyExchangeRateDate, vs...))
+}
+
+// CnyExchangeRateDateNotIn applies the NotIn predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCnyExchangeRateDate, vs...))
+}
+
+// CnyExchangeRateDateGT applies the GT predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateGTE applies the GTE predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateLT applies the LT predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateLTE applies the LTE predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateContains applies the Contains predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateHasPrefix applies the HasPrefix predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateHasSuffix applies the HasSuffix predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateEqualFold applies the EqualFold predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateDateContainsFold applies the ContainsFold predicate on the "cny_exchange_rate_date" field.
+func CnyExchangeRateDateContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCnyExchangeRateDate, v))
+}
+
+// CnyExchangeRateSettingIDEQ applies the EQ predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDNEQ applies the NEQ predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDNEQ(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDIn applies the In predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCnyExchangeRateSettingID, vs...))
+}
+
+// CnyExchangeRateSettingIDNotIn applies the NotIn predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDNotIn(vs ...uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCnyExchangeRateSettingID, vs...))
+}
+
+// CnyExchangeRateSettingIDGT applies the GT predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDGT(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDGTE applies the GTE predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDGTE(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDLT applies the LT predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDLT(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDLTE applies the LTE predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDLTE(v uuid.UUID) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCnyExchangeRateSettingID, v))
+}
+
+// CnyExchangeRateSettingIDIsNil applies the IsNil predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldCnyExchangeRateSettingID))
+}
+
+// CnyExchangeRateSettingIDNotNil applies the NotNil predicate on the "cny_exchange_rate_setting_id" field.
+func CnyExchangeRateSettingIDNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldCnyExchangeRateSettingID))
+}
+
+// CnyCommissionAmountEQ applies the EQ predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountNEQ applies the NEQ predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountIn applies the In predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldCnyCommissionAmount, vs...))
+}
+
+// CnyCommissionAmountNotIn applies the NotIn predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldCnyCommissionAmount, vs...))
+}
+
+// CnyCommissionAmountGT applies the GT predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountGTE applies the GTE predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountLT applies the LT predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountLTE applies the LTE predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountContains applies the Contains predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountHasPrefix applies the HasPrefix predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountHasSuffix applies the HasSuffix predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountEqualFold applies the EqualFold predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldCnyCommissionAmount, v))
+}
+
+// CnyCommissionAmountContainsFold applies the ContainsFold predicate on the "cny_commission_amount" field.
+func CnyCommissionAmountContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldCnyCommissionAmount, v))
 }
 
 // AdjustmentSequenceEQ applies the EQ predicate on the "adjustment_sequence" field.

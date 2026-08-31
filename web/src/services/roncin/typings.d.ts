@@ -706,6 +706,11 @@ declare namespace API {
     orderCount?: number;
     feeCount?: number;
     commissionBaseAmount?: string;
+    cnyExchangeRate?: string;
+    cnyExchangeRateSource?: string;
+    cnyExchangeRateDate?: string;
+    cnyExchangeRateSettingId?: string;
+    cnyCommissionAmount?: string;
   };
 
   type CommissionCandidateSummary = {
@@ -2090,6 +2095,14 @@ declare namespace API {
     orderCount?: number;
     feeCount?: number;
     commissionBaseAmount?: string;
+    commissionDate?: string;
+    cnyExchangeRate?: string;
+    cnyExchangeRateSource?: string;
+    cnyExchangeRateDate?: string;
+    cnyExchangeRateSettingId?: string;
+    cnyCommissionAmount?: string;
+    cnyAdjustmentAmount?: string;
+    cnyEffectiveCommissionAmount?: string;
   };
 
   type FinanceCommissionAdjustment = {
@@ -4730,6 +4743,8 @@ declare namespace API {
     pageSize?: number;
     keyword?: string;
     status?: number;
+    commissionDateFrom?: string;
+    commissionDateTo?: string;
   };
 
   type SettlementServiceListFeeLedgerParams = {
