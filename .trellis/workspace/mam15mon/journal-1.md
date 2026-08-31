@@ -98,3 +98,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 5: 完成提成 CNY 前端展示与导出
+<!-- trellis-session: v=2 fp=c746113ea27dd917 -->
+
+**Date**: 2026-08-31
+**Task**: 完成提成 CNY 前端展示与导出
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成归属月份筛选、列表与详情 CNY 双口径展示、预览汇率依据、权限控制的安全 CSV 导出；独立检查 PASS，54 个测试文件共 178 项通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f255bfd` | feat: 增加提成 CNY 展示 |
+
+### Status
+
+[OK] **Completed**
