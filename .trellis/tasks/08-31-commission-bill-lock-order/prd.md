@@ -31,14 +31,14 @@
 
 ## Acceptance Criteria
 
-- [ ] 生产查询生成 `ORDER BY "finance_bills"."id" FOR UPDATE`，排序位于加锁子句前。
-- [ ] SQL 形态测试在排序缺失、字段错误或排序位于错误查询时会失败。
-- [ ] PostgreSQL 集成测试以相反输入顺序并发执行生产锁定路径，两事务均正常提交，
+- [x] 生产查询生成 `ORDER BY "finance_bills"."id" FOR UPDATE`，排序位于加锁子句前。
+- [x] SQL 形态测试在排序缺失、字段错误或排序位于错误查询时会失败。
+- [x] PostgreSQL 集成测试以相反输入顺序并发执行生产锁定路径，两事务均正常提交，
       没有死锁或超时。
-- [ ] 预览等 `lock=false` 路径保持无 `FOR UPDATE`，业务计算与错误语义不变。
-- [ ] `go -C server test ./internal/data`、`go -C server test ./...` 与
+- [x] 预览等 `lock=false` 路径保持无 `FOR UPDATE`，业务计算与错误语义不变。
+- [x] `go -C server test ./internal/data`、`go -C server test ./...` 与
       `go -C server vet ./...` 全部通过；未配置集成数据库时仅对应测试明确跳过。
-- [ ] 变更只涉及该查询、直接测试和必要的 Trellis 记录，不改契约、迁移或生成物。
+- [x] 变更只涉及该查询、直接测试和必要的 Trellis 记录，不改契约、迁移或生成物。
 
 ## Out of Scope
 

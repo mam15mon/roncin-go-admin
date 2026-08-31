@@ -17,6 +17,7 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -395,4 +396,78 @@ func TestCommissionRepoSaveExportAuditWritesOutsideTransaction(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("导出审计应在无事务上下文中直接写入: %v", err)
 	}
+}
+
+func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
+	org := uuid.New()
+	billID1 := uuid.New()
+	billID2 := uuid.New()
+
+	t.Run("锁定路径严格要求主键升序排序与FOR UPDATE", func(t *testing.T) {
+		repo, mock := setupTestCommissionRepo(t)
+		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id" FOR UPDATE$`).
+			WillReturnError(errors.New("stop_after_bill_query"))
+
+		bq := commissionCalculationBillsQuery(commissionStoreFromClient(repo.data.db), org, []uuid.UUID{billID2, billID1}, true)
+		_, err := bq.All(context.Background())
+		if err == nil || err.Error() != "stop_after_bill_query" {
+			t.Fatalf("查询执行错误 = %v, 期望 stop_after_bill_query", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("账单锁定查询未按主键升序排序或缺少 FOR UPDATE: %v", err)
+		}
+	})
+
+	t.Run("非锁定路径包含主键升序排序但不含FOR UPDATE", func(t *testing.T) {
+		repo, mock := setupTestCommissionRepo(t)
+		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id"$`).
+			WillReturnError(errors.New("stop_after_bill_query"))
+
+		bq := commissionCalculationBillsQuery(commissionStoreFromClient(repo.data.db), org, []uuid.UUID{billID2, billID1}, false)
+		_, err := bq.All(context.Background())
+		if err == nil || err.Error() != "stop_after_bill_query" {
+			t.Fatalf("查询执行错误 = %v, 期望 stop_after_bill_query", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("账单非锁定查询未按主键升序排序或误加 FOR UPDATE: %v", err)
+		}
+	})
+
+	t.Run("生产计算加载路径贯穿调用账单加锁与排序", func(t *testing.T) {
+		repo, mock := setupTestCommissionRepo(t)
+		verificationID := uuid.New()
+		ruleID := uuid.New()
+		cashflowID := uuid.New()
+		now := time.Now()
+
+		// 1. 核销单查询 (lock=true -> FOR UPDATE)
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* FOR UPDATE$`).
+			WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(
+				verificationID, now, now, org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE",
+				uuid.New(), "客户A", "USD", "100.00", "CNY", "7.20000000", "SETTING", "2026-08-30",
+				nil, "720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil,
+			))
+		// 2. 分摊边查询
+		mock.ExpectQuery(`SELECT .* FROM "finance_verification_allocations" WHERE .*`).
+			WillReturnRows(sqlmock.NewRows(financeverificationallocation.Columns).
+				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "50.00", "360.00", "360.00", "360.00", "0.00", true).
+				AddRow(uuid.New(), now, now, verificationID, cashflowID, billID2, "CF1", "BILL2", "50.00", "360.00", "360.00", "360.00", "0.00", true),
+			)
+		// 3. 提成规则查询 (lock=true -> FOR UPDATE)
+		mock.ExpectQuery(`SELECT .* FROM "finance_commission_rules" WHERE .* FOR UPDATE$`).
+			WillReturnRows(sqlmock.NewRows(financecommissionrule.Columns).AddRow(
+				ruleID, now, now, org, "销售提成", "SALES", "REALIZED_PROFIT", "10.0000", nil, nil, true, nil, 1,
+			))
+		// 4. 账单批量查询 (要求 ORDER BY "finance_bills"."id" FOR UPDATE)
+		mock.ExpectQuery(`SELECT .* FROM "finance_bills" WHERE .* ORDER BY "finance_bills"\."id" FOR UPDATE$`).
+			WillReturnError(errors.New("stop_after_bills_query"))
+
+		_, err := loadCommissionCalculationSource(context.Background(), commissionStoreFromClient(repo.data.db), org, verificationID, ruleID, true)
+		if err == nil || err.Error() != "stop_after_bills_query" {
+			t.Fatalf("loadCommissionCalculationSource() error = %v, 期望 stop_after_bills_query", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("生产计算加载路径未在账单查询中输出 ORDER BY finance_bills.id FOR UPDATE: %v", err)
+		}
+	})
 }

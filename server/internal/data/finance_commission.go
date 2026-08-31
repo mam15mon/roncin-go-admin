@@ -358,6 +358,22 @@ func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
 	return commissionCalculationStore{verifications: tx.FinanceVerification, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
 }
 
+func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.UUID, billIDs []uuid.UUID, lock bool) *ent.FinanceBillQuery {
+	bq := store.bills.Query().
+		Where(
+			bill.IDIn(billIDs...),
+			bill.OrganizationIDEQ(org),
+			bill.StatusEQ(bill.StatusCONFIRMED),
+			bill.DirectionEQ(bill.DirectionRECEIVABLE),
+		).
+		WithLines().
+		Order(bill.ByID())
+	if lock {
+		bq.ForUpdate()
+	}
+	return bq
+}
+
 func (r *commissionRepo) Preview(ctx context.Context, org, verificationID, employeeID, ruleID uuid.UUID) (*biz.CommissionCalculation, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -480,10 +496,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		allocationByBill[item.BillID] = allocationByBill[item.BillID].Add(amount)
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("allocation|%s|%s|%s|%s|%t", item.ID, item.BillID, item.CashflowID, item.Amount, item.Active))
 	}
-	bq := store.bills.Query().Where(bill.IDIn(billIDs...), bill.OrganizationIDEQ(org), bill.StatusEQ(bill.StatusCONFIRMED), bill.DirectionEQ(bill.DirectionRECEIVABLE)).WithLines()
-	if lock {
-		bq.ForUpdate()
-	}
+	bq := commissionCalculationBillsQuery(store, org, billIDs, lock)
 	bills, err := bq.All(ctx)
 	if err != nil {
 		return nil, err
