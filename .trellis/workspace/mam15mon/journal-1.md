@@ -28,3 +28,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 2: 治理提成仓储事务客户端直连
+<!-- trellis-session: v=2 fp=ed647ee548c7bad5 -->
+
+**Date**: 2026-08-31
+**Task**: 治理提成仓储事务客户端直连
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+完成 finance_commission.go 专项审计，将员工列表、候选列表、规则列表和调整幂等查询的 6 处 r.data.db 直连统一迁移到 Data.client(ctx)；保持分页、错误映射和无锁只读语义；补充已结束事务上下文回归测试，并通过全量 Go test 与 vet。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f134d88` | fix: 修正提成生成锁顺序与汇率日期校验 |
+| `119bf34` | test: 覆盖提成读取事务上下文失效 |
+
+### Status
+
+[OK] **Completed**
