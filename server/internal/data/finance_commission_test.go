@@ -237,3 +237,64 @@ func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 		}
 	})
 }
+
+func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
+	repo, mock := setupTestCommissionRepo(t)
+	mock.ExpectBegin()
+	mock.ExpectCommit()
+
+	var transactionCtx context.Context
+	if err := repo.data.WithinTransaction(context.Background(), func(ctx context.Context) error {
+		transactionCtx = ctx
+		return nil
+	}); err != nil {
+		t.Fatalf("创建已结束事务上下文失败: %v", err)
+	}
+
+	org := uuid.New()
+	verificationID := uuid.New()
+	ruleID := uuid.New()
+	checks := []struct {
+		name string
+		call func() error
+	}{
+		{
+			name: "员工列表",
+			call: func() error {
+				_, err := repo.ListEmployees(transactionCtx, org, biz.SelectorListOptions{Page: 1, PageSize: 20})
+				return err
+			},
+		},
+		{
+			name: "提成候选",
+			call: func() error {
+				_, err := repo.ListCandidates(transactionCtx, org, biz.CommissionCandidateFilter{VerificationID: verificationID, RuleID: ruleID, Page: 1, PageSize: 20})
+				return err
+			},
+		},
+		{
+			name: "规则列表",
+			call: func() error {
+				_, err := repo.ListRules(transactionCtx, org, biz.CommissionRuleFilter{Page: 1, PageSize: 20})
+				return err
+			},
+		},
+		{
+			name: "调整幂等查询",
+			call: func() error {
+				_, err := repo.GetAdjustmentByKey(transactionCtx, org, "adjustment-key")
+				return err
+			},
+		},
+	}
+	for _, check := range checks {
+		t.Run(check.name, func(t *testing.T) {
+			if err := check.call(); !errors.Is(err, errTransactionContextClosed) {
+				t.Fatalf("读取错误 = %v，期望 %v", err, errTransactionContextClosed)
+			}
+		})
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("已结束事务上下文不应发起查询: %v", err)
+	}
+}
