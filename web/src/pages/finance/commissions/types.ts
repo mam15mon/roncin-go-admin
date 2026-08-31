@@ -53,6 +53,12 @@ export const calculationBasisMeta: Record<string, string> = {
 export const calculationBasisText = (value?: string) =>
   calculationBasisMeta[value || ''] || '已实现毛利';
 
+export const cnyExchangeRateSourceText = (value?: string) => {
+  if (value === 'BASE_CURRENCY') return '本位币即 CNY';
+  if (value === 'DERIVED') return '倒数派生';
+  return value || '-';
+};
+
 export const decimalText = (value?: string) => {
   if (!value) return '0';
   return value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');

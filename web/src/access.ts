@@ -47,6 +47,7 @@ const permissions = {
   financeVerificationReverse: 'system.finance.verification.reverse',
   financeCommissionRead: 'system.finance.commission.read',
   financeCommissionManage: 'system.finance.commission.manage',
+  financeCommissionExport: 'system.finance.commission.export',
   partnerRead: 'business.partner.read',
   partnerCreate: 'business.partner.create',
   partnerUpdate: 'business.partner.update',
@@ -224,6 +225,8 @@ export default function access(
       has(permissions.financeCommissionRead) && inOrganization,
     canManageFinanceCommissions:
       has(permissions.financeCommissionManage) && inOrganization,
+    canExportFinanceCommissions:
+      has(permissions.financeCommissionExport) && inOrganization,
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canReadEnterpriseResources:
       has(permissions.enterpriseResourceRead) && inOrganization,

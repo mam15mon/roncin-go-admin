@@ -2,6 +2,7 @@ import {
   CheckOutlined,
   CloseCircleOutlined,
   DollarOutlined,
+  DownloadOutlined,
   EyeOutlined,
   PlusOutlined,
   SettingOutlined,
@@ -9,16 +10,17 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Button, Space, Tag, Typography } from 'antd';
+import { App, Button, DatePicker, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { FinanceCommissionStatus } from '@/enums.generated';
 import { SearchFilterTemplate } from '@/components/ui';
+import { FinanceCommissionStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCancelCommission,
   settlementServiceCancelCommissionAdjustment,
   settlementServiceConfirmCommission,
   settlementServiceConfirmCommissionAdjustment,
+  settlementServiceExportCommissions,
   settlementServiceGetCommission,
   settlementServiceListCommissions,
   settlementServiceMarkCommissionAdjustmentPaid,
@@ -26,6 +28,13 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { makeVersionActions } from '@/utils/versionActions';
+import {
+  buildCommissionExportFileName,
+  type CommissionQueryFilters,
+  type CommissionSearchValues,
+  normalizeCommissionFilters,
+  serializeCommissionCsv,
+} from './commissionExport';
 import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
@@ -40,23 +49,52 @@ import {
   personnelRoleText,
 } from './types';
 
+const { RangePicker } = DatePicker;
+
 export default function FinanceCommissionsPage() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
 
-  const [searchParams, setSearchParams] = useState<{
-    keyword?: string;
-    status?: number;
-  }>({});
+  const searchFiltersRef = useRef<CommissionQueryFilters>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [rulesDrawerOpen, setRulesDrawerOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<API.FinanceCommission>();
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const reload = () => actionRef.current?.reload();
+
+  const exportCommissions = async () => {
+    try {
+      setExporting(true);
+      const filters = searchFiltersRef.current;
+      const response = await settlementServiceExportCommissions(filters);
+      const content = serializeCommissionCsv(response.data ?? []);
+      if (!content) {
+        message.warning('当前筛选条件下没有可导出的提成');
+        return;
+      }
+
+      const url = URL.createObjectURL(
+        new Blob([content], { type: 'text/csv;charset=utf-8' }),
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = buildCommissionExportFileName(filters);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      message.success(`成功导出 ${response.data?.length ?? 0} 条提成`);
+    } catch (error: any) {
+      message.error(error.message || '提成导出失败');
+    } finally {
+      setExporting(false);
+    }
+  };
   const commissionActions = makeVersionActions<API.FinanceCommission>({
     modal,
     message,
@@ -303,9 +341,11 @@ export default function FinanceCommissionsPage() {
         ]),
       ),
       render: (_, record) => {
-        const meta = commissionStatusMeta[
-          record.status ?? FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
-        ];
+        const meta =
+          commissionStatusMeta[
+            record.status ??
+              FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
+          ];
         return <Tag color={meta.color}>{meta.text}</Tag>;
       },
     },
@@ -316,6 +356,13 @@ export default function FinanceCommissionsPage() {
       copyable: true,
       search: false,
       render: (_, record) => record.verificationNo || '-',
+    },
+    {
+      title: '归属日期',
+      dataIndex: 'commissionDate',
+      width: 110,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '提成员工',
@@ -411,6 +458,40 @@ export default function FinanceCommissionsPage() {
       },
     },
     {
+      title: 'CNY 提成',
+      dataIndex: 'cnyEffectiveCommissionAmount',
+      width: 180,
+      align: 'right',
+      search: false,
+      render: (_, record) => {
+        if (
+          record.status ===
+          FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED
+        ) {
+          return (
+            <Space vertical size={0}>
+              <Typography.Text type="secondary" delete>
+                {`有效快照 ${decimalText(record.cnyEffectiveCommissionAmount)} CNY`}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {`原始 ${decimalText(record.cnyCommissionAmount)} · 调整 ${decimalText(record.cnyAdjustmentAmount)}，不计入应发`}
+              </Typography.Text>
+            </Space>
+          );
+        }
+        return (
+          <Space vertical size={0}>
+            <strong style={{ color: '#1677ff' }}>
+              {`有效 ${decimalText(record.cnyEffectiveCommissionAmount)} CNY`}
+            </strong>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {`原始 ${decimalText(record.cnyCommissionAmount)} · 调整 ${decimalText(record.cnyAdjustmentAmount)}`}
+            </Typography.Text>
+          </Space>
+        );
+      },
+    },
+    {
       title: '操作',
       valueType: 'option',
       fixed: 'right',
@@ -451,19 +532,27 @@ export default function FinanceCommissionsPage() {
 
   return (
     <>
-      <SearchFilterTemplate
-        layout="bar"
-        keywordPlaceholder="搜索提成单号、员工名称或业务单号..."
-        quickFilters={[
+      <SearchFilterTemplate<CommissionSearchValues>
+        layout="grid"
+        collapsible={false}
+        colSpan={6}
+        items={[
+          {
+            name: 'keyword',
+            label: '关键词',
+            placeholder: '提成单号、员工名称或业务单号',
+            span: 6,
+          },
           {
             name: 'status',
+            label: '状态',
+            type: 'select',
             placeholder: '全部状态',
-            width: 120,
+            span: 4,
             options: [
               {
                 label: '草稿',
-                value:
-                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+                value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
               },
               {
                 label: '已确认',
@@ -472,8 +561,7 @@ export default function FinanceCommissionsPage() {
               },
               {
                 label: '已发放',
-                value:
-                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+                value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
               },
               {
                 label: '已取消',
@@ -482,17 +570,41 @@ export default function FinanceCommissionsPage() {
               },
             ],
           },
+          {
+            name: 'commissionMonth',
+            label: '归属月份',
+            type: 'custom',
+            span: 8,
+            render: () => (
+              <RangePicker
+                picker="month"
+                allowEmpty={[true, true]}
+                placeholder={['开始月份', '结束月份']}
+                style={{ width: '100%' }}
+              />
+            ),
+          },
         ]}
         onSearch={(values) => {
-          setSearchParams(values);
+          searchFiltersRef.current = normalizeCommissionFilters(values);
           actionRef.current?.reload();
         }}
         onReset={() => {
-          setSearchParams({});
+          searchFiltersRef.current = {};
           actionRef.current?.reload();
         }}
         extraRight={
           <Space size={8}>
+            {access.canExportFinanceCommissions && (
+              <Button
+                key="export"
+                icon={<DownloadOutlined />}
+                loading={exporting}
+                onClick={exportCommissions}
+              >
+                导出提成
+              </Button>
+            )}
             {access.canManageFinanceCommissions && (
               <Button
                 key="create"
@@ -520,15 +632,14 @@ export default function FinanceCommissionsPage() {
         columns={columns}
         bordered
         size="small"
-        scroll={{ x: 1600 }}
+        scroll={{ x: 1900 }}
         search={false}
         toolBarRender={false}
         request={async (params) => {
           const response = await settlementServiceListCommissions({
             page: params.current ?? 1,
             pageSize: params.pageSize ?? 20,
-            keyword: searchParams.keyword,
-            status: searchParams.status,
+            ...searchFiltersRef.current,
           });
           return toTableRequest(response);
         }}

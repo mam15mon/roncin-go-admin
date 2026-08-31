@@ -11,14 +11,15 @@ import {
 } from 'antd';
 import React from 'react';
 import { FinanceCommissionStatus } from '@/enums.generated';
+import { formatDate } from '@/utils/format';
 import {
   calculationBasisText,
+  cnyExchangeRateSourceText,
   commissionStatusMeta,
   decimalText,
   getAdjustmentStatusInfo,
   personnelRoleText,
 } from '../types';
-import { formatDate } from '@/utils/format';
 import { previewColumns, renderExpandedFees } from './CommissionLineTable';
 
 type CommissionDetailDrawerProps = {
@@ -184,6 +185,11 @@ export default function CommissionDetailDrawer({
             column={4}
             items={[
               {
+                key: 'commissionDate',
+                label: '归属日期',
+                children: detail.commissionDate || '-',
+              },
+              {
                 key: 'status',
                 label: '状态',
                 children: (
@@ -241,7 +247,7 @@ export default function CommissionDetailDrawer({
               },
               {
                 key: 'amount',
-                label: '原始提成',
+                label: '原始提成（本位币）',
                 children: (
                   <Typography.Text strong type="success">
                     {`${decimalText(detail.commissionAmount)} ${detail.baseCurrency}`}
@@ -250,23 +256,69 @@ export default function CommissionDetailDrawer({
               },
               {
                 key: 'adjustmentAmount',
-                label: '已确认调整',
+                label: '已确认调整（本位币）',
                 children: `${Number(detail.adjustmentAmount || 0) > 0 ? '+' : ''}${decimalText(detail.adjustmentAmount)} ${detail.baseCurrency}`,
               },
               {
                 key: 'effectiveAmount',
-                label: '有效提成',
+                label: '有效提成（本位币）',
                 children:
                   detail.status ===
                   FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED ? (
-                    <Typography.Text type="secondary">
-                      已取消，不计入应发
+                    <Typography.Text type="secondary" delete>
+                      {`快照 ${decimalText(detail.effectiveCommissionAmount)} ${detail.baseCurrency}，不计入应发`}
                     </Typography.Text>
                   ) : (
                     <Typography.Text strong style={{ color: '#1677ff' }}>
                       {`${decimalText(detail.effectiveCommissionAmount || detail.commissionAmount)} ${detail.baseCurrency}`}
                     </Typography.Text>
                   ),
+              },
+              {
+                key: 'cnyCommissionAmount',
+                label: '原始提成（CNY）',
+                children: (
+                  <Typography.Text strong type="success">
+                    {`${decimalText(detail.cnyCommissionAmount)} CNY`}
+                  </Typography.Text>
+                ),
+              },
+              {
+                key: 'cnyAdjustmentAmount',
+                label: '已确认调整（CNY）',
+                children: `${Number(detail.cnyAdjustmentAmount || 0) > 0 ? '+' : ''}${decimalText(detail.cnyAdjustmentAmount)} CNY`,
+              },
+              {
+                key: 'cnyEffectiveAmount',
+                label: '有效提成（CNY）',
+                children:
+                  detail.status ===
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CANCELLED ? (
+                    <Typography.Text type="secondary" delete>
+                      {`快照 ${decimalText(detail.cnyEffectiveCommissionAmount)} CNY，不计入应发`}
+                    </Typography.Text>
+                  ) : (
+                    <Typography.Text strong style={{ color: '#1677ff' }}>
+                      {`${decimalText(detail.cnyEffectiveCommissionAmount)} CNY`}
+                    </Typography.Text>
+                  ),
+              },
+              {
+                key: 'cnyExchangeRate',
+                label: 'CNY 折算率',
+                children: decimalText(detail.cnyExchangeRate),
+              },
+              {
+                key: 'cnyExchangeRateDate',
+                label: 'CNY 汇率日期',
+                children: detail.cnyExchangeRateDate || '-',
+              },
+              {
+                key: 'cnyExchangeRateSource',
+                label: 'CNY 汇率来源',
+                children: cnyExchangeRateSourceText(
+                  detail.cnyExchangeRateSource,
+                ),
               },
               {
                 key: 'calculationVersion',

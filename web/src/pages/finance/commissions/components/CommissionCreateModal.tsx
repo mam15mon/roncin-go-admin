@@ -19,6 +19,7 @@ import { unwrapList } from '@/utils/api';
 import {
   calculationBasisText,
   calculationSignature,
+  cnyExchangeRateSourceText,
   decimalText,
   personnelRoleText,
   type CreateValues,
@@ -87,7 +88,7 @@ export default function CommissionCreateModal({
             note: values.note,
             idempotencyKey: createIdempotencyKey,
           });
-          message.success('提成草稿已按预览结果生成');
+          message.success('提成草稿已生成，列表已按创建结果刷新');
           onOpenChange(false);
           setPreview(undefined);
           setPreviewSignature('');
@@ -260,7 +261,39 @@ export default function CommissionCreateModal({
                         </Typography.Text>
                       ),
                     },
+                    {
+                      key: 'cnyAmount',
+                      label: '提成金额（CNY）',
+                      children: (
+                        <Typography.Text strong type="success">
+                          {`${decimalText(preview.cnyCommissionAmount)} CNY`}
+                        </Typography.Text>
+                      ),
+                    },
+                    {
+                      key: 'cnyRate',
+                      label: 'CNY 折算率',
+                      children: decimalText(preview.cnyExchangeRate),
+                    },
+                    {
+                      key: 'cnyRateDate',
+                      label: 'CNY 汇率日期',
+                      children: preview.cnyExchangeRateDate || '-',
+                    },
+                    {
+                      key: 'cnyRateSource',
+                      label: 'CNY 汇率来源',
+                      children: cnyExchangeRateSourceText(
+                        preview.cnyExchangeRateSource,
+                      ),
+                    },
                   ]}
+                />
+                <Alert
+                  type="warning"
+                  showIcon
+                  title="预览汇率仅供生成前核对"
+                  description="创建草稿时会在事务内重新解析 CNY 汇率；最终折算依据和金额以创建结果及刷新后的列表为准。"
                 />
                 <Table<API.FinanceCommissionLine>
                   size="small"
