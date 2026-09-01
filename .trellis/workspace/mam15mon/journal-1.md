@@ -212,3 +212,42 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 9: 完成外币财务全链路验收
+<!-- trellis-session: v=2 fp=15e9488f16ddc07d -->
+
+**Date**: 2026-09-02
+**Task**: 完成外币财务全链路验收
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+在一次性 CNY/USD PostgreSQL 环境补齐从系统汇率、订单费用、账单、开票、收款、核销到提成 CNY 快照的连续验收，并以故障注入验证资源与进程组安全清理。
+
+### Main Changes
+
+- 新增 USD 本位币、EUR 业务币的连续 API 验收及一次性双库编排器
+- 修正 CNY 应收、应付和 Playwright 验收夹具与精确状态断言
+- 补齐 SIGTERM、超时、孤儿进程组和执行/清理双失败的生命周期自测
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1c13e9df` | test: 补齐外币财务全链路验收 |
+
+### Testing
+
+- [OK] 完整 disposable 验收通过：PostgreSQL PASS=10/SKIP=0/FAIL=0，Playwright 1 passed，外币金额与快照断言全部通过
+- [OK] go test ./...、go vet ./...、web lint/tsc、Node 语法及 Trellis validate 全部通过
+- [OK] 独立 trellis-check PASS：P0=0、P1=0、P2=0；最终数据库、角色和固定端口零残留
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 后续独立任务可覆盖提成 MarkPaid、应付外币链、低权限与双组织隔离、CI 强制一次性验收
