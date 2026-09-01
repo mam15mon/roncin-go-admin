@@ -144,3 +144,38 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: 补齐提成 PostgreSQL 事务集成验证
+<!-- trellis-session: v=2 fp=109ff488b4bfb419 -->
+
+**Date**: 2026-09-01
+**Task**: 补齐提成 PostgreSQL 事务集成验证
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+使用 Agy High 实施并由独立 Trellis 检查补强，新增提成创建真实 PostgreSQL 成功与三类失败事务测试，验证审计、回滚、提交后重读及来源数据完整性；同步归档 PRD 验收记账并完成任务归档。
+
+### Main Changes
+
+- 新增提成创建真实 PostgreSQL 事务集成测试，覆盖成功、汇率失败、保存失败和审计失败。
+- 补强审计详情、未提交事务证据、提交后普通上下文重读和失败后来源数据可读性断言。
+- 同步阶段 1/2/3 与静态路由归档 PRD 验收状态。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `33445813` | test: 补齐提成 PostgreSQL 事务集成验证 |
+| `1cd7904c` | chore(task): archive 08-31-commission-postgres-transaction-test |
+
+### Testing
+
+- [OK] 隔离 PostgreSQL 临时库四个子用例全部通过，测试后数据库和角色残留均为 0。
+- [OK] go -C server test ./... -count=1、go -C server vet ./...、Trellis validate、git diff --check 全部通过。
+
+### Status
+
+[OK] **Completed**
