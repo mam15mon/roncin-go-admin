@@ -1,0 +1,7 @@
+{"file":"AGENTS.md","reason":"复核范围、无兜底、Agy 禁止 Git 与提交约束"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核临时库安全、连接隔离与资源清理"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核真实 PASS/SKIP、脚本断言和差异卫生"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/prd.md","reason":"逐项核对验收标准"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/design.md","reason":"核对两库拓扑、汇率矩阵和精确金额口径"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/implement.md","reason":"核对 Agy/Codex 分工、测试和清理流程"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/research/agy-plan-review.md","reason":"确认未重新引入已拒绝的子组织夹具和范围扩张"}

@@ -1,0 +1,8 @@
+{"file":"AGENTS.md","reason":"遵循中文、无兜底、外部代理、验证与提交约束"}
+{"file":".trellis/spec/server/backend/index.md","reason":"确认服务端分层与最终质量门"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"遵循 PostgreSQL、事务、隔离与数据安全规范"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"区分真实 PostgreSQL PASS、SKIP 与测试证据"}
+{"file":".trellis/spec/guides/index.md","reason":"实施前执行跨层搜索与证据检查"}
+{"file":".trellis/tasks/archive/2026-09/09-01-finance-end-to-end-test-audit/research/audit-report.md","reason":"提供当前财务链覆盖边界与已确认缺口"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/research/current-evidence.md","reason":"提供本任务最小闭环与既有证据"}
+{"file":".trellis/tasks/09-01-foreign-currency-finance-e2e/research/agy-plan-review.md","reason":"落实独立审查发现及已批准的范围取舍"}
