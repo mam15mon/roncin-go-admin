@@ -1,0 +1,6 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"审计跨越汇率、订单、财务、核销与提成的真实数据流，防止按模块数量误判。"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"核对后端测试层级、质量门和生成物边界。"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"审计真实 PostgreSQL、事务、锁、并发和组织隔离证据。"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"审计财务与提成业务审计日志覆盖。"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"区分前端单元测试、Playwright 和默认前端质量门。"}
+{"file":".trellis/tasks/09-01-finance-end-to-end-test-audit/research/preliminary-evidence.md","reason":"规划阶段已识别的真实 PostgreSQL、API 和浏览器证据入口。"}

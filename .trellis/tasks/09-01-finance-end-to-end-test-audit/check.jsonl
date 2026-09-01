@@ -1,0 +1,5 @@
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"独立挑战完整链路和跨层数据传递结论。"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核后端证据等级、测试执行与质量门判断。"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核事务、锁、并发和真实 PostgreSQL 结论。"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"复核前端单测与浏览器 E2E 的边界。"}
+{"file":".trellis/tasks/09-01-finance-end-to-end-test-audit/research/preliminary-evidence.md","reason":"逐项验证初步证据入口和防止默认 Skip 被误报为通过。"}
