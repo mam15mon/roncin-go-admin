@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-09-01
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~181 | Active |
+| `journal-1.md` | ~214 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-09-01 | 完成财务全链路测试覆盖审计 | `dfac79b1` | `main` |
 | 7 | 2026-09-01 | 补齐提成 PostgreSQL 事务集成验证 | `33445813`, `1cd7904c` | `main` |
 | 6 | 2026-08-31 | 修复提成账单多行加锁顺序 | `a16e289` | `main` |
 | 5 | 2026-08-31 | 完成提成 CNY 前端展示与导出 | `f255bfd` | `main` |

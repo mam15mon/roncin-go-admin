@@ -179,3 +179,36 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 8: 完成财务全链路测试覆盖审计
+<!-- trellis-session: v=2 fp=01041894cd962c6f -->
+
+**Date**: 2026-09-01
+**Task**: 完成财务全链路测试覆盖审计
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+审计多币种汇率、订单费用、账单开票、资金核销与提成的 E1-E5 测试证据；确认本位币应收 HTTP 长链路存在，但外币连续链路、提成支付、PostgreSQL CI 门禁和权限/双组织负向验收仍是上线前 P1 缺口。
+
+### Main Changes
+
+- 新增财务全链路证据矩阵、跨阶段断点、风险分级和最小补测路线图。
+- 沉淀专用 PostgreSQL 测试不得以 SKIP 充当通过的质量规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dfac79b1` | docs: 完成财务全链路测试覆盖审计 |
+
+### Testing
+
+- [OK] Go 四包测试、go vet、web tsc、54 个前端测试文件与 178 项测试通过。
+- [OK] 独立 trellis-check PASS，并反证五个核心 PostgreSQL 顶层测试在无专用变量时全部 SKIP。
+
+### Status
+
+[OK] **Completed**
