@@ -100,6 +100,27 @@ make -C server api
 
 仓库根目录：`pnpm run check:server`、`pnpm run check`（全量）、`pnpm run build`。
 
+### 专用 PostgreSQL 测试不得以 Skip 充当通过
+
+依赖 `RONCIN_INTEGRATION_DATABASE_SOURCE` 的真实 PostgreSQL 测试在变量为空时会
+明确 `Skip`。普通 `go test ./...` 即使退出码为 0，也只能证明默认测试通过，不能证明
+事务、锁、并发和 PostgreSQL 约束用例已经执行。
+
+```bash
+# 错误：只看退出码，把 SKIP 误报为真实数据库测试通过。
+go -C server test ./...
+
+# 正确：为质量门显式注入一次性 PostgreSQL，并在 -v 日志中确认目标用例为 PASS。
+RONCIN_INTEGRATION_DATABASE_SOURCE="postgres://..." \
+  go -C server test -v ./internal/data -run 'Postgres$' -count=1
+```
+
+- CI 中承担合并门禁的 PostgreSQL Job 必须显式提供专用连接串，禁止回退到开发库。
+- 验收记录必须区分 `PASS`、`SKIP` 和“测试文件存在”；不得只记录命令最终退出码。
+- 测试使用随机业务键或一次性数据库隔离，结束后检查夹具、临时数据库和角色无残留。
+- 新增关键事务/锁测试时，同步确认它进入真实 PostgreSQL Job，而不只是进入普通
+  `go test ./...` 的包扫描范围。
+
 ## 原则
 
 - 先确认目标、影响范围和验证方式再动手；只实现当前需求，不做猜测性重构、
