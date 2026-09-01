@@ -75,12 +75,10 @@ function assert(condition, message) {
 const cookie = await login();
 const client = createClient(cookie);
 const { request, raw } = client;
-const [me, customers, rules] = await Promise.all([
+const [me, rules] = await Promise.all([
   request('/api/v1/auth/me'),
-  request('/api/v1/partners?page=1&pageSize=100&role=1&enabled=true'),
   request('/api/v1/master-data/number-rules'),
 ]);
-const customer = customers.data?.[0];
 const billRule = rules.data?.find(
   (item) =>
     item.documentType === 2 || item.documentType === 'DOCUMENT_TYPE_BILL',
@@ -106,7 +104,6 @@ const commissionNumberRule = rules.data?.find(
 );
 assert(me.data?.id, '当前登录用户缺少用户编号');
 assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
-assert(customer?.id, '当前组织没有启用的客户');
 assert(billRule?.enabled, '当前组织没有启用的账单编号规则');
 assert(batchRule?.enabled, '当前组织没有启用的账单批次编号规则');
 assert(writeOffRule?.enabled, '当前组织没有启用的核销编号规则');
@@ -125,6 +122,40 @@ const stamp = new Date()
   .replace(/[-:.TZ]/g, '')
   .slice(0, 14);
 const today = new Date().toISOString().slice(0, 10);
+const customerName = `财务验收客户 ${stamp}`;
+const customerResponse = await request('/api/v1/partners', {
+  method: 'POST',
+  body: JSON.stringify({
+    code: `ACC-CUST-${stamp}`,
+    legalName: customerName,
+    unifiedSocialCreditCode: `91310000ACC${stamp.slice(-7)}`,
+    registeredAddress: '财务自动验收地址',
+    roles: [{ type: 1, enabled: true }],
+    contacts: [
+      {
+        name: '财务验收联系人',
+        phone: '13800000000',
+        isPrimary: true,
+      },
+    ],
+    aliases: [{ aliasName: `ACC CUSTOMER ${stamp}`, sortOrder: 1 }],
+    profile: {
+      nameEn: `Acceptance Customer ${stamp}`,
+      countryCode: 'CN',
+      businessTypes: [1],
+      remark: '财务批量转账单自动验收创建',
+    },
+    assignments: [
+      {
+        role: 3,
+        userId: me.data.id,
+        organizationId: me.data.currentOrganization.id,
+      },
+    ],
+  }),
+});
+const customer = customerResponse.data;
+assert(customer?.id, '验收客户创建失败');
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
@@ -146,6 +177,71 @@ const orderResponse = await request('/api/v1/orders', {
 });
 const order = orderResponse.data;
 assert(order?.id && order?.orderNo, '验收订单创建失败');
+
+if (apply) {
+  const invoiceRule = rules.data?.find((item) => item.documentType === 11);
+  if (invoiceRule && !invoiceRule.enabled) {
+    await request(`/api/v1/master-data/number-rules/${invoiceRule.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: invoiceRule.id,
+        prefix: 'INV',
+        dateFormat: 1,
+        sequenceLength: 5,
+        resetPolicy: 1,
+        enabled: true,
+      }),
+    });
+  }
+
+  const createdUnit = await request('/api/v1/finance/billing-units', {
+    method: 'POST',
+    body: JSON.stringify({
+      code: `UNIT_AR_${stamp.slice(-6)}`,
+      name: '票',
+      sortOrder: 1,
+      isContainerUnit: false,
+    }),
+  });
+  const billingUnit = createdUnit.data;
+  assert(billingUnit?.id, '应收验收计费单位创建失败');
+
+  const createdService = await request('/api/v1/finance/taxable-services', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: `基础物流服务_${stamp.slice(-6)}`,
+      defaultTaxRate: '0.00',
+    }),
+  });
+  const taxableService = createdService.data;
+  assert(taxableService?.id, '应收验收应税服务创建失败');
+
+  await request('/api/v1/finance/fee-settings', {
+    method: 'POST',
+    body: JSON.stringify({
+      feeCode: `FEE_AR_${stamp.slice(-6)}`,
+      nameZh: '海运运费',
+      defaultCurrency: 'CNY',
+      billingUnitId: billingUnit.id,
+      taxableServiceId: taxableService.id,
+      taxRate: '0.00',
+      sortOrder: 1,
+    }),
+  });
+
+  await request('/api/v1/finance/exchange-rate-time-standards', {
+    method: 'PUT',
+    body: JSON.stringify({
+      data: [
+        { rateType: 'BASE_CURRENCY', timeStandards: ['ORDER_CREATED_AT'] },
+        { rateType: 'BILL', timeStandards: ['BILL_DATE'] },
+        { rateType: 'INVOICE', timeStandards: ['INVOICE_DATE'] },
+        { rateType: 'SETTLEMENT', timeStandards: ['TRANSACTION_DATE'] },
+        { rateType: 'WRITE_OFF', timeStandards: ['WRITE_OFF_TIME'] },
+      ],
+    }),
+  });
+}
 
 const options = await request(`/api/v1/orders/${order.id}/fee-options`);
 const feeSetting = options.feeSettings?.find(
@@ -203,7 +299,26 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 }
 
 const feeIds = createdFees.map((fee) => fee.id);
+const progressEnumMap = {
+  UNSPECIFIED: 0,
+  UNBILLED: 1,
+  UNVERIFIED_UNINVOICED: 2,
+  INVOICED_UNVERIFIED: 3,
+  VERIFIED_UNINVOICED: 4,
+  INVOICED_PARTIALLY_VERIFIED: 5,
+  PARTIALLY_VERIFIED_UNINVOICED: 6,
+  COMPLETED: 7,
+};
+
 async function assertFeeFinancialProgress(expected, message) {
+  const expectedNum =
+    typeof expected === 'number' ? expected : progressEnumMap[expected];
+  const expectedStr =
+    typeof expected === 'string'
+      ? expected
+      : Object.keys(progressEnumMap).find(
+          (k) => progressEnumMap[k] === expected,
+        );
   const ledger = await request(
     `/api/v1/finance/fees?page=1&pageSize=200&keyword=${encodeURIComponent(order.orderNo)}`,
   );
@@ -212,7 +327,7 @@ async function assertFeeFinancialProgress(expected, message) {
   );
   assert(
     currentFees.length === feeIds.length &&
-      currentFees.every((item) => item.financialProgress === expected),
+      currentFees.every((item) => item.financialProgress === expectedNum),
     `${message}，实际 ${currentFees.map((item) => item.financialProgress).join(',')}`,
   );
   return currentFees;
@@ -315,7 +430,7 @@ const confirmedBatch = await request(
   },
 );
 assert(
-  confirmedBatch.data?.bills?.every((bill) => bill.status === 'CONFIRMED'),
+  confirmedBatch.data?.bills?.every((bill) => bill.status === 2),
   '批次账单未全部确认',
 );
 await assertFeeFinancialProgress(
@@ -485,7 +600,7 @@ const issuedInvoiceResponse = await request(
     }),
   },
 );
-assert(issuedInvoiceResponse.data?.status === 'ISSUED', '开票记录登记失败');
+assert(issuedInvoiceResponse.data?.status === 2, '开票记录登记失败');
 await assertFeeFinancialProgress(
   'INVOICED_UNVERIFIED',
   '登记发票后应为已开票未核销',
@@ -558,7 +673,7 @@ const [confirmedCashflowAResponse, confirmedCashflowBResponse] =
 const confirmedCashflowA = confirmedCashflowAResponse.data;
 const confirmedCashflowB = confirmedCashflowBResponse.data;
 const filteredCashflows = await request(
-  `/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED&direction=RECEIVABLE&settlementPartyId=${customer.id}&currency=${confirmedBill.currency}`,
+  `/api/v1/finance/cashflows?page=1&pageSize=200&status=FINANCE_CASHFLOW_STATUS_CONFIRMED&direction=RECEIVABLE&settlementPartyId=${customer.id}&currency=${confirmedBill.currency}`,
 );
 assert(
   [confirmedCashflowA.id, confirmedCashflowB.id].every((id) =>
@@ -668,6 +783,12 @@ assert(
   commissionPreview.data.commissionAmount === '4.00000000',
   `40 元回款按 10% 毛利提成应为 4 元，实际 ${commissionPreview.data.commissionAmount}`,
 );
+assert(
+  commissionPreview.data.cnyExchangeRate === '1.00000000' &&
+    commissionPreview.data.cnyExchangeRateSource === 'BASE_CURRENCY' &&
+    commissionPreview.data.cnyCommissionAmount === '4.00000000',
+  '提成预览未固化正确的 CNY 快照（BASE_CURRENCY/1.00000000）及等额 CNY 金额',
+);
 const firstCommissionBody = {
   verificationId: verificationA.id,
   employeeId: me.data.id,
@@ -708,6 +829,12 @@ assert(
     me.data.currentOrganization.id &&
     firstCommissionDetail.data.lines[0].personnelAssignedAt,
   '提成草稿未固化人员组织和指派时间快照',
+);
+assert(
+  firstCommissionDetail.data.cnyExchangeRate === '1.00000000' &&
+    firstCommissionDetail.data.cnyExchangeRateSource === 'BASE_CURRENCY' &&
+    firstCommissionDetail.data.cnyCommissionAmount === '4.00000000',
+  '提成草稿未固化 CNY 汇率快照（BASE_CURRENCY/1.00000000）',
 );
 
 const updatedRuleResponse = await request(
@@ -766,6 +893,12 @@ const refreshedPreview = await request('/api/v1/finance/commissions/preview', {
 assert(
   refreshedPreview.data?.ruleVersion === commissionRule.version,
   '重新预览未使用最新提成规则版本',
+);
+assert(
+  refreshedPreview.data.cnyExchangeRate === '1.00000000' &&
+    refreshedPreview.data.cnyExchangeRateSource === 'BASE_CURRENCY' &&
+    refreshedPreview.data.cnyCommissionAmount === '4.00000000',
+  '重新预览未返回正确的 CNY 快照',
 );
 const refreshedCommissionResponse = await request(
   '/api/v1/finance/commissions',
@@ -834,7 +967,7 @@ const confirmedCommissionResponse = await request(
   },
 );
 const confirmedCommission = confirmedCommissionResponse.data;
-assert(confirmedCommission.status === 'CONFIRMED', '提成草稿确认失败');
+assert(confirmedCommission.status === 2, '提成草稿确认失败');
 const lockedFeeOptions = await request(
   `/api/v1/orders/${order.id}/fee-options`,
 );
@@ -914,6 +1047,12 @@ assert(
     commissionAfterAdjustment.data.effectiveCommissionAmount === '5.25000000',
   '提成调整不得改写原始金额，且必须正确形成有效提成',
 );
+assert(
+  commissionAfterAdjustment.data.cnyCommissionAmount === '4.00000000' &&
+    commissionAfterAdjustment.data.cnyAdjustmentAmount === '1.25000000' &&
+    commissionAfterAdjustment.data.cnyEffectiveCommissionAmount === '5.25000000',
+  '提成调整后 CNY 口径金额未与本位币保持一致',
+);
 const cancelParentWithAdjustment = await raw(
   `/api/v1/finance/commissions/${confirmedCommission.id}/cancel`,
   {
@@ -983,37 +1122,6 @@ await request(
     }),
   },
 );
-const reverseWithCommission = await raw(
-  `/api/v1/finance/verifications/${verificationA.id}/reverse`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: verificationA.id,
-      expectedVersion: verificationA.version,
-      reason: '验证提成存在时禁止反核销',
-    }),
-  },
-);
-assert(
-  reverseWithCommission.response.status === 409 &&
-    reverseWithCommission.body.reason === 'FINANCE_VERIFICATION_HAS_COMMISSION',
-  '存在已确认提成时必须禁止反核销',
-);
-await request(`/api/v1/finance/commissions/${confirmedCommission.id}/cancel`, {
-  method: 'POST',
-  body: JSON.stringify({
-    id: confirmedCommission.id,
-    expectedVersion: confirmedCommission.version,
-    reason: '完成提成验收后释放核销',
-  }),
-});
-const unlockedFeeOptions = await request(
-  `/api/v1/orders/${order.id}/fee-options`,
-);
-assert(
-  unlockedFeeOptions.financeLocked !== true,
-  '提成及调整全部取消后订单财务锁未释放',
-);
 
 const overAllocated = await raw('/api/v1/finance/verifications', {
   method: 'POST',
@@ -1048,8 +1156,12 @@ await assertFeeFinancialProgress(
 );
 
 const balancesAfterFullVerification = await Promise.all([
-  request('/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED'),
-  request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
+  request(
+    '/api/v1/finance/cashflows?page=1&pageSize=200&status=FINANCE_CASHFLOW_STATUS_CONFIRMED',
+  ),
+  request(
+    '/api/v1/finance/bills?page=1&pageSize=200&status=FINANCE_BILL_STATUS_CONFIRMED',
+  ),
 ]);
 const cashflowsAfterFullVerification = balancesAfterFullVerification[0].data;
 const billsAfterFullVerification = balancesAfterFullVerification[1].data;
@@ -1109,7 +1221,7 @@ const cancelledCashflowBResponse = await request(
   },
 );
 assert(
-  cancelledCashflowBResponse.data?.status === 'CANCELLED',
+  cancelledCashflowBResponse.data?.status === 3,
   '反核销后资金流水仍无法取消',
 );
 await request(`/api/v1/finance/verifications/${verificationA.id}/reverse`, {
@@ -1117,16 +1229,32 @@ await request(`/api/v1/finance/verifications/${verificationA.id}/reverse`, {
   body: JSON.stringify({
     id: verificationA.id,
     expectedVersion: verificationA.version,
-    reason: '验证全部反核销恢复余额',
+    reason: '验证全部反核销恢复余额及自动反冲未支付提成',
   }),
 });
+const autoCancelledCommissionResponse = await request(
+  `/api/v1/finance/commissions/${confirmedCommission.id}`,
+);
+assert(
+  autoCancelledCommissionResponse.data?.status === 4,
+  `反核销后关联未支付提成应自动变为 CANCELLED(4)，实际 ${autoCancelledCommissionResponse.data?.status}`,
+);
+const unlockedFeeOptions = await request(
+  `/api/v1/orders/${order.id}/fee-options`,
+);
+assert(
+  unlockedFeeOptions.financeLocked !== true,
+  '反核销自动反冲提成后订单财务锁未释放',
+);
 await assertFeeFinancialProgress(
   'INVOICED_UNVERIFIED',
   '全部反核销后应恢复为已开票未核销',
 );
 const balancesAfterReverse = await Promise.all([
   request('/api/v1/finance/cashflows?page=1&pageSize=200'),
-  request('/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED'),
+  request(
+    '/api/v1/finance/bills?page=1&pageSize=200&status=FINANCE_BILL_STATUS_CONFIRMED',
+  ),
 ]);
 assert(
   balancesAfterReverse[0].data.find((item) => item.id === confirmedCashflowA.id)
@@ -1170,11 +1298,12 @@ console.log(
       commissionSourceChangeRejected: true,
       commissionConcurrentIdempotencyVerified: true,
       commissionDetailSnapshotVerified: true,
-      commissionReverseProtectionVerified: true,
+      commissionAutoReversalOnVerificationReverseVerified: true,
       commissionFinanceLockVerified: true,
       commissionDraftFeeCloseRejected: true,
       commissionAdjustmentIdempotencyVerified: true,
       commissionAdjustmentEffectiveAmountVerified: true,
+      commissionCnySnapshotVerified: true,
       commissionAdjustmentCancellationProtectionVerified: true,
       commissionAdjustmentOverDecreaseRejected: true,
       overAllocationRejected: true,

@@ -165,14 +165,75 @@ const orderResponse = await request('/api/v1/orders', {
 const order = orderResponse.data;
 assert(order?.id && order?.orderNo, '应付验收订单创建失败');
 
+let createdFeeSetting = null;
+if (apply) {
+  const createdUnit = await request('/api/v1/finance/billing-units', {
+    method: 'POST',
+    body: JSON.stringify({
+      code: `UNIT_AP_${stamp.slice(-6)}`,
+      name: '票',
+      sortOrder: 1,
+      isContainerUnit: false,
+    }),
+  });
+  const billingUnit = createdUnit.data;
+  assert(billingUnit?.id, '应付验收计费单位创建失败');
+
+  const createdService = await request('/api/v1/finance/taxable-services', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: `基础物流服务_${stamp.slice(-6)}`,
+      defaultTaxRate: '0.00',
+    }),
+  });
+  const taxableService = createdService.data;
+  assert(taxableService?.id, '应付验收应税服务创建失败');
+
+  const createdSetting = await request('/api/v1/finance/fee-settings', {
+    method: 'POST',
+    body: JSON.stringify({
+      feeCode: `FEE_AP_${stamp.slice(-6)}`,
+      nameZh: '海运应付运费',
+      defaultCurrency: 'CNY',
+      billingUnitId: billingUnit.id,
+      taxableServiceId: taxableService.id,
+      taxRate: '0.00',
+      sortOrder: 1,
+    }),
+  });
+  createdFeeSetting = createdSetting.data;
+  assert(createdFeeSetting?.id, '应付验收费用科目创建失败');
+
+  await request('/api/v1/finance/exchange-rate-time-standards', {
+    method: 'PUT',
+    body: JSON.stringify({
+      data: [
+        { rateType: 'BASE_CURRENCY', timeStandards: ['ORDER_CREATED_AT'] },
+        { rateType: 'BILL', timeStandards: ['BILL_DATE'] },
+        { rateType: 'INVOICE', timeStandards: ['INVOICE_DATE'] },
+        { rateType: 'SETTLEMENT', timeStandards: ['TRANSACTION_DATE'] },
+        { rateType: 'WRITE_OFF', timeStandards: ['WRITE_OFF_TIME'] },
+      ],
+    }),
+  });
+}
+
 const options = await request(`/api/v1/orders/${order.id}/fee-options`);
-const feeSetting = options.feeSettings?.find(
-  (item) => item.id && item.defaultBillingUnitId && item.taxRate != null,
-);
+let feeSetting;
+if (apply) {
+  feeSetting = options.feeSettings?.find(
+    (item) => item.id === createdFeeSetting.id,
+  );
+  assert(feeSetting?.id, `费用选项中未返回新创建的专用应付费用科目: ${createdFeeSetting?.id}`);
+} else {
+  feeSetting = options.feeSettings?.find(
+    (item) => item.id && item.defaultBillingUnitId && item.taxRate != null,
+  );
+  assert(feeSetting?.id, '没有可用于应付验收的启用费用设置');
+}
 const settlementParty = options.settlementParties?.find(
   (item) => item.id === supplier.id,
 );
-assert(feeSetting?.id, '没有可用于应付验收的启用费用设置');
 assert(feeSetting.defaultBillingUnitId, '应付验收费用设置缺少默认计费单位');
 assert(settlementParty?.id, '费用选项没有返回刚创建的供应商');
 assert(options.baseCurrency, '费用选项缺少本位币');
@@ -209,12 +270,8 @@ const confirmedFeeResponse = await request(
   },
 );
 const confirmedFee = confirmedFeeResponse.data;
-assert(
-  confirmedFee?.status === 2 ||
-    confirmedFee?.status === 'ORDER_FEE_STATUS_CONFIRMED',
-  '应付费用确认失败',
-);
-
+assert(confirmedFee?.status === 2, `费用确认后状态应为 CONFIRMED(2)，实际 ${confirmedFee?.status}`);
+assert(isEnumValue(confirmedFee?.direction, 2, 'PAYABLE'), '费用确认后应付方向丢失');
 const orderFees = await request(`/api/v1/orders/${order.id}/fees`);
 const persistedFee = orderFees.data?.find((item) => item.id === confirmedFee.id);
 assert(
@@ -225,7 +282,10 @@ const payableLedger = await request(
   `/api/v1/finance/fees?page=1&pageSize=200&keyword=${encodeURIComponent(order.orderNo)}&direction=PAYABLE`,
 );
 const ledgerFee = payableLedger.data?.find((item) => item.id === confirmedFee.id);
-assert(ledgerFee?.financialProgress === 'UNBILLED', '应付费用建账单前状态不是 UNBILLED');
+assert(
+  ledgerFee?.financialProgress === 1,
+  '应付费用建账单前状态不是 UNBILLED',
+);
 assert(
   ledgerFee.customerId === customer.id &&
     ledgerFee.settlementPartyId === supplier.id &&
@@ -282,7 +342,7 @@ const confirmedBatchResponse = await request(
   },
 );
 const confirmedBill = confirmedBatchResponse.data?.bills?.[0];
-assert(confirmedBill?.status === 'CONFIRMED', '应付账单确认失败');
+assert(confirmedBill?.status === 2, '应付账单确认失败');
 assert(confirmedBill.direction === 'PAYABLE', '确认账单时应付方向丢失');
 
 const wrongCashflowResponse = await request('/api/v1/finance/cashflows', {
@@ -374,7 +434,7 @@ const confirmedCashflowResponse = await request(
 const confirmedCashflow = confirmedCashflowResponse.data;
 assert(confirmedCashflow?.direction === 'PAYABLE', '付款流水未保存为应付方向');
 const payableCashflows = await request(
-  `/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}&currency=${confirmedBill.currency}`,
+  `/api/v1/finance/cashflows?page=1&pageSize=200&status=FINANCE_CASHFLOW_STATUS_CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}&currency=${confirmedBill.currency}`,
 );
 assert(
   payableCashflows.data?.some((item) => item.id === confirmedCashflow.id),
@@ -407,15 +467,15 @@ const [feesAfterVerification, billsAfterVerification, cashflowsAfterVerification
       `/api/v1/finance/fees?page=1&pageSize=200&keyword=${encodeURIComponent(order.orderNo)}&direction=PAYABLE`,
     ),
     request(
-      `/api/v1/finance/bills?page=1&pageSize=200&status=CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}`,
+      `/api/v1/finance/bills?page=1&pageSize=200&status=FINANCE_BILL_STATUS_CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}`,
     ),
     request(
-      `/api/v1/finance/cashflows?page=1&pageSize=200&status=CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}`,
+      `/api/v1/finance/cashflows?page=1&pageSize=200&status=FINANCE_CASHFLOW_STATUS_CONFIRMED&direction=PAYABLE&settlementPartyId=${supplier.id}`,
     ),
   ]);
 assert(
   feesAfterVerification.data?.find((item) => item.id === confirmedFee.id)
-    ?.financialProgress === 'VERIFIED_UNINVOICED',
+    ?.financialProgress === 4,
   '应付全额核销后费用状态不是 VERIFIED_UNINVOICED',
 );
 assert(

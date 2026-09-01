@@ -16,10 +16,10 @@
 - 新增任务专用一次性环境编排器，显式接收 PostgreSQL 管理连接并确认现有验收配置的
   固定端口 `8010/8001` 空闲，串行管理临时库 A/B 的创建、迁移、初始化、健康检查、
   验收、进程停止和资源删除。
-- 编排器使用 `try/finally`，但清理失败仍须返回非零；只能删除通过任务前缀和当前连接
-  归属双重校验的库/角色，不提供 `IF EXISTS` 后静默成功的假清理。
+- 编排器对所有子进程在 Unix 下分配独立进程组并在 stopProcess 中执行可验证的完整进程组终止（检查 `isTargetAlive`，SIGTERM 等待后升级 SIGKILL，再次等待并检查 `process.kill(-pid, 0)`，残留时主动抛错）；通过单一串行清理所有权消除阶段 finally 与信号处理器的竞态；`runStageA` 与 `runStageB` 引入 `combineExecutionAndCleanupErrors`，业务执行错误与资源清理错误并存时使用 `AggregateError` 统一合并向上抛出；`registerChild` 在 leader 退出但组仍存活时保守保留追踪；`runCommand` 在 leader 退出但组残留时拒绝并强制终止组，且在非零退出时同时保留命令原错误与孤儿组错误，error/exit 受 `settled` 保护；通过 `--self-test-lifecycle` 自测 only-role 正常清理 (1A)、only-role 故障注入 (1B)、父建子接管 SIGTERM 信号中断 (2)、父流程主动模拟异常故障注入 (3)、就绪超时故障注入 (4)、进程组直接清理故障注入 (5)、runCommand 进程组安全防护双故障注入 (6A/6B) 及 stage 阶段双错误保留故障注入 (7) 共八项自测（所有自测均有严格 Preflight 校验、单一缓冲 `waitForMarker` 握手、直接真实创建证明、失败安全 try/finally 及 `finally` 归零回收，末尾断言活跃追踪集合归零，使用自定义 `SelfTestInjectedError` 严格代码断言）；由父进程预生成确定性资源名称并提供 pending 跟踪保障，外层受控 `try/finally` 确保全流程零泄漏；`execSQL`/`querySQLSingleValue`/`querySQLCount01` 在失败时对 SQL、stderr、stdout 统一脱敏输出口令，防止密码泄漏；`waitForHttpReady` 严格只认 HTTP 2xx；清理失败仍须返回非零；只能删除通过任务前缀和当前连接归属双重校验的库/角色，不提供 `IF EXISTS` 后静默成功的假清理。
 - 调整应收批量账单脚本，在 `--apply` 模式显式创建专用客户和所需开票资料；移除对
-  “数据库至少已有一个客户”的依赖，不改变其余存量并发、状态机和逆向场景。
+  “数据库至少已有一个客户”的依赖；发票编号规则收敛为精确数字枚举 `11`；完成提成调整测试后保持提成，在反核销时断言自动反冲至 `CANCELLED(4)` 并释放财务锁。
+- 调整应付验收脚本，保存创建的专用 AP fee setting 并在创建费用时按其 ID 精确引用；`ConfirmFeeRequest` body 修正为契约字段 `id: draftFee.id`（而非 `feeId`），并在确认后断言 `confirmedFee.status === 2`。
 - 对提成预览、创建及详情补充 `BASE_CURRENCY/1` 和 CNY 金额断言。
 - 先执行 Node 语法检查和脚本预检，再在临时库 A 完整运行原有验收。
 
@@ -27,7 +27,7 @@
 
 - 新增外币验收脚本：登录、在无业务数据的新环境设置 USD 本位币、设置五类时间标准、
   创建六条系统汇率。
-- 汇率 `effectiveFrom` 使用 Asia/Shanghai 当日零点的秒级 RFC 3339；订单费用时间标准
+- 日历日期与汇率 `effectiveFrom` 使用 Asia/Shanghai 当日零点的秒级 RFC 3339；订单费用时间标准
   使用 `ORDER_CREATED_AT`，其余严格使用 `BILL_DATE`、`INVOICE_DATE`、
   `TRANSACTION_DATE`、`WRITE_OFF_TIME`。
 - 复用现有 API 契约顺序创建客户、订单、人员归属、EUR 应收费用、EUR 账单、发票、

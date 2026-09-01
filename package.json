@@ -26,6 +26,8 @@
     "acceptance:finance-payable": "node --env-file-if-exists=.env.local scripts/acceptance-finance-payable.mjs",
     "acceptance:finance-ui": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs pnpm --dir web test:e2e",
     "acceptance:fee-ledger-preference": "node --env-file-if-exists=.env.local scripts/acceptance-fee-ledger-preference.mjs",
+    "acceptance:finance:foreign-currency": "node scripts/acceptance-finance-foreign-currency.mjs",
+    "acceptance:finance:disposable": "node scripts/run-acceptance-finance-disposable.mjs",
     "acceptance:finance": "pnpm run acceptance:finance-bill-batch -- --apply && pnpm run acceptance:finance-payable -- --apply && pnpm run acceptance:finance-ui",
     "check:web": "pnpm run check:permission-keys && pnpm run check:proto-constants && pnpm --dir web lint && pnpm --dir web test",
     "lint:proto": "buf lint server",

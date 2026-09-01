@@ -5,6 +5,8 @@ server:
   grpc:
     addr: 127.0.0.1:9010
     timeout: 1s
+logging:
+  level: ${LOG_LEVEL:debug}
 data:
   database:
     driver: postgres

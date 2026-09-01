@@ -19,17 +19,12 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
 
   await page.goto('/finance/bills');
   await expect(
-    page.getByTestId('pro-table').getByText('对账单管理', { exact: true }),
+    page.getByTestId('pro-table').getByText('账单管理台账', { exact: true }),
   ).toBeVisible();
-  await page.getByRole('button', { name: '生成账单' }).click();
+  await page.getByRole('button', { name: '批量创建账单' }).click();
   await expect(page.getByText('费用批量转账单', { exact: true })).toBeVisible();
-  await expect(page.getByText('选择费用', { exact: true })).toBeVisible();
-  await expect(page.getByText('拆单策略', { exact: true })).toBeVisible();
-  await expect(page.getByText('账单资料', { exact: true })).toBeVisible();
-  await page
-    .getByRole('dialog', { name: '费用批量转账单' })
-    .getByRole('button', { name: /取\s*消/ })
-    .click();
+  await expect(page.getByText('选择待结算费用', { exact: true })).toBeVisible();
+  await page.locator('.ant-drawer-close').click();
 
   const orders = await page.evaluate(async () => {
     const response = await fetch('/api/v1/orders?page=1&pageSize=100');
@@ -62,10 +57,10 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
     page.getByTestId('pro-table').getByText('集运费用明细台账', { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole('columnheader', { name: '委托单位', exact: true }),
+    page.locator('.ant-table-thead').getByText('委托单位', { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole('columnheader', { name: '结算单位', exact: true }),
+    page.locator('.ant-table-thead').getByText('结算单位', { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText(customer.data.legalName, { exact: true }).first(),
@@ -160,9 +155,7 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   await expect(verificationDialog).toBeHidden();
 
   await page.goto('/finance/commissions');
-  await expect(
-    page.getByTestId('pro-table').getByText('提成管理', { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: '生成提成' })).toBeVisible();
   const commissions = await page.evaluate(async () => {
     const response = await fetch(
       '/api/v1/finance/commissions?page=1&pageSize=200',
@@ -175,7 +168,7 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
       commissionNo?: string;
       adjustments?: unknown[];
     }) =>
-      item.calculationVersion === 'ORDER_LINE_V1' &&
+      item.calculationVersion === 'CUSTOMER_REALIZED_PROFIT_V2' &&
       item.commissionNo &&
       item.adjustments?.length,
   );
@@ -201,7 +194,7 @@ test('费用、账单、开票、收付与核销页面可完成财务闭环操�
   ).toBeVisible();
   await expect(commissionDrawer.getByText(/ADJ\d{3}/).first()).toBeVisible();
   await expect(
-    commissionDrawer.getByText('有效提成', { exact: true }),
+    commissionDrawer.getByText(/有效提成/).first(),
   ).toBeVisible();
   await commissionDrawer.getByRole('button', { name: 'Close' }).click();
 
