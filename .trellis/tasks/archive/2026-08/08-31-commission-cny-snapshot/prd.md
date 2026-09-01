@@ -39,17 +39,17 @@
 
 ## Acceptance Criteria
 
-- [ ] 本位币 CNY：汇率恒 1、来源 BASE_CURRENCY、setting ID 空。
-- [ ] 非 CNY 本币：倒数折算、来源 DERIVED、setting ID 回填，倒数精度断言。
-- [ ] 汇率缺失/日期无效时预览与创建均报错，不落库。
-- [ ] 预览后修改汇率配置，创建按事务内重新解析结果写入。
-- [ ] `commission_date` 等于核销日期；同核销单重生成按新快照。
-- [ ] CNY 调整/有效金额与调整状态机一致（草稿、取消不计入）。
-- [ ] 日期单边、双边、同日、非法格式和 `from > to` 均有验证。
-- [ ] 列表使用 `commission_date DESC, created_at DESC, id DESC` 稳定排序。
-- [ ] 汇率解析、提成保存或审计任一步失败均完整回滚。
-- [ ] 既有生成、确认、支付、调整链路不回归。
-- [ ] 契约变更走 proto 先行，生成物同提交；`go -C server test ./...` 通过。
+- [x] 本位币 CNY：汇率恒 1、来源 BASE_CURRENCY、setting ID 空。
+- [x] 非 CNY 本币：倒数折算、来源 DERIVED、setting ID 回填，倒数精度断言。
+- [x] 汇率缺失/日期无效时预览与创建均报错，不落库。
+- [x] 预览后修改汇率配置，创建按事务内重新解析结果写入。
+- [x] `commission_date` 等于核销日期；同核销单重生成按新快照。
+- [x] CNY 调整/有效金额与调整状态机一致（草稿、取消不计入）。
+- [x] 日期单边、双边、同日、非法格式和 `from > to` 均有验证。
+- [x] 列表使用 `commission_date DESC, created_at DESC, id DESC` 稳定排序。
+- [x] 汇率解析、提成保存或审计任一步失败均完整回滚。
+- [x] 既有生成、确认、支付、调整链路不回归。
+- [x] 契约变更走 proto 先行，生成物同提交；`go -C server test ./...` 通过。
 
 ## Out of Scope
 

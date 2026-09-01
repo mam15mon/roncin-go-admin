@@ -23,11 +23,11 @@
 
 ## Acceptance Criteria
 
-- [ ] `export`、`employees`、`candidates` 三条静态 GET 路由均正确分发，不会把静态
+- [x] `export`、`employees`、`candidates` 三条静态 GET 路由均正确分发，不会把静态
       片段解析为 `{id}`。
-- [ ] `/api/v1/finance/commissions/{id}` 的正常详情路由仍可分发到 `GetCommission`。
-- [ ] 生成代码由 Proto 重建且重跑生成命令无新增差异。
-- [ ] 新增 Router 回归测试、`go -C server test ./internal/server/...`、
+- [x] `/api/v1/finance/commissions/{id}` 的正常详情路由仍可分发到 `GetCommission`。
+- [x] 生成代码由 Proto 重建且重跑生成命令无新增差异。
+- [x] 新增 Router 回归测试、`go -C server test ./internal/server/...`、
       `go -C server test ./...` 与 `go -C server vet ./...` 全部通过。
 
 ## Notes
