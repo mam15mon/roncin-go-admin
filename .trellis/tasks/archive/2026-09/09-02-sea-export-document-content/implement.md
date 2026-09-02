@@ -49,19 +49,19 @@
 
 ## 验证
 
-- [ ] `make -C server api`
-- [ ] `go -C server generate ./...`
-- [ ] `pnpm run generate:web-client`
-- [ ] 如修改权限：`pnpm run generate:permission-keys`
-- [ ] 所有生成命令重跑无新增差异。
-- [ ] `go -C server vet ./...`
-- [ ] `go -C server test ./...`
-- [ ] 专用 PostgreSQL 集成测试显式连接开发库运行并 PASS，不是 SKIP。
-- [ ] `pnpm --dir web test`
-- [ ] `pnpm --dir web tsc`
-- [ ] `pnpm --dir web biome:lint`
-- [ ] `git diff --check`
-- [ ] 迁移在当前开发库应用成功，并核对 CHECK、FK 和条件唯一索引。
+- [x] `make -C server api`
+- [x] `go -C server generate ./...`
+- [x] `pnpm run generate:web-client`
+- [x] 未修改权限 Manifest，无需运行 `pnpm run generate:permission-keys`
+- [x] 所有生成命令重跑无新增差异。
+- [x] `go -C server vet ./...`
+- [x] `go -C server test ./...`
+- [x] 专用 PostgreSQL 集成测试显式连接隔离 Schema 运行并 PASS，不是 SKIP。
+- [x] `pnpm --dir web test`
+- [x] `pnpm --dir web tsc`
+- [x] `pnpm --dir web biome:lint`
+- [x] `git diff --check`
+- [x] 迁移在当前开发库应用成功，并核对 CHECK、FK 和条件唯一索引。
 
 ## 主会话检查重点
 
