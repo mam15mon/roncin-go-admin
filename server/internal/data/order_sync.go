@@ -210,6 +210,9 @@ func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, o
 }
 
 func syncOrderShippingDocuments(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, businessType biz.OrderBusinessType, orderID uuid.UUID, inputs []*biz.OrderShippingDocument) error {
+	if businessType == biz.OrderBusinessSE && len(inputs) > 0 {
+		return biz.ErrSeaShippingDocumentsDeprecated
+	}
 	existing, err := tx.OrderShippingDocument.Query().Where(ordershippingdocumentent.OrderIDEQ(orderID)).ForUpdate().All(ctx)
 	if err != nil {
 		return err

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 )
 
@@ -30,6 +31,44 @@ func setupTestOrderShippingDocumentRepo(t *testing.T) (biz.OrderShippingDocument
 		_ = db.Close()
 	}
 	return repo, mock, cleanup
+}
+
+func airOrderRows(id, orgID uuid.UUID) *sqlmock.Rows {
+	now := time.Now()
+	rows := sqlmock.NewRows(orderent.Columns)
+	values := make([]driver.Value, len(orderent.Columns))
+	for i, col := range orderent.Columns {
+		switch col {
+		case orderent.FieldID:
+			values[i] = id
+		case orderent.FieldOrganizationID:
+			values[i] = orgID
+		case orderent.FieldOrderNo:
+			values[i] = "ORD-20260821-0001"
+		case orderent.FieldBusinessType:
+			values[i] = "AE"
+		case orderent.FieldTradeDirection:
+			values[i] = "export"
+		case orderent.FieldTradeTerm:
+			values[i] = "FOB"
+		case orderent.FieldPaymentTerm:
+			values[i] = "PREPAID"
+		case orderent.FieldShipmentType:
+			values[i] = "FCL"
+		case orderent.FieldFlowStatus:
+			values[i] = "DRAFT"
+		case orderent.FieldTerminationStatus:
+			values[i] = "ACTIVE"
+		case orderent.FieldClosureStatus:
+			values[i] = "OPEN"
+		case orderent.FieldCreatedAt, orderent.FieldUpdatedAt:
+			values[i] = now
+		default:
+			values[i] = nil
+		}
+	}
+	rows.AddRow(values...)
+	return rows
 }
 
 func shippingDocRows(id, orderID uuid.UUID, houseNo, status string) *sqlmock.Rows {
@@ -56,7 +95,7 @@ func shippingDocRows(id, orderID uuid.UUID, houseNo, status string) *sqlmock.Row
 	return rows
 }
 
-func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
+func TestOrderShippingDocumentRepo_RejectsSEOrder(t *testing.T) {
 	repo, mock, cleanup := setupTestOrderShippingDocumentRepo(t)
 	defer cleanup()
 
@@ -70,6 +109,31 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 	mock.ExpectQuery(`SELECT "orders"\."id"`).
 		WithArgs(orderID, orgID).
 		WillReturnRows(orderRows(orderID, orgID))
+
+	_, err := repo.Add(context.Background(), orgID, orderID, input, nil)
+	if !errors.Is(err, biz.ErrSeaShippingDocumentsDeprecated) {
+		t.Fatalf("expected ErrSeaShippingDocumentsDeprecated for SE order, got: %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("unmet expectations: %v", err)
+	}
+}
+
+func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
+	repo, mock, cleanup := setupTestOrderShippingDocumentRepo(t)
+	defer cleanup()
+
+	orgID := uuid.New()
+	orderID := uuid.New()
+	input := &biz.OrderShippingDocument{
+		ID:      uuid.New(),
+		HouseNo: "HBL999999",
+	}
+
+	mock.ExpectQuery(`SELECT "orders"\."id"`).
+		WithArgs(orderID, orgID).
+		WillReturnRows(airOrderRows(orderID, orgID))
 
 	mock.ExpectBegin()
 
@@ -99,7 +163,7 @@ func TestOrderShippingDocumentRepo_Remove_ReleasedStatusPrevented(t *testing.T) 
 
 	mock.ExpectQuery(`SELECT "orders"\."id"`).
 		WithArgs(orderID, orgID).
-		WillReturnRows(orderRows(orderID, orgID))
+		WillReturnRows(airOrderRows(orderID, orgID))
 
 	mock.ExpectBegin()
 
@@ -135,7 +199,7 @@ func TestOrderShippingDocumentRepo_Remove_AuditErrorRollsBack(t *testing.T) {
 		Result:         "success",
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(orderRows(orderID, orgID))
+	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(airOrderRows(orderID, orgID))
 	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT "order_shipping_documents"\."id".*FOR UPDATE`).
 		WithArgs(docID, orderID).

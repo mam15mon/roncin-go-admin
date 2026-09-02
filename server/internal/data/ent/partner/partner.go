@@ -70,6 +70,8 @@ const (
 	EdgeFinanceVerifications = "finance_verifications"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
+	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
+	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
 	// Table holds the table name of the partner in the database.
 	Table = "partners"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -191,6 +193,13 @@ const (
 	OrderCommissionAttributionsInverseTable = "order_commission_attributions"
 	// OrderCommissionAttributionsColumn is the table column denoting the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsColumn = "customer_id"
+	// IssuedSeaHouseBillsTable is the table that holds the issued_sea_house_bills relation/edge.
+	IssuedSeaHouseBillsTable = "sea_house_bills"
+	// IssuedSeaHouseBillsInverseTable is the table name for the SeaHouseBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebill" package.
+	IssuedSeaHouseBillsInverseTable = "sea_house_bills"
+	// IssuedSeaHouseBillsColumn is the table column denoting the issued_sea_house_bills relation/edge.
+	IssuedSeaHouseBillsColumn = "issuer_partner_id"
 )
 
 // Columns holds all SQL columns for partner fields.
@@ -530,6 +539,20 @@ func ByOrderCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) O
 		sqlgraph.OrderByNeighborTerms(s, newOrderCommissionAttributionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByIssuedSeaHouseBillsCount orders the results by issued_sea_house_bills count.
+func ByIssuedSeaHouseBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIssuedSeaHouseBillsStep(), opts...)
+	}
+}
+
+// ByIssuedSeaHouseBills orders the results by issued_sea_house_bills terms.
+func ByIssuedSeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIssuedSeaHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -647,5 +670,12 @@ func newOrderCommissionAttributionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderCommissionAttributionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderCommissionAttributionsTable, OrderCommissionAttributionsColumn),
+	)
+}
+func newIssuedSeaHouseBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IssuedSeaHouseBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillsTable, IssuedSeaHouseBillsColumn),
 	)
 }

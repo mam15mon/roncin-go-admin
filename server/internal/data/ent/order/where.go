@@ -4569,6 +4569,29 @@ func HasSeaMasterBillLinksWith(preds ...predicate.SeaMasterBillOrderLink) predic
 	})
 }
 
+// HasSeaHouseBills applies the HasEdge predicate on the "sea_house_bills" edge.
+func HasSeaHouseBills() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillsTable, SeaHouseBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillsWith applies the HasEdge predicate on the "sea_house_bills" edge with a given conditions (other predicates).
+func HasSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newSeaHouseBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Order) predicate.Order {
 	return predicate.Order(sql.AndPredicates(predicates...))

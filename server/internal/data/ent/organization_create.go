@@ -46,6 +46,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -480,6 +481,36 @@ func (_c *OrganizationCreate) AddSeaMasterBillOrderLinks(v ...*SeaMasterBillOrde
 		ids[i] = v[i].ID
 	}
 	return _c.AddSeaMasterBillOrderLinkIDs(ids...)
+}
+
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_c *OrganizationCreate) AddSeaHouseBillIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddSeaHouseBillIDs(ids...)
+	return _c
+}
+
+// AddSeaHouseBills adds the "sea_house_bills" edges to the SeaHouseBill entity.
+func (_c *OrganizationCreate) AddSeaHouseBills(v ...*SeaHouseBill) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaHouseBillIDs(ids...)
+}
+
+// AddIssuedSeaHouseBillIDs adds the "issued_sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_c *OrganizationCreate) AddIssuedSeaHouseBillIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddIssuedSeaHouseBillIDs(ids...)
+	return _c
+}
+
+// AddIssuedSeaHouseBills adds the "issued_sea_house_bills" edges to the SeaHouseBill entity.
+func (_c *OrganizationCreate) AddIssuedSeaHouseBills(v ...*SeaHouseBill) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIssuedSeaHouseBillIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -1306,6 +1337,38 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.SeaHouseBillsTable,
+			Columns: []string{organization.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IssuedSeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.IssuedSeaHouseBillsTable,
+			Columns: []string{organization.IssuedSeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

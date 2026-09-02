@@ -27,6 +27,9 @@ func (r *orderShippingDocumentRepo) order(ctx context.Context, organizationID, o
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderShippingDocumentNotFound, nil)
 	}
+	if item.BusinessType == orderent.BusinessTypeSE {
+		return nil, biz.ErrSeaShippingDocumentsDeprecated
+	}
 	return item, nil
 }
 

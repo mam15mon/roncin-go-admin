@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -31,6 +32,7 @@ type SeaMasterBillQuery struct {
 	withOrganization       *OrganizationQuery
 	withTransportExecution *SeaTransportExecutionQuery
 	withOrderLinks         *SeaMasterBillOrderLinkQuery
+	withHouseBills         *SeaHouseBillQuery
 	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -127,6 +129,28 @@ func (_q *SeaMasterBillQuery) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
 			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.OrderLinksTable, seamasterbill.OrderLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHouseBills chains the current query on the "house_bills" edge.
+func (_q *SeaMasterBillQuery) QueryHouseBills() *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, selector),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.HouseBillsTable, seamasterbill.HouseBillsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -329,6 +353,7 @@ func (_q *SeaMasterBillQuery) Clone() *SeaMasterBillQuery {
 		withOrganization:       _q.withOrganization.Clone(),
 		withTransportExecution: _q.withTransportExecution.Clone(),
 		withOrderLinks:         _q.withOrderLinks.Clone(),
+		withHouseBills:         _q.withHouseBills.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -365,6 +390,17 @@ func (_q *SeaMasterBillQuery) WithOrderLinks(opts ...func(*SeaMasterBillOrderLin
 		opt(query)
 	}
 	_q.withOrderLinks = query
+	return _q
+}
+
+// WithHouseBills tells the query-builder to eager-load the nodes that are connected to
+// the "house_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SeaMasterBillQuery) WithHouseBills(opts ...func(*SeaHouseBillQuery)) *SeaMasterBillQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withHouseBills = query
 	return _q
 }
 
@@ -446,10 +482,11 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*SeaMasterBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withOrganization != nil,
 			_q.withTransportExecution != nil,
 			_q.withOrderLinks != nil,
+			_q.withHouseBills != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -489,6 +526,13 @@ func (_q *SeaMasterBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		if err := _q.loadOrderLinks(ctx, query, nodes,
 			func(n *SeaMasterBill) { n.Edges.OrderLinks = []*SeaMasterBillOrderLink{} },
 			func(n *SeaMasterBill, e *SeaMasterBillOrderLink) { n.Edges.OrderLinks = append(n.Edges.OrderLinks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withHouseBills; query != nil {
+		if err := _q.loadHouseBills(ctx, query, nodes,
+			func(n *SeaMasterBill) { n.Edges.HouseBills = []*SeaHouseBill{} },
+			func(n *SeaMasterBill, e *SeaHouseBill) { n.Edges.HouseBills = append(n.Edges.HouseBills, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -568,6 +612,36 @@ func (_q *SeaMasterBillQuery) loadOrderLinks(ctx context.Context, query *SeaMast
 	}
 	query.Where(predicate.SeaMasterBillOrderLink(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(seamasterbill.OrderLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.MasterBillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "master_bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SeaMasterBillQuery) loadHouseBills(ctx context.Context, query *SeaHouseBillQuery, nodes []*SeaMasterBill, init func(*SeaMasterBill), assign func(*SeaMasterBill, *SeaHouseBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*SeaMasterBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebill.FieldMasterBillID)
+	}
+	query.Where(predicate.SeaHouseBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(seamasterbill.HouseBillsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

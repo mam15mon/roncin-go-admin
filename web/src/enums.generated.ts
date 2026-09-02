@@ -447,6 +447,45 @@ export const OrderShippingDocumentStatus = {
 
 export type OrderShippingDocumentStatus = (typeof OrderShippingDocumentStatus)[keyof typeof OrderShippingDocumentStatus];
 
+export const SeaDocumentStructure = {
+  SEA_DOCUMENT_STRUCTURE_UNSPECIFIED: 0,
+  SEA_DOCUMENT_STRUCTURE_UNDETERMINED: 1,
+  SEA_DOCUMENT_STRUCTURE_DIRECT: 2,
+  SEA_DOCUMENT_STRUCTURE_HOUSE: 3,
+} as const;
+
+export type SeaDocumentStructure = (typeof SeaDocumentStructure)[keyof typeof SeaDocumentStructure];
+
+export const SeaHouseBillIssuerSource = {
+  SEA_HOUSE_BILL_ISSUER_SOURCE_UNSPECIFIED: 0,
+  SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION: 1,
+  SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER: 2,
+  SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER: 3,
+} as const;
+
+export type SeaHouseBillIssuerSource = (typeof SeaHouseBillIssuerSource)[keyof typeof SeaHouseBillIssuerSource];
+
+export const SeaHouseBillStatus = {
+  SEA_HOUSE_BILL_STATUS_UNSPECIFIED: 0,
+  SEA_HOUSE_BILL_STATUS_DRAFT: 1,
+  SEA_HOUSE_BILL_STATUS_CONFIRMED: 2,
+  SEA_HOUSE_BILL_STATUS_RELEASED: 3,
+} as const;
+
+export type SeaHouseBillStatus = (typeof SeaHouseBillStatus)[keyof typeof SeaHouseBillStatus];
+
+export const SeaDocumentAction = {
+  SEA_DOCUMENT_ACTION_UNSPECIFIED: 0,
+  SEA_DOCUMENT_ACTION_MARK_DIRECT: 1,
+  SEA_DOCUMENT_ACTION_CANCEL_DIRECT: 2,
+  SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL: 3,
+  SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL: 4,
+  SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL: 5,
+  SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT: 6,
+} as const;
+
+export type SeaDocumentAction = (typeof SeaDocumentAction)[keyof typeof SeaDocumentAction];
+
 export const PartnerRoleType = {
   PARTNER_ROLE_TYPE_UNSPECIFIED: 0,
   PARTNER_ROLE_TYPE_CUSTOMER: 1,

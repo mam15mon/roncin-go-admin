@@ -77,6 +77,10 @@ const (
 	EdgeSeaMasterBills = "sea_master_bills"
 	// EdgeSeaMasterBillOrderLinks holds the string denoting the sea_master_bill_order_links edge name in mutations.
 	EdgeSeaMasterBillOrderLinks = "sea_master_bill_order_links"
+	// EdgeSeaHouseBills holds the string denoting the sea_house_bills edge name in mutations.
+	EdgeSeaHouseBills = "sea_house_bills"
+	// EdgeIssuedSeaHouseBills holds the string denoting the issued_sea_house_bills edge name in mutations.
+	EdgeIssuedSeaHouseBills = "issued_sea_house_bills"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeBackgroundTasks holds the string denoting the background_tasks edge name in mutations.
@@ -262,6 +266,20 @@ const (
 	SeaMasterBillOrderLinksInverseTable = "sea_master_bill_order_links"
 	// SeaMasterBillOrderLinksColumn is the table column denoting the sea_master_bill_order_links relation/edge.
 	SeaMasterBillOrderLinksColumn = "organization_id"
+	// SeaHouseBillsTable is the table that holds the sea_house_bills relation/edge.
+	SeaHouseBillsTable = "sea_house_bills"
+	// SeaHouseBillsInverseTable is the table name for the SeaHouseBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebill" package.
+	SeaHouseBillsInverseTable = "sea_house_bills"
+	// SeaHouseBillsColumn is the table column denoting the sea_house_bills relation/edge.
+	SeaHouseBillsColumn = "organization_id"
+	// IssuedSeaHouseBillsTable is the table that holds the issued_sea_house_bills relation/edge.
+	IssuedSeaHouseBillsTable = "sea_house_bills"
+	// IssuedSeaHouseBillsInverseTable is the table name for the SeaHouseBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebill" package.
+	IssuedSeaHouseBillsInverseTable = "sea_house_bills"
+	// IssuedSeaHouseBillsColumn is the table column denoting the issued_sea_house_bills relation/edge.
+	IssuedSeaHouseBillsColumn = "issuer_organization_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -827,6 +845,34 @@ func BySeaMasterBillOrderLinks(term sql.OrderTerm, terms ...sql.OrderTerm) Order
 	}
 }
 
+// BySeaHouseBillsCount orders the results by sea_house_bills count.
+func BySeaHouseBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSeaHouseBillsStep(), opts...)
+	}
+}
+
+// BySeaHouseBills orders the results by sea_house_bills terms.
+func BySeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSeaHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIssuedSeaHouseBillsCount orders the results by issued_sea_house_bills count.
+func ByIssuedSeaHouseBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIssuedSeaHouseBillsStep(), opts...)
+	}
+}
+
+// ByIssuedSeaHouseBills orders the results by issued_sea_house_bills terms.
+func ByIssuedSeaHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIssuedSeaHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderPersonnelCount orders the results by order_personnel count.
 func ByOrderPersonnelCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1265,6 +1311,20 @@ func newSeaMasterBillOrderLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SeaMasterBillOrderLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SeaMasterBillOrderLinksTable, SeaMasterBillOrderLinksColumn),
+	)
+}
+func newSeaHouseBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SeaHouseBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillsTable, SeaHouseBillsColumn),
+	)
+}
+func newIssuedSeaHouseBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IssuedSeaHouseBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillsTable, IssuedSeaHouseBillsColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {

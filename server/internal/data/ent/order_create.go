@@ -32,6 +32,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
@@ -1233,6 +1234,21 @@ func (_c *OrderCreate) AddSeaMasterBillLinks(v ...*SeaMasterBillOrderLink) *Orde
 	return _c.AddSeaMasterBillLinkIDs(ids...)
 }
 
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_c *OrderCreate) AddSeaHouseBillIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddSeaHouseBillIDs(ids...)
+	return _c
+}
+
+// AddSeaHouseBills adds the "sea_house_bills" edges to the SeaHouseBill entity.
+func (_c *OrderCreate) AddSeaHouseBills(v ...*SeaHouseBill) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSeaHouseBillIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_c *OrderCreate) Mutation() *OrderMutation {
 	return _c.mutation
@@ -2227,6 +2243,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

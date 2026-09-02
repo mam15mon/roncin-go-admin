@@ -28,10 +28,8 @@ describe('buildCreateOrderPayload', () => {
         commercialOrganizationId: 'org-6',
         associate2UserId: 'associate-2',
         associate2OrganizationId: 'org-7',
-        shippingDocuments: [
-          { houseNo: '  HBL-001  ' },
-          { houseNo: '  ' },
-        ],
+        seaDocumentStructure: 3,
+        seaHouseBills: [{ houseNo: '  HBL-001  ', issuerSource: 1 }],
       },
       ORDER_KIND_CONFIGS['sea-export'],
     );
@@ -55,10 +53,28 @@ describe('buildCreateOrderPayload', () => {
         { role: 6, userId: 'commercial-1', organizationId: 'org-6' },
         { role: 8, userId: 'associate-2', organizationId: 'org-7' },
       ],
-      shippingDocuments: [
-        { houseNo: 'HBL-001' },
-      ],
+      shippingDocuments: undefined,
+      seaDocument: {
+        documentStructure: 3,
+        houseBills: [{ houseNo: '  HBL-001  ', issuerSource: 1 }],
+      },
     });
+  });
+
+  it('不静默丢弃用户填写不完整的海运分单', () => {
+    const result = buildCreateOrderPayload(
+      {
+        customerId: 'customer-1',
+        tradeTerm: 3,
+        paymentTerm: 1,
+        seaHouseBills: [{ houseNo: '   ', issuerSource: 1 }],
+      },
+      ORDER_KIND_CONFIGS['sea-export'],
+    );
+
+    expect(result.seaDocument?.houseBills).toEqual([
+      { houseNo: '   ', issuerSource: 1 },
+    ]);
   });
 
   it('忽略空白可选字段和不完整的岗位人员', () => {
@@ -69,14 +85,35 @@ describe('buildCreateOrderPayload', () => {
         tradeTerm: 3,
         paymentTerm: 1,
         operatorUserId: 'operator-1',
-        shippingDocuments: [],
       },
       ORDER_KIND_CONFIGS['sea-export'],
     );
 
     expect(result.customerReferenceNo).toBeUndefined();
     expect(result.personnelAssignments).toEqual([]);
-    expect(result.shippingDocuments).toEqual([]);
+    expect(result.shippingDocuments).toBeUndefined();
+  });
+
+  it('非海运订单装配旧提单 shippingDocuments', () => {
+    const nonSeaConfig = {
+      kind: 'air-export' as any,
+      businessType: 2,
+      tradeDirection: 1,
+      title: '空运出口订单',
+      category: 'air' as const,
+    };
+    const result = buildCreateOrderPayload(
+      {
+        customerId: 'customer-1',
+        tradeTerm: 3,
+        paymentTerm: 1,
+        shippingDocuments: [{ houseNo: '  AWB-001  ' }, { houseNo: '  ' }],
+      },
+      nonSeaConfig,
+    );
+
+    expect(result.shippingDocuments).toEqual([{ houseNo: 'AWB-001' }]);
+    expect(result.seaDocument).toBeUndefined();
   });
 
   it('组装海运出口 MBL 主单与候选确认参数', () => {

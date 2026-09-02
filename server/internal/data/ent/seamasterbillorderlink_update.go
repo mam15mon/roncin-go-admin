@@ -94,6 +94,20 @@ func (_u *SeaMasterBillOrderLinkUpdate) SetNillableStatus(v *seamasterbillorderl
 	return _u
 }
 
+// SetDocumentStructure sets the "document_structure" field.
+func (_u *SeaMasterBillOrderLinkUpdate) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpdate {
+	_u.mutation.SetDocumentStructure(v)
+	return _u
+}
+
+// SetNillableDocumentStructure sets the "document_structure" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdate) SetNillableDocumentStructure(v *seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpdate {
+	if v != nil {
+		_u.SetDocumentStructure(*v)
+	}
+	return _u
+}
+
 // SetStartedAt sets the "started_at" field.
 func (_u *SeaMasterBillOrderLinkUpdate) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkUpdate {
 	_u.mutation.SetStartedAt(v)
@@ -250,6 +264,11 @@ func (_u *SeaMasterBillOrderLinkUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DocumentStructure(); ok {
+		if err := seamasterbillorderlink.DocumentStructureValidator(v); err != nil {
+			return &ValidationError{Name: "document_structure", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.document_structure": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.EndedReason(); ok {
 		if err := seamasterbillorderlink.EndedReasonValidator(v); err != nil {
 			return &ValidationError{Name: "ended_reason", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.ended_reason": %w`, err)}
@@ -284,6 +303,9 @@ func (_u *SeaMasterBillOrderLinkUpdate) sqlSave(ctx context.Context) (_node int,
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.DocumentStructure(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldDocumentStructure, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.StartedAt(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStartedAt, field.TypeTime, value)
@@ -475,6 +497,20 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableStatus(v *seamasterbillord
 	return _u
 }
 
+// SetDocumentStructure sets the "document_structure" field.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpdateOne {
+	_u.mutation.SetDocumentStructure(v)
+	return _u
+}
+
+// SetNillableDocumentStructure sets the "document_structure" field if the given value is not nil.
+func (_u *SeaMasterBillOrderLinkUpdateOne) SetNillableDocumentStructure(v *seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkUpdateOne {
+	if v != nil {
+		_u.SetDocumentStructure(*v)
+	}
+	return _u
+}
+
 // SetStartedAt sets the "started_at" field.
 func (_u *SeaMasterBillOrderLinkUpdateOne) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkUpdateOne {
 	_u.mutation.SetStartedAt(v)
@@ -644,6 +680,11 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DocumentStructure(); ok {
+		if err := seamasterbillorderlink.DocumentStructureValidator(v); err != nil {
+			return &ValidationError{Name: "document_structure", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.document_structure": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.EndedReason(); ok {
 		if err := seamasterbillorderlink.EndedReasonValidator(v); err != nil {
 			return &ValidationError{Name: "ended_reason", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.ended_reason": %w`, err)}
@@ -695,6 +736,9 @@ func (_u *SeaMasterBillOrderLinkUpdateOne) sqlSave(ctx context.Context) (_node *
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.DocumentStructure(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldDocumentStructure, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.StartedAt(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStartedAt, field.TypeTime, value)

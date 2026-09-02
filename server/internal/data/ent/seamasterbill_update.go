@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -143,6 +144,327 @@ func (_u *SeaMasterBillUpdate) AddVersion(v int64) *SeaMasterBillUpdate {
 	return _u
 }
 
+// SetShipperText sets the "shipper_text" field.
+func (_u *SeaMasterBillUpdate) SetShipperText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetShipperText(v)
+	return _u
+}
+
+// SetNillableShipperText sets the "shipper_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableShipperText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetShipperText(*v)
+	}
+	return _u
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (_u *SeaMasterBillUpdate) ClearShipperText() *SeaMasterBillUpdate {
+	_u.mutation.ClearShipperText()
+	return _u
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (_u *SeaMasterBillUpdate) SetConsigneeText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetConsigneeText(v)
+	return _u
+}
+
+// SetNillableConsigneeText sets the "consignee_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableConsigneeText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetConsigneeText(*v)
+	}
+	return _u
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (_u *SeaMasterBillUpdate) ClearConsigneeText() *SeaMasterBillUpdate {
+	_u.mutation.ClearConsigneeText()
+	return _u
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (_u *SeaMasterBillUpdate) SetNotifyPartyText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetNotifyPartyText(v)
+	return _u
+}
+
+// SetNillableNotifyPartyText sets the "notify_party_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableNotifyPartyText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetNotifyPartyText(*v)
+	}
+	return _u
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (_u *SeaMasterBillUpdate) ClearNotifyPartyText() *SeaMasterBillUpdate {
+	_u.mutation.ClearNotifyPartyText()
+	return _u
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (_u *SeaMasterBillUpdate) SetSecondNotifyPartyText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetSecondNotifyPartyText(v)
+	return _u
+}
+
+// SetNillableSecondNotifyPartyText sets the "second_notify_party_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableSecondNotifyPartyText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetSecondNotifyPartyText(*v)
+	}
+	return _u
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (_u *SeaMasterBillUpdate) ClearSecondNotifyPartyText() *SeaMasterBillUpdate {
+	_u.mutation.ClearSecondNotifyPartyText()
+	return _u
+}
+
+// SetMarksText sets the "marks_text" field.
+func (_u *SeaMasterBillUpdate) SetMarksText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetMarksText(v)
+	return _u
+}
+
+// SetNillableMarksText sets the "marks_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableMarksText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetMarksText(*v)
+	}
+	return _u
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (_u *SeaMasterBillUpdate) ClearMarksText() *SeaMasterBillUpdate {
+	_u.mutation.ClearMarksText()
+	return _u
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (_u *SeaMasterBillUpdate) SetGoodsDescriptionText(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetGoodsDescriptionText(v)
+	return _u
+}
+
+// SetNillableGoodsDescriptionText sets the "goods_description_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableGoodsDescriptionText(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetGoodsDescriptionText(*v)
+	}
+	return _u
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (_u *SeaMasterBillUpdate) ClearGoodsDescriptionText() *SeaMasterBillUpdate {
+	_u.mutation.ClearGoodsDescriptionText()
+	return _u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (_u *SeaMasterBillUpdate) SetPackageCount(v int) *SeaMasterBillUpdate {
+	_u.mutation.ResetPackageCount()
+	_u.mutation.SetPackageCount(v)
+	return _u
+}
+
+// SetNillablePackageCount sets the "package_count" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillablePackageCount(v *int) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetPackageCount(*v)
+	}
+	return _u
+}
+
+// AddPackageCount adds value to the "package_count" field.
+func (_u *SeaMasterBillUpdate) AddPackageCount(v int) *SeaMasterBillUpdate {
+	_u.mutation.AddPackageCount(v)
+	return _u
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (_u *SeaMasterBillUpdate) ClearPackageCount() *SeaMasterBillUpdate {
+	_u.mutation.ClearPackageCount()
+	return _u
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (_u *SeaMasterBillUpdate) SetPackageUnit(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetPackageUnit(v)
+	return _u
+}
+
+// SetNillablePackageUnit sets the "package_unit" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillablePackageUnit(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetPackageUnit(*v)
+	}
+	return _u
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (_u *SeaMasterBillUpdate) ClearPackageUnit() *SeaMasterBillUpdate {
+	_u.mutation.ClearPackageUnit()
+	return _u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdate) SetGrossWeightKg(v float64) *SeaMasterBillUpdate {
+	_u.mutation.ResetGrossWeightKg()
+	_u.mutation.SetGrossWeightKg(v)
+	return _u
+}
+
+// SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableGrossWeightKg(v *float64) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetGrossWeightKg(*v)
+	}
+	return _u
+}
+
+// AddGrossWeightKg adds value to the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdate) AddGrossWeightKg(v float64) *SeaMasterBillUpdate {
+	_u.mutation.AddGrossWeightKg(v)
+	return _u
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdate) ClearGrossWeightKg() *SeaMasterBillUpdate {
+	_u.mutation.ClearGrossWeightKg()
+	return _u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (_u *SeaMasterBillUpdate) SetVolumeCbm(v float64) *SeaMasterBillUpdate {
+	_u.mutation.ResetVolumeCbm()
+	_u.mutation.SetVolumeCbm(v)
+	return _u
+}
+
+// SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableVolumeCbm(v *float64) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetVolumeCbm(*v)
+	}
+	return _u
+}
+
+// AddVolumeCbm adds value to the "volume_cbm" field.
+func (_u *SeaMasterBillUpdate) AddVolumeCbm(v float64) *SeaMasterBillUpdate {
+	_u.mutation.AddVolumeCbm(v)
+	return _u
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (_u *SeaMasterBillUpdate) ClearVolumeCbm() *SeaMasterBillUpdate {
+	_u.mutation.ClearVolumeCbm()
+	return _u
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (_u *SeaMasterBillUpdate) SetFreightTerms(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetFreightTerms(v)
+	return _u
+}
+
+// SetNillableFreightTerms sets the "freight_terms" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableFreightTerms(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetFreightTerms(*v)
+	}
+	return _u
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (_u *SeaMasterBillUpdate) ClearFreightTerms() *SeaMasterBillUpdate {
+	_u.mutation.ClearFreightTerms()
+	return _u
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (_u *SeaMasterBillUpdate) SetTransportTerms(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetTransportTerms(v)
+	return _u
+}
+
+// SetNillableTransportTerms sets the "transport_terms" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableTransportTerms(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetTransportTerms(*v)
+	}
+	return _u
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (_u *SeaMasterBillUpdate) ClearTransportTerms() *SeaMasterBillUpdate {
+	_u.mutation.ClearTransportTerms()
+	return _u
+}
+
+// SetBillForm sets the "bill_form" field.
+func (_u *SeaMasterBillUpdate) SetBillForm(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetBillForm(v)
+	return _u
+}
+
+// SetNillableBillForm sets the "bill_form" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableBillForm(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetBillForm(*v)
+	}
+	return _u
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (_u *SeaMasterBillUpdate) ClearBillForm() *SeaMasterBillUpdate {
+	_u.mutation.ClearBillForm()
+	return _u
+}
+
+// SetReleaseType sets the "release_type" field.
+func (_u *SeaMasterBillUpdate) SetReleaseType(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetReleaseType(v)
+	return _u
+}
+
+// SetNillableReleaseType sets the "release_type" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableReleaseType(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetReleaseType(*v)
+	}
+	return _u
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (_u *SeaMasterBillUpdate) ClearReleaseType() *SeaMasterBillUpdate {
+	_u.mutation.ClearReleaseType()
+	return _u
+}
+
+// SetClauses sets the "clauses" field.
+func (_u *SeaMasterBillUpdate) SetClauses(v string) *SeaMasterBillUpdate {
+	_u.mutation.SetClauses(v)
+	return _u
+}
+
+// SetNillableClauses sets the "clauses" field if the given value is not nil.
+func (_u *SeaMasterBillUpdate) SetNillableClauses(v *string) *SeaMasterBillUpdate {
+	if v != nil {
+		_u.SetClauses(*v)
+	}
+	return _u
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (_u *SeaMasterBillUpdate) ClearClauses() *SeaMasterBillUpdate {
+	_u.mutation.ClearClauses()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillUpdate) SetOrganization(v *Organization) *SeaMasterBillUpdate {
 	return _u.SetOrganizationID(v.ID)
@@ -166,6 +488,21 @@ func (_u *SeaMasterBillUpdate) AddOrderLinks(v ...*SeaMasterBillOrderLink) *SeaM
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderLinkIDs(ids...)
+}
+
+// AddHouseBillIDs adds the "house_bills" edge to the SeaHouseBill entity by IDs.
+func (_u *SeaMasterBillUpdate) AddHouseBillIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
+	_u.mutation.AddHouseBillIDs(ids...)
+	return _u
+}
+
+// AddHouseBills adds the "house_bills" edges to the SeaHouseBill entity.
+func (_u *SeaMasterBillUpdate) AddHouseBills(v ...*SeaHouseBill) *SeaMasterBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHouseBillIDs(ids...)
 }
 
 // Mutation returns the SeaMasterBillMutation object of the builder.
@@ -204,6 +541,27 @@ func (_u *SeaMasterBillUpdate) RemoveOrderLinks(v ...*SeaMasterBillOrderLink) *S
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderLinkIDs(ids...)
+}
+
+// ClearHouseBills clears all "house_bills" edges to the SeaHouseBill entity.
+func (_u *SeaMasterBillUpdate) ClearHouseBills() *SeaMasterBillUpdate {
+	_u.mutation.ClearHouseBills()
+	return _u
+}
+
+// RemoveHouseBillIDs removes the "house_bills" edge to SeaHouseBill entities by IDs.
+func (_u *SeaMasterBillUpdate) RemoveHouseBillIDs(ids ...uuid.UUID) *SeaMasterBillUpdate {
+	_u.mutation.RemoveHouseBillIDs(ids...)
+	return _u
+}
+
+// RemoveHouseBills removes "house_bills" edges to SeaHouseBill entities.
+func (_u *SeaMasterBillUpdate) RemoveHouseBills(v ...*SeaHouseBill) *SeaMasterBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHouseBillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -259,6 +617,46 @@ func (_u *SeaMasterBillUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PackageCount(); ok {
+		if err := seamasterbill.PackageCountValidator(v); err != nil {
+			return &ValidationError{Name: "package_count", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.package_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PackageUnit(); ok {
+		if err := seamasterbill.PackageUnitValidator(v); err != nil {
+			return &ValidationError{Name: "package_unit", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.package_unit": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.GrossWeightKg(); ok {
+		if err := seamasterbill.GrossWeightKgValidator(v); err != nil {
+			return &ValidationError{Name: "gross_weight_kg", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.gross_weight_kg": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.VolumeCbm(); ok {
+		if err := seamasterbill.VolumeCbmValidator(v); err != nil {
+			return &ValidationError{Name: "volume_cbm", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.volume_cbm": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FreightTerms(); ok {
+		if err := seamasterbill.FreightTermsValidator(v); err != nil {
+			return &ValidationError{Name: "freight_terms", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.freight_terms": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TransportTerms(); ok {
+		if err := seamasterbill.TransportTermsValidator(v); err != nil {
+			return &ValidationError{Name: "transport_terms", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.transport_terms": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BillForm(); ok {
+		if err := seamasterbill.BillFormValidator(v); err != nil {
+			return &ValidationError{Name: "bill_form", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.bill_form": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReleaseType(); ok {
+		if err := seamasterbill.ReleaseTypeValidator(v); err != nil {
+			return &ValidationError{Name: "release_type", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.release_type": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.organization"`)
 	}
@@ -300,6 +698,105 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(seamasterbill.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.ShipperText(); ok {
+		_spec.SetField(seamasterbill.FieldShipperText, field.TypeString, value)
+	}
+	if _u.mutation.ShipperTextCleared() {
+		_spec.ClearField(seamasterbill.FieldShipperText, field.TypeString)
+	}
+	if value, ok := _u.mutation.ConsigneeText(); ok {
+		_spec.SetField(seamasterbill.FieldConsigneeText, field.TypeString, value)
+	}
+	if _u.mutation.ConsigneeTextCleared() {
+		_spec.ClearField(seamasterbill.FieldConsigneeText, field.TypeString)
+	}
+	if value, ok := _u.mutation.NotifyPartyText(); ok {
+		_spec.SetField(seamasterbill.FieldNotifyPartyText, field.TypeString, value)
+	}
+	if _u.mutation.NotifyPartyTextCleared() {
+		_spec.ClearField(seamasterbill.FieldNotifyPartyText, field.TypeString)
+	}
+	if value, ok := _u.mutation.SecondNotifyPartyText(); ok {
+		_spec.SetField(seamasterbill.FieldSecondNotifyPartyText, field.TypeString, value)
+	}
+	if _u.mutation.SecondNotifyPartyTextCleared() {
+		_spec.ClearField(seamasterbill.FieldSecondNotifyPartyText, field.TypeString)
+	}
+	if value, ok := _u.mutation.MarksText(); ok {
+		_spec.SetField(seamasterbill.FieldMarksText, field.TypeString, value)
+	}
+	if _u.mutation.MarksTextCleared() {
+		_spec.ClearField(seamasterbill.FieldMarksText, field.TypeString)
+	}
+	if value, ok := _u.mutation.GoodsDescriptionText(); ok {
+		_spec.SetField(seamasterbill.FieldGoodsDescriptionText, field.TypeString, value)
+	}
+	if _u.mutation.GoodsDescriptionTextCleared() {
+		_spec.ClearField(seamasterbill.FieldGoodsDescriptionText, field.TypeString)
+	}
+	if value, ok := _u.mutation.PackageCount(); ok {
+		_spec.SetField(seamasterbill.FieldPackageCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPackageCount(); ok {
+		_spec.AddField(seamasterbill.FieldPackageCount, field.TypeInt, value)
+	}
+	if _u.mutation.PackageCountCleared() {
+		_spec.ClearField(seamasterbill.FieldPackageCount, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PackageUnit(); ok {
+		_spec.SetField(seamasterbill.FieldPackageUnit, field.TypeString, value)
+	}
+	if _u.mutation.PackageUnitCleared() {
+		_spec.ClearField(seamasterbill.FieldPackageUnit, field.TypeString)
+	}
+	if value, ok := _u.mutation.GrossWeightKg(); ok {
+		_spec.SetField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
+		_spec.AddField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64, value)
+	}
+	if _u.mutation.GrossWeightKgCleared() {
+		_spec.ClearField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.VolumeCbm(); ok {
+		_spec.SetField(seamasterbill.FieldVolumeCbm, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
+		_spec.AddField(seamasterbill.FieldVolumeCbm, field.TypeFloat64, value)
+	}
+	if _u.mutation.VolumeCbmCleared() {
+		_spec.ClearField(seamasterbill.FieldVolumeCbm, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.FreightTerms(); ok {
+		_spec.SetField(seamasterbill.FieldFreightTerms, field.TypeString, value)
+	}
+	if _u.mutation.FreightTermsCleared() {
+		_spec.ClearField(seamasterbill.FieldFreightTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.TransportTerms(); ok {
+		_spec.SetField(seamasterbill.FieldTransportTerms, field.TypeString, value)
+	}
+	if _u.mutation.TransportTermsCleared() {
+		_spec.ClearField(seamasterbill.FieldTransportTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.BillForm(); ok {
+		_spec.SetField(seamasterbill.FieldBillForm, field.TypeString, value)
+	}
+	if _u.mutation.BillFormCleared() {
+		_spec.ClearField(seamasterbill.FieldBillForm, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReleaseType(); ok {
+		_spec.SetField(seamasterbill.FieldReleaseType, field.TypeString, value)
+	}
+	if _u.mutation.ReleaseTypeCleared() {
+		_spec.ClearField(seamasterbill.FieldReleaseType, field.TypeString)
+	}
+	if value, ok := _u.mutation.Clauses(); ok {
+		_spec.SetField(seamasterbill.FieldClauses, field.TypeString, value)
+	}
+	if _u.mutation.ClausesCleared() {
+		_spec.ClearField(seamasterbill.FieldClauses, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -397,6 +894,51 @@ func (_u *SeaMasterBillUpdate) sqlSave(ctx context.Context) (_node int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHouseBillsIDs(); len(nodes) > 0 && !_u.mutation.HouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -535,6 +1077,327 @@ func (_u *SeaMasterBillUpdateOne) AddVersion(v int64) *SeaMasterBillUpdateOne {
 	return _u
 }
 
+// SetShipperText sets the "shipper_text" field.
+func (_u *SeaMasterBillUpdateOne) SetShipperText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetShipperText(v)
+	return _u
+}
+
+// SetNillableShipperText sets the "shipper_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableShipperText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetShipperText(*v)
+	}
+	return _u
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearShipperText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearShipperText()
+	return _u
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (_u *SeaMasterBillUpdateOne) SetConsigneeText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetConsigneeText(v)
+	return _u
+}
+
+// SetNillableConsigneeText sets the "consignee_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableConsigneeText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetConsigneeText(*v)
+	}
+	return _u
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearConsigneeText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearConsigneeText()
+	return _u
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (_u *SeaMasterBillUpdateOne) SetNotifyPartyText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetNotifyPartyText(v)
+	return _u
+}
+
+// SetNillableNotifyPartyText sets the "notify_party_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableNotifyPartyText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetNotifyPartyText(*v)
+	}
+	return _u
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearNotifyPartyText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearNotifyPartyText()
+	return _u
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (_u *SeaMasterBillUpdateOne) SetSecondNotifyPartyText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetSecondNotifyPartyText(v)
+	return _u
+}
+
+// SetNillableSecondNotifyPartyText sets the "second_notify_party_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableSecondNotifyPartyText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetSecondNotifyPartyText(*v)
+	}
+	return _u
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearSecondNotifyPartyText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearSecondNotifyPartyText()
+	return _u
+}
+
+// SetMarksText sets the "marks_text" field.
+func (_u *SeaMasterBillUpdateOne) SetMarksText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetMarksText(v)
+	return _u
+}
+
+// SetNillableMarksText sets the "marks_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableMarksText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetMarksText(*v)
+	}
+	return _u
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearMarksText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearMarksText()
+	return _u
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (_u *SeaMasterBillUpdateOne) SetGoodsDescriptionText(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetGoodsDescriptionText(v)
+	return _u
+}
+
+// SetNillableGoodsDescriptionText sets the "goods_description_text" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableGoodsDescriptionText(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetGoodsDescriptionText(*v)
+	}
+	return _u
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (_u *SeaMasterBillUpdateOne) ClearGoodsDescriptionText() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearGoodsDescriptionText()
+	return _u
+}
+
+// SetPackageCount sets the "package_count" field.
+func (_u *SeaMasterBillUpdateOne) SetPackageCount(v int) *SeaMasterBillUpdateOne {
+	_u.mutation.ResetPackageCount()
+	_u.mutation.SetPackageCount(v)
+	return _u
+}
+
+// SetNillablePackageCount sets the "package_count" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillablePackageCount(v *int) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetPackageCount(*v)
+	}
+	return _u
+}
+
+// AddPackageCount adds value to the "package_count" field.
+func (_u *SeaMasterBillUpdateOne) AddPackageCount(v int) *SeaMasterBillUpdateOne {
+	_u.mutation.AddPackageCount(v)
+	return _u
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (_u *SeaMasterBillUpdateOne) ClearPackageCount() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearPackageCount()
+	return _u
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (_u *SeaMasterBillUpdateOne) SetPackageUnit(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetPackageUnit(v)
+	return _u
+}
+
+// SetNillablePackageUnit sets the "package_unit" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillablePackageUnit(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetPackageUnit(*v)
+	}
+	return _u
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (_u *SeaMasterBillUpdateOne) ClearPackageUnit() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearPackageUnit()
+	return _u
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdateOne) SetGrossWeightKg(v float64) *SeaMasterBillUpdateOne {
+	_u.mutation.ResetGrossWeightKg()
+	_u.mutation.SetGrossWeightKg(v)
+	return _u
+}
+
+// SetNillableGrossWeightKg sets the "gross_weight_kg" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableGrossWeightKg(v *float64) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetGrossWeightKg(*v)
+	}
+	return _u
+}
+
+// AddGrossWeightKg adds value to the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdateOne) AddGrossWeightKg(v float64) *SeaMasterBillUpdateOne {
+	_u.mutation.AddGrossWeightKg(v)
+	return _u
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (_u *SeaMasterBillUpdateOne) ClearGrossWeightKg() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearGrossWeightKg()
+	return _u
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (_u *SeaMasterBillUpdateOne) SetVolumeCbm(v float64) *SeaMasterBillUpdateOne {
+	_u.mutation.ResetVolumeCbm()
+	_u.mutation.SetVolumeCbm(v)
+	return _u
+}
+
+// SetNillableVolumeCbm sets the "volume_cbm" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableVolumeCbm(v *float64) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetVolumeCbm(*v)
+	}
+	return _u
+}
+
+// AddVolumeCbm adds value to the "volume_cbm" field.
+func (_u *SeaMasterBillUpdateOne) AddVolumeCbm(v float64) *SeaMasterBillUpdateOne {
+	_u.mutation.AddVolumeCbm(v)
+	return _u
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (_u *SeaMasterBillUpdateOne) ClearVolumeCbm() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearVolumeCbm()
+	return _u
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (_u *SeaMasterBillUpdateOne) SetFreightTerms(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetFreightTerms(v)
+	return _u
+}
+
+// SetNillableFreightTerms sets the "freight_terms" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableFreightTerms(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetFreightTerms(*v)
+	}
+	return _u
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (_u *SeaMasterBillUpdateOne) ClearFreightTerms() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearFreightTerms()
+	return _u
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (_u *SeaMasterBillUpdateOne) SetTransportTerms(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetTransportTerms(v)
+	return _u
+}
+
+// SetNillableTransportTerms sets the "transport_terms" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableTransportTerms(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetTransportTerms(*v)
+	}
+	return _u
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (_u *SeaMasterBillUpdateOne) ClearTransportTerms() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearTransportTerms()
+	return _u
+}
+
+// SetBillForm sets the "bill_form" field.
+func (_u *SeaMasterBillUpdateOne) SetBillForm(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetBillForm(v)
+	return _u
+}
+
+// SetNillableBillForm sets the "bill_form" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableBillForm(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetBillForm(*v)
+	}
+	return _u
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (_u *SeaMasterBillUpdateOne) ClearBillForm() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearBillForm()
+	return _u
+}
+
+// SetReleaseType sets the "release_type" field.
+func (_u *SeaMasterBillUpdateOne) SetReleaseType(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetReleaseType(v)
+	return _u
+}
+
+// SetNillableReleaseType sets the "release_type" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableReleaseType(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetReleaseType(*v)
+	}
+	return _u
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (_u *SeaMasterBillUpdateOne) ClearReleaseType() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearReleaseType()
+	return _u
+}
+
+// SetClauses sets the "clauses" field.
+func (_u *SeaMasterBillUpdateOne) SetClauses(v string) *SeaMasterBillUpdateOne {
+	_u.mutation.SetClauses(v)
+	return _u
+}
+
+// SetNillableClauses sets the "clauses" field if the given value is not nil.
+func (_u *SeaMasterBillUpdateOne) SetNillableClauses(v *string) *SeaMasterBillUpdateOne {
+	if v != nil {
+		_u.SetClauses(*v)
+	}
+	return _u
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (_u *SeaMasterBillUpdateOne) ClearClauses() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearClauses()
+	return _u
+}
+
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_u *SeaMasterBillUpdateOne) SetOrganization(v *Organization) *SeaMasterBillUpdateOne {
 	return _u.SetOrganizationID(v.ID)
@@ -558,6 +1421,21 @@ func (_u *SeaMasterBillUpdateOne) AddOrderLinks(v ...*SeaMasterBillOrderLink) *S
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderLinkIDs(ids...)
+}
+
+// AddHouseBillIDs adds the "house_bills" edge to the SeaHouseBill entity by IDs.
+func (_u *SeaMasterBillUpdateOne) AddHouseBillIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
+	_u.mutation.AddHouseBillIDs(ids...)
+	return _u
+}
+
+// AddHouseBills adds the "house_bills" edges to the SeaHouseBill entity.
+func (_u *SeaMasterBillUpdateOne) AddHouseBills(v ...*SeaHouseBill) *SeaMasterBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHouseBillIDs(ids...)
 }
 
 // Mutation returns the SeaMasterBillMutation object of the builder.
@@ -596,6 +1474,27 @@ func (_u *SeaMasterBillUpdateOne) RemoveOrderLinks(v ...*SeaMasterBillOrderLink)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderLinkIDs(ids...)
+}
+
+// ClearHouseBills clears all "house_bills" edges to the SeaHouseBill entity.
+func (_u *SeaMasterBillUpdateOne) ClearHouseBills() *SeaMasterBillUpdateOne {
+	_u.mutation.ClearHouseBills()
+	return _u
+}
+
+// RemoveHouseBillIDs removes the "house_bills" edge to SeaHouseBill entities by IDs.
+func (_u *SeaMasterBillUpdateOne) RemoveHouseBillIDs(ids ...uuid.UUID) *SeaMasterBillUpdateOne {
+	_u.mutation.RemoveHouseBillIDs(ids...)
+	return _u
+}
+
+// RemoveHouseBills removes "house_bills" edges to SeaHouseBill entities.
+func (_u *SeaMasterBillUpdateOne) RemoveHouseBills(v ...*SeaHouseBill) *SeaMasterBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHouseBillIDs(ids...)
 }
 
 // Where appends a list predicates to the SeaMasterBillUpdate builder.
@@ -664,6 +1563,46 @@ func (_u *SeaMasterBillUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PackageCount(); ok {
+		if err := seamasterbill.PackageCountValidator(v); err != nil {
+			return &ValidationError{Name: "package_count", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.package_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PackageUnit(); ok {
+		if err := seamasterbill.PackageUnitValidator(v); err != nil {
+			return &ValidationError{Name: "package_unit", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.package_unit": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.GrossWeightKg(); ok {
+		if err := seamasterbill.GrossWeightKgValidator(v); err != nil {
+			return &ValidationError{Name: "gross_weight_kg", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.gross_weight_kg": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.VolumeCbm(); ok {
+		if err := seamasterbill.VolumeCbmValidator(v); err != nil {
+			return &ValidationError{Name: "volume_cbm", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.volume_cbm": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FreightTerms(); ok {
+		if err := seamasterbill.FreightTermsValidator(v); err != nil {
+			return &ValidationError{Name: "freight_terms", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.freight_terms": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.TransportTerms(); ok {
+		if err := seamasterbill.TransportTermsValidator(v); err != nil {
+			return &ValidationError{Name: "transport_terms", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.transport_terms": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BillForm(); ok {
+		if err := seamasterbill.BillFormValidator(v); err != nil {
+			return &ValidationError{Name: "bill_form", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.bill_form": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReleaseType(); ok {
+		if err := seamasterbill.ReleaseTypeValidator(v); err != nil {
+			return &ValidationError{Name: "release_type", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBill.release_type": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "SeaMasterBill.organization"`)
 	}
@@ -722,6 +1661,105 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(seamasterbill.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.ShipperText(); ok {
+		_spec.SetField(seamasterbill.FieldShipperText, field.TypeString, value)
+	}
+	if _u.mutation.ShipperTextCleared() {
+		_spec.ClearField(seamasterbill.FieldShipperText, field.TypeString)
+	}
+	if value, ok := _u.mutation.ConsigneeText(); ok {
+		_spec.SetField(seamasterbill.FieldConsigneeText, field.TypeString, value)
+	}
+	if _u.mutation.ConsigneeTextCleared() {
+		_spec.ClearField(seamasterbill.FieldConsigneeText, field.TypeString)
+	}
+	if value, ok := _u.mutation.NotifyPartyText(); ok {
+		_spec.SetField(seamasterbill.FieldNotifyPartyText, field.TypeString, value)
+	}
+	if _u.mutation.NotifyPartyTextCleared() {
+		_spec.ClearField(seamasterbill.FieldNotifyPartyText, field.TypeString)
+	}
+	if value, ok := _u.mutation.SecondNotifyPartyText(); ok {
+		_spec.SetField(seamasterbill.FieldSecondNotifyPartyText, field.TypeString, value)
+	}
+	if _u.mutation.SecondNotifyPartyTextCleared() {
+		_spec.ClearField(seamasterbill.FieldSecondNotifyPartyText, field.TypeString)
+	}
+	if value, ok := _u.mutation.MarksText(); ok {
+		_spec.SetField(seamasterbill.FieldMarksText, field.TypeString, value)
+	}
+	if _u.mutation.MarksTextCleared() {
+		_spec.ClearField(seamasterbill.FieldMarksText, field.TypeString)
+	}
+	if value, ok := _u.mutation.GoodsDescriptionText(); ok {
+		_spec.SetField(seamasterbill.FieldGoodsDescriptionText, field.TypeString, value)
+	}
+	if _u.mutation.GoodsDescriptionTextCleared() {
+		_spec.ClearField(seamasterbill.FieldGoodsDescriptionText, field.TypeString)
+	}
+	if value, ok := _u.mutation.PackageCount(); ok {
+		_spec.SetField(seamasterbill.FieldPackageCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPackageCount(); ok {
+		_spec.AddField(seamasterbill.FieldPackageCount, field.TypeInt, value)
+	}
+	if _u.mutation.PackageCountCleared() {
+		_spec.ClearField(seamasterbill.FieldPackageCount, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PackageUnit(); ok {
+		_spec.SetField(seamasterbill.FieldPackageUnit, field.TypeString, value)
+	}
+	if _u.mutation.PackageUnitCleared() {
+		_spec.ClearField(seamasterbill.FieldPackageUnit, field.TypeString)
+	}
+	if value, ok := _u.mutation.GrossWeightKg(); ok {
+		_spec.SetField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedGrossWeightKg(); ok {
+		_spec.AddField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64, value)
+	}
+	if _u.mutation.GrossWeightKgCleared() {
+		_spec.ClearField(seamasterbill.FieldGrossWeightKg, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.VolumeCbm(); ok {
+		_spec.SetField(seamasterbill.FieldVolumeCbm, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedVolumeCbm(); ok {
+		_spec.AddField(seamasterbill.FieldVolumeCbm, field.TypeFloat64, value)
+	}
+	if _u.mutation.VolumeCbmCleared() {
+		_spec.ClearField(seamasterbill.FieldVolumeCbm, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.FreightTerms(); ok {
+		_spec.SetField(seamasterbill.FieldFreightTerms, field.TypeString, value)
+	}
+	if _u.mutation.FreightTermsCleared() {
+		_spec.ClearField(seamasterbill.FieldFreightTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.TransportTerms(); ok {
+		_spec.SetField(seamasterbill.FieldTransportTerms, field.TypeString, value)
+	}
+	if _u.mutation.TransportTermsCleared() {
+		_spec.ClearField(seamasterbill.FieldTransportTerms, field.TypeString)
+	}
+	if value, ok := _u.mutation.BillForm(); ok {
+		_spec.SetField(seamasterbill.FieldBillForm, field.TypeString, value)
+	}
+	if _u.mutation.BillFormCleared() {
+		_spec.ClearField(seamasterbill.FieldBillForm, field.TypeString)
+	}
+	if value, ok := _u.mutation.ReleaseType(); ok {
+		_spec.SetField(seamasterbill.FieldReleaseType, field.TypeString, value)
+	}
+	if _u.mutation.ReleaseTypeCleared() {
+		_spec.ClearField(seamasterbill.FieldReleaseType, field.TypeString)
+	}
+	if value, ok := _u.mutation.Clauses(); ok {
+		_spec.SetField(seamasterbill.FieldClauses, field.TypeString, value)
+	}
+	if _u.mutation.ClausesCleared() {
+		_spec.ClearField(seamasterbill.FieldClauses, field.TypeString)
 	}
 	if _u.mutation.OrganizationCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -819,6 +1857,51 @@ func (_u *SeaMasterBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaMaster
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHouseBillsIDs(); len(nodes) > 0 && !_u.mutation.HouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   seamasterbill.HouseBillsTable,
+			Columns: []string{seamasterbill.HouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

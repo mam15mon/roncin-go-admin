@@ -1,0 +1,304 @@
+syntax = "proto3";
+
+package order.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// SeaDocumentService 海运单证核心服务。
+service SeaDocumentService {
+  // GetSeaOrderDocuments 获取海运单证聚合信息。
+  rpc GetSeaOrderDocuments(GetSeaOrderDocumentsRequest) returns (GetSeaOrderDocumentsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/sea-documents"};
+  }
+
+  // MarkSeaOrderDirect 明确标记海运订单为直单。
+  rpc MarkSeaOrderDirect(MarkSeaOrderDirectRequest) returns (MarkSeaOrderDirectResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/mark-direct"
+      body: "*"
+    };
+  }
+
+  // CancelSeaOrderDirect 取消直单标记，回到未确定状态。
+  rpc CancelSeaOrderDirect(CancelSeaOrderDirectRequest) returns (CancelSeaOrderDirectResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/cancel-direct"
+      body: "*"
+    };
+  }
+
+  // AddSeaHouseBill 添加海运分单（HBL）。
+  rpc AddSeaHouseBill(AddSeaHouseBillRequest) returns (AddSeaHouseBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/sea-documents/house-bills"
+      body: "*"
+    };
+  }
+
+  // UpdateSeaHouseBill 更新海运分单。
+  rpc UpdateSeaHouseBill(UpdateSeaHouseBillRequest) returns (UpdateSeaHouseBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}"
+      body: "*"
+    };
+  }
+
+  // RemoveSeaHouseBill 移除海运分单。
+  rpc RemoveSeaHouseBill(RemoveSeaHouseBillRequest) returns (RemoveSeaHouseBillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/sea-documents/house-bills/{id}"};
+  }
+
+  // UpdateSeaMasterBillContent 更新共享 MBL 提单内容。
+  rpc UpdateSeaMasterBillContent(UpdateSeaMasterBillContentRequest) returns (UpdateSeaMasterBillContentResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      put: "/api/v1/orders/{order_id}/sea-documents/master-bill-content"
+      body: "*"
+    };
+  }
+}
+
+// SeaDocumentStructure 海运单证结构三态。
+enum SeaDocumentStructure {
+  SEA_DOCUMENT_STRUCTURE_UNSPECIFIED = 0;
+  SEA_DOCUMENT_STRUCTURE_UNDETERMINED = 1;
+  SEA_DOCUMENT_STRUCTURE_DIRECT = 2;
+  SEA_DOCUMENT_STRUCTURE_HOUSE = 3;
+}
+
+// SeaHouseBillIssuerSource HBL 签发主体来源。
+enum SeaHouseBillIssuerSource {
+  SEA_HOUSE_BILL_ISSUER_SOURCE_UNSPECIFIED = 0;
+  SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION = 1;
+  SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER = 2;
+  SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER = 3;
+}
+
+// SeaHouseBillStatus HBL 状态枚举。
+enum SeaHouseBillStatus {
+  SEA_HOUSE_BILL_STATUS_UNSPECIFIED = 0;
+  SEA_HOUSE_BILL_STATUS_DRAFT = 1;
+  SEA_HOUSE_BILL_STATUS_CONFIRMED = 2;
+  SEA_HOUSE_BILL_STATUS_RELEASED = 3;
+}
+
+// SeaDocumentAction 单证操作动作枚举。
+enum SeaDocumentAction {
+  SEA_DOCUMENT_ACTION_UNSPECIFIED = 0;
+  SEA_DOCUMENT_ACTION_MARK_DIRECT = 1;
+  SEA_DOCUMENT_ACTION_CANCEL_DIRECT = 2;
+  SEA_DOCUMENT_ACTION_ADD_HOUSE_BILL = 3;
+  SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL = 4;
+  SEA_DOCUMENT_ACTION_REMOVE_HOUSE_BILL = 5;
+  SEA_DOCUMENT_ACTION_UPDATE_MASTER_BILL_CONTENT = 6;
+}
+
+// SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。
+message SeaBillContent {
+  optional string shipper_text = 1;
+  optional string consignee_text = 2;
+  optional string notify_party_text = 3;
+  optional string second_notify_party_text = 4;
+  optional string marks_text = 5;
+  optional string goods_description_text = 6;
+  optional int32 package_count = 7;
+  optional string package_unit = 8;
+  optional double gross_weight_kg = 9;
+  optional double volume_cbm = 10;
+  optional string freight_terms = 11;
+  optional string transport_terms = 12;
+  optional string bill_form = 13;
+  optional string release_type = 14;
+  optional string clauses = 15;
+}
+
+// SeaHouseBill 海运分单（HBL）信息。
+message SeaHouseBill {
+  string id = 1;
+  string organization_id = 2;
+  string order_id = 3;
+  string master_bill_id = 4;
+  string house_no = 5;
+  SeaHouseBillIssuerSource issuer_source = 6;
+  optional string issuer_organization_id = 7;
+  optional string issuer_organization_name = 8;
+  optional string issuer_partner_id = 9;
+  optional string issuer_partner_name = 10;
+  SeaHouseBillStatus status = 11;
+  uint64 version = 12;
+  optional string note = 13;
+  SeaBillContent content = 14;
+  string created_at = 15;
+  string updated_at = 16;
+}
+
+// SeaHouseBillInput 表单中的海运分单输入。
+message SeaHouseBillInput {
+  optional string id = 1;
+  string house_no = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaHouseBillIssuerSource issuer_source = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string issuer_partner_id = 4;
+  optional string note = 5;
+  optional SeaBillContent content = 6;
+  optional uint64 expected_version = 7;
+}
+
+// SeaMasterBillDetail 海运主单内容详情。
+message SeaMasterBillDetail {
+  string id = 1;
+  string master_no = 2;
+  string issuer_partner_id = 3;
+  optional string issuer_partner_name = 4;
+  string status = 5;
+  uint64 version = 6;
+  SeaBillContent content = 7;
+  int32 member_count = 8;
+}
+
+// SeaOrderDocumentSummary 订单中的海运单证摘要。
+message SeaOrderDocumentSummary {
+  SeaDocumentStructure document_structure = 1;
+  uint64 link_version = 2;
+  int32 house_bill_count = 3;
+  repeated string house_nos = 4;
+}
+
+// SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
+message SeaOrderDocumentInput {
+  optional SeaDocumentStructure document_structure = 1;
+  optional uint64 expected_link_version = 2;
+  optional uint64 expected_mbl_version = 3;
+  optional SeaBillContent master_bill_content = 4;
+  repeated SeaHouseBillInput house_bills = 5;
+}
+
+// SeaOrderDocuments 聚合单证响应。
+message SeaOrderDocuments {
+  string order_id = 1;
+  SeaDocumentStructure document_structure = 2;
+  uint64 link_version = 3;
+  optional SeaMasterBillDetail master_bill = 4;
+  repeated SeaHouseBill house_bills = 5;
+  repeated SeaDocumentAction allowed_actions = 6;
+}
+
+// GetSeaOrderDocumentsRequest 获取海运单证聚合信息请求。
+message GetSeaOrderDocumentsRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// GetSeaOrderDocumentsResponse 获取海运单证聚合信息响应。
+message GetSeaOrderDocumentsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderDocuments data = 4;
+  string trace_id = 5;
+}
+
+// MarkSeaOrderDirectRequest 标记直单请求。
+message MarkSeaOrderDirectRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// MarkSeaOrderDirectResponse 标记直单响应。
+message MarkSeaOrderDirectResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderDocuments data = 4;
+  string trace_id = 5;
+}
+
+// CancelSeaOrderDirectRequest 取消直单标记请求。
+message CancelSeaOrderDirectRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// CancelSeaOrderDirectResponse 取消直单标记响应。
+message CancelSeaOrderDirectResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaOrderDocuments data = 4;
+  string trace_id = 5;
+}
+
+// AddSeaHouseBillRequest 添加分单请求。
+message AddSeaHouseBillRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaHouseBillInput house_bill = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AddSeaHouseBillResponse 添加分单响应。
+message AddSeaHouseBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaHouseBill data = 4;
+  string trace_id = 5;
+}
+
+// UpdateSeaHouseBillRequest 更新分单请求。
+message UpdateSeaHouseBillRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 4 [(google.api.field_behavior) = REQUIRED];
+  SeaHouseBillInput house_bill = 5 [(google.api.field_behavior) = REQUIRED];
+}
+
+// UpdateSeaHouseBillResponse 更新分单响应。
+message UpdateSeaHouseBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaHouseBill data = 4;
+  string trace_id = 5;
+}
+
+// RemoveSeaHouseBillRequest 移除分单请求。
+message RemoveSeaHouseBillRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_link_version = 4 [(google.api.field_behavior) = REQUIRED];
+  optional bool return_to_undetermined = 5;
+}
+
+// RemoveSeaHouseBillResponse 移除分单响应。
+message RemoveSeaHouseBillResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}
+
+// UpdateSeaMasterBillContentRequest 更新共享 MBL 内容请求。
+message UpdateSeaMasterBillContentRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_mbl_version = 2 [(google.api.field_behavior) = REQUIRED];
+  SeaBillContent content = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// UpdateSeaMasterBillContentResponse 更新共享 MBL 内容响应。
+message UpdateSeaMasterBillContentResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  SeaMasterBillDetail data = 4;
+  string trace_id = 5;
+}

@@ -95,6 +95,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -194,6 +195,7 @@ const (
 	TypeRole                           = "Role"
 	TypeRoleAssignment                 = "RoleAssignment"
 	TypeRoleOrderOrganizationAccess    = "RoleOrderOrganizationAccess"
+	TypeSeaHouseBill                   = "SeaHouseBill"
 	TypeSeaMasterBill                  = "SeaMasterBill"
 	TypeSeaMasterBillOrderLink         = "SeaMasterBillOrderLink"
 	TypeSeaTransportExecution          = "SeaTransportExecution"
@@ -58255,6 +58257,9 @@ type OrderMutation struct {
 	sea_master_bill_links                 map[uuid.UUID]struct{}
 	removedsea_master_bill_links          map[uuid.UUID]struct{}
 	clearedsea_master_bill_links          bool
+	sea_house_bills                       map[uuid.UUID]struct{}
+	removedsea_house_bills                map[uuid.UUID]struct{}
+	clearedsea_house_bills                bool
 	done                                  bool
 	oldValue                              func(context.Context) (*Order, error)
 	predicates                            []predicate.Order
@@ -62602,6 +62607,60 @@ func (m *OrderMutation) ResetSeaMasterBillLinks() {
 	m.removedsea_master_bill_links = nil
 }
 
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by ids.
+func (m *OrderMutation) AddSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.sea_house_bills == nil {
+		m.sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaHouseBills clears the "sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrderMutation) ClearSeaHouseBills() {
+	m.clearedsea_house_bills = true
+}
+
+// SeaHouseBillsCleared reports if the "sea_house_bills" edge to the SeaHouseBill entity was cleared.
+func (m *OrderMutation) SeaHouseBillsCleared() bool {
+	return m.clearedsea_house_bills
+}
+
+// RemoveSeaHouseBillIDs removes the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (m *OrderMutation) RemoveSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.removedsea_house_bills == nil {
+		m.removedsea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_house_bills, ids[i])
+		m.removedsea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaHouseBills returns the removed IDs of the "sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrderMutation) RemovedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaHouseBillsIDs returns the "sea_house_bills" edge IDs in the mutation.
+func (m *OrderMutation) SeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaHouseBills resets all changes to the "sea_house_bills" edge.
+func (m *OrderMutation) ResetSeaHouseBills() {
+	m.sea_house_bills = nil
+	m.clearedsea_house_bills = false
+	m.removedsea_house_bills = nil
+}
+
 // Where appends a list predicates to the OrderMutation builder.
 func (m *OrderMutation) Where(ps ...predicate.Order) {
 	m.predicates = append(m.predicates, ps...)
@@ -64217,7 +64276,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64280,6 +64339,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.sea_master_bill_links != nil {
 		edges = append(edges, order.EdgeSeaMasterBillLinks)
+	}
+	if m.sea_house_bills != nil {
+		edges = append(edges, order.EdgeSeaHouseBills)
 	}
 	return edges
 }
@@ -64410,13 +64472,19 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.sea_house_bills))
+		for id := range m.sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -64473,6 +64541,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_master_bill_links != nil {
 		edges = append(edges, order.EdgeSeaMasterBillLinks)
+	}
+	if m.removedsea_house_bills != nil {
+		edges = append(edges, order.EdgeSeaHouseBills)
 	}
 	return edges
 }
@@ -64595,13 +64666,19 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.removedsea_house_bills))
+		for id := range m.removedsea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -64665,6 +64742,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	if m.clearedsea_master_bill_links {
 		edges = append(edges, order.EdgeSeaMasterBillLinks)
 	}
+	if m.clearedsea_house_bills {
+		edges = append(edges, order.EdgeSeaHouseBills)
+	}
 	return edges
 }
 
@@ -64714,6 +64794,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedenterprise_tag_links
 	case order.EdgeSeaMasterBillLinks:
 		return m.clearedsea_master_bill_links
+	case order.EdgeSeaHouseBills:
+		return m.clearedsea_house_bills
 	}
 	return false
 }
@@ -64798,6 +64880,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeSeaMasterBillLinks:
 		m.ResetSeaMasterBillLinks()
+		return nil
+	case order.EdgeSeaHouseBills:
+		m.ResetSeaHouseBills()
 		return nil
 	}
 	return fmt.Errorf("unknown Order edge %s", name)
@@ -80187,6 +80272,12 @@ type OrganizationMutation struct {
 	sea_master_bill_order_links             map[uuid.UUID]struct{}
 	removedsea_master_bill_order_links      map[uuid.UUID]struct{}
 	clearedsea_master_bill_order_links      bool
+	sea_house_bills                         map[uuid.UUID]struct{}
+	removedsea_house_bills                  map[uuid.UUID]struct{}
+	clearedsea_house_bills                  bool
+	issued_sea_house_bills                  map[uuid.UUID]struct{}
+	removedissued_sea_house_bills           map[uuid.UUID]struct{}
+	clearedissued_sea_house_bills           bool
 	order_personnel                         map[uuid.UUID]struct{}
 	removedorder_personnel                  map[uuid.UUID]struct{}
 	clearedorder_personnel                  bool
@@ -81816,6 +81907,114 @@ func (m *OrganizationMutation) ResetSeaMasterBillOrderLinks() {
 	m.removedsea_master_bill_order_links = nil
 }
 
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by ids.
+func (m *OrganizationMutation) AddSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.sea_house_bills == nil {
+		m.sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSeaHouseBills clears the "sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrganizationMutation) ClearSeaHouseBills() {
+	m.clearedsea_house_bills = true
+}
+
+// SeaHouseBillsCleared reports if the "sea_house_bills" edge to the SeaHouseBill entity was cleared.
+func (m *OrganizationMutation) SeaHouseBillsCleared() bool {
+	return m.clearedsea_house_bills
+}
+
+// RemoveSeaHouseBillIDs removes the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (m *OrganizationMutation) RemoveSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.removedsea_house_bills == nil {
+		m.removedsea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.sea_house_bills, ids[i])
+		m.removedsea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSeaHouseBills returns the removed IDs of the "sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrganizationMutation) RemovedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedsea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SeaHouseBillsIDs returns the "sea_house_bills" edge IDs in the mutation.
+func (m *OrganizationMutation) SeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSeaHouseBills resets all changes to the "sea_house_bills" edge.
+func (m *OrganizationMutation) ResetSeaHouseBills() {
+	m.sea_house_bills = nil
+	m.clearedsea_house_bills = false
+	m.removedsea_house_bills = nil
+}
+
+// AddIssuedSeaHouseBillIDs adds the "issued_sea_house_bills" edge to the SeaHouseBill entity by ids.
+func (m *OrganizationMutation) AddIssuedSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.issued_sea_house_bills == nil {
+		m.issued_sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.issued_sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIssuedSeaHouseBills clears the "issued_sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrganizationMutation) ClearIssuedSeaHouseBills() {
+	m.clearedissued_sea_house_bills = true
+}
+
+// IssuedSeaHouseBillsCleared reports if the "issued_sea_house_bills" edge to the SeaHouseBill entity was cleared.
+func (m *OrganizationMutation) IssuedSeaHouseBillsCleared() bool {
+	return m.clearedissued_sea_house_bills
+}
+
+// RemoveIssuedSeaHouseBillIDs removes the "issued_sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (m *OrganizationMutation) RemoveIssuedSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.removedissued_sea_house_bills == nil {
+		m.removedissued_sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.issued_sea_house_bills, ids[i])
+		m.removedissued_sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIssuedSeaHouseBills returns the removed IDs of the "issued_sea_house_bills" edge to the SeaHouseBill entity.
+func (m *OrganizationMutation) RemovedIssuedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedissued_sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IssuedSeaHouseBillsIDs returns the "issued_sea_house_bills" edge IDs in the mutation.
+func (m *OrganizationMutation) IssuedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.issued_sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIssuedSeaHouseBills resets all changes to the "issued_sea_house_bills" edge.
+func (m *OrganizationMutation) ResetIssuedSeaHouseBills() {
+	m.issued_sea_house_bills = nil
+	m.clearedissued_sea_house_bills = false
+	m.removedissued_sea_house_bills = nil
+}
+
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by ids.
 func (m *OrganizationMutation) AddOrderPersonnelIDs(ids ...uuid.UUID) {
 	if m.order_personnel == nil {
@@ -83234,7 +83433,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 42)
+	edges := make([]string, 0, 44)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -83297,6 +83496,12 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.sea_master_bill_order_links != nil {
 		edges = append(edges, organization.EdgeSeaMasterBillOrderLinks)
+	}
+	if m.sea_house_bills != nil {
+		edges = append(edges, organization.EdgeSeaHouseBills)
+	}
+	if m.issued_sea_house_bills != nil {
+		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
 	}
 	if m.order_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -83492,6 +83697,18 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.sea_house_bills))
+		for id := range m.sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeIssuedSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.issued_sea_house_bills))
+		for id := range m.issued_sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.order_personnel))
 		for id := range m.order_personnel {
@@ -83624,7 +83841,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 42)
+	edges := make([]string, 0, 44)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -83684,6 +83901,12 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedsea_master_bill_order_links != nil {
 		edges = append(edges, organization.EdgeSeaMasterBillOrderLinks)
+	}
+	if m.removedsea_house_bills != nil {
+		edges = append(edges, organization.EdgeSeaHouseBills)
+	}
+	if m.removedissued_sea_house_bills != nil {
+		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
 	}
 	if m.removedorder_personnel != nil {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -83875,6 +84098,18 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.removedsea_house_bills))
+		for id := range m.removedsea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
+	case organization.EdgeIssuedSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.removedissued_sea_house_bills))
+		for id := range m.removedissued_sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeOrderPersonnel:
 		ids := make([]ent.Value, 0, len(m.removedorder_personnel))
 		for id := range m.removedorder_personnel {
@@ -84007,7 +84242,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 42)
+	edges := make([]string, 0, 44)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -84070,6 +84305,12 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedsea_master_bill_order_links {
 		edges = append(edges, organization.EdgeSeaMasterBillOrderLinks)
+	}
+	if m.clearedsea_house_bills {
+		edges = append(edges, organization.EdgeSeaHouseBills)
+	}
+	if m.clearedissued_sea_house_bills {
+		edges = append(edges, organization.EdgeIssuedSeaHouseBills)
 	}
 	if m.clearedorder_personnel {
 		edges = append(edges, organization.EdgeOrderPersonnel)
@@ -84183,6 +84424,10 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedsea_master_bills
 	case organization.EdgeSeaMasterBillOrderLinks:
 		return m.clearedsea_master_bill_order_links
+	case organization.EdgeSeaHouseBills:
+		return m.clearedsea_house_bills
+	case organization.EdgeIssuedSeaHouseBills:
+		return m.clearedissued_sea_house_bills
 	case organization.EdgeOrderPersonnel:
 		return m.clearedorder_personnel
 	case organization.EdgeBackgroundTasks:
@@ -84306,6 +84551,12 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeSeaMasterBillOrderLinks:
 		m.ResetSeaMasterBillOrderLinks()
+		return nil
+	case organization.EdgeSeaHouseBills:
+		m.ResetSeaHouseBills()
+		return nil
+	case organization.EdgeIssuedSeaHouseBills:
+		m.ResetIssuedSeaHouseBills()
 		return nil
 	case organization.EdgeOrderPersonnel:
 		m.ResetOrderPersonnel()
@@ -84439,6 +84690,9 @@ type PartnerMutation struct {
 	order_commission_attributions        map[uuid.UUID]struct{}
 	removedorder_commission_attributions map[uuid.UUID]struct{}
 	clearedorder_commission_attributions bool
+	issued_sea_house_bills               map[uuid.UUID]struct{}
+	removedissued_sea_house_bills        map[uuid.UUID]struct{}
+	clearedissued_sea_house_bills        bool
 	done                                 bool
 	oldValue                             func(context.Context) (*Partner, error)
 	predicates                           []predicate.Partner
@@ -85810,6 +86064,60 @@ func (m *PartnerMutation) ResetOrderCommissionAttributions() {
 	m.removedorder_commission_attributions = nil
 }
 
+// AddIssuedSeaHouseBillIDs adds the "issued_sea_house_bills" edge to the SeaHouseBill entity by ids.
+func (m *PartnerMutation) AddIssuedSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.issued_sea_house_bills == nil {
+		m.issued_sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.issued_sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIssuedSeaHouseBills clears the "issued_sea_house_bills" edge to the SeaHouseBill entity.
+func (m *PartnerMutation) ClearIssuedSeaHouseBills() {
+	m.clearedissued_sea_house_bills = true
+}
+
+// IssuedSeaHouseBillsCleared reports if the "issued_sea_house_bills" edge to the SeaHouseBill entity was cleared.
+func (m *PartnerMutation) IssuedSeaHouseBillsCleared() bool {
+	return m.clearedissued_sea_house_bills
+}
+
+// RemoveIssuedSeaHouseBillIDs removes the "issued_sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (m *PartnerMutation) RemoveIssuedSeaHouseBillIDs(ids ...uuid.UUID) {
+	if m.removedissued_sea_house_bills == nil {
+		m.removedissued_sea_house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.issued_sea_house_bills, ids[i])
+		m.removedissued_sea_house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIssuedSeaHouseBills returns the removed IDs of the "issued_sea_house_bills" edge to the SeaHouseBill entity.
+func (m *PartnerMutation) RemovedIssuedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedissued_sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IssuedSeaHouseBillsIDs returns the "issued_sea_house_bills" edge IDs in the mutation.
+func (m *PartnerMutation) IssuedSeaHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.issued_sea_house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIssuedSeaHouseBills resets all changes to the "issued_sea_house_bills" edge.
+func (m *PartnerMutation) ResetIssuedSeaHouseBills() {
+	m.issued_sea_house_bills = nil
+	m.clearedissued_sea_house_bills = false
+	m.removedissued_sea_house_bills = nil
+}
+
 // Where appends a list predicates to the PartnerMutation builder.
 func (m *PartnerMutation) Where(ps ...predicate.Partner) {
 	m.predicates = append(m.predicates, ps...)
@@ -86111,7 +86419,7 @@ func (m *PartnerMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartnerMutation) AddedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.organization != nil {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -86162,6 +86470,9 @@ func (m *PartnerMutation) AddedEdges() []string {
 	}
 	if m.order_commission_attributions != nil {
 		edges = append(edges, partner.EdgeOrderCommissionAttributions)
+	}
+	if m.issued_sea_house_bills != nil {
+		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
 	}
 	return edges
 }
@@ -86268,13 +86579,19 @@ func (m *PartnerMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeIssuedSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.issued_sea_house_bills))
+		for id := range m.issued_sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartnerMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.removedroles != nil {
 		edges = append(edges, partner.EdgeRoles)
 	}
@@ -86319,6 +86636,9 @@ func (m *PartnerMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_commission_attributions != nil {
 		edges = append(edges, partner.EdgeOrderCommissionAttributions)
+	}
+	if m.removedissued_sea_house_bills != nil {
+		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
 	}
 	return edges
 }
@@ -86417,13 +86737,19 @@ func (m *PartnerMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case partner.EdgeIssuedSeaHouseBills:
+		ids := make([]ent.Value, 0, len(m.removedissued_sea_house_bills))
+		for id := range m.removedissued_sea_house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartnerMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 17)
+	edges := make([]string, 0, 18)
 	if m.clearedorganization {
 		edges = append(edges, partner.EdgeOrganization)
 	}
@@ -86475,6 +86801,9 @@ func (m *PartnerMutation) ClearedEdges() []string {
 	if m.clearedorder_commission_attributions {
 		edges = append(edges, partner.EdgeOrderCommissionAttributions)
 	}
+	if m.clearedissued_sea_house_bills {
+		edges = append(edges, partner.EdgeIssuedSeaHouseBills)
+	}
 	return edges
 }
 
@@ -86516,6 +86845,8 @@ func (m *PartnerMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_verifications
 	case partner.EdgeOrderCommissionAttributions:
 		return m.clearedorder_commission_attributions
+	case partner.EdgeIssuedSeaHouseBills:
+		return m.clearedissued_sea_house_bills
 	}
 	return false
 }
@@ -86588,6 +86919,9 @@ func (m *PartnerMutation) ResetEdge(name string) error {
 		return nil
 	case partner.EdgeOrderCommissionAttributions:
 		m.ResetOrderCommissionAttributions()
+		return nil
+	case partner.EdgeIssuedSeaHouseBills:
+		m.ResetIssuedSeaHouseBills()
 		return nil
 	}
 	return fmt.Errorf("unknown Partner edge %s", name)
@@ -101012,6 +101346,2517 @@ func (m *RoleOrderOrganizationAccessMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown RoleOrderOrganizationAccess edge %s", name)
 }
 
+// SeaHouseBillMutation represents an operation that mutates the SeaHouseBill nodes in the graph.
+type SeaHouseBillMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	house_no                   *string
+	normalized_house_no        *string
+	issuer_source              *seahousebill.IssuerSource
+	status                     *seahousebill.Status
+	version                    *uint64
+	addversion                 *int64
+	note                       *string
+	shipper_text               *string
+	consignee_text             *string
+	notify_party_text          *string
+	second_notify_party_text   *string
+	marks_text                 *string
+	goods_description_text     *string
+	package_count              *int
+	addpackage_count           *int
+	package_unit               *string
+	gross_weight_kg            *float64
+	addgross_weight_kg         *float64
+	volume_cbm                 *float64
+	addvolume_cbm              *float64
+	freight_terms              *string
+	transport_terms            *string
+	bill_form                  *string
+	release_type               *string
+	clauses                    *string
+	clearedFields              map[string]struct{}
+	organization               *uuid.UUID
+	clearedorganization        bool
+	_order                     *uuid.UUID
+	cleared_order              bool
+	master_bill                *uuid.UUID
+	clearedmaster_bill         bool
+	issuer_organization        *uuid.UUID
+	clearedissuer_organization bool
+	issuer_partner             *uuid.UUID
+	clearedissuer_partner      bool
+	done                       bool
+	oldValue                   func(context.Context) (*SeaHouseBill, error)
+	predicates                 []predicate.SeaHouseBill
+}
+
+var _ ent.Mutation = (*SeaHouseBillMutation)(nil)
+
+// seahousebillOption allows management of the mutation configuration using functional options.
+type seahousebillOption func(*SeaHouseBillMutation)
+
+// newSeaHouseBillMutation creates new mutation for the SeaHouseBill entity.
+func newSeaHouseBillMutation(c config, op Op, opts ...seahousebillOption) *SeaHouseBillMutation {
+	m := &SeaHouseBillMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSeaHouseBill,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSeaHouseBillID sets the ID field of the mutation.
+func withSeaHouseBillID(id uuid.UUID) seahousebillOption {
+	return func(m *SeaHouseBillMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SeaHouseBill
+		)
+		m.oldValue = func(ctx context.Context) (*SeaHouseBill, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SeaHouseBill.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSeaHouseBill sets the old SeaHouseBill of the mutation.
+func withSeaHouseBill(node *SeaHouseBill) seahousebillOption {
+	return func(m *SeaHouseBillMutation) {
+		m.oldValue = func(context.Context) (*SeaHouseBill, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SeaHouseBillMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SeaHouseBillMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SeaHouseBill entities.
+func (m *SeaHouseBillMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SeaHouseBillMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SeaHouseBillMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SeaHouseBill.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SeaHouseBillMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SeaHouseBillMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SeaHouseBillMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SeaHouseBillMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SeaHouseBillMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SeaHouseBillMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *SeaHouseBillMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *SeaHouseBillMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *SeaHouseBillMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *SeaHouseBillMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *SeaHouseBillMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *SeaHouseBillMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetMasterBillID sets the "master_bill_id" field.
+func (m *SeaHouseBillMutation) SetMasterBillID(u uuid.UUID) {
+	m.master_bill = &u
+}
+
+// MasterBillID returns the value of the "master_bill_id" field in the mutation.
+func (m *SeaHouseBillMutation) MasterBillID() (r uuid.UUID, exists bool) {
+	v := m.master_bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterBillID returns the old "master_bill_id" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldMasterBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterBillID: %w", err)
+	}
+	return oldValue.MasterBillID, nil
+}
+
+// ResetMasterBillID resets all changes to the "master_bill_id" field.
+func (m *SeaHouseBillMutation) ResetMasterBillID() {
+	m.master_bill = nil
+}
+
+// SetHouseNo sets the "house_no" field.
+func (m *SeaHouseBillMutation) SetHouseNo(s string) {
+	m.house_no = &s
+}
+
+// HouseNo returns the value of the "house_no" field in the mutation.
+func (m *SeaHouseBillMutation) HouseNo() (r string, exists bool) {
+	v := m.house_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHouseNo returns the old "house_no" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldHouseNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHouseNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHouseNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHouseNo: %w", err)
+	}
+	return oldValue.HouseNo, nil
+}
+
+// ResetHouseNo resets all changes to the "house_no" field.
+func (m *SeaHouseBillMutation) ResetHouseNo() {
+	m.house_no = nil
+}
+
+// SetNormalizedHouseNo sets the "normalized_house_no" field.
+func (m *SeaHouseBillMutation) SetNormalizedHouseNo(s string) {
+	m.normalized_house_no = &s
+}
+
+// NormalizedHouseNo returns the value of the "normalized_house_no" field in the mutation.
+func (m *SeaHouseBillMutation) NormalizedHouseNo() (r string, exists bool) {
+	v := m.normalized_house_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNormalizedHouseNo returns the old "normalized_house_no" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldNormalizedHouseNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNormalizedHouseNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNormalizedHouseNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNormalizedHouseNo: %w", err)
+	}
+	return oldValue.NormalizedHouseNo, nil
+}
+
+// ResetNormalizedHouseNo resets all changes to the "normalized_house_no" field.
+func (m *SeaHouseBillMutation) ResetNormalizedHouseNo() {
+	m.normalized_house_no = nil
+}
+
+// SetIssuerSource sets the "issuer_source" field.
+func (m *SeaHouseBillMutation) SetIssuerSource(ss seahousebill.IssuerSource) {
+	m.issuer_source = &ss
+}
+
+// IssuerSource returns the value of the "issuer_source" field in the mutation.
+func (m *SeaHouseBillMutation) IssuerSource() (r seahousebill.IssuerSource, exists bool) {
+	v := m.issuer_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuerSource returns the old "issuer_source" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldIssuerSource(ctx context.Context) (v seahousebill.IssuerSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuerSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuerSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuerSource: %w", err)
+	}
+	return oldValue.IssuerSource, nil
+}
+
+// ResetIssuerSource resets all changes to the "issuer_source" field.
+func (m *SeaHouseBillMutation) ResetIssuerSource() {
+	m.issuer_source = nil
+}
+
+// SetIssuerOrganizationID sets the "issuer_organization_id" field.
+func (m *SeaHouseBillMutation) SetIssuerOrganizationID(u uuid.UUID) {
+	m.issuer_organization = &u
+}
+
+// IssuerOrganizationID returns the value of the "issuer_organization_id" field in the mutation.
+func (m *SeaHouseBillMutation) IssuerOrganizationID() (r uuid.UUID, exists bool) {
+	v := m.issuer_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuerOrganizationID returns the old "issuer_organization_id" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldIssuerOrganizationID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuerOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuerOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuerOrganizationID: %w", err)
+	}
+	return oldValue.IssuerOrganizationID, nil
+}
+
+// ClearIssuerOrganizationID clears the value of the "issuer_organization_id" field.
+func (m *SeaHouseBillMutation) ClearIssuerOrganizationID() {
+	m.issuer_organization = nil
+	m.clearedFields[seahousebill.FieldIssuerOrganizationID] = struct{}{}
+}
+
+// IssuerOrganizationIDCleared returns if the "issuer_organization_id" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) IssuerOrganizationIDCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldIssuerOrganizationID]
+	return ok
+}
+
+// ResetIssuerOrganizationID resets all changes to the "issuer_organization_id" field.
+func (m *SeaHouseBillMutation) ResetIssuerOrganizationID() {
+	m.issuer_organization = nil
+	delete(m.clearedFields, seahousebill.FieldIssuerOrganizationID)
+}
+
+// SetIssuerPartnerID sets the "issuer_partner_id" field.
+func (m *SeaHouseBillMutation) SetIssuerPartnerID(u uuid.UUID) {
+	m.issuer_partner = &u
+}
+
+// IssuerPartnerID returns the value of the "issuer_partner_id" field in the mutation.
+func (m *SeaHouseBillMutation) IssuerPartnerID() (r uuid.UUID, exists bool) {
+	v := m.issuer_partner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuerPartnerID returns the old "issuer_partner_id" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldIssuerPartnerID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuerPartnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuerPartnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuerPartnerID: %w", err)
+	}
+	return oldValue.IssuerPartnerID, nil
+}
+
+// ClearIssuerPartnerID clears the value of the "issuer_partner_id" field.
+func (m *SeaHouseBillMutation) ClearIssuerPartnerID() {
+	m.issuer_partner = nil
+	m.clearedFields[seahousebill.FieldIssuerPartnerID] = struct{}{}
+}
+
+// IssuerPartnerIDCleared returns if the "issuer_partner_id" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) IssuerPartnerIDCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldIssuerPartnerID]
+	return ok
+}
+
+// ResetIssuerPartnerID resets all changes to the "issuer_partner_id" field.
+func (m *SeaHouseBillMutation) ResetIssuerPartnerID() {
+	m.issuer_partner = nil
+	delete(m.clearedFields, seahousebill.FieldIssuerPartnerID)
+}
+
+// SetStatus sets the "status" field.
+func (m *SeaHouseBillMutation) SetStatus(s seahousebill.Status) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *SeaHouseBillMutation) Status() (r seahousebill.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldStatus(ctx context.Context) (v seahousebill.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *SeaHouseBillMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *SeaHouseBillMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *SeaHouseBillMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *SeaHouseBillMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *SeaHouseBillMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *SeaHouseBillMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetNote sets the "note" field.
+func (m *SeaHouseBillMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *SeaHouseBillMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldNote(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ClearNote clears the value of the "note" field.
+func (m *SeaHouseBillMutation) ClearNote() {
+	m.note = nil
+	m.clearedFields[seahousebill.FieldNote] = struct{}{}
+}
+
+// NoteCleared returns if the "note" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) NoteCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldNote]
+	return ok
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *SeaHouseBillMutation) ResetNote() {
+	m.note = nil
+	delete(m.clearedFields, seahousebill.FieldNote)
+}
+
+// SetShipperText sets the "shipper_text" field.
+func (m *SeaHouseBillMutation) SetShipperText(s string) {
+	m.shipper_text = &s
+}
+
+// ShipperText returns the value of the "shipper_text" field in the mutation.
+func (m *SeaHouseBillMutation) ShipperText() (r string, exists bool) {
+	v := m.shipper_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShipperText returns the old "shipper_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldShipperText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShipperText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShipperText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShipperText: %w", err)
+	}
+	return oldValue.ShipperText, nil
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (m *SeaHouseBillMutation) ClearShipperText() {
+	m.shipper_text = nil
+	m.clearedFields[seahousebill.FieldShipperText] = struct{}{}
+}
+
+// ShipperTextCleared returns if the "shipper_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) ShipperTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldShipperText]
+	return ok
+}
+
+// ResetShipperText resets all changes to the "shipper_text" field.
+func (m *SeaHouseBillMutation) ResetShipperText() {
+	m.shipper_text = nil
+	delete(m.clearedFields, seahousebill.FieldShipperText)
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (m *SeaHouseBillMutation) SetConsigneeText(s string) {
+	m.consignee_text = &s
+}
+
+// ConsigneeText returns the value of the "consignee_text" field in the mutation.
+func (m *SeaHouseBillMutation) ConsigneeText() (r string, exists bool) {
+	v := m.consignee_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsigneeText returns the old "consignee_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldConsigneeText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsigneeText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsigneeText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsigneeText: %w", err)
+	}
+	return oldValue.ConsigneeText, nil
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (m *SeaHouseBillMutation) ClearConsigneeText() {
+	m.consignee_text = nil
+	m.clearedFields[seahousebill.FieldConsigneeText] = struct{}{}
+}
+
+// ConsigneeTextCleared returns if the "consignee_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) ConsigneeTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldConsigneeText]
+	return ok
+}
+
+// ResetConsigneeText resets all changes to the "consignee_text" field.
+func (m *SeaHouseBillMutation) ResetConsigneeText() {
+	m.consignee_text = nil
+	delete(m.clearedFields, seahousebill.FieldConsigneeText)
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (m *SeaHouseBillMutation) SetNotifyPartyText(s string) {
+	m.notify_party_text = &s
+}
+
+// NotifyPartyText returns the value of the "notify_party_text" field in the mutation.
+func (m *SeaHouseBillMutation) NotifyPartyText() (r string, exists bool) {
+	v := m.notify_party_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifyPartyText returns the old "notify_party_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldNotifyPartyText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifyPartyText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifyPartyText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifyPartyText: %w", err)
+	}
+	return oldValue.NotifyPartyText, nil
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (m *SeaHouseBillMutation) ClearNotifyPartyText() {
+	m.notify_party_text = nil
+	m.clearedFields[seahousebill.FieldNotifyPartyText] = struct{}{}
+}
+
+// NotifyPartyTextCleared returns if the "notify_party_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) NotifyPartyTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldNotifyPartyText]
+	return ok
+}
+
+// ResetNotifyPartyText resets all changes to the "notify_party_text" field.
+func (m *SeaHouseBillMutation) ResetNotifyPartyText() {
+	m.notify_party_text = nil
+	delete(m.clearedFields, seahousebill.FieldNotifyPartyText)
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (m *SeaHouseBillMutation) SetSecondNotifyPartyText(s string) {
+	m.second_notify_party_text = &s
+}
+
+// SecondNotifyPartyText returns the value of the "second_notify_party_text" field in the mutation.
+func (m *SeaHouseBillMutation) SecondNotifyPartyText() (r string, exists bool) {
+	v := m.second_notify_party_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSecondNotifyPartyText returns the old "second_notify_party_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldSecondNotifyPartyText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSecondNotifyPartyText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSecondNotifyPartyText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSecondNotifyPartyText: %w", err)
+	}
+	return oldValue.SecondNotifyPartyText, nil
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (m *SeaHouseBillMutation) ClearSecondNotifyPartyText() {
+	m.second_notify_party_text = nil
+	m.clearedFields[seahousebill.FieldSecondNotifyPartyText] = struct{}{}
+}
+
+// SecondNotifyPartyTextCleared returns if the "second_notify_party_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) SecondNotifyPartyTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldSecondNotifyPartyText]
+	return ok
+}
+
+// ResetSecondNotifyPartyText resets all changes to the "second_notify_party_text" field.
+func (m *SeaHouseBillMutation) ResetSecondNotifyPartyText() {
+	m.second_notify_party_text = nil
+	delete(m.clearedFields, seahousebill.FieldSecondNotifyPartyText)
+}
+
+// SetMarksText sets the "marks_text" field.
+func (m *SeaHouseBillMutation) SetMarksText(s string) {
+	m.marks_text = &s
+}
+
+// MarksText returns the value of the "marks_text" field in the mutation.
+func (m *SeaHouseBillMutation) MarksText() (r string, exists bool) {
+	v := m.marks_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarksText returns the old "marks_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldMarksText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarksText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarksText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarksText: %w", err)
+	}
+	return oldValue.MarksText, nil
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (m *SeaHouseBillMutation) ClearMarksText() {
+	m.marks_text = nil
+	m.clearedFields[seahousebill.FieldMarksText] = struct{}{}
+}
+
+// MarksTextCleared returns if the "marks_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) MarksTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldMarksText]
+	return ok
+}
+
+// ResetMarksText resets all changes to the "marks_text" field.
+func (m *SeaHouseBillMutation) ResetMarksText() {
+	m.marks_text = nil
+	delete(m.clearedFields, seahousebill.FieldMarksText)
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (m *SeaHouseBillMutation) SetGoodsDescriptionText(s string) {
+	m.goods_description_text = &s
+}
+
+// GoodsDescriptionText returns the value of the "goods_description_text" field in the mutation.
+func (m *SeaHouseBillMutation) GoodsDescriptionText() (r string, exists bool) {
+	v := m.goods_description_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoodsDescriptionText returns the old "goods_description_text" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldGoodsDescriptionText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoodsDescriptionText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoodsDescriptionText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoodsDescriptionText: %w", err)
+	}
+	return oldValue.GoodsDescriptionText, nil
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (m *SeaHouseBillMutation) ClearGoodsDescriptionText() {
+	m.goods_description_text = nil
+	m.clearedFields[seahousebill.FieldGoodsDescriptionText] = struct{}{}
+}
+
+// GoodsDescriptionTextCleared returns if the "goods_description_text" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) GoodsDescriptionTextCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldGoodsDescriptionText]
+	return ok
+}
+
+// ResetGoodsDescriptionText resets all changes to the "goods_description_text" field.
+func (m *SeaHouseBillMutation) ResetGoodsDescriptionText() {
+	m.goods_description_text = nil
+	delete(m.clearedFields, seahousebill.FieldGoodsDescriptionText)
+}
+
+// SetPackageCount sets the "package_count" field.
+func (m *SeaHouseBillMutation) SetPackageCount(i int) {
+	m.package_count = &i
+	m.addpackage_count = nil
+}
+
+// PackageCount returns the value of the "package_count" field in the mutation.
+func (m *SeaHouseBillMutation) PackageCount() (r int, exists bool) {
+	v := m.package_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageCount returns the old "package_count" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldPackageCount(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageCount: %w", err)
+	}
+	return oldValue.PackageCount, nil
+}
+
+// AddPackageCount adds i to the "package_count" field.
+func (m *SeaHouseBillMutation) AddPackageCount(i int) {
+	if m.addpackage_count != nil {
+		*m.addpackage_count += i
+	} else {
+		m.addpackage_count = &i
+	}
+}
+
+// AddedPackageCount returns the value that was added to the "package_count" field in this mutation.
+func (m *SeaHouseBillMutation) AddedPackageCount() (r int, exists bool) {
+	v := m.addpackage_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (m *SeaHouseBillMutation) ClearPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+	m.clearedFields[seahousebill.FieldPackageCount] = struct{}{}
+}
+
+// PackageCountCleared returns if the "package_count" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) PackageCountCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldPackageCount]
+	return ok
+}
+
+// ResetPackageCount resets all changes to the "package_count" field.
+func (m *SeaHouseBillMutation) ResetPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+	delete(m.clearedFields, seahousebill.FieldPackageCount)
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (m *SeaHouseBillMutation) SetPackageUnit(s string) {
+	m.package_unit = &s
+}
+
+// PackageUnit returns the value of the "package_unit" field in the mutation.
+func (m *SeaHouseBillMutation) PackageUnit() (r string, exists bool) {
+	v := m.package_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageUnit returns the old "package_unit" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldPackageUnit(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageUnit: %w", err)
+	}
+	return oldValue.PackageUnit, nil
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (m *SeaHouseBillMutation) ClearPackageUnit() {
+	m.package_unit = nil
+	m.clearedFields[seahousebill.FieldPackageUnit] = struct{}{}
+}
+
+// PackageUnitCleared returns if the "package_unit" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) PackageUnitCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldPackageUnit]
+	return ok
+}
+
+// ResetPackageUnit resets all changes to the "package_unit" field.
+func (m *SeaHouseBillMutation) ResetPackageUnit() {
+	m.package_unit = nil
+	delete(m.clearedFields, seahousebill.FieldPackageUnit)
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (m *SeaHouseBillMutation) SetGrossWeightKg(f float64) {
+	m.gross_weight_kg = &f
+	m.addgross_weight_kg = nil
+}
+
+// GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
+func (m *SeaHouseBillMutation) GrossWeightKg() (r float64, exists bool) {
+	v := m.gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGrossWeightKg returns the old "gross_weight_kg" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldGrossWeightKg(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGrossWeightKg: %w", err)
+	}
+	return oldValue.GrossWeightKg, nil
+}
+
+// AddGrossWeightKg adds f to the "gross_weight_kg" field.
+func (m *SeaHouseBillMutation) AddGrossWeightKg(f float64) {
+	if m.addgross_weight_kg != nil {
+		*m.addgross_weight_kg += f
+	} else {
+		m.addgross_weight_kg = &f
+	}
+}
+
+// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
+func (m *SeaHouseBillMutation) AddedGrossWeightKg() (r float64, exists bool) {
+	v := m.addgross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (m *SeaHouseBillMutation) ClearGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+	m.clearedFields[seahousebill.FieldGrossWeightKg] = struct{}{}
+}
+
+// GrossWeightKgCleared returns if the "gross_weight_kg" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) GrossWeightKgCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldGrossWeightKg]
+	return ok
+}
+
+// ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
+func (m *SeaHouseBillMutation) ResetGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+	delete(m.clearedFields, seahousebill.FieldGrossWeightKg)
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (m *SeaHouseBillMutation) SetVolumeCbm(f float64) {
+	m.volume_cbm = &f
+	m.addvolume_cbm = nil
+}
+
+// VolumeCbm returns the value of the "volume_cbm" field in the mutation.
+func (m *SeaHouseBillMutation) VolumeCbm() (r float64, exists bool) {
+	v := m.volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVolumeCbm returns the old "volume_cbm" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldVolumeCbm(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVolumeCbm: %w", err)
+	}
+	return oldValue.VolumeCbm, nil
+}
+
+// AddVolumeCbm adds f to the "volume_cbm" field.
+func (m *SeaHouseBillMutation) AddVolumeCbm(f float64) {
+	if m.addvolume_cbm != nil {
+		*m.addvolume_cbm += f
+	} else {
+		m.addvolume_cbm = &f
+	}
+}
+
+// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
+func (m *SeaHouseBillMutation) AddedVolumeCbm() (r float64, exists bool) {
+	v := m.addvolume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (m *SeaHouseBillMutation) ClearVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+	m.clearedFields[seahousebill.FieldVolumeCbm] = struct{}{}
+}
+
+// VolumeCbmCleared returns if the "volume_cbm" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) VolumeCbmCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldVolumeCbm]
+	return ok
+}
+
+// ResetVolumeCbm resets all changes to the "volume_cbm" field.
+func (m *SeaHouseBillMutation) ResetVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+	delete(m.clearedFields, seahousebill.FieldVolumeCbm)
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (m *SeaHouseBillMutation) SetFreightTerms(s string) {
+	m.freight_terms = &s
+}
+
+// FreightTerms returns the value of the "freight_terms" field in the mutation.
+func (m *SeaHouseBillMutation) FreightTerms() (r string, exists bool) {
+	v := m.freight_terms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFreightTerms returns the old "freight_terms" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldFreightTerms(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFreightTerms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFreightTerms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFreightTerms: %w", err)
+	}
+	return oldValue.FreightTerms, nil
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (m *SeaHouseBillMutation) ClearFreightTerms() {
+	m.freight_terms = nil
+	m.clearedFields[seahousebill.FieldFreightTerms] = struct{}{}
+}
+
+// FreightTermsCleared returns if the "freight_terms" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) FreightTermsCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldFreightTerms]
+	return ok
+}
+
+// ResetFreightTerms resets all changes to the "freight_terms" field.
+func (m *SeaHouseBillMutation) ResetFreightTerms() {
+	m.freight_terms = nil
+	delete(m.clearedFields, seahousebill.FieldFreightTerms)
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (m *SeaHouseBillMutation) SetTransportTerms(s string) {
+	m.transport_terms = &s
+}
+
+// TransportTerms returns the value of the "transport_terms" field in the mutation.
+func (m *SeaHouseBillMutation) TransportTerms() (r string, exists bool) {
+	v := m.transport_terms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTransportTerms returns the old "transport_terms" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldTransportTerms(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTransportTerms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTransportTerms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTransportTerms: %w", err)
+	}
+	return oldValue.TransportTerms, nil
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (m *SeaHouseBillMutation) ClearTransportTerms() {
+	m.transport_terms = nil
+	m.clearedFields[seahousebill.FieldTransportTerms] = struct{}{}
+}
+
+// TransportTermsCleared returns if the "transport_terms" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) TransportTermsCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldTransportTerms]
+	return ok
+}
+
+// ResetTransportTerms resets all changes to the "transport_terms" field.
+func (m *SeaHouseBillMutation) ResetTransportTerms() {
+	m.transport_terms = nil
+	delete(m.clearedFields, seahousebill.FieldTransportTerms)
+}
+
+// SetBillForm sets the "bill_form" field.
+func (m *SeaHouseBillMutation) SetBillForm(s string) {
+	m.bill_form = &s
+}
+
+// BillForm returns the value of the "bill_form" field in the mutation.
+func (m *SeaHouseBillMutation) BillForm() (r string, exists bool) {
+	v := m.bill_form
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillForm returns the old "bill_form" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldBillForm(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillForm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillForm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillForm: %w", err)
+	}
+	return oldValue.BillForm, nil
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (m *SeaHouseBillMutation) ClearBillForm() {
+	m.bill_form = nil
+	m.clearedFields[seahousebill.FieldBillForm] = struct{}{}
+}
+
+// BillFormCleared returns if the "bill_form" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) BillFormCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldBillForm]
+	return ok
+}
+
+// ResetBillForm resets all changes to the "bill_form" field.
+func (m *SeaHouseBillMutation) ResetBillForm() {
+	m.bill_form = nil
+	delete(m.clearedFields, seahousebill.FieldBillForm)
+}
+
+// SetReleaseType sets the "release_type" field.
+func (m *SeaHouseBillMutation) SetReleaseType(s string) {
+	m.release_type = &s
+}
+
+// ReleaseType returns the value of the "release_type" field in the mutation.
+func (m *SeaHouseBillMutation) ReleaseType() (r string, exists bool) {
+	v := m.release_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReleaseType returns the old "release_type" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldReleaseType(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReleaseType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReleaseType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReleaseType: %w", err)
+	}
+	return oldValue.ReleaseType, nil
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (m *SeaHouseBillMutation) ClearReleaseType() {
+	m.release_type = nil
+	m.clearedFields[seahousebill.FieldReleaseType] = struct{}{}
+}
+
+// ReleaseTypeCleared returns if the "release_type" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) ReleaseTypeCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldReleaseType]
+	return ok
+}
+
+// ResetReleaseType resets all changes to the "release_type" field.
+func (m *SeaHouseBillMutation) ResetReleaseType() {
+	m.release_type = nil
+	delete(m.clearedFields, seahousebill.FieldReleaseType)
+}
+
+// SetClauses sets the "clauses" field.
+func (m *SeaHouseBillMutation) SetClauses(s string) {
+	m.clauses = &s
+}
+
+// Clauses returns the value of the "clauses" field in the mutation.
+func (m *SeaHouseBillMutation) Clauses() (r string, exists bool) {
+	v := m.clauses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClauses returns the old "clauses" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldClauses(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClauses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClauses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClauses: %w", err)
+	}
+	return oldValue.Clauses, nil
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (m *SeaHouseBillMutation) ClearClauses() {
+	m.clauses = nil
+	m.clearedFields[seahousebill.FieldClauses] = struct{}{}
+}
+
+// ClausesCleared returns if the "clauses" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) ClausesCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldClauses]
+	return ok
+}
+
+// ResetClauses resets all changes to the "clauses" field.
+func (m *SeaHouseBillMutation) ResetClauses() {
+	m.clauses = nil
+	delete(m.clearedFields, seahousebill.FieldClauses)
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *SeaHouseBillMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[seahousebill.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *SeaHouseBillMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaHouseBillMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *SeaHouseBillMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *SeaHouseBillMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[seahousebill.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *SeaHouseBillMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *SeaHouseBillMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *SeaHouseBillMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// ClearMasterBill clears the "master_bill" edge to the SeaMasterBill entity.
+func (m *SeaHouseBillMutation) ClearMasterBill() {
+	m.clearedmaster_bill = true
+	m.clearedFields[seahousebill.FieldMasterBillID] = struct{}{}
+}
+
+// MasterBillCleared reports if the "master_bill" edge to the SeaMasterBill entity was cleared.
+func (m *SeaHouseBillMutation) MasterBillCleared() bool {
+	return m.clearedmaster_bill
+}
+
+// MasterBillIDs returns the "master_bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MasterBillID instead. It exists only for internal usage by the builders.
+func (m *SeaHouseBillMutation) MasterBillIDs() (ids []uuid.UUID) {
+	if id := m.master_bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMasterBill resets all changes to the "master_bill" edge.
+func (m *SeaHouseBillMutation) ResetMasterBill() {
+	m.master_bill = nil
+	m.clearedmaster_bill = false
+}
+
+// ClearIssuerOrganization clears the "issuer_organization" edge to the Organization entity.
+func (m *SeaHouseBillMutation) ClearIssuerOrganization() {
+	m.clearedissuer_organization = true
+	m.clearedFields[seahousebill.FieldIssuerOrganizationID] = struct{}{}
+}
+
+// IssuerOrganizationCleared reports if the "issuer_organization" edge to the Organization entity was cleared.
+func (m *SeaHouseBillMutation) IssuerOrganizationCleared() bool {
+	return m.IssuerOrganizationIDCleared() || m.clearedissuer_organization
+}
+
+// IssuerOrganizationIDs returns the "issuer_organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IssuerOrganizationID instead. It exists only for internal usage by the builders.
+func (m *SeaHouseBillMutation) IssuerOrganizationIDs() (ids []uuid.UUID) {
+	if id := m.issuer_organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIssuerOrganization resets all changes to the "issuer_organization" edge.
+func (m *SeaHouseBillMutation) ResetIssuerOrganization() {
+	m.issuer_organization = nil
+	m.clearedissuer_organization = false
+}
+
+// ClearIssuerPartner clears the "issuer_partner" edge to the Partner entity.
+func (m *SeaHouseBillMutation) ClearIssuerPartner() {
+	m.clearedissuer_partner = true
+	m.clearedFields[seahousebill.FieldIssuerPartnerID] = struct{}{}
+}
+
+// IssuerPartnerCleared reports if the "issuer_partner" edge to the Partner entity was cleared.
+func (m *SeaHouseBillMutation) IssuerPartnerCleared() bool {
+	return m.IssuerPartnerIDCleared() || m.clearedissuer_partner
+}
+
+// IssuerPartnerIDs returns the "issuer_partner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IssuerPartnerID instead. It exists only for internal usage by the builders.
+func (m *SeaHouseBillMutation) IssuerPartnerIDs() (ids []uuid.UUID) {
+	if id := m.issuer_partner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIssuerPartner resets all changes to the "issuer_partner" edge.
+func (m *SeaHouseBillMutation) ResetIssuerPartner() {
+	m.issuer_partner = nil
+	m.clearedissuer_partner = false
+}
+
+// Where appends a list predicates to the SeaHouseBillMutation builder.
+func (m *SeaHouseBillMutation) Where(ps ...predicate.SeaHouseBill) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SeaHouseBillMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SeaHouseBillMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SeaHouseBill, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SeaHouseBillMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SeaHouseBillMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SeaHouseBill).
+func (m *SeaHouseBillMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SeaHouseBillMutation) Fields() []string {
+	fields := make([]string, 0, 28)
+	if m.created_at != nil {
+		fields = append(fields, seahousebill.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, seahousebill.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, seahousebill.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, seahousebill.FieldOrderID)
+	}
+	if m.master_bill != nil {
+		fields = append(fields, seahousebill.FieldMasterBillID)
+	}
+	if m.house_no != nil {
+		fields = append(fields, seahousebill.FieldHouseNo)
+	}
+	if m.normalized_house_no != nil {
+		fields = append(fields, seahousebill.FieldNormalizedHouseNo)
+	}
+	if m.issuer_source != nil {
+		fields = append(fields, seahousebill.FieldIssuerSource)
+	}
+	if m.issuer_organization != nil {
+		fields = append(fields, seahousebill.FieldIssuerOrganizationID)
+	}
+	if m.issuer_partner != nil {
+		fields = append(fields, seahousebill.FieldIssuerPartnerID)
+	}
+	if m.status != nil {
+		fields = append(fields, seahousebill.FieldStatus)
+	}
+	if m.version != nil {
+		fields = append(fields, seahousebill.FieldVersion)
+	}
+	if m.note != nil {
+		fields = append(fields, seahousebill.FieldNote)
+	}
+	if m.shipper_text != nil {
+		fields = append(fields, seahousebill.FieldShipperText)
+	}
+	if m.consignee_text != nil {
+		fields = append(fields, seahousebill.FieldConsigneeText)
+	}
+	if m.notify_party_text != nil {
+		fields = append(fields, seahousebill.FieldNotifyPartyText)
+	}
+	if m.second_notify_party_text != nil {
+		fields = append(fields, seahousebill.FieldSecondNotifyPartyText)
+	}
+	if m.marks_text != nil {
+		fields = append(fields, seahousebill.FieldMarksText)
+	}
+	if m.goods_description_text != nil {
+		fields = append(fields, seahousebill.FieldGoodsDescriptionText)
+	}
+	if m.package_count != nil {
+		fields = append(fields, seahousebill.FieldPackageCount)
+	}
+	if m.package_unit != nil {
+		fields = append(fields, seahousebill.FieldPackageUnit)
+	}
+	if m.gross_weight_kg != nil {
+		fields = append(fields, seahousebill.FieldGrossWeightKg)
+	}
+	if m.volume_cbm != nil {
+		fields = append(fields, seahousebill.FieldVolumeCbm)
+	}
+	if m.freight_terms != nil {
+		fields = append(fields, seahousebill.FieldFreightTerms)
+	}
+	if m.transport_terms != nil {
+		fields = append(fields, seahousebill.FieldTransportTerms)
+	}
+	if m.bill_form != nil {
+		fields = append(fields, seahousebill.FieldBillForm)
+	}
+	if m.release_type != nil {
+		fields = append(fields, seahousebill.FieldReleaseType)
+	}
+	if m.clauses != nil {
+		fields = append(fields, seahousebill.FieldClauses)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SeaHouseBillMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case seahousebill.FieldCreatedAt:
+		return m.CreatedAt()
+	case seahousebill.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case seahousebill.FieldOrganizationID:
+		return m.OrganizationID()
+	case seahousebill.FieldOrderID:
+		return m.OrderID()
+	case seahousebill.FieldMasterBillID:
+		return m.MasterBillID()
+	case seahousebill.FieldHouseNo:
+		return m.HouseNo()
+	case seahousebill.FieldNormalizedHouseNo:
+		return m.NormalizedHouseNo()
+	case seahousebill.FieldIssuerSource:
+		return m.IssuerSource()
+	case seahousebill.FieldIssuerOrganizationID:
+		return m.IssuerOrganizationID()
+	case seahousebill.FieldIssuerPartnerID:
+		return m.IssuerPartnerID()
+	case seahousebill.FieldStatus:
+		return m.Status()
+	case seahousebill.FieldVersion:
+		return m.Version()
+	case seahousebill.FieldNote:
+		return m.Note()
+	case seahousebill.FieldShipperText:
+		return m.ShipperText()
+	case seahousebill.FieldConsigneeText:
+		return m.ConsigneeText()
+	case seahousebill.FieldNotifyPartyText:
+		return m.NotifyPartyText()
+	case seahousebill.FieldSecondNotifyPartyText:
+		return m.SecondNotifyPartyText()
+	case seahousebill.FieldMarksText:
+		return m.MarksText()
+	case seahousebill.FieldGoodsDescriptionText:
+		return m.GoodsDescriptionText()
+	case seahousebill.FieldPackageCount:
+		return m.PackageCount()
+	case seahousebill.FieldPackageUnit:
+		return m.PackageUnit()
+	case seahousebill.FieldGrossWeightKg:
+		return m.GrossWeightKg()
+	case seahousebill.FieldVolumeCbm:
+		return m.VolumeCbm()
+	case seahousebill.FieldFreightTerms:
+		return m.FreightTerms()
+	case seahousebill.FieldTransportTerms:
+		return m.TransportTerms()
+	case seahousebill.FieldBillForm:
+		return m.BillForm()
+	case seahousebill.FieldReleaseType:
+		return m.ReleaseType()
+	case seahousebill.FieldClauses:
+		return m.Clauses()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SeaHouseBillMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case seahousebill.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case seahousebill.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case seahousebill.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case seahousebill.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case seahousebill.FieldMasterBillID:
+		return m.OldMasterBillID(ctx)
+	case seahousebill.FieldHouseNo:
+		return m.OldHouseNo(ctx)
+	case seahousebill.FieldNormalizedHouseNo:
+		return m.OldNormalizedHouseNo(ctx)
+	case seahousebill.FieldIssuerSource:
+		return m.OldIssuerSource(ctx)
+	case seahousebill.FieldIssuerOrganizationID:
+		return m.OldIssuerOrganizationID(ctx)
+	case seahousebill.FieldIssuerPartnerID:
+		return m.OldIssuerPartnerID(ctx)
+	case seahousebill.FieldStatus:
+		return m.OldStatus(ctx)
+	case seahousebill.FieldVersion:
+		return m.OldVersion(ctx)
+	case seahousebill.FieldNote:
+		return m.OldNote(ctx)
+	case seahousebill.FieldShipperText:
+		return m.OldShipperText(ctx)
+	case seahousebill.FieldConsigneeText:
+		return m.OldConsigneeText(ctx)
+	case seahousebill.FieldNotifyPartyText:
+		return m.OldNotifyPartyText(ctx)
+	case seahousebill.FieldSecondNotifyPartyText:
+		return m.OldSecondNotifyPartyText(ctx)
+	case seahousebill.FieldMarksText:
+		return m.OldMarksText(ctx)
+	case seahousebill.FieldGoodsDescriptionText:
+		return m.OldGoodsDescriptionText(ctx)
+	case seahousebill.FieldPackageCount:
+		return m.OldPackageCount(ctx)
+	case seahousebill.FieldPackageUnit:
+		return m.OldPackageUnit(ctx)
+	case seahousebill.FieldGrossWeightKg:
+		return m.OldGrossWeightKg(ctx)
+	case seahousebill.FieldVolumeCbm:
+		return m.OldVolumeCbm(ctx)
+	case seahousebill.FieldFreightTerms:
+		return m.OldFreightTerms(ctx)
+	case seahousebill.FieldTransportTerms:
+		return m.OldTransportTerms(ctx)
+	case seahousebill.FieldBillForm:
+		return m.OldBillForm(ctx)
+	case seahousebill.FieldReleaseType:
+		return m.OldReleaseType(ctx)
+	case seahousebill.FieldClauses:
+		return m.OldClauses(ctx)
+	}
+	return nil, fmt.Errorf("unknown SeaHouseBill field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaHouseBillMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case seahousebill.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case seahousebill.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case seahousebill.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case seahousebill.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case seahousebill.FieldMasterBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterBillID(v)
+		return nil
+	case seahousebill.FieldHouseNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHouseNo(v)
+		return nil
+	case seahousebill.FieldNormalizedHouseNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNormalizedHouseNo(v)
+		return nil
+	case seahousebill.FieldIssuerSource:
+		v, ok := value.(seahousebill.IssuerSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuerSource(v)
+		return nil
+	case seahousebill.FieldIssuerOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuerOrganizationID(v)
+		return nil
+	case seahousebill.FieldIssuerPartnerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuerPartnerID(v)
+		return nil
+	case seahousebill.FieldStatus:
+		v, ok := value.(seahousebill.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case seahousebill.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case seahousebill.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case seahousebill.FieldShipperText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShipperText(v)
+		return nil
+	case seahousebill.FieldConsigneeText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsigneeText(v)
+		return nil
+	case seahousebill.FieldNotifyPartyText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifyPartyText(v)
+		return nil
+	case seahousebill.FieldSecondNotifyPartyText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSecondNotifyPartyText(v)
+		return nil
+	case seahousebill.FieldMarksText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarksText(v)
+		return nil
+	case seahousebill.FieldGoodsDescriptionText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoodsDescriptionText(v)
+		return nil
+	case seahousebill.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageCount(v)
+		return nil
+	case seahousebill.FieldPackageUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageUnit(v)
+		return nil
+	case seahousebill.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGrossWeightKg(v)
+		return nil
+	case seahousebill.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVolumeCbm(v)
+		return nil
+	case seahousebill.FieldFreightTerms:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFreightTerms(v)
+		return nil
+	case seahousebill.FieldTransportTerms:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTransportTerms(v)
+		return nil
+	case seahousebill.FieldBillForm:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillForm(v)
+		return nil
+	case seahousebill.FieldReleaseType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReleaseType(v)
+		return nil
+	case seahousebill.FieldClauses:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClauses(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SeaHouseBillMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, seahousebill.FieldVersion)
+	}
+	if m.addpackage_count != nil {
+		fields = append(fields, seahousebill.FieldPackageCount)
+	}
+	if m.addgross_weight_kg != nil {
+		fields = append(fields, seahousebill.FieldGrossWeightKg)
+	}
+	if m.addvolume_cbm != nil {
+		fields = append(fields, seahousebill.FieldVolumeCbm)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SeaHouseBillMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case seahousebill.FieldVersion:
+		return m.AddedVersion()
+	case seahousebill.FieldPackageCount:
+		return m.AddedPackageCount()
+	case seahousebill.FieldGrossWeightKg:
+		return m.AddedGrossWeightKg()
+	case seahousebill.FieldVolumeCbm:
+		return m.AddedVolumeCbm()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SeaHouseBillMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case seahousebill.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	case seahousebill.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPackageCount(v)
+		return nil
+	case seahousebill.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGrossWeightKg(v)
+		return nil
+	case seahousebill.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVolumeCbm(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SeaHouseBillMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(seahousebill.FieldIssuerOrganizationID) {
+		fields = append(fields, seahousebill.FieldIssuerOrganizationID)
+	}
+	if m.FieldCleared(seahousebill.FieldIssuerPartnerID) {
+		fields = append(fields, seahousebill.FieldIssuerPartnerID)
+	}
+	if m.FieldCleared(seahousebill.FieldNote) {
+		fields = append(fields, seahousebill.FieldNote)
+	}
+	if m.FieldCleared(seahousebill.FieldShipperText) {
+		fields = append(fields, seahousebill.FieldShipperText)
+	}
+	if m.FieldCleared(seahousebill.FieldConsigneeText) {
+		fields = append(fields, seahousebill.FieldConsigneeText)
+	}
+	if m.FieldCleared(seahousebill.FieldNotifyPartyText) {
+		fields = append(fields, seahousebill.FieldNotifyPartyText)
+	}
+	if m.FieldCleared(seahousebill.FieldSecondNotifyPartyText) {
+		fields = append(fields, seahousebill.FieldSecondNotifyPartyText)
+	}
+	if m.FieldCleared(seahousebill.FieldMarksText) {
+		fields = append(fields, seahousebill.FieldMarksText)
+	}
+	if m.FieldCleared(seahousebill.FieldGoodsDescriptionText) {
+		fields = append(fields, seahousebill.FieldGoodsDescriptionText)
+	}
+	if m.FieldCleared(seahousebill.FieldPackageCount) {
+		fields = append(fields, seahousebill.FieldPackageCount)
+	}
+	if m.FieldCleared(seahousebill.FieldPackageUnit) {
+		fields = append(fields, seahousebill.FieldPackageUnit)
+	}
+	if m.FieldCleared(seahousebill.FieldGrossWeightKg) {
+		fields = append(fields, seahousebill.FieldGrossWeightKg)
+	}
+	if m.FieldCleared(seahousebill.FieldVolumeCbm) {
+		fields = append(fields, seahousebill.FieldVolumeCbm)
+	}
+	if m.FieldCleared(seahousebill.FieldFreightTerms) {
+		fields = append(fields, seahousebill.FieldFreightTerms)
+	}
+	if m.FieldCleared(seahousebill.FieldTransportTerms) {
+		fields = append(fields, seahousebill.FieldTransportTerms)
+	}
+	if m.FieldCleared(seahousebill.FieldBillForm) {
+		fields = append(fields, seahousebill.FieldBillForm)
+	}
+	if m.FieldCleared(seahousebill.FieldReleaseType) {
+		fields = append(fields, seahousebill.FieldReleaseType)
+	}
+	if m.FieldCleared(seahousebill.FieldClauses) {
+		fields = append(fields, seahousebill.FieldClauses)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SeaHouseBillMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SeaHouseBillMutation) ClearField(name string) error {
+	switch name {
+	case seahousebill.FieldIssuerOrganizationID:
+		m.ClearIssuerOrganizationID()
+		return nil
+	case seahousebill.FieldIssuerPartnerID:
+		m.ClearIssuerPartnerID()
+		return nil
+	case seahousebill.FieldNote:
+		m.ClearNote()
+		return nil
+	case seahousebill.FieldShipperText:
+		m.ClearShipperText()
+		return nil
+	case seahousebill.FieldConsigneeText:
+		m.ClearConsigneeText()
+		return nil
+	case seahousebill.FieldNotifyPartyText:
+		m.ClearNotifyPartyText()
+		return nil
+	case seahousebill.FieldSecondNotifyPartyText:
+		m.ClearSecondNotifyPartyText()
+		return nil
+	case seahousebill.FieldMarksText:
+		m.ClearMarksText()
+		return nil
+	case seahousebill.FieldGoodsDescriptionText:
+		m.ClearGoodsDescriptionText()
+		return nil
+	case seahousebill.FieldPackageCount:
+		m.ClearPackageCount()
+		return nil
+	case seahousebill.FieldPackageUnit:
+		m.ClearPackageUnit()
+		return nil
+	case seahousebill.FieldGrossWeightKg:
+		m.ClearGrossWeightKg()
+		return nil
+	case seahousebill.FieldVolumeCbm:
+		m.ClearVolumeCbm()
+		return nil
+	case seahousebill.FieldFreightTerms:
+		m.ClearFreightTerms()
+		return nil
+	case seahousebill.FieldTransportTerms:
+		m.ClearTransportTerms()
+		return nil
+	case seahousebill.FieldBillForm:
+		m.ClearBillForm()
+		return nil
+	case seahousebill.FieldReleaseType:
+		m.ClearReleaseType()
+		return nil
+	case seahousebill.FieldClauses:
+		m.ClearClauses()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SeaHouseBillMutation) ResetField(name string) error {
+	switch name {
+	case seahousebill.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case seahousebill.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case seahousebill.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case seahousebill.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case seahousebill.FieldMasterBillID:
+		m.ResetMasterBillID()
+		return nil
+	case seahousebill.FieldHouseNo:
+		m.ResetHouseNo()
+		return nil
+	case seahousebill.FieldNormalizedHouseNo:
+		m.ResetNormalizedHouseNo()
+		return nil
+	case seahousebill.FieldIssuerSource:
+		m.ResetIssuerSource()
+		return nil
+	case seahousebill.FieldIssuerOrganizationID:
+		m.ResetIssuerOrganizationID()
+		return nil
+	case seahousebill.FieldIssuerPartnerID:
+		m.ResetIssuerPartnerID()
+		return nil
+	case seahousebill.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case seahousebill.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case seahousebill.FieldNote:
+		m.ResetNote()
+		return nil
+	case seahousebill.FieldShipperText:
+		m.ResetShipperText()
+		return nil
+	case seahousebill.FieldConsigneeText:
+		m.ResetConsigneeText()
+		return nil
+	case seahousebill.FieldNotifyPartyText:
+		m.ResetNotifyPartyText()
+		return nil
+	case seahousebill.FieldSecondNotifyPartyText:
+		m.ResetSecondNotifyPartyText()
+		return nil
+	case seahousebill.FieldMarksText:
+		m.ResetMarksText()
+		return nil
+	case seahousebill.FieldGoodsDescriptionText:
+		m.ResetGoodsDescriptionText()
+		return nil
+	case seahousebill.FieldPackageCount:
+		m.ResetPackageCount()
+		return nil
+	case seahousebill.FieldPackageUnit:
+		m.ResetPackageUnit()
+		return nil
+	case seahousebill.FieldGrossWeightKg:
+		m.ResetGrossWeightKg()
+		return nil
+	case seahousebill.FieldVolumeCbm:
+		m.ResetVolumeCbm()
+		return nil
+	case seahousebill.FieldFreightTerms:
+		m.ResetFreightTerms()
+		return nil
+	case seahousebill.FieldTransportTerms:
+		m.ResetTransportTerms()
+		return nil
+	case seahousebill.FieldBillForm:
+		m.ResetBillForm()
+		return nil
+	case seahousebill.FieldReleaseType:
+		m.ResetReleaseType()
+		return nil
+	case seahousebill.FieldClauses:
+		m.ResetClauses()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SeaHouseBillMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.organization != nil {
+		edges = append(edges, seahousebill.EdgeOrganization)
+	}
+	if m._order != nil {
+		edges = append(edges, seahousebill.EdgeOrder)
+	}
+	if m.master_bill != nil {
+		edges = append(edges, seahousebill.EdgeMasterBill)
+	}
+	if m.issuer_organization != nil {
+		edges = append(edges, seahousebill.EdgeIssuerOrganization)
+	}
+	if m.issuer_partner != nil {
+		edges = append(edges, seahousebill.EdgeIssuerPartner)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SeaHouseBillMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case seahousebill.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seahousebill.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	case seahousebill.EdgeMasterBill:
+		if id := m.master_bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case seahousebill.EdgeIssuerOrganization:
+		if id := m.issuer_organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case seahousebill.EdgeIssuerPartner:
+		if id := m.issuer_partner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SeaHouseBillMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SeaHouseBillMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SeaHouseBillMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedorganization {
+		edges = append(edges, seahousebill.EdgeOrganization)
+	}
+	if m.cleared_order {
+		edges = append(edges, seahousebill.EdgeOrder)
+	}
+	if m.clearedmaster_bill {
+		edges = append(edges, seahousebill.EdgeMasterBill)
+	}
+	if m.clearedissuer_organization {
+		edges = append(edges, seahousebill.EdgeIssuerOrganization)
+	}
+	if m.clearedissuer_partner {
+		edges = append(edges, seahousebill.EdgeIssuerPartner)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SeaHouseBillMutation) EdgeCleared(name string) bool {
+	switch name {
+	case seahousebill.EdgeOrganization:
+		return m.clearedorganization
+	case seahousebill.EdgeOrder:
+		return m.cleared_order
+	case seahousebill.EdgeMasterBill:
+		return m.clearedmaster_bill
+	case seahousebill.EdgeIssuerOrganization:
+		return m.clearedissuer_organization
+	case seahousebill.EdgeIssuerPartner:
+		return m.clearedissuer_partner
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SeaHouseBillMutation) ClearEdge(name string) error {
+	switch name {
+	case seahousebill.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case seahousebill.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	case seahousebill.EdgeMasterBill:
+		m.ClearMasterBill()
+		return nil
+	case seahousebill.EdgeIssuerOrganization:
+		m.ClearIssuerOrganization()
+		return nil
+	case seahousebill.EdgeIssuerPartner:
+		m.ClearIssuerPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SeaHouseBillMutation) ResetEdge(name string) error {
+	switch name {
+	case seahousebill.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case seahousebill.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	case seahousebill.EdgeMasterBill:
+		m.ResetMasterBill()
+		return nil
+	case seahousebill.EdgeIssuerOrganization:
+		m.ResetIssuerOrganization()
+		return nil
+	case seahousebill.EdgeIssuerPartner:
+		m.ResetIssuerPartner()
+		return nil
+	}
+	return fmt.Errorf("unknown SeaHouseBill edge %s", name)
+}
+
 // SeaMasterBillMutation represents an operation that mutates the SeaMasterBill nodes in the graph.
 type SeaMasterBillMutation struct {
 	config
@@ -101026,6 +103871,24 @@ type SeaMasterBillMutation struct {
 	status                     *seamasterbill.Status
 	version                    *uint64
 	addversion                 *int64
+	shipper_text               *string
+	consignee_text             *string
+	notify_party_text          *string
+	second_notify_party_text   *string
+	marks_text                 *string
+	goods_description_text     *string
+	package_count              *int
+	addpackage_count           *int
+	package_unit               *string
+	gross_weight_kg            *float64
+	addgross_weight_kg         *float64
+	volume_cbm                 *float64
+	addvolume_cbm              *float64
+	freight_terms              *string
+	transport_terms            *string
+	bill_form                  *string
+	release_type               *string
+	clauses                    *string
 	clearedFields              map[string]struct{}
 	organization               *uuid.UUID
 	clearedorganization        bool
@@ -101034,6 +103897,9 @@ type SeaMasterBillMutation struct {
 	order_links                map[uuid.UUID]struct{}
 	removedorder_links         map[uuid.UUID]struct{}
 	clearedorder_links         bool
+	house_bills                map[uuid.UUID]struct{}
+	removedhouse_bills         map[uuid.UUID]struct{}
+	clearedhouse_bills         bool
 	done                       bool
 	oldValue                   func(context.Context) (*SeaMasterBill, error)
 	predicates                 []predicate.SeaMasterBill
@@ -101487,6 +104353,804 @@ func (m *SeaMasterBillMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetShipperText sets the "shipper_text" field.
+func (m *SeaMasterBillMutation) SetShipperText(s string) {
+	m.shipper_text = &s
+}
+
+// ShipperText returns the value of the "shipper_text" field in the mutation.
+func (m *SeaMasterBillMutation) ShipperText() (r string, exists bool) {
+	v := m.shipper_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShipperText returns the old "shipper_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldShipperText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShipperText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShipperText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShipperText: %w", err)
+	}
+	return oldValue.ShipperText, nil
+}
+
+// ClearShipperText clears the value of the "shipper_text" field.
+func (m *SeaMasterBillMutation) ClearShipperText() {
+	m.shipper_text = nil
+	m.clearedFields[seamasterbill.FieldShipperText] = struct{}{}
+}
+
+// ShipperTextCleared returns if the "shipper_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) ShipperTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldShipperText]
+	return ok
+}
+
+// ResetShipperText resets all changes to the "shipper_text" field.
+func (m *SeaMasterBillMutation) ResetShipperText() {
+	m.shipper_text = nil
+	delete(m.clearedFields, seamasterbill.FieldShipperText)
+}
+
+// SetConsigneeText sets the "consignee_text" field.
+func (m *SeaMasterBillMutation) SetConsigneeText(s string) {
+	m.consignee_text = &s
+}
+
+// ConsigneeText returns the value of the "consignee_text" field in the mutation.
+func (m *SeaMasterBillMutation) ConsigneeText() (r string, exists bool) {
+	v := m.consignee_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsigneeText returns the old "consignee_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldConsigneeText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsigneeText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsigneeText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsigneeText: %w", err)
+	}
+	return oldValue.ConsigneeText, nil
+}
+
+// ClearConsigneeText clears the value of the "consignee_text" field.
+func (m *SeaMasterBillMutation) ClearConsigneeText() {
+	m.consignee_text = nil
+	m.clearedFields[seamasterbill.FieldConsigneeText] = struct{}{}
+}
+
+// ConsigneeTextCleared returns if the "consignee_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) ConsigneeTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldConsigneeText]
+	return ok
+}
+
+// ResetConsigneeText resets all changes to the "consignee_text" field.
+func (m *SeaMasterBillMutation) ResetConsigneeText() {
+	m.consignee_text = nil
+	delete(m.clearedFields, seamasterbill.FieldConsigneeText)
+}
+
+// SetNotifyPartyText sets the "notify_party_text" field.
+func (m *SeaMasterBillMutation) SetNotifyPartyText(s string) {
+	m.notify_party_text = &s
+}
+
+// NotifyPartyText returns the value of the "notify_party_text" field in the mutation.
+func (m *SeaMasterBillMutation) NotifyPartyText() (r string, exists bool) {
+	v := m.notify_party_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifyPartyText returns the old "notify_party_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldNotifyPartyText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifyPartyText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifyPartyText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifyPartyText: %w", err)
+	}
+	return oldValue.NotifyPartyText, nil
+}
+
+// ClearNotifyPartyText clears the value of the "notify_party_text" field.
+func (m *SeaMasterBillMutation) ClearNotifyPartyText() {
+	m.notify_party_text = nil
+	m.clearedFields[seamasterbill.FieldNotifyPartyText] = struct{}{}
+}
+
+// NotifyPartyTextCleared returns if the "notify_party_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) NotifyPartyTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldNotifyPartyText]
+	return ok
+}
+
+// ResetNotifyPartyText resets all changes to the "notify_party_text" field.
+func (m *SeaMasterBillMutation) ResetNotifyPartyText() {
+	m.notify_party_text = nil
+	delete(m.clearedFields, seamasterbill.FieldNotifyPartyText)
+}
+
+// SetSecondNotifyPartyText sets the "second_notify_party_text" field.
+func (m *SeaMasterBillMutation) SetSecondNotifyPartyText(s string) {
+	m.second_notify_party_text = &s
+}
+
+// SecondNotifyPartyText returns the value of the "second_notify_party_text" field in the mutation.
+func (m *SeaMasterBillMutation) SecondNotifyPartyText() (r string, exists bool) {
+	v := m.second_notify_party_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSecondNotifyPartyText returns the old "second_notify_party_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldSecondNotifyPartyText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSecondNotifyPartyText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSecondNotifyPartyText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSecondNotifyPartyText: %w", err)
+	}
+	return oldValue.SecondNotifyPartyText, nil
+}
+
+// ClearSecondNotifyPartyText clears the value of the "second_notify_party_text" field.
+func (m *SeaMasterBillMutation) ClearSecondNotifyPartyText() {
+	m.second_notify_party_text = nil
+	m.clearedFields[seamasterbill.FieldSecondNotifyPartyText] = struct{}{}
+}
+
+// SecondNotifyPartyTextCleared returns if the "second_notify_party_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) SecondNotifyPartyTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldSecondNotifyPartyText]
+	return ok
+}
+
+// ResetSecondNotifyPartyText resets all changes to the "second_notify_party_text" field.
+func (m *SeaMasterBillMutation) ResetSecondNotifyPartyText() {
+	m.second_notify_party_text = nil
+	delete(m.clearedFields, seamasterbill.FieldSecondNotifyPartyText)
+}
+
+// SetMarksText sets the "marks_text" field.
+func (m *SeaMasterBillMutation) SetMarksText(s string) {
+	m.marks_text = &s
+}
+
+// MarksText returns the value of the "marks_text" field in the mutation.
+func (m *SeaMasterBillMutation) MarksText() (r string, exists bool) {
+	v := m.marks_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarksText returns the old "marks_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldMarksText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarksText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarksText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarksText: %w", err)
+	}
+	return oldValue.MarksText, nil
+}
+
+// ClearMarksText clears the value of the "marks_text" field.
+func (m *SeaMasterBillMutation) ClearMarksText() {
+	m.marks_text = nil
+	m.clearedFields[seamasterbill.FieldMarksText] = struct{}{}
+}
+
+// MarksTextCleared returns if the "marks_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) MarksTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldMarksText]
+	return ok
+}
+
+// ResetMarksText resets all changes to the "marks_text" field.
+func (m *SeaMasterBillMutation) ResetMarksText() {
+	m.marks_text = nil
+	delete(m.clearedFields, seamasterbill.FieldMarksText)
+}
+
+// SetGoodsDescriptionText sets the "goods_description_text" field.
+func (m *SeaMasterBillMutation) SetGoodsDescriptionText(s string) {
+	m.goods_description_text = &s
+}
+
+// GoodsDescriptionText returns the value of the "goods_description_text" field in the mutation.
+func (m *SeaMasterBillMutation) GoodsDescriptionText() (r string, exists bool) {
+	v := m.goods_description_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoodsDescriptionText returns the old "goods_description_text" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldGoodsDescriptionText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoodsDescriptionText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoodsDescriptionText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoodsDescriptionText: %w", err)
+	}
+	return oldValue.GoodsDescriptionText, nil
+}
+
+// ClearGoodsDescriptionText clears the value of the "goods_description_text" field.
+func (m *SeaMasterBillMutation) ClearGoodsDescriptionText() {
+	m.goods_description_text = nil
+	m.clearedFields[seamasterbill.FieldGoodsDescriptionText] = struct{}{}
+}
+
+// GoodsDescriptionTextCleared returns if the "goods_description_text" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) GoodsDescriptionTextCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldGoodsDescriptionText]
+	return ok
+}
+
+// ResetGoodsDescriptionText resets all changes to the "goods_description_text" field.
+func (m *SeaMasterBillMutation) ResetGoodsDescriptionText() {
+	m.goods_description_text = nil
+	delete(m.clearedFields, seamasterbill.FieldGoodsDescriptionText)
+}
+
+// SetPackageCount sets the "package_count" field.
+func (m *SeaMasterBillMutation) SetPackageCount(i int) {
+	m.package_count = &i
+	m.addpackage_count = nil
+}
+
+// PackageCount returns the value of the "package_count" field in the mutation.
+func (m *SeaMasterBillMutation) PackageCount() (r int, exists bool) {
+	v := m.package_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageCount returns the old "package_count" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldPackageCount(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageCount: %w", err)
+	}
+	return oldValue.PackageCount, nil
+}
+
+// AddPackageCount adds i to the "package_count" field.
+func (m *SeaMasterBillMutation) AddPackageCount(i int) {
+	if m.addpackage_count != nil {
+		*m.addpackage_count += i
+	} else {
+		m.addpackage_count = &i
+	}
+}
+
+// AddedPackageCount returns the value that was added to the "package_count" field in this mutation.
+func (m *SeaMasterBillMutation) AddedPackageCount() (r int, exists bool) {
+	v := m.addpackage_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPackageCount clears the value of the "package_count" field.
+func (m *SeaMasterBillMutation) ClearPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+	m.clearedFields[seamasterbill.FieldPackageCount] = struct{}{}
+}
+
+// PackageCountCleared returns if the "package_count" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) PackageCountCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldPackageCount]
+	return ok
+}
+
+// ResetPackageCount resets all changes to the "package_count" field.
+func (m *SeaMasterBillMutation) ResetPackageCount() {
+	m.package_count = nil
+	m.addpackage_count = nil
+	delete(m.clearedFields, seamasterbill.FieldPackageCount)
+}
+
+// SetPackageUnit sets the "package_unit" field.
+func (m *SeaMasterBillMutation) SetPackageUnit(s string) {
+	m.package_unit = &s
+}
+
+// PackageUnit returns the value of the "package_unit" field in the mutation.
+func (m *SeaMasterBillMutation) PackageUnit() (r string, exists bool) {
+	v := m.package_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageUnit returns the old "package_unit" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldPackageUnit(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageUnit: %w", err)
+	}
+	return oldValue.PackageUnit, nil
+}
+
+// ClearPackageUnit clears the value of the "package_unit" field.
+func (m *SeaMasterBillMutation) ClearPackageUnit() {
+	m.package_unit = nil
+	m.clearedFields[seamasterbill.FieldPackageUnit] = struct{}{}
+}
+
+// PackageUnitCleared returns if the "package_unit" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) PackageUnitCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldPackageUnit]
+	return ok
+}
+
+// ResetPackageUnit resets all changes to the "package_unit" field.
+func (m *SeaMasterBillMutation) ResetPackageUnit() {
+	m.package_unit = nil
+	delete(m.clearedFields, seamasterbill.FieldPackageUnit)
+}
+
+// SetGrossWeightKg sets the "gross_weight_kg" field.
+func (m *SeaMasterBillMutation) SetGrossWeightKg(f float64) {
+	m.gross_weight_kg = &f
+	m.addgross_weight_kg = nil
+}
+
+// GrossWeightKg returns the value of the "gross_weight_kg" field in the mutation.
+func (m *SeaMasterBillMutation) GrossWeightKg() (r float64, exists bool) {
+	v := m.gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGrossWeightKg returns the old "gross_weight_kg" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldGrossWeightKg(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGrossWeightKg: %w", err)
+	}
+	return oldValue.GrossWeightKg, nil
+}
+
+// AddGrossWeightKg adds f to the "gross_weight_kg" field.
+func (m *SeaMasterBillMutation) AddGrossWeightKg(f float64) {
+	if m.addgross_weight_kg != nil {
+		*m.addgross_weight_kg += f
+	} else {
+		m.addgross_weight_kg = &f
+	}
+}
+
+// AddedGrossWeightKg returns the value that was added to the "gross_weight_kg" field in this mutation.
+func (m *SeaMasterBillMutation) AddedGrossWeightKg() (r float64, exists bool) {
+	v := m.addgross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGrossWeightKg clears the value of the "gross_weight_kg" field.
+func (m *SeaMasterBillMutation) ClearGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+	m.clearedFields[seamasterbill.FieldGrossWeightKg] = struct{}{}
+}
+
+// GrossWeightKgCleared returns if the "gross_weight_kg" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) GrossWeightKgCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldGrossWeightKg]
+	return ok
+}
+
+// ResetGrossWeightKg resets all changes to the "gross_weight_kg" field.
+func (m *SeaMasterBillMutation) ResetGrossWeightKg() {
+	m.gross_weight_kg = nil
+	m.addgross_weight_kg = nil
+	delete(m.clearedFields, seamasterbill.FieldGrossWeightKg)
+}
+
+// SetVolumeCbm sets the "volume_cbm" field.
+func (m *SeaMasterBillMutation) SetVolumeCbm(f float64) {
+	m.volume_cbm = &f
+	m.addvolume_cbm = nil
+}
+
+// VolumeCbm returns the value of the "volume_cbm" field in the mutation.
+func (m *SeaMasterBillMutation) VolumeCbm() (r float64, exists bool) {
+	v := m.volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVolumeCbm returns the old "volume_cbm" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldVolumeCbm(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVolumeCbm: %w", err)
+	}
+	return oldValue.VolumeCbm, nil
+}
+
+// AddVolumeCbm adds f to the "volume_cbm" field.
+func (m *SeaMasterBillMutation) AddVolumeCbm(f float64) {
+	if m.addvolume_cbm != nil {
+		*m.addvolume_cbm += f
+	} else {
+		m.addvolume_cbm = &f
+	}
+}
+
+// AddedVolumeCbm returns the value that was added to the "volume_cbm" field in this mutation.
+func (m *SeaMasterBillMutation) AddedVolumeCbm() (r float64, exists bool) {
+	v := m.addvolume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearVolumeCbm clears the value of the "volume_cbm" field.
+func (m *SeaMasterBillMutation) ClearVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+	m.clearedFields[seamasterbill.FieldVolumeCbm] = struct{}{}
+}
+
+// VolumeCbmCleared returns if the "volume_cbm" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) VolumeCbmCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldVolumeCbm]
+	return ok
+}
+
+// ResetVolumeCbm resets all changes to the "volume_cbm" field.
+func (m *SeaMasterBillMutation) ResetVolumeCbm() {
+	m.volume_cbm = nil
+	m.addvolume_cbm = nil
+	delete(m.clearedFields, seamasterbill.FieldVolumeCbm)
+}
+
+// SetFreightTerms sets the "freight_terms" field.
+func (m *SeaMasterBillMutation) SetFreightTerms(s string) {
+	m.freight_terms = &s
+}
+
+// FreightTerms returns the value of the "freight_terms" field in the mutation.
+func (m *SeaMasterBillMutation) FreightTerms() (r string, exists bool) {
+	v := m.freight_terms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFreightTerms returns the old "freight_terms" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldFreightTerms(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFreightTerms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFreightTerms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFreightTerms: %w", err)
+	}
+	return oldValue.FreightTerms, nil
+}
+
+// ClearFreightTerms clears the value of the "freight_terms" field.
+func (m *SeaMasterBillMutation) ClearFreightTerms() {
+	m.freight_terms = nil
+	m.clearedFields[seamasterbill.FieldFreightTerms] = struct{}{}
+}
+
+// FreightTermsCleared returns if the "freight_terms" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) FreightTermsCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldFreightTerms]
+	return ok
+}
+
+// ResetFreightTerms resets all changes to the "freight_terms" field.
+func (m *SeaMasterBillMutation) ResetFreightTerms() {
+	m.freight_terms = nil
+	delete(m.clearedFields, seamasterbill.FieldFreightTerms)
+}
+
+// SetTransportTerms sets the "transport_terms" field.
+func (m *SeaMasterBillMutation) SetTransportTerms(s string) {
+	m.transport_terms = &s
+}
+
+// TransportTerms returns the value of the "transport_terms" field in the mutation.
+func (m *SeaMasterBillMutation) TransportTerms() (r string, exists bool) {
+	v := m.transport_terms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTransportTerms returns the old "transport_terms" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldTransportTerms(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTransportTerms is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTransportTerms requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTransportTerms: %w", err)
+	}
+	return oldValue.TransportTerms, nil
+}
+
+// ClearTransportTerms clears the value of the "transport_terms" field.
+func (m *SeaMasterBillMutation) ClearTransportTerms() {
+	m.transport_terms = nil
+	m.clearedFields[seamasterbill.FieldTransportTerms] = struct{}{}
+}
+
+// TransportTermsCleared returns if the "transport_terms" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) TransportTermsCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldTransportTerms]
+	return ok
+}
+
+// ResetTransportTerms resets all changes to the "transport_terms" field.
+func (m *SeaMasterBillMutation) ResetTransportTerms() {
+	m.transport_terms = nil
+	delete(m.clearedFields, seamasterbill.FieldTransportTerms)
+}
+
+// SetBillForm sets the "bill_form" field.
+func (m *SeaMasterBillMutation) SetBillForm(s string) {
+	m.bill_form = &s
+}
+
+// BillForm returns the value of the "bill_form" field in the mutation.
+func (m *SeaMasterBillMutation) BillForm() (r string, exists bool) {
+	v := m.bill_form
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillForm returns the old "bill_form" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldBillForm(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillForm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillForm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillForm: %w", err)
+	}
+	return oldValue.BillForm, nil
+}
+
+// ClearBillForm clears the value of the "bill_form" field.
+func (m *SeaMasterBillMutation) ClearBillForm() {
+	m.bill_form = nil
+	m.clearedFields[seamasterbill.FieldBillForm] = struct{}{}
+}
+
+// BillFormCleared returns if the "bill_form" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) BillFormCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldBillForm]
+	return ok
+}
+
+// ResetBillForm resets all changes to the "bill_form" field.
+func (m *SeaMasterBillMutation) ResetBillForm() {
+	m.bill_form = nil
+	delete(m.clearedFields, seamasterbill.FieldBillForm)
+}
+
+// SetReleaseType sets the "release_type" field.
+func (m *SeaMasterBillMutation) SetReleaseType(s string) {
+	m.release_type = &s
+}
+
+// ReleaseType returns the value of the "release_type" field in the mutation.
+func (m *SeaMasterBillMutation) ReleaseType() (r string, exists bool) {
+	v := m.release_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReleaseType returns the old "release_type" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldReleaseType(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReleaseType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReleaseType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReleaseType: %w", err)
+	}
+	return oldValue.ReleaseType, nil
+}
+
+// ClearReleaseType clears the value of the "release_type" field.
+func (m *SeaMasterBillMutation) ClearReleaseType() {
+	m.release_type = nil
+	m.clearedFields[seamasterbill.FieldReleaseType] = struct{}{}
+}
+
+// ReleaseTypeCleared returns if the "release_type" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) ReleaseTypeCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldReleaseType]
+	return ok
+}
+
+// ResetReleaseType resets all changes to the "release_type" field.
+func (m *SeaMasterBillMutation) ResetReleaseType() {
+	m.release_type = nil
+	delete(m.clearedFields, seamasterbill.FieldReleaseType)
+}
+
+// SetClauses sets the "clauses" field.
+func (m *SeaMasterBillMutation) SetClauses(s string) {
+	m.clauses = &s
+}
+
+// Clauses returns the value of the "clauses" field in the mutation.
+func (m *SeaMasterBillMutation) Clauses() (r string, exists bool) {
+	v := m.clauses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClauses returns the old "clauses" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldClauses(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClauses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClauses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClauses: %w", err)
+	}
+	return oldValue.Clauses, nil
+}
+
+// ClearClauses clears the value of the "clauses" field.
+func (m *SeaMasterBillMutation) ClearClauses() {
+	m.clauses = nil
+	m.clearedFields[seamasterbill.FieldClauses] = struct{}{}
+}
+
+// ClausesCleared returns if the "clauses" field was cleared in this mutation.
+func (m *SeaMasterBillMutation) ClausesCleared() bool {
+	_, ok := m.clearedFields[seamasterbill.FieldClauses]
+	return ok
+}
+
+// ResetClauses resets all changes to the "clauses" field.
+func (m *SeaMasterBillMutation) ResetClauses() {
+	m.clauses = nil
+	delete(m.clearedFields, seamasterbill.FieldClauses)
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *SeaMasterBillMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -101595,6 +105259,60 @@ func (m *SeaMasterBillMutation) ResetOrderLinks() {
 	m.removedorder_links = nil
 }
 
+// AddHouseBillIDs adds the "house_bills" edge to the SeaHouseBill entity by ids.
+func (m *SeaMasterBillMutation) AddHouseBillIDs(ids ...uuid.UUID) {
+	if m.house_bills == nil {
+		m.house_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.house_bills[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHouseBills clears the "house_bills" edge to the SeaHouseBill entity.
+func (m *SeaMasterBillMutation) ClearHouseBills() {
+	m.clearedhouse_bills = true
+}
+
+// HouseBillsCleared reports if the "house_bills" edge to the SeaHouseBill entity was cleared.
+func (m *SeaMasterBillMutation) HouseBillsCleared() bool {
+	return m.clearedhouse_bills
+}
+
+// RemoveHouseBillIDs removes the "house_bills" edge to the SeaHouseBill entity by IDs.
+func (m *SeaMasterBillMutation) RemoveHouseBillIDs(ids ...uuid.UUID) {
+	if m.removedhouse_bills == nil {
+		m.removedhouse_bills = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.house_bills, ids[i])
+		m.removedhouse_bills[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHouseBills returns the removed IDs of the "house_bills" edge to the SeaHouseBill entity.
+func (m *SeaMasterBillMutation) RemovedHouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.removedhouse_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HouseBillsIDs returns the "house_bills" edge IDs in the mutation.
+func (m *SeaMasterBillMutation) HouseBillsIDs() (ids []uuid.UUID) {
+	for id := range m.house_bills {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHouseBills resets all changes to the "house_bills" edge.
+func (m *SeaMasterBillMutation) ResetHouseBills() {
+	m.house_bills = nil
+	m.clearedhouse_bills = false
+	m.removedhouse_bills = nil
+}
+
 // Where appends a list predicates to the SeaMasterBillMutation builder.
 func (m *SeaMasterBillMutation) Where(ps ...predicate.SeaMasterBill) {
 	m.predicates = append(m.predicates, ps...)
@@ -101629,7 +105347,7 @@ func (m *SeaMasterBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 24)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbill.FieldCreatedAt)
 	}
@@ -101657,6 +105375,51 @@ func (m *SeaMasterBillMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, seamasterbill.FieldVersion)
 	}
+	if m.shipper_text != nil {
+		fields = append(fields, seamasterbill.FieldShipperText)
+	}
+	if m.consignee_text != nil {
+		fields = append(fields, seamasterbill.FieldConsigneeText)
+	}
+	if m.notify_party_text != nil {
+		fields = append(fields, seamasterbill.FieldNotifyPartyText)
+	}
+	if m.second_notify_party_text != nil {
+		fields = append(fields, seamasterbill.FieldSecondNotifyPartyText)
+	}
+	if m.marks_text != nil {
+		fields = append(fields, seamasterbill.FieldMarksText)
+	}
+	if m.goods_description_text != nil {
+		fields = append(fields, seamasterbill.FieldGoodsDescriptionText)
+	}
+	if m.package_count != nil {
+		fields = append(fields, seamasterbill.FieldPackageCount)
+	}
+	if m.package_unit != nil {
+		fields = append(fields, seamasterbill.FieldPackageUnit)
+	}
+	if m.gross_weight_kg != nil {
+		fields = append(fields, seamasterbill.FieldGrossWeightKg)
+	}
+	if m.volume_cbm != nil {
+		fields = append(fields, seamasterbill.FieldVolumeCbm)
+	}
+	if m.freight_terms != nil {
+		fields = append(fields, seamasterbill.FieldFreightTerms)
+	}
+	if m.transport_terms != nil {
+		fields = append(fields, seamasterbill.FieldTransportTerms)
+	}
+	if m.bill_form != nil {
+		fields = append(fields, seamasterbill.FieldBillForm)
+	}
+	if m.release_type != nil {
+		fields = append(fields, seamasterbill.FieldReleaseType)
+	}
+	if m.clauses != nil {
+		fields = append(fields, seamasterbill.FieldClauses)
+	}
 	return fields
 }
 
@@ -101683,6 +105446,36 @@ func (m *SeaMasterBillMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case seamasterbill.FieldVersion:
 		return m.Version()
+	case seamasterbill.FieldShipperText:
+		return m.ShipperText()
+	case seamasterbill.FieldConsigneeText:
+		return m.ConsigneeText()
+	case seamasterbill.FieldNotifyPartyText:
+		return m.NotifyPartyText()
+	case seamasterbill.FieldSecondNotifyPartyText:
+		return m.SecondNotifyPartyText()
+	case seamasterbill.FieldMarksText:
+		return m.MarksText()
+	case seamasterbill.FieldGoodsDescriptionText:
+		return m.GoodsDescriptionText()
+	case seamasterbill.FieldPackageCount:
+		return m.PackageCount()
+	case seamasterbill.FieldPackageUnit:
+		return m.PackageUnit()
+	case seamasterbill.FieldGrossWeightKg:
+		return m.GrossWeightKg()
+	case seamasterbill.FieldVolumeCbm:
+		return m.VolumeCbm()
+	case seamasterbill.FieldFreightTerms:
+		return m.FreightTerms()
+	case seamasterbill.FieldTransportTerms:
+		return m.TransportTerms()
+	case seamasterbill.FieldBillForm:
+		return m.BillForm()
+	case seamasterbill.FieldReleaseType:
+		return m.ReleaseType()
+	case seamasterbill.FieldClauses:
+		return m.Clauses()
 	}
 	return nil, false
 }
@@ -101710,6 +105503,36 @@ func (m *SeaMasterBillMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldStatus(ctx)
 	case seamasterbill.FieldVersion:
 		return m.OldVersion(ctx)
+	case seamasterbill.FieldShipperText:
+		return m.OldShipperText(ctx)
+	case seamasterbill.FieldConsigneeText:
+		return m.OldConsigneeText(ctx)
+	case seamasterbill.FieldNotifyPartyText:
+		return m.OldNotifyPartyText(ctx)
+	case seamasterbill.FieldSecondNotifyPartyText:
+		return m.OldSecondNotifyPartyText(ctx)
+	case seamasterbill.FieldMarksText:
+		return m.OldMarksText(ctx)
+	case seamasterbill.FieldGoodsDescriptionText:
+		return m.OldGoodsDescriptionText(ctx)
+	case seamasterbill.FieldPackageCount:
+		return m.OldPackageCount(ctx)
+	case seamasterbill.FieldPackageUnit:
+		return m.OldPackageUnit(ctx)
+	case seamasterbill.FieldGrossWeightKg:
+		return m.OldGrossWeightKg(ctx)
+	case seamasterbill.FieldVolumeCbm:
+		return m.OldVolumeCbm(ctx)
+	case seamasterbill.FieldFreightTerms:
+		return m.OldFreightTerms(ctx)
+	case seamasterbill.FieldTransportTerms:
+		return m.OldTransportTerms(ctx)
+	case seamasterbill.FieldBillForm:
+		return m.OldBillForm(ctx)
+	case seamasterbill.FieldReleaseType:
+		return m.OldReleaseType(ctx)
+	case seamasterbill.FieldClauses:
+		return m.OldClauses(ctx)
 	}
 	return nil, fmt.Errorf("unknown SeaMasterBill field %s", name)
 }
@@ -101782,6 +105605,111 @@ func (m *SeaMasterBillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
+	case seamasterbill.FieldShipperText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShipperText(v)
+		return nil
+	case seamasterbill.FieldConsigneeText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsigneeText(v)
+		return nil
+	case seamasterbill.FieldNotifyPartyText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifyPartyText(v)
+		return nil
+	case seamasterbill.FieldSecondNotifyPartyText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSecondNotifyPartyText(v)
+		return nil
+	case seamasterbill.FieldMarksText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarksText(v)
+		return nil
+	case seamasterbill.FieldGoodsDescriptionText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoodsDescriptionText(v)
+		return nil
+	case seamasterbill.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageCount(v)
+		return nil
+	case seamasterbill.FieldPackageUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageUnit(v)
+		return nil
+	case seamasterbill.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGrossWeightKg(v)
+		return nil
+	case seamasterbill.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVolumeCbm(v)
+		return nil
+	case seamasterbill.FieldFreightTerms:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFreightTerms(v)
+		return nil
+	case seamasterbill.FieldTransportTerms:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTransportTerms(v)
+		return nil
+	case seamasterbill.FieldBillForm:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillForm(v)
+		return nil
+	case seamasterbill.FieldReleaseType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReleaseType(v)
+		return nil
+	case seamasterbill.FieldClauses:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClauses(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill field %s", name)
 }
@@ -101793,6 +105721,15 @@ func (m *SeaMasterBillMutation) AddedFields() []string {
 	if m.addversion != nil {
 		fields = append(fields, seamasterbill.FieldVersion)
 	}
+	if m.addpackage_count != nil {
+		fields = append(fields, seamasterbill.FieldPackageCount)
+	}
+	if m.addgross_weight_kg != nil {
+		fields = append(fields, seamasterbill.FieldGrossWeightKg)
+	}
+	if m.addvolume_cbm != nil {
+		fields = append(fields, seamasterbill.FieldVolumeCbm)
+	}
 	return fields
 }
 
@@ -101803,6 +105740,12 @@ func (m *SeaMasterBillMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case seamasterbill.FieldVersion:
 		return m.AddedVersion()
+	case seamasterbill.FieldPackageCount:
+		return m.AddedPackageCount()
+	case seamasterbill.FieldGrossWeightKg:
+		return m.AddedGrossWeightKg()
+	case seamasterbill.FieldVolumeCbm:
+		return m.AddedVolumeCbm()
 	}
 	return nil, false
 }
@@ -101819,6 +105762,27 @@ func (m *SeaMasterBillMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddVersion(v)
 		return nil
+	case seamasterbill.FieldPackageCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPackageCount(v)
+		return nil
+	case seamasterbill.FieldGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGrossWeightKg(v)
+		return nil
+	case seamasterbill.FieldVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVolumeCbm(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill numeric field %s", name)
 }
@@ -101826,7 +105790,53 @@ func (m *SeaMasterBillMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *SeaMasterBillMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(seamasterbill.FieldShipperText) {
+		fields = append(fields, seamasterbill.FieldShipperText)
+	}
+	if m.FieldCleared(seamasterbill.FieldConsigneeText) {
+		fields = append(fields, seamasterbill.FieldConsigneeText)
+	}
+	if m.FieldCleared(seamasterbill.FieldNotifyPartyText) {
+		fields = append(fields, seamasterbill.FieldNotifyPartyText)
+	}
+	if m.FieldCleared(seamasterbill.FieldSecondNotifyPartyText) {
+		fields = append(fields, seamasterbill.FieldSecondNotifyPartyText)
+	}
+	if m.FieldCleared(seamasterbill.FieldMarksText) {
+		fields = append(fields, seamasterbill.FieldMarksText)
+	}
+	if m.FieldCleared(seamasterbill.FieldGoodsDescriptionText) {
+		fields = append(fields, seamasterbill.FieldGoodsDescriptionText)
+	}
+	if m.FieldCleared(seamasterbill.FieldPackageCount) {
+		fields = append(fields, seamasterbill.FieldPackageCount)
+	}
+	if m.FieldCleared(seamasterbill.FieldPackageUnit) {
+		fields = append(fields, seamasterbill.FieldPackageUnit)
+	}
+	if m.FieldCleared(seamasterbill.FieldGrossWeightKg) {
+		fields = append(fields, seamasterbill.FieldGrossWeightKg)
+	}
+	if m.FieldCleared(seamasterbill.FieldVolumeCbm) {
+		fields = append(fields, seamasterbill.FieldVolumeCbm)
+	}
+	if m.FieldCleared(seamasterbill.FieldFreightTerms) {
+		fields = append(fields, seamasterbill.FieldFreightTerms)
+	}
+	if m.FieldCleared(seamasterbill.FieldTransportTerms) {
+		fields = append(fields, seamasterbill.FieldTransportTerms)
+	}
+	if m.FieldCleared(seamasterbill.FieldBillForm) {
+		fields = append(fields, seamasterbill.FieldBillForm)
+	}
+	if m.FieldCleared(seamasterbill.FieldReleaseType) {
+		fields = append(fields, seamasterbill.FieldReleaseType)
+	}
+	if m.FieldCleared(seamasterbill.FieldClauses) {
+		fields = append(fields, seamasterbill.FieldClauses)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -101839,6 +105849,53 @@ func (m *SeaMasterBillMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *SeaMasterBillMutation) ClearField(name string) error {
+	switch name {
+	case seamasterbill.FieldShipperText:
+		m.ClearShipperText()
+		return nil
+	case seamasterbill.FieldConsigneeText:
+		m.ClearConsigneeText()
+		return nil
+	case seamasterbill.FieldNotifyPartyText:
+		m.ClearNotifyPartyText()
+		return nil
+	case seamasterbill.FieldSecondNotifyPartyText:
+		m.ClearSecondNotifyPartyText()
+		return nil
+	case seamasterbill.FieldMarksText:
+		m.ClearMarksText()
+		return nil
+	case seamasterbill.FieldGoodsDescriptionText:
+		m.ClearGoodsDescriptionText()
+		return nil
+	case seamasterbill.FieldPackageCount:
+		m.ClearPackageCount()
+		return nil
+	case seamasterbill.FieldPackageUnit:
+		m.ClearPackageUnit()
+		return nil
+	case seamasterbill.FieldGrossWeightKg:
+		m.ClearGrossWeightKg()
+		return nil
+	case seamasterbill.FieldVolumeCbm:
+		m.ClearVolumeCbm()
+		return nil
+	case seamasterbill.FieldFreightTerms:
+		m.ClearFreightTerms()
+		return nil
+	case seamasterbill.FieldTransportTerms:
+		m.ClearTransportTerms()
+		return nil
+	case seamasterbill.FieldBillForm:
+		m.ClearBillForm()
+		return nil
+	case seamasterbill.FieldReleaseType:
+		m.ClearReleaseType()
+		return nil
+	case seamasterbill.FieldClauses:
+		m.ClearClauses()
+		return nil
+	}
 	return fmt.Errorf("unknown SeaMasterBill nullable field %s", name)
 }
 
@@ -101873,13 +105930,58 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 	case seamasterbill.FieldVersion:
 		m.ResetVersion()
 		return nil
+	case seamasterbill.FieldShipperText:
+		m.ResetShipperText()
+		return nil
+	case seamasterbill.FieldConsigneeText:
+		m.ResetConsigneeText()
+		return nil
+	case seamasterbill.FieldNotifyPartyText:
+		m.ResetNotifyPartyText()
+		return nil
+	case seamasterbill.FieldSecondNotifyPartyText:
+		m.ResetSecondNotifyPartyText()
+		return nil
+	case seamasterbill.FieldMarksText:
+		m.ResetMarksText()
+		return nil
+	case seamasterbill.FieldGoodsDescriptionText:
+		m.ResetGoodsDescriptionText()
+		return nil
+	case seamasterbill.FieldPackageCount:
+		m.ResetPackageCount()
+		return nil
+	case seamasterbill.FieldPackageUnit:
+		m.ResetPackageUnit()
+		return nil
+	case seamasterbill.FieldGrossWeightKg:
+		m.ResetGrossWeightKg()
+		return nil
+	case seamasterbill.FieldVolumeCbm:
+		m.ResetVolumeCbm()
+		return nil
+	case seamasterbill.FieldFreightTerms:
+		m.ResetFreightTerms()
+		return nil
+	case seamasterbill.FieldTransportTerms:
+		m.ResetTransportTerms()
+		return nil
+	case seamasterbill.FieldBillForm:
+		m.ResetBillForm()
+		return nil
+	case seamasterbill.FieldReleaseType:
+		m.ResetReleaseType()
+		return nil
+	case seamasterbill.FieldClauses:
+		m.ResetClauses()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SeaMasterBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.organization != nil {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -101888,6 +105990,9 @@ func (m *SeaMasterBillMutation) AddedEdges() []string {
 	}
 	if m.order_links != nil {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
+	}
+	if m.house_bills != nil {
+		edges = append(edges, seamasterbill.EdgeHouseBills)
 	}
 	return edges
 }
@@ -101910,15 +106015,24 @@ func (m *SeaMasterBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeHouseBills:
+		ids := make([]ent.Value, 0, len(m.house_bills))
+		for id := range m.house_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SeaMasterBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedorder_links != nil {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
+	}
+	if m.removedhouse_bills != nil {
+		edges = append(edges, seamasterbill.EdgeHouseBills)
 	}
 	return edges
 }
@@ -101933,13 +106047,19 @@ func (m *SeaMasterBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case seamasterbill.EdgeHouseBills:
+		ids := make([]ent.Value, 0, len(m.removedhouse_bills))
+		for id := range m.removedhouse_bills {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SeaMasterBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedorganization {
 		edges = append(edges, seamasterbill.EdgeOrganization)
 	}
@@ -101948,6 +106068,9 @@ func (m *SeaMasterBillMutation) ClearedEdges() []string {
 	}
 	if m.clearedorder_links {
 		edges = append(edges, seamasterbill.EdgeOrderLinks)
+	}
+	if m.clearedhouse_bills {
+		edges = append(edges, seamasterbill.EdgeHouseBills)
 	}
 	return edges
 }
@@ -101962,6 +106085,8 @@ func (m *SeaMasterBillMutation) EdgeCleared(name string) bool {
 		return m.clearedtransport_execution
 	case seamasterbill.EdgeOrderLinks:
 		return m.clearedorder_links
+	case seamasterbill.EdgeHouseBills:
+		return m.clearedhouse_bills
 	}
 	return false
 }
@@ -101993,6 +106118,9 @@ func (m *SeaMasterBillMutation) ResetEdge(name string) error {
 	case seamasterbill.EdgeOrderLinks:
 		m.ResetOrderLinks()
 		return nil
+	case seamasterbill.EdgeHouseBills:
+		m.ResetHouseBills()
+		return nil
 	}
 	return fmt.Errorf("unknown SeaMasterBill edge %s", name)
 }
@@ -102006,6 +106134,7 @@ type SeaMasterBillOrderLinkMutation struct {
 	created_at          *time.Time
 	updated_at          *time.Time
 	status              *seamasterbillorderlink.Status
+	document_structure  *seamasterbillorderlink.DocumentStructure
 	started_at          *time.Time
 	ended_at            *time.Time
 	ended_reason        *string
@@ -102343,6 +106472,42 @@ func (m *SeaMasterBillOrderLinkMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetDocumentStructure sets the "document_structure" field.
+func (m *SeaMasterBillOrderLinkMutation) SetDocumentStructure(ss seamasterbillorderlink.DocumentStructure) {
+	m.document_structure = &ss
+}
+
+// DocumentStructure returns the value of the "document_structure" field in the mutation.
+func (m *SeaMasterBillOrderLinkMutation) DocumentStructure() (r seamasterbillorderlink.DocumentStructure, exists bool) {
+	v := m.document_structure
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentStructure returns the old "document_structure" field's value of the SeaMasterBillOrderLink entity.
+// If the SeaMasterBillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillOrderLinkMutation) OldDocumentStructure(ctx context.Context) (v seamasterbillorderlink.DocumentStructure, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentStructure is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentStructure requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentStructure: %w", err)
+	}
+	return oldValue.DocumentStructure, nil
+}
+
+// ResetDocumentStructure resets all changes to the "document_structure" field.
+func (m *SeaMasterBillOrderLinkMutation) ResetDocumentStructure() {
+	m.document_structure = nil
+}
+
 // SetStartedAt sets the "started_at" field.
 func (m *SeaMasterBillOrderLinkMutation) SetStartedAt(t time.Time) {
 	m.started_at = &t
@@ -102648,7 +106813,7 @@ func (m *SeaMasterBillOrderLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillOrderLinkMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillorderlink.FieldCreatedAt)
 	}
@@ -102666,6 +106831,9 @@ func (m *SeaMasterBillOrderLinkMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, seamasterbillorderlink.FieldStatus)
+	}
+	if m.document_structure != nil {
+		fields = append(fields, seamasterbillorderlink.FieldDocumentStructure)
 	}
 	if m.started_at != nil {
 		fields = append(fields, seamasterbillorderlink.FieldStartedAt)
@@ -102699,6 +106867,8 @@ func (m *SeaMasterBillOrderLinkMutation) Field(name string) (ent.Value, bool) {
 		return m.OrderID()
 	case seamasterbillorderlink.FieldStatus:
 		return m.Status()
+	case seamasterbillorderlink.FieldDocumentStructure:
+		return m.DocumentStructure()
 	case seamasterbillorderlink.FieldStartedAt:
 		return m.StartedAt()
 	case seamasterbillorderlink.FieldEndedAt:
@@ -102728,6 +106898,8 @@ func (m *SeaMasterBillOrderLinkMutation) OldField(ctx context.Context, name stri
 		return m.OldOrderID(ctx)
 	case seamasterbillorderlink.FieldStatus:
 		return m.OldStatus(ctx)
+	case seamasterbillorderlink.FieldDocumentStructure:
+		return m.OldDocumentStructure(ctx)
 	case seamasterbillorderlink.FieldStartedAt:
 		return m.OldStartedAt(ctx)
 	case seamasterbillorderlink.FieldEndedAt:
@@ -102786,6 +106958,13 @@ func (m *SeaMasterBillOrderLinkMutation) SetField(name string, value ent.Value) 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case seamasterbillorderlink.FieldDocumentStructure:
+		v, ok := value.(seamasterbillorderlink.DocumentStructure)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentStructure(v)
 		return nil
 	case seamasterbillorderlink.FieldStartedAt:
 		v, ok := value.(time.Time)
@@ -102911,6 +107090,9 @@ func (m *SeaMasterBillOrderLinkMutation) ResetField(name string) error {
 		return nil
 	case seamasterbillorderlink.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case seamasterbillorderlink.FieldDocumentStructure:
+		m.ResetDocumentStructure()
 		return nil
 	case seamasterbillorderlink.FieldStartedAt:
 		m.ResetStartedAt()

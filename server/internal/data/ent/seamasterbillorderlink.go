@@ -33,6 +33,8 @@ type SeaMasterBillOrderLink struct {
 	OrderID uuid.UUID `json:"order_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status seamasterbillorderlink.Status `json:"status,omitempty"`
+	// DocumentStructure holds the value of the "document_structure" field.
+	DocumentStructure seamasterbillorderlink.DocumentStructure `json:"document_structure,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
 	StartedAt time.Time `json:"started_at,omitempty"`
 	// EndedAt holds the value of the "ended_at" field.
@@ -100,7 +102,7 @@ func (*SeaMasterBillOrderLink) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case seamasterbillorderlink.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case seamasterbillorderlink.FieldStatus, seamasterbillorderlink.FieldEndedReason:
+		case seamasterbillorderlink.FieldStatus, seamasterbillorderlink.FieldDocumentStructure, seamasterbillorderlink.FieldEndedReason:
 			values[i] = new(sql.NullString)
 		case seamasterbillorderlink.FieldCreatedAt, seamasterbillorderlink.FieldUpdatedAt, seamasterbillorderlink.FieldStartedAt, seamasterbillorderlink.FieldEndedAt:
 			values[i] = new(sql.NullTime)
@@ -162,6 +164,12 @@ func (_m *SeaMasterBillOrderLink) assignValues(columns []string, values []any) e
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				_m.Status = seamasterbillorderlink.Status(value.String)
+			}
+		case seamasterbillorderlink.FieldDocumentStructure:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field document_structure", values[i])
+			} else if value.Valid {
+				_m.DocumentStructure = seamasterbillorderlink.DocumentStructure(value.String)
 			}
 		case seamasterbillorderlink.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -257,6 +265,9 @@ func (_m *SeaMasterBillOrderLink) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("document_structure=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DocumentStructure))
 	builder.WriteString(", ")
 	builder.WriteString("started_at=")
 	builder.WriteString(_m.StartedAt.Format(time.ANSIC))

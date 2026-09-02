@@ -49,6 +49,8 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("sea_transport_executions", SeaTransportExecution.Type),
 		edge.To("sea_master_bills", SeaMasterBill.Type),
 		edge.To("sea_master_bill_order_links", SeaMasterBillOrderLink.Type),
+		edge.To("sea_house_bills", SeaHouseBill.Type),
+		edge.To("issued_sea_house_bills", SeaHouseBill.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("background_tasks", BackgroundTask.Type),
 		edge.To("finance_bills", FinanceBill.Type),

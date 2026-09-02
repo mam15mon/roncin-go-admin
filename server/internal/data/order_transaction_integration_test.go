@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -27,6 +28,7 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
+	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -63,6 +65,39 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		t.Fatalf("初始化集成测试数据库: %v", err)
 	}
 	defer cleanup()
+
+	t.Run("创建订单审计包含初始单证结构与HBL数量", func(t *testing.T) {
+		fixture := newOrderPostgresFixture(t, data)
+		input := fixture.validInput()
+		structure := biz.SeaDocumentStructureHouse
+		input.SeaDocumentInput = &biz.SeaOrderDocumentInput{
+			DocumentStructure: &structure,
+			HouseBills: []*biz.SeaHouseBillInput{
+				{HouseNo: "  HBL-AUDIT-001  ", IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization},
+			},
+		}
+		created, err := fixture.newUsecase().Create(context.Background(), fixture.organizationID, fixture.actorID, input)
+		if err != nil {
+			t.Fatalf("创建带初始 HBL 的订单失败: %v", err)
+		}
+		if created.SeaDocumentSummary == nil || created.SeaDocumentSummary.DocumentStructure != biz.SeaDocumentStructureHouse || created.SeaDocumentSummary.HouseBillCount != 1 {
+			t.Fatalf("创建后的单证摘要异常: %#v", created.SeaDocumentSummary)
+		}
+		audit, err := data.db.AuditLog.Query().Where(
+			auditlogent.OrganizationIDEQ(fixture.organizationID),
+			auditlogent.ActionEQ("order.create"),
+		).Only(context.Background())
+		if err != nil {
+			t.Fatalf("读取订单创建审计失败: %v", err)
+		}
+		var details map[string]string
+		if err := json.Unmarshal(audit.Details, &details); err != nil {
+			t.Fatalf("解析订单创建审计详情失败: %v", err)
+		}
+		if details["sea_document.initial_structure"] != "HOUSE" || details["sea_house_bills.initial_count"] != "1" {
+			t.Fatalf("订单创建审计缺少初始单证摘要: %#v", details)
+		}
+	})
 
 	t.Run("并发创建订单时发号不重号不丢号", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
@@ -628,7 +663,7 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 }
 
 func (f *orderPostgresFixture) newUsecase() *biz.OrderUsecase {
-	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data))
+	return biz.NewOrderUsecase(NewOrderRepo(f.data), NewBusinessTagRepo(f.data), NewSeaMasterBillRepo(f.data), NewSeaDocumentRepo(f.data))
 }
 
 func (f *orderPostgresFixture) validInput() *biz.Order {
@@ -752,6 +787,10 @@ func (f *orderPostgresFixture) cleanup() {
 		}},
 		{name: "订单提成归属快照", run: func() error {
 			_, err := f.data.db.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			return err
+		}},
+		{name: "海运分单", run: func() error {
+			_, err := f.data.db.SeaHouseBill.Delete().Where(seahousebill.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
 		{name: "海运主单关联", run: func() error {

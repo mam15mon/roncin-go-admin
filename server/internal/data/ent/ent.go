@@ -92,6 +92,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -240,6 +241,7 @@ func checkColumn(t, c string) error {
 			role.Table:                           role.ValidColumn,
 			roleassignment.Table:                 roleassignment.ValidColumn,
 			roleorderorganizationaccess.Table:    roleorderorganizationaccess.ValidColumn,
+			seahousebill.Table:                   seahousebill.ValidColumn,
 			seamasterbill.Table:                  seamasterbill.ValidColumn,
 			seamasterbillorderlink.Table:         seamasterbillorderlink.ValidColumn,
 			seatransportexecution.Table:          seatransportexecution.ValidColumn,

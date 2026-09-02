@@ -75,6 +75,10 @@ export type CreateOrderFormValues = {
   associate2OrganizationId?: string;
   creatorUserId?: string;
   creatorOrganizationId?: string;
+  seaDocumentStructure?: number;
+  seaMasterBillContent?: API.SeaBillContent;
+  seaHouseBills?: API.SeaHouseBillInput[];
+  seaDocument?: API.SeaOrderDocumentInput;
 };
 
 /** 将新建订单表单值整理为创建请求 payload（含岗位人员装配）。 */
@@ -82,6 +86,8 @@ export function buildCreateOrderPayload(
   values: CreateOrderFormValues,
   config: OrderKindConfig,
 ): API.CreateOrderRequest {
+  const isSea = config.category === 'sea' || config.businessType === 1; // BUSINESS_TYPE_SE
+
   const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
   const addPersonnel = (
     role: number,
@@ -107,7 +113,10 @@ export function buildCreateOrderPayload(
   let seaMasterBill: API.SeaMasterBillInput | undefined;
   if (values.seaMasterBill) {
     seaMasterBill = values.seaMasterBill;
-  } else if (values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId) {
+  } else if (
+    values.seaMasterBillMasterNo ||
+    values.seaMasterBillIssuerPartnerId
+  ) {
     seaMasterBill = {
       masterNo: values.seaMasterBillMasterNo || '',
       issuerPartnerId: values.seaMasterBillIssuerPartnerId || '',
@@ -120,6 +129,30 @@ export function buildCreateOrderPayload(
       correctionReason:
         values.seaMasterBillCorrectionReason?.trim() || undefined,
     };
+  }
+
+  let seaDocument: API.SeaOrderDocumentInput | undefined;
+  if (isSea) {
+    if (values.seaDocument) {
+      seaDocument = values.seaDocument;
+    } else {
+      const houseBills: API.SeaHouseBillInput[] = (
+        values.seaHouseBills || []
+      ).map((hb) => ({
+        id: hb.id,
+        houseNo: hb.houseNo ?? '',
+        issuerSource: hb.issuerSource,
+        issuerPartnerId: hb.issuerPartnerId || undefined,
+        note: hb.note?.trim() || undefined,
+        content: hb.content,
+      }));
+
+      seaDocument = {
+        documentStructure: values.seaDocumentStructure,
+        masterBillContent: values.seaMasterBillContent,
+        houseBills: houseBills.length > 0 ? houseBills : undefined,
+      };
+    }
   }
 
   return {
@@ -210,15 +243,18 @@ export function buildCreateOrderPayload(
     allocationNotes: values.allocationNotes?.trim() || undefined,
     operationNotes: values.operationNotes?.trim() || undefined,
     personnelAssignments,
-    shippingDocuments: values.shippingDocuments
-      ?.map((doc) => ({
-        id: doc.id,
-        houseNo: doc.houseNo?.trim() || '',
-        releaseType: doc.releaseType?.trim() || undefined,
-        note: doc.note?.trim() || undefined,
-      }))
-      .filter((doc) => !!doc.houseNo),
+    shippingDocuments: isSea
+      ? undefined
+      : values.shippingDocuments
+          ?.map((doc) => ({
+            id: doc.id,
+            houseNo: doc.houseNo?.trim() || '',
+            releaseType: doc.releaseType?.trim() || undefined,
+            note: doc.note?.trim() || undefined,
+          }))
+          .filter((doc) => !!doc.houseNo),
     containerRequests: values.containerRequests,
     seaMasterBill,
+    seaDocument,
   };
 }

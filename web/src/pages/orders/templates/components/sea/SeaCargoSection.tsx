@@ -73,7 +73,7 @@ export function SeaCargoMeasurementFields() {
 export function buildSeaCargoSection() {
   return {
     key: 'cargoInfo',
-    title: '提单信息',
+    title: '货物信息',
     content: (
       <>
         {/* 第 1 行：品名与特殊要求（一行 2 个，各占 12 栅格） */}

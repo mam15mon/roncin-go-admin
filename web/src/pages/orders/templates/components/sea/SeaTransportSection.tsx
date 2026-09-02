@@ -1,8 +1,15 @@
+import { ProFormDateTimePicker, ProFormText } from '@ant-design/pro-components';
 import {
-  ProFormDateTimePicker,
-  ProFormText,
-} from '@ant-design/pro-components';
-import { Alert, Button, Card, Checkbox, Col, Form, Input, Space, Tooltip } from 'antd';
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Form,
+  Input,
+  Space,
+  Tooltip,
+} from 'antd';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import React, { useEffect, useState } from 'react';
@@ -12,7 +19,6 @@ import { searchPartnerOptions } from '@/utils/options';
 import { containerOwnershipOptions } from '../../../common';
 import {
   OrderContainerRequestFields,
-  OrderShippingDocumentFields,
   type SelectOption,
 } from '../../../order-plan-fields';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
@@ -215,8 +221,7 @@ export function SeaMasterBillFields({
             { required: true, message: '请输入海运出口 MBL 主单号' },
             {
               pattern: /^[A-Za-z0-9]+$/,
-              message:
-                '主单号仅允许包含英文字母和数字，禁止包含空格或特殊字符',
+              message: '主单号仅允许包含英文字母和数字，禁止包含空格或特殊字符',
             },
             {
               validator: async () => {
@@ -277,7 +282,10 @@ export function SeaMasterBillFields({
             label="主单更正原因"
             placeholder="请输入主单号/签发方更正原因"
             rules={[
-              { required: true, message: '单票修改主单号或签发方必须填写更正原因' },
+              {
+                required: true,
+                message: '单票修改主单号或签发方必须填写更正原因',
+              },
             ]}
           />
         </Col>
@@ -304,8 +312,8 @@ export function SeaMasterBillFields({
               >
                 <span style={{ fontWeight: 600, color: '#389e0d' }}>
                   🔍 匹配到已有共享 MBL：{candidate.masterNo} (签发方:{' '}
-                  {candidate.issuerPartnerName} | 版本: v{candidate.version} | 成员:{' '}
-                  {candidate.memberCount} 票)
+                  {candidate.issuerPartnerName} | 版本: v{candidate.version} |
+                  成员: {candidate.memberCount} 票)
                 </span>
                 <Checkbox
                   checked={isConfirmed}
@@ -339,7 +347,7 @@ export function SeaMasterBillFields({
                       ? '航程冲突，禁止关联'
                       : isSingleMemberCorrection
                         ? '新主单身份已存在，禁止直接合并'
-                      : '确认关联已有主单'}
+                        : '确认关联已有主单'}
                   </strong>
                 </Checkbox>
               </div>
@@ -348,8 +356,7 @@ export function SeaMasterBillFields({
                 <div style={{ fontSize: 13, color: '#595959' }}>
                   <span>运输执行：</span>
                   <span>
-                    船名航次:{' '}
-                    {candidate.transportExecution.vesselName || '-'} /{' '}
+                    船名航次: {candidate.transportExecution.vesselName || '-'} /{' '}
                     {candidate.transportExecution.voyageNo || '-'} |{' '}
                   </span>
                   <span>
@@ -358,11 +365,10 @@ export function SeaMasterBillFields({
                   </span>
                   <span>
                     卸货港:{' '}
-                    {candidate.transportExecution.dischargeLocationName || '-'} |{' '}
+                    {candidate.transportExecution.dischargeLocationName || '-'}{' '}
+                    |{' '}
                   </span>
-                  <span>
-                    ETD: {candidate.transportExecution.etd || '-'} |{' '}
-                  </span>
+                  <span>ETD: {candidate.transportExecution.etd || '-'} | </span>
                   <span>ETA: {candidate.transportExecution.eta || '-'}</span>
                 </div>
               )}
@@ -387,7 +393,8 @@ export function SeaMasterBillFields({
 
               {!isConfirmed && (
                 <div style={{ color: '#fa8c16', fontSize: 12 }}>
-                  ⚠️ 提示：系统检测到已有相同主单。若不勾选“确认关联已有主单”，保存时将被服务端拦截。
+                  ⚠️
+                  提示：系统检测到已有相同主单。若不勾选“确认关联已有主单”，保存时将被服务端拦截。
                 </div>
               )}
             </Space>
@@ -535,13 +542,10 @@ export function buildSeaTransportSection(props: TemplateProps) {
           searchIssuers={searchIssuers}
         />
 
-        {/* 第 2 行：HBL 单证行列表 (可选维护) */}
-        <OrderShippingDocumentFields transportMode="sea" />
-
-        {/* 第 3 行：箱型箱量 */}
+        {/* 第 2 行：箱型箱量；HBL 只在独立“提单信息”区块维护 */}
         <SeaContainerPlanFields options={containerSpecOptions} />
 
-        {/* 第 4 行：航线 4 港口（起运港、目的港、卸货港、中转港） */}
+        {/* 第 3 行：航线 4 港口（起运港、目的港、卸货港、中转港） */}
         <Col className="col-5">
           <ProFormSearchableSelect
             name="originLocationId"
@@ -584,7 +588,7 @@ export function buildSeaTransportSection(props: TemplateProps) {
         </Col>
         <Col className="col-5" />
 
-        {/* 第 5 行：货主箱标记、船名航次、ETD、WEEK、ETA */}
+        {/* 第 4 行：货主箱标记、船名航次、ETD、WEEK、ETA */}
         <Col className="col-5">
           <ProFormSearchableSelect
             name="containerOwnership"
@@ -617,7 +621,7 @@ export function buildSeaTransportSection(props: TemplateProps) {
         </Col>
         <SeaScheduleDateFields />
 
-        {/* 第 6 行：SI截关时间、单证截关时间(截单时间)、报关截关时间(截关时间)、VGM截关时间 */}
+        {/* 第 5 行：SI截关时间、单证截关时间(截单时间)、报关截关时间(截关时间)、VGM截关时间 */}
         <Col className="col-5">
           <ProFormDateTimePicker
             name="siCutoff"

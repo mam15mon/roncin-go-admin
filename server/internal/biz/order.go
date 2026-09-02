@@ -44,8 +44,9 @@ type OrderUsecase struct {
 	repo              OrderRepo
 	tagRepo           BusinessTagRepo
 	seaMasterBillRepo SeaMasterBillRepo
+	seaDocumentRepo   SeaDocumentRepo
 }
 
-func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo, seaMasterBillRepo SeaMasterBillRepo) *OrderUsecase {
-	return &OrderUsecase{repo: repo, tagRepo: tagRepo, seaMasterBillRepo: seaMasterBillRepo}
+func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo, seaMasterBillRepo SeaMasterBillRepo, seaDocumentRepo SeaDocumentRepo) *OrderUsecase {
+	return &OrderUsecase{repo: repo, tagRepo: tagRepo, seaMasterBillRepo: seaMasterBillRepo, seaDocumentRepo: seaDocumentRepo}
 }

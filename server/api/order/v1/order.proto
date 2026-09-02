@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "order/v1/order_personnel.proto";
 import "order/v1/order_shipping_document.proto";
+import "order/v1/sea_document.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -305,6 +306,9 @@ message Order {
   repeated BusinessTagSummary tags = 79;
   repeated OrderFlowStatus allowed_target_flow_statuses = 80;
   optional SeaMasterBillSummary sea_master_bill = 81;
+  optional SeaDocumentStructure sea_document_structure = 82;
+  optional uint64 sea_document_link_version = 83;
+  optional SeaOrderDocumentSummary sea_document_summary = 84;
 }
 
 message OrderCargoMeasurement {
@@ -536,6 +540,7 @@ message CreateOrderRequest {
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
   optional SeaMasterBillInput sea_master_bill = 57;
+  optional SeaOrderDocumentInput sea_document = 58;
 }
 
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
@@ -597,6 +602,7 @@ message UpdateOrderRequest {
   optional string shipper_short_name = 55;
   optional string consignee_short_name = 56;
   optional SeaMasterBillInput sea_master_bill = 57;
+  optional SeaOrderDocumentInput sea_document = 58;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

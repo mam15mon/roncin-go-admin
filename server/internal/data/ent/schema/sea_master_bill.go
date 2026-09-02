@@ -14,7 +14,7 @@ type SeaMasterBill struct{ ent.Schema }
 func (SeaMasterBill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
 func (SeaMasterBill) Fields() []ent.Field {
-	return []ent.Field{
+	fields := []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		field.UUID("issuer_partner_id", uuid.Nil), // 实际签发 MBL 的船公司或上游 NVOCC
 		field.UUID("transport_execution_id", uuid.Nil),
@@ -23,6 +23,7 @@ func (SeaMasterBill) Fields() []ent.Field {
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "RELEASED").Default("DRAFT"),
 		field.Uint64("version").Default(1),
 	}
+	return append(fields, seaBillContentFields()...)
 }
 
 func (SeaMasterBill) Edges() []ent.Edge {
@@ -30,6 +31,7 @@ func (SeaMasterBill) Edges() []ent.Edge {
 		edge.From("organization", Organization.Type).Ref("sea_master_bills").Field("organization_id").Unique().Required(),
 		edge.From("transport_execution", SeaTransportExecution.Type).Ref("master_bills").Field("transport_execution_id").Unique().Required(),
 		edge.To("order_links", SeaMasterBillOrderLink.Type),
+		edge.To("house_bills", SeaHouseBill.Type),
 	}
 }
 

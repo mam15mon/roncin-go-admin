@@ -22,6 +22,7 @@ func (SeaMasterBillOrderLink) Fields() []ent.Field {
 		field.UUID("master_bill_id", uuid.Nil),
 		field.UUID("order_id", uuid.Nil),
 		field.Enum("status").Values("ACTIVE", "ENDED").Default("ACTIVE"),
+		field.Enum("document_structure").Values("UNDETERMINED", "DIRECT", "HOUSE").Default("UNDETERMINED"),
 		field.Time("started_at").Default(time.Now),
 		field.Time("ended_at").Optional().Nillable(),
 		field.String("ended_reason").Optional().Nillable().MaxLen(255),

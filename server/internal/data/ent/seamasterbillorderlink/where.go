@@ -261,6 +261,26 @@ func StatusNotIn(vs ...Status) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldStatus, vs...))
 }
 
+// DocumentStructureEQ applies the EQ predicate on the "document_structure" field.
+func DocumentStructureEQ(v DocumentStructure) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldDocumentStructure, v))
+}
+
+// DocumentStructureNEQ applies the NEQ predicate on the "document_structure" field.
+func DocumentStructureNEQ(v DocumentStructure) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNEQ(FieldDocumentStructure, v))
+}
+
+// DocumentStructureIn applies the In predicate on the "document_structure" field.
+func DocumentStructureIn(vs ...DocumentStructure) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldIn(FieldDocumentStructure, vs...))
+}
+
+// DocumentStructureNotIn applies the NotIn predicate on the "document_structure" field.
+func DocumentStructureNotIn(vs ...DocumentStructure) predicate.SeaMasterBillOrderLink {
+	return predicate.SeaMasterBillOrderLink(sql.FieldNotIn(FieldDocumentStructure, vs...))
+}
+
 // StartedAtEQ applies the EQ predicate on the "started_at" field.
 func StartedAtEQ(v time.Time) predicate.SeaMasterBillOrderLink {
 	return predicate.SeaMasterBillOrderLink(sql.FieldEQ(FieldStartedAt, v))

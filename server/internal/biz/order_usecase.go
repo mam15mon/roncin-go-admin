@@ -25,6 +25,9 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, order); err != nil {
 		return nil, err
 	}
+	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, organizationID, order); err != nil {
+		return nil, err
+	}
 	return order, nil
 }
 
@@ -55,6 +58,9 @@ func (uc *OrderUsecase) Find(ctx context.Context, id uuid.UUID) (*Order, error) 
 		return nil, err
 	}
 	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, order.OrganizationID, order); err != nil {
+		return nil, err
+	}
+	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, order.OrganizationID, order); err != nil {
 		return nil, err
 	}
 	return order, nil
@@ -104,6 +110,9 @@ func (uc *OrderUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, o
 		if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, organizationOrders...); err != nil {
 			return nil, err
 		}
+		if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, organizationID, organizationOrders...); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
@@ -122,6 +131,28 @@ func attachSeaMasterBillSummaries(ctx context.Context, repo SeaMasterBillRepo, o
 	}
 	for _, order := range orders {
 		order.SeaMasterBill = summaries[order.ID]
+	}
+	return nil
+}
+
+func attachSeaDocumentSummaries(ctx context.Context, repo SeaDocumentRepo, organizationID uuid.UUID, orders ...*Order) error {
+	if repo == nil || organizationID == uuid.Nil || len(orders) == 0 {
+		return nil
+	}
+	orderIDs := make([]uuid.UUID, 0, len(orders))
+	for _, order := range orders {
+		orderIDs = append(orderIDs, order.ID)
+	}
+	summaries, err := repo.GetSummariesByOrderIDs(ctx, organizationID, orderIDs)
+	if err != nil {
+		return err
+	}
+	for _, order := range orders {
+		if summary, ok := summaries[order.ID]; ok {
+			order.SeaDocumentSummary = summary
+			order.SeaDocumentStructure = &summary.DocumentStructure
+			order.SeaDocumentLinkVersion = &summary.LinkVersion
+		}
 	}
 	return nil
 }
@@ -188,6 +219,9 @@ func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid
 	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, created); err != nil {
 		return nil, err
 	}
+	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, organizationID, created); err != nil {
+		return nil, err
+	}
 	return created, nil
 }
 
@@ -224,6 +258,9 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 		return nil, err
 	}
 	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, updated); err != nil {
+		return nil, err
+	}
+	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, organizationID, updated); err != nil {
 		return nil, err
 	}
 	return updated, nil
@@ -364,6 +401,14 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 			if output.SeaMasterBillInput.IssuerPartnerID == uuid.Nil {
 				return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "主单签发方不能为空")
 			}
+		}
+
+		if output.SeaDocumentInput != nil {
+			validatedDoc, err := ValidateSeaOrderDocumentInput(output.SeaDocumentInput, creating)
+			if err != nil {
+				return nil, err
+			}
+			output.SeaDocumentInput = validatedDoc
 		}
 	}
 	return &output, nil

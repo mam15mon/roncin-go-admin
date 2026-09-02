@@ -981,6 +981,9 @@ type Order struct {
 	Tags                      []*BusinessTagSummary    `protobuf:"bytes,79,rep,name=tags,proto3" json:"tags,omitempty"`
 	AllowedTargetFlowStatuses []OrderFlowStatus        `protobuf:"varint,80,rep,packed,name=allowed_target_flow_statuses,json=allowedTargetFlowStatuses,proto3,enum=order.v1.OrderFlowStatus" json:"allowed_target_flow_statuses,omitempty"`
 	SeaMasterBill             *SeaMasterBillSummary    `protobuf:"bytes,81,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
+	SeaDocumentStructure      *SeaDocumentStructure    `protobuf:"varint,82,opt,name=sea_document_structure,json=seaDocumentStructure,proto3,enum=order.v1.SeaDocumentStructure,oneof" json:"sea_document_structure,omitempty"`
+	SeaDocumentLinkVersion    *uint64                  `protobuf:"varint,83,opt,name=sea_document_link_version,json=seaDocumentLinkVersion,proto3,oneof" json:"sea_document_link_version,omitempty"`
+	SeaDocumentSummary        *SeaOrderDocumentSummary `protobuf:"bytes,84,opt,name=sea_document_summary,json=seaDocumentSummary,proto3,oneof" json:"sea_document_summary,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -1571,6 +1574,27 @@ func (x *Order) GetAllowedTargetFlowStatuses() []OrderFlowStatus {
 func (x *Order) GetSeaMasterBill() *SeaMasterBillSummary {
 	if x != nil {
 		return x.SeaMasterBill
+	}
+	return nil
+}
+
+func (x *Order) GetSeaDocumentStructure() SeaDocumentStructure {
+	if x != nil && x.SeaDocumentStructure != nil {
+		return *x.SeaDocumentStructure
+	}
+	return SeaDocumentStructure_SEA_DOCUMENT_STRUCTURE_UNSPECIFIED
+}
+
+func (x *Order) GetSeaDocumentLinkVersion() uint64 {
+	if x != nil && x.SeaDocumentLinkVersion != nil {
+		return *x.SeaDocumentLinkVersion
+	}
+	return 0
+}
+
+func (x *Order) GetSeaDocumentSummary() *SeaOrderDocumentSummary {
+	if x != nil {
+		return x.SeaDocumentSummary
 	}
 	return nil
 }
@@ -3067,6 +3091,7 @@ type CreateOrderRequest struct {
 	ShipperShortName      *string                          `protobuf:"bytes,55,opt,name=shipper_short_name,json=shipperShortName,proto3,oneof" json:"shipper_short_name,omitempty"`
 	ConsigneeShortName    *string                          `protobuf:"bytes,56,opt,name=consignee_short_name,json=consigneeShortName,proto3,oneof" json:"consignee_short_name,omitempty"`
 	SeaMasterBill         *SeaMasterBillInput              `protobuf:"bytes,57,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
+	SeaDocument           *SeaOrderDocumentInput           `protobuf:"bytes,58,opt,name=sea_document,json=seaDocument,proto3,oneof" json:"sea_document,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -3493,6 +3518,13 @@ func (x *CreateOrderRequest) GetSeaMasterBill() *SeaMasterBillInput {
 	return nil
 }
 
+func (x *CreateOrderRequest) GetSeaDocument() *SeaOrderDocumentInput {
+	if x != nil {
+		return x.SeaDocument
+	}
+	return nil
+}
+
 // UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState        `protogen:"open.v1"`
@@ -3553,6 +3585,7 @@ type UpdateOrderRequest struct {
 	ShipperShortName      *string                       `protobuf:"bytes,55,opt,name=shipper_short_name,json=shipperShortName,proto3,oneof" json:"shipper_short_name,omitempty"`
 	ConsigneeShortName    *string                       `protobuf:"bytes,56,opt,name=consignee_short_name,json=consigneeShortName,proto3,oneof" json:"consignee_short_name,omitempty"`
 	SeaMasterBill         *SeaMasterBillInput           `protobuf:"bytes,57,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
+	SeaDocument           *SeaOrderDocumentInput        `protobuf:"bytes,58,opt,name=sea_document,json=seaDocument,proto3,oneof" json:"sea_document,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -3982,6 +4015,13 @@ func (x *UpdateOrderRequest) GetConsigneeShortName() string {
 func (x *UpdateOrderRequest) GetSeaMasterBill() *SeaMasterBillInput {
 	if x != nil {
 		return x.SeaMasterBill
+	}
+	return nil
+}
+
+func (x *UpdateOrderRequest) GetSeaDocument() *SeaOrderDocumentInput {
+	if x != nil {
+		return x.SeaDocument
 	}
 	return nil
 }
@@ -5878,7 +5918,7 @@ var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
-	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\x1a&order/v1/order_shipping_document.proto\"\xad\x01\n" +
+	"\x14order/v1/order.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1eorder/v1/order_personnel.proto\x1a&order/v1/order_shipping_document.proto\x1a\x1border/v1/sea_document.proto\"\xad\x01\n" +
 	"\x12BusinessTagSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
@@ -5887,7 +5927,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xc2&\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x89)\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -5983,7 +6023,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\tis_shared\x18N \x01(\bR\bisShared\x120\n" +
 	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tags\x12Z\n" +
 	"\x1callowed_target_flow_statuses\x18P \x03(\x0e2\x19.order.v1.OrderFlowStatusR\x19allowedTargetFlowStatuses\x12K\n" +
-	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH5R\rseaMasterBill\x88\x01\x01B\r\n" +
+	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH5R\rseaMasterBill\x88\x01\x01\x12Y\n" +
+	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH6R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
+	"\x19sea_document_link_version\x18S \x01(\x04H7R\x16seaDocumentLinkVersion\x88\x01\x01\x12X\n" +
+	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -6042,7 +6085,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x15_consignee_short_nameB\f\n" +
 	"\n" +
 	"_locked_atB\x12\n" +
-	"\x10_sea_master_billJ\x04\b\x0f\x10\x10R\x12status_template_id\"z\n" +
+	"\x10_sea_master_billB\x19\n" +
+	"\x17_sea_document_structureB\x1c\n" +
+	"\x1a_sea_document_link_versionB\x17\n" +
+	"\x15_sea_document_summaryJ\x04\b\x0f\x10\x10R\x12status_template_id\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
@@ -6199,7 +6245,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xb3\x1d\n" +
+	"\t_order_no\"\x8d\x1e\n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -6267,7 +6313,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x10total_volume_cbm\x186 \x01(\x01H*R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
 	"\x12shipper_short_name\x187 \x01(\tH+R\x10shipperShortName\x88\x01\x01\x125\n" +
 	"\x14consignee_short_name\x188 \x01(\tH,R\x12consigneeShortName\x88\x01\x01\x12I\n" +
-	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01B\r\n" +
+	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH-R\rseaMasterBill\x88\x01\x01\x12G\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH.R\vseaDocument\x88\x01\x01B\r\n" +
 	"\v_carrier_idB\x13\n" +
 	"\x11_booking_agent_idB\x10\n" +
 	"\x0e_shipment_typeB\x16\n" +
@@ -6315,7 +6362,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x11_total_volume_cbmB\x15\n" +
 	"\x13_shipper_short_nameB\x17\n" +
 	"\x15_consignee_short_nameB\x12\n" +
-	"\x10_sea_master_billJ\x04\b\x06\x10\aR\x12status_template_id\"\xd6\x1d\n" +
+	"\x10_sea_master_billB\x0f\n" +
+	"\r_sea_documentJ\x04\b\x06\x10\aR\x12status_template_id\"\xb0\x1e\n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12$\n" +
@@ -6384,7 +6432,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x10total_volume_cbm\x186 \x01(\x01H/R\x0etotalVolumeCbm\x88\x01\x01\x121\n" +
 	"\x12shipper_short_name\x187 \x01(\tH0R\x10shipperShortName\x88\x01\x01\x125\n" +
 	"\x14consignee_short_name\x188 \x01(\tH1R\x12consigneeShortName\x88\x01\x01\x12I\n" +
-	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH2R\rseaMasterBill\x88\x01\x01B\x0e\n" +
+	"\x0fsea_master_bill\x189 \x01(\v2\x1c.order.v1.SeaMasterBillInputH2R\rseaMasterBill\x88\x01\x01\x12G\n" +
+	"\fsea_document\x18: \x01(\v2\x1f.order.v1.SeaOrderDocumentInputH3R\vseaDocument\x88\x01\x01B\x0e\n" +
 	"\f_customer_idB\x10\n" +
 	"\x0e_business_typeB\x12\n" +
 	"\x10_trade_directionB\r\n" +
@@ -6437,7 +6486,8 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x11_total_volume_cbmB\x15\n" +
 	"\x13_shipper_short_nameB\x17\n" +
 	"\x15_consignee_short_nameB\x12\n" +
-	"\x10_sea_master_bill\"\xd9\x01\n" +
+	"\x10_sea_master_billB\x0f\n" +
+	"\r_sea_document\"\xd9\x01\n" +
 	"\x1cTransitionOrderStatusRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12L\n" +
@@ -6829,7 +6879,10 @@ var file_order_v1_order_proto_goTypes = []any{
 	(*MatchSeaMasterBillCandidateRequest)(nil),  // 54: order.v1.MatchSeaMasterBillCandidateRequest
 	(*MatchSeaMasterBillCandidateResponse)(nil), // 55: order.v1.MatchSeaMasterBillCandidateResponse
 	(*OrderShippingDocument)(nil),               // 56: order.v1.OrderShippingDocument
-	(OrderPersonnelRole)(0),                     // 57: order.v1.OrderPersonnelRole
+	(SeaDocumentStructure)(0),                   // 57: order.v1.SeaDocumentStructure
+	(*SeaOrderDocumentSummary)(nil),             // 58: order.v1.SeaOrderDocumentSummary
+	(OrderPersonnelRole)(0),                     // 59: order.v1.OrderPersonnelRole
+	(*SeaOrderDocumentInput)(nil),               // 60: order.v1.SeaOrderDocumentInput
 }
 var file_order_v1_order_proto_depIdxs = []int32{
 	0,  // 0: order.v1.Order.business_type:type_name -> order.v1.BusinessType
@@ -6849,85 +6902,89 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	14, // 14: order.v1.Order.tags:type_name -> order.v1.BusinessTagSummary
 	9,  // 15: order.v1.Order.allowed_target_flow_statuses:type_name -> order.v1.OrderFlowStatus
 	49, // 16: order.v1.Order.sea_master_bill:type_name -> order.v1.SeaMasterBillSummary
-	16, // 17: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	16, // 18: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
-	16, // 19: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	16, // 20: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
-	17, // 21: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
-	57, // 22: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
-	9,  // 23: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
-	0,  // 24: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
-	10, // 25: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
-	12, // 26: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
-	8,  // 27: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
-	7,  // 28: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
-	0,  // 29: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
-	0,  // 30: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 31: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 32: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 33: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 34: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 35: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 36: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	22, // 37: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
-	19, // 38: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	20, // 39: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	50, // 40: order.v1.CreateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
-	0,  // 41: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 42: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 43: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 44: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 45: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 46: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 47: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	19, // 48: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	20, // 49: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	50, // 50: order.v1.UpdateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
-	9,  // 51: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
-	10, // 52: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
-	11, // 53: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
-	12, // 54: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
-	15, // 55: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
-	15, // 56: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
-	15, // 57: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
-	15, // 58: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
-	15, // 59: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
-	15, // 60: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
-	15, // 61: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
-	18, // 62: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
-	32, // 63: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
-	23, // 64: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	48, // 65: order.v1.SeaMasterBillCandidate.transport_execution:type_name -> order.v1.SeaTransportExecution
-	52, // 66: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
-	53, // 67: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
-	51, // 68: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
-	54, // 69: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
-	27, // 70: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	28, // 71: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	29, // 72: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	30, // 73: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
-	31, // 74: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
-	33, // 75: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	34, // 76: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	35, // 77: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	36, // 78: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
-	37, // 79: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
-	55, // 80: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
-	38, // 81: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
-	44, // 82: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	46, // 83: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
-	47, // 84: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
-	45, // 85: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
-	39, // 86: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
-	40, // 87: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
-	41, // 88: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
-	42, // 89: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
-	43, // 90: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
-	80, // [80:91] is the sub-list for method output_type
-	69, // [69:80] is the sub-list for method input_type
-	69, // [69:69] is the sub-list for extension type_name
-	69, // [69:69] is the sub-list for extension extendee
-	0,  // [0:69] is the sub-list for field type_name
+	57, // 17: order.v1.Order.sea_document_structure:type_name -> order.v1.SeaDocumentStructure
+	58, // 18: order.v1.Order.sea_document_summary:type_name -> order.v1.SeaOrderDocumentSummary
+	16, // 19: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	16, // 20: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
+	16, // 21: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	16, // 22: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
+	17, // 23: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
+	59, // 24: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
+	9,  // 25: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
+	0,  // 26: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
+	10, // 27: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
+	12, // 28: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
+	8,  // 29: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
+	7,  // 30: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
+	0,  // 31: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
+	0,  // 32: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 33: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 34: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 35: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 36: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 37: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 38: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	22, // 39: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
+	19, // 40: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	20, // 41: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	50, // 42: order.v1.CreateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
+	60, // 43: order.v1.CreateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
+	0,  // 44: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 45: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 46: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 47: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 48: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 49: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 50: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	19, // 51: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	20, // 52: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	50, // 53: order.v1.UpdateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
+	60, // 54: order.v1.UpdateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
+	9,  // 55: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
+	10, // 56: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
+	11, // 57: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
+	12, // 58: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
+	15, // 59: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
+	15, // 60: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
+	15, // 61: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
+	15, // 62: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
+	15, // 63: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
+	15, // 64: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
+	15, // 65: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
+	18, // 66: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
+	32, // 67: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
+	23, // 68: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
+	48, // 69: order.v1.SeaMasterBillCandidate.transport_execution:type_name -> order.v1.SeaTransportExecution
+	52, // 70: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
+	53, // 71: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
+	51, // 72: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
+	54, // 73: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
+	27, // 74: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	28, // 75: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	29, // 76: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	30, // 77: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
+	31, // 78: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
+	33, // 79: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	34, // 80: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	35, // 81: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	36, // 82: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
+	37, // 83: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
+	55, // 84: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
+	38, // 85: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	44, // 86: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	46, // 87: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	47, // 88: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
+	45, // 89: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
+	39, // 90: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	40, // 91: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	41, // 92: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	42, // 93: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
+	43, // 94: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
+	84, // [84:95] is the sub-list for method output_type
+	73, // [73:84] is the sub-list for method input_type
+	73, // [73:73] is the sub-list for extension type_name
+	73, // [73:73] is the sub-list for extension extendee
+	0,  // [0:73] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }
@@ -6937,6 +6994,7 @@ func file_order_v1_order_proto_init() {
 	}
 	file_order_v1_order_personnel_proto_init()
 	file_order_v1_order_shipping_document_proto_init()
+	file_order_v1_sea_document_proto_init()
 	file_order_v1_order_proto_msgTypes[1].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[3].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[5].OneofWrappers = []any{}

@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -119,6 +121,9 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err := syncOrderSeaMasterBillOnCreate(ctx, tx, organizationID, created, input); err != nil {
 			return err
 		}
+		if err := syncOrderSeaDocumentOnCreate(ctx, tx, organizationID, created, input, audit); err != nil {
+			return err
+		}
 		if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
 			return err
 		}
@@ -201,6 +206,9 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit); syncErr != nil {
 			return syncErr
 		}
+		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit); syncErr != nil {
+			return syncErr
+		}
 		update := existing.Update().
 			SetVersion(existing.Version + 1).
 			SetCustomerID(input.CustomerID).
@@ -266,12 +274,31 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			return syncErr
 		}
 		if existing.CustomerID != input.CustomerID {
+			if existing.BusinessType == orderent.BusinessTypeSE {
+				hasCustomerHBL, checkErr := tx.SeaHouseBill.Query().Where(
+					seahousebill.OrderIDEQ(id),
+					seahousebill.OrganizationIDEQ(organizationID),
+					seahousebill.IssuerSourceEQ(seahousebill.IssuerSourceCUSTOMER_PARTNER),
+				).Exist(ctx)
+				if checkErr != nil {
+					return checkErr
+				}
+				if hasCustomerHBL {
+					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
+				}
+			}
 			if _, deleteErr := tx.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrderIDEQ(id)).Exec(ctx); deleteErr != nil {
 				return deleteErr
 			}
 			if snapshotErr := snapshotOrderCommissionAttributions(ctx, tx, organizationID, id, input.CustomerID, existing.CreatedAt); snapshotErr != nil {
 				return snapshotErr
 			}
+		}
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
+		}
+		if audit.Action == "" {
+			audit.Action = "order.update"
 		}
 		audit.Details["order.no"] = existing.OrderNo
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -589,26 +616,16 @@ func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizatio
 	}
 	orderID := order.ID
 	mblInput := input.SeaMasterBillInput
-	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
-		return err
-	}
 
-	link, err := tx.SeaMasterBillOrderLink.Query().
+	// Order 已由 UpdateDraft 首先加锁。这里先无锁读取活动关联用于定位 MBL，随后
+	// 严格按 MBL → Link → TransportExecution 加写锁，并在锁后重验关联未变化。
+	activeLink, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
 			seamasterbillorderlink.OrganizationIDEQ(organizationID),
 			seamasterbillorderlink.OrderIDEQ(orderID),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
-		ForUpdate().
-		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.Where(seamasterbill.OrganizationIDEQ(organizationID)).
-				ForUpdate().
-				WithTransportExecution(func(tq *ent.SeaTransportExecutionQuery) {
-					tq.Where(seatransportexecution.OrganizationIDEQ(organizationID)).ForUpdate()
-				})
-		}).
 		Only(ctx)
-
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return syncOrderSeaMasterBillOnCreate(ctx, tx, organizationID, order, input)
@@ -616,11 +633,45 @@ func syncOrderSeaMasterBillOnUpdate(ctx context.Context, tx *ent.Tx, organizatio
 		return err
 	}
 
-	currentMBL := link.Edges.MasterBill
-	if currentMBL == nil {
-		return biz.ErrSeaMasterBillNotFound
+	currentMBL, err := tx.SeaMasterBill.Query().
+		Where(
+			seamasterbill.IDEQ(activeLink.MasterBillID),
+			seamasterbill.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
-	currentTE := currentMBL.Edges.TransportExecution
+
+	link, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.IDEQ(activeLink.ID),
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+	if link.Status != seamasterbillorderlink.StatusACTIVE || link.OrderID != orderID || link.MasterBillID != currentMBL.ID {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+
+	currentTE, err := tx.SeaTransportExecution.Query().
+		Where(
+			seatransportexecution.IDEQ(currentMBL.TransportExecutionID),
+			seatransportexecution.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+
+	if err := validateSeaMasterBillIssuer(ctx, tx, organizationID, mblInput.IssuerPartnerID); err != nil {
+		return err
+	}
 
 	activeCount, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
@@ -913,5 +964,246 @@ func ensureSeaMasterBillHasNoDownstreamFacts(ctx context.Context, tx *ent.Tx, or
 	if hasDownstreamFacts {
 		return biz.ErrSeaMasterBillCorrectionBlocked
 	}
+	return nil
+}
+
+func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
+	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
+		return nil
+	}
+	docInput := input.SeaDocumentInput
+
+	link, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.OrderIDEQ(order.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		WithMasterBill().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+
+	mbl := link.Edges.MasterBill
+	if mbl == nil {
+		return biz.ErrSeaMasterBillNotFound
+	}
+
+	if docInput.MasterBillContent != nil {
+		updater := mbl.Update()
+		setSeaMasterBillContent(updater, docInput.MasterBillContent)
+		if _, err := updater.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	hasHBLs := len(docInput.HouseBills) > 0
+	targetStructure := seamasterbillorderlink.DocumentStructureUNDETERMINED
+
+	if docInput.DocumentStructure != nil {
+		switch *docInput.DocumentStructure {
+		case biz.SeaDocumentStructureDirect:
+			if hasHBLs {
+				return biz.ErrSeaDocumentStructureInvalid
+			}
+			targetStructure = seamasterbillorderlink.DocumentStructureDIRECT
+		case biz.SeaDocumentStructureHouse:
+			if !hasHBLs {
+				return errors.BadRequest("SEA_DOCUMENT_STRUCTURE_INVALID", "HOUSE 单证结构必须至少包含一张分单")
+			}
+			targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
+		case biz.SeaDocumentStructureUndetermined:
+			if hasHBLs {
+				targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
+			} else {
+				targetStructure = seamasterbillorderlink.DocumentStructureUNDETERMINED
+			}
+		}
+	} else if hasHBLs {
+		targetStructure = seamasterbillorderlink.DocumentStructureHOUSE
+	}
+
+	if targetStructure != link.DocumentStructure {
+		if _, err := link.Update().SetDocumentStructure(targetStructure).Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	for _, hbInput := range docInput.HouseBills {
+		normalized, err := biz.NormalizeSeaHouseNo(hbInput.HouseNo)
+		if err != nil {
+			return err
+		}
+		if hbInput.Content != nil {
+			if _, err := biz.ValidateSeaBillContent(hbInput.Content); err != nil {
+				return err
+			}
+		}
+		issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, order.OrganizationID, order.CustomerID, hbInput)
+		if err != nil {
+			return err
+		}
+		builder := tx.SeaHouseBill.Create().
+			SetID(uuid.Must(uuid.NewV7())).
+			SetOrganizationID(organizationID).
+			SetOrderID(order.ID).
+			SetMasterBillID(mbl.ID).
+			SetHouseNo(hbInput.HouseNo).
+			SetNormalizedHouseNo(normalized).
+			SetIssuerSource(seahousebill.IssuerSource(hbInput.IssuerSource)).
+			SetStatus(seahousebill.StatusDRAFT).
+			SetVersion(1)
+		if issuerOrgID != nil {
+			builder.SetIssuerOrganizationID(*issuerOrgID)
+		}
+		if issuerPartnerID != nil {
+			builder.SetIssuerPartnerID(*issuerPartnerID)
+		}
+		if hbInput.Note != nil {
+			builder.SetNote(*hbInput.Note)
+		}
+		setSeaHouseBillContentCreate(builder, hbInput.Content)
+		if _, err := builder.Save(ctx); err != nil {
+			if ent.IsConstraintError(err) {
+				return biz.ErrSeaHouseBillExists
+			}
+			return err
+		}
+	}
+
+	if audit.Details == nil {
+		audit.Details = make(map[string]string)
+	}
+	audit.Details["sea_document.initial_structure"] = string(targetStructure)
+	audit.Details["sea_house_bills.initial_count"] = fmt.Sprintf("%d", len(docInput.HouseBills))
+
+	return nil
+}
+
+func syncOrderSeaDocumentOnUpdate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
+	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
+		return nil
+	}
+	docInput := input.SeaDocumentInput
+	if docInput.HouseBills != nil && len(docInput.HouseBills) > 0 {
+		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单集合变更，请使用专用单证命令")
+	}
+
+	// 1. Order 已在 UpdateDraft 中加锁 ForUpdate
+	// 2. 无锁查询定位 active link ID 与 master_bill_id
+	activeLinkQuery, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+			seamasterbillorderlink.OrderIDEQ(order.ID),
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
+		).
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+
+	// 3. 锁 MBL (ForUpdate)
+	mbl, err := tx.SeaMasterBill.Query().
+		Where(
+			seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
+			seamasterbill.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+
+	// 4. 按 ID 锁 Active Link (ForUpdate) 并重验
+	link, err := tx.SeaMasterBillOrderLink.Query().
+		Where(
+			seamasterbillorderlink.IDEQ(activeLinkQuery.ID),
+			seamasterbillorderlink.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+	if link.Status != seamasterbillorderlink.StatusACTIVE || link.MasterBillID != mbl.ID {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+
+	// 5. 更新 MBL 内容（严格校验 expected_mbl_version）
+	if docInput.MasterBillContent != nil {
+		if docInput.ExpectedMblVersion == nil {
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改主单内容必须提供 expected_mbl_version")
+		}
+		if mbl.Version != *docInput.ExpectedMblVersion {
+			return biz.ErrSeaMasterBillConflict
+		}
+		if _, err := biz.ValidateSeaBillContent(docInput.MasterBillContent); err != nil {
+			return err
+		}
+		updater := mbl.Update().SetVersion(mbl.Version + 1)
+		setSeaMasterBillContent(updater, docInput.MasterBillContent)
+		if _, err := updater.Save(ctx); err != nil {
+			return err
+		}
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
+		}
+		audit.Details["sea_master_bill.content_updated"] = "true"
+		audit.Details["sea_master_bill.old_version"] = fmt.Sprintf("%d", mbl.Version)
+		audit.Details["sea_master_bill.new_version"] = fmt.Sprintf("%d", mbl.Version+1)
+	}
+
+	// 6. 更新单证结构（严格校验 expected_link_version 并复用状态门禁）
+	if docInput.DocumentStructure != nil {
+		if docInput.ExpectedLinkVersion == nil {
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改单证结构必须提供 expected_link_version")
+		}
+		if link.Version != *docInput.ExpectedLinkVersion {
+			return biz.ErrSeaDocumentStructureConflict
+		}
+		targetStructure := *docInput.DocumentStructure
+		if targetStructure == biz.SeaDocumentStructureDirect {
+			if link.DocumentStructure == seamasterbillorderlink.DocumentStructureUNDETERMINED {
+				hbCount, err := tx.SeaHouseBill.Query().
+					Where(
+						seahousebill.OrganizationIDEQ(organizationID),
+						seahousebill.OrderIDEQ(order.ID),
+						seahousebill.MasterBillIDEQ(mbl.ID),
+					).Count(ctx)
+				if err != nil {
+					return err
+				}
+				if hbCount > 0 {
+					return biz.ErrSeaDocumentStructureInvalid
+				}
+				if _, err := link.Update().SetDocumentStructure(seamasterbillorderlink.DocumentStructureDIRECT).SetVersion(link.Version + 1).Save(ctx); err != nil {
+					return err
+				}
+			} else if link.DocumentStructure != seamasterbillorderlink.DocumentStructureDIRECT {
+				return biz.ErrSeaDocumentStructureInvalid
+			}
+		} else if targetStructure == biz.SeaDocumentStructureUndetermined {
+			if link.DocumentStructure == seamasterbillorderlink.DocumentStructureDIRECT {
+				if _, err := link.Update().SetDocumentStructure(seamasterbillorderlink.DocumentStructureUNDETERMINED).SetVersion(link.Version + 1).Save(ctx); err != nil {
+					return err
+				}
+			} else if link.DocumentStructure != seamasterbillorderlink.DocumentStructureUNDETERMINED {
+				return biz.ErrSeaDocumentStructureInvalid
+			}
+		} else if targetStructure == biz.SeaDocumentStructureHouse {
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "不能直接设置 HOUSE 结构，请通过添加分单命令进入 HOUSE 结构")
+		}
+
+		if audit.Details == nil {
+			audit.Details = make(map[string]string)
+		}
+		audit.Details["sea_document.structure_updated"] = "true"
+		audit.Details["sea_document.old_structure"] = string(link.DocumentStructure)
+		audit.Details["sea_document.new_structure"] = string(targetStructure)
+		audit.Details["sea_document.old_link_version"] = fmt.Sprintf("%d", link.Version)
+		audit.Details["sea_document.new_link_version"] = fmt.Sprintf("%d", link.Version+1)
+	}
+
 	return nil
 }

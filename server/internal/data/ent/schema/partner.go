@@ -47,6 +47,7 @@ func (Partner) Edges() []ent.Edge {
 		edge.To("finance_cashflows", FinanceCashflow.Type),
 		edge.To("finance_verifications", FinanceVerification.Type),
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
+		edge.To("issued_sea_house_bills", SeaHouseBill.Type),
 	}
 }
 

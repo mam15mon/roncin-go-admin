@@ -29,6 +29,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 )
 
 // PartnerCreate is the builder for creating a Partner entity.
@@ -407,6 +408,21 @@ func (_c *PartnerCreate) AddOrderCommissionAttributions(v ...*OrderCommissionAtt
 		ids[i] = v[i].ID
 	}
 	return _c.AddOrderCommissionAttributionIDs(ids...)
+}
+
+// AddIssuedSeaHouseBillIDs adds the "issued_sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_c *PartnerCreate) AddIssuedSeaHouseBillIDs(ids ...uuid.UUID) *PartnerCreate {
+	_c.mutation.AddIssuedSeaHouseBillIDs(ids...)
+	return _c
+}
+
+// AddIssuedSeaHouseBills adds the "issued_sea_house_bills" edges to the SeaHouseBill entity.
+func (_c *PartnerCreate) AddIssuedSeaHouseBills(v ...*SeaHouseBill) *PartnerCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIssuedSeaHouseBillIDs(ids...)
 }
 
 // Mutation returns the PartnerMutation object of the builder.
@@ -869,6 +885,22 @@ func (_c *PartnerCreate) createSpec() (*Partner, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IssuedSeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partner.IssuedSeaHouseBillsTable,
+			Columns: []string{partner.IssuedSeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

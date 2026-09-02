@@ -989,6 +989,52 @@ func HasSeaMasterBillOrderLinksWith(preds ...predicate.SeaMasterBillOrderLink) p
 	})
 }
 
+// HasSeaHouseBills applies the HasEdge predicate on the "sea_house_bills" edge.
+func HasSeaHouseBills() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SeaHouseBillsTable, SeaHouseBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSeaHouseBillsWith applies the HasEdge predicate on the "sea_house_bills" edge with a given conditions (other predicates).
+func HasSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newSeaHouseBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIssuedSeaHouseBills applies the HasEdge predicate on the "issued_sea_house_bills" edge.
+func HasIssuedSeaHouseBills() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IssuedSeaHouseBillsTable, IssuedSeaHouseBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIssuedSeaHouseBillsWith applies the HasEdge predicate on the "issued_sea_house_bills" edge with a given conditions (other predicates).
+func HasIssuedSeaHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newIssuedSeaHouseBillsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderPersonnel applies the HasEdge predicate on the "order_personnel" edge.
 func HasOrderPersonnel() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

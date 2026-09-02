@@ -20,6 +20,7 @@ import * as orderFeeService from "./orderFeeService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
 import * as orderReleasePodService from "./orderReleasePodService";
+import * as seaDocumentService from "./seaDocumentService";
 import * as orderShippingDocumentService from "./orderShippingDocumentService";
 import * as partnerService from "./partnerService";
 export default {
@@ -41,6 +42,7 @@ export default {
   orderMilestoneService,
   orderPersonnelService,
   orderReleasePodService,
+  seaDocumentService,
   orderShippingDocumentService,
   partnerService,
 };

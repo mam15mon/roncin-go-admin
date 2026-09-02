@@ -4470,6 +4470,109 @@ var (
 			},
 		},
 	}
+	// SeaHouseBillsColumns holds the columns for the "sea_house_bills" table.
+	SeaHouseBillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "house_no", Type: field.TypeString, Size: 128},
+		{Name: "normalized_house_no", Type: field.TypeString, Size: 128},
+		{Name: "issuer_source", Type: field.TypeEnum, Enums: []string{"SELF_ORGANIZATION", "CUSTOMER_PARTNER", "OTHER_PARTNER"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "second_notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "marks_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "goods_description_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "package_count", Type: field.TypeInt, Nullable: true},
+		{Name: "package_unit", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "volume_cbm", Type: field.TypeFloat64, Nullable: true},
+		{Name: "freight_terms", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "transport_terms", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "issuer_organization_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "issuer_partner_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "master_bill_id", Type: field.TypeUUID},
+	}
+	// SeaHouseBillsTable holds the schema information for the "sea_house_bills" table.
+	SeaHouseBillsTable = &schema.Table{
+		Name:       "sea_house_bills",
+		Columns:    SeaHouseBillsColumns,
+		PrimaryKey: []*schema.Column{SeaHouseBillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sea_house_bills_orders_sea_house_bills",
+				Columns:    []*schema.Column{SeaHouseBillsColumns[24]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_house_bills_organizations_sea_house_bills",
+				Columns:    []*schema.Column{SeaHouseBillsColumns[25]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "sea_house_bills_organizations_issued_sea_house_bills",
+				Columns:    []*schema.Column{SeaHouseBillsColumns[26]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_house_bills_partners_issued_sea_house_bills",
+				Columns:    []*schema.Column{SeaHouseBillsColumns[27]},
+				RefColumns: []*schema.Column{PartnersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "sea_house_bills_sea_master_bills_house_bills",
+				Columns:    []*schema.Column{SeaHouseBillsColumns[28]},
+				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "seahousebill_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{SeaHouseBillsColumns[2]},
+			},
+			{
+				Name:    "seahousebill_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[24]},
+			},
+			{
+				Name:    "seahousebill_organization_id_master_bill_id",
+				Unique:  false,
+				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[28]},
+			},
+			{
+				Name:    "idx_sea_house_bills_self_org_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[26], SeaHouseBillsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "issuer_source = 'SELF_ORGANIZATION'",
+				},
+			},
+			{
+				Name:    "idx_sea_house_bills_partner_unique",
+				Unique:  true,
+				Columns: []*schema.Column{SeaHouseBillsColumns[25], SeaHouseBillsColumns[27], SeaHouseBillsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER')",
+				},
+			},
+		},
+	}
 	// SeaMasterBillsColumns holds the columns for the "sea_master_bills" table.
 	SeaMasterBillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -4480,6 +4583,21 @@ var (
 		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED"}, Default: "DRAFT"},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "shipper_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "consignee_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "second_notify_party_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "marks_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "goods_description_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "package_count", Type: field.TypeInt, Nullable: true},
+		{Name: "package_unit", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "gross_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "volume_cbm", Type: field.TypeFloat64, Nullable: true},
+		{Name: "freight_terms", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "transport_terms", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "bill_form", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "release_type", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "clauses", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "transport_execution_id", Type: field.TypeUUID},
 	}
@@ -4491,13 +4609,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bills_organizations_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[8]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bills_sea_transport_executions_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[9]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
 				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4511,12 +4629,12 @@ var (
 			{
 				Name:    "seamasterbill_organization_id_issuer_partner_id_normalized_master_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillsColumns[8], SeaMasterBillsColumns[3], SeaMasterBillsColumns[5]},
+				Columns: []*schema.Column{SeaMasterBillsColumns[23], SeaMasterBillsColumns[3], SeaMasterBillsColumns[5]},
 			},
 			{
 				Name:    "seamasterbill_organization_id_transport_execution_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillsColumns[8], SeaMasterBillsColumns[9]},
+				Columns: []*schema.Column{SeaMasterBillsColumns[23], SeaMasterBillsColumns[24]},
 			},
 		},
 	}
@@ -4526,6 +4644,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "ENDED"}, Default: "ACTIVE"},
+		{Name: "document_structure", Type: field.TypeEnum, Enums: []string{"UNDETERMINED", "DIRECT", "HOUSE"}, Default: "UNDETERMINED"},
 		{Name: "started_at", Type: field.TypeTime},
 		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
 		{Name: "ended_reason", Type: field.TypeString, Nullable: true, Size: 255},
@@ -4542,19 +4661,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_order_links_orders_sea_master_bill_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[8]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_organizations_sea_master_bill_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[10]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_order_links_sea_master_bills_order_links",
-				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[10]},
+				Columns:    []*schema.Column{SeaMasterBillOrderLinksColumns[11]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4568,17 +4687,17 @@ var (
 			{
 				Name:    "seamasterbillorderlink_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9], SeaMasterBillOrderLinksColumns[10]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[11]},
 			},
 			{
 				Name:    "seamasterbillorderlink_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9], SeaMasterBillOrderLinksColumns[8]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[10], SeaMasterBillOrderLinksColumns[9]},
 			},
 			{
 				Name:    "idx_sea_mbl_order_links_active_order",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[8]},
+				Columns: []*schema.Column{SeaMasterBillOrderLinksColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status = 'ACTIVE'",
 				},
@@ -4981,6 +5100,7 @@ var (
 		RolesTable,
 		RoleAssignmentsTable,
 		RoleOrderOrganizationAccessesTable,
+		SeaHouseBillsTable,
 		SeaMasterBillsTable,
 		SeaMasterBillOrderLinksTable,
 		SeaTransportExecutionsTable,
@@ -5139,6 +5259,11 @@ func init() {
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleOrderOrganizationAccessesTable.ForeignKeys[1].RefTable = RolesTable
+	SeaHouseBillsTable.ForeignKeys[0].RefTable = OrdersTable
+	SeaHouseBillsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	SeaHouseBillsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	SeaHouseBillsTable.ForeignKeys[3].RefTable = PartnersTable
+	SeaHouseBillsTable.ForeignKeys[4].RefTable = SeaMasterBillsTable
 	SeaMasterBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SeaMasterBillsTable.ForeignKeys[1].RefTable = SeaTransportExecutionsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[0].RefTable = OrdersTable

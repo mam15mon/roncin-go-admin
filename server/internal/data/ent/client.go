@@ -96,6 +96,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -271,6 +272,8 @@ type Client struct {
 	RoleAssignment *RoleAssignmentClient
 	// RoleOrderOrganizationAccess is the client for interacting with the RoleOrderOrganizationAccess builders.
 	RoleOrderOrganizationAccess *RoleOrderOrganizationAccessClient
+	// SeaHouseBill is the client for interacting with the SeaHouseBill builders.
+	SeaHouseBill *SeaHouseBillClient
 	// SeaMasterBill is the client for interacting with the SeaMasterBill builders.
 	SeaMasterBill *SeaMasterBillClient
 	// SeaMasterBillOrderLink is the client for interacting with the SeaMasterBillOrderLink builders.
@@ -378,6 +381,7 @@ func (c *Client) init() {
 	c.Role = NewRoleClient(c.config)
 	c.RoleAssignment = NewRoleAssignmentClient(c.config)
 	c.RoleOrderOrganizationAccess = NewRoleOrderOrganizationAccessClient(c.config)
+	c.SeaHouseBill = NewSeaHouseBillClient(c.config)
 	c.SeaMasterBill = NewSeaMasterBillClient(c.config)
 	c.SeaMasterBillOrderLink = NewSeaMasterBillOrderLinkClient(c.config)
 	c.SeaTransportExecution = NewSeaTransportExecutionClient(c.config)
@@ -558,6 +562,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
 		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
@@ -665,6 +670,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Role:                           NewRoleClient(cfg),
 		RoleAssignment:                 NewRoleAssignmentClient(cfg),
 		RoleOrderOrganizationAccess:    NewRoleOrderOrganizationAccessClient(cfg),
+		SeaHouseBill:                   NewSeaHouseBillClient(cfg),
 		SeaMasterBill:                  NewSeaMasterBillClient(cfg),
 		SeaMasterBillOrderLink:         NewSeaMasterBillOrderLinkClient(cfg),
 		SeaTransportExecution:          NewSeaTransportExecutionClient(cfg),
@@ -725,9 +731,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaMasterBill,
-		c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaHouseBill,
+		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -760,9 +766,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment,
 		c.PartnerContact, c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile,
 		c.PartnerRole, c.PartnerSettlementRule, c.Permission, c.Port, c.Role,
-		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaMasterBill,
-		c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session, c.ShippingLine,
-		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.RoleAssignment, c.RoleOrderOrganizationAccess, c.SeaHouseBill,
+		c.SeaMasterBill, c.SeaMasterBillOrderLink, c.SeaTransportExecution, c.Session,
+		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -931,6 +937,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.RoleAssignment.mutate(ctx, m)
 	case *RoleOrderOrganizationAccessMutation:
 		return c.RoleOrderOrganizationAccess.mutate(ctx, m)
+	case *SeaHouseBillMutation:
+		return c.SeaHouseBill.mutate(ctx, m)
 	case *SeaMasterBillMutation:
 		return c.SeaMasterBill.mutate(ctx, m)
 	case *SeaMasterBillOrderLinkMutation:
@@ -9555,6 +9563,22 @@ func (c *OrderClient) QuerySeaMasterBillLinks(_m *Order) *SeaMasterBillOrderLink
 	return query
 }
 
+// QuerySeaHouseBills queries the sea_house_bills edge of a Order.
+func (c *OrderClient) QuerySeaHouseBills(_m *Order) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.SeaHouseBillsTable, order.SeaHouseBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
 	return c.hooks.Order
@@ -12712,6 +12736,38 @@ func (c *OrganizationClient) QuerySeaMasterBillOrderLinks(_m *Organization) *Sea
 	return query
 }
 
+// QuerySeaHouseBills queries the sea_house_bills edge of a Organization.
+func (c *OrganizationClient) QuerySeaHouseBills(_m *Organization) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillsTable, organization.SeaHouseBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuedSeaHouseBills queries the issued_sea_house_bills edge of a Organization.
+func (c *OrganizationClient) QueryIssuedSeaHouseBills(_m *Organization) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.IssuedSeaHouseBillsTable, organization.IssuedSeaHouseBillsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrderPersonnel queries the order_personnel edge of a Organization.
 func (c *OrganizationClient) QueryOrderPersonnel(_m *Organization) *OrderPersonnelQuery {
 	query := (&OrderPersonnelClient{config: c.config}).Query()
@@ -13447,6 +13503,22 @@ func (c *PartnerClient) QueryOrderCommissionAttributions(_m *Partner) *OrderComm
 			sqlgraph.From(partner.Table, partner.FieldID, id),
 			sqlgraph.To(ordercommissionattribution.Table, ordercommissionattribution.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, partner.OrderCommissionAttributionsTable, partner.OrderCommissionAttributionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuedSeaHouseBills queries the issued_sea_house_bills edge of a Partner.
+func (c *PartnerClient) QueryIssuedSeaHouseBills(_m *Partner) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partner.Table, partner.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partner.IssuedSeaHouseBillsTable, partner.IssuedSeaHouseBillsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -15893,6 +15965,219 @@ func (c *RoleOrderOrganizationAccessClient) mutate(ctx context.Context, m *RoleO
 	}
 }
 
+// SeaHouseBillClient is a client for the SeaHouseBill schema.
+type SeaHouseBillClient struct {
+	config
+}
+
+// NewSeaHouseBillClient returns a client for the SeaHouseBill from the given config.
+func NewSeaHouseBillClient(c config) *SeaHouseBillClient {
+	return &SeaHouseBillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `seahousebill.Hooks(f(g(h())))`.
+func (c *SeaHouseBillClient) Use(hooks ...Hook) {
+	c.hooks.SeaHouseBill = append(c.hooks.SeaHouseBill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `seahousebill.Intercept(f(g(h())))`.
+func (c *SeaHouseBillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SeaHouseBill = append(c.inters.SeaHouseBill, interceptors...)
+}
+
+// Create returns a builder for creating a SeaHouseBill entity.
+func (c *SeaHouseBillClient) Create() *SeaHouseBillCreate {
+	mutation := newSeaHouseBillMutation(c.config, OpCreate)
+	return &SeaHouseBillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SeaHouseBill entities.
+func (c *SeaHouseBillClient) CreateBulk(builders ...*SeaHouseBillCreate) *SeaHouseBillCreateBulk {
+	return &SeaHouseBillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SeaHouseBillClient) MapCreateBulk(slice any, setFunc func(*SeaHouseBillCreate, int)) *SeaHouseBillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SeaHouseBillCreateBulk{err: fmt.Errorf("calling to SeaHouseBillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SeaHouseBillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SeaHouseBillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SeaHouseBill.
+func (c *SeaHouseBillClient) Update() *SeaHouseBillUpdate {
+	mutation := newSeaHouseBillMutation(c.config, OpUpdate)
+	return &SeaHouseBillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SeaHouseBillClient) UpdateOne(_m *SeaHouseBill) *SeaHouseBillUpdateOne {
+	mutation := newSeaHouseBillMutation(c.config, OpUpdateOne, withSeaHouseBill(_m))
+	return &SeaHouseBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SeaHouseBillClient) UpdateOneID(id uuid.UUID) *SeaHouseBillUpdateOne {
+	mutation := newSeaHouseBillMutation(c.config, OpUpdateOne, withSeaHouseBillID(id))
+	return &SeaHouseBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SeaHouseBill.
+func (c *SeaHouseBillClient) Delete() *SeaHouseBillDelete {
+	mutation := newSeaHouseBillMutation(c.config, OpDelete)
+	return &SeaHouseBillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SeaHouseBillClient) DeleteOne(_m *SeaHouseBill) *SeaHouseBillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SeaHouseBillClient) DeleteOneID(id uuid.UUID) *SeaHouseBillDeleteOne {
+	builder := c.Delete().Where(seahousebill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SeaHouseBillDeleteOne{builder}
+}
+
+// Query returns a query builder for SeaHouseBill.
+func (c *SeaHouseBillClient) Query() *SeaHouseBillQuery {
+	return &SeaHouseBillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSeaHouseBill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SeaHouseBill entity by its id.
+func (c *SeaHouseBillClient) Get(ctx context.Context, id uuid.UUID) (*SeaHouseBill, error) {
+	return c.Query().Where(seahousebill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SeaHouseBillClient) GetX(ctx context.Context, id uuid.UUID) *SeaHouseBill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryOrganization(_m *SeaHouseBill) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.OrganizationTable, seahousebill.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryOrder(_m *SeaHouseBill) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.OrderTable, seahousebill.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterBill queries the master_bill edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryMasterBill(_m *SeaHouseBill) *SeaMasterBillQuery {
+	query := (&SeaMasterBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(seamasterbill.Table, seamasterbill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.MasterBillTable, seahousebill.MasterBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuerOrganization queries the issuer_organization edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryIssuerOrganization(_m *SeaHouseBill) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.IssuerOrganizationTable, seahousebill.IssuerOrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIssuerPartner queries the issuer_partner edge of a SeaHouseBill.
+func (c *SeaHouseBillClient) QueryIssuerPartner(_m *SeaHouseBill) *PartnerQuery {
+	query := (&PartnerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seahousebill.Table, seahousebill.FieldID, id),
+			sqlgraph.To(partner.Table, partner.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, seahousebill.IssuerPartnerTable, seahousebill.IssuerPartnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SeaHouseBillClient) Hooks() []Hook {
+	return c.hooks.SeaHouseBill
+}
+
+// Interceptors returns the client interceptors.
+func (c *SeaHouseBillClient) Interceptors() []Interceptor {
+	return c.inters.SeaHouseBill
+}
+
+func (c *SeaHouseBillClient) mutate(ctx context.Context, m *SeaHouseBillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SeaHouseBillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SeaHouseBillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SeaHouseBillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SeaHouseBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SeaHouseBill mutation op: %q", m.Op())
+	}
+}
+
 // SeaMasterBillClient is a client for the SeaMasterBill schema.
 type SeaMasterBillClient struct {
 	config
@@ -16042,6 +16327,22 @@ func (c *SeaMasterBillClient) QueryOrderLinks(_m *SeaMasterBill) *SeaMasterBillO
 			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
 			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.OrderLinksTable, seamasterbill.OrderLinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHouseBills queries the house_bills edge of a SeaMasterBill.
+func (c *SeaMasterBillClient) QueryHouseBills(_m *SeaMasterBill) *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(seamasterbill.Table, seamasterbill.FieldID, id),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, seamasterbill.HouseBillsTable, seamasterbill.HouseBillsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -17720,9 +18021,9 @@ type (
 		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
 		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
 		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
-		TaxableService, User []ent.Hook
+		RoleOrderOrganizationAccess, SeaHouseBill, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaTransportExecution, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
@@ -17746,8 +18047,8 @@ type (
 		PartnerAlias, PartnerAssignment, PartnerAttachment, PartnerContact,
 		PartnerContract, PartnerInvoiceProfile, PartnerProfile, PartnerRole,
 		PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		RoleOrderOrganizationAccess, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaTransportExecution, Session, ShippingLine, ShippingLineContainerPrefix,
-		TaxableService, User []ent.Interceptor
+		RoleOrderOrganizationAccess, SeaHouseBill, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaTransportExecution, Session, ShippingLine,
+		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

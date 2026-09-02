@@ -84,6 +84,20 @@ func (_c *SeaMasterBillOrderLinkCreate) SetNillableStatus(v *seamasterbillorderl
 	return _c
 }
 
+// SetDocumentStructure sets the "document_structure" field.
+func (_c *SeaMasterBillOrderLinkCreate) SetDocumentStructure(v seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkCreate {
+	_c.mutation.SetDocumentStructure(v)
+	return _c
+}
+
+// SetNillableDocumentStructure sets the "document_structure" field if the given value is not nil.
+func (_c *SeaMasterBillOrderLinkCreate) SetNillableDocumentStructure(v *seamasterbillorderlink.DocumentStructure) *SeaMasterBillOrderLinkCreate {
+	if v != nil {
+		_c.SetDocumentStructure(*v)
+	}
+	return _c
+}
+
 // SetStartedAt sets the "started_at" field.
 func (_c *SeaMasterBillOrderLinkCreate) SetStartedAt(v time.Time) *SeaMasterBillOrderLinkCreate {
 	_c.mutation.SetStartedAt(v)
@@ -216,6 +230,10 @@ func (_c *SeaMasterBillOrderLinkCreate) defaults() {
 		v := seamasterbillorderlink.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.DocumentStructure(); !ok {
+		v := seamasterbillorderlink.DefaultDocumentStructure
+		_c.mutation.SetDocumentStructure(v)
+	}
 	if _, ok := _c.mutation.StartedAt(); !ok {
 		v := seamasterbillorderlink.DefaultStartedAt()
 		_c.mutation.SetStartedAt(v)
@@ -253,6 +271,14 @@ func (_c *SeaMasterBillOrderLinkCreate) check() error {
 	if v, ok := _c.mutation.Status(); ok {
 		if err := seamasterbillorderlink.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.DocumentStructure(); !ok {
+		return &ValidationError{Name: "document_structure", err: errors.New(`ent: missing required field "SeaMasterBillOrderLink.document_structure"`)}
+	}
+	if v, ok := _c.mutation.DocumentStructure(); ok {
+		if err := seamasterbillorderlink.DocumentStructureValidator(v); err != nil {
+			return &ValidationError{Name: "document_structure", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillOrderLink.document_structure": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.StartedAt(); !ok {
@@ -321,6 +347,10 @@ func (_c *SeaMasterBillOrderLinkCreate) createSpec() (*SeaMasterBillOrderLink, *
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.DocumentStructure(); ok {
+		_spec.SetField(seamasterbillorderlink.FieldDocumentStructure, field.TypeEnum, value)
+		_node.DocumentStructure = value
 	}
 	if value, ok := _c.mutation.StartedAt(); ok {
 		_spec.SetField(seamasterbillorderlink.FieldStartedAt, field.TypeTime, value)

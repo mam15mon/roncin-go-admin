@@ -28,6 +28,8 @@ const (
 	FieldOrderID = "order_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldDocumentStructure holds the string denoting the document_structure field in the database.
+	FieldDocumentStructure = "document_structure"
 	// FieldStartedAt holds the string denoting the started_at field in the database.
 	FieldStartedAt = "started_at"
 	// FieldEndedAt holds the string denoting the ended_at field in the database.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldMasterBillID,
 	FieldOrderID,
 	FieldStatus,
+	FieldDocumentStructure,
 	FieldStartedAt,
 	FieldEndedAt,
 	FieldEndedReason,
@@ -135,6 +138,33 @@ func StatusValidator(s Status) error {
 	}
 }
 
+// DocumentStructure defines the type for the "document_structure" enum field.
+type DocumentStructure string
+
+// DocumentStructureUNDETERMINED is the default value of the DocumentStructure enum.
+const DefaultDocumentStructure = DocumentStructureUNDETERMINED
+
+// DocumentStructure values.
+const (
+	DocumentStructureUNDETERMINED DocumentStructure = "UNDETERMINED"
+	DocumentStructureDIRECT       DocumentStructure = "DIRECT"
+	DocumentStructureHOUSE        DocumentStructure = "HOUSE"
+)
+
+func (ds DocumentStructure) String() string {
+	return string(ds)
+}
+
+// DocumentStructureValidator is a validator for the "document_structure" field enum values. It is called by the builders before save.
+func DocumentStructureValidator(ds DocumentStructure) error {
+	switch ds {
+	case DocumentStructureUNDETERMINED, DocumentStructureDIRECT, DocumentStructureHOUSE:
+		return nil
+	default:
+		return fmt.Errorf("seamasterbillorderlink: invalid enum value for document_structure field: %q", ds)
+	}
+}
+
 // OrderOption defines the ordering options for the SeaMasterBillOrderLink queries.
 type OrderOption func(*sql.Selector)
 
@@ -171,6 +201,11 @@ func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByDocumentStructure orders the results by the document_structure field.
+func ByDocumentStructure(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDocumentStructure, opts...).ToFunc()
 }
 
 // ByStartedAt orders the results by the started_at field.

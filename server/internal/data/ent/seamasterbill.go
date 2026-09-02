@@ -38,6 +38,36 @@ type SeaMasterBill struct {
 	Status seamasterbill.Status `json:"status,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
+	// ShipperText holds the value of the "shipper_text" field.
+	ShipperText *string `json:"shipper_text,omitempty"`
+	// ConsigneeText holds the value of the "consignee_text" field.
+	ConsigneeText *string `json:"consignee_text,omitempty"`
+	// NotifyPartyText holds the value of the "notify_party_text" field.
+	NotifyPartyText *string `json:"notify_party_text,omitempty"`
+	// SecondNotifyPartyText holds the value of the "second_notify_party_text" field.
+	SecondNotifyPartyText *string `json:"second_notify_party_text,omitempty"`
+	// MarksText holds the value of the "marks_text" field.
+	MarksText *string `json:"marks_text,omitempty"`
+	// GoodsDescriptionText holds the value of the "goods_description_text" field.
+	GoodsDescriptionText *string `json:"goods_description_text,omitempty"`
+	// PackageCount holds the value of the "package_count" field.
+	PackageCount *int `json:"package_count,omitempty"`
+	// PackageUnit holds the value of the "package_unit" field.
+	PackageUnit *string `json:"package_unit,omitempty"`
+	// GrossWeightKg holds the value of the "gross_weight_kg" field.
+	GrossWeightKg *float64 `json:"gross_weight_kg,omitempty"`
+	// VolumeCbm holds the value of the "volume_cbm" field.
+	VolumeCbm *float64 `json:"volume_cbm,omitempty"`
+	// FreightTerms holds the value of the "freight_terms" field.
+	FreightTerms *string `json:"freight_terms,omitempty"`
+	// TransportTerms holds the value of the "transport_terms" field.
+	TransportTerms *string `json:"transport_terms,omitempty"`
+	// BillForm holds the value of the "bill_form" field.
+	BillForm *string `json:"bill_form,omitempty"`
+	// ReleaseType holds the value of the "release_type" field.
+	ReleaseType *string `json:"release_type,omitempty"`
+	// Clauses holds the value of the "clauses" field.
+	Clauses *string `json:"clauses,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SeaMasterBillQuery when eager-loading is set.
 	Edges        SeaMasterBillEdges `json:"edges"`
@@ -52,9 +82,11 @@ type SeaMasterBillEdges struct {
 	TransportExecution *SeaTransportExecution `json:"transport_execution,omitempty"`
 	// OrderLinks holds the value of the order_links edge.
 	OrderLinks []*SeaMasterBillOrderLink `json:"order_links,omitempty"`
+	// HouseBills holds the value of the house_bills edge.
+	HouseBills []*SeaHouseBill `json:"house_bills,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -88,14 +120,25 @@ func (e SeaMasterBillEdges) OrderLinksOrErr() ([]*SeaMasterBillOrderLink, error)
 	return nil, &NotLoadedError{edge: "order_links"}
 }
 
+// HouseBillsOrErr returns the HouseBills value or an error if the edge
+// was not loaded in eager-loading.
+func (e SeaMasterBillEdges) HouseBillsOrErr() ([]*SeaHouseBill, error) {
+	if e.loadedTypes[3] {
+		return e.HouseBills, nil
+	}
+	return nil, &NotLoadedError{edge: "house_bills"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SeaMasterBill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case seamasterbill.FieldVersion:
+		case seamasterbill.FieldGrossWeightKg, seamasterbill.FieldVolumeCbm:
+			values[i] = new(sql.NullFloat64)
+		case seamasterbill.FieldVersion, seamasterbill.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus:
+		case seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus, seamasterbill.FieldShipperText, seamasterbill.FieldConsigneeText, seamasterbill.FieldNotifyPartyText, seamasterbill.FieldSecondNotifyPartyText, seamasterbill.FieldMarksText, seamasterbill.FieldGoodsDescriptionText, seamasterbill.FieldPackageUnit, seamasterbill.FieldFreightTerms, seamasterbill.FieldTransportTerms, seamasterbill.FieldBillForm, seamasterbill.FieldReleaseType, seamasterbill.FieldClauses:
 			values[i] = new(sql.NullString)
 		case seamasterbill.FieldCreatedAt, seamasterbill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -176,6 +219,111 @@ func (_m *SeaMasterBill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Version = uint64(value.Int64)
 			}
+		case seamasterbill.FieldShipperText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field shipper_text", values[i])
+			} else if value.Valid {
+				_m.ShipperText = new(string)
+				*_m.ShipperText = value.String
+			}
+		case seamasterbill.FieldConsigneeText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field consignee_text", values[i])
+			} else if value.Valid {
+				_m.ConsigneeText = new(string)
+				*_m.ConsigneeText = value.String
+			}
+		case seamasterbill.FieldNotifyPartyText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field notify_party_text", values[i])
+			} else if value.Valid {
+				_m.NotifyPartyText = new(string)
+				*_m.NotifyPartyText = value.String
+			}
+		case seamasterbill.FieldSecondNotifyPartyText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field second_notify_party_text", values[i])
+			} else if value.Valid {
+				_m.SecondNotifyPartyText = new(string)
+				*_m.SecondNotifyPartyText = value.String
+			}
+		case seamasterbill.FieldMarksText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field marks_text", values[i])
+			} else if value.Valid {
+				_m.MarksText = new(string)
+				*_m.MarksText = value.String
+			}
+		case seamasterbill.FieldGoodsDescriptionText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field goods_description_text", values[i])
+			} else if value.Valid {
+				_m.GoodsDescriptionText = new(string)
+				*_m.GoodsDescriptionText = value.String
+			}
+		case seamasterbill.FieldPackageCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field package_count", values[i])
+			} else if value.Valid {
+				_m.PackageCount = new(int)
+				*_m.PackageCount = int(value.Int64)
+			}
+		case seamasterbill.FieldPackageUnit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field package_unit", values[i])
+			} else if value.Valid {
+				_m.PackageUnit = new(string)
+				*_m.PackageUnit = value.String
+			}
+		case seamasterbill.FieldGrossWeightKg:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field gross_weight_kg", values[i])
+			} else if value.Valid {
+				_m.GrossWeightKg = new(float64)
+				*_m.GrossWeightKg = value.Float64
+			}
+		case seamasterbill.FieldVolumeCbm:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field volume_cbm", values[i])
+			} else if value.Valid {
+				_m.VolumeCbm = new(float64)
+				*_m.VolumeCbm = value.Float64
+			}
+		case seamasterbill.FieldFreightTerms:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field freight_terms", values[i])
+			} else if value.Valid {
+				_m.FreightTerms = new(string)
+				*_m.FreightTerms = value.String
+			}
+		case seamasterbill.FieldTransportTerms:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field transport_terms", values[i])
+			} else if value.Valid {
+				_m.TransportTerms = new(string)
+				*_m.TransportTerms = value.String
+			}
+		case seamasterbill.FieldBillForm:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bill_form", values[i])
+			} else if value.Valid {
+				_m.BillForm = new(string)
+				*_m.BillForm = value.String
+			}
+		case seamasterbill.FieldReleaseType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field release_type", values[i])
+			} else if value.Valid {
+				_m.ReleaseType = new(string)
+				*_m.ReleaseType = value.String
+			}
+		case seamasterbill.FieldClauses:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field clauses", values[i])
+			} else if value.Valid {
+				_m.Clauses = new(string)
+				*_m.Clauses = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -202,6 +350,11 @@ func (_m *SeaMasterBill) QueryTransportExecution() *SeaTransportExecutionQuery {
 // QueryOrderLinks queries the "order_links" edge of the SeaMasterBill entity.
 func (_m *SeaMasterBill) QueryOrderLinks() *SeaMasterBillOrderLinkQuery {
 	return NewSeaMasterBillClient(_m.config).QueryOrderLinks(_m)
+}
+
+// QueryHouseBills queries the "house_bills" edge of the SeaMasterBill entity.
+func (_m *SeaMasterBill) QueryHouseBills() *SeaHouseBillQuery {
+	return NewSeaMasterBillClient(_m.config).QueryHouseBills(_m)
 }
 
 // Update returns a builder for updating this SeaMasterBill.
@@ -253,6 +406,81 @@ func (_m *SeaMasterBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	if v := _m.ShipperText; v != nil {
+		builder.WriteString("shipper_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ConsigneeText; v != nil {
+		builder.WriteString("consignee_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.NotifyPartyText; v != nil {
+		builder.WriteString("notify_party_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.SecondNotifyPartyText; v != nil {
+		builder.WriteString("second_notify_party_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.MarksText; v != nil {
+		builder.WriteString("marks_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.GoodsDescriptionText; v != nil {
+		builder.WriteString("goods_description_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PackageCount; v != nil {
+		builder.WriteString("package_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.PackageUnit; v != nil {
+		builder.WriteString("package_unit=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.GrossWeightKg; v != nil {
+		builder.WriteString("gross_weight_kg=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.VolumeCbm; v != nil {
+		builder.WriteString("volume_cbm=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.FreightTerms; v != nil {
+		builder.WriteString("freight_terms=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.TransportTerms; v != nil {
+		builder.WriteString("transport_terms=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.BillForm; v != nil {
+		builder.WriteString("bill_form=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ReleaseType; v != nil {
+		builder.WriteString("release_type=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.Clauses; v != nil {
+		builder.WriteString("clauses=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

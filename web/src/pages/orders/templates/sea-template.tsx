@@ -9,6 +9,7 @@ import {
   buildSeaCargoSection,
   SeaCargoMeasurementFields,
 } from './components/sea/SeaCargoSection';
+import { buildSeaDocumentSection } from './components/sea/SeaDocumentSection';
 import { buildSeaPersonnelSection } from './components/sea/SeaPersonnelSection';
 import {
   buildSeaTransportSection,
@@ -31,6 +32,7 @@ export function getSeaTemplateSections(
   return [
     buildSeaBaseInfoSection(props),
     buildSeaTransportSection(props),
+    buildSeaDocumentSection(props),
     buildSeaCargoSection(),
     {
       key: 'remarks',

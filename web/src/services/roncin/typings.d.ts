@@ -76,6 +76,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AddSeaHouseBillRequest = {
+    orderId: string;
+    expectedLinkVersion: string;
+    houseBill: SeaHouseBillInput;
+  };
+
+  type AddSeaHouseBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaHouseBill;
+    traceId?: string;
+  };
+
   type AddShippingDocumentRequest = {
     orderId: string;
     houseNo: string;
@@ -673,6 +687,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CancelSeaOrderDirectRequest = {
+    orderId: string;
+    expectedLinkVersion: string;
+  };
+
+  type CancelSeaOrderDirectResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderDocuments;
+    traceId?: string;
+  };
+
   type CheckOrderReferenceResponse = {
     success?: boolean;
     code?: number;
@@ -1232,6 +1259,7 @@ declare namespace API {
     shipperShortName?: string;
     consigneeShortName?: string;
     seaMasterBill?: SeaMasterBillInput;
+    seaDocument?: SeaOrderDocumentInput;
   };
 
   type CreateOrderResponse = {
@@ -2435,6 +2463,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetSeaOrderDocumentsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderDocuments;
+    traceId?: string;
+  };
+
   type GetWeComLoginConfigResponse = {
     success?: boolean;
     code?: number;
@@ -3111,6 +3147,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type MarkSeaOrderDirectRequest = {
+    orderId: string;
+    expectedLinkVersion: string;
+  };
+
+  type MarkSeaOrderDirectResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaOrderDocuments;
+    traceId?: string;
+  };
+
   type MasterDataAttributes = {
     continent?: string;
     currencyCode?: string;
@@ -3331,6 +3380,9 @@ declare namespace API {
     tags?: BusinessTagSummary[];
     allowedTargetFlowStatuses?: number[];
     seaMasterBill?: SeaMasterBillSummary;
+    seaDocumentStructure?: number;
+    seaDocumentLinkVersion?: string;
+    seaDocumentSummary?: SeaOrderDocumentSummary;
   };
 
   type OrderAbnormalCase = {
@@ -4469,6 +4521,13 @@ declare namespace API {
     traceId?: string;
   };
 
+  type RemoveSeaHouseBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type RemoveShippingDocumentResponse = {
     success?: boolean;
     code?: number;
@@ -4567,6 +4626,86 @@ declare namespace API {
     dataScope?: string;
   };
 
+  type SeaBillContent = {
+    shipperText?: string;
+    consigneeText?: string;
+    notifyPartyText?: string;
+    secondNotifyPartyText?: string;
+    marksText?: string;
+    goodsDescriptionText?: string;
+    packageCount?: number;
+    packageUnit?: string;
+    grossWeightKg?: number;
+    volumeCbm?: number;
+    freightTerms?: string;
+    transportTerms?: string;
+    billForm?: string;
+    releaseType?: string;
+    clauses?: string;
+  };
+
+  type SeaDocumentServiceAddSeaHouseBillParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceCancelSeaOrderDirectParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceGetSeaOrderDocumentsParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceMarkSeaOrderDirectParams = {
+    orderId: string;
+  };
+
+  type SeaDocumentServiceRemoveSeaHouseBillParams = {
+    orderId: string;
+    id: string;
+    expectedVersion?: string;
+    expectedLinkVersion?: string;
+    returnToUndetermined?: boolean;
+  };
+
+  type SeaDocumentServiceUpdateSeaHouseBillParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type SeaDocumentServiceUpdateSeaMasterBillContentParams = {
+    orderId: string;
+  };
+
+  type SeaHouseBill = {
+    id?: string;
+    organizationId?: string;
+    orderId?: string;
+    masterBillId?: string;
+    houseNo?: string;
+    issuerSource?: number;
+    issuerOrganizationId?: string;
+    issuerOrganizationName?: string;
+    issuerPartnerId?: string;
+    issuerPartnerName?: string;
+    status?: number;
+    version?: string;
+    note?: string;
+    content?: SeaBillContent;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type SeaHouseBillInput = {
+    id?: string;
+    houseNo: string;
+    issuerSource: number;
+    issuerPartnerId?: string;
+    note?: string;
+    content?: SeaBillContent;
+    expectedVersion?: string;
+  };
+
   type SeaMasterBillCandidate = {
     id?: string;
     version?: string;
@@ -4576,6 +4715,17 @@ declare namespace API {
     transportExecution?: SeaTransportExecution;
     memberCount?: number;
     members?: SeaMasterBillMemberSummary[];
+  };
+
+  type SeaMasterBillDetail = {
+    id?: string;
+    masterNo?: string;
+    issuerPartnerId?: string;
+    issuerPartnerName?: string;
+    status?: string;
+    version?: string;
+    content?: SeaBillContent;
+    memberCount?: number;
   };
 
   type SeaMasterBillInput = {
@@ -4613,6 +4763,30 @@ declare namespace API {
     status?: string;
     version?: string;
     memberCount?: number;
+  };
+
+  type SeaOrderDocumentInput = {
+    documentStructure?: number;
+    expectedLinkVersion?: string;
+    expectedMblVersion?: string;
+    masterBillContent?: SeaBillContent;
+    houseBills?: SeaHouseBillInput[];
+  };
+
+  type SeaOrderDocuments = {
+    orderId?: string;
+    documentStructure?: number;
+    linkVersion?: string;
+    masterBill?: SeaMasterBillDetail;
+    houseBills?: SeaHouseBill[];
+    allowedActions?: number[];
+  };
+
+  type SeaOrderDocumentSummary = {
+    documentStructure?: number;
+    linkVersion?: string;
+    houseBillCount?: number;
+    houseNos?: string[];
   };
 
   type SearchBillingUnitsResponse = {
@@ -5449,6 +5623,7 @@ declare namespace API {
     shipperShortName?: string;
     consigneeShortName?: string;
     seaMasterBill?: SeaMasterBillInput;
+    seaDocument?: SeaOrderDocumentInput;
   };
 
   type UpdateOrderResponse = {
@@ -5634,6 +5809,36 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: AdminRole;
+    traceId?: string;
+  };
+
+  type UpdateSeaHouseBillRequest = {
+    orderId: string;
+    id: string;
+    expectedVersion: string;
+    expectedLinkVersion: string;
+    houseBill: SeaHouseBillInput;
+  };
+
+  type UpdateSeaHouseBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaHouseBill;
+    traceId?: string;
+  };
+
+  type UpdateSeaMasterBillContentRequest = {
+    orderId: string;
+    expectedMblVersion: string;
+    content: SeaBillContent;
+  };
+
+  type UpdateSeaMasterBillContentResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: SeaMasterBillDetail;
     traceId?: string;
   };
 

@@ -7786,6 +7786,308 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/sea-documents": {
+      "get": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "GetSeaOrderDocuments 获取海运单证聚合信息。",
+        "operationId": "SeaDocumentService_GetSeaOrderDocuments",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetSeaOrderDocumentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/cancel-direct": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "CancelSeaOrderDirect 取消直单标记，回到未确定状态。",
+        "operationId": "SeaDocumentService_CancelSeaOrderDirect",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.CancelSeaOrderDirectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.CancelSeaOrderDirectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/house-bills": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "AddSeaHouseBill 添加海运分单（HBL）。",
+        "operationId": "SeaDocumentService_AddSeaHouseBill",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.AddSeaHouseBillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.AddSeaHouseBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/house-bills/{id}": {
+      "put": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "UpdateSeaHouseBill 更新海运分单。",
+        "operationId": "SeaDocumentService_UpdateSeaHouseBill",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.UpdateSeaHouseBillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.UpdateSeaHouseBillResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "RemoveSeaHouseBill 移除海运分单。",
+        "operationId": "SeaDocumentService_RemoveSeaHouseBill",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedVersion",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "expectedLinkVersion",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnToUndetermined",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RemoveSeaHouseBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/mark-direct": {
+      "post": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "MarkSeaOrderDirect 明确标记海运订单为直单。",
+        "operationId": "SeaDocumentService_MarkSeaOrderDirect",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.MarkSeaOrderDirectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.MarkSeaOrderDirectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/sea-documents/master-bill-content": {
+      "put": {
+        "tags": [
+          "SeaDocumentService"
+        ],
+        "description": "UpdateSeaMasterBillContent 更新共享 MBL 提单内容。",
+        "operationId": "SeaDocumentService_UpdateSeaMasterBillContent",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.UpdateSeaMasterBillContentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.UpdateSeaMasterBillContentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/shipping-documents": {
       "get": {
         "tags": [
@@ -18448,6 +18750,48 @@
         },
         "description": "AddReleasePodResponse 单条放货凭证响应。"
       },
+      "order.v1.AddSeaHouseBillRequest": {
+        "required": [
+          "orderId",
+          "expectedLinkVersion",
+          "houseBill"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          },
+          "houseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+          }
+        },
+        "description": "AddSeaHouseBillRequest 添加分单请求。"
+      },
+      "order.v1.AddSeaHouseBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "AddSeaHouseBillResponse 添加分单响应。"
+      },
       "order.v1.AddShippingDocumentRequest": {
         "required": [
           "orderId",
@@ -18713,6 +19057,44 @@
         },
         "description": "Order 订单核心信息。\n BusinessTagSummary 订单返回的组织标签概要。"
       },
+      "order.v1.CancelSeaOrderDirectRequest": {
+        "required": [
+          "orderId",
+          "expectedLinkVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          }
+        },
+        "description": "CancelSeaOrderDirectRequest 取消直单标记请求。"
+      },
+      "order.v1.CancelSeaOrderDirectResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocuments"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "CancelSeaOrderDirectResponse 取消直单标记响应。"
+      },
       "order.v1.CheckOrderReferenceResponse": {
         "type": "object",
         "properties": {
@@ -18977,6 +19359,9 @@
           },
           "seaMasterBill": {
             "$ref": "#/components/schemas/order.v1.SeaMasterBillInput"
+          },
+          "seaDocument": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocumentInput"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -19023,6 +19408,28 @@
           }
         },
         "description": "GetOrderResponse 单条订单响应。"
+      },
+      "order.v1.GetSeaOrderDocumentsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocuments"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "GetSeaOrderDocumentsResponse 获取海运单证聚合信息响应。"
       },
       "order.v1.ListAbnormalCasesResponse": {
         "type": "object",
@@ -19480,6 +19887,44 @@
         },
         "description": "MarkAbnormalCaseResponse 单条异常标记响应。"
       },
+      "order.v1.MarkSeaOrderDirectRequest": {
+        "required": [
+          "orderId",
+          "expectedLinkVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          }
+        },
+        "description": "MarkSeaOrderDirectRequest 标记直单请求。"
+      },
+      "order.v1.MarkSeaOrderDirectResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocuments"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "MarkSeaOrderDirectResponse 标记直单响应。"
+      },
       "order.v1.MatchSeaMasterBillCandidateResponse": {
         "type": "object",
         "properties": {
@@ -19791,6 +20236,16 @@
           },
           "seaMasterBill": {
             "$ref": "#/components/schemas/order.v1.SeaMasterBillSummary"
+          },
+          "seaDocumentStructure": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "seaDocumentLinkVersion": {
+            "type": "string"
+          },
+          "seaDocumentSummary": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocumentSummary"
           }
         }
       },
@@ -20661,6 +21116,25 @@
         },
         "description": "RemoveReleasePodResponse 放货凭证操作响应。"
       },
+      "order.v1.RemoveSeaHouseBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "RemoveSeaHouseBillResponse 移除分单响应。"
+      },
       "order.v1.RemoveShippingDocumentResponse": {
         "type": "object",
         "properties": {
@@ -20791,6 +21265,148 @@
           }
         }
       },
+      "order.v1.SeaBillContent": {
+        "type": "object",
+        "properties": {
+          "shipperText": {
+            "type": "string"
+          },
+          "consigneeText": {
+            "type": "string"
+          },
+          "notifyPartyText": {
+            "type": "string"
+          },
+          "secondNotifyPartyText": {
+            "type": "string"
+          },
+          "marksText": {
+            "type": "string"
+          },
+          "goodsDescriptionText": {
+            "type": "string"
+          },
+          "packageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "packageUnit": {
+            "type": "string"
+          },
+          "grossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "volumeCbm": {
+            "type": "number",
+            "format": "double"
+          },
+          "freightTerms": {
+            "type": "string"
+          },
+          "transportTerms": {
+            "type": "string"
+          },
+          "billForm": {
+            "type": "string"
+          },
+          "releaseType": {
+            "type": "string"
+          },
+          "clauses": {
+            "type": "string"
+          }
+        },
+        "description": "SeaBillContent 通用提单内容（MBL 与 HBL 独立维护）。"
+      },
+      "order.v1.SeaHouseBill": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "masterBillId": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "issuerSource": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "issuerOrganizationId": {
+            "type": "string"
+          },
+          "issuerOrganizationName": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "issuerPartnerName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "version": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "description": "SeaHouseBill 海运分单（HBL）信息。"
+      },
+      "order.v1.SeaHouseBillInput": {
+        "required": [
+          "houseNo",
+          "issuerSource"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "issuerSource": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        },
+        "description": "SeaHouseBillInput 表单中的海运分单输入。"
+      },
       "order.v1.SeaMasterBillCandidate": {
         "type": "object",
         "properties": {
@@ -20824,6 +21440,37 @@
           }
         },
         "description": "SeaMasterBillCandidate 匹配到的已有主单候选。"
+      },
+      "order.v1.SeaMasterBillDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "masterNo": {
+            "type": "string"
+          },
+          "issuerPartnerId": {
+            "type": "string"
+          },
+          "issuerPartnerName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "SeaMasterBillDetail 海运主单内容详情。"
       },
       "order.v1.SeaMasterBillInput": {
         "required": [
@@ -20931,6 +21578,86 @@
           }
         },
         "description": "SeaMasterBillSummary 海运主单及当前航程摘要。"
+      },
+      "order.v1.SeaOrderDocumentInput": {
+        "type": "object",
+        "properties": {
+          "documentStructure": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          },
+          "expectedMblVersion": {
+            "type": "string"
+          },
+          "masterBillContent": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          },
+          "houseBills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+            }
+          }
+        },
+        "description": "SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。"
+      },
+      "order.v1.SeaOrderDocumentSummary": {
+        "type": "object",
+        "properties": {
+          "documentStructure": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "linkVersion": {
+            "type": "string"
+          },
+          "houseBillCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "houseNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "SeaOrderDocumentSummary 订单中的海运单证摘要。"
+      },
+      "order.v1.SeaOrderDocuments": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "documentStructure": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "linkVersion": {
+            "type": "string"
+          },
+          "masterBill": {
+            "$ref": "#/components/schemas/order.v1.SeaMasterBillDetail"
+          },
+          "houseBills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+            }
+          },
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "enum"
+            }
+          }
+        },
+        "description": "SeaOrderDocuments 聚合单证响应。"
       },
       "order.v1.SeaTransportExecution": {
         "type": "object",
@@ -21698,6 +22425,9 @@
           },
           "seaMasterBill": {
             "$ref": "#/components/schemas/order.v1.SeaMasterBillInput"
+          },
+          "seaDocument": {
+            "$ref": "#/components/schemas/order.v1.SeaOrderDocumentInput"
           }
         },
         "description": "UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。"
@@ -21771,6 +22501,98 @@
             "type": "string"
           }
         }
+      },
+      "order.v1.UpdateSeaHouseBillRequest": {
+        "required": [
+          "orderId",
+          "id",
+          "expectedVersion",
+          "expectedLinkVersion",
+          "houseBill"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          },
+          "houseBill": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBillInput"
+          }
+        },
+        "description": "UpdateSeaHouseBillRequest 更新分单请求。"
+      },
+      "order.v1.UpdateSeaHouseBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaHouseBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "UpdateSeaHouseBillResponse 更新分单响应。"
+      },
+      "order.v1.UpdateSeaMasterBillContentRequest": {
+        "required": [
+          "orderId",
+          "expectedMblVersion",
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedMblVersion": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.SeaBillContent"
+          }
+        },
+        "description": "UpdateSeaMasterBillContentRequest 更新共享 MBL 内容请求。"
+      },
+      "order.v1.UpdateSeaMasterBillContentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.SeaMasterBillDetail"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "description": "UpdateSeaMasterBillContentResponse 更新共享 MBL 内容响应。"
       },
       "order.v1.UpdateShippingDocumentRequest": {
         "required": [
@@ -23981,6 +24803,10 @@
     },
     {
       "name": "PartnerService"
+    },
+    {
+      "name": "SeaDocumentService",
+      "description": "SeaDocumentService 海运单证核心服务。"
     },
     {
       "name": "SettlementService",

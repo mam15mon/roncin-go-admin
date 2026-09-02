@@ -94,3 +94,209 @@ func TestPostgresColdStartMigration(t *testing.T) {
 		}
 	}
 }
+
+func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
+	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
+		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
+	}
+	source := os.Getenv("DATABASE_SOURCE")
+	if source == "" {
+		t.Fatal("DATABASE_SOURCE 不能为空")
+	}
+
+	const stage1Migration = "20260902120000_sea_export_mbl_foundation.sql"
+	const stage2Revision = "20260902140000_sea_export_document_content"
+	fullDir := filepath.Join("..", "..", "..", "migrations")
+	stage1Dir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > stage1Migration {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if err != nil {
+			t.Fatalf("读取阶段 1 迁移 %s 失败: %v", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(stage1Dir, entry.Name()), content, 0o600); err != nil {
+			t.Fatalf("复制阶段 1 迁移 %s 失败: %v", entry.Name(), err)
+		}
+	}
+
+	newIsolatedDB := func(t *testing.T) (*sql.DB, string) {
+		t.Helper()
+		db, err := sql.Open("pgx", source)
+		if err != nil {
+			t.Fatalf("打开 PostgreSQL 失败: %v", err)
+		}
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := db.PingContext(ctx); err != nil {
+			_ = db.Close()
+			t.Fatalf("连接 PostgreSQL 失败: %v", err)
+		}
+		schemaName := "roncin_sea_document_migration_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+		quotedSchema := `"` + schemaName + `"`
+		if _, err := db.ExecContext(ctx, "CREATE SCHEMA "+quotedSchema); err != nil {
+			_ = db.Close()
+			t.Fatalf("创建临时 Schema 失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, "SET search_path TO "+quotedSchema+", public"); err != nil {
+			_, _ = db.ExecContext(ctx, "DROP SCHEMA "+quotedSchema+" CASCADE")
+			_ = db.Close()
+			t.Fatalf("切换临时 Schema 失败: %v", err)
+		}
+		t.Cleanup(func() {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cleanupCancel()
+			if _, err := db.ExecContext(cleanupCtx, "DROP SCHEMA "+quotedSchema+" CASCADE"); err != nil {
+				t.Errorf("删除临时 Schema 失败: %v", err)
+			}
+			_ = db.Close()
+		})
+		return db, schemaName
+	}
+
+	t.Run("从阶段1真实迁移到阶段2并核对结构", func(t *testing.T) {
+		db, schemaName := newIsolatedDB(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		if err := Apply(ctx, db, stage1Dir); err != nil {
+			t.Fatalf("建立阶段 1 数据库状态失败: %v", err)
+		}
+
+		var exists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'sea_master_bill_order_links'
+			  AND column_name = 'document_structure'
+		)`, schemaName).Scan(&exists); err != nil {
+			t.Fatalf("检查阶段 1 结构失败: %v", err)
+		}
+		if exists {
+			t.Fatal("阶段 1 状态不应提前包含 document_structure")
+		}
+
+		if err := Apply(ctx, db, fullDir); err != nil {
+			t.Fatalf("阶段 2 真实迁移失败: %v", err)
+		}
+		if err := Apply(ctx, db, fullDir); err != nil {
+			t.Fatalf("阶段 2 重复执行失败: %v", err)
+		}
+
+		for _, column := range []struct {
+			table string
+			name  string
+		}{
+			{table: "sea_master_bill_order_links", name: "document_structure"},
+			{table: "sea_master_bills", name: "shipper_text"},
+			{table: "sea_master_bills", name: "clauses"},
+		} {
+			if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+				SELECT 1 FROM information_schema.columns
+				WHERE table_schema = $1 AND table_name = $2 AND column_name = $3
+			)`, schemaName, column.table, column.name).Scan(&exists); err != nil || !exists {
+				t.Errorf("阶段 2 缺少列 %s.%s: exists=%v err=%v", column.table, column.name, exists, err)
+			}
+		}
+		if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, schemaName+".sea_house_bills").Scan(&exists); err != nil || !exists {
+			t.Errorf("阶段 2 缺少 sea_house_bills: exists=%v err=%v", exists, err)
+		}
+
+		var constraintCount int
+		if err := db.QueryRowContext(ctx, `SELECT count(*)
+			FROM pg_constraint c
+			JOIN pg_namespace n ON n.oid = c.connamespace
+			WHERE n.nspname = $1 AND c.conname IN (
+			  'sea_master_bill_order_links_document_structure_check',
+			  'sea_house_bills_issuer_check',
+			  'sea_house_bills_package_count_check',
+			  'sea_house_bills_gross_weight_kg_check',
+			  'sea_house_bills_volume_cbm_check'
+			)`, schemaName).Scan(&constraintCount); err != nil || constraintCount != 5 {
+			t.Errorf("阶段 2 CHECK 约束数量应为 5，实际 %d，err=%v", constraintCount, err)
+		}
+
+		var indexCount int
+		if err := db.QueryRowContext(ctx, `SELECT count(*) FROM pg_indexes
+			WHERE schemaname = $1 AND indexname IN (
+			  'idx_sea_house_bills_self_org_unique',
+			  'idx_sea_house_bills_partner_unique'
+			)`, schemaName).Scan(&indexCount); err != nil || indexCount != 2 {
+			t.Errorf("阶段 2 条件唯一索引数量应为 2，实际 %d，err=%v", indexCount, err)
+		}
+
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM schema_migrations WHERE version = $1
+		)`, stage2Revision).Scan(&exists); err != nil || !exists {
+			t.Errorf("阶段 2 迁移记录不存在: exists=%v err=%v", exists, err)
+		}
+	})
+
+	t.Run("存在SE数据时真实迁移原子拒绝", func(t *testing.T) {
+		db, schemaName := newIsolatedDB(t)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		if err := Apply(ctx, db, stage1Dir); err != nil {
+			t.Fatalf("建立阶段 1 数据库状态失败: %v", err)
+		}
+
+		orgID, partnerID, orderID := uuid.New(), uuid.New(), uuid.New()
+		if _, err := db.ExecContext(ctx, `INSERT INTO organizations
+			(id, created_at, updated_at, code, name, kind, base_currency)
+			VALUES ($1, now(), now(), $2, '迁移测试组织', 'company', 'CNY')`,
+			orgID, "MIG-ORG-"+orgID.String()[:8]); err != nil {
+			t.Fatalf("插入迁移测试组织失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO partners
+			(id, created_at, updated_at, organization_id, code, legal_name, normalized_name)
+			VALUES ($1, now(), now(), $2, $3, '迁移测试客户', '迁移测试客户')`,
+			partnerID, orgID, "MIG-PARTNER-"+partnerID.String()[:8]); err != nil {
+			t.Fatalf("插入迁移测试客户失败: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `INSERT INTO orders
+			(id, created_at, updated_at, organization_id, order_no, customer_id,
+			 business_type, trade_direction, trade_term, payment_term,
+			 flow_status, termination_status, closure_status, version)
+			VALUES ($1, now(), now(), $2, $3, $4,
+			 'SE', 'export', 'FOB', 'PREPAID', 'DRAFT', 'ACTIVE', 'OPEN', 1)`,
+			orderID, orgID, "MIG-ORDER-"+orderID.String()[:8], partnerID); err != nil {
+			t.Fatalf("插入迁移测试 SE 订单失败: %v", err)
+		}
+
+		err := Apply(ctx, db, fullDir)
+		if err == nil || !strings.Contains(err.Error(), "orders 存在 SE 业务数据") {
+			t.Fatalf("存在 SE 数据时应拒绝阶段 2 迁移，实际错误: %v", err)
+		}
+
+		var exists bool
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_schema = $1 AND table_name = 'sea_master_bill_order_links'
+			  AND column_name = 'document_structure'
+		)`, schemaName).Scan(&exists); err != nil {
+			t.Fatalf("检查失败迁移后的列失败: %v", err)
+		}
+		if exists {
+			t.Error("失败迁移不得留下 document_structure 列")
+		}
+		if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, schemaName+".sea_house_bills").Scan(&exists); err != nil {
+			t.Fatalf("检查失败迁移后的表失败: %v", err)
+		}
+		if exists {
+			t.Error("失败迁移不得留下 sea_house_bills 表")
+		}
+		if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+			SELECT 1 FROM schema_migrations WHERE version = $1
+		)`, stage2Revision).Scan(&exists); err != nil {
+			t.Fatalf("检查失败迁移记录失败: %v", err)
+		}
+		if exists {
+			t.Error("失败迁移不得写入阶段 2 revision")
+		}
+	})
+}

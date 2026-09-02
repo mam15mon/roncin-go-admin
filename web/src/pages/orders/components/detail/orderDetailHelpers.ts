@@ -131,6 +131,8 @@ export function buildInitialValues(
     seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,
     seaMasterBillCorrectionReason: undefined,
     seaMasterBill: order.seaMasterBill,
+    seaDocumentStructure: order.seaDocumentStructure,
+    seaDocumentLinkVersion: order.seaDocumentLinkVersion,
   };
 }
 
@@ -139,6 +141,16 @@ export function buildUpdatePayload(
   orderVersion: string,
   values: any,
 ): API.UpdateOrderRequest {
+  const isSea =
+    values.seaDocumentStructure !== undefined ||
+    values.seaMasterBillMasterNo !== undefined ||
+    values.seaDocument !== undefined;
+
+  let seaDocument: API.SeaOrderDocumentInput | undefined;
+  if (isSea && values.seaDocument) {
+    seaDocument = values.seaDocument;
+  }
+
   return {
     id: orderId,
     expectedVersion: orderVersion || '0',
@@ -212,14 +224,16 @@ export function buildUpdatePayload(
     bookingNotes: values.bookingNotes?.trim() || undefined,
     allocationNotes: values.allocationNotes?.trim() || undefined,
     operationNotes: values.operationNotes?.trim() || undefined,
-    shippingDocuments: values.shippingDocuments
-      ?.map((doc: any) => ({
-        id: doc.id,
-        houseNo: doc.houseNo?.trim() || '',
-        releaseType: doc.releaseType?.trim() || undefined,
-        note: doc.note?.trim() || undefined,
-      }))
-      .filter((doc: any) => !!doc.houseNo),
+    shippingDocuments: isSea
+      ? undefined
+      : values.shippingDocuments
+          ?.map((doc: { id?: string; houseNo?: string; releaseType?: string; note?: string }) => ({
+            id: doc.id,
+            houseNo: doc.houseNo?.trim() || '',
+            releaseType: doc.releaseType?.trim() || undefined,
+            note: doc.note?.trim() || undefined,
+          }))
+          .filter((doc: { houseNo?: string }) => !!doc.houseNo),
     containerRequests: values.containerRequests,
     seaMasterBill:
       values.seaMasterBillMasterNo || values.seaMasterBillIssuerPartnerId
@@ -236,5 +250,6 @@ export function buildUpdatePayload(
               values.seaMasterBillCorrectionReason?.trim() || undefined,
           }
         : undefined,
+    seaDocument,
   };
 }

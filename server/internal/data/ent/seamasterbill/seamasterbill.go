@@ -34,12 +34,44 @@ const (
 	FieldStatus = "status"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldShipperText holds the string denoting the shipper_text field in the database.
+	FieldShipperText = "shipper_text"
+	// FieldConsigneeText holds the string denoting the consignee_text field in the database.
+	FieldConsigneeText = "consignee_text"
+	// FieldNotifyPartyText holds the string denoting the notify_party_text field in the database.
+	FieldNotifyPartyText = "notify_party_text"
+	// FieldSecondNotifyPartyText holds the string denoting the second_notify_party_text field in the database.
+	FieldSecondNotifyPartyText = "second_notify_party_text"
+	// FieldMarksText holds the string denoting the marks_text field in the database.
+	FieldMarksText = "marks_text"
+	// FieldGoodsDescriptionText holds the string denoting the goods_description_text field in the database.
+	FieldGoodsDescriptionText = "goods_description_text"
+	// FieldPackageCount holds the string denoting the package_count field in the database.
+	FieldPackageCount = "package_count"
+	// FieldPackageUnit holds the string denoting the package_unit field in the database.
+	FieldPackageUnit = "package_unit"
+	// FieldGrossWeightKg holds the string denoting the gross_weight_kg field in the database.
+	FieldGrossWeightKg = "gross_weight_kg"
+	// FieldVolumeCbm holds the string denoting the volume_cbm field in the database.
+	FieldVolumeCbm = "volume_cbm"
+	// FieldFreightTerms holds the string denoting the freight_terms field in the database.
+	FieldFreightTerms = "freight_terms"
+	// FieldTransportTerms holds the string denoting the transport_terms field in the database.
+	FieldTransportTerms = "transport_terms"
+	// FieldBillForm holds the string denoting the bill_form field in the database.
+	FieldBillForm = "bill_form"
+	// FieldReleaseType holds the string denoting the release_type field in the database.
+	FieldReleaseType = "release_type"
+	// FieldClauses holds the string denoting the clauses field in the database.
+	FieldClauses = "clauses"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeTransportExecution holds the string denoting the transport_execution edge name in mutations.
 	EdgeTransportExecution = "transport_execution"
 	// EdgeOrderLinks holds the string denoting the order_links edge name in mutations.
 	EdgeOrderLinks = "order_links"
+	// EdgeHouseBills holds the string denoting the house_bills edge name in mutations.
+	EdgeHouseBills = "house_bills"
 	// Table holds the table name of the seamasterbill in the database.
 	Table = "sea_master_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -63,6 +95,13 @@ const (
 	OrderLinksInverseTable = "sea_master_bill_order_links"
 	// OrderLinksColumn is the table column denoting the order_links relation/edge.
 	OrderLinksColumn = "master_bill_id"
+	// HouseBillsTable is the table that holds the house_bills relation/edge.
+	HouseBillsTable = "sea_house_bills"
+	// HouseBillsInverseTable is the table name for the SeaHouseBill entity.
+	// It exists in this package in order to avoid circular dependency with the "seahousebill" package.
+	HouseBillsInverseTable = "sea_house_bills"
+	// HouseBillsColumn is the table column denoting the house_bills relation/edge.
+	HouseBillsColumn = "master_bill_id"
 )
 
 // Columns holds all SQL columns for seamasterbill fields.
@@ -77,6 +116,21 @@ var Columns = []string{
 	FieldNormalizedMasterNo,
 	FieldStatus,
 	FieldVersion,
+	FieldShipperText,
+	FieldConsigneeText,
+	FieldNotifyPartyText,
+	FieldSecondNotifyPartyText,
+	FieldMarksText,
+	FieldGoodsDescriptionText,
+	FieldPackageCount,
+	FieldPackageUnit,
+	FieldGrossWeightKg,
+	FieldVolumeCbm,
+	FieldFreightTerms,
+	FieldTransportTerms,
+	FieldBillForm,
+	FieldReleaseType,
+	FieldClauses,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -102,6 +156,22 @@ var (
 	NormalizedMasterNoValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
+	// PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
+	PackageCountValidator func(int) error
+	// PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
+	PackageUnitValidator func(string) error
+	// GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
+	GrossWeightKgValidator func(float64) error
+	// VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
+	VolumeCbmValidator func(float64) error
+	// FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
+	FreightTermsValidator func(string) error
+	// TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
+	TransportTermsValidator func(string) error
+	// BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
+	BillFormValidator func(string) error
+	// ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
+	ReleaseTypeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -186,6 +256,81 @@ func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
+// ByShipperText orders the results by the shipper_text field.
+func ByShipperText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShipperText, opts...).ToFunc()
+}
+
+// ByConsigneeText orders the results by the consignee_text field.
+func ByConsigneeText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConsigneeText, opts...).ToFunc()
+}
+
+// ByNotifyPartyText orders the results by the notify_party_text field.
+func ByNotifyPartyText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNotifyPartyText, opts...).ToFunc()
+}
+
+// BySecondNotifyPartyText orders the results by the second_notify_party_text field.
+func BySecondNotifyPartyText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSecondNotifyPartyText, opts...).ToFunc()
+}
+
+// ByMarksText orders the results by the marks_text field.
+func ByMarksText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMarksText, opts...).ToFunc()
+}
+
+// ByGoodsDescriptionText orders the results by the goods_description_text field.
+func ByGoodsDescriptionText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoodsDescriptionText, opts...).ToFunc()
+}
+
+// ByPackageCount orders the results by the package_count field.
+func ByPackageCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPackageCount, opts...).ToFunc()
+}
+
+// ByPackageUnit orders the results by the package_unit field.
+func ByPackageUnit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPackageUnit, opts...).ToFunc()
+}
+
+// ByGrossWeightKg orders the results by the gross_weight_kg field.
+func ByGrossWeightKg(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGrossWeightKg, opts...).ToFunc()
+}
+
+// ByVolumeCbm orders the results by the volume_cbm field.
+func ByVolumeCbm(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVolumeCbm, opts...).ToFunc()
+}
+
+// ByFreightTerms orders the results by the freight_terms field.
+func ByFreightTerms(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFreightTerms, opts...).ToFunc()
+}
+
+// ByTransportTerms orders the results by the transport_terms field.
+func ByTransportTerms(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTransportTerms, opts...).ToFunc()
+}
+
+// ByBillForm orders the results by the bill_form field.
+func ByBillForm(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillForm, opts...).ToFunc()
+}
+
+// ByReleaseType orders the results by the release_type field.
+func ByReleaseType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReleaseType, opts...).ToFunc()
+}
+
+// ByClauses orders the results by the clauses field.
+func ByClauses(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClauses, opts...).ToFunc()
+}
+
 // ByOrganizationField orders the results by organization field.
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -213,6 +358,20 @@ func ByOrderLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOrderLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByHouseBillsCount orders the results by house_bills count.
+func ByHouseBillsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHouseBillsStep(), opts...)
+	}
+}
+
+// ByHouseBills orders the results by house_bills terms.
+func ByHouseBills(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHouseBillsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -232,5 +391,12 @@ func newOrderLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderLinksTable, OrderLinksColumn),
+	)
+}
+func newHouseBillsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HouseBillsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HouseBillsTable, HouseBillsColumn),
 	)
 }

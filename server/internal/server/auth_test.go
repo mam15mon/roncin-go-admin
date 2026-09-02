@@ -68,7 +68,7 @@ func TestRequestOrderBusinessTypeOnlyLoadsOrderBaseData(t *testing.T) {
 		OrganizationID: organizationID,
 		BusinessType:   biz.OrderBusinessSE,
 	}}
-	usecase := biz.NewOrderUsecase(repo, nil, nil)
+	usecase := biz.NewOrderUsecase(repo, nil, nil, nil)
 
 	businessType, ok := requestOrderBusinessType(
 		t.Context(),

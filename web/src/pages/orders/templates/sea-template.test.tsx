@@ -1,5 +1,5 @@
 import { ProForm } from '@ant-design/pro-components';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { getSeaTemplateSections } from './sea-template';
 import { splitSeaVesselVoyage } from './components/sea/SeaTransportSection';
@@ -20,7 +20,7 @@ describe('海运订单新增模板', () => {
     });
   });
 
-  it('仅生成需求约定的五个业务区块', () => {
+  it('按配舱、提单、货物顺序生成海运业务区块', () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -42,7 +42,8 @@ describe('海运订单新增模板', () => {
     expect(sections.map(({ key, title }) => ({ key, title }))).toEqual([
       { key: 'basicInfo', title: '业务信息' },
       { key: 'transportInfo', title: '配舱信息' },
-      { key: 'cargoInfo', title: '提单信息' },
+      { key: 'sea-document', title: '提单信息' },
+      { key: 'cargoInfo', title: '货物信息' },
       { key: 'remarks', title: '备注' },
       { key: 'internalInfo', title: '内部信息' },
     ]);
@@ -59,11 +60,9 @@ describe('海运订单新增模板', () => {
     const transportSection = screen.getByTestId('section-transportInfo');
     expect(transportSection).toHaveTextContent('MBL 主单号');
     expect(transportSection).toHaveTextContent('实际签发/承运主体');
-    expect(transportSection).toHaveTextContent('分单信息 (HBL)');
+    expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
-    expect(
-      screen.getByRole('button', { name: /添加分单 \(HBL\)/ }),
-    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: /添加首张分单/ })).toBeTruthy();
     expect(
       screen.getByRole('button', { name: /新增计划箱型箱量/ }),
     ).toBeTruthy();
@@ -73,7 +72,7 @@ describe('海运订单新增模板', () => {
     expect(cargoSection).not.toHaveTextContent('分单号');
   });
 
-  it('支持多条分单 (HBL) 的添加和删除', async () => {
+  it('从未确定状态添加首张及多张分单', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -102,18 +101,25 @@ describe('海运订单新增模板', () => {
       </ProForm>,
     );
 
-    expect(
-      screen.getAllByPlaceholderText('分单号 (HBL)'),
-    ).toHaveLength(1);
+    expect(screen.queryAllByPlaceholderText('请输入分单号')).toHaveLength(0);
+
+    const addFirstHouseBtn = screen.getByRole('button', {
+      name: /添加首张分单/,
+    });
+    fireEvent.click(addFirstHouseBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
+    });
 
     const addHouseBtn = screen.getByRole('button', {
       name: /添加分单 \(HBL\)/,
     });
     fireEvent.click(addHouseBtn);
 
-    expect(
-      screen.getAllByPlaceholderText('分单号 (HBL)'),
-    ).toHaveLength(2);
+    await waitFor(() => {
+      expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(2);
+    });
   });
 
   it('散杂托运隐藏箱型箱量并要求显式清理已有计划', () => {

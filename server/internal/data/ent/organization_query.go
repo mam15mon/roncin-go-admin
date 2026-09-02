@@ -50,6 +50,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleorderorganizationaccess"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -86,6 +87,8 @@ type OrganizationQuery struct {
 	withSeaTransportExecutions        *SeaTransportExecutionQuery
 	withSeaMasterBills                *SeaMasterBillQuery
 	withSeaMasterBillOrderLinks       *SeaMasterBillOrderLinkQuery
+	withSeaHouseBills                 *SeaHouseBillQuery
+	withIssuedSeaHouseBills           *SeaHouseBillQuery
 	withOrderPersonnel                *OrderPersonnelQuery
 	withBackgroundTasks               *BackgroundTaskQuery
 	withFinanceBills                  *FinanceBillQuery
@@ -599,6 +602,50 @@ func (_q *OrganizationQuery) QuerySeaMasterBillOrderLinks() *SeaMasterBillOrderL
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(seamasterbillorderlink.Table, seamasterbillorderlink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaMasterBillOrderLinksTable, organization.SeaMasterBillOrderLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeaHouseBills chains the current query on the "sea_house_bills" edge.
+func (_q *OrganizationQuery) QuerySeaHouseBills() *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.SeaHouseBillsTable, organization.SeaHouseBillsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIssuedSeaHouseBills chains the current query on the "issued_sea_house_bills" edge.
+func (_q *OrganizationQuery) QueryIssuedSeaHouseBills() *SeaHouseBillQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(seahousebill.Table, seahousebill.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.IssuedSeaHouseBillsTable, organization.IssuedSeaHouseBillsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1281,6 +1328,8 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withSeaTransportExecutions:        _q.withSeaTransportExecutions.Clone(),
 		withSeaMasterBills:                _q.withSeaMasterBills.Clone(),
 		withSeaMasterBillOrderLinks:       _q.withSeaMasterBillOrderLinks.Clone(),
+		withSeaHouseBills:                 _q.withSeaHouseBills.Clone(),
+		withIssuedSeaHouseBills:           _q.withIssuedSeaHouseBills.Clone(),
 		withOrderPersonnel:                _q.withOrderPersonnel.Clone(),
 		withBackgroundTasks:               _q.withBackgroundTasks.Clone(),
 		withFinanceBills:                  _q.withFinanceBills.Clone(),
@@ -1536,6 +1585,28 @@ func (_q *OrganizationQuery) WithSeaMasterBillOrderLinks(opts ...func(*SeaMaster
 		opt(query)
 	}
 	_q.withSeaMasterBillOrderLinks = query
+	return _q
+}
+
+// WithSeaHouseBills tells the query-builder to eager-load the nodes that are connected to
+// the "sea_house_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithSeaHouseBills(opts ...func(*SeaHouseBillQuery)) *OrganizationQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSeaHouseBills = query
+	return _q
+}
+
+// WithIssuedSeaHouseBills tells the query-builder to eager-load the nodes that are connected to
+// the "issued_sea_house_bills" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithIssuedSeaHouseBills(opts ...func(*SeaHouseBillQuery)) *OrganizationQuery {
+	query := (&SeaHouseBillClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIssuedSeaHouseBills = query
 	return _q
 }
 
@@ -1848,7 +1919,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [42]bool{
+		loadedTypes = [44]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -1870,6 +1941,8 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSeaTransportExecutions != nil,
 			_q.withSeaMasterBills != nil,
 			_q.withSeaMasterBillOrderLinks != nil,
+			_q.withSeaHouseBills != nil,
+			_q.withIssuedSeaHouseBills != nil,
 			_q.withOrderPersonnel != nil,
 			_q.withBackgroundTasks != nil,
 			_q.withFinanceBills != nil,
@@ -2064,6 +2137,22 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.SeaMasterBillOrderLinks = []*SeaMasterBillOrderLink{} },
 			func(n *Organization, e *SeaMasterBillOrderLink) {
 				n.Edges.SeaMasterBillOrderLinks = append(n.Edges.SeaMasterBillOrderLinks, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSeaHouseBills; query != nil {
+		if err := _q.loadSeaHouseBills(ctx, query, nodes,
+			func(n *Organization) { n.Edges.SeaHouseBills = []*SeaHouseBill{} },
+			func(n *Organization, e *SeaHouseBill) { n.Edges.SeaHouseBills = append(n.Edges.SeaHouseBills, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIssuedSeaHouseBills; query != nil {
+		if err := _q.loadIssuedSeaHouseBills(ctx, query, nodes,
+			func(n *Organization) { n.Edges.IssuedSeaHouseBills = []*SeaHouseBill{} },
+			func(n *Organization, e *SeaHouseBill) {
+				n.Edges.IssuedSeaHouseBills = append(n.Edges.IssuedSeaHouseBills, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2882,6 +2971,69 @@ func (_q *OrganizationQuery) loadSeaMasterBillOrderLinks(ctx context.Context, qu
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadSeaHouseBills(ctx context.Context, query *SeaHouseBillQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebill.FieldOrganizationID)
+	}
+	query.Where(predicate.SeaHouseBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.SeaHouseBillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadIssuedSeaHouseBills(ctx context.Context, query *SeaHouseBillQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *SeaHouseBill)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(seahousebill.FieldIssuerOrganizationID)
+	}
+	query.Where(predicate.SeaHouseBill(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.IssuedSeaHouseBillsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuerOrganizationID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "issuer_organization_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issuer_organization_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

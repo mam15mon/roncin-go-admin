@@ -34,6 +34,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
@@ -1581,6 +1582,21 @@ func (_u *OrderUpdate) AddSeaMasterBillLinks(v ...*SeaMasterBillOrderLink) *Orde
 	return _u.AddSeaMasterBillLinkIDs(ids...)
 }
 
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_u *OrderUpdate) AddSeaHouseBillIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddSeaHouseBillIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBills adds the "sea_house_bills" edges to the SeaHouseBill entity.
+func (_u *OrderUpdate) AddSeaHouseBills(v ...*SeaHouseBill) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdate) Mutation() *OrderMutation {
 	return _u.mutation
@@ -1995,6 +2011,27 @@ func (_u *OrderUpdate) RemoveSeaMasterBillLinks(v ...*SeaMasterBillOrderLink) *O
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaMasterBillLinkIDs(ids...)
+}
+
+// ClearSeaHouseBills clears all "sea_house_bills" edges to the SeaHouseBill entity.
+func (_u *OrderUpdate) ClearSeaHouseBills() *OrderUpdate {
+	_u.mutation.ClearSeaHouseBills()
+	return _u
+}
+
+// RemoveSeaHouseBillIDs removes the "sea_house_bills" edge to SeaHouseBill entities by IDs.
+func (_u *OrderUpdate) RemoveSeaHouseBillIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveSeaHouseBillIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBills removes "sea_house_bills" edges to SeaHouseBill entities.
+func (_u *OrderUpdate) RemoveSeaHouseBills(v ...*SeaHouseBill) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -3553,6 +3590,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.SeaHouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{order.Label}
@@ -5104,6 +5186,21 @@ func (_u *OrderUpdateOne) AddSeaMasterBillLinks(v ...*SeaMasterBillOrderLink) *O
 	return _u.AddSeaMasterBillLinkIDs(ids...)
 }
 
+// AddSeaHouseBillIDs adds the "sea_house_bills" edge to the SeaHouseBill entity by IDs.
+func (_u *OrderUpdateOne) AddSeaHouseBillIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddSeaHouseBillIDs(ids...)
+	return _u
+}
+
+// AddSeaHouseBills adds the "sea_house_bills" edges to the SeaHouseBill entity.
+func (_u *OrderUpdateOne) AddSeaHouseBills(v ...*SeaHouseBill) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSeaHouseBillIDs(ids...)
+}
+
 // Mutation returns the OrderMutation object of the builder.
 func (_u *OrderUpdateOne) Mutation() *OrderMutation {
 	return _u.mutation
@@ -5518,6 +5615,27 @@ func (_u *OrderUpdateOne) RemoveSeaMasterBillLinks(v ...*SeaMasterBillOrderLink)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSeaMasterBillLinkIDs(ids...)
+}
+
+// ClearSeaHouseBills clears all "sea_house_bills" edges to the SeaHouseBill entity.
+func (_u *OrderUpdateOne) ClearSeaHouseBills() *OrderUpdateOne {
+	_u.mutation.ClearSeaHouseBills()
+	return _u
+}
+
+// RemoveSeaHouseBillIDs removes the "sea_house_bills" edge to SeaHouseBill entities by IDs.
+func (_u *OrderUpdateOne) RemoveSeaHouseBillIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveSeaHouseBillIDs(ids...)
+	return _u
+}
+
+// RemoveSeaHouseBills removes "sea_house_bills" edges to SeaHouseBill entities.
+func (_u *OrderUpdateOne) RemoveSeaHouseBills(v ...*SeaHouseBill) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSeaHouseBillIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderUpdate builder.
@@ -7099,6 +7217,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(seamasterbillorderlink.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SeaHouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSeaHouseBillsIDs(); len(nodes) > 0 && !_u.mutation.SeaHouseBillsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SeaHouseBillsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.SeaHouseBillsTable,
+			Columns: []string{order.SeaHouseBillsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(seahousebill.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

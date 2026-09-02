@@ -96,6 +96,81 @@ func Version(v uint64) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldVersion, v))
 }
 
+// ShipperText applies equality check predicate on the "shipper_text" field. It's identical to ShipperTextEQ.
+func ShipperText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldShipperText, v))
+}
+
+// ConsigneeText applies equality check predicate on the "consignee_text" field. It's identical to ConsigneeTextEQ.
+func ConsigneeText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldConsigneeText, v))
+}
+
+// NotifyPartyText applies equality check predicate on the "notify_party_text" field. It's identical to NotifyPartyTextEQ.
+func NotifyPartyText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldNotifyPartyText, v))
+}
+
+// SecondNotifyPartyText applies equality check predicate on the "second_notify_party_text" field. It's identical to SecondNotifyPartyTextEQ.
+func SecondNotifyPartyText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldSecondNotifyPartyText, v))
+}
+
+// MarksText applies equality check predicate on the "marks_text" field. It's identical to MarksTextEQ.
+func MarksText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldMarksText, v))
+}
+
+// GoodsDescriptionText applies equality check predicate on the "goods_description_text" field. It's identical to GoodsDescriptionTextEQ.
+func GoodsDescriptionText(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldGoodsDescriptionText, v))
+}
+
+// PackageCount applies equality check predicate on the "package_count" field. It's identical to PackageCountEQ.
+func PackageCount(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldPackageCount, v))
+}
+
+// PackageUnit applies equality check predicate on the "package_unit" field. It's identical to PackageUnitEQ.
+func PackageUnit(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldPackageUnit, v))
+}
+
+// GrossWeightKg applies equality check predicate on the "gross_weight_kg" field. It's identical to GrossWeightKgEQ.
+func GrossWeightKg(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldGrossWeightKg, v))
+}
+
+// VolumeCbm applies equality check predicate on the "volume_cbm" field. It's identical to VolumeCbmEQ.
+func VolumeCbm(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldVolumeCbm, v))
+}
+
+// FreightTerms applies equality check predicate on the "freight_terms" field. It's identical to FreightTermsEQ.
+func FreightTerms(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldFreightTerms, v))
+}
+
+// TransportTerms applies equality check predicate on the "transport_terms" field. It's identical to TransportTermsEQ.
+func TransportTerms(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldTransportTerms, v))
+}
+
+// BillForm applies equality check predicate on the "bill_form" field. It's identical to BillFormEQ.
+func BillForm(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldBillForm, v))
+}
+
+// ReleaseType applies equality check predicate on the "release_type" field. It's identical to ReleaseTypeEQ.
+func ReleaseType(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldReleaseType, v))
+}
+
+// Clauses applies equality check predicate on the "clauses" field. It's identical to ClausesEQ.
+func Clauses(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldClauses, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldCreatedAt, v))
@@ -446,6 +521,1056 @@ func VersionLTE(v uint64) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldLTE(FieldVersion, v))
 }
 
+// ShipperTextEQ applies the EQ predicate on the "shipper_text" field.
+func ShipperTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldShipperText, v))
+}
+
+// ShipperTextNEQ applies the NEQ predicate on the "shipper_text" field.
+func ShipperTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldShipperText, v))
+}
+
+// ShipperTextIn applies the In predicate on the "shipper_text" field.
+func ShipperTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldShipperText, vs...))
+}
+
+// ShipperTextNotIn applies the NotIn predicate on the "shipper_text" field.
+func ShipperTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldShipperText, vs...))
+}
+
+// ShipperTextGT applies the GT predicate on the "shipper_text" field.
+func ShipperTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldShipperText, v))
+}
+
+// ShipperTextGTE applies the GTE predicate on the "shipper_text" field.
+func ShipperTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldShipperText, v))
+}
+
+// ShipperTextLT applies the LT predicate on the "shipper_text" field.
+func ShipperTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldShipperText, v))
+}
+
+// ShipperTextLTE applies the LTE predicate on the "shipper_text" field.
+func ShipperTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldShipperText, v))
+}
+
+// ShipperTextContains applies the Contains predicate on the "shipper_text" field.
+func ShipperTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldShipperText, v))
+}
+
+// ShipperTextHasPrefix applies the HasPrefix predicate on the "shipper_text" field.
+func ShipperTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldShipperText, v))
+}
+
+// ShipperTextHasSuffix applies the HasSuffix predicate on the "shipper_text" field.
+func ShipperTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldShipperText, v))
+}
+
+// ShipperTextIsNil applies the IsNil predicate on the "shipper_text" field.
+func ShipperTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldShipperText))
+}
+
+// ShipperTextNotNil applies the NotNil predicate on the "shipper_text" field.
+func ShipperTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldShipperText))
+}
+
+// ShipperTextEqualFold applies the EqualFold predicate on the "shipper_text" field.
+func ShipperTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldShipperText, v))
+}
+
+// ShipperTextContainsFold applies the ContainsFold predicate on the "shipper_text" field.
+func ShipperTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldShipperText, v))
+}
+
+// ConsigneeTextEQ applies the EQ predicate on the "consignee_text" field.
+func ConsigneeTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldConsigneeText, v))
+}
+
+// ConsigneeTextNEQ applies the NEQ predicate on the "consignee_text" field.
+func ConsigneeTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldConsigneeText, v))
+}
+
+// ConsigneeTextIn applies the In predicate on the "consignee_text" field.
+func ConsigneeTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldConsigneeText, vs...))
+}
+
+// ConsigneeTextNotIn applies the NotIn predicate on the "consignee_text" field.
+func ConsigneeTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldConsigneeText, vs...))
+}
+
+// ConsigneeTextGT applies the GT predicate on the "consignee_text" field.
+func ConsigneeTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldConsigneeText, v))
+}
+
+// ConsigneeTextGTE applies the GTE predicate on the "consignee_text" field.
+func ConsigneeTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldConsigneeText, v))
+}
+
+// ConsigneeTextLT applies the LT predicate on the "consignee_text" field.
+func ConsigneeTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldConsigneeText, v))
+}
+
+// ConsigneeTextLTE applies the LTE predicate on the "consignee_text" field.
+func ConsigneeTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldConsigneeText, v))
+}
+
+// ConsigneeTextContains applies the Contains predicate on the "consignee_text" field.
+func ConsigneeTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldConsigneeText, v))
+}
+
+// ConsigneeTextHasPrefix applies the HasPrefix predicate on the "consignee_text" field.
+func ConsigneeTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldConsigneeText, v))
+}
+
+// ConsigneeTextHasSuffix applies the HasSuffix predicate on the "consignee_text" field.
+func ConsigneeTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldConsigneeText, v))
+}
+
+// ConsigneeTextIsNil applies the IsNil predicate on the "consignee_text" field.
+func ConsigneeTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldConsigneeText))
+}
+
+// ConsigneeTextNotNil applies the NotNil predicate on the "consignee_text" field.
+func ConsigneeTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldConsigneeText))
+}
+
+// ConsigneeTextEqualFold applies the EqualFold predicate on the "consignee_text" field.
+func ConsigneeTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldConsigneeText, v))
+}
+
+// ConsigneeTextContainsFold applies the ContainsFold predicate on the "consignee_text" field.
+func ConsigneeTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldConsigneeText, v))
+}
+
+// NotifyPartyTextEQ applies the EQ predicate on the "notify_party_text" field.
+func NotifyPartyTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextNEQ applies the NEQ predicate on the "notify_party_text" field.
+func NotifyPartyTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextIn applies the In predicate on the "notify_party_text" field.
+func NotifyPartyTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldNotifyPartyText, vs...))
+}
+
+// NotifyPartyTextNotIn applies the NotIn predicate on the "notify_party_text" field.
+func NotifyPartyTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldNotifyPartyText, vs...))
+}
+
+// NotifyPartyTextGT applies the GT predicate on the "notify_party_text" field.
+func NotifyPartyTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextGTE applies the GTE predicate on the "notify_party_text" field.
+func NotifyPartyTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextLT applies the LT predicate on the "notify_party_text" field.
+func NotifyPartyTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextLTE applies the LTE predicate on the "notify_party_text" field.
+func NotifyPartyTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextContains applies the Contains predicate on the "notify_party_text" field.
+func NotifyPartyTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextHasPrefix applies the HasPrefix predicate on the "notify_party_text" field.
+func NotifyPartyTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextHasSuffix applies the HasSuffix predicate on the "notify_party_text" field.
+func NotifyPartyTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextIsNil applies the IsNil predicate on the "notify_party_text" field.
+func NotifyPartyTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldNotifyPartyText))
+}
+
+// NotifyPartyTextNotNil applies the NotNil predicate on the "notify_party_text" field.
+func NotifyPartyTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldNotifyPartyText))
+}
+
+// NotifyPartyTextEqualFold applies the EqualFold predicate on the "notify_party_text" field.
+func NotifyPartyTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldNotifyPartyText, v))
+}
+
+// NotifyPartyTextContainsFold applies the ContainsFold predicate on the "notify_party_text" field.
+func NotifyPartyTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextEQ applies the EQ predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextNEQ applies the NEQ predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextIn applies the In predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldSecondNotifyPartyText, vs...))
+}
+
+// SecondNotifyPartyTextNotIn applies the NotIn predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldSecondNotifyPartyText, vs...))
+}
+
+// SecondNotifyPartyTextGT applies the GT predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextGTE applies the GTE predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextLT applies the LT predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextLTE applies the LTE predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextContains applies the Contains predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextHasPrefix applies the HasPrefix predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextHasSuffix applies the HasSuffix predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextIsNil applies the IsNil predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldSecondNotifyPartyText))
+}
+
+// SecondNotifyPartyTextNotNil applies the NotNil predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldSecondNotifyPartyText))
+}
+
+// SecondNotifyPartyTextEqualFold applies the EqualFold predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldSecondNotifyPartyText, v))
+}
+
+// SecondNotifyPartyTextContainsFold applies the ContainsFold predicate on the "second_notify_party_text" field.
+func SecondNotifyPartyTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldSecondNotifyPartyText, v))
+}
+
+// MarksTextEQ applies the EQ predicate on the "marks_text" field.
+func MarksTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldMarksText, v))
+}
+
+// MarksTextNEQ applies the NEQ predicate on the "marks_text" field.
+func MarksTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldMarksText, v))
+}
+
+// MarksTextIn applies the In predicate on the "marks_text" field.
+func MarksTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldMarksText, vs...))
+}
+
+// MarksTextNotIn applies the NotIn predicate on the "marks_text" field.
+func MarksTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldMarksText, vs...))
+}
+
+// MarksTextGT applies the GT predicate on the "marks_text" field.
+func MarksTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldMarksText, v))
+}
+
+// MarksTextGTE applies the GTE predicate on the "marks_text" field.
+func MarksTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldMarksText, v))
+}
+
+// MarksTextLT applies the LT predicate on the "marks_text" field.
+func MarksTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldMarksText, v))
+}
+
+// MarksTextLTE applies the LTE predicate on the "marks_text" field.
+func MarksTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldMarksText, v))
+}
+
+// MarksTextContains applies the Contains predicate on the "marks_text" field.
+func MarksTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldMarksText, v))
+}
+
+// MarksTextHasPrefix applies the HasPrefix predicate on the "marks_text" field.
+func MarksTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldMarksText, v))
+}
+
+// MarksTextHasSuffix applies the HasSuffix predicate on the "marks_text" field.
+func MarksTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldMarksText, v))
+}
+
+// MarksTextIsNil applies the IsNil predicate on the "marks_text" field.
+func MarksTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldMarksText))
+}
+
+// MarksTextNotNil applies the NotNil predicate on the "marks_text" field.
+func MarksTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldMarksText))
+}
+
+// MarksTextEqualFold applies the EqualFold predicate on the "marks_text" field.
+func MarksTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldMarksText, v))
+}
+
+// MarksTextContainsFold applies the ContainsFold predicate on the "marks_text" field.
+func MarksTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldMarksText, v))
+}
+
+// GoodsDescriptionTextEQ applies the EQ predicate on the "goods_description_text" field.
+func GoodsDescriptionTextEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextNEQ applies the NEQ predicate on the "goods_description_text" field.
+func GoodsDescriptionTextNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextIn applies the In predicate on the "goods_description_text" field.
+func GoodsDescriptionTextIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldGoodsDescriptionText, vs...))
+}
+
+// GoodsDescriptionTextNotIn applies the NotIn predicate on the "goods_description_text" field.
+func GoodsDescriptionTextNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldGoodsDescriptionText, vs...))
+}
+
+// GoodsDescriptionTextGT applies the GT predicate on the "goods_description_text" field.
+func GoodsDescriptionTextGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextGTE applies the GTE predicate on the "goods_description_text" field.
+func GoodsDescriptionTextGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextLT applies the LT predicate on the "goods_description_text" field.
+func GoodsDescriptionTextLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextLTE applies the LTE predicate on the "goods_description_text" field.
+func GoodsDescriptionTextLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextContains applies the Contains predicate on the "goods_description_text" field.
+func GoodsDescriptionTextContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextHasPrefix applies the HasPrefix predicate on the "goods_description_text" field.
+func GoodsDescriptionTextHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextHasSuffix applies the HasSuffix predicate on the "goods_description_text" field.
+func GoodsDescriptionTextHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextIsNil applies the IsNil predicate on the "goods_description_text" field.
+func GoodsDescriptionTextIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldGoodsDescriptionText))
+}
+
+// GoodsDescriptionTextNotNil applies the NotNil predicate on the "goods_description_text" field.
+func GoodsDescriptionTextNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldGoodsDescriptionText))
+}
+
+// GoodsDescriptionTextEqualFold applies the EqualFold predicate on the "goods_description_text" field.
+func GoodsDescriptionTextEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldGoodsDescriptionText, v))
+}
+
+// GoodsDescriptionTextContainsFold applies the ContainsFold predicate on the "goods_description_text" field.
+func GoodsDescriptionTextContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldGoodsDescriptionText, v))
+}
+
+// PackageCountEQ applies the EQ predicate on the "package_count" field.
+func PackageCountEQ(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldPackageCount, v))
+}
+
+// PackageCountNEQ applies the NEQ predicate on the "package_count" field.
+func PackageCountNEQ(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldPackageCount, v))
+}
+
+// PackageCountIn applies the In predicate on the "package_count" field.
+func PackageCountIn(vs ...int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldPackageCount, vs...))
+}
+
+// PackageCountNotIn applies the NotIn predicate on the "package_count" field.
+func PackageCountNotIn(vs ...int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldPackageCount, vs...))
+}
+
+// PackageCountGT applies the GT predicate on the "package_count" field.
+func PackageCountGT(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldPackageCount, v))
+}
+
+// PackageCountGTE applies the GTE predicate on the "package_count" field.
+func PackageCountGTE(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldPackageCount, v))
+}
+
+// PackageCountLT applies the LT predicate on the "package_count" field.
+func PackageCountLT(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldPackageCount, v))
+}
+
+// PackageCountLTE applies the LTE predicate on the "package_count" field.
+func PackageCountLTE(v int) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldPackageCount, v))
+}
+
+// PackageCountIsNil applies the IsNil predicate on the "package_count" field.
+func PackageCountIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldPackageCount))
+}
+
+// PackageCountNotNil applies the NotNil predicate on the "package_count" field.
+func PackageCountNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldPackageCount))
+}
+
+// PackageUnitEQ applies the EQ predicate on the "package_unit" field.
+func PackageUnitEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldPackageUnit, v))
+}
+
+// PackageUnitNEQ applies the NEQ predicate on the "package_unit" field.
+func PackageUnitNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldPackageUnit, v))
+}
+
+// PackageUnitIn applies the In predicate on the "package_unit" field.
+func PackageUnitIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldPackageUnit, vs...))
+}
+
+// PackageUnitNotIn applies the NotIn predicate on the "package_unit" field.
+func PackageUnitNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldPackageUnit, vs...))
+}
+
+// PackageUnitGT applies the GT predicate on the "package_unit" field.
+func PackageUnitGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldPackageUnit, v))
+}
+
+// PackageUnitGTE applies the GTE predicate on the "package_unit" field.
+func PackageUnitGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldPackageUnit, v))
+}
+
+// PackageUnitLT applies the LT predicate on the "package_unit" field.
+func PackageUnitLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldPackageUnit, v))
+}
+
+// PackageUnitLTE applies the LTE predicate on the "package_unit" field.
+func PackageUnitLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldPackageUnit, v))
+}
+
+// PackageUnitContains applies the Contains predicate on the "package_unit" field.
+func PackageUnitContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldPackageUnit, v))
+}
+
+// PackageUnitHasPrefix applies the HasPrefix predicate on the "package_unit" field.
+func PackageUnitHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldPackageUnit, v))
+}
+
+// PackageUnitHasSuffix applies the HasSuffix predicate on the "package_unit" field.
+func PackageUnitHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldPackageUnit, v))
+}
+
+// PackageUnitIsNil applies the IsNil predicate on the "package_unit" field.
+func PackageUnitIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldPackageUnit))
+}
+
+// PackageUnitNotNil applies the NotNil predicate on the "package_unit" field.
+func PackageUnitNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldPackageUnit))
+}
+
+// PackageUnitEqualFold applies the EqualFold predicate on the "package_unit" field.
+func PackageUnitEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldPackageUnit, v))
+}
+
+// PackageUnitContainsFold applies the ContainsFold predicate on the "package_unit" field.
+func PackageUnitContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldPackageUnit, v))
+}
+
+// GrossWeightKgEQ applies the EQ predicate on the "gross_weight_kg" field.
+func GrossWeightKgEQ(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgNEQ applies the NEQ predicate on the "gross_weight_kg" field.
+func GrossWeightKgNEQ(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgIn applies the In predicate on the "gross_weight_kg" field.
+func GrossWeightKgIn(vs ...float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldGrossWeightKg, vs...))
+}
+
+// GrossWeightKgNotIn applies the NotIn predicate on the "gross_weight_kg" field.
+func GrossWeightKgNotIn(vs ...float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldGrossWeightKg, vs...))
+}
+
+// GrossWeightKgGT applies the GT predicate on the "gross_weight_kg" field.
+func GrossWeightKgGT(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgGTE applies the GTE predicate on the "gross_weight_kg" field.
+func GrossWeightKgGTE(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgLT applies the LT predicate on the "gross_weight_kg" field.
+func GrossWeightKgLT(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgLTE applies the LTE predicate on the "gross_weight_kg" field.
+func GrossWeightKgLTE(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldGrossWeightKg, v))
+}
+
+// GrossWeightKgIsNil applies the IsNil predicate on the "gross_weight_kg" field.
+func GrossWeightKgIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldGrossWeightKg))
+}
+
+// GrossWeightKgNotNil applies the NotNil predicate on the "gross_weight_kg" field.
+func GrossWeightKgNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldGrossWeightKg))
+}
+
+// VolumeCbmEQ applies the EQ predicate on the "volume_cbm" field.
+func VolumeCbmEQ(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldVolumeCbm, v))
+}
+
+// VolumeCbmNEQ applies the NEQ predicate on the "volume_cbm" field.
+func VolumeCbmNEQ(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldVolumeCbm, v))
+}
+
+// VolumeCbmIn applies the In predicate on the "volume_cbm" field.
+func VolumeCbmIn(vs ...float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldVolumeCbm, vs...))
+}
+
+// VolumeCbmNotIn applies the NotIn predicate on the "volume_cbm" field.
+func VolumeCbmNotIn(vs ...float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldVolumeCbm, vs...))
+}
+
+// VolumeCbmGT applies the GT predicate on the "volume_cbm" field.
+func VolumeCbmGT(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldVolumeCbm, v))
+}
+
+// VolumeCbmGTE applies the GTE predicate on the "volume_cbm" field.
+func VolumeCbmGTE(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldVolumeCbm, v))
+}
+
+// VolumeCbmLT applies the LT predicate on the "volume_cbm" field.
+func VolumeCbmLT(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldVolumeCbm, v))
+}
+
+// VolumeCbmLTE applies the LTE predicate on the "volume_cbm" field.
+func VolumeCbmLTE(v float64) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldVolumeCbm, v))
+}
+
+// VolumeCbmIsNil applies the IsNil predicate on the "volume_cbm" field.
+func VolumeCbmIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldVolumeCbm))
+}
+
+// VolumeCbmNotNil applies the NotNil predicate on the "volume_cbm" field.
+func VolumeCbmNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldVolumeCbm))
+}
+
+// FreightTermsEQ applies the EQ predicate on the "freight_terms" field.
+func FreightTermsEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldFreightTerms, v))
+}
+
+// FreightTermsNEQ applies the NEQ predicate on the "freight_terms" field.
+func FreightTermsNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldFreightTerms, v))
+}
+
+// FreightTermsIn applies the In predicate on the "freight_terms" field.
+func FreightTermsIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldFreightTerms, vs...))
+}
+
+// FreightTermsNotIn applies the NotIn predicate on the "freight_terms" field.
+func FreightTermsNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldFreightTerms, vs...))
+}
+
+// FreightTermsGT applies the GT predicate on the "freight_terms" field.
+func FreightTermsGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldFreightTerms, v))
+}
+
+// FreightTermsGTE applies the GTE predicate on the "freight_terms" field.
+func FreightTermsGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldFreightTerms, v))
+}
+
+// FreightTermsLT applies the LT predicate on the "freight_terms" field.
+func FreightTermsLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldFreightTerms, v))
+}
+
+// FreightTermsLTE applies the LTE predicate on the "freight_terms" field.
+func FreightTermsLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldFreightTerms, v))
+}
+
+// FreightTermsContains applies the Contains predicate on the "freight_terms" field.
+func FreightTermsContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldFreightTerms, v))
+}
+
+// FreightTermsHasPrefix applies the HasPrefix predicate on the "freight_terms" field.
+func FreightTermsHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldFreightTerms, v))
+}
+
+// FreightTermsHasSuffix applies the HasSuffix predicate on the "freight_terms" field.
+func FreightTermsHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldFreightTerms, v))
+}
+
+// FreightTermsIsNil applies the IsNil predicate on the "freight_terms" field.
+func FreightTermsIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldFreightTerms))
+}
+
+// FreightTermsNotNil applies the NotNil predicate on the "freight_terms" field.
+func FreightTermsNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldFreightTerms))
+}
+
+// FreightTermsEqualFold applies the EqualFold predicate on the "freight_terms" field.
+func FreightTermsEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldFreightTerms, v))
+}
+
+// FreightTermsContainsFold applies the ContainsFold predicate on the "freight_terms" field.
+func FreightTermsContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldFreightTerms, v))
+}
+
+// TransportTermsEQ applies the EQ predicate on the "transport_terms" field.
+func TransportTermsEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldTransportTerms, v))
+}
+
+// TransportTermsNEQ applies the NEQ predicate on the "transport_terms" field.
+func TransportTermsNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldTransportTerms, v))
+}
+
+// TransportTermsIn applies the In predicate on the "transport_terms" field.
+func TransportTermsIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldTransportTerms, vs...))
+}
+
+// TransportTermsNotIn applies the NotIn predicate on the "transport_terms" field.
+func TransportTermsNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldTransportTerms, vs...))
+}
+
+// TransportTermsGT applies the GT predicate on the "transport_terms" field.
+func TransportTermsGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldTransportTerms, v))
+}
+
+// TransportTermsGTE applies the GTE predicate on the "transport_terms" field.
+func TransportTermsGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldTransportTerms, v))
+}
+
+// TransportTermsLT applies the LT predicate on the "transport_terms" field.
+func TransportTermsLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldTransportTerms, v))
+}
+
+// TransportTermsLTE applies the LTE predicate on the "transport_terms" field.
+func TransportTermsLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldTransportTerms, v))
+}
+
+// TransportTermsContains applies the Contains predicate on the "transport_terms" field.
+func TransportTermsContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldTransportTerms, v))
+}
+
+// TransportTermsHasPrefix applies the HasPrefix predicate on the "transport_terms" field.
+func TransportTermsHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldTransportTerms, v))
+}
+
+// TransportTermsHasSuffix applies the HasSuffix predicate on the "transport_terms" field.
+func TransportTermsHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldTransportTerms, v))
+}
+
+// TransportTermsIsNil applies the IsNil predicate on the "transport_terms" field.
+func TransportTermsIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldTransportTerms))
+}
+
+// TransportTermsNotNil applies the NotNil predicate on the "transport_terms" field.
+func TransportTermsNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldTransportTerms))
+}
+
+// TransportTermsEqualFold applies the EqualFold predicate on the "transport_terms" field.
+func TransportTermsEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldTransportTerms, v))
+}
+
+// TransportTermsContainsFold applies the ContainsFold predicate on the "transport_terms" field.
+func TransportTermsContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldTransportTerms, v))
+}
+
+// BillFormEQ applies the EQ predicate on the "bill_form" field.
+func BillFormEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldBillForm, v))
+}
+
+// BillFormNEQ applies the NEQ predicate on the "bill_form" field.
+func BillFormNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldBillForm, v))
+}
+
+// BillFormIn applies the In predicate on the "bill_form" field.
+func BillFormIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldBillForm, vs...))
+}
+
+// BillFormNotIn applies the NotIn predicate on the "bill_form" field.
+func BillFormNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldBillForm, vs...))
+}
+
+// BillFormGT applies the GT predicate on the "bill_form" field.
+func BillFormGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldBillForm, v))
+}
+
+// BillFormGTE applies the GTE predicate on the "bill_form" field.
+func BillFormGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldBillForm, v))
+}
+
+// BillFormLT applies the LT predicate on the "bill_form" field.
+func BillFormLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldBillForm, v))
+}
+
+// BillFormLTE applies the LTE predicate on the "bill_form" field.
+func BillFormLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldBillForm, v))
+}
+
+// BillFormContains applies the Contains predicate on the "bill_form" field.
+func BillFormContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldBillForm, v))
+}
+
+// BillFormHasPrefix applies the HasPrefix predicate on the "bill_form" field.
+func BillFormHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldBillForm, v))
+}
+
+// BillFormHasSuffix applies the HasSuffix predicate on the "bill_form" field.
+func BillFormHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldBillForm, v))
+}
+
+// BillFormIsNil applies the IsNil predicate on the "bill_form" field.
+func BillFormIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldBillForm))
+}
+
+// BillFormNotNil applies the NotNil predicate on the "bill_form" field.
+func BillFormNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldBillForm))
+}
+
+// BillFormEqualFold applies the EqualFold predicate on the "bill_form" field.
+func BillFormEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldBillForm, v))
+}
+
+// BillFormContainsFold applies the ContainsFold predicate on the "bill_form" field.
+func BillFormContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldBillForm, v))
+}
+
+// ReleaseTypeEQ applies the EQ predicate on the "release_type" field.
+func ReleaseTypeEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldReleaseType, v))
+}
+
+// ReleaseTypeNEQ applies the NEQ predicate on the "release_type" field.
+func ReleaseTypeNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldReleaseType, v))
+}
+
+// ReleaseTypeIn applies the In predicate on the "release_type" field.
+func ReleaseTypeIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldReleaseType, vs...))
+}
+
+// ReleaseTypeNotIn applies the NotIn predicate on the "release_type" field.
+func ReleaseTypeNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldReleaseType, vs...))
+}
+
+// ReleaseTypeGT applies the GT predicate on the "release_type" field.
+func ReleaseTypeGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldReleaseType, v))
+}
+
+// ReleaseTypeGTE applies the GTE predicate on the "release_type" field.
+func ReleaseTypeGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldReleaseType, v))
+}
+
+// ReleaseTypeLT applies the LT predicate on the "release_type" field.
+func ReleaseTypeLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldReleaseType, v))
+}
+
+// ReleaseTypeLTE applies the LTE predicate on the "release_type" field.
+func ReleaseTypeLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldReleaseType, v))
+}
+
+// ReleaseTypeContains applies the Contains predicate on the "release_type" field.
+func ReleaseTypeContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldReleaseType, v))
+}
+
+// ReleaseTypeHasPrefix applies the HasPrefix predicate on the "release_type" field.
+func ReleaseTypeHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldReleaseType, v))
+}
+
+// ReleaseTypeHasSuffix applies the HasSuffix predicate on the "release_type" field.
+func ReleaseTypeHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldReleaseType, v))
+}
+
+// ReleaseTypeIsNil applies the IsNil predicate on the "release_type" field.
+func ReleaseTypeIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldReleaseType))
+}
+
+// ReleaseTypeNotNil applies the NotNil predicate on the "release_type" field.
+func ReleaseTypeNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldReleaseType))
+}
+
+// ReleaseTypeEqualFold applies the EqualFold predicate on the "release_type" field.
+func ReleaseTypeEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldReleaseType, v))
+}
+
+// ReleaseTypeContainsFold applies the ContainsFold predicate on the "release_type" field.
+func ReleaseTypeContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldReleaseType, v))
+}
+
+// ClausesEQ applies the EQ predicate on the "clauses" field.
+func ClausesEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldClauses, v))
+}
+
+// ClausesNEQ applies the NEQ predicate on the "clauses" field.
+func ClausesNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldClauses, v))
+}
+
+// ClausesIn applies the In predicate on the "clauses" field.
+func ClausesIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldClauses, vs...))
+}
+
+// ClausesNotIn applies the NotIn predicate on the "clauses" field.
+func ClausesNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldClauses, vs...))
+}
+
+// ClausesGT applies the GT predicate on the "clauses" field.
+func ClausesGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldClauses, v))
+}
+
+// ClausesGTE applies the GTE predicate on the "clauses" field.
+func ClausesGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldClauses, v))
+}
+
+// ClausesLT applies the LT predicate on the "clauses" field.
+func ClausesLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldClauses, v))
+}
+
+// ClausesLTE applies the LTE predicate on the "clauses" field.
+func ClausesLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldClauses, v))
+}
+
+// ClausesContains applies the Contains predicate on the "clauses" field.
+func ClausesContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldClauses, v))
+}
+
+// ClausesHasPrefix applies the HasPrefix predicate on the "clauses" field.
+func ClausesHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldClauses, v))
+}
+
+// ClausesHasSuffix applies the HasSuffix predicate on the "clauses" field.
+func ClausesHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldClauses, v))
+}
+
+// ClausesIsNil applies the IsNil predicate on the "clauses" field.
+func ClausesIsNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIsNull(FieldClauses))
+}
+
+// ClausesNotNil applies the NotNil predicate on the "clauses" field.
+func ClausesNotNil() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotNull(FieldClauses))
+}
+
+// ClausesEqualFold applies the EqualFold predicate on the "clauses" field.
+func ClausesEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldClauses, v))
+}
+
+// ClausesContainsFold applies the ContainsFold predicate on the "clauses" field.
+func ClausesContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldClauses, v))
+}
+
 // HasOrganization applies the HasEdge predicate on the "organization" edge.
 func HasOrganization() predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
@@ -507,6 +1632,29 @@ func HasOrderLinks() predicate.SeaMasterBill {
 func HasOrderLinksWith(preds ...predicate.SeaMasterBillOrderLink) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(func(s *sql.Selector) {
 		step := newOrderLinksStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasHouseBills applies the HasEdge predicate on the "house_bills" edge.
+func HasHouseBills() predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, HouseBillsTable, HouseBillsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasHouseBillsWith applies the HasEdge predicate on the "house_bills" edge with a given conditions (other predicates).
+func HasHouseBillsWith(preds ...predicate.SeaHouseBill) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(func(s *sql.Selector) {
+		step := newHouseBillsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

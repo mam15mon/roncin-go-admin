@@ -279,6 +279,10 @@ type Order struct {
 	ContainerRequests     []*OrderContainerRequest
 	SeaMasterBill         *SeaMasterBillSummary
 	SeaMasterBillInput    *SeaMasterBillInput
+	SeaDocumentStructure  *SeaDocumentStructure
+	SeaDocumentLinkVersion *uint64
+	SeaDocumentSummary    *SeaOrderDocumentSummary
+	SeaDocumentInput      *SeaOrderDocumentInput
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }

@@ -44,6 +44,21 @@ func orderToAPI(item *biz.Order) *v1.Order {
 	if item.SeaMasterBill != nil {
 		result.SeaMasterBill = seaMasterBillSummaryToAPI(item.SeaMasterBill)
 	}
+	if item.SeaDocumentStructure != nil {
+		st := seaDocumentStructureToAPI(*item.SeaDocumentStructure)
+		result.SeaDocumentStructure = &st
+	}
+	if item.SeaDocumentLinkVersion != nil {
+		result.SeaDocumentLinkVersion = item.SeaDocumentLinkVersion
+	}
+	if item.SeaDocumentSummary != nil {
+		result.SeaDocumentSummary = &v1.SeaOrderDocumentSummary{
+			DocumentStructure: seaDocumentStructureToAPI(item.SeaDocumentSummary.DocumentStructure),
+			LinkVersion:       item.SeaDocumentSummary.LinkVersion,
+			HouseBillCount:    int32(item.SeaDocumentSummary.HouseBillCount),
+			HouseNos:          item.SeaDocumentSummary.HouseNos,
+		}
+	}
 	return result
 }
 
@@ -303,4 +318,37 @@ func seaMasterBillInputFromAPI(input *v1.SeaMasterBillInput) (*biz.SeaMasterBill
 		res.CandidateID = &cid
 	}
 	return res, nil
+}
+
+func seaOrderDocumentInputFromAPI(input *v1.SeaOrderDocumentInput) (*biz.SeaOrderDocumentInput, error) {
+	if input == nil {
+		return nil, nil
+	}
+	var structure *biz.SeaDocumentStructure
+	if input.DocumentStructure != nil {
+		s := seaDocumentStructureFromAPI(*input.DocumentStructure)
+		structure = &s
+	}
+	var masterBillContent *biz.SeaBillContent
+	if input.MasterBillContent != nil {
+		masterBillContent = seaBillContentFromAPI(input.MasterBillContent)
+	}
+	var hbs []*biz.SeaHouseBillInput
+	if input.HouseBills != nil {
+		hbs = make([]*biz.SeaHouseBillInput, 0, len(input.HouseBills))
+		for _, hb := range input.HouseBills {
+			h, err := seaHouseBillInputFromAPI(hb)
+			if err != nil {
+				return nil, err
+			}
+			hbs = append(hbs, h)
+		}
+	}
+	return &biz.SeaOrderDocumentInput{
+		DocumentStructure:   structure,
+		ExpectedLinkVersion: input.ExpectedLinkVersion,
+		ExpectedMblVersion:  input.ExpectedMblVersion,
+		MasterBillContent:   masterBillContent,
+		HouseBills:          hbs,
+	}, nil
 }
