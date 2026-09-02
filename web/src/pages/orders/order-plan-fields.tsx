@@ -302,10 +302,10 @@ export function OrderShippingDocumentFields({
             style={{
               width: '100%',
               borderRadius: 6,
-              height: 36,
+              height: 32,
               color: '#1677ff',
-              borderColor: '#b7d4ff',
-              background: '#f9fcff',
+              borderColor: '#91caff',
+              background: '#fafcff',
             }}
           >
             加拼主单 ({documentLabels.master})

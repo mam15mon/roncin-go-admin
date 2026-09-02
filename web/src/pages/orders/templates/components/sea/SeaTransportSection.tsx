@@ -108,8 +108,6 @@ export function buildSeaTransportSection(
     title: '配舱信息',
     content: (
       <>
-        <OrderShippingDocumentFields transportMode="sea" />
-
         {/* 第 1 行：航线 4 港口（一行 4 个，各占 6 栅格） */}
         <ProFormSearchableSelect
           colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
@@ -148,23 +146,21 @@ export function buildSeaTransportSection(
           placeholder="请选择中转港"
         />
 
-        {/* 第 2 行：箱货与船期（一行 4 个） */}
+        {/* 第 2 行：箱货与船期（一行 4 个，各占 6 栅格） */}
+        <ProFormText
+          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
+          name="vesselVoyage"
+          label="船名航次"
+          placeholder="请输入船名航次"
+        />
         <ProFormSearchableSelect
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 5 }}
+          colProps={{ xs: 24, sm: 12, lg: 6, xl: 6 }}
           name="containerOwnership"
           label="货主箱标记"
           options={containerOwnershipOptions}
           placeholder="请选择 COC / SOC"
         />
-        <ProFormText
-          colProps={{ xs: 24, sm: 12, lg: 6, xl: 7 }}
-          name="vesselVoyage"
-          label="船名航次"
-          placeholder="请输入船名航次"
-        />
         <SeaScheduleDateFields />
-
-        <SeaContainerPlanFields options={containerSpecOptions} />
 
         {/* 第 3 行：4 大截关时间（一行 4 个，各占 6 栅格） */}
         <ProFormDateTimePicker
@@ -191,6 +187,12 @@ export function buildSeaTransportSection(
           label="VGM截关时间"
           fieldProps={{ style: { width: '100%' } }}
         />
+
+        {/* 第 4 行：计划箱型箱量 */}
+        <SeaContainerPlanFields options={containerSpecOptions} />
+
+        {/* 第 5 行：主单与分单配置 */}
+        <OrderShippingDocumentFields transportMode="sea" />
       </>
     ),
   };

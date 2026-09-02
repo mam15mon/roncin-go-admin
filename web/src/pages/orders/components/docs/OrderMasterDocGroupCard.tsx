@@ -8,8 +8,11 @@ import {
   Alert,
   AutoComplete,
   Button,
+  Col,
+  Form,
   Input,
   Popconfirm,
+  Row,
   Select,
   Tag,
   Tooltip,
@@ -108,92 +111,64 @@ export default function OrderMasterDocGroupCard({
       key={group.key}
       style={{
         background: '#ffffff',
-        border: '1px solid #f0f0f0',
+        border: '1px solid #e8e8e8',
         borderRadius: 6,
-        padding: '12px 16px',
+        padding: '12px 16px 16px',
         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
       }}
     >
-      {/* 主单行 Header */}
+      {/* 主单行 Header 标题栏 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
+          justifyContent: 'space-between',
+          paddingBottom: 10,
           marginBottom: 12,
+          borderBottom: '1px solid #f0f0f0',
           flexWrap: 'wrap',
+          gap: 8,
         }}
       >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 13,
-            fontWeight: 600,
-            color: '#262626',
-            minWidth: 100,
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <FileTextOutlined style={{ color: '#1677ff', fontSize: 14 }} />
-          <span>主单 ({documentLabels.master})</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>
+            主单 ({documentLabels.master})
+          </span>
           {totalGroups > 1 && (
             <Tag
               variant="filled"
-              color="default"
-              style={{ marginInlineStart: 2, fontSize: 11 }}
+              color="blue"
+              style={{ margin: 0, fontSize: 11 }}
             >
-              #{groupIdx + 1}
+              批次 #{groupIdx + 1}
+            </Tag>
+          )}
+          <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（忽略大小写与首尾空格）。">
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12,
+                color: '#8c8c8c',
+                cursor: 'help',
+              }}
+            >
+              <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 12 }} />
+              <span>一主多分</span>
+            </span>
+          </Tooltip>
+          {masterTrimmed && (
+            <Tag
+              color="blue"
+              variant="filled"
+              style={{ margin: 0, fontSize: 11 }}
+            >
+              批次标识: {masterTrimmed.toUpperCase()}
             </Tag>
           )}
         </div>
-
-        <div style={{ flex: '1 1 260px', maxWidth: 420 }}>
-          <Input
-            value={group.masterNo}
-            onChange={(e) => onMasterChange(groupIdx, e.target.value)}
-            placeholder={`请输入主单号 (如 ${documentLabels.master}-001)`}
-            maxLength={64}
-            disabled={disabled || groupHasReleased}
-            status={masterMissing || masterDuplicate ? 'error' : undefined}
-            allowClear
-          />
-          {(masterMissing || masterDuplicate) && (
-            <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 2 }}>
-              {masterDuplicate
-                ? '该主单已在当前操作票中，请在原主单组下添加分单'
-                : '请填写主单号'}
-            </div>
-          )}
-        </div>
-
-        <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（忽略大小写与首尾空格）。">
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: 12,
-              color: '#8c8c8c',
-              cursor: 'help',
-            }}
-          >
-            <InfoCircleOutlined style={{ color: '#1677ff' }} />
-            <span>一主多分</span>
-          </div>
-        </Tooltip>
-
-        {masterTrimmed && (
-          <Tag
-            color="blue"
-            variant="filled"
-            style={{ margin: 0, fontSize: 11 }}
-          >
-            批次标识: {masterTrimmed.toUpperCase()}
-          </Tag>
-        )}
-
-        <div style={{ flex: 1 }} />
 
         {totalGroups > 1 && !disabled && (
           <Tooltip
@@ -225,80 +200,97 @@ export default function OrderMasterDocGroupCard({
         )}
       </div>
 
-      {transportMode === 'sea' && (
-        <div style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 320px))',
-              gap: 12,
-              marginBottom: 8,
-            }}
+      {/* 主单属性行 */}
+      <Row gutter={16} align="middle" style={{ marginBottom: transportMode === 'sea' ? 8 : 12 }}>
+        <Col xs={24} sm={12} lg={transportMode === 'sea' ? 8 : 12}>
+          <Form.Item
+            label={`主单号 (${documentLabels.master})`}
+            style={{ marginBottom: masterMissing || masterDuplicate ? 20 : 8 }}
+            validateStatus={masterMissing || masterDuplicate ? 'error' : undefined}
+            help={
+              masterDuplicate
+                ? '该主单已在当前操作票中，请在原主单组下添加分单'
+                : masterMissing
+                  ? '请填写主单号'
+                  : undefined
+            }
           >
-            <div>
-              <div
-                style={{
-                  color: '#595959',
-                  fontSize: 12,
-                  marginBottom: 4,
-                }}
-              >
-                主单单证类型
-              </div>
-              <Select
-                value={group.masterDocumentType}
-                options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
-                placeholder="请选择主单单证类型"
-                disabled={disabled || groupHasReleased}
-                onChange={(value) =>
-                  onMasterAttributeChange(
-                    groupIdx,
-                    'masterDocumentType',
-                    value,
-                  )
-                }
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div>
-              <div
-                style={{
-                  color: '#595959',
-                  fontSize: 12,
-                  marginBottom: 4,
-                }}
-              >
-                主单签放方式
-              </div>
-              <Select
-                value={group.masterReleaseMethod}
-                options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
-                placeholder="请选择主单签放方式"
-                disabled={disabled || groupHasReleased}
-                onChange={(value) =>
-                  onMasterAttributeChange(
-                    groupIdx,
-                    'masterReleaseMethod',
-                    value,
-                  )
-                }
-                style={{ width: '100%' }}
-              />
-            </div>
-          </div>
-          <Alert
-            type="warning"
-            showIcon
-            title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
-          />
-        </div>
+            <Input
+              value={group.masterNo}
+              onChange={(e) => onMasterChange(groupIdx, e.target.value)}
+              placeholder={`请输入主单号 (如 ${documentLabels.master}-001)`}
+              maxLength={64}
+              disabled={disabled || groupHasReleased}
+              status={masterMissing || masterDuplicate ? 'error' : undefined}
+              allowClear
+            />
+          </Form.Item>
+        </Col>
+
+        {transportMode === 'sea' && (
+          <>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="主单单证类型" style={{ marginBottom: 8 }}>
+                <Select
+                  value={group.masterDocumentType}
+                  options={SEA_MASTER_DOCUMENT_TYPE_OPTIONS}
+                  placeholder="请选择主单单证类型"
+                  disabled={disabled || groupHasReleased}
+                  onChange={(value) =>
+                    onMasterAttributeChange(
+                      groupIdx,
+                      'masterDocumentType',
+                      value,
+                    )
+                  }
+                  allowClear
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="主单签放方式" style={{ marginBottom: 8 }}>
+                <Select
+                  value={group.masterReleaseMethod}
+                  options={SEA_MASTER_RELEASE_METHOD_OPTIONS}
+                  placeholder="请选择主单签放方式"
+                  disabled={disabled || groupHasReleased}
+                  onChange={(value) =>
+                    onMasterAttributeChange(
+                      groupIdx,
+                      'masterReleaseMethod',
+                      value,
+                    )
+                  }
+                  allowClear
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+          </>
+        )}
+      </Row>
+
+      {/* 共享主单批次轻量提示 */}
+      {transportMode === 'sea' && (
+        <Alert
+          type="warning"
+          showIcon
+          title="主单属性属于共享主单批次，修改后会影响其他引用同一主单的操作票。"
+          style={{
+            padding: '4px 10px',
+            fontSize: 12,
+            borderRadius: 4,
+            marginBottom: 10,
+          }}
+        />
       )}
 
       {/* 分单列表 Sub-Table */}
       <div
         style={{
-          border: '1px solid #f0f0f0',
-          borderRadius: 4,
+          border: '1px solid #e8e8e8',
+          borderRadius: 6,
           overflow: 'hidden',
           background: '#fafafa',
         }}
@@ -308,24 +300,24 @@ export default function OrderMasterDocGroupCard({
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '6px 12px',
+            padding: '7px 12px',
             background: '#fafafa',
             borderBottom: '1px solid #f0f0f0',
             fontSize: 12,
-            fontWeight: 500,
+            fontWeight: 600,
             color: '#595959',
           }}
         >
           <div
-            style={{ width: 28, textAlign: 'center', color: '#8c8c8c' }}
+            style={{ width: 36, textAlign: 'center', color: '#8c8c8c' }}
           >
             #
           </div>
           <div
             style={{
-              flex: '1 1 180px',
-              minWidth: 140,
-              paddingInline: 6,
+              flex: '1 1 200px',
+              minWidth: 160,
+              paddingInline: 4,
             }}
           >
             <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
@@ -333,27 +325,27 @@ export default function OrderMasterDocGroupCard({
           </div>
           <div
             style={{
-              flex: '0 1 180px',
-              minWidth: 140,
-              paddingInline: 6,
+              width: 180,
+              flexShrink: 0,
+              paddingInline: 4,
             }}
           >
             分单签放方式
           </div>
           <div
             style={{
-              flex: '2 1 240px',
-              minWidth: 160,
-              paddingInline: 6,
+              flex: '1.5 1 220px',
+              minWidth: 180,
+              paddingInline: 4,
             }}
           >
             分单备注
           </div>
-          <div style={{ width: 44, textAlign: 'center' }}>操作</div>
+          <div style={{ width: 44, textAlign: 'center', flexShrink: 0 }}>操作</div>
         </div>
 
         {/* 列表内容 */}
-        <div style={{ background: '#ffffff', padding: '6px 12px' }}>
+        <div style={{ background: '#ffffff' }}>
           {group.houses.map((house, houseIdx) => {
             const isOnlyOne = group.houses.length === 1 && totalGroups === 1;
             const isReleased =
@@ -395,26 +387,31 @@ export default function OrderMasterDocGroupCard({
                 key={house.key}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  paddingBlock: 4,
-                  gap: 10,
+                  alignItems: 'flex-start',
+                  padding: '6px 12px',
+                  gap: 8,
+                  background: '#ffffff',
+                  borderBottom:
+                    houseIdx < group.houses.length - 1
+                      ? '1px solid #f0f0f0'
+                      : 'none',
                 }}
               >
                 <div
                   style={{
-                    width: 28,
+                    width: 36,
                     textAlign: 'center',
                     fontSize: 12,
                     color: '#8c8c8c',
+                    lineHeight: '32px',
                     fontWeight: 500,
                   }}
                 >
                   {houseIdx + 1}
                 </div>
 
-                <div style={{ flex: '1 1 180px', minWidth: 140 }}>
+                <div style={{ flex: '1 1 200px', minWidth: 160 }}>
                   <Input
-                    size="small"
                     value={house.houseNo}
                     onChange={(e) =>
                       onHouseFieldChange(
@@ -430,6 +427,7 @@ export default function OrderMasterDocGroupCard({
                     status={
                       houseMissing || isDuplicate ? 'error' : undefined
                     }
+                    allowClear
                   />
                   {(houseMissing || isDuplicate) && (
                     <div
@@ -444,9 +442,8 @@ export default function OrderMasterDocGroupCard({
                   )}
                 </div>
 
-                <div style={{ flex: '0 1 180px', minWidth: 140 }}>
+                <div style={{ width: 180, flexShrink: 0 }}>
                   <AutoComplete
-                    size="small"
                     value={house.releaseType}
                     options={releaseTypeOptions}
                     onChange={(val) =>
@@ -481,9 +478,8 @@ export default function OrderMasterDocGroupCard({
                   />
                 </div>
 
-                <div style={{ flex: '2 1 240px', minWidth: 160 }}>
+                <div style={{ flex: '1.5 1 220px', minWidth: 180 }}>
                   <Input
-                    size="small"
                     value={house.note}
                     onChange={(e) =>
                       onHouseFieldChange(
@@ -500,7 +496,14 @@ export default function OrderMasterDocGroupCard({
                   />
                 </div>
 
-                <div style={{ width: 44, textAlign: 'center' }}>
+                <div
+                  style={{
+                    width: 44,
+                    textAlign: 'center',
+                    flexShrink: 0,
+                    lineHeight: '32px',
+                  }}
+                >
                   {!disabled && (
                     <Tooltip
                       title={
@@ -542,9 +545,9 @@ export default function OrderMasterDocGroupCard({
         {!disabled && (
           <div
             style={{
-              padding: '6px 12px 8px',
-              background: '#ffffff',
-              borderTop: '1px dashed #f0f0f0',
+              padding: '6px 12px',
+              background: '#fafafa',
+              borderTop: '1px dashed #e8e8e8',
             }}
           >
             <Button
