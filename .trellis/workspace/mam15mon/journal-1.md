@@ -290,3 +290,26 @@
 ### Next Steps
 
 - 用户刷新或重启前端开发服务后验证海运出口新建订单不再误报 BOOKING 缺失
+
+
+## Session 11: 完成海运出口共享主单基础
+<!-- trellis-session: v=2 fp=47f90d19122ac5b9 -->
+
+**Date**: 2026-09-02
+**Task**: 完成海运出口共享主单基础
+**Package**: server
+**Branch**: `main`
+
+### Summary
+
+用 agy 实施并经两轮独立 trellis-check 收敛阶段 1：建立共享 MBL、运输执行与当前/历史成员关系，海运订单首次保存强制主单号和签发主体，候选显式确认并重验版本/航程；旧单证入口收敛为可选多 HBL，补事务、下游事实门禁、迁移非空保护、真实 PostgreSQL 并发测试和前端交互。开发库中的测试残留已按授权清空，完整迁移与管理员初始化成功。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `294eb6ef` | feat: 建立海运出口共享主单基础 |
+
+### Status
+
+[OK] **Completed**
