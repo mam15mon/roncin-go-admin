@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/09-02-builtin-shipping-service-types/research/root-cause.md","reason":"提供当前开发库、生成契约与前端错误比较的完整根因证据"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"必须消费生成枚举并禁止手改生成文件或用 any/字符串兜底"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"约束最小修改范围和前端验证命令"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 Proto/OpenAPI 到前端过滤的跨层数据格式"}

@@ -1,19 +1,60 @@
-# 修复内置海运服务类型初始化
+# 修复内置海运服务类型读取
 
 ## Goal
 
-确保 BOOKING 等订单模板硬依赖的标准海运服务类型由应用正式初始化流程自动、幂等提供，无需用户手工 seed。
+修复海运出口订单页面错误过滤应用内置服务类型的问题，使 `BOOKING` 等由正式初始化
+流程自动提供的系统主数据能够被新建、详情和列表相关订单界面正常读取，用户无需手工
+执行 seed 或创建服务类型。
+
+## Background
+
+- `server/internal/biz/masterdata.go` 的 `DefaultOrderOptions()` 已将 19 个海运服务
+  类型定义为 `source=system`，其中包含 `BOOKING / 订舱`。
+- 正式 `migrate`、全新 `bootstrap-admin` 和管理端新建组织都会自动创建或幂等补齐
+  默认订单主数据；当前开发库的三个组织均存在启用的 `BOOKING`，因此本次报错不是
+  数据缺失或用户漏跑 seed。
+- `MasterDataItem.kind` 的 OpenAPI 生成类型是数字；`BOOKING` 所属
+  `MASTER_DATA_KIND_SERVICE_TYPE` 的生成枚举值为 `8`。
+- `web/src/pages/orders/common.ts` 当前把 API 数字种类与字符串枚举名比较，导致服务
+  类型、货物类别、箱型和地区候选全部可能被错误过滤。随后
+  `requireSeaServiceTypeOptions` 把这个前端契约错误误报为“缺少海运服务类型主数据”。
+- 现有单测使用字符串枚举名构造输入，没有覆盖生成客户端声明的真实数字响应，因此
+  未能阻止回归。
 
 ## Requirements
 
-- TBD
+- 订单前端必须以 `web/src/enums.generated.ts` 的 `MasterDataKind` 数字常量作为主数据
+  类型的唯一契约，不再维护字符串形式的第二套枚举。
+- `fetchOrderMasterData`、新建订单、订单详情和列表资源加载中使用的服务类型、货物
+  类别、箱型及地区过滤都必须正确识别真实 API 数字响应。
+- 海运出口订单在内置 19 个服务类型完整存在时必须正常加载，并保留服务类型的业务
+  `code`，使页面可以按 `BOOKING` 等代码稳定排序和匹配。
+- 如果后端真实缺少某个订单模板硬依赖的内置服务类型，页面仍应明确报出缺少的名称
+  与代码；不得增加静默回退、前端伪造选项或运行时自动写库。
+- 测试必须使用真实生成枚举数字构造主数据响应，覆盖正确识别和真实缺项报错；不得
+  继续用字符串假数据掩盖后端与前端契约不一致。
+- 不修改生成文件，不修改既有后端自动初始化逻辑，不要求用户执行额外 seed。
 
 ## Acceptance Criteria
 
-- [ ] TBD
+- [ ] `BOOKING` 等 19 个 `kind=8`、启用的服务类型能全部进入海运出口订单候选，点击
+  “新建订单”不再出现错误的“缺少海运服务类型主数据”提示。
+- [ ] 服务类型候选继续按内置业务代码匹配，后端名称被管理员调整时仍展示后端名称，
+  不以硬编码中文覆盖。
+- [ ] `MasterDataKind` 的服务类型、货物类别、箱型和地区数字值均能被订单公共加载逻辑
+  正确识别。
+- [ ] 删除真实数字响应中的 `BOOKING` 后，缺项校验仍精确报告
+  `缺少海运服务类型主数据：订舱（BOOKING）`。
+- [ ] 针对订单公共主数据过滤的前端测试通过，并能在恢复字符串比较错误时失败。
+- [ ] `pnpm --dir web tsc`、`pnpm --dir web biome:lint`、相关 Vitest 与
+  `git diff --check` 全部通过。
+- [ ] 独立 `trellis-check` 无 P0/P1，且确认没有修改数据库 seed、迁移、后端业务逻辑
+  或生成文件。
 
-## Notes
+## Out of Scope
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 新增、删除或改名 19 个应用内置海运服务类型。
+- 改变系统主数据允许管理员调整名称、启停状态的现有规则。
+- 修改 `migrate`、`bootstrap-admin`、组织创建或数据库迁移文件。
+- 为字符串枚举名、旧接口格式或缺失主数据增加兼容回退。
+- 扩展尚未启用的海运进口、空运进口或空运出口订单模板。

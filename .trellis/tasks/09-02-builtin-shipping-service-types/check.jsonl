@@ -1,0 +1,4 @@
+{"file":".trellis/tasks/09-02-builtin-shipping-service-types/prd.md","reason":"逐项核对可观察验收标准、范围和无回退约束"}
+{"file":".trellis/tasks/09-02-builtin-shipping-service-types/research/root-cause.md","reason":"复核缺陷根因、真实数字契约和最小修复边界"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"检查生成枚举复用、生成文件禁改和严格类型"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"检查 lint、类型检查、测试与无关改动"}
