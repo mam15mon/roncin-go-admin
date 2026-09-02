@@ -18,7 +18,13 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "09-02-sea-export-mbl-foundation",
+    "09-02-sea-export-document-content",
+    "09-02-sea-export-cargo-allocation",
+    "09-02-sea-export-split-reassignment",
+    "09-02-sea-export-finance-allocation"
+  ],
   "parent": null,
   "relatedFiles": [],
   "notes": "",
